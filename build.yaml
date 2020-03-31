@@ -1,0 +1,32 @@
+targets:
+  $default:
+    builders:
+      flutter_data|data_adapter_builder:
+        generate_for:
+        - test/unit/models/*.dart
+        - test/integration/models.dart
+
+builders:
+  data_adapter_builder:
+    import: "package:flutter_data/builder.dart"
+    builder_factories: ["repositoryBuilder"]
+    build_extensions: {".dart": [".data.g.part"]}
+    auto_apply: dependents
+    build_to: cache
+    applies_builders: ["source_gen|combining_builder"]
+
+  data_extension_intermediate_builder:
+    import: "package:flutter_data/builder.dart"
+    builder_factories: ["dataExtensionIntermediateBuilder"]
+    build_extensions: {'.dart': ['.info']}
+    auto_apply: dependents
+    build_to: cache
+    runs_before: ["data_extension_builder"]
+
+  data_extension_builder:
+    import: "package:flutter_data/builder.dart"
+    builder_factories: ["dataExtensionBuilder"]
+    build_extensions: {'.info': ['.dart']}
+    auto_apply: dependents
+    required_inputs: [".info"]
+    build_to: source
