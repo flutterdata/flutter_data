@@ -345,8 +345,10 @@ extension DataManagerX on DataManager {
     injector.register<Repository<${c['name']}>>(\$${c['name']}Repository(${c['name'].toLowerCase()}LocalAdapter));
 ''').join('\n') +
         '''
-  // ignore: unnecessary_lambdas
-  also(<R>(R obj) => injector.register<R>(obj));
+  if (also != null) {
+    // ignore: unnecessary_lambdas
+    also(<R>(R obj) => injector.register<R>(obj));
+  }
   
   return manager;
 
