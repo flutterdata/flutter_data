@@ -27,7 +27,8 @@ void main() async {
     expect(DataSupportExtension(family).dataId.manager, equals(manager));
 
     // (2) it wires up the relationship (setOwnerInRelationship)
-    expect(model.family.toOne.linkage, DataId<Family>("55", manager));
+    expect(model.family.toOne.linkage.toJson(),
+        DataId<Family>("55", manager).identifierObject.toJson());
 
     // (3) it saves the model locally
     expect(model, repo.localAdapter.box.get(model.key));
@@ -55,10 +56,15 @@ void main() async {
     expect(obj.id, "1");
     expect(obj.attributes, {'surname': "Smith"});
     var houseRel = obj.relationships['house'] as ToOne;
-    expect(houseRel.linkage, BelongsTo<House>(house, manager).toOne.linkage);
+    expect(houseRel.linkage.toJson(),
+        BelongsTo<House>(house, manager).toOne.linkage.toJson());
     var personsRel = obj.relationships['persons'] as ToMany;
     expect(
-        personsRel.linkage, HasMany<Person>([person], manager).toMany.linkage);
+        personsRel.linkage.map((l) => l.toJson()),
+        HasMany<Person>([person], manager)
+            .toMany
+            .linkage
+            .map((l) => l.toJson()));
   });
 
   test('internalDeserialize with relationships', () {
@@ -77,8 +83,9 @@ void main() async {
     var obj = ResourceObject('families', "1", attributes: {
       'surname': "Smith"
     }, relationships: {
-      'house': ToOne(DataId<House>("1", manager, key: 'h1')),
-      'persons': ToMany([DataId<Person>("1", manager, key: 'p1')])
+      'house': ToOne(DataId<House>("1", manager, key: 'h1').identifierObject),
+      'persons':
+          ToMany([DataId<Person>("1", manager, key: 'p1').identifierObject])
     });
 
     var family = repo.internalDeserialize(obj);
@@ -109,6 +116,12 @@ void main() async {
     expect(family.house.dataId, DataId<House>("31", repo.localAdapter.manager));
     expect(family.persons.dataIds.first,
         DataId<Person>("1", repo.localAdapter.manager));
+  });
+
+  test('create and save locally', () async {
+    var repo = injection.locator<Repository<House>>();
+    var house = House(address: "12 Lincoln Rd").createFrom(repo);
+    expect(house, await house.save(remote: false));
   });
 
   test('assertRel', () {

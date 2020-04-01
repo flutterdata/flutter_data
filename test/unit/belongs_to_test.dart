@@ -37,7 +37,7 @@ void main() async {
         ResourceObject('people', '2', attributes: {'name': "r2", 'age': 27});
 
     var rel = BelongsTo<Person>.fromToOne(
-        ToOne(DataId<Person>('1', manager)), manager,
+        ToOne(DataId<Person>('1', manager).identifierObject), manager,
         included: [r1, r2]);
 
     expect(rel.dataId, DataId<Person>("1", manager));
@@ -77,8 +77,9 @@ void main() async {
     var family = Family(
       id: "1",
       surname: "Jones",
-      persons: HasMany<Person>.fromToMany(ToMany(personDataIds), manager),
-      house: BelongsTo.fromToOne(ToOne(houseDataId), manager),
+      persons: HasMany<Person>.fromToMany(
+          ToMany(personDataIds.map((d) => d.identifierObject)), manager),
+      house: BelongsTo.fromToOne(ToOne(houseDataId.identifierObject), manager),
     ).createFrom(repo);
 
     // (2) then load persons

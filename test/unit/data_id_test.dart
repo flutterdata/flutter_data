@@ -7,16 +7,21 @@ import 'setup.dart';
 
 void main() async {
   test('no id', () {
-    expect(() {
-      final manager = FakeDataManager(null);
-      DataId(null, manager);
-    }, throwsA(isA<AssertionError>()));
+    final manager = FakeDataManager(null);
+    expect(DataId(null, manager).id, isNull);
   });
 
   test('produces a new key', () {
     final manager = FakeDataManager(null);
     var dataId = DataId<Person>('1', manager);
     expect(dataId.key, startsWith('people#'));
+  });
+
+  test('reuses a provided key', () {
+    final manager = FakeDataManager(null);
+    var dataId = DataId<Person>('29', manager, key: 'people#78a92b');
+    expect(dataId.key, 'people#78a92b');
+    expect(dataId.id, '29');
   });
 
   test('model is set only if manager is null', () {

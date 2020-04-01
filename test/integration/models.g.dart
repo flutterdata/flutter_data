@@ -171,7 +171,7 @@ class _$CompanyRepository extends Repository<Company> {
   @override
   Map<String, dynamic> get relationshipMetadata => {
         "HasMany": {"models": "models"},
-        "BelongsTo": {"headquarters": "cities"}
+        "BelongsTo": {}
       };
 
   @override
@@ -180,11 +180,6 @@ class _$CompanyRepository extends Repository<Company> {
 
     map['models'] = {
       'HasMany': HasMany<Model>.fromToMany(map['models'], localAdapter.manager,
-          included: included)
-    };
-    map['headquarters'] = {
-      'BelongsTo': BelongsTo<City>.fromToOne(
-          map['headquarters'], localAdapter.manager,
           included: included)
     };
 
@@ -200,7 +195,6 @@ class _$CompanyRepository extends Repository<Company> {
   internalSerialize(Company model) {
     var relationships = {
       'models': model.models?.toMany,
-      'headquarters': model.headquarters?.toOne,
     };
 
     final map = model.toJson();
@@ -208,7 +202,6 @@ class _$CompanyRepository extends Repository<Company> {
 
     map.remove('id');
     map.remove('models');
-    map.remove('headquarters');
 
     return DataResourceObject(
       dataId.type,
@@ -222,8 +215,6 @@ class _$CompanyRepository extends Repository<Company> {
   void setOwnerInRelationships(DataId<Company> owner, Company model) {
     assertRel(model.models, 'models', 'HasMany<Model>');
     model.models.owner = owner;
-    assertRel(model.headquarters, 'headquarters', 'BelongsTo<City>');
-    model.headquarters.owner = owner;
   }
 
   @override
@@ -231,10 +222,6 @@ class _$CompanyRepository extends Repository<Company> {
     if (owner is DataId<Model>) {
       assertRel(model.models, 'models', 'HasMany<Model>');
       model.models.owner = owner;
-    }
-    if (owner is DataId<City>) {
-      assertRel(model.headquarters, 'headquarters', 'BelongsTo<City>');
-      model.headquarters.owner = owner;
     }
   }
 }
@@ -254,9 +241,6 @@ class $CompanyLocalAdapter extends LocalAdapter<Company> {
     map['models'] = {
       'HasMany': HasMany<Model>.fromKeys(map['models'], manager)
     };
-    map['headquarters'] = {
-      'BelongsTo': BelongsTo<City>.fromKey(map['headquarters'], manager)
-    };
 
     return Company.fromJson(map);
   }
@@ -265,7 +249,7 @@ class $CompanyLocalAdapter extends LocalAdapter<Company> {
   Map<String, dynamic> internalLocalSerialize(Company model) {
     var map = model.toJson();
     map['models'] = model.models?.keys;
-    map['headquarters'] = model.headquarters?.key;
+
     return map;
   }
 }
@@ -310,9 +294,6 @@ _$_Company _$_$_CompanyFromJson(Map<String, dynamic> json) {
     updatedAt: json['updatedAt'] == null
         ? null
         : DateTime.parse(json['updatedAt'] as String),
-    headquarters: json['headquarters'] == null
-        ? null
-        : BelongsTo.fromJson(json['headquarters'] as Map<String, dynamic>),
     models: json['models'] == null
         ? null
         : HasMany.fromJson(json['models'] as Map<String, dynamic>),
@@ -325,6 +306,5 @@ Map<String, dynamic> _$_$_CompanyToJson(_$_Company instance) =>
       'name': instance.name,
       'nasdaq': instance.nasdaq,
       'updatedAt': instance.updatedAt?.toIso8601String(),
-      'headquarters': instance.headquarters,
       'models': instance.models,
     };

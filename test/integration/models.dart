@@ -40,7 +40,6 @@ abstract class Company with DataSupport<Company> implements _$Company {
     String name,
     String nasdaq,
     DateTime updatedAt,
-    BelongsTo<City> headquarters,
     HasMany<Model> models,
   }) = _Company;
 

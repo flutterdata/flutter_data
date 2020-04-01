@@ -62,6 +62,16 @@ void main() async {
     expect(m2.company.value, c);
   });
 
+  test('save without id', () async {
+    var repo = injection.locator<Repository<Company>>();
+    var company = await Company(name: "New Co", models: HasMany())
+        .createFrom(repo)
+        .save();
+    expect(company.id, isNotNull);
+    var c2 = await repo.findOne(company.id);
+    expect(c2, company);
+  });
+
   tearDownAll(() async {
     await server.close();
     await injection.locator<Repository<Model>>().dispose();

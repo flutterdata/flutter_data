@@ -28,7 +28,7 @@ class BelongsTo<E extends DataSupport<E>> extends Relationship<E> {
     );
   }
 
-  factory BelongsTo.fromKey(key, DataManager manager) =>
+  factory BelongsTo.fromKey(dynamic key, DataManager manager) =>
       BelongsTo._(DataId.byKey<E>(key.toString(), manager), manager);
 
   factory BelongsTo.fromJson(Map<String, dynamic> map) {
@@ -58,7 +58,7 @@ class BelongsTo<E extends DataSupport<E>> extends Relationship<E> {
 
   String get key => dataId?.key;
 
-  ToOne get toOne => ToOne(dataId);
+  ToOne get toOne => dataId != null ? ToOne(dataId.identifierObject) : null;
 
   @override
   Map<String, dynamic> toJson() => toOne?.linkage?.toJson();

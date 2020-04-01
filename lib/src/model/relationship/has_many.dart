@@ -85,7 +85,7 @@ class HasMany<E extends DataSupport<E>> extends Relationship<E>
 
   List<String> get keys => dataIds.map((d) => d.key).toList();
 
-  ToMany get toMany => ToMany(dataIds);
+  ToMany get toMany => ToMany(dataIds.map((d) => d.identifierObject));
 
   @override
   Map<String, dynamic> toJson() => toMany.toJson();

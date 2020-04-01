@@ -237,8 +237,13 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
     final jsonapiMap = Document(ResourceData(resourceObject)).toJson();
     final body = json.encode(serialize(jsonapiMap));
 
-    final uri = QueryParameters(params)
-        .addToUri(urlDesign.resource(type, model.id?.toString()));
+    final queryParams = QueryParameters(params);
+    Uri uri;
+    if (model.id != null) {
+      uri = queryParams.addToUri(urlDesign.resource(type, model.id));
+    } else {
+      uri = queryParams.addToUri(urlDesign.collection(type));
+    }
 
     final response = await withHttpClient(
       (client) {

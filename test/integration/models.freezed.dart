@@ -306,14 +306,12 @@ class _$CompanyTearOff {
       String name,
       String nasdaq,
       DateTime updatedAt,
-      BelongsTo<City> headquarters,
       HasMany<Model> models}) {
     return _Company(
       id: id,
       name: name,
       nasdaq: nasdaq,
       updatedAt: updatedAt,
-      headquarters: headquarters,
       models: models,
     );
   }
@@ -327,7 +325,6 @@ mixin _$Company {
   String get name;
   String get nasdaq;
   DateTime get updatedAt;
-  BelongsTo<City> get headquarters;
   HasMany<Model> get models;
 
   Map<String, dynamic> toJson();
@@ -342,7 +339,6 @@ abstract class $CompanyCopyWith<$Res> {
       String name,
       String nasdaq,
       DateTime updatedAt,
-      BelongsTo<City> headquarters,
       HasMany<Model> models});
 }
 
@@ -359,7 +355,6 @@ class _$CompanyCopyWithImpl<$Res> implements $CompanyCopyWith<$Res> {
     Object name = freezed,
     Object nasdaq = freezed,
     Object updatedAt = freezed,
-    Object headquarters = freezed,
     Object models = freezed,
   }) {
     return _then(_value.copyWith(
@@ -368,9 +363,6 @@ class _$CompanyCopyWithImpl<$Res> implements $CompanyCopyWith<$Res> {
       nasdaq: nasdaq == freezed ? _value.nasdaq : nasdaq as String,
       updatedAt:
           updatedAt == freezed ? _value.updatedAt : updatedAt as DateTime,
-      headquarters: headquarters == freezed
-          ? _value.headquarters
-          : headquarters as BelongsTo<City>,
       models: models == freezed ? _value.models : models as HasMany<Model>,
     ));
   }
@@ -385,7 +377,6 @@ abstract class _$CompanyCopyWith<$Res> implements $CompanyCopyWith<$Res> {
       String name,
       String nasdaq,
       DateTime updatedAt,
-      BelongsTo<City> headquarters,
       HasMany<Model> models});
 }
 
@@ -403,7 +394,6 @@ class __$CompanyCopyWithImpl<$Res> extends _$CompanyCopyWithImpl<$Res>
     Object name = freezed,
     Object nasdaq = freezed,
     Object updatedAt = freezed,
-    Object headquarters = freezed,
     Object models = freezed,
   }) {
     return _then(_Company(
@@ -412,9 +402,6 @@ class __$CompanyCopyWithImpl<$Res> extends _$CompanyCopyWithImpl<$Res>
       nasdaq: nasdaq == freezed ? _value.nasdaq : nasdaq as String,
       updatedAt:
           updatedAt == freezed ? _value.updatedAt : updatedAt as DateTime,
-      headquarters: headquarters == freezed
-          ? _value.headquarters
-          : headquarters as BelongsTo<City>,
       models: models == freezed ? _value.models : models as HasMany<Model>,
     ));
   }
@@ -422,13 +409,7 @@ class __$CompanyCopyWithImpl<$Res> extends _$CompanyCopyWithImpl<$Res>
 
 @JsonSerializable()
 class _$_Company extends _Company {
-  _$_Company(
-      {this.id,
-      this.name,
-      this.nasdaq,
-      this.updatedAt,
-      this.headquarters,
-      this.models})
+  _$_Company({this.id, this.name, this.nasdaq, this.updatedAt, this.models})
       : super._();
 
   factory _$_Company.fromJson(Map<String, dynamic> json) =>
@@ -443,13 +424,11 @@ class _$_Company extends _Company {
   @override
   final DateTime updatedAt;
   @override
-  final BelongsTo<City> headquarters;
-  @override
   final HasMany<Model> models;
 
   @override
   String toString() {
-    return 'Company(id: $id, name: $name, nasdaq: $nasdaq, updatedAt: $updatedAt, headquarters: $headquarters, models: $models)';
+    return 'Company(id: $id, name: $name, nasdaq: $nasdaq, updatedAt: $updatedAt, models: $models)';
   }
 
   @override
@@ -465,9 +444,6 @@ class _$_Company extends _Company {
             (identical(other.updatedAt, updatedAt) ||
                 const DeepCollectionEquality()
                     .equals(other.updatedAt, updatedAt)) &&
-            (identical(other.headquarters, headquarters) ||
-                const DeepCollectionEquality()
-                    .equals(other.headquarters, headquarters)) &&
             (identical(other.models, models) ||
                 const DeepCollectionEquality().equals(other.models, models)));
   }
@@ -479,7 +455,6 @@ class _$_Company extends _Company {
       const DeepCollectionEquality().hash(name) ^
       const DeepCollectionEquality().hash(nasdaq) ^
       const DeepCollectionEquality().hash(updatedAt) ^
-      const DeepCollectionEquality().hash(headquarters) ^
       const DeepCollectionEquality().hash(models);
 
   @override
@@ -499,7 +474,6 @@ abstract class _Company extends Company {
       String name,
       String nasdaq,
       DateTime updatedAt,
-      BelongsTo<City> headquarters,
       HasMany<Model> models}) = _$_Company;
 
   factory _Company.fromJson(Map<String, dynamic> json) = _$_Company.fromJson;
@@ -512,8 +486,6 @@ abstract class _Company extends Company {
   String get nasdaq;
   @override
   DateTime get updatedAt;
-  @override
-  BelongsTo<City> get headquarters;
   @override
   HasMany<Model> get models;
   @override

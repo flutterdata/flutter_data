@@ -3,16 +3,17 @@ part of flutter_data;
 final _uuid = Uuid();
 
 @optionalTypeArgs
-class DataId<T> extends IdentifierObject {
+class DataId<T> {
   final DataManager manager;
+  String id;
+  final String type;
   // can temporarily hold a model
   // (useful when DataManager is not yet available)
   final T model;
 
-  DataId(String id, this.manager, {String key, String type, T model})
-      : assert(id != null),
-        this.model = (manager == null ? model : null),
-        super(getType<T>(type), id.toString()) {
+  DataId(this.id, this.manager, {String key, String type, T model})
+      : type = getType<T>(type),
+        this.model = (manager == null ? model : null) {
     if (key != null) {
       this.key = key;
     }
@@ -53,6 +54,8 @@ class DataId<T> extends IdentifierObject {
     final list = byKeys<E>([key], manager);
     return list.isNotEmpty ? list.first : null;
   }
+
+  IdentifierObject get identifierObject => IdentifierObject(type, id);
 
   // identity functions
 
