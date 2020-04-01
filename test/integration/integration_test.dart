@@ -72,6 +72,12 @@ void main() async {
     expect(c2, company);
   });
 
+  test('fetch with error', () async {
+    expect(() async {
+      await injection.locator<Repository<Company>>().findOne('2332');
+    }, throwsA(isA<DataException>()));
+  });
+
   tearDownAll(() async {
     await server.close();
     await injection.locator<Repository<Model>>().dispose();
