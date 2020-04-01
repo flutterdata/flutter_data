@@ -239,7 +239,7 @@ class _$CompanyRepository extends Repository<Company> {
   }
 }
 
-class $CompanyRepository extends _$CompanyRepository {
+class $CompanyRepository extends _$CompanyRepository with TestMixin<Company> {
   $CompanyRepository(LocalAdapter<Company> adapter) : super(adapter);
 }
 
