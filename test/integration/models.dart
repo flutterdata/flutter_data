@@ -32,7 +32,7 @@ abstract class City with DataSupport<City> implements _$City {
 }
 
 @freezed
-@DataRepository()
+@DataRepository([TestMixin])
 abstract class Company with DataSupport<Company> implements _$Company {
   Company._();
   factory Company({
@@ -57,4 +57,3 @@ mixin TestMixin<T extends DataSupport<T>> on RemoteAdapter<T> {
 
 class ModelTestRepository = $ModelRepository with TestMixin;
 class CityTestRepository = $CityRepository with TestMixin;
-class CompanyTestRepository = $CompanyRepository with TestMixin;

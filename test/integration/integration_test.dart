@@ -22,8 +22,9 @@ void main() async {
     final cityLocalAdapter = $CityLocalAdapter(FakeBox<City>(), manager);
     final modelLocalAdapter = $ModelLocalAdapter(FakeBox<Model>(), manager);
 
-    injection.register<Repository<Company>>(
-        CompanyTestRepository(companyLocalAdapter));
+    // we use $CompanyRepository as it already has the TestMixin baked in
+    injection
+        .register<Repository<Company>>($CompanyRepository(companyLocalAdapter));
     injection.register<Repository<City>>(CityTestRepository(cityLocalAdapter));
     injection
         .register<Repository<Model>>(ModelTestRepository(modelLocalAdapter));
