@@ -29,7 +29,7 @@ abstract class DataSupport<T extends DataSupport<T>> {
 
   _assertRepo(String method) {
     assert(
-      _manager != null && _repository != null,
+      _repository != null,
       '''\n
 Tried to call $method but this instance of $T is not initialized.
 
