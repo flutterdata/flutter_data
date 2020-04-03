@@ -24,7 +24,7 @@ dependencies:
   data_state:
     git:
       url: git://github.com/flutterdata/data_state.git
-      ref: 0.2.0
+      ref: 0.2.1
   debounce_throttle: ^1.1.0
   rxdart: ^0.23.1
 

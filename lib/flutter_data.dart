@@ -38,3 +38,5 @@ part 'src/repository/repository.dart';
 
 part 'src/util/extensions.dart';
 part 'src/util/service_locator.dart';
+
+DataManager _autoModelInitDataManager;

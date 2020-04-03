@@ -10,20 +10,19 @@ part 'family.g.dart';
 
 @JsonSerializable()
 @DataRepository()
-class Family with DataSupport<Family> {
+class Family extends DataSupportInit<Family> {
   @override
   final String id;
   final String surname;
-  final BelongsTo<House> house;
-  final HasMany<Person> persons; // try people for inverse
+  final BelongsTo<House> house; // immutable w/ default
+  HasMany<Person> persons; // mutable and w/o default
 
   Family({
     this.id,
     @required this.surname,
     BelongsTo<House> house,
-    HasMany<Person> persons,
-  })  : house = house ?? BelongsTo<House>(),
-        persons = persons ?? HasMany<Person>();
+    this.persons,
+  }) : house = house ?? BelongsTo<House>();
 
   factory Family.fromJson(Map<String, dynamic> json) => _$FamilyFromJson(json);
   Map<String, dynamic> toJson() => _$FamilyToJson(this);

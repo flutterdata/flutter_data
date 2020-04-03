@@ -64,12 +64,12 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
 
     final deserializeHasMany = hasManys.map((t) {
       final name = t.first, localType = t.last;
-      return '''map['$name'] = { 'HasMany': HasMany<$localType>.fromToMany(map['$name'], localAdapter.manager, included: included) };''';
+      return '''map['$name'] = { 'HasMany': HasMany<$localType>.fromToMany(map['$name'], manager, included: included) };''';
     }).join('\n');
 
     final deserializeBelongsTo = belongsTos.map((t) {
       final name = t.first, localType = t.last;
-      return '''map['$name'] = { 'BelongsTo': BelongsTo<$localType>.fromToOne(map['$name'], localAdapter.manager, included: included) };''';
+      return '''map['$name'] = { 'BelongsTo': BelongsTo<$localType>.fromToOne(map['$name'], manager, included: included) };''';
     }).join('\n');
 
     final serializeHasMany = hasManys.map((t) {
@@ -112,12 +112,12 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
 
     final setOwnerInRelationships = [...hasManys, ...belongsTos].map((t) {
       final name = t.first, localType = t.last;
-      return '''assertRel(model.$name, '$name', '${t[2]}<$localType>');\nmodel.$name.owner = owner;''';
+      return '''model.$name?.owner = owner;''';
     }).join('\n');
 
     final setOwnerInModel = [...hasManys, ...belongsTos].map((t) {
       final name = t.first, localType = t.last;
-      return '''if (owner is DataId<$localType>) { assertRel(model.$name, '$name', '${t[2]}<$localType>');\nmodel.$name.owner = owner; }''';
+      return '''if (owner is DataId<$localType>) { model.$name?.owner = owner; }''';
     }).join('\n');
 
     // mixins
@@ -150,7 +150,7 @@ class _\$${type}Repository extends Repository<$type> {
     $deserializeHasMany
     $deserializeBelongsTo
     
-    var dataId = DataId<$type>(obj.id, localAdapter.manager, key: withKey);
+    var dataId = manager.dataId<$type>(obj.id, key: withKey);
     return $type.fromJson({
       ...{'id': dataId.id},
       ...obj.attributes,
@@ -166,7 +166,7 @@ class _\$${type}Repository extends Repository<$type> {
     };
 
     final map = model.toJson();
-    final dataId = DataId<$type>(model.id, localAdapter.manager);
+    final dataId = manager.dataId<$type>(model.id);
 
     map.remove('id');
     $removeRelationshipsFromAttributes
@@ -304,23 +304,22 @@ List<SingleChildWidget> get providers {
 }
 ''';
 
-      provider2 = '''
-List<SingleChildWidget> providers(Future<Directory> Function() directory, {bool clear = true}) => [
+      provider2 = '''\n
+List<SingleChildWidget> dataProviders(Future<Directory> Function() directory, {bool clear = true}) => [
   FutureProvider<DataManager>(
     create: (_) => directory().then((dir) {
-          return DataManagerX.init(dir, clear: clear);
+          return FlutterData.init(dir, clear: clear);
         })),
 ''' +
-          classes.map((c) => '''
-ProxyProvider<DataManager, Repository<${c['name']}>>(
-  lazy: false,
-  update: (_, m, __) => m?.locator<Repository<${c['name']}>>(),
-),
-''').join('\n') +
+          classes.map((c) => '''\n
+    ProxyProvider<DataManager, Repository<${c['name']}>>(
+      lazy: false,
+      update: (_, m, __) => m?.locator<Repository<${c['name']}>>(),
+    ),''').join('\n') +
           '];';
     }
 
-    String out = '''
+    String out = '''\n
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: directives_ordering
 
@@ -330,31 +329,33 @@ ${importProvider ? "import 'package:provider/provider.dart';\nimport 'package:pr
 
 $modelImports
 
-extension DataManagerX on DataManager {
+extension FlutterData on DataManager {
 
-  static Future<DataManager> init(Directory baseDir, {bool clear = true, Function(void Function<R>(R)) also}) async {
+  static Future<DataManager> init(Directory baseDir, {bool autoModelInit = true, bool clear = true, Function(void Function<R>(R)) also}) async {
     assert(baseDir != null);
-    final injector = DataServiceLocator();
 
-    final manager = await DataManager(baseDir, locator: injector.locator).init();
-    injector.register(manager);
+    final injection = DataServiceLocator();
+
+    final manager = await DataManager(autoModelInit: autoModelInit).init(baseDir, injection.locator, clear: clear);
+    injection.register(manager);
 ''' +
         classes.map((c) => '''
     final ${c['name'].toLowerCase()}LocalAdapter = await manager.initAdapter<${c['name']}>(clear, (box) => \$${c['name']}LocalAdapter(box, manager));
-    injector.register(${c['name'].toLowerCase()}LocalAdapter);
-    injector.register<Repository<${c['name']}>>(\$${c['name']}Repository(${c['name'].toLowerCase()}LocalAdapter));
+    injection.register(${c['name'].toLowerCase()}LocalAdapter);
+    injection.register<Repository<${c['name']}>>(\$${c['name']}Repository(${c['name'].toLowerCase()}LocalAdapter));
 ''').join('\n') +
-        '''
-  if (also != null) {
-    // ignore: unnecessary_lambdas
-    also(<R>(R obj) => injector.register<R>(obj));
-  }
-  
-  return manager;
+        '''\n
+    if (also != null) {
+      // ignore: unnecessary_lambdas
+      also(<R>(R obj) => injection.register<R>(obj));
+    }
 
-  }
+    return manager;
+
+}
 
   $provider
+  
 }
 
 $provider2

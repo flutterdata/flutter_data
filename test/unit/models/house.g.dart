@@ -21,12 +21,11 @@ class _$HouseRepository extends Repository<House> {
     var map = <String, dynamic>{...?obj?.relationships};
 
     map['families'] = {
-      'HasMany': HasMany<Family>.fromToMany(
-          map['families'], localAdapter.manager,
+      'HasMany': HasMany<Family>.fromToMany(map['families'], manager,
           included: included)
     };
 
-    var dataId = DataId<House>(obj.id, localAdapter.manager, key: withKey);
+    var dataId = manager.dataId<House>(obj.id, key: withKey);
     return House.fromJson({
       ...{'id': dataId.id},
       ...obj.attributes,
@@ -41,7 +40,7 @@ class _$HouseRepository extends Repository<House> {
     };
 
     final map = model.toJson();
-    final dataId = DataId<House>(model.id, localAdapter.manager);
+    final dataId = manager.dataId<House>(model.id);
 
     map.remove('id');
     map.remove('families');
@@ -56,15 +55,13 @@ class _$HouseRepository extends Repository<House> {
 
   @override
   void setOwnerInRelationships(DataId<House> owner, House model) {
-    assertRel(model.families, 'families', 'HasMany<Family>');
-    model.families.owner = owner;
+    model.families?.owner = owner;
   }
 
   @override
   void setOwnerInModel(DataId owner, House model) {
     if (owner is DataId<Family>) {
-      assertRel(model.families, 'families', 'HasMany<Family>');
-      model.families.owner = owner;
+      model.families?.owner = owner;
     }
   }
 }

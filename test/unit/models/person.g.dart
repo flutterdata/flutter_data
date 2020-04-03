@@ -21,12 +21,11 @@ class _$PersonRepository extends Repository<Person> {
     var map = <String, dynamic>{...?obj?.relationships};
 
     map['family'] = {
-      'BelongsTo': BelongsTo<Family>.fromToOne(
-          map['family'], localAdapter.manager,
+      'BelongsTo': BelongsTo<Family>.fromToOne(map['family'], manager,
           included: included)
     };
 
-    var dataId = DataId<Person>(obj.id, localAdapter.manager, key: withKey);
+    var dataId = manager.dataId<Person>(obj.id, key: withKey);
     return Person.fromJson({
       ...{'id': dataId.id},
       ...obj.attributes,
@@ -41,7 +40,7 @@ class _$PersonRepository extends Repository<Person> {
     };
 
     final map = model.toJson();
-    final dataId = DataId<Person>(model.id, localAdapter.manager);
+    final dataId = manager.dataId<Person>(model.id);
 
     map.remove('id');
     map.remove('family');
@@ -56,15 +55,13 @@ class _$PersonRepository extends Repository<Person> {
 
   @override
   void setOwnerInRelationships(DataId<Person> owner, Person model) {
-    assertRel(model.family, 'family', 'BelongsTo<Family>');
-    model.family.owner = owner;
+    model.family?.owner = owner;
   }
 
   @override
   void setOwnerInModel(DataId owner, Person model) {
     if (owner is DataId<Family>) {
-      assertRel(model.family, 'family', 'BelongsTo<Family>');
-      model.family.owner = owner;
+      model.family?.owner = owner;
     }
   }
 }

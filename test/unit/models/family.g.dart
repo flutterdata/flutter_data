@@ -21,17 +21,15 @@ class _$FamilyRepository extends Repository<Family> {
     var map = <String, dynamic>{...?obj?.relationships};
 
     map['persons'] = {
-      'HasMany': HasMany<Person>.fromToMany(
-          map['persons'], localAdapter.manager,
+      'HasMany': HasMany<Person>.fromToMany(map['persons'], manager,
           included: included)
     };
     map['house'] = {
-      'BelongsTo': BelongsTo<House>.fromToOne(
-          map['house'], localAdapter.manager,
-          included: included)
+      'BelongsTo':
+          BelongsTo<House>.fromToOne(map['house'], manager, included: included)
     };
 
-    var dataId = DataId<Family>(obj.id, localAdapter.manager, key: withKey);
+    var dataId = manager.dataId<Family>(obj.id, key: withKey);
     return Family.fromJson({
       ...{'id': dataId.id},
       ...obj.attributes,
@@ -47,7 +45,7 @@ class _$FamilyRepository extends Repository<Family> {
     };
 
     final map = model.toJson();
-    final dataId = DataId<Family>(model.id, localAdapter.manager);
+    final dataId = manager.dataId<Family>(model.id);
 
     map.remove('id');
     map.remove('persons');
@@ -63,21 +61,17 @@ class _$FamilyRepository extends Repository<Family> {
 
   @override
   void setOwnerInRelationships(DataId<Family> owner, Family model) {
-    assertRel(model.persons, 'persons', 'HasMany<Person>');
-    model.persons.owner = owner;
-    assertRel(model.house, 'house', 'BelongsTo<House>');
-    model.house.owner = owner;
+    model.persons?.owner = owner;
+    model.house?.owner = owner;
   }
 
   @override
   void setOwnerInModel(DataId owner, Family model) {
     if (owner is DataId<Person>) {
-      assertRel(model.persons, 'persons', 'HasMany<Person>');
-      model.persons.owner = owner;
+      model.persons?.owner = owner;
     }
     if (owner is DataId<House>) {
-      assertRel(model.house, 'house', 'BelongsTo<House>');
-      model.house.owner = owner;
+      model.house?.owner = owner;
     }
   }
 }

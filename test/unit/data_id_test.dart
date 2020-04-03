@@ -13,13 +13,13 @@ void main() async {
 
   test('produces a new key', () {
     final manager = FakeDataManager(null);
-    var dataId = DataId<Person>('1', manager);
+    var dataId = manager.dataId<Person>('1');
     expect(dataId.key, startsWith('people#'));
   });
 
   test('reuses a provided key', () {
     final manager = FakeDataManager(null);
-    var dataId = DataId<Person>('29', manager, key: 'people#78a92b');
+    var dataId = manager.dataId<Person>('29', key: 'people#78a92b');
     expect(dataId.key, 'people#78a92b');
     expect(dataId.id, '29');
   });
@@ -30,14 +30,14 @@ void main() async {
         DataId<Person>('1', null, model: Person(id: '1', name: "zzz", age: 7));
     expect(dataId.model, isNotNull);
 
-    var dataId2 = DataId<Person>('2', manager,
+    var dataId2 = manager.dataId<Person>('2',
         model: Person(id: '2', name: "zzz", age: 7));
     expect(dataId2.model, isNull);
   });
 
   test('reuses a key', () {
     final manager = FakeDataManager(null);
-    var dataId = DataId<Person>('1', manager, key: 'people#a5a5a5');
+    var dataId = manager.dataId<Person>('1', key: 'people#a5a5a5');
     expect(dataId.key, 'people#a5a5a5');
   });
 
@@ -58,9 +58,9 @@ void main() async {
     var list = DataId.byKeys<Person>(
         ['people#a1a1a1', 'people#b2b2b2', 'people#c3c3c3'], manager);
     expect(list, [
-      DataId<Person>('p#1', manager),
-      DataId<Person>('2', manager),
-      DataId<Person>('3', manager)
+      manager.dataId<Person>('p#1'),
+      manager.dataId<Person>('2'),
+      manager.dataId<Person>('3')
     ]);
   });
 
@@ -69,17 +69,17 @@ void main() async {
     manager.keysBox.put('families#3', 'families#c3c3c3');
 
     var dataId = DataId.byKey<Family>('families#c3c3c3', manager);
-    expect(dataId, DataId<Family>('3', manager));
-    expect(dataId, isNot(DataId<Person>('3', manager)));
+    expect(dataId, manager.dataId<Family>('3'));
+    expect(dataId, isNot(manager.dataId<Person>('3')));
   });
 
   test('equals', () {
     final manager = FakeDataManager(null);
-    expect(DataId<Person>("1", manager), DataId<Person>("1", manager));
+    expect(manager.dataId<Person>("1"), manager.dataId<Person>("1"));
   });
 
   test('not equals', () {
     final manager = FakeDataManager(null);
-    expect(DataId<Person>("1", manager), isNot(DataId<Family>("1", manager)));
+    expect(manager.dataId<Person>("1"), isNot(manager.dataId<Family>("1")));
   });
 }

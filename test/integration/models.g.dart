@@ -21,12 +21,11 @@ class _$ModelRepository extends Repository<Model> {
     var map = <String, dynamic>{...?obj?.relationships};
 
     map['company'] = {
-      'BelongsTo': BelongsTo<Company>.fromToOne(
-          map['company'], localAdapter.manager,
+      'BelongsTo': BelongsTo<Company>.fromToOne(map['company'], manager,
           included: included)
     };
 
-    var dataId = DataId<Model>(obj.id, localAdapter.manager, key: withKey);
+    var dataId = manager.dataId<Model>(obj.id, key: withKey);
     return Model.fromJson({
       ...{'id': dataId.id},
       ...obj.attributes,
@@ -41,7 +40,7 @@ class _$ModelRepository extends Repository<Model> {
     };
 
     final map = model.toJson();
-    final dataId = DataId<Model>(model.id, localAdapter.manager);
+    final dataId = manager.dataId<Model>(model.id);
 
     map.remove('id');
     map.remove('company');
@@ -56,15 +55,13 @@ class _$ModelRepository extends Repository<Model> {
 
   @override
   void setOwnerInRelationships(DataId<Model> owner, Model model) {
-    assertRel(model.company, 'company', 'BelongsTo<Company>');
-    model.company.owner = owner;
+    model.company?.owner = owner;
   }
 
   @override
   void setOwnerInModel(DataId owner, Model model) {
     if (owner is DataId<Company>) {
-      assertRel(model.company, 'company', 'BelongsTo<Company>');
-      model.company.owner = owner;
+      model.company?.owner = owner;
     }
   }
 }
@@ -109,7 +106,7 @@ class _$CityRepository extends Repository<City> {
   City internalDeserialize(obj, {withKey, included}) {
     var map = <String, dynamic>{...?obj?.relationships};
 
-    var dataId = DataId<City>(obj.id, localAdapter.manager, key: withKey);
+    var dataId = manager.dataId<City>(obj.id, key: withKey);
     return City.fromJson({
       ...{'id': dataId.id},
       ...obj.attributes,
@@ -122,7 +119,7 @@ class _$CityRepository extends Repository<City> {
     var relationships = {};
 
     final map = model.toJson();
-    final dataId = DataId<City>(model.id, localAdapter.manager);
+    final dataId = manager.dataId<City>(model.id);
 
     map.remove('id');
 
@@ -179,11 +176,11 @@ class _$CompanyRepository extends Repository<Company> {
     var map = <String, dynamic>{...?obj?.relationships};
 
     map['models'] = {
-      'HasMany': HasMany<Model>.fromToMany(map['models'], localAdapter.manager,
-          included: included)
+      'HasMany':
+          HasMany<Model>.fromToMany(map['models'], manager, included: included)
     };
 
-    var dataId = DataId<Company>(obj.id, localAdapter.manager, key: withKey);
+    var dataId = manager.dataId<Company>(obj.id, key: withKey);
     return Company.fromJson({
       ...{'id': dataId.id},
       ...obj.attributes,
@@ -198,7 +195,7 @@ class _$CompanyRepository extends Repository<Company> {
     };
 
     final map = model.toJson();
-    final dataId = DataId<Company>(model.id, localAdapter.manager);
+    final dataId = manager.dataId<Company>(model.id);
 
     map.remove('id');
     map.remove('models');
@@ -213,15 +210,13 @@ class _$CompanyRepository extends Repository<Company> {
 
   @override
   void setOwnerInRelationships(DataId<Company> owner, Company model) {
-    assertRel(model.models, 'models', 'HasMany<Model>');
-    model.models.owner = owner;
+    model.models?.owner = owner;
   }
 
   @override
   void setOwnerInModel(DataId owner, Company model) {
     if (owner is DataId<Model>) {
-      assertRel(model.models, 'models', 'HasMany<Model>');
-      model.models.owner = owner;
+      model.models?.owner = owner;
     }
   }
 }

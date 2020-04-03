@@ -13,22 +13,23 @@ void main() async {
 
   test('create', () {
     var repo = injection.locator<Repository<Person>>();
-    final manager = repo.localAdapter.manager;
+    final manager = repo.manager;
 
     var family = Family(id: "55", surname: 'Kelley');
-    var model = repo.create(
-        Person(id: '1', name: "John", age: 27, family: family.asBelongsTo));
+    var model =
+        Person(id: '1', name: "John", age: 27, family: family.asBelongsTo)
+            .init(repo);
 
     // (1) it sets the manager in both model and relationship
     // DataSupport#_manager needs to remain private
     // so that's compatible with freezed
     // but it's equivalent to checking on dataId's
-    expect(DataSupportExtension(model).dataId.manager, equals(manager));
-    expect(DataSupportExtension(family).dataId.manager, equals(manager));
+    expect(model.dataId.manager, equals(manager));
+    expect(family.dataId.manager, equals(manager));
 
     // (2) it wires up the relationship (setOwnerInRelationship)
     expect(model.family.toOne.linkage.toJson(),
-        DataId<Family>("55", manager).identifierObject.toJson());
+        manager.dataId<Family>("55").identifierObject.toJson());
 
     // (3) it saves the model locally
     expect(model, repo.localAdapter.box.get(model.key));
@@ -41,7 +42,8 @@ void main() async {
 
   test('internalSerialize with relationships', () {
     var repo = injection.locator<Repository<Family>>();
-    var manager = repo.localAdapter.manager;
+    var manager = repo.manager;
+
     var person = Person(id: '1', name: "John", age: 37);
     var house = House(id: '1', address: "123 Main St");
     var family = Family(
@@ -49,7 +51,7 @@ void main() async {
             surname: "Smith",
             house: house.asBelongsTo,
             persons: [person].asHasMany)
-        .createFrom(repo);
+        .init(repo);
 
     var obj = repo.internalSerialize(family);
     expect(obj, isA<ResourceObject>());
@@ -69,7 +71,7 @@ void main() async {
 
   test('internalDeserialize with relationships', () {
     var repo = injection.locator<Repository<Family>>();
-    var manager = repo.localAdapter.manager;
+    var manager = repo.manager;
 
     injection
         .locator<Repository<House>>()
@@ -83,9 +85,9 @@ void main() async {
     var obj = ResourceObject('families', "1", attributes: {
       'surname': "Smith"
     }, relationships: {
-      'house': ToOne(DataId<House>("1", manager, key: 'h1').identifierObject),
+      'house': ToOne(manager.dataId<House>("1", key: 'h1').identifierObject),
       'persons':
-          ToMany([DataId<Person>("1", manager, key: 'p1').identifierObject])
+          ToMany([manager.dataId<Person>("1", key: 'p1').identifierObject])
     });
 
     var family = repo.internalDeserialize(obj);
@@ -97,7 +99,7 @@ void main() async {
 
   test('set owner in relationships', () {
     var repo = injection.locator<Repository<Family>>();
-    var manager = repo.localAdapter.manager;
+
     var person = Person(id: '1', name: "John", age: 37);
     var house = House(id: '31', address: "123 Main St");
     var family = Family(
@@ -110,24 +112,16 @@ void main() async {
     expect(family.house.dataId.manager, isNull);
     expect(family.persons.dataIds.first.manager, isNull);
 
-    repo.setOwnerInRelationships(DataId<Family>("1", manager), family);
+    repo.setOwnerInRelationships(repo.manager.dataId<Family>("1"), family);
 
     // relationships are now associated to a manager
-    expect(family.house.dataId, DataId<House>("31", repo.localAdapter.manager));
-    expect(family.persons.dataIds.first,
-        DataId<Person>("1", repo.localAdapter.manager));
+    expect(family.house.dataId, repo.manager.dataId<House>("31"));
+    expect(family.persons.dataIds.first, repo.manager.dataId<Person>("1"));
   });
 
   test('create and save locally', () async {
     var repo = injection.locator<Repository<House>>();
-    var house = House(address: "12 Lincoln Rd").createFrom(repo);
+    var house = House(address: "12 Lincoln Rd").init(repo);
     expect(house, await house.save(remote: false));
-  });
-
-  test('assertRel', () {
-    var repo = injection.locator<Repository<Person>>();
-    expect(() {
-      repo.assertRel(null, 'name', 'BelongsTo');
-    }, throwsA(isA<AssertionError>()));
   });
 }

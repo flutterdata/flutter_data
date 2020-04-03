@@ -8,7 +8,7 @@ part 'models.g.dart';
 
 @freezed
 @DataRepository()
-abstract class Model with DataSupport<Model> implements _$Model {
+abstract class Model extends DataSupportInit<Model> implements _$Model {
   Model._();
   factory Model({
     String id,
@@ -21,7 +21,7 @@ abstract class Model with DataSupport<Model> implements _$Model {
 
 @freezed
 @DataRepository()
-abstract class City with DataSupport<City> implements _$City {
+abstract class City extends DataSupportInit<City> implements _$City {
   City._();
   factory City({
     String id,
@@ -33,7 +33,7 @@ abstract class City with DataSupport<City> implements _$City {
 
 @freezed
 @DataRepository([TestMixin])
-abstract class Company with DataSupport<Company> implements _$Company {
+abstract class Company extends DataSupportInit<Company> implements _$Company {
   Company._();
   factory Company({
     String id,

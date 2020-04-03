@@ -35,8 +35,9 @@ class FakeBox<T> extends Fake implements Box<T> {
 
 class FakeDataManager extends Fake implements DataManager {
   FakeDataManager(this.locator);
-  Locator locator;
-  Box<String> keysBox = FakeBox<String>();
+  final Locator locator;
+  final Box<String> keysBox = FakeBox<String>();
+  final autoModelInit = false;
 }
 
 final injection = DataServiceLocator();

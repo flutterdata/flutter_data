@@ -15,7 +15,7 @@ void main() async {
     server = await createServer(InternetAddress.loopbackIPv4, 17083);
     injection.register(HiveMock());
     final manager = FakeDataManager(injection.locator);
-    injection.register(manager);
+    injection.register<DataManager>(manager);
 
     final companyLocalAdapter =
         $CompanyLocalAdapter(FakeBox<Company>(), manager);
@@ -55,7 +55,7 @@ void main() async {
     var companies = await injection.locator<Repository<Company>>().findAll();
     var c = companies.last;
     await Model(id: '3', name: 'Elon X', company: c.asBelongsTo)
-        .createFrom(repo)
+        .init(repo)
         .save();
     var m2 = await repo.findOne('3');
     expect(m2.name, "Elon X");
@@ -64,9 +64,8 @@ void main() async {
 
   test('save without id', () async {
     var repo = injection.locator<Repository<Company>>();
-    var company = await Company(name: "New Co", models: HasMany())
-        .createFrom(repo)
-        .save();
+    var company =
+        await Company(name: "New Co", models: HasMany()).init(repo).save();
     expect(company.id, isNotNull);
     var c2 = await repo.findOne(company.id);
     expect(c2, company);

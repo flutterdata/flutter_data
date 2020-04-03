@@ -16,7 +16,7 @@ void main() async {
     var rel = BelongsTo<Person>(null, manager);
     expect(rel.dataId, isNull);
     rel = BelongsTo<Person>(Person(id: '1', name: "zzz", age: 7), manager);
-    expect(rel.dataId, DataId<Person>('1', manager));
+    expect(rel.dataId, manager.dataId<Person>('1'));
   });
 
   test('fromJson + equality', () {
@@ -37,76 +37,43 @@ void main() async {
         ResourceObject('people', '2', attributes: {'name': "r2", 'age': 27});
 
     var rel = BelongsTo<Person>.fromToOne(
-        ToOne(DataId<Person>('1', manager).identifierObject), manager,
+        ToOne(manager.dataId<Person>('1').identifierObject), manager,
         included: [r1, r2]);
 
-    expect(rel.dataId, DataId<Person>("1", manager));
+    expect(rel.dataId, manager.dataId<Person>("1"));
+    // person 1 should be saved (cause it was in included)
     expect(adapter.findOne(rel.dataId.key), isNotNull);
     expect(adapter.findOne(rel.dataId.key).dataId,
         isNotNull); // manager should be set
-    expect(adapter.findOne(DataId<Person>('2', manager).key), isNull);
+    // but person 2 shouldn't, as it wasn't referenced in any relationship
+    expect(adapter.findOne(manager.dataId<Person>('2').key), isNull);
   });
 
   test('fromKey', () {
     var adapter = injection.locator<Repository<Person>>().localAdapter;
     var manager = adapter.manager;
+
     var rel = BelongsTo<Person>.fromKey(
-      DataId<Person>('1', manager),
+      manager.dataId<Person>('1').key,
       manager,
     );
     var person = Person(id: '1', name: "zzz", age: 7);
     adapter.save(rel.dataId.key, person);
 
-    expect(rel.dataId, DataId<Person>("1", manager));
+    expect(rel.dataId, manager.dataId<Person>("1"));
     expect(rel.value, person);
   });
 
-  test('relationship scenario #1', () {
-    var repo = injection.locator<Repository<Family>>();
-    var manager = repo.localAdapter.manager;
+  test('re-assign belongsto in mutable model', () {
+    var familyRepo = injection.locator<Repository<Family>>();
     var personRepo = injection.locator<Repository<Person>>();
-    var houseRepo = injection.locator<Repository<House>>();
 
-    // (1) first load family (with relationships)
-    var personDataIds = [
-      DataId<Person>('1', manager),
-      DataId<Person>('2', manager),
-      DataId<Person>('3', manager)
-    ];
-    var houseDataId = DataId<House>('98', manager);
-    var family = Family(
-      id: "1",
-      surname: "Jones",
-      persons: HasMany<Person>.fromToMany(
-          ToMany(personDataIds.map((d) => d.identifierObject)), manager),
-      house: BelongsTo.fromToOne(ToOne(houseDataId.identifierObject), manager),
-    ).createFrom(repo);
-
-    // (2) then load persons
-    Person(id: '1', name: 'z1', age: 23)
-        .createFrom(personRepo)
-        .save(remote: false);
-    Person(id: '2', name: 'z2', age: 33)
-        .createFrom(personRepo)
-        .save(remote: false);
-
-    // (3) assert two first are linked, third one null, house is null
-    expect(family.persons[0], isNotNull);
-    expect(family.persons[1], isNotNull);
-    expect(family.persons[2], isNull);
-    expect(family.house.value, isNull);
-
-    // (4) load the last person and assert it exists now
-    Person(id: '3', name: 'z3', age: 3)
-        .createFrom(personRepo)
-        .save(remote: false);
-    var house =
-        House(id: '98', address: "21 Coconut Trail").createFrom(houseRepo);
-
-    expect(family.persons[2].age, 3);
-    expect(family.house.value.address, endsWith('Trail'));
-
-    // (5) TO-DO
-    expect(house.families.length, 0);
+    var family = Family(surname: "Toraine").init(familyRepo);
+    var person = Person(name: "Claire", age: 31).init(personRepo);
+    person.family = BelongsTo<Family>(family, familyRepo.manager);
+    expect(person.family.dataId, family.dataId);
+    expect(person.family.debugOwner, isNull);
+    person.init(personRepo);
+    expect(person.family.debugOwner, isNotNull);
   });
 }

@@ -1,20 +1,44 @@
 part of flutter_data;
 
 class DataManager {
-  final FutureOr<Directory> _baseDir;
-  Locator locator;
-  final _hive = Hive;
+  DataManager._(this.autoModelInit);
+  factory DataManager({bool autoModelInit = true}) {
+    if (autoModelInit) {
+      return _autoModelInitDataManager = DataManager._(true);
+    }
+    return DataManager._(false);
+  }
 
   @visibleForTesting
-  Box<String> keysBox;
+  final bool autoModelInit;
 
-  DataManager(this._baseDir, {this.locator});
+  final _hive = Hive;
+
+  Locator _locator;
+
+  Locator get locator {
+    assert(_locator != null, _assertMessage);
+    return _locator;
+  }
+
+  Box<String> _keysBox;
+
+  @visibleForTesting
+  Box<String> get keysBox {
+    assert(_keysBox != null, _assertMessage);
+    return _keysBox;
+  }
 
   // initialize shared resources
   // clear is true by default during alpha releases
-  Future<DataManager> init({bool clear = true}) async {
-    _hive.init(path_helper.join((await _baseDir).path, 'flutter_data'));
-    keysBox = await _openBox<String>('_keys', clear: clear);
+  Future<DataManager> init(FutureOr<Directory> baseDir, Locator locator,
+      {bool clear = true}) async {
+    assert(locator != null);
+    _locator = locator;
+
+    // init hive + box
+    _hive.init(path_helper.join((await baseDir).path, 'flutter_data'));
+    _keysBox = await _openBox<String>('_keys', clear: clear);
     return this;
   }
 
@@ -45,4 +69,19 @@ class DataManager {
   Future<void> dispose() async {
     await keysBox.close();
   }
+
+  // utils
+
+  String _assertMessage = '''\n
+This manager has not been initialized.
+
+Please ensure you call DataManager#init(),
+either directly or through FlutterData.init().
+''';
+}
+
+extension ManagerDataId on DataManager {
+  DataId<T> dataId<T extends DataSupport<T>>(String id,
+          {String key, String type, T model}) =>
+      DataId<T>(id, this, key: key, type: type, model: model);
 }

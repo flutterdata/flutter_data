@@ -8,6 +8,9 @@ abstract class Relationship<E extends DataSupport<E>> {
 
   DataId _owner;
 
+  @visibleForTesting
+  DataId get debugOwner => _owner;
+
   Future<List<E>> load([Map<String, String> params]) {
     // TODO should be filtered by inverse id
     return _repository.findAll();
@@ -23,12 +26,11 @@ abstract class Relationship<E extends DataSupport<E>> {
   // utils
 
   // of all the included, only saves those linked in this relationship
-  void _saveIncluded(List<ResourceObject> included, List<DataId> _dataIds) {
-    (included ?? const []).where((i) {
+  List<E> _saveIncluded(List<ResourceObject> included, List<DataId> _dataIds) {
+    return (included ?? const []).where((i) {
       return _dataIds.contains(DataId(i.id, _manager, type: i.type));
-    }).forEach((i) {
-      final model = _repository.internalDeserialize(i);
-      return _repository.create(model);
-    });
+    }).map((i) {
+      return _repository.internalDeserialize(i)._init(_repository);
+    }).toList();
   }
 }

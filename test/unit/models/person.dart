@@ -9,19 +9,19 @@ part 'person.g.dart';
 
 @JsonSerializable()
 @DataRepository()
-class Person with DataSupport<Person> {
+class Person extends DataSupportInit<Person> {
   @override
   final String id;
   final String name;
   final int age;
-  final BelongsTo<Family> family;
+  BelongsTo<Family> family;
 
   Person({
     this.id,
     @required this.name,
     @required this.age,
-    BelongsTo<Family> family,
-  }) : family = family ?? BelongsTo<Family>();
+    this.family,
+  });
 
   factory Person.fromJson(Map<String, dynamic> json) => _$PersonFromJson(json);
   Map<String, dynamic> toJson() => _$PersonToJson(this);

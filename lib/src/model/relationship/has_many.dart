@@ -13,11 +13,11 @@ class HasMany<E extends DataSupport<E>> extends Relationship<E>
   }
 
   HasMany([List<E> list = const [], DataManager manager])
-      : this._(list
-            .map((model) => model != null
-                ? DataId<E>(model.id, manager, model: model)
-                : null)
-            .toList());
+      : this._(
+            list
+                .map((model) => manager.dataId<E>(model.id, model: model))
+                .toList(),
+            manager);
 
   // serialization constructors
 
@@ -28,7 +28,7 @@ class HasMany<E extends DataSupport<E>> extends Relationship<E>
       return HasMany<E>._(const [], manager);
     }
     return HasMany._(
-      (rel as ToMany).linkage.map((i) => DataId<E>(i.id, manager)).toList(),
+      (rel as ToMany).linkage.map((i) => manager.dataId<E>(i.id)).toList(),
       manager,
       included,
     );
@@ -55,11 +55,9 @@ class HasMany<E extends DataSupport<E>> extends Relationship<E>
     _manager = owner.manager;
     for (int i = 0; i < length; i++) {
       if (dataIds[i] != null) {
-        if (dataIds[i].model != null) {
-          _manager.locator<Repository<E>>().create(dataIds[i].model);
-        }
+        dataIds[i].model?._init(_repository);
         // trigger re-run DataId
-        dataIds[i] = DataId<E>(dataIds[i].id, _manager);
+        dataIds[i] = _manager.dataId<E>(dataIds[i].id);
       }
     }
   }
@@ -71,7 +69,7 @@ class HasMany<E extends DataSupport<E>> extends Relationship<E>
 
   @override
   operator []=(int index, E value) {
-    dataIds[index] = DataId<E>(value.id, _manager);
+    dataIds[index] = _manager.dataId<E>(value.id);
     _repository.setOwnerInModel(_owner, value);
   }
 
@@ -89,4 +87,14 @@ class HasMany<E extends DataSupport<E>> extends Relationship<E>
 
   @override
   Map<String, dynamic> toJson() => toMany.toJson();
+
+  @override
+  String toString() => 'HasMany<$E>(${dataIds.map((d) => d.id)})';
+
+  @override
+  bool operator ==(dynamic other) =>
+      identical(this, other) || dataIds == other.dataIds;
+
+  @override
+  int get hashCode => runtimeType.hashCode ^ dataIds.hashCode;
 }

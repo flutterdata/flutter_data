@@ -32,22 +32,13 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
   @visibleForTesting
   @protected
   @override
-  Locator get locator => localAdapter.manager.locator;
+  Locator get locator => manager.locator;
+
+  @visibleForTesting
+  @protected
+  DataManager get manager => localAdapter.manager;
 
   // repository methods
-
-  T create(T model) {
-    if (isCreated(model)) {
-      return model;
-    }
-    model._manager ??= localAdapter.manager;
-    // sync relationships
-    setOwnerInRelationships(DataId<T>(model.id, localAdapter.manager), model);
-    localAdapter.save(getKeyFromId(model.id), model);
-    return model;
-  }
-
-  bool isCreated(T model) => model._manager != null;
 
   @override
   Future<List<T>> findAll(
@@ -124,10 +115,10 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
       final models = data.collection.map((obj) {
         final model = internalDeserialize(
           obj,
-          withKey: DataId<T>(obj.id, localAdapter.manager).key,
+          withKey: manager.dataId<T>(obj.id).key,
           included: data.included,
         );
-        return create(model);
+        return model._init(this);
       });
 
       return models.toList();
@@ -142,7 +133,7 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
       Map<String, String> params,
       Map<String, String> headers}) async {
     assert(id != null);
-    var _result = localAdapter.findOne(getKeyFromId(id));
+    var _result = localAdapter.findOne(manager.dataId<T>(id).key);
 
     if (remote == false) {
       return _result;
@@ -163,7 +154,7 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
       {bool remote = true,
       Map<String, String> params,
       Map<String, String> headers}) {
-    final key = DataId<T>(id, localAdapter.manager).key;
+    final key = manager.dataId<T>(id).key;
     final notifier = DataStateNotifier<T>();
 
     final _load = () async {
@@ -212,10 +203,10 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
       final data = primaryData as ResourceData;
       final model = internalDeserialize(
         data.resourceObject,
-        withKey: DataId<T>(data.resourceObject.id, localAdapter.manager).key,
+        withKey: manager.dataId<T>(data.resourceObject.id).key,
         included: data.included,
       );
-      return create(model);
+      return model._init(this);
     });
   }
 
@@ -227,7 +218,7 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
       Map<String, String> params = const {},
       Map<String, String> headers}) async {
     // ignore: unawaited_futures
-    localAdapter.save(getKeyFromId(model.id), model);
+    localAdapter.save(manager.dataId<T>(model.id).key, model);
 
     if (remote == false) {
       return model;
@@ -263,10 +254,10 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
       final data = primaryData as ResourceData;
       final newModel = internalDeserialize(
         data.resourceObject,
-        withKey: DataId<T>(data.resourceObject.id, localAdapter.manager).key,
+        withKey: manager.dataId<T>(data.resourceObject.id).key,
         included: data.included,
       );
-      return create(newModel);
+      return newModel._init(this);
     });
   }
 
@@ -276,7 +267,7 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
       Map<String, String> params,
       Map<String, String> headers}) async {
     // ignore: unawaited_futures
-    localAdapter.delete(DataId<T>(id, localAdapter.manager).key);
+    localAdapter.delete(manager.dataId<T>(id).key);
 
     if (remote) {
       final uri = urlDesign.resource(type, id.toString());
@@ -333,25 +324,5 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
     } else {
       throw UnsupportedError('Failed request for type $R');
     }
-  }
-
-  String getKeyFromId(String id) {
-    return DataId<T>(id, localAdapter.manager).key;
-  }
-
-  @visibleForTesting
-  @protected
-  assertRel(rel, name, kind) {
-    assert(rel != null, '''\n
-Tried to assign relationship data to $T#$name but it was null.
-
-Please ensure your $T model defines the relationship even if
-it's empty:
-
-`$name: $kind()`
-
-or supply a default in your constructor like:
-`$name = $name ?? $kind()`
-''');
   }
 }

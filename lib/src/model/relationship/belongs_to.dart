@@ -12,17 +12,18 @@ class BelongsTo<E extends DataSupport<E>> extends Relationship<E> {
   }
 
   BelongsTo([E model, DataManager manager])
-      : this._(
-            model != null ? DataId<E>(model.id, manager, model: model) : null,
+      : this._(model != null ? manager.dataId<E>(model.id, model: model) : null,
             manager);
 
   // serialization constructors
 
-  factory BelongsTo.fromToOne(dynamic toOne, DataManager manager,
+  factory BelongsTo.fromToOne(dynamic rel, DataManager manager,
       {List<ResourceObject> included}) {
-    if (toOne == null) return BelongsTo<E>._(null, manager);
+    if (rel == null) {
+      return BelongsTo<E>._(null, manager);
+    }
     return BelongsTo._(
-      DataId<E>((toOne as ToOne).linkage.id, manager),
+      manager.dataId<E>((rel as ToOne).linkage.id),
       manager,
       included,
     );
@@ -41,18 +42,16 @@ class BelongsTo<E extends DataSupport<E>> extends Relationship<E> {
     _owner = owner;
     _manager = owner.manager;
     if (dataId != null) {
-      if (dataId.model != null) {
-        _manager.locator<Repository<E>>().create(dataId.model);
-      }
+      dataId.model?._init(_repository);
       // trigger re-run DataId
-      dataId = DataId<E>(dataId.id, _manager);
+      dataId = _manager.dataId<E>(dataId.id);
     }
   }
 
   E get value => _box.get(key);
 
   set value(E value) {
-    dataId = DataId<E>(value.id, _manager);
+    dataId = _manager.dataId<E>(value.id);
     _repository.setOwnerInModel(_owner, value);
   }
 

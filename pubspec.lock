@@ -166,11 +166,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "0.2.0"
-      resolved-ref: "791213549c6ea16b49518288e91343620761f224"
+      ref: "0.2.1"
+      resolved-ref: "9974d32d30de563d9dfd283a7718555dabe4ed56"
       url: "git://github.com/flutterdata/data_state.git"
     source: git
-    version: "0.2.0"
+    version: "0.2.1"
   debounce_throttle:
     dependency: "direct main"
     description:
