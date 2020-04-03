@@ -12,7 +12,6 @@ abstract class DataSupport<T extends DataSupport<T>> {
       _assertAuto();
       return _initRepository;
     }
-    _assertLocator();
     _init(_autoModelInitDataManager.locator<Repository<T>>());
     _assertAuto();
     return _initRepository;
@@ -42,17 +41,6 @@ Please use: `$T(...).init(repository)`
 
 or, instead of extending `DataSupportInit`, make your $T model mix
 in `DataSupport` which doesn't require initialization.
-''',
-    );
-  }
-
-  _assertLocator() {
-    assert(
-      _manager?.locator != null,
-      '''\n
-Manager hasn't been initialized.
-
-Please ensure you are calling DataManager().init().
 ''',
     );
   }
