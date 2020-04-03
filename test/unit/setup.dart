@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:hive/hive.dart';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:mockito/mockito.dart';
@@ -33,18 +36,34 @@ class FakeBox<T> extends Fake implements Box<T> {
   Future<void> close() => Future.value();
 }
 
-class FakeDataManager extends Fake implements DataManager {
-  FakeDataManager(this.locator);
+class TestDataManager extends DataManager {
+  TestDataManager(this.locator) : super.delegate(false);
   final Locator locator;
   final Box<String> keysBox = FakeBox<String>();
-  final autoModelInit = false;
+
+  @override
+  Future<DataManager> init(FutureOr<Directory> baseDir, Locator locator,
+      {bool clear = true}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<LocalAdapter<T>> initAdapter<T extends DataSupport<T>>(
+      bool clear, LocalAdapter<T> Function(Box<T>) callback) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> dispose() {
+    throw UnimplementedError();
+  }
 }
 
 final injection = DataServiceLocator();
 
 final Function() setUpAllFn = () {
   injection.register(HiveMock());
-  final manager = FakeDataManager(injection.locator);
+  final manager = TestDataManager(injection.locator);
   injection.register<DataManager>(manager);
 
   final houseLocalAdapter = $HouseLocalAdapter(FakeBox<House>(), manager);

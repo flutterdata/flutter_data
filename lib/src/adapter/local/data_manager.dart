@@ -1,12 +1,12 @@
 part of flutter_data;
 
 class DataManager {
-  DataManager._(this.autoModelInit);
+  DataManager.delegate(this.autoModelInit);
   factory DataManager({bool autoModelInit = true}) {
     if (autoModelInit) {
-      return _autoModelInitDataManager = DataManager._(true);
+      return _autoModelInitDataManager = DataManager.delegate(true);
     }
-    return DataManager._(false);
+    return DataManager.delegate(false);
   }
 
   @visibleForTesting

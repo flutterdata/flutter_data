@@ -7,25 +7,25 @@ import 'setup.dart';
 
 void main() async {
   test('no id', () {
-    final manager = FakeDataManager(null);
+    final manager = TestDataManager(null);
     expect(DataId(null, manager).id, isNull);
   });
 
   test('produces a new key', () {
-    final manager = FakeDataManager(null);
+    final manager = TestDataManager(null);
     var dataId = manager.dataId<Person>('1');
     expect(dataId.key, startsWith('people#'));
   });
 
   test('reuses a provided key', () {
-    final manager = FakeDataManager(null);
+    final manager = TestDataManager(null);
     var dataId = manager.dataId<Person>('29', key: 'people#78a92b');
     expect(dataId.key, 'people#78a92b');
     expect(dataId.id, '29');
   });
 
   test('model is set only if manager is null', () {
-    final manager = FakeDataManager(null);
+    final manager = TestDataManager(null);
     var dataId =
         DataId<Person>('1', null, model: Person(id: '1', name: "zzz", age: 7));
     expect(dataId.model, isNotNull);
@@ -36,7 +36,7 @@ void main() async {
   });
 
   test('reuses a key', () {
-    final manager = FakeDataManager(null);
+    final manager = TestDataManager(null);
     var dataId = manager.dataId<Person>('1', key: 'people#a5a5a5');
     expect(dataId.key, 'people#a5a5a5');
   });
@@ -49,7 +49,7 @@ void main() async {
   });
 
   test('byKeys', () {
-    final manager = FakeDataManager(null);
+    final manager = TestDataManager(null);
     // including ids that contain '#' (also used in internal format)
     manager.keysBox.put('people#p#1', 'people#a1a1a1');
     manager.keysBox.put('people#2', 'people#b2b2b2');
@@ -65,7 +65,7 @@ void main() async {
   });
 
   test('byKey', () {
-    final manager = FakeDataManager(null);
+    final manager = TestDataManager(null);
     manager.keysBox.put('families#3', 'families#c3c3c3');
 
     var dataId = DataId.byKey<Family>('families#c3c3c3', manager);
@@ -74,12 +74,12 @@ void main() async {
   });
 
   test('equals', () {
-    final manager = FakeDataManager(null);
+    final manager = TestDataManager(null);
     expect(manager.dataId<Person>("1"), manager.dataId<Person>("1"));
   });
 
   test('not equals', () {
-    final manager = FakeDataManager(null);
+    final manager = TestDataManager(null);
     expect(manager.dataId<Person>("1"), isNot(manager.dataId<Family>("1")));
   });
 }

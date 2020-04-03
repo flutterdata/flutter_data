@@ -14,7 +14,7 @@ void main() async {
   setUpAll(() async {
     server = await createServer(InternetAddress.loopbackIPv4, 17083);
     injection.register(HiveMock());
-    final manager = FakeDataManager(injection.locator);
+    final manager = TestDataManager(injection.locator);
     injection.register<DataManager>(manager);
 
     final companyLocalAdapter =
