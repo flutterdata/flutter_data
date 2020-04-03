@@ -102,24 +102,40 @@ extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
     return dataId?.key;
   }
 
-  Future<T> save({bool remote = true}) async {
+  Future<T> save(
+      {bool remote = true,
+      Map<String, String> params = const {},
+      Map<String, String> headers}) async {
     _assertRepo('save()');
-    return await _repository.save(_this, remote: remote);
+    return await _repository.save(_this,
+        remote: remote, params: params, headers: headers);
   }
 
-  Future<void> delete({bool remote = true}) async {
+  Future<void> delete(
+      {bool remote = true,
+      Map<String, String> params = const {},
+      Map<String, String> headers}) async {
     _assertRepo('delete()');
-    await _repository.delete(id, remote: remote);
+    await _repository.delete(id,
+        remote: remote, params: params, headers: headers);
   }
 
-  Future<T> load([Map<String, String> params]) {
+  Future<T> load(
+      {bool remote = true,
+      Map<String, String> params,
+      Map<String, String> headers}) {
     _assertRepo('load()');
-    return _repository.findOne(id, params: params);
+    return _repository.findOne(id,
+        remote: remote, params: params, headers: headers);
   }
 
-  DataStateNotifier<T> watch([Map<String, String> params]) {
+  DataStateNotifier<T> watch(
+      {bool remote = true,
+      Map<String, String> params,
+      Map<String, String> headers}) {
     _assertRepo('watch()');
-    return _repository.watchOne(id, params: params);
+    return _repository.watchOne(id,
+        remote: remote, params: params, headers: headers);
   }
 
   bool get isNew {
