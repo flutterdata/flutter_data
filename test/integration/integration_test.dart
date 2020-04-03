@@ -64,11 +64,16 @@ void main() async {
 
   test('save without id', () async {
     var repo = injection.locator<Repository<Company>>();
-    var company =
-        await Company(name: "New Co", models: HasMany()).init(repo).save();
-    expect(company.id, isNotNull);
-    var c2 = await repo.findOne(company.id);
-    expect(c2, company);
+    var company = Company(name: "New Co", models: HasMany()).init(repo);
+
+    var c2 = await company.save();
+    expect(c2.id, isNotNull);
+
+    var c3 = await repo.findOne(c2.id);
+    expect(c2.name, company.name);
+    expect(c3.name, c2.name);
+    expect(company.key, c2.key);
+    expect(c2.key, c3.key);
   });
 
   test('fetch with error', () async {
