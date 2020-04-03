@@ -41,26 +41,6 @@ void main() async {
     expect(dataId.key, 'people#a5a5a5');
   });
 
-  test('should reuse key', () {
-    var manager = injection.locator<DataManager>();
-    var repository = injection.locator<Repository<Person>>();
-
-    // id-less person
-    var p1 = Person(name: "Frank", age: 20).init(repository);
-    expect(repository.localAdapter.box.keys.length, 1);
-
-    // person with new id, reusing existing key
-    manager.dataId<Person>('221', key: p1.key);
-    var p2 = Person(id: '221', name: 'Frank2', age: 32).init(repository);
-    expect(p1.key, p2.key);
-
-    expect(repository.localAdapter.box.keys.length, 1);
-
-    // another person, without reusing key
-    Person(id: '222', name: 'Frank3', age: 76).init(repository);
-    expect(repository.localAdapter.box.keys.length, 2);
-  });
-
   // static utils
 
   test('getType', () {

@@ -17,15 +17,11 @@ abstract class DataSupport<T extends DataSupport<T>> {
     return _initRepository;
   }
 
-  set _repository(Repository<T> repository) {
-    _initRepository = repository;
-  }
-
   T _init(Repository<T> repository) {
-    _repository = repository;
-    _manager = repository.manager;
+    _initRepository ??= repository;
+    _manager ??= repository.manager;
     _repository.setOwnerInRelationships(_manager.dataId<T>(id), _this);
-    _this.save(remote: false);
+    _repository.localAdapter.save(_this.key, _this);
     return _this;
   }
 
@@ -33,7 +29,7 @@ abstract class DataSupport<T extends DataSupport<T>> {
 
   _assertRepo(String method) {
     assert(
-      _repository != null,
+      _manager != null && _repository != null,
       '''\n
 Tried to call $method but this instance of $T is not initialized.
 
