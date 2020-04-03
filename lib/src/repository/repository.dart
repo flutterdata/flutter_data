@@ -217,10 +217,9 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
       {bool remote = true,
       Map<String, String> params = const {},
       Map<String, String> headers}) async {
-    // ignore: unawaited_futures
-    localAdapter.save(manager.dataId<T>(model.id).key, model);
-
     if (remote == false) {
+      // ignore: unawaited_futures
+      localAdapter.save(model.key, model);
       return model;
     }
 
@@ -249,12 +248,13 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
     return _withResponse<T>(response, (primaryData) {
       if (primaryData == null) {
         // return "old" model if response was empty
+        localAdapter.save(model.key, model);
         return model;
       }
       final data = primaryData as ResourceData;
       final newModel = internalDeserialize(
         data.resourceObject,
-        withKey: manager.dataId<T>(data.resourceObject.id).key,
+        withKey: model.key,
         included: data.included,
       );
       return newModel._init(this);
