@@ -64,12 +64,12 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
 
     final deserializeHasMany = hasManys.map((t) {
       final name = t.first, localType = t.last;
-      return '''map['$name'] = { 'HasMany': HasMany<$localType>.fromToMany(map['$name'], manager, included: included) };''';
+      return '''map['$name'] = { 'HasMany': HasMany<$localType>.fromKeys(map['$name'], manager, included: included) };''';
     }).join('\n');
 
     final deserializeBelongsTo = belongsTos.map((t) {
       final name = t.first, localType = t.last;
-      return '''map['$name'] = { 'BelongsTo': BelongsTo<$localType>.fromToOne(map['$name'], manager, included: included) };''';
+      return '''map['$name'] = { 'BelongsTo': BelongsTo<$localType>.fromKey(map['$name'], manager, included: included) };''';
     }).join('\n');
 
     final serializeHasMany = hasManys.map((t) {
@@ -142,44 +142,6 @@ class _\$${type}Repository extends Repository<$type> {
   Map<String, dynamic> get relationshipMetadata => $relationshipMetadata;
 
   @override
-  $type internalDeserialize(obj, { withKey, included }) {
-    var map = <String, dynamic>{
-      ...?obj?.relationships
-    };
-    
-    $deserializeHasMany
-    $deserializeBelongsTo
-    
-    var dataId = manager.dataId<$type>(obj.id, key: withKey);
-    return $type.fromJson({
-      ...{'id': dataId.id},
-      ...obj.attributes,
-      ...map,
-    });
-  }
-
-  @override
-  internalSerialize($type model) {
-    var relationships = {
-      $serializeHasMany
-      $serializeBelongsTo
-    };
-
-    final map = model.toJson();
-    final dataId = manager.dataId<$type>(model.id);
-
-    map.remove('id');
-    $removeRelationshipsFromAttributes
-
-    return DataResourceObject(
-      dataId.type,
-      dataId.id,
-      attributes: map,
-      relationships: $relationshipsInConstructor,
-    );
-  }
-
-  @override
   void setOwnerInRelationships(DataId<$type> owner, $type model) {
     $setOwnerInRelationships
   }
@@ -199,19 +161,17 @@ class \$${type}LocalAdapter extends LocalAdapter<$type> {
   \$${type}LocalAdapter(box, DataManager manager) : super(box, manager);
 
   @override
-  $type deserialize(map) {
-    $localDeserializeHasMany
-    $localDeserializeBelongsTo
+  deserialize(map, {key, included}) {
+    $deserializeHasMany
+    $deserializeBelongsTo
     
+    manager.dataId<$type>(map.id, key: key);
     return $type.fromJson(map);
   }
 
   @override
-  Map<String, dynamic> serialize($type model) {
-    var map = model.toJson();
-    $localSerializeHasMany
-    $localSerializeBelongsTo
-    return map;
+  serialize($type model) {
+    return model.toJson();
   }
 }''';
   }

@@ -37,13 +37,11 @@ void main() async {
     var repo = injection.locator<Repository<Person>>();
     var manager = repo.manager;
 
-    var sue =
-        ResourceObject('people', '71', attributes: {'name': "Sue", 'age': 74});
-    var helen = ResourceObject('people', '72',
-        attributes: {'name': "Helen", 'age': 59});
+    var sue = {'id': '71', 'name': "Sue", 'age': 74};
+    var helen = {'id': '72', 'name': "Helen", 'age': 59};
 
-    var rel = HasMany<Person>.fromToMany(
-      ToMany([manager.dataId<Person>('72').identifierObject]),
+    var rel = HasMany<Person>.fromKeys(
+      [manager.dataId<Person>('72').key],
       manager,
       included: [sue, helen],
     );
@@ -51,10 +49,11 @@ void main() async {
     expect(rel.first.dataId, manager.dataId<Person>('72'));
 
     // helen should be saved (cause it was in included)
-    expect(await repo.findOne(helen.id, remote: false), isNotNull);
+    expect(
+        await repo.findOne(helen['id'].toString(), remote: false), isNotNull);
 
     // but sue shouldn't, as it wasn't referenced in any relationship
-    expect(await repo.findOne(sue.id, remote: false), isNull);
+    expect(await repo.findOne(sue['id'].toString(), remote: false), isNull);
   });
 
   test('fromKeys', () {

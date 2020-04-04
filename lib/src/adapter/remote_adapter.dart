@@ -25,10 +25,12 @@ abstract class RemoteAdapter<T extends DataSupport<T>> {
 
   // serialize/deserialize
 
+  Map<String, dynamic> relationshipMetadata;
+
   Map<String, dynamic> serialize(T model);
 
-  T deserialize(Map<String, dynamic> json,
-      {String key, Map<String, dynamic> relationshipMetadata});
+  T deserialize(Map<String, dynamic> map,
+      {String key, List<Map<String, dynamic>> included});
 
   // repository methods
 

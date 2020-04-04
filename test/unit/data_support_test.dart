@@ -34,11 +34,9 @@ void main() async {
     var family = Family(
       id: "1",
       surname: "Jones",
-      persons: HasMany<Person>.fromToMany(
-          ToMany(personDataIds.map((d) => d.identifierObject)),
-          personRepo.manager),
-      house: BelongsTo.fromToOne(
-          ToOne(houseDataId.identifierObject), personRepo.manager),
+      persons:
+          HasMany.fromKeys(personDataIds.map((d) => d.key), personRepo.manager),
+      house: BelongsTo.fromKey(houseDataId.key, personRepo.manager),
     ).init(familyRepo);
 
     // (2) then load persons

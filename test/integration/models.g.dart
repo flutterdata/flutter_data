@@ -17,44 +17,6 @@ class _$ModelRepository extends Repository<Model> {
       };
 
   @override
-  Model internalDeserialize(obj, {withKey, included}) {
-    var map = <String, dynamic>{...?obj?.relationships};
-
-    map['company'] = {
-      'BelongsTo': BelongsTo<Company>.fromToOne(map['company'], manager,
-          included: included)
-    };
-
-    var dataId = manager.dataId<Model>(obj.id, key: withKey);
-    return Model.fromJson({
-      ...{'id': dataId.id},
-      ...obj.attributes,
-      ...map,
-    });
-  }
-
-  @override
-  internalSerialize(Model model) {
-    var relationships = {
-      'company': model.company?.key,
-    };
-
-    final map = model.toJson();
-
-    final dataId = manager.dataId<Model>(model.id);
-
-    map.remove('id');
-    map.remove('company');
-
-    return DataResourceObject(
-      dataId.type,
-      dataId.id,
-      attributes: map,
-      relationships: relationships,
-    );
-  }
-
-  @override
   void setOwnerInRelationships(DataId<Model> owner, Model model) {
     model.company?.owner = owner;
   }
@@ -76,22 +38,19 @@ class $ModelLocalAdapter extends LocalAdapter<Model> {
   $ModelLocalAdapter(box, DataManager manager) : super(box, manager);
 
   @override
-  Model internalLocalDeserialize(map) {
-    map = fixMap(map);
-
+  deserialize(map, {key, included}) {
     map['company'] = {
-      'BelongsTo': BelongsTo<Company>.fromKey(map['company'], manager)
+      'BelongsTo': BelongsTo<Company>.fromKey(map['company'], manager,
+          included: included)
     };
 
+    manager.dataId<Model>(map.id, key: key);
     return Model.fromJson(map);
   }
 
   @override
-  Map<String, dynamic> internalLocalSerialize(Model model) {
-    var map = model.toJson();
-
-    map['company'] = model.company?.key;
-    return map;
+  serialize(Model model) {
+    return model.toJson();
   }
 }
 
@@ -102,35 +61,6 @@ class _$CityRepository extends Repository<City> {
   @override
   Map<String, dynamic> get relationshipMetadata =>
       {"HasMany": {}, "BelongsTo": {}};
-
-  @override
-  City internalDeserialize(obj, {withKey, included}) {
-    var map = <String, dynamic>{...?obj?.relationships};
-
-    var dataId = manager.dataId<City>(obj.id, key: withKey);
-    return City.fromJson({
-      ...{'id': dataId.id},
-      ...obj.attributes,
-      ...map,
-    });
-  }
-
-  @override
-  internalSerialize(City model) {
-    var relationships = {};
-
-    final map = model.toJson();
-    final dataId = manager.dataId<City>(model.id);
-
-    map.remove('id');
-
-    return DataResourceObject(
-      dataId.type,
-      dataId.id,
-      attributes: map,
-      relationships: null,
-    );
-  }
 
   @override
   void setOwnerInRelationships(DataId<City> owner, City model) {}
@@ -148,17 +78,14 @@ class $CityLocalAdapter extends LocalAdapter<City> {
   $CityLocalAdapter(box, DataManager manager) : super(box, manager);
 
   @override
-  City internalLocalDeserialize(map) {
-    map = fixMap(map);
-
+  deserialize(map, {key, included}) {
+    manager.dataId<City>(map.id, key: key);
     return City.fromJson(map);
   }
 
   @override
-  Map<String, dynamic> internalLocalSerialize(City model) {
-    var map = model.toJson();
-
-    return map;
+  serialize(City model) {
+    return model.toJson();
   }
 }
 
@@ -171,43 +98,6 @@ class _$CompanyRepository extends Repository<Company> {
         "HasMany": {"models": "models"},
         "BelongsTo": {}
       };
-
-  @override
-  Company internalDeserialize(obj, {withKey, included}) {
-    var map = <String, dynamic>{...?obj?.relationships};
-
-    map['models'] = {
-      'HasMany':
-          HasMany<Model>.fromToMany(map['models'], manager, included: included)
-    };
-
-    var dataId = manager.dataId<Company>(obj.id, key: withKey);
-    return Company.fromJson({
-      ...{'id': dataId.id},
-      ...obj.attributes,
-      ...map,
-    });
-  }
-
-  @override
-  internalSerialize(Company model) {
-    var relationships = {
-      'models': model.models?.toMany,
-    };
-
-    final map = model.toJson();
-    final dataId = manager.dataId<Company>(model.id);
-
-    map.remove('id');
-    map.remove('models');
-
-    return DataResourceObject(
-      dataId.type,
-      dataId.id,
-      attributes: map,
-      relationships: relationships,
-    );
-  }
 
   @override
   void setOwnerInRelationships(DataId<Company> owner, Company model) {
@@ -231,22 +121,19 @@ class $CompanyLocalAdapter extends LocalAdapter<Company> {
   $CompanyLocalAdapter(box, DataManager manager) : super(box, manager);
 
   @override
-  Company internalLocalDeserialize(map) {
-    map = fixMap(map);
-
+  deserialize(map, {key, included}) {
     map['models'] = {
-      'HasMany': HasMany<Model>.fromKeys(map['models'], manager)
+      'HasMany':
+          HasMany<Model>.fromKeys(map['models'], manager, included: included)
     };
 
+    manager.dataId<Company>(map.id, key: key);
     return Company.fromJson(map);
   }
 
   @override
-  Map<String, dynamic> internalLocalSerialize(Company model) {
-    var map = model.toJson();
-    map['models'] = model.models?.keys;
-
-    return map;
+  serialize(Company model) {
+    return model.toJson();
   }
 }
 

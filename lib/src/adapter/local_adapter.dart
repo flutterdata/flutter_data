@@ -27,7 +27,8 @@ abstract class LocalAdapter<T extends DataSupport<T>> with TypeAdapter<T> {
 
   @visibleForTesting
   @protected
-  T deserialize(Map<String, dynamic> map);
+  T deserialize(Map<String, dynamic> json,
+      {String key, List<Map<String, dynamic>> included});
 
   // hive serialization
 
@@ -46,7 +47,7 @@ abstract class LocalAdapter<T extends DataSupport<T>> with TypeAdapter<T> {
     var fields = <String, dynamic>{
       for (var i = 0; i < n; i++) reader.read().toString(): reader.read(),
     };
-    return deserialize(_fixMap(fields));
+    return deserialize(fixMap(fields));
   }
 
   @override
@@ -100,7 +101,9 @@ abstract class LocalAdapter<T extends DataSupport<T>> with TypeAdapter<T> {
 
   // utils
 
-  Map<String, dynamic> _fixMap(Map<String, dynamic> map) {
+  @visibleForTesting
+  @protected
+  Map<String, dynamic> fixMap(Map<String, dynamic> map) {
     // Hive deserializes maps as Map<dynamic, dynamic>
     // but we *know* we serialized them as Map<String, dynamic>
 

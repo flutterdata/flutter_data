@@ -6,11 +6,13 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
   final LocalAdapter<T> localAdapter;
   Repository(this.localAdapter);
 
-  // abstract members, to be overriden by adapters
+  @override
+  serialize(model) => localAdapter.serialize(model);
 
-  @visibleForTesting
-  @protected
-  Map<String, dynamic> relationshipMetadata;
+  @override
+  deserialize(map, {key, included}) => localAdapter.deserialize(map);
+
+  // abstract members, to be overriden by adapters
 
   @visibleForTesting
   @protected
@@ -102,11 +104,11 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
     print('[flutter_data] findAll $T: $uri [HTTP ${response.statusCode}]');
 
     return _withResponse<List<T>>(response, (data) {
-      final models = (data as Iterable).map((map) {
+      final models =
+          List<Map<String, dynamic>>.from(data as Iterable).map((map) {
         return deserialize(
-          map as Map<String, dynamic>,
-          key: manager.dataId<T>(map['id'].toString()).key,
-          relationshipMetadata: relationshipMetadata,
+          map,
+          key: manager.dataId<T>(map.id).key,
         )._init(this);
       });
       return models.toList();
@@ -191,7 +193,6 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
       return deserialize(
         data as Map<String, dynamic>,
         key: manager.dataId<T>(data['id'].toString()).key,
-        relationshipMetadata: relationshipMetadata,
       )._init(this);
     });
   }
@@ -239,7 +240,6 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
       return deserialize(
         data as Map<String, dynamic>,
         key: model.key,
-        relationshipMetadata: relationshipMetadata,
       )._init(this);
     });
   }

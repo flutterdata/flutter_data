@@ -8,6 +8,10 @@ typedef OnRequest<R> = Future<R> Function(http.Client);
 
 // member extensions
 
+extension MapIdExtension on Map {
+  String get id => ['id'].toString();
+}
+
 extension IterableRelationshipExtension<T extends DataSupport<T>> on List<T> {
   HasMany<T> get asHasMany => HasMany<T>(this);
 }

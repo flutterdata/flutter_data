@@ -45,8 +45,7 @@ void main() async {
       'persons': personRel.keys
     };
 
-    var family =
-        injection.locator<LocalAdapter<Family>>().internalLocalDeserialize(map);
+    var family = injection.locator<LocalAdapter<Family>>().deserialize(map);
     expect(family,
         Family(id: "1", surname: "Smith", house: houseRel, persons: personRel));
   });

@@ -28,8 +28,7 @@ void main() async {
     expect(family.dataId.manager, equals(manager));
 
     // (2) it wires up the relationship (setOwnerInRelationship)
-    expect(model.family.toOne.linkage.toJson(),
-        manager.dataId<Family>("55").identifierObject.toJson());
+    expect(model.family.key, manager.dataId<Family>("55").key);
 
     // (3) it saves the model locally
     expect(model, repo.localAdapter.box.get(model.key));
@@ -40,9 +39,8 @@ void main() async {
     expect(repo.locator, isNotNull);
   });
 
-  test('internalSerialize with relationships', () {
+  test('serialize with relationships', () {
     var repo = injection.locator<Repository<Family>>();
-    var manager = repo.manager;
 
     var person = Person(id: '1', name: "John", age: 37);
     var house = House(id: '1', address: "123 Main St");
@@ -53,25 +51,18 @@ void main() async {
             persons: [person].asHasMany)
         .init(repo);
 
-    var obj = repo.internalSerialize(family);
-    expect(obj, isA<ResourceObject>());
-    expect(obj.id, "1");
-    expect(obj.attributes, {'surname': "Smith"});
-    var houseRel = obj.relationships['house'] as ToOne;
-    expect(houseRel.linkage.toJson(),
-        BelongsTo<House>(house, manager).toOne.linkage.toJson());
-    var personsRel = obj.relationships['persons'] as ToMany;
-    expect(
-        personsRel.linkage.map((l) => l.toJson()),
-        HasMany<Person>([person], manager)
-            .toMany
-            .linkage
-            .map((l) => l.toJson()));
+    var obj = repo.serialize(family);
+    expect(obj, isA<Map<String, dynamic>>());
+    expect(obj, {
+      'id': '1',
+      'surname': "Smith",
+      'house': family.house.value.key,
+      'persons': family.persons.keys
+    });
   });
 
-  test('internalDeserialize with relationships', () {
+  test('deserialize with relationships', () {
     var repo = injection.locator<Repository<Family>>();
-    var manager = repo.manager;
 
     injection
         .locator<Repository<House>>()
@@ -82,15 +73,13 @@ void main() async {
         .localAdapter
         .save('p1', Person(id: "1", name: "John", age: 21));
 
-    var obj = ResourceObject('families', "1", attributes: {
-      'surname': "Smith"
-    }, relationships: {
-      'house': ToOne(manager.dataId<House>("1", key: 'h1').identifierObject),
-      'persons':
-          ToMany([manager.dataId<Person>("1", key: 'p1').identifierObject])
-    });
+    var obj = {
+      'surname': "Smith",
+      'house': 'h1',
+      'persons': ['p1']
+    };
 
-    var family = repo.internalDeserialize(obj);
+    var family = repo.deserialize(obj);
 
     expect(family, Family(id: "1", surname: "Smith"));
     expect(family.house.value.address, "123 Main St");
