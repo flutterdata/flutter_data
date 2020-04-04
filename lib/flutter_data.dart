@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:data_state/data_state.dart';
 import 'package:state_notifier/state_notifier.dart';
-import 'package:json_api/document.dart' hide Relationship;
+// import 'package:json_api/document.dart' hide Relationship;
 import 'package:json_api/query.dart';
 import 'package:json_api/url_design.dart';
 import 'package:meta/meta.dart';

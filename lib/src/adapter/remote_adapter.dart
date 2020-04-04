@@ -25,12 +25,10 @@ abstract class RemoteAdapter<T extends DataSupport<T>> {
 
   // serialize/deserialize
 
-  // Forwards data since flutter_data understands JSON:API
-  Map<String, dynamic> deserialize(dynamic json,
-          [Map<String, dynamic> relationshipMetadata]) =>
-      json as Map<String, dynamic>;
+  Map<String, dynamic> serialize(T model);
 
-  dynamic serialize(Map<String, dynamic> json) => json;
+  T deserialize(Map<String, dynamic> json,
+      {String key, Map<String, dynamic> relationshipMetadata});
 
   // repository methods
 

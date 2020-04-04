@@ -26,11 +26,11 @@ abstract class Relationship<E extends DataSupport<E>> {
   // utils
 
   // of all the included, only saves those linked in this relationship
-  List<E> _saveIncluded(List<ResourceObject> included, List<DataId> _dataIds) {
-    return (included ?? const []).where((i) {
-      return _dataIds.contains(DataId(i.id, _manager, type: i.type));
-    }).map((i) {
-      return _repository.internalDeserialize(i)._init(_repository);
-    }).toList();
+  void _saveIncluded(
+      List<Map<String, dynamic>> included, List<DataId> _dataIds) {
+    for (var i in included) {
+      // TODO must check type !!!
+      _repository.deserialize(i)._init(_repository);
+    }
   }
 }

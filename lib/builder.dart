@@ -199,9 +199,7 @@ class \$${type}LocalAdapter extends LocalAdapter<$type> {
   \$${type}LocalAdapter(box, DataManager manager) : super(box, manager);
 
   @override
-  $type internalLocalDeserialize(map) {
-    map = fixMap(map);
-
+  $type deserialize(map) {
     $localDeserializeHasMany
     $localDeserializeBelongsTo
     
@@ -209,7 +207,7 @@ class \$${type}LocalAdapter extends LocalAdapter<$type> {
   }
 
   @override
-  Map<String, dynamic> internalLocalSerialize($type model) {
+  Map<String, dynamic> serialize($type model) {
     var map = model.toJson();
     $localSerializeHasMany
     $localSerializeBelongsTo

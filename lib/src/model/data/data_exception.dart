@@ -7,6 +7,6 @@ class DataException implements Exception {
 
   @override
   String toString() {
-    return 'DataException: [HTTP $status] ${errors is Iterable ? (errors as Iterable).map((e) => e is JsonApiError ? e.toJson() : e.toString()).join(', ') : errors}';
+    return 'DataException: [HTTP $status] $errors';
   }
 }

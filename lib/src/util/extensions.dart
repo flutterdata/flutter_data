@@ -2,15 +2,9 @@ part of flutter_data;
 
 // typedefs
 
-typedef OnResponseSuccess<R> = R Function(PrimaryData);
+typedef OnResponseSuccess<R> = R Function(dynamic);
 
 typedef OnRequest<R> = Future<R> Function(http.Client);
-
-// poor man typdefs
-
-mixin _Nothing {}
-
-class DataResourceObject = ResourceObject with _Nothing;
 
 // member extensions
 

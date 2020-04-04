@@ -31,13 +31,11 @@ void main() async {
   test('fromToOne with included', () {
     var adapter = injection.locator<Repository<Person>>().localAdapter;
     var manager = adapter.manager;
-    var r1 =
-        ResourceObject('people', '1', attributes: {'name': "r1", 'age': 17});
-    var r2 =
-        ResourceObject('people', '2', attributes: {'name': "r2", 'age': 27});
+    var r1 = {'id': 1, 'name': "r1", 'age': 17};
+    var r2 = {'id': 2, 'name': "r2", 'age': 27};
 
-    var rel = BelongsTo<Person>.fromToOne(
-        ToOne(manager.dataId<Person>('1').identifierObject), manager,
+    var rel = BelongsTo<Person>.fromKey(
+        manager.dataId<Person>('1').key, manager,
         included: [r1, r2]);
 
     expect(rel.dataId, manager.dataId<Person>("1"));

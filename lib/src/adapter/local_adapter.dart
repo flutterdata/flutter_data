@@ -23,11 +23,11 @@ abstract class LocalAdapter<T extends DataSupport<T>> with TypeAdapter<T> {
 
   @visibleForTesting
   @protected
-  Map<String, dynamic> internalLocalSerialize(T model);
+  Map<String, dynamic> serialize(T model);
 
   @visibleForTesting
   @protected
-  T internalLocalDeserialize(Map<String, dynamic> map);
+  T deserialize(Map<String, dynamic> map);
 
   // hive serialization
 
@@ -46,12 +46,12 @@ abstract class LocalAdapter<T extends DataSupport<T>> with TypeAdapter<T> {
     var fields = <String, dynamic>{
       for (var i = 0; i < n; i++) reader.read().toString(): reader.read(),
     };
-    return internalLocalDeserialize(fields);
+    return deserialize(_fixMap(fields));
   }
 
   @override
   void write(writer, T obj) {
-    final _map = internalLocalSerialize(obj);
+    final _map = serialize(obj);
     writer.writeByte(_map.keys.length);
     for (var k in _map.keys) {
       writer.write(k);
@@ -100,9 +100,7 @@ abstract class LocalAdapter<T extends DataSupport<T>> with TypeAdapter<T> {
 
   // utils
 
-  @visibleForTesting
-  @protected
-  Map<String, dynamic> fixMap(Map<String, dynamic> map) {
+  Map<String, dynamic> _fixMap(Map<String, dynamic> map) {
     // Hive deserializes maps as Map<dynamic, dynamic>
     // but we *know* we serialized them as Map<String, dynamic>
 

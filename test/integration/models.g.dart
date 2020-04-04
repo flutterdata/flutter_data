@@ -36,10 +36,11 @@ class _$ModelRepository extends Repository<Model> {
   @override
   internalSerialize(Model model) {
     var relationships = {
-      'company': model.company?.toOne,
+      'company': model.company?.key,
     };
 
     final map = model.toJson();
+
     final dataId = manager.dataId<Model>(model.id);
 
     map.remove('id');

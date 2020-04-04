@@ -55,8 +55,6 @@ class DataId<T> {
     return list.isNotEmpty ? list.first : null;
   }
 
-  IdentifierObject get identifierObject => IdentifierObject(type, id);
-
   // identity functions
 
   @override

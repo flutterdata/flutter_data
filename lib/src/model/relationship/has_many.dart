@@ -7,7 +7,7 @@ class HasMany<E extends DataSupport<E>> extends Relationship<E>
   final List<DataId<E>> dataIds;
 
   HasMany._(this.dataIds,
-      [DataManager manager, List<ResourceObject> included]) {
+      [DataManager manager, List<Map<String, dynamic>> included]) {
     super._manager = manager;
     _saveIncluded(included, dataIds);
   }
@@ -21,25 +21,13 @@ class HasMany<E extends DataSupport<E>> extends Relationship<E>
 
   // serialization constructors
 
-  factory HasMany.fromToMany(dynamic rel, DataManager manager,
-      {List<ResourceObject> included}) {
-    // if rel has no data, it is always of type ToOne ({data: null})
-    if (rel == null || (rel is ToOne && rel.unwrap() == null)) {
-      return HasMany<E>._(const [], manager);
-    }
-    return HasMany._(
-      (rel as ToMany).linkage.map((i) => manager.dataId<E>(i.id)).toList(),
-      manager,
-      included,
-    );
-  }
-
-  factory HasMany.fromKeys(dynamic keys, DataManager manager) =>
-      HasMany._(_keysToDataIds<E>(keys, manager), manager);
+  factory HasMany.fromKeys(dynamic keys, DataManager manager,
+          {List<Map<String, dynamic>> included}) =>
+      HasMany._(_keysToDataIds<E>(keys, manager), manager, included);
 
   static List<DataId<E>> _keysToDataIds<E extends DataSupport<E>>(
       keys, DataManager manager) {
-    if (keys == null) return [];
+    if (keys == null) return const [];
     var _keys = List<String>.from(keys as Iterable);
     return DataId.byKeys(_keys, manager);
   }
@@ -83,10 +71,8 @@ class HasMany<E extends DataSupport<E>> extends Relationship<E>
 
   List<String> get keys => dataIds.map((d) => d.key).toList();
 
-  ToMany get toMany => ToMany(dataIds.map((d) => d.identifierObject));
-
   @override
-  Map<String, dynamic> toJson() => toMany.toJson();
+  Map<String, dynamic> toJson() => {}; // toMany.toJson();
 
   @override
   String toString() => 'HasMany<$E>(${dataIds.map((d) => d.id)})';

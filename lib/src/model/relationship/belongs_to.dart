@@ -6,7 +6,7 @@ class BelongsTo<E extends DataSupport<E>> extends Relationship<E> {
   DataId<E> dataId;
 
   BelongsTo._(this.dataId,
-      [DataManager manager, List<ResourceObject> included]) {
+      [DataManager manager, List<Map<String, dynamic>> included]) {
     super._manager = manager;
     _saveIncluded(included, [dataId]);
   }
@@ -17,20 +17,12 @@ class BelongsTo<E extends DataSupport<E>> extends Relationship<E> {
 
   // serialization constructors
 
-  factory BelongsTo.fromToOne(dynamic rel, DataManager manager,
-      {List<ResourceObject> included}) {
-    if (rel == null) {
-      return BelongsTo<E>._(null, manager);
-    }
-    return BelongsTo._(
-      manager.dataId<E>((rel as ToOne).linkage.id),
-      manager,
-      included,
-    );
-  }
-
-  factory BelongsTo.fromKey(dynamic key, DataManager manager) =>
-      BelongsTo._(DataId.byKey<E>(key.toString(), manager), manager);
+  factory BelongsTo.fromKey(dynamic key, DataManager manager,
+          {List<Map<String, dynamic>> included}) =>
+      BelongsTo<E>._(
+          key != null ? DataId.byKey<E>(key.toString(), manager) : null,
+          manager,
+          included);
 
   factory BelongsTo.fromJson(Map<String, dynamic> map) {
     return map['BelongsTo'] as BelongsTo<E>;
@@ -57,10 +49,8 @@ class BelongsTo<E extends DataSupport<E>> extends Relationship<E> {
 
   String get key => dataId?.key;
 
-  ToOne get toOne => dataId != null ? ToOne(dataId.identifierObject) : null;
-
   @override
-  Map<String, dynamic> toJson() => toOne?.linkage?.toJson();
+  Map<String, dynamic> toJson() => {}; // toOne?.linkage?.toJson();
 
   @override
   String toString() => 'BelongsTo<$E>(${dataId.id})';
