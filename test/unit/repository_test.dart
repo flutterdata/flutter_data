@@ -64,19 +64,16 @@ void main() async {
   test('deserialize with relationships', () {
     var repo = injection.locator<Repository<Family>>();
 
-    injection
-        .locator<Repository<House>>()
-        .localAdapter
-        .save('h1', House(id: "1", address: "123 Main St"));
-    injection
-        .locator<Repository<Person>>()
-        .localAdapter
-        .save('p1', Person(id: "1", name: "John", age: 21));
+    final houseRepo = injection.locator<Repository<House>>();
+    final personRepo = injection.locator<Repository<Person>>();
+
+    final house = House(id: "1", address: "123 Main St").init(houseRepo);
+    final person = Person(id: "1", name: "John", age: 21).init(personRepo);
 
     var obj = {
       'surname': "Smith",
-      'house': 'h1',
-      'persons': ['p1']
+      'house': house.key,
+      'persons': [person.key]
     };
 
     var family = repo.deserialize(obj);

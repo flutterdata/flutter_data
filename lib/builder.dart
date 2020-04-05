@@ -64,12 +64,12 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
 
     final deserializeHasMany = hasManys.map((t) {
       final name = t.first, localType = t.last;
-      return '''map['$name'] = { 'HasMany': HasMany<$localType>.fromKeys(map['$name'], manager, included: included) };''';
+      return '''map['$name'] = { 'HasMany': [map['$name'], manager] };''';
     }).join('\n');
 
     final deserializeBelongsTo = belongsTos.map((t) {
       final name = t.first, localType = t.last;
-      return '''map['$name'] = { 'BelongsTo': BelongsTo<$localType>.fromKey(map['$name'], manager, included: included) };''';
+      return '''map['$name'] = { 'BelongsTo': [map['$name'], manager] };''';
     }).join('\n');
 
     final serializeHasMany = hasManys.map((t) {
@@ -171,7 +171,10 @@ class \$${type}LocalAdapter extends LocalAdapter<$type> {
 
   @override
   serialize($type model) {
-    return model.toJson();
+    final map = model.toJson();
+    $localSerializeHasMany
+    $localSerializeBelongsTo
+    return map;
   }
 }''';
   }

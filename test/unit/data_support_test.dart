@@ -1,5 +1,4 @@
 import 'package:flutter_data/flutter_data.dart';
-import 'package:json_api/document.dart';
 import 'package:test/test.dart';
 
 import 'models/family.dart';
@@ -19,6 +18,26 @@ void main() async {
 
   // misc compatibility tests
 
+  test('should reuse key', () {
+    var manager = injection.locator<DataManager>();
+    var repository = injection.locator<Repository<Person>>();
+
+    // id-less person
+    var p1 = Person(name: "Frank", age: 20).init(repository);
+    expect(repository.localAdapter.box.keys.length, 1);
+
+    // person with new id, reusing existing key
+    manager.dataId<Person>('221', key: p1.key);
+    var p2 = Person(id: '221', name: 'Frank2', age: 32).init(repository);
+    expect(p1.key, p2.key);
+
+    expect(repository.localAdapter.box.keys.length, 1);
+
+    // another person, without reusing key
+    Person(id: '222', name: 'Frank3', age: 76).init(repository);
+    expect(repository.localAdapter.box.keys.length, 2);
+  });
+
   test('relationship scenario #1', () {
     var personRepo = injection.locator<Repository<Person>>();
     var familyRepo = injection.locator<Repository<Family>>();
@@ -34,8 +53,8 @@ void main() async {
     var family = Family(
       id: "1",
       surname: "Jones",
-      persons:
-          HasMany.fromKeys(personDataIds.map((d) => d.key), personRepo.manager),
+      persons: HasMany.fromKeys(
+          personDataIds.map((d) => d.key).toList(), personRepo.manager),
       house: BelongsTo.fromKey(houseDataId.key, personRepo.manager),
     ).init(familyRepo);
 

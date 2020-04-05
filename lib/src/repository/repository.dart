@@ -211,8 +211,7 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
       return model;
     }
 
-    final map = serialize(model);
-    final body = json.encode(map);
+    final body = json.encode(serialize(model));
 
     final queryParams = QueryParameters(params);
     Uri uri;

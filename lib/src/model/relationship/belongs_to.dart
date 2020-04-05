@@ -17,15 +17,14 @@ class BelongsTo<E extends DataSupport<E>> extends Relationship<E> {
 
   // serialization constructors
 
-  factory BelongsTo.fromKey(dynamic key, DataManager manager,
+  factory BelongsTo.fromKey(String key, DataManager manager,
           {List<Map<String, dynamic>> included}) =>
-      BelongsTo<E>._(
-          key != null ? DataId.byKey<E>(key.toString(), manager) : null,
-          manager,
-          included);
+      BelongsTo<E>._(key != null ? DataId.byKey<E>(key, manager) : null,
+          manager, included);
 
   factory BelongsTo.fromJson(Map<String, dynamic> map) {
-    return map['BelongsTo'] as BelongsTo<E>;
+    return BelongsTo.fromKey(
+        map['BelongsTo'][0] as String, map['BelongsTo'][1] as DataManager);
   }
 
   // end constructors
@@ -50,7 +49,7 @@ class BelongsTo<E extends DataSupport<E>> extends Relationship<E> {
   String get key => dataId?.key;
 
   @override
-  Map<String, dynamic> toJson() => {}; // toOne?.linkage?.toJson();
+  Map<String, dynamic> toJson() => {'a': 1}; // toOne?.linkage?.toJson();
 
   @override
   String toString() => 'BelongsTo<$E>(${dataId.id})';

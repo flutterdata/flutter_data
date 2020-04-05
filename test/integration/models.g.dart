@@ -40,8 +40,7 @@ class $ModelLocalAdapter extends LocalAdapter<Model> {
   @override
   deserialize(map, {key, included}) {
     map['company'] = {
-      'BelongsTo': BelongsTo<Company>.fromKey(map['company'], manager,
-          included: included)
+      'BelongsTo': [map['company'], manager]
     };
 
     manager.dataId<Model>(map.id, key: key);
@@ -50,7 +49,10 @@ class $ModelLocalAdapter extends LocalAdapter<Model> {
 
   @override
   serialize(Model model) {
-    return model.toJson();
+    final map = model.toJson();
+
+    map['company'] = model.company?.key;
+    return map;
   }
 }
 
@@ -85,7 +87,9 @@ class $CityLocalAdapter extends LocalAdapter<City> {
 
   @override
   serialize(City model) {
-    return model.toJson();
+    final map = model.toJson();
+
+    return map;
   }
 }
 
@@ -123,8 +127,7 @@ class $CompanyLocalAdapter extends LocalAdapter<Company> {
   @override
   deserialize(map, {key, included}) {
     map['models'] = {
-      'HasMany':
-          HasMany<Model>.fromKeys(map['models'], manager, included: included)
+      'HasMany': [map['models'], manager]
     };
 
     manager.dataId<Company>(map.id, key: key);
@@ -133,7 +136,10 @@ class $CompanyLocalAdapter extends LocalAdapter<Company> {
 
   @override
   serialize(Company model) {
-    return model.toJson();
+    final map = model.toJson();
+    map['models'] = model.models?.keys;
+
+    return map;
   }
 }
 

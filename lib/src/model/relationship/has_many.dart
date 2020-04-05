@@ -21,19 +21,14 @@ class HasMany<E extends DataSupport<E>> extends Relationship<E>
 
   // serialization constructors
 
-  factory HasMany.fromKeys(dynamic keys, DataManager manager,
+  factory HasMany.fromKeys(List<String> keys, DataManager manager,
           {List<Map<String, dynamic>> included}) =>
-      HasMany._(_keysToDataIds<E>(keys, manager), manager, included);
-
-  static List<DataId<E>> _keysToDataIds<E extends DataSupport<E>>(
-      keys, DataManager manager) {
-    if (keys == null) return const [];
-    var _keys = List<String>.from(keys as Iterable);
-    return DataId.byKeys(_keys, manager);
-  }
+      HasMany._(keys != null ? DataId.byKeys(keys, manager) : const [], manager,
+          included);
 
   factory HasMany.fromJson(Map<String, dynamic> map) {
-    return map['HasMany'] as HasMany<E>;
+    return HasMany.fromKeys(List<String>.from(map['HasMany'][0] as Iterable),
+        map['HasMany'][1] as DataManager);
   }
 
   // end constructors

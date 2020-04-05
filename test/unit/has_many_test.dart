@@ -24,13 +24,16 @@ void main() async {
   });
 
   test('fromJson + equality', () {
-    var manager = injection.locator<DataManager>();
-    var person = Person(name: "Paul", age: 94);
+    var repository = injection.locator<Repository<Person>>();
+    var person = Person(name: "Paul", age: 94).init(repository);
     expect(
         HasMany<Person>.fromJson({
-          'HasMany': HasMany<Person>([person], manager)
+          'HasMany': [
+            [person.key],
+            repository.manager
+          ]
         }),
-        HasMany<Person>([person], manager));
+        HasMany<Person>([person], repository.manager));
   });
 
   test('fromToMany with included', () async {
@@ -40,20 +43,17 @@ void main() async {
     var sue = {'id': '71', 'name': "Sue", 'age': 74};
     var helen = {'id': '72', 'name': "Helen", 'age': 59};
 
-    var rel = HasMany<Person>.fromKeys(
+    HasMany<Person>.fromKeys(
       [manager.dataId<Person>('72').key],
       manager,
       included: [sue, helen],
     );
 
-    expect(rel.first.dataId, manager.dataId<Person>('72'));
-
     // helen should be saved (cause it was in included)
-    expect(
-        await repo.findOne(helen['id'].toString(), remote: false), isNotNull);
+    expect(await repo.findOne(helen.id, remote: false), isNotNull);
 
     // but sue shouldn't, as it wasn't referenced in any relationship
-    expect(await repo.findOne(sue['id'].toString(), remote: false), isNull);
+    expect(await repo.findOne(sue.id, remote: false), isNull);
   });
 
   test('fromKeys', () {

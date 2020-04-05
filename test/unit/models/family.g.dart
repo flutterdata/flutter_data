@@ -44,12 +44,10 @@ class $FamilyLocalAdapter extends LocalAdapter<Family> {
   @override
   deserialize(map, {key, included}) {
     map['persons'] = {
-      'HasMany':
-          HasMany<Person>.fromKeys(map['persons'], manager, included: included)
+      'HasMany': [map['persons'], manager]
     };
     map['house'] = {
-      'BelongsTo':
-          BelongsTo<House>.fromKey(map['house'], manager, included: included)
+      'BelongsTo': [map['house'], manager]
     };
 
     manager.dataId<Family>(map.id, key: key);
@@ -58,7 +56,10 @@ class $FamilyLocalAdapter extends LocalAdapter<Family> {
 
   @override
   serialize(Family model) {
-    return model.toJson();
+    final map = model.toJson();
+    map['persons'] = model.persons?.keys;
+    map['house'] = model.house?.key;
+    return map;
   }
 }
 

@@ -1,9 +1,7 @@
 import 'package:flutter_data/flutter_data.dart';
-import 'package:json_api/document.dart';
 import 'package:test/test.dart';
 
 import 'models/family.dart';
-import 'models/house.dart';
 import 'models/person.dart';
 import 'setup.dart';
 
@@ -20,19 +18,20 @@ void main() async {
   });
 
   test('fromJson + equality', () {
-    var manager = injection.locator<DataManager>();
-    var p = Person(id: '1', name: "zzz", age: 7);
+    var repository = injection.locator<Repository<Person>>();
+    var p = Person(id: '1', name: "zzz", age: 7).init(repository);
     expect(
-        BelongsTo<Person>.fromJson(
-            {'BelongsTo': BelongsTo<Person>(p, manager)}),
-        BelongsTo<Person>(p, manager));
+        BelongsTo<Person>.fromJson({
+          'BelongsTo': [p.key, repository.manager]
+        }),
+        BelongsTo<Person>(p, repository.manager));
   });
 
   test('fromToOne with included', () {
     var adapter = injection.locator<Repository<Person>>().localAdapter;
     var manager = adapter.manager;
-    var r1 = {'id': 1, 'name': "r1", 'age': 17};
-    var r2 = {'id': 2, 'name': "r2", 'age': 27};
+    var r1 = {'id': '1', 'name': "r1", 'age': 17};
+    var r2 = {'id': '2', 'name': "r2", 'age': 27};
 
     var rel = BelongsTo<Person>.fromKey(
         manager.dataId<Person>('1').key, manager,

@@ -12,7 +12,7 @@ abstract class DataSupport<T extends DataSupport<T>> {
       _assertAuto();
       return _initRepository;
     }
-    _init(_autoModelInitDataManager.locator<Repository<T>>());
+    _init(_autoModelInitDataManager?.locator<Repository<T>>());
     _assertAuto();
     return _initRepository;
   }
@@ -22,6 +22,7 @@ abstract class DataSupport<T extends DataSupport<T>> {
   }
 
   T _init(Repository<T> repository) {
+    assert(repository != null, 'Please provide an instance of Repository<$T>');
     _repository = repository;
     _manager = repository.manager;
     _repository.setOwnerInRelationships(_manager.dataId<T>(id), _this);
