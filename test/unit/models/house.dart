@@ -8,7 +8,7 @@ part 'house.g.dart';
 
 @JsonSerializable()
 @DataRepository()
-class House extends DataSupportInit<House> {
+class House with DataSupport<House> {
   @override
   final String id;
   final String address;

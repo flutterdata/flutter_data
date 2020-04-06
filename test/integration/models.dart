@@ -9,7 +9,7 @@ part 'models.g.dart';
 
 @freezed
 @DataRepository()
-abstract class Model extends DataSupportInit<Model> implements _$Model {
+abstract class Model with _$Model, DataSupport<Model> {
   Model._();
   factory Model({
     String id,
@@ -22,7 +22,7 @@ abstract class Model extends DataSupportInit<Model> implements _$Model {
 
 @freezed
 @DataRepository()
-abstract class City extends DataSupportInit<City> implements _$City {
+abstract class City with _$City, DataSupport<City> {
   City._();
   factory City({
     String id,
@@ -34,7 +34,7 @@ abstract class City extends DataSupportInit<City> implements _$City {
 
 @freezed
 @DataRepository([JSONAPIAdapter, TestMixin])
-abstract class Company extends DataSupportInit<Company> implements _$Company {
+abstract class Company with _$Company, DataSupport<Company> {
   Company._();
   factory Company({
     String id,

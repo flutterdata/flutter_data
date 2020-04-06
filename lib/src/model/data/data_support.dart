@@ -6,25 +6,14 @@ abstract class DataSupport<T extends DataSupport<T>> {
 
   T get _this => this as T;
 
-  Repository<T> _initRepository;
-  Repository<T> get _repository {
-    if (_initRepository != null) {
-      _assertAuto();
-      return _initRepository;
-    }
-    _init(_autoModelInitDataManager?.locator<Repository<T>>());
-    _assertAuto();
-    return _initRepository;
-  }
-
-  set _repository(Repository<T> repository) {
-    _initRepository = repository;
-  }
+  Repository<T> _repository;
 
   T _init(Repository<T> repository, {String key}) {
     assert(repository != null, 'Please provide an instance of Repository<$T>');
     _repository = repository;
     _manager = repository.manager;
+
+    _assertAuto();
     var dataId = _manager.dataId<T>(id, key: key);
     // sync relationships
     _repository.setOwnerInRelationships(dataId, _this);
@@ -49,7 +38,7 @@ in `DataSupport` which doesn't require initialization.
   }
 
   _assertAuto() {
-    final modelAutoInit = this is! DataSupportInit;
+    final modelAutoInit = this is! DataSupport;
     if (modelAutoInit) {
       assert(_manager.autoModelInit, '''\n
 This $T model mixes in DataSupport but you initialized
@@ -83,6 +72,10 @@ FlutterData.init(autoModelInit: false);
 }
 
 extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
+  T init(Repository<T> repository, {String key}) {
+    return _init(repository, key: key);
+  }
+
   DataId<T> get dataId {
     _assertRepo('get dataId');
     return _manager.dataId<T>(id);
@@ -132,17 +125,5 @@ extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
   bool get isNew {
     _assertRepo('isNew');
     return _repository.localAdapter.isNew(_this);
-  }
-}
-
-// unmanaged
-
-abstract class DataSupportInit<T extends DataSupport<T>>
-    extends DataSupport<T> {}
-
-extension DataSupportInitExtension<T extends DataSupport<T>>
-    on DataSupportInit<T> {
-  T init(Repository<T> repository) {
-    return _init(repository);
   }
 }

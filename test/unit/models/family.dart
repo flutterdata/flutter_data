@@ -10,7 +10,7 @@ part 'family.g.dart';
 
 @JsonSerializable()
 @DataRepository()
-class Family extends DataSupportInit<Family> {
+class Family with DataSupport<Family> {
   @override
   final String id;
   final String surname;
