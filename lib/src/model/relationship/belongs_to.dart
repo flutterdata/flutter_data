@@ -1,6 +1,6 @@
 part of flutter_data;
 
-class BelongsTo<E extends DataSupport<E>> extends Relationship<E> {
+class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E> {
   @protected
   @visibleForTesting
   DataId<E> dataId;
@@ -34,7 +34,7 @@ class BelongsTo<E extends DataSupport<E>> extends Relationship<E> {
     }
   }
 
-  E get value => _repository.localAdapter.findOne(dataId.key);
+  E get value => _repository.localAdapter.findOne(dataId?.key);
 
   set value(E value) {
     dataId = _manager.dataId<E>(value.id);

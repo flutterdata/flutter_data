@@ -9,7 +9,7 @@ part 'models.g.dart';
 
 @freezed
 @DataRepository()
-abstract class Model with _$Model, DataSupport<Model> {
+abstract class Model with _$Model, DataSupportMixin<Model> {
   Model._();
   factory Model({
     String id,
@@ -22,7 +22,7 @@ abstract class Model with _$Model, DataSupport<Model> {
 
 @freezed
 @DataRepository()
-abstract class City with _$City, DataSupport<City> {
+abstract class City with _$City, DataSupportMixin<City> {
   City._();
   factory City({
     String id,
@@ -34,7 +34,7 @@ abstract class City with _$City, DataSupport<City> {
 
 @freezed
 @DataRepository([JSONAPIAdapter, TestMixin])
-abstract class Company with _$Company, DataSupport<Company> {
+abstract class Company with _$Company, DataSupportMixin<Company> {
   Company._();
   factory Company({
     String id,
@@ -50,7 +50,7 @@ abstract class Company with _$Company, DataSupport<Company> {
 
 //
 
-mixin TestMixin<T extends DataSupport<T>> on RemoteAdapter<T> {
+mixin TestMixin<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
   @override
   get baseUrl => 'http://127.0.0.1:17083/';
 }

@@ -20,7 +20,7 @@ void main() async {
             .init(repo);
 
     // (1) it sets the manager in both model and relationship
-    // DataSupport#_manager needs to remain private
+    // DataSupportMixin#_manager needs to remain private
     // so that's compatible with freezed
     // but it's equivalent to checking on dataId's
     expect(model.dataId.manager, equals(manager));

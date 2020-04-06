@@ -13,7 +13,8 @@ extension MapIdExtension on Map {
 }
 
 @optionalTypeArgs
-extension IterableRelationshipExtension<T extends DataSupport<T>> on List<T> {
+extension IterableRelationshipExtension<T extends DataSupportMixin<T>>
+    on List<T> {
   HasMany<T> get asHasMany {
     if (this.isNotEmpty) {
       return HasMany<T>(this, this.first._manager);
@@ -22,8 +23,8 @@ extension IterableRelationshipExtension<T extends DataSupport<T>> on List<T> {
   }
 }
 
-extension DataSupportRelationshipExtension<T extends DataSupport<T>>
-    on DataSupport<T> {
+extension DataSupportMixinRelationshipExtension<T extends DataSupportMixin<T>>
+    on DataSupportMixin<T> {
   BelongsTo<T> get asBelongsTo {
     return BelongsTo<T>(this as T, this._manager);
   }

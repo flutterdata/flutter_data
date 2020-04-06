@@ -1,6 +1,6 @@
 part of flutter_data;
 
-abstract class Relationship<E extends DataSupport<E>> {
+abstract class Relationship<E extends DataSupportMixin<E>> {
   DataManager _manager;
 
   Repository<E> get _repository => _manager.locator<Repository<E>>();

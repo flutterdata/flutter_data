@@ -52,7 +52,7 @@ class DataManager {
     return await _hive.openBox<T>(name);
   }
 
-  Future<LocalAdapter<T>> initAdapter<T extends DataSupport<T>>(
+  Future<LocalAdapter<T>> initAdapter<T extends DataSupportMixin<T>>(
       bool clear, LocalAdapter<T> Function(Box<T>) callback) async {
     Box<T> box;
     final boxName = DataId.getType<T>();

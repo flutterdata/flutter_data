@@ -1,6 +1,6 @@
 part of flutter_data;
 
-abstract class DataSupport<T extends DataSupport<T>> {
+abstract class DataSupportMixin<T extends DataSupportMixin<T>> {
   String get id;
   DataManager _manager;
 
@@ -31,21 +31,21 @@ Tried to call $method but this instance of $T is not initialized.
 
 Please use: `$T(...).init(repository)`
 
-or, instead of extending `DataSupportInit`, make your $T model mix
-in `DataSupport` which doesn't require initialization.
+or, instead of extending `DataSupportMixinInit`, make your $T model mix
+in `DataSupportMixin` which doesn't require initialization.
 ''',
     );
   }
 
   _assertAuto() {
-    final modelAutoInit = this is! DataSupport;
+    final modelAutoInit = this is DataSupport;
     if (modelAutoInit) {
       assert(_manager.autoModelInit, '''\n
-This $T model mixes in DataSupport but you initialized
+This $T model mixes in DataSupportMixin but you initialized
 Flutter Data with autoModelInit: false.
 
 If you wish to manually initialize your models, please make
-sure $T extends DataSupportInit.
+sure $T extends DataSupportMixinInit.
 
 If you wish Flutter Data to auto-initialize, call:
 
@@ -57,11 +57,11 @@ FlutterData.init();
 ''');
     } else {
       assert(!_manager.autoModelInit, '''\n
-This $T model extends DataSupportInit but you initialized
+This $T model extends DataSupportMixinInit but you initialized
 Flutter Data with autoModelInit: true (the default).
 
 If you wish to automatically initialize your models, please make
-sure $T mixes in DataSupport.
+sure $T mixes in DataSupportMixin.
 
 If you wish to manually initialize your models, call:
 
@@ -71,7 +71,8 @@ FlutterData.init(autoModelInit: false);
   }
 }
 
-extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
+extension DataSupportExtension<T extends DataSupportMixin<T>>
+    on DataSupportMixin<T> {
   T init(Repository<T> repository, {String key}) {
     return _init(repository, key: key);
   }
@@ -125,5 +126,13 @@ extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
   bool get isNew {
     _assertRepo('isNew');
     return _repository.localAdapter.isNew(_this);
+  }
+}
+
+// auto
+
+abstract class DataSupport<T extends DataSupport<T>> with DataSupportMixin<T> {
+  DataSupport() {
+    _init(_autoModelInitDataManager?.locator<Repository<T>>());
   }
 }

@@ -1,6 +1,6 @@
 part of flutter_data;
 
-abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
+abstract class Repository<T extends DataSupportMixin<T>> with RemoteAdapter<T> {
   @visibleForTesting
   @protected
   final LocalAdapter<T> localAdapter;

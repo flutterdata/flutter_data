@@ -9,7 +9,7 @@ part 'person.g.dart';
 
 @JsonSerializable()
 @DataRepository()
-class Person with DataSupport<Person> {
+class Person with DataSupportMixin<Person> {
   @override
   final String id;
   final String name;

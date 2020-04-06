@@ -48,7 +48,7 @@ class TestDataManager extends DataManager {
   }
 
   @override
-  Future<LocalAdapter<T>> initAdapter<T extends DataSupport<T>>(
+  Future<LocalAdapter<T>> initAdapter<T extends DataSupportMixin<T>>(
       bool clear, LocalAdapter<T> Function(Box<T>) callback) {
     throw UnimplementedError();
   }
@@ -100,7 +100,7 @@ final Function() tearDownAllFn = () async {
 //   return http.Response('server error', 500);
 // });
 
-// mixin TestMixin<T extends DataSupport<T>> on RemoteAdapter<T> {
+// mixin TestMixin<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
 //   // @override
 //   // get baseUrl => 'http://localhost/';
 
