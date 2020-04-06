@@ -69,9 +69,7 @@ abstract class LocalAdapter<T extends DataSupport<T>> with TypeAdapter<T> {
     return box.watch().map((_) => findAll()).debounceTime(_oneFrameDuration);
   }
 
-  T findOne(String key) {
-    return box.get(key);
-  }
+  T findOne(String key) => key != null ? box.get(key) : null;
 
   Stream<T> watchOne(String key) {
     return box

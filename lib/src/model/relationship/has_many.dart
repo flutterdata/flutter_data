@@ -43,7 +43,8 @@ class HasMany<E extends DataSupport<E>> extends Relationship<E>
   // array methods
 
   @override
-  E operator [](int index) => _box.get(dataIds[index].key);
+  E operator [](int index) =>
+      _repository.localAdapter.findOne(dataIds[index].key);
 
   @override
   operator []=(int index, E value) {

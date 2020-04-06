@@ -4,7 +4,6 @@ abstract class Relationship<E extends DataSupport<E>> {
   DataManager _manager;
 
   Repository<E> get _repository => _manager.locator<Repository<E>>();
-  Box<E> get _box => _repository.localAdapter.box;
 
   DataId _owner;
 

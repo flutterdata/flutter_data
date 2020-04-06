@@ -34,7 +34,7 @@ class BelongsTo<E extends DataSupport<E>> extends Relationship<E> {
     }
   }
 
-  E get value => key != null ? _box.get(key) : null;
+  E get value => _repository.localAdapter.findOne(dataId.key);
 
   set value(E value) {
     dataId = _manager.dataId<E>(value.id);
