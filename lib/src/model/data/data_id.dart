@@ -36,8 +36,9 @@ class DataId<T> {
   static String getType<T>([String type]) =>
       pluralize((type ?? T.toString()).toLowerCase());
 
-  static List<DataId<E>> byKeys<E extends DataSupport<E>>(
-      List<String> keys, DataManager manager) {
+  @optionalTypeArgs
+  static List<DataId<E>> byKeys<E>(List<String> keys, DataManager manager,
+      {String type}) {
     assert(keys != null);
     return manager.keysBox
         .toMap()
@@ -45,17 +46,15 @@ class DataId<T> {
         .where((e) => keys.contains(e.value))
         .map((e) => (e.key.toString().split('#')..removeAt(0))
             .join('#')) // (map keys are ids)
-        .map((id) => DataId<E>(id, manager))
+        .map((id) => DataId<E>(id, manager, type: type))
         .toList();
   }
 
-  static DataId<E> byKey<E extends DataSupport<E>>(
-      String key, DataManager manager) {
-    final list = byKeys<E>([key], manager);
+  @optionalTypeArgs
+  static DataId<E> byKey<E>(String key, DataManager manager, {String type}) {
+    final list = byKeys<E>([key], manager, type: type);
     return list.isNotEmpty ? list.first : null;
   }
-
-  IdentifierObject get identifierObject => IdentifierObject(type, id);
 
   // identity functions
 

@@ -6,20 +6,21 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
   final LocalAdapter<T> localAdapter;
   Repository(this.localAdapter);
 
+  @override
+  serialize(model) => localAdapter.serialize(model);
+
+  @override
+  serializeCollection(models) => models.map(serialize);
+
+  @override
+  deserialize(object, {key}) => localAdapter
+      .deserialize(object as Map<String, dynamic>)
+      ._init(this, key: key);
+
+  @override
+  deserializeCollection(object) => (object as Iterable).map(deserialize);
+
   // abstract members, to be overriden by adapters
-
-  @visibleForTesting
-  @protected
-  ResourceObject internalSerialize(T model);
-
-  @visibleForTesting
-  @protected
-  T internalDeserialize(ResourceObject obj,
-      {String withKey, List<ResourceObject> included});
-
-  @visibleForTesting
-  @protected
-  Map<String, dynamic> relationshipMetadata;
 
   @visibleForTesting
   @protected
@@ -36,6 +37,7 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
 
   @visibleForTesting
   @protected
+  @override
   DataManager get manager => localAdapter.manager;
 
   // repository methods
@@ -110,18 +112,8 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
 
     print('[flutter_data] findAll $T: $uri [HTTP ${response.statusCode}]');
 
-    return _withResponse<List<T>>(response, (primaryData) {
-      final data = primaryData as ResourceCollectionData;
-      final models = data.collection.map((obj) {
-        final model = internalDeserialize(
-          obj,
-          withKey: manager.dataId<T>(obj.id).key,
-          included: data.included,
-        );
-        return model._init(this);
-      });
-
-      return models.toList();
+    return _withResponse<List<T>>(response, (data) {
+      return deserializeCollection(data).toList();
     });
   }
 
@@ -199,15 +191,7 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
 
     print('[flutter_data] loadOne $T: $uri [HTTP ${response.statusCode}]');
 
-    return _withResponse<T>(response, (primaryData) {
-      final data = primaryData as ResourceData;
-      final model = internalDeserialize(
-        data.resourceObject,
-        withKey: manager.dataId<T>(data.resourceObject.id).key,
-        included: data.included,
-      );
-      return model._init(this);
-    });
+    return _withResponse<T>(response, deserialize);
   }
 
   // save & delete
@@ -223,9 +207,7 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
       return model;
     }
 
-    final resourceObject = internalSerialize(model);
-    final jsonapiMap = Document(ResourceData(resourceObject)).toJson();
-    final body = json.encode(serialize(jsonapiMap));
+    final body = json.encode(serialize(model));
 
     final queryParams = QueryParameters(params);
     Uri uri;
@@ -245,19 +227,14 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
 
     print('[flutter_data] save $T: $uri [HTTP ${response.statusCode}]');
 
-    return _withResponse<T>(response, (primaryData) {
-      if (primaryData == null) {
+    return _withResponse<T>(response, (data) {
+      if (data == null) {
         // return "old" model if response was empty
         localAdapter.save(model.key, model);
         return model;
       }
-      final data = primaryData as ResourceData;
-      final newModel = internalDeserialize(
-        data.resourceObject,
-        withKey: model.key,
-        included: data.included,
-      );
-      return newModel._init(this);
+      // provide key of the existing model
+      return deserialize(data as Map<String, dynamic>, key: model.key);
     });
   }
 
@@ -301,26 +278,21 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
 
   FutureOr<R> _withResponse<R>(
       http.Response response, OnResponseSuccess<R> onSuccess) {
-    Document doc;
+    dynamic data;
+    dynamic error;
 
     try {
-      final map = deserialize(json.decode(response.body), relationshipMetadata);
-
-      if (map['data'] is List) {
-        doc = Document.fromJson(map, ResourceCollectionData.fromJson);
-      } else {
-        doc = Document.fromJson(map, ResourceData.fromJson);
-      }
-    } on FormatException catch (_) {
-      doc = Document.error([]);
+      data = json.decode(response.body);
+    } on FormatException catch (e) {
+      error = e;
     }
 
     final code = response.statusCode;
 
     if (code >= 200 && code < 300) {
-      return onSuccess(doc.data);
+      return onSuccess(data);
     } else if (code >= 400 && code < 600) {
-      throw DataException(doc.errors, response.statusCode);
+      throw DataException(error ?? data, response.statusCode);
     } else {
       throw UnsupportedError('Failed request for type $R');
     }

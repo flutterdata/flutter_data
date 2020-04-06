@@ -12,16 +12,23 @@ abstract class DataSupport<T extends DataSupport<T>> {
       _assertAuto();
       return _initRepository;
     }
-    _init(_autoModelInitDataManager.locator<Repository<T>>());
+    _init(_autoModelInitDataManager?.locator<Repository<T>>());
     _assertAuto();
     return _initRepository;
   }
 
-  T _init(Repository<T> repository) {
-    _initRepository ??= repository;
-    _manager ??= repository.manager;
-    _repository.setOwnerInRelationships(_manager.dataId<T>(id), _this);
-    _repository.localAdapter.save(_this.key, _this);
+  set _repository(Repository<T> repository) {
+    _initRepository = repository;
+  }
+
+  T _init(Repository<T> repository, {String key}) {
+    assert(repository != null, 'Please provide an instance of Repository<$T>');
+    _repository = repository;
+    _manager = repository.manager;
+    var dataId = _manager.dataId<T>(id, key: key);
+    // sync relationships
+    _repository.setOwnerInRelationships(dataId, _this);
+    _repository.localAdapter.save(dataId.key, _this);
     return _this;
   }
 
@@ -76,9 +83,9 @@ FlutterData.init(autoModelInit: false);
 }
 
 extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
-  DataId get dataId {
+  DataId<T> get dataId {
     _assertRepo('get dataId');
-    return _manager.dataId<T>(id, model: _this);
+    return _manager.dataId<T>(id);
   }
 
   String get key {

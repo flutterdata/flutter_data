@@ -1,7 +1,5 @@
 // ignore_for_file: prefer_interpolation_to_compose_strings
 
-import 'dart:convert';
-
 import 'package:build/build.dart';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:source_gen/source_gen.dart';
@@ -50,65 +48,43 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
     //
 
     _prepareMeta(list) {
-      return {for (var e in list) e[0]: e[1]};
+      return {for (var e in list) '\'${e[0]}\'': '\'${e[1]}\''};
     }
 
     final hasManys = getRelationshipsFor('HasMany').map((s) => s.split('#'));
     final belongsTos =
         getRelationshipsFor('BelongsTo').map((s) => s.split('#'));
+    final all = [...hasManys, ...belongsTos];
 
-    final relationshipMetadata = json.encode({
-      'HasMany': _prepareMeta(hasManys),
-      'BelongsTo': _prepareMeta(belongsTos),
+    final repos = all.asMap().map((_, t) {
+      final type = DataId.getType(t.last);
+      return MapEntry(
+          '\'repository#$type\'', 'manager.locator<Repository<${t.last}>>()');
     });
 
-    final deserializeHasMany = hasManys.map((t) {
-      final name = t.first, localType = t.last;
-      return '''map['$name'] = { 'HasMany': HasMany<$localType>.fromToMany(map['$name'], manager, included: included) };''';
-    }).join('\n');
+    final relationshipMetadata = <String, dynamic>{
+      '\'HasMany\'': _prepareMeta(hasManys),
+      '\'BelongsTo\'': _prepareMeta(belongsTos),
+    }..addAll(repos);
 
-    final deserializeBelongsTo = belongsTos.map((t) {
-      final name = t.first, localType = t.last;
-      return '''map['$name'] = { 'BelongsTo': BelongsTo<$localType>.fromToOne(map['$name'], manager, included: included) };''';
+    //
+
+    final deserialize = all.map((t) {
+      final name = t.first;
+      return '''map['$name'] = { '_': [map['$name'], manager] };''';
     }).join('\n');
 
     final serializeHasMany = hasManys.map((t) {
       final name = t.first;
-      return ''''$name': model.$name?.toMany,''';
+      return '''map['$name'] = model.$name?.keys;''';
     }).join('\n');
 
     final serializeBelongsTo = belongsTos.map((t) {
       final name = t.first;
-      return ''''$name': model.$name?.toOne,''';
-    }).join('\n');
-
-    final removeRelationshipsFromAttributes =
-        [...hasManys, ...belongsTos].map((t) {
-      return '''map.remove('${t.first}');''';
-    }).join('\n');
-
-    final relationshipsInConstructor =
-        '$serializeHasMany$serializeBelongsTo' == "" ? "null" : "relationships";
-
-    final localDeserializeHasMany = hasManys.map((t) {
-      final name = t.first, localType = t.last;
-      return '''map['$name'] = { 'HasMany': HasMany<$localType>.fromKeys(map['$name'], manager) };''';
-    }).join('\n');
-
-    final localDeserializeBelongsTo = belongsTos.map((t) {
-      final name = t.first, localType = t.last;
-      return '''map['$name'] = { 'BelongsTo': BelongsTo<$localType>.fromKey(map['$name'], manager) };''';
-    }).join('\n');
-
-    final localSerializeHasMany = hasManys.map((t) {
-      final name = t.first;
-      return '''map['$name'] = model.$name?.keys;''';
-    }).join('\n');
-
-    final localSerializeBelongsTo = belongsTos.map((t) {
-      final name = t.first;
       return '''map['$name'] = model.$name?.key;''';
     }).join('\n');
+
+    //
 
     final setOwnerInRelationships = [...hasManys, ...belongsTos].map((t) {
       final name = t.first, localType = t.last;
@@ -139,53 +115,15 @@ class _\$${type}Repository extends Repository<$type> {
   _\$${type}Repository(LocalAdapter<$type> adapter) : super(adapter);
 
   @override
-  Map<String, dynamic> get relationshipMetadata => $relationshipMetadata;
+  get relationshipMetadata => $relationshipMetadata;
 
   @override
-  $type internalDeserialize(obj, { withKey, included }) {
-    var map = <String, dynamic>{
-      ...?obj?.relationships
-    };
-    
-    $deserializeHasMany
-    $deserializeBelongsTo
-    
-    var dataId = manager.dataId<$type>(obj.id, key: withKey);
-    return $type.fromJson({
-      ...{'id': dataId.id},
-      ...obj.attributes,
-      ...map,
-    });
-  }
-
-  @override
-  internalSerialize($type model) {
-    var relationships = {
-      $serializeHasMany
-      $serializeBelongsTo
-    };
-
-    final map = model.toJson();
-    final dataId = manager.dataId<$type>(model.id);
-
-    map.remove('id');
-    $removeRelationshipsFromAttributes
-
-    return DataResourceObject(
-      dataId.type,
-      dataId.id,
-      attributes: map,
-      relationships: $relationshipsInConstructor,
-    );
-  }
-
-  @override
-  void setOwnerInRelationships(DataId<$type> owner, $type model) {
+  setOwnerInRelationships(owner, model) {
     $setOwnerInRelationships
   }
 
   @override
-  void setOwnerInModel(DataId owner, $type model) {
+  void setOwnerInModel(owner, model) {
     $setOwnerInModel
   }
 }
@@ -199,20 +137,18 @@ class \$${type}LocalAdapter extends LocalAdapter<$type> {
   \$${type}LocalAdapter(box, DataManager manager) : super(box, manager);
 
   @override
-  $type internalLocalDeserialize(map) {
-    map = fixMap(map);
-
-    $localDeserializeHasMany
-    $localDeserializeBelongsTo
+  deserialize(map, {key}) {
+    $deserialize
     
+    manager.dataId<$type>(map.id, key: key);
     return $type.fromJson(map);
   }
 
   @override
-  Map<String, dynamic> internalLocalSerialize($type model) {
-    var map = model.toJson();
-    $localSerializeHasMany
-    $localSerializeBelongsTo
+  serialize(model) {
+    final map = model.toJson();
+    $serializeHasMany
+    $serializeBelongsTo
     return map;
   }
 }''';

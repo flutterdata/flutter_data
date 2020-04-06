@@ -18,19 +18,21 @@ abstract class RemoteAdapter<T extends DataSupport<T>> {
 
   String updateHttpMethod = 'PATCH';
 
-  Map<String, String> get headers => {
-        'Content-Type': 'application/vnd.api+json',
-        'Accept': 'application/vnd.api+json',
-      };
+  Map<String, String> get headers => {};
+
+  DataManager manager;
 
   // serialize/deserialize
 
-  // Forwards data since flutter_data understands JSON:API
-  Map<String, dynamic> deserialize(dynamic json,
-          [Map<String, dynamic> relationshipMetadata]) =>
-      json as Map<String, dynamic>;
+  Map<String, dynamic> get relationshipMetadata;
 
-  dynamic serialize(Map<String, dynamic> json) => json;
+  Map<String, dynamic> serialize(T model);
+
+  serializeCollection(Iterable<T> models);
+
+  T deserialize(dynamic object, {String key});
+
+  Iterable<T> deserializeCollection(object);
 
   // repository methods
 

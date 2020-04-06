@@ -23,11 +23,11 @@ abstract class LocalAdapter<T extends DataSupport<T>> with TypeAdapter<T> {
 
   @visibleForTesting
   @protected
-  Map<String, dynamic> internalLocalSerialize(T model);
+  Map<String, dynamic> serialize(T model);
 
   @visibleForTesting
   @protected
-  T internalLocalDeserialize(Map<String, dynamic> map);
+  T deserialize(Map<String, dynamic> map, {String key});
 
   // hive serialization
 
@@ -46,12 +46,12 @@ abstract class LocalAdapter<T extends DataSupport<T>> with TypeAdapter<T> {
     var fields = <String, dynamic>{
       for (var i = 0; i < n; i++) reader.read().toString(): reader.read(),
     };
-    return internalLocalDeserialize(fields);
+    return deserialize(fixMap(fields));
   }
 
   @override
   void write(writer, T obj) {
-    final _map = internalLocalSerialize(obj);
+    final _map = serialize(obj);
     writer.writeByte(_map.keys.length);
     for (var k in _map.keys) {
       writer.write(k);
@@ -69,9 +69,7 @@ abstract class LocalAdapter<T extends DataSupport<T>> with TypeAdapter<T> {
     return box.watch().map((_) => findAll()).debounceTime(_oneFrameDuration);
   }
 
-  T findOne(String key) {
-    return box.get(key);
-  }
+  T findOne(String key) => key != null ? box.get(key) : null;
 
   Stream<T> watchOne(String key) {
     return box

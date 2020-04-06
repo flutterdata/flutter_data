@@ -11,55 +11,19 @@ class _$HouseRepository extends Repository<House> {
   _$HouseRepository(LocalAdapter<House> adapter) : super(adapter);
 
   @override
-  Map<String, dynamic> get relationshipMetadata => {
-        "HasMany": {"families": "families"},
-        "BelongsTo": {}
+  get relationshipMetadata => {
+        'HasMany': {'families': 'families'},
+        'BelongsTo': {},
+        'repository#families': manager.locator<Repository<Family>>()
       };
 
   @override
-  House internalDeserialize(obj, {withKey, included}) {
-    var map = <String, dynamic>{...?obj?.relationships};
-
-    map['families'] = {
-      'HasMany': HasMany<Family>.fromToMany(map['families'], manager,
-          included: included)
-    };
-
-    var dataId = manager.dataId<House>(obj.id, key: withKey);
-    return House.fromJson({
-      ...{'id': dataId.id},
-      ...obj.attributes,
-      ...map,
-    });
-  }
-
-  @override
-  internalSerialize(House model) {
-    var relationships = {
-      'families': model.families?.toMany,
-    };
-
-    final map = model.toJson();
-    final dataId = manager.dataId<House>(model.id);
-
-    map.remove('id');
-    map.remove('families');
-
-    return DataResourceObject(
-      dataId.type,
-      dataId.id,
-      attributes: map,
-      relationships: relationships,
-    );
-  }
-
-  @override
-  void setOwnerInRelationships(DataId<House> owner, House model) {
+  setOwnerInRelationships(owner, model) {
     model.families?.owner = owner;
   }
 
   @override
-  void setOwnerInModel(DataId owner, House model) {
+  void setOwnerInModel(owner, model) {
     if (owner is DataId<Family>) {
       model.families?.owner = owner;
     }
@@ -75,19 +39,18 @@ class $HouseLocalAdapter extends LocalAdapter<House> {
   $HouseLocalAdapter(box, DataManager manager) : super(box, manager);
 
   @override
-  House internalLocalDeserialize(map) {
-    map = fixMap(map);
-
+  deserialize(map, {key}) {
     map['families'] = {
-      'HasMany': HasMany<Family>.fromKeys(map['families'], manager)
+      '_': [map['families'], manager]
     };
 
+    manager.dataId<House>(map.id, key: key);
     return House.fromJson(map);
   }
 
   @override
-  Map<String, dynamic> internalLocalSerialize(House model) {
-    var map = model.toJson();
+  serialize(model) {
+    final map = model.toJson();
     map['families'] = model.families?.keys;
 
     return map;

@@ -10,7 +10,7 @@ void main() async {
   setUpAll(setUpAllFn);
   tearDownAll(tearDownAllFn);
 
-  test('internalLocalSerialize', () {
+  test('serialize', () {
     var manager = injection.locator<DataManager>();
 
     var person = Person(id: '1', name: "Franco", age: 28);
@@ -21,9 +21,7 @@ void main() async {
     var family =
         Family(id: "1", surname: "Smith", house: houseRel, persons: personRel);
 
-    var map = injection
-        .locator<LocalAdapter<Family>>()
-        .internalLocalSerialize(family);
+    var map = injection.locator<LocalAdapter<Family>>().serialize(family);
     expect(map, {
       'id': "1",
       'surname': "Smith",
@@ -47,8 +45,7 @@ void main() async {
       'persons': personRel.keys
     };
 
-    var family =
-        injection.locator<LocalAdapter<Family>>().internalLocalDeserialize(map);
+    var family = injection.locator<LocalAdapter<Family>>().deserialize(map);
     expect(family,
         Family(id: "1", surname: "Smith", house: houseRel, persons: personRel));
   });
