@@ -25,16 +25,10 @@ abstract class DataSupport<T extends DataSupport<T>> {
     assert(repository != null, 'Please provide an instance of Repository<$T>');
     _repository = repository;
     _manager = repository.manager;
-    if (id != null) {
-      // TODO DO I REALLY NEED TO DO THIS HERE? why not in DataId?
-      // ensure we associate an id with the provided key (if any)
-      final key = _manager.dataId<T>(id).key;
-      _manager.dataId<T>(id, key: key);
-    }
-
+    var dataId = _manager.dataId<T>(id, key: key);
     // sync relationships
     _repository.setOwnerInRelationships(dataId, _this);
-    _this.save(remote: false);
+    _repository.localAdapter.save(dataId.key, _this);
     return _this;
   }
 
