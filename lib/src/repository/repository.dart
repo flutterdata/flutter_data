@@ -14,8 +14,8 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
 
   @override
   deserialize(object, {key}) => localAdapter
-      .deserialize(object as Map<String, dynamic>, key: key)
-      ._init(this);
+      .deserialize(object as Map<String, dynamic>)
+      ._init(this, key: key);
 
   @override
   deserializeCollection(object) => (object as Iterable).map(deserialize);
@@ -233,10 +233,8 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
         // return "old" model if response was empty
         return model;
       }
-      return deserialize(
-        data as Map<String, dynamic>,
-        key: model.key,
-      )._init(this);
+      // provide key of the existing model
+      return deserialize(data as Map<String, dynamic>, key: model.key);
     });
   }
 

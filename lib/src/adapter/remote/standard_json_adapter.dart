@@ -59,9 +59,6 @@ mixin StandardJSONAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
     }
 
     for (var relEntry in relationshipMetadata['BelongsTo'].entries) {
-      // final ks = '${relEntry.key}';
-      // final k = ks.replaceFirst(RegExp('$identifierSuffix\\b'), "");
-
       final k = '${relEntry.key}';
       final ks = '$k$identifierSuffix';
 
