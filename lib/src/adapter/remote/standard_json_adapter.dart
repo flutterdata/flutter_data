@@ -76,6 +76,6 @@ mixin StandardJSONAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
       map[k] = dataId.key;
     }
 
-    return super.deserialize(map);
+    return super.deserialize(map, key: key);
   }
 }

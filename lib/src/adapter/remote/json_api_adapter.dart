@@ -101,6 +101,6 @@ mixin JSONAPIAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
       }
     }
 
-    return super.deserialize(nativeMap);
+    return super.deserialize(nativeMap, key: key);
   }
 }
