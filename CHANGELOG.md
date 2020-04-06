@@ -1,3 +1,9 @@
+## [0.3.0] - 06/03/2020
+
+ - Revamp serialization system
+ - Added standard json and JSON:API adapters
+ - Better relationship support
+
 ## [0.2.0] - 04/03/2020
 
  - Auto/manual model initialization modes
