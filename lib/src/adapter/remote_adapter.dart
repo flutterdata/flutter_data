@@ -18,10 +18,9 @@ abstract class RemoteAdapter<T extends DataSupport<T>> {
 
   String updateHttpMethod = 'PATCH';
 
-  Map<String, String> get headers => {
-        'Content-Type': 'application/vnd.api+json',
-        'Accept': 'application/vnd.api+json',
-      };
+  Map<String, String> get headers => {};
+
+  DataManager manager;
 
   // serialize/deserialize
 
@@ -29,8 +28,11 @@ abstract class RemoteAdapter<T extends DataSupport<T>> {
 
   Map<String, dynamic> serialize(T model);
 
-  T deserialize(Map<String, dynamic> map,
-      {String key, List<Map<String, dynamic>> included});
+  serializeCollection(Iterable<T> models);
+
+  T deserialize(dynamic object, {String key});
+
+  Iterable<T> deserializeCollection(object);
 
   // repository methods
 

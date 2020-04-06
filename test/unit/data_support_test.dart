@@ -53,9 +53,12 @@ void main() async {
     var family = Family(
       id: "1",
       surname: "Jones",
-      persons: HasMany.fromKeys(
-          personDataIds.map((d) => d.key).toList(), personRepo.manager),
-      house: BelongsTo.fromKey(houseDataId.key, personRepo.manager),
+      persons: HasMany.fromJson({
+        '_': [personDataIds.map((d) => d.key).toList(), personRepo.manager]
+      }),
+      house: BelongsTo.fromJson({
+        '_': [houseDataId.key, personRepo.manager]
+      }),
     ).init(familyRepo);
 
     // (2) then load persons

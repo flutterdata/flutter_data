@@ -21,11 +21,19 @@ abstract class DataSupport<T extends DataSupport<T>> {
     _initRepository = repository;
   }
 
-  T _init(Repository<T> repository) {
+  T _init(Repository<T> repository, {String key}) {
     assert(repository != null, 'Please provide an instance of Repository<$T>');
     _repository = repository;
     _manager = repository.manager;
-    _repository.setOwnerInRelationships(_manager.dataId<T>(id), _this);
+    if (id != null) {
+      // TODO DO I REALLY NEED TO DO THIS HERE? why not in DataId?
+      // ensure we associate an id with the provided key (if any)
+      final key = _manager.dataId<T>(id).key;
+      _manager.dataId<T>(id, key: key);
+    }
+
+    // sync relationships
+    _repository.setOwnerInRelationships(dataId, _this);
     _this.save(remote: false);
     return _this;
   }
@@ -81,9 +89,9 @@ FlutterData.init(autoModelInit: false);
 }
 
 extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
-  DataId get dataId {
+  DataId<T> get dataId {
     _assertRepo('get dataId');
-    return _manager.dataId<T>(id, model: _this);
+    return _manager.dataId<T>(id);
   }
 
   String get key {

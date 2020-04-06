@@ -11,19 +11,21 @@ class _$FamilyRepository extends Repository<Family> {
   _$FamilyRepository(LocalAdapter<Family> adapter) : super(adapter);
 
   @override
-  Map<String, dynamic> get relationshipMetadata => {
-        "HasMany": {"persons": "people"},
-        "BelongsTo": {"house": "houses"}
+  get relationshipMetadata => {
+        'HasMany': {'persons': 'people'},
+        'BelongsTo': {'house': 'houses'},
+        'repository#people': manager.locator<Repository<Person>>(),
+        'repository#houses': manager.locator<Repository<House>>()
       };
 
   @override
-  void setOwnerInRelationships(DataId<Family> owner, Family model) {
+  setOwnerInRelationships(owner, model) {
     model.persons?.owner = owner;
     model.house?.owner = owner;
   }
 
   @override
-  void setOwnerInModel(DataId owner, Family model) {
+  void setOwnerInModel(owner, model) {
     if (owner is DataId<Person>) {
       model.persons?.owner = owner;
     }
@@ -42,12 +44,12 @@ class $FamilyLocalAdapter extends LocalAdapter<Family> {
   $FamilyLocalAdapter(box, DataManager manager) : super(box, manager);
 
   @override
-  deserialize(map, {key, included}) {
+  deserialize(map, {key}) {
     map['persons'] = {
-      'HasMany': [map['persons'], manager]
+      '_': [map['persons'], manager]
     };
     map['house'] = {
-      'BelongsTo': [map['house'], manager]
+      '_': [map['house'], manager]
     };
 
     manager.dataId<Family>(map.id, key: key);
@@ -55,7 +57,7 @@ class $FamilyLocalAdapter extends LocalAdapter<Family> {
   }
 
   @override
-  serialize(Family model) {
+  serialize(model) {
     final map = model.toJson();
     map['persons'] = model.persons?.keys;
     map['house'] = model.house?.key;

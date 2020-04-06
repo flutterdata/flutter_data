@@ -17,46 +17,36 @@ void main() async {
     expect(rel.dataId, manager.dataId<Person>('1'));
   });
 
-  test('fromJson + equality', () {
-    var repository = injection.locator<Repository<Person>>();
-    var p = Person(id: '1', name: "zzz", age: 7).init(repository);
-    expect(
-        BelongsTo<Person>.fromJson({
-          'BelongsTo': [p.key, repository.manager]
-        }),
-        BelongsTo<Person>(p, repository.manager));
-  });
+  // test('fromToOne with included', () {
+  //   var adapter = injection.locator<Repository<Person>>().localAdapter;
+  //   var manager = adapter.manager;
+  //   var r1 = {'id': '1', 'name': "r1", 'age': 17};
+  //   var r2 = {'id': '2', 'name': "r2", 'age': 27};
 
-  test('fromToOne with included', () {
-    var adapter = injection.locator<Repository<Person>>().localAdapter;
-    var manager = adapter.manager;
-    var r1 = {'id': '1', 'name': "r1", 'age': 17};
-    var r2 = {'id': '2', 'name': "r2", 'age': 27};
+  //   var rel = BelongsTo<Person>.fromJson({
+  //     '_': [manager.dataId<Person>('1').key, manager]
+  //   });
 
-    var rel = BelongsTo<Person>.fromKey(
-        manager.dataId<Person>('1').key, manager,
-        included: [r1, r2]);
+  //   expect(rel.dataId, manager.dataId<Person>("1"));
+  //   // person 1 should be saved (cause it was in included)
+  //   expect(adapter.findOne(rel.dataId.key), isNotNull);
+  //   expect(adapter.findOne(rel.dataId.key).dataId,
+  //       isNotNull); // manager should be set
+  //   // but person 2 shouldn't, as it wasn't referenced in any relationship
+  //   expect(adapter.findOne(manager.dataId<Person>('2').key), isNull);
+  // });
 
-    expect(rel.dataId, manager.dataId<Person>("1"));
-    // person 1 should be saved (cause it was in included)
-    expect(adapter.findOne(rel.dataId.key), isNotNull);
-    expect(adapter.findOne(rel.dataId.key).dataId,
-        isNotNull); // manager should be set
-    // but person 2 shouldn't, as it wasn't referenced in any relationship
-    expect(adapter.findOne(manager.dataId<Person>('2').key), isNull);
-  });
-
-  test('fromKey', () {
+  test('fromJson', () {
     var adapter = injection.locator<Repository<Person>>().localAdapter;
     var manager = adapter.manager;
 
-    var rel = BelongsTo<Person>.fromKey(
-      manager.dataId<Person>('1').key,
-      manager,
-    );
+    var rel = BelongsTo<Person>.fromJson({
+      '_': [manager.dataId<Person>('1').key, manager]
+    });
     var person = Person(id: '1', name: "zzz", age: 7);
     adapter.save(rel.dataId.key, person);
 
+    expect(rel, BelongsTo<Person>(person, manager));
     expect(rel.dataId, manager.dataId<Person>("1"));
     expect(rel.value, person);
   });

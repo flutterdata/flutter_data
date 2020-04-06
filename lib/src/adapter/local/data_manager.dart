@@ -81,7 +81,7 @@ either directly or through FlutterData.init().
 }
 
 extension ManagerDataId on DataManager {
-  DataId<T> dataId<T extends DataSupport<T>>(String id,
-          {String key, String type, T model}) =>
+  @optionalTypeArgs
+  DataId<T> dataId<T>(String id, {String key, String type, T model}) =>
       DataId<T>(id, this, key: key, type: type, model: model);
 }

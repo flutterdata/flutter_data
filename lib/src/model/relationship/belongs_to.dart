@@ -5,10 +5,8 @@ class BelongsTo<E extends DataSupport<E>> extends Relationship<E> {
   @visibleForTesting
   DataId<E> dataId;
 
-  BelongsTo._(this.dataId,
-      [DataManager manager, List<Map<String, dynamic>> included]) {
+  BelongsTo._(this.dataId, [DataManager manager]) {
     super._manager = manager;
-    _saveIncluded(included, [dataId]);
   }
 
   BelongsTo([E model, DataManager manager])
@@ -17,14 +15,11 @@ class BelongsTo<E extends DataSupport<E>> extends Relationship<E> {
 
   // serialization constructors
 
-  factory BelongsTo.fromKey(String key, DataManager manager,
-          {List<Map<String, dynamic>> included}) =>
-      BelongsTo<E>._(key != null ? DataId.byKey<E>(key, manager) : null,
-          manager, included);
-
   factory BelongsTo.fromJson(Map<String, dynamic> map) {
-    return BelongsTo.fromKey(
-        map['BelongsTo'][0] as String, map['BelongsTo'][1] as DataManager);
+    final key = map['_'][0] as String;
+    final manager = map['_'][1] as DataManager;
+    return BelongsTo._(
+        key != null ? DataId.byKey(key, manager) : null, manager);
   }
 
   // end constructors
@@ -47,9 +42,6 @@ class BelongsTo<E extends DataSupport<E>> extends Relationship<E> {
   }
 
   String get key => dataId?.key;
-
-  @override
-  Map<String, dynamic> toJson() => {'a': 1}; // toOne?.linkage?.toJson();
 
   @override
   String toString() => 'BelongsTo<$E>(${dataId.id})';

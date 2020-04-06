@@ -11,18 +11,19 @@ class _$ModelRepository extends Repository<Model> {
   _$ModelRepository(LocalAdapter<Model> adapter) : super(adapter);
 
   @override
-  Map<String, dynamic> get relationshipMetadata => {
-        "HasMany": {},
-        "BelongsTo": {"company": "companies"}
+  get relationshipMetadata => {
+        'HasMany': {},
+        'BelongsTo': {'company': 'companies'},
+        'repository#companies': manager.locator<Repository<Company>>()
       };
 
   @override
-  void setOwnerInRelationships(DataId<Model> owner, Model model) {
+  setOwnerInRelationships(owner, model) {
     model.company?.owner = owner;
   }
 
   @override
-  void setOwnerInModel(DataId owner, Model model) {
+  void setOwnerInModel(owner, model) {
     if (owner is DataId<Company>) {
       model.company?.owner = owner;
     }
@@ -38,9 +39,9 @@ class $ModelLocalAdapter extends LocalAdapter<Model> {
   $ModelLocalAdapter(box, DataManager manager) : super(box, manager);
 
   @override
-  deserialize(map, {key, included}) {
+  deserialize(map, {key}) {
     map['company'] = {
-      'BelongsTo': [map['company'], manager]
+      '_': [map['company'], manager]
     };
 
     manager.dataId<Model>(map.id, key: key);
@@ -48,7 +49,7 @@ class $ModelLocalAdapter extends LocalAdapter<Model> {
   }
 
   @override
-  serialize(Model model) {
+  serialize(model) {
     final map = model.toJson();
 
     map['company'] = model.company?.key;
@@ -61,14 +62,13 @@ class _$CityRepository extends Repository<City> {
   _$CityRepository(LocalAdapter<City> adapter) : super(adapter);
 
   @override
-  Map<String, dynamic> get relationshipMetadata =>
-      {"HasMany": {}, "BelongsTo": {}};
+  get relationshipMetadata => {'HasMany': {}, 'BelongsTo': {}};
 
   @override
-  void setOwnerInRelationships(DataId<City> owner, City model) {}
+  setOwnerInRelationships(owner, model) {}
 
   @override
-  void setOwnerInModel(DataId owner, City model) {}
+  void setOwnerInModel(owner, model) {}
 }
 
 class $CityRepository extends _$CityRepository {
@@ -80,13 +80,13 @@ class $CityLocalAdapter extends LocalAdapter<City> {
   $CityLocalAdapter(box, DataManager manager) : super(box, manager);
 
   @override
-  deserialize(map, {key, included}) {
+  deserialize(map, {key}) {
     manager.dataId<City>(map.id, key: key);
     return City.fromJson(map);
   }
 
   @override
-  serialize(City model) {
+  serialize(model) {
     final map = model.toJson();
 
     return map;
@@ -98,25 +98,27 @@ class _$CompanyRepository extends Repository<Company> {
   _$CompanyRepository(LocalAdapter<Company> adapter) : super(adapter);
 
   @override
-  Map<String, dynamic> get relationshipMetadata => {
-        "HasMany": {"models": "models"},
-        "BelongsTo": {}
+  get relationshipMetadata => {
+        'HasMany': {'models': 'models'},
+        'BelongsTo': {},
+        'repository#models': manager.locator<Repository<Model>>()
       };
 
   @override
-  void setOwnerInRelationships(DataId<Company> owner, Company model) {
+  setOwnerInRelationships(owner, model) {
     model.models?.owner = owner;
   }
 
   @override
-  void setOwnerInModel(DataId owner, Company model) {
+  void setOwnerInModel(owner, model) {
     if (owner is DataId<Model>) {
       model.models?.owner = owner;
     }
   }
 }
 
-class $CompanyRepository extends _$CompanyRepository with TestMixin<Company> {
+class $CompanyRepository extends _$CompanyRepository
+    with JSONAPIAdapter<Company>, TestMixin<Company> {
   $CompanyRepository(LocalAdapter<Company> adapter) : super(adapter);
 }
 
@@ -125,9 +127,9 @@ class $CompanyLocalAdapter extends LocalAdapter<Company> {
   $CompanyLocalAdapter(box, DataManager manager) : super(box, manager);
 
   @override
-  deserialize(map, {key, included}) {
+  deserialize(map, {key}) {
     map['models'] = {
-      'HasMany': [map['models'], manager]
+      '_': [map['models'], manager]
     };
 
     manager.dataId<Company>(map.id, key: key);
@@ -135,7 +137,7 @@ class $CompanyLocalAdapter extends LocalAdapter<Company> {
   }
 
   @override
-  serialize(Company model) {
+  serialize(model) {
     final map = model.toJson();
     map['models'] = model.models?.keys;
 

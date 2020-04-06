@@ -11,18 +11,19 @@ class _$PersonRepository extends Repository<Person> {
   _$PersonRepository(LocalAdapter<Person> adapter) : super(adapter);
 
   @override
-  Map<String, dynamic> get relationshipMetadata => {
-        "HasMany": {},
-        "BelongsTo": {"family": "families"}
+  get relationshipMetadata => {
+        'HasMany': {},
+        'BelongsTo': {'family': 'families'},
+        'repository#families': manager.locator<Repository<Family>>()
       };
 
   @override
-  void setOwnerInRelationships(DataId<Person> owner, Person model) {
+  setOwnerInRelationships(owner, model) {
     model.family?.owner = owner;
   }
 
   @override
-  void setOwnerInModel(DataId owner, Person model) {
+  void setOwnerInModel(owner, model) {
     if (owner is DataId<Family>) {
       model.family?.owner = owner;
     }
@@ -38,9 +39,9 @@ class $PersonLocalAdapter extends LocalAdapter<Person> {
   $PersonLocalAdapter(box, DataManager manager) : super(box, manager);
 
   @override
-  deserialize(map, {key, included}) {
+  deserialize(map, {key}) {
     map['family'] = {
-      'BelongsTo': [map['family'], manager]
+      '_': [map['family'], manager]
     };
 
     manager.dataId<Person>(map.id, key: key);
@@ -48,7 +49,7 @@ class $PersonLocalAdapter extends LocalAdapter<Person> {
   }
 
   @override
-  serialize(Person model) {
+  serialize(model) {
     final map = model.toJson();
 
     map['family'] = model.family?.key;

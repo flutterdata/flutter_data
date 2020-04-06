@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_data/flutter_data.dart';
+import 'package:json_api/document.dart';
 import 'package:test/test.dart';
 
 import '../unit/setup.dart';
@@ -25,6 +26,9 @@ void main() async {
     // we use $CompanyRepository as it already has the TestMixin baked in
     injection
         .register<Repository<Company>>($CompanyRepository(companyLocalAdapter));
+
+    // injection.register<Repository<Company>>(
+    //     CompanyTestRepository(companyLocalAdapter));
     injection.register<Repository<City>>(CityTestRepository(cityLocalAdapter));
     injection
         .register<Repository<Model>>(ModelTestRepository(modelLocalAdapter));

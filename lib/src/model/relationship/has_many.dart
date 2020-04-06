@@ -6,10 +6,8 @@ class HasMany<E extends DataSupport<E>> extends Relationship<E>
   @visibleForTesting
   final List<DataId<E>> dataIds;
 
-  HasMany._(this.dataIds,
-      [DataManager manager, List<Map<String, dynamic>> included]) {
+  HasMany._(this.dataIds, [DataManager manager]) {
     super._manager = manager;
-    _saveIncluded(included, dataIds);
   }
 
   HasMany([List<E> list = const [], DataManager manager])
@@ -21,14 +19,11 @@ class HasMany<E extends DataSupport<E>> extends Relationship<E>
 
   // serialization constructors
 
-  factory HasMany.fromKeys(List<String> keys, DataManager manager,
-          {List<Map<String, dynamic>> included}) =>
-      HasMany._(keys != null ? DataId.byKeys(keys, manager) : const [], manager,
-          included);
-
   factory HasMany.fromJson(Map<String, dynamic> map) {
-    return HasMany.fromKeys(List<String>.from(map['HasMany'][0] as Iterable),
-        map['HasMany'][1] as DataManager);
+    final keys = List<String>.from(map['_'][0] as Iterable);
+    final manager = map['_'][1] as DataManager;
+    return HasMany._(
+        keys != null ? DataId.byKeys(keys, manager) : const [], manager);
   }
 
   // end constructors
@@ -65,9 +60,6 @@ class HasMany<E extends DataSupport<E>> extends Relationship<E>
   // misc
 
   List<String> get keys => dataIds.map((d) => d.key).toList();
-
-  @override
-  Map<String, dynamic> toJson() => {}; // toMany.toJson();
 
   @override
   String toString() => 'HasMany<$E>(${dataIds.map((d) => d.id)})';

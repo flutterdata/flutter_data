@@ -10,7 +10,15 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
   serialize(model) => localAdapter.serialize(model);
 
   @override
-  deserialize(map, {key, included}) => localAdapter.deserialize(map);
+  serializeCollection(models) => models.map(serialize);
+
+  @override
+  deserialize(object, {key}) => localAdapter
+      .deserialize(object as Map<String, dynamic>, key: key)
+      ._init(this);
+
+  @override
+  deserializeCollection(object) => (object as Iterable).map(deserialize);
 
   // abstract members, to be overriden by adapters
 
@@ -29,6 +37,7 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
 
   @visibleForTesting
   @protected
+  @override
   DataManager get manager => localAdapter.manager;
 
   // repository methods
@@ -104,14 +113,7 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
     print('[flutter_data] findAll $T: $uri [HTTP ${response.statusCode}]');
 
     return _withResponse<List<T>>(response, (data) {
-      final models =
-          List<Map<String, dynamic>>.from(data as Iterable).map((map) {
-        return deserialize(
-          map,
-          key: manager.dataId<T>(map.id).key,
-        )._init(this);
-      });
-      return models.toList();
+      return deserializeCollection(data).toList();
     });
   }
 
@@ -189,12 +191,7 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
 
     print('[flutter_data] loadOne $T: $uri [HTTP ${response.statusCode}]');
 
-    return _withResponse<T>(response, (data) {
-      return deserialize(
-        data as Map<String, dynamic>,
-        key: manager.dataId<T>(data['id'].toString()).key,
-      )._init(this);
-    });
+    return _withResponse<T>(response, deserialize);
   }
 
   // save & delete
@@ -297,7 +294,7 @@ abstract class Repository<T extends DataSupport<T>> with RemoteAdapter<T> {
     if (code >= 200 && code < 300) {
       return onSuccess(data);
     } else if (code >= 400 && code < 600) {
-      throw DataException(error, response.statusCode);
+      throw DataException(error ?? data, response.statusCode);
     } else {
       throw UnsupportedError('Failed request for type $R');
     }

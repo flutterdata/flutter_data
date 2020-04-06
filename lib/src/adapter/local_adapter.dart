@@ -27,8 +27,7 @@ abstract class LocalAdapter<T extends DataSupport<T>> with TypeAdapter<T> {
 
   @visibleForTesting
   @protected
-  T deserialize(Map<String, dynamic> json,
-      {String key, List<Map<String, dynamic>> included});
+  T deserialize(Map<String, dynamic> map, {String key});
 
   // hive serialization
 

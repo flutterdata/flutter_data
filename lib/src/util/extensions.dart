@@ -9,7 +9,7 @@ typedef OnRequest<R> = Future<R> Function(http.Client);
 // member extensions
 
 extension MapIdExtension on Map {
-  String get id => this['id'].toString();
+  String get id => this['id'] != null ? this['id'].toString() : null;
 }
 
 extension IterableRelationshipExtension<T extends DataSupport<T>> on List<T> {
