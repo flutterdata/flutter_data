@@ -16,8 +16,9 @@ extension IterableRelationshipExtension<T extends DataSupport<T>> on List<T> {
   HasMany<T> get asHasMany {
     if (this.isNotEmpty) {
       this.first._assertRepo('extension asHasMany');
+      return HasMany<T>(this);
     }
-    return HasMany<T>(this);
+    return HasMany<T>();
   }
 }
 
