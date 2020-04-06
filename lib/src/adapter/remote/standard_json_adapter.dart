@@ -30,7 +30,7 @@ mixin StandardJSONAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
 
       final key = map[k].toString();
       final type = relEntry.value;
-      relationships[ks] = DataId.byKey(key, manager, type: type.toString()).id;
+      relationships[ks] = DataId.byKey(key, manager, type: type.toString())?.id;
       map.remove(k);
     }
 
