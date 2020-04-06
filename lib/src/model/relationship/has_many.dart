@@ -33,6 +33,7 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
     _manager = owner.manager;
     for (int i = 0; i < length; i++) {
       if (dataIds[i] != null) {
+        // if a "temporary" model is associated to the dataId, initialize
         dataIds[i].model?._init(_repository);
         // trigger re-run DataId
         dataIds[i] = _manager.dataId<E>(dataIds[i].id);
@@ -40,16 +41,26 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
     }
   }
 
+  set inverse(DataId<E> inverse) {
+    if (!dataIds.contains(inverse)) {
+      dataIds.add(inverse);
+    }
+  }
+
   // array methods
 
   @override
-  E operator [](int index) =>
-      _repository.localAdapter.findOne(dataIds[index].key);
+  E operator [](int index) {
+    final value = _repository.localAdapter.findOne(dataIds[index].key);
+    if (value != null) {
+      _repository.setInverseInModel(_owner, value);
+    }
+    return value;
+  }
 
   @override
   operator []=(int index, E value) {
     dataIds[index] = _manager.dataId<E>(value.id);
-    _repository.setOwnerInModel(_owner, value);
   }
 
   @override

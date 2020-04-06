@@ -23,9 +23,9 @@ class _$PersonRepository extends Repository<Person> {
   }
 
   @override
-  void setOwnerInModel(owner, model) {
-    if (owner is DataId<Family>) {
-      model.family?.owner = owner;
+  void setInverseInModel(inverse, model) {
+    if (inverse is DataId<Family>) {
+      model.family?.inverse = inverse;
     }
   }
 }

@@ -28,7 +28,7 @@ abstract class Repository<T extends DataSupportMixin<T>> with RemoteAdapter<T> {
 
   @visibleForTesting
   @protected
-  void setOwnerInModel(DataId owner, T model);
+  void setInverseInModel(DataId inverse, T model);
 
   @visibleForTesting
   @protected

@@ -107,6 +107,6 @@ void main() async {
   test('create and save locally', () async {
     var repo = injection.locator<Repository<House>>();
     var house = House(address: "12 Lincoln Rd").init(repo);
-    expect(house, await house.save(remote: false));
+    expect(house, repo.localAdapter.findOne(house.key));
   });
 }

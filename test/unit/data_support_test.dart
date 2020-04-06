@@ -78,8 +78,8 @@ void main() async {
     ).init(familyRepo);
 
     // (2) then load persons
-    Person(id: '1', name: 'z1', age: 23).init(personRepo).save(remote: false);
-    Person(id: '2', name: 'z2', age: 33).init(personRepo).save(remote: false);
+    Person(id: '1', name: 'z1', age: 23).init(personRepo);
+    Person(id: '2', name: 'z2', age: 33).init(personRepo);
 
     // (3) assert two first are linked, third one null, house is null
     expect(family.persons[0], isNotNull);
@@ -88,13 +88,47 @@ void main() async {
     expect(family.house.value, isNull);
 
     // (4) load the last person and assert it exists now
-    Person(id: '3', name: 'z3', age: 3).init(personRepo).save(remote: false);
-    var house = House(id: '98', address: "21 Coconut Trail").init(houseRepo);
-
+    Person(id: '3', name: 'z3', age: 3).init(personRepo);
     expect(family.persons[2].age, 3);
-    expect(family.house.value.address, endsWith('Trail'));
 
-    // (5) TO-DO
-    expect(house.families.length, 0);
+    // (5) load family and assert it exists now
+    var house = House(id: '98', address: "21 Coconut Trail").init(houseRepo);
+    // TODO should pass here too
+    // expect(house.families, contains(family));
+    expect(family.house.value.address, endsWith('Trail'));
+    expect(house.families, contains(family));
+  });
+
+  test('relationship scenario #2', () {
+    var repository = injection.locator<Repository<Family>>();
+
+    var f1 = Family(
+            surname: 'Kamchatka',
+            persons: [Person(name: 'Igor', age: 33)].asHasMany)
+        .init(repository);
+    // if Igor's family is NULL there's no way we can expect anything else
+    // this is why setting an empty default relationship is recommended
+    expect(f1.persons.first.family, isNull);
+
+    var f1b = Family(
+            surname: 'Kamchatka',
+            persons:
+                [Person(name: 'Igor', age: 33, family: BelongsTo())].asHasMany)
+        .init(repository);
+    expect(f1b.persons.first.family.value.surname, 'Kamchatka');
+
+    var f2 = Family(surname: 'Kamchatka', persons: HasMany()).init(repository);
+    f2.persons.add(Person(name: 'Igor', age: 33));
+    expect(f2.persons.first.family.value.surname, 'Kamchatka');
+
+    var f3 = Family(
+            surname: 'Kamchatka',
+            house: House(address: "Sakharova Prospekt, 19").asBelongsTo)
+        .init(repository);
+    expect(f3.house.value.families.first.surname, 'Kamchatka');
+
+    var f4 = Family(surname: 'Kamchatka', house: BelongsTo()).init(repository);
+    f4.house.value = House(address: "Sakharova Prospekt, 19");
+    expect(f4.house.value.families.first.surname, 'Kamchatka');
   });
 }

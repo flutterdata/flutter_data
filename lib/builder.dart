@@ -86,14 +86,14 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
 
     //
 
-    final setOwnerInRelationships = [...hasManys, ...belongsTos].map((t) {
+    final setOwnerInRelationships = all.map((t) {
       final name = t.first, localType = t.last;
       return '''model.$name?.owner = owner;''';
     }).join('\n');
 
-    final setOwnerInModel = [...hasManys, ...belongsTos].map((t) {
+    final setInverseInModel = all.map((t) {
       final name = t.first, localType = t.last;
-      return '''if (owner is DataId<$localType>) { model.$name?.owner = owner; }''';
+      return '''if (inverse is DataId<$localType>) { model.$name?.inverse = inverse; }''';
     }).join('\n');
 
     // mixins
@@ -123,8 +123,8 @@ class _\$${type}Repository extends Repository<$type> {
   }
 
   @override
-  void setOwnerInModel(owner, model) {
-    $setOwnerInModel
+  void setInverseInModel(inverse, model) {
+    $setInverseInModel
   }
 }
 

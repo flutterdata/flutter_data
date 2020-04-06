@@ -28,17 +28,29 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E> {
     _owner = owner;
     _manager = owner.manager;
     if (dataId != null) {
+      // if a "temporary" model is associated to the dataId, initialize
       dataId.model?._init(_repository);
       // trigger re-run DataId
       dataId = _manager.dataId<E>(dataId.id);
     }
   }
 
-  E get value => _repository.localAdapter.findOne(dataId?.key);
+  set inverse(DataId<E> inverse) {
+    dataId = inverse;
+  }
+
+  //
+
+  E get value {
+    final value = _repository.localAdapter.findOne(dataId?.key);
+    if (value != null) {
+      _repository.setInverseInModel(_owner, value);
+    }
+    return value;
+  }
 
   set value(E value) {
     dataId = _manager.dataId<E>(value.id);
-    _repository.setOwnerInModel(_owner, value);
   }
 
   String get key => dataId?.key;

@@ -23,9 +23,9 @@ class _$ModelRepository extends Repository<Model> {
   }
 
   @override
-  void setOwnerInModel(owner, model) {
-    if (owner is DataId<Company>) {
-      model.company?.owner = owner;
+  void setInverseInModel(inverse, model) {
+    if (inverse is DataId<Company>) {
+      model.company?.inverse = inverse;
     }
   }
 }
@@ -68,7 +68,7 @@ class _$CityRepository extends Repository<City> {
   setOwnerInRelationships(owner, model) {}
 
   @override
-  void setOwnerInModel(owner, model) {}
+  void setInverseInModel(inverse, model) {}
 }
 
 class $CityRepository extends _$CityRepository {
@@ -110,9 +110,9 @@ class _$CompanyRepository extends Repository<Company> {
   }
 
   @override
-  void setOwnerInModel(owner, model) {
-    if (owner is DataId<Model>) {
-      model.models?.owner = owner;
+  void setInverseInModel(inverse, model) {
+    if (inverse is DataId<Model>) {
+      model.models?.inverse = inverse;
     }
   }
 }
