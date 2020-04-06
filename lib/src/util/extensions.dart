@@ -12,11 +12,11 @@ extension MapIdExtension on Map {
   String get id => this['id'] != null ? this['id'].toString() : null;
 }
 
+@optionalTypeArgs
 extension IterableRelationshipExtension<T extends DataSupport<T>> on List<T> {
   HasMany<T> get asHasMany {
     if (this.isNotEmpty) {
-      this.first._assertRepo('extension asHasMany');
-      return HasMany<T>(this);
+      return HasMany<T>(this, this.first._manager);
     }
     return HasMany<T>();
   }
@@ -25,7 +25,6 @@ extension IterableRelationshipExtension<T extends DataSupport<T>> on List<T> {
 extension DataSupportRelationshipExtension<T extends DataSupport<T>>
     on DataSupport<T> {
   BelongsTo<T> get asBelongsTo {
-    this._assertRepo('extension asBelongsTo');
     return BelongsTo<T>(this as T, this._manager);
   }
 }
