@@ -1,10 +1,13 @@
 // ignore_for_file: prefer_interpolation_to_compose_strings
 
+import 'dart:collection';
+
 import 'package:build/build.dart';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/constant/value.dart';
 
 import 'package:glob/glob.dart';
 
@@ -98,7 +101,12 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
 
     // mixins
 
-    final mixins = annotation.read('mixins').listValue.map((o) {
+    // ensure we de-duplicate mixins as it is crucial to preserve super calls
+    final mixinsDedup =
+        LinkedHashSet<DartObject>.from(annotation.read('mixins').listValue)
+            .toList();
+
+    final mixins = mixinsDedup.map((o) {
       return '${o.toTypeValue().element.name}<$type>';
     });
 
