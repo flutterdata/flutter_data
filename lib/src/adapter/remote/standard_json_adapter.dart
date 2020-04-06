@@ -19,7 +19,8 @@ mixin StandardJSONAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
       final keys = List<String>.from(map[name] as Iterable);
       final type = relEntry.value;
       relationships[name] = DataId.byKeys(keys, manager, type: type.toString())
-          .map((dataId) => dataId.id);
+          .map((dataId) => dataId.id)
+          .toList();
       map.remove(name);
     }
 
@@ -46,16 +47,18 @@ mixin StandardJSONAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
 
     for (var relEntry in relationshipMetadata['HasMany'].entries) {
       final k = '${relEntry.key}';
-      map[k] = map[k].map((i) {
-        final type = relEntry.value.toString();
-        if (i is Map) {
-          final repo = relationshipMetadata['repository#$type'] as Repository;
-          final model = repo.deserialize(i);
-          i = model.id;
-        }
-        final dataId = manager.dataId(i.toString(), type: type);
-        return dataId.key;
-      }).toList();
+      if (map[k] != null) {
+        map[k] = map[k].map((i) {
+          final type = relEntry.value.toString();
+          if (i is Map) {
+            final repo = relationshipMetadata['repository#$type'] as Repository;
+            final model = repo.deserialize(i);
+            i = model.id;
+          }
+          final dataId = manager.dataId(i.toString(), type: type);
+          return dataId.key;
+        }).toList();
+      }
     }
 
     for (var relEntry in relationshipMetadata['BelongsTo'].entries) {
@@ -63,16 +66,16 @@ mixin StandardJSONAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
       final ks = '$k$identifierSuffix';
 
       final type = relEntry.value.toString();
-      if (map[ks] is Map) {
+      if (map[k] is Map) {
         final repo = relationshipMetadata['repository#$type'] as Repository;
-        final model = repo.deserialize(map[ks]);
+        final model = repo.deserialize(map[k]);
         map[k] = model.id;
-        map.remove(ks);
-      } else {
+      } else if (map[ks] != null) {
         map[k] = map[ks].toString();
+        map.remove(ks);
       }
 
-      final dataId = manager.dataId(map[k].toString(), type: type);
+      final dataId = manager.dataId(map[k]?.toString(), type: type);
       map[k] = dataId.key;
     }
 

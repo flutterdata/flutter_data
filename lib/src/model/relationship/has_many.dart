@@ -20,10 +20,12 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
   // serialization constructors
 
   factory HasMany.fromJson(Map<String, dynamic> map) {
-    final keys = List<String>.from(map['_'][0] as Iterable);
     final manager = map['_'][1] as DataManager;
-    return HasMany._(
-        keys != null ? DataId.byKeys(keys, manager) : const [], manager);
+    if (map['_'][0] == null) {
+      return HasMany._(const [], manager);
+    }
+    final keys = List<String>.from(map['_'][0] as Iterable);
+    return HasMany._(DataId.byKeys(keys, manager), manager);
   }
 
   // end constructors

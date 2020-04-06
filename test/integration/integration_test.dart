@@ -25,9 +25,6 @@ void main() async {
     // we use $CompanyRepository as it already has the TestMixin baked in
     injection
         .register<Repository<Company>>($CompanyRepository(companyLocalAdapter));
-
-    // injection.register<Repository<Company>>(
-    //     CompanyTestRepository(companyLocalAdapter));
     injection.register<Repository<City>>(CityTestRepository(cityLocalAdapter));
     injection
         .register<Repository<Model>>(ModelTestRepository(modelLocalAdapter));

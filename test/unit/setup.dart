@@ -80,6 +80,9 @@ final Function() setUpAllFn = () {
   injection.register<Repository<House>>($HouseRepository(houseLocalAdapter));
   injection.register<Repository<Family>>($FamilyRepository(familyLocalAdapter));
   injection.register<Repository<Person>>($PersonRepository(personLocalAdapter));
+
+  injection.register<FamilyRepositoryWithStandardJSONAdapter>(
+      FamilyRepositoryWithStandardJSONAdapter(familyLocalAdapter));
 };
 
 final Function() tearDownAllFn = () async {
@@ -88,3 +91,6 @@ final Function() tearDownAllFn = () async {
   await injection.locator<Repository<Person>>().dispose();
   injection.clear();
 };
+
+class FamilyRepositoryWithStandardJSONAdapter = $FamilyRepository
+    with StandardJSONAdapter;

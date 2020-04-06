@@ -57,4 +57,3 @@ mixin TestMixin<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
 
 class ModelTestRepository = $ModelRepository with TestMixin, JSONAPIAdapter;
 class CityTestRepository = $CityRepository with TestMixin, JSONAPIAdapter;
-// class CompanyTestRepository = $CompanyRepository with TestMixin, JSONAPIAdapter;

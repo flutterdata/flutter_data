@@ -21,28 +21,25 @@ void main() async {
     expect(rel.first.dataId, manager.dataId<Person>('1'));
   });
 
-  // test('fromToMany with included', () async {
-  //   var repo = injection.locator<Repository<Person>>();
-  //   var manager = repo.manager;
+  test('deserialize with included', () {
+    // exceptionally uses this repo so we can supply included models
+    var repo = injection.locator<FamilyRepositoryWithStandardJSONAdapter>();
+    var adapter = injection.locator<Repository<Person>>().localAdapter;
+    var manager = repo.manager;
 
-  //   var sue = {'id': '71', 'name': "Sue", 'age': 74};
-  //   var helen = {'id': '72', 'name': "Helen", 'age': 59};
+    var marty = {'id': '71', 'name': "Marty", 'age': 52};
+    var wendy = {'id': '72', 'name': "Wendy", 'age': 54};
 
-  //   HasMany<Person>.fromJson({
-  //     '_': [
-  //       [manager.dataId<Person>('72').key],
-  //       manager
-  //     ]
-  //   });
+    var familyJson = {
+      'surname': "Byrde",
+      'persons': [marty, wendy]
+    };
 
-  //   // included: [sue, helen],
+    repo.deserialize(familyJson);
 
-  //   // helen should be saved (cause it was in included)
-  //   expect(await repo.findOne(helen.id, remote: false), isNotNull);
-
-  //   // but sue shouldn't, as it wasn't referenced in any relationship
-  //   expect(await repo.findOne(sue.id, remote: false), isNull);
-  // });
+    expect(adapter.findOne(DataId<Person>('71', manager).key), isNotNull);
+    expect(adapter.findOne(DataId<Person>('72', manager).key), isNotNull);
+  });
 
   test('fromJson', () {
     var repo = injection.locator<Repository<Person>>();

@@ -2,6 +2,7 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
 import 'models/family.dart';
+import 'models/house.dart';
 import 'models/person.dart';
 import 'setup.dart';
 
@@ -17,24 +18,20 @@ void main() async {
     expect(rel.dataId, manager.dataId<Person>('1'));
   });
 
-  // test('fromToOne with included', () {
-  //   var adapter = injection.locator<Repository<Person>>().localAdapter;
-  //   var manager = adapter.manager;
-  //   var r1 = {'id': '1', 'name': "r1", 'age': 17};
-  //   var r2 = {'id': '2', 'name': "r2", 'age': 27};
+  test('deserialize with included', () {
+    // exceptionally uses this repo so we can supply included models
+    var repo = injection.locator<FamilyRepositoryWithStandardJSONAdapter>();
+    var adapter = injection.locator<Repository<House>>().localAdapter;
+    var manager = repo.manager;
 
-  //   var rel = BelongsTo<Person>.fromJson({
-  //     '_': [manager.dataId<Person>('1').key, manager]
-  //   });
+    var house = {'id': '432337', 'address': 'Ozark Lake, MO'};
 
-  //   expect(rel.dataId, manager.dataId<Person>("1"));
-  //   // person 1 should be saved (cause it was in included)
-  //   expect(adapter.findOne(rel.dataId.key), isNotNull);
-  //   expect(adapter.findOne(rel.dataId.key).dataId,
-  //       isNotNull); // manager should be set
-  //   // but person 2 shouldn't, as it wasn't referenced in any relationship
-  //   expect(adapter.findOne(manager.dataId<Person>('2').key), isNull);
-  // });
+    var familyJson = {'surname': "Byrde", 'house': house};
+
+    repo.deserialize(familyJson);
+
+    expect(adapter.findOne(DataId<House>('432337', manager).key), isNotNull);
+  });
 
   test('fromJson', () {
     var adapter = injection.locator<Repository<Person>>().localAdapter;

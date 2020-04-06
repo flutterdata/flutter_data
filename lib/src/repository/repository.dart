@@ -14,7 +14,7 @@ abstract class Repository<T extends DataSupportMixin<T>> with RemoteAdapter<T> {
 
   @override
   deserialize(object, {key}) => localAdapter
-      .deserialize(object as Map<String, dynamic>)
+      .deserialize(Map<String, dynamic>.from(object as Map))
       ._init(this, key: key);
 
   @override
