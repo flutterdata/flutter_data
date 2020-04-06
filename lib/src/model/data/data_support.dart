@@ -14,7 +14,7 @@ abstract class DataSupportMixin<T extends DataSupportMixin<T>> {
     _manager = repository.manager;
 
     _assertAuto();
-    var dataId = _manager.dataId<T>(id, key: key);
+    final dataId = _manager.dataId<T>(id, key: key);
     // sync relationships
     _repository.setOwnerInRelationships(dataId, _this);
     _repository.localAdapter.save(dataId.key, _this);

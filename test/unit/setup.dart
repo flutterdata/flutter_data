@@ -33,6 +33,9 @@ class FakeBox<T> extends Fake implements Box<T> {
   Iterable<T> get values => _map.values;
 
   @override
+  bool containsKey(key) => _map.containsKey(key);
+
+  @override
   Future<void> close() => Future.value();
 }
 
@@ -85,31 +88,3 @@ final Function() tearDownAllFn = () async {
   await injection.locator<Repository<Person>>().dispose();
   injection.clear();
 };
-
-////
-
-// final mockHttpClient = MockClient((request) async {
-//   final kBase = 'http://127.0.0.1:8080';
-//   if (request.url.toString() == '$kBase/animals') {
-//     return http.Response(
-//         json
-//             .encode(docFactory.makeCollectionDocument(request.url, []).toJson())
-//             .toString(),
-//         200);
-//   }
-//   return http.Response('server error', 500);
-// });
-
-// mixin TestMixin<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
-//   // @override
-//   // get baseUrl => 'http://localhost/';
-
-//   http.Client _mockClient = mockHttpClient;
-
-//   @override
-//   Future<R> withHttpClient<R>(onRequest) => onRequest(_mockClient);
-// }
-
-// class FamilyTestRepository = $FamilyRepository with TestMixin;
-// class HouseTestRepository = $HouseRepository with TestMixin;
-// class PersonTestRepository = $PersonRepository with TestMixin;

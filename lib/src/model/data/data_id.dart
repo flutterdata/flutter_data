@@ -31,6 +31,10 @@ class DataId<T> {
     manager.keysBox.put('$type#$id', key);
   }
 
+  bool get exists {
+    return manager.keysBox.containsKey('$type#$id');
+  }
+
   // utils
 
   static String getType<T>([String type]) =>
