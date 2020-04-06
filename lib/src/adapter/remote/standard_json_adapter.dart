@@ -1,5 +1,4 @@
 import 'package:flutter_data/flutter_data.dart';
-import 'package:recase/recase.dart';
 
 mixin StandardJSONAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
   @override
@@ -7,12 +6,6 @@ mixin StandardJSONAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
 
   String get identifier => 'id';
   String get identifierSuffix => '_id';
-
-  // String serializeKey(String key) => ReCase(key).snakeCase;
-  // String deserializeKey(String key) => ReCase(key).camelCase;
-
-  // var belongsToKey =
-  //         entry.key.replaceFirst(RegExp('$identifierSuffix\\b'), "");
 
   // Transforms a class into standard JSON
   @override
@@ -31,12 +24,13 @@ mixin StandardJSONAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
     }
 
     for (var relEntry in relationshipMetadata['BelongsTo'].entries) {
-      final name = '${relEntry.key}$identifierSuffix';
-      final key = map[name].toString();
+      final k = '${relEntry.key}';
+      final ks = '$k$identifierSuffix';
+
+      final key = map[k].toString();
       final type = relEntry.value;
-      relationships[name] =
-          DataId.byKey(key, manager, type: type.toString()).id;
-      map.remove(name);
+      relationships[ks] = DataId.byKey(key, manager, type: type.toString()).id;
+      map.remove(k);
     }
 
     final json = map;
@@ -48,11 +42,11 @@ mixin StandardJSONAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
   // Transforms standard JSON into a class
   @override
   T deserialize(object, {key}) {
-    final obj = object as Map<String, dynamic>;
+    final map = object as Map<String, dynamic>;
 
     for (var relEntry in relationshipMetadata['HasMany'].entries) {
-      final k = relEntry.key.toString();
-      obj[k] = obj[k].map((i) {
+      final k = '${relEntry.key}';
+      map[k] = map[k].map((i) {
         final type = relEntry.value.toString();
         if (i is Map) {
           final repo = relationshipMetadata['repository#$type'] as Repository;
@@ -65,18 +59,26 @@ mixin StandardJSONAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
     }
 
     for (var relEntry in relationshipMetadata['BelongsTo'].entries) {
-      final k = relEntry.key.toString();
+      // final ks = '${relEntry.key}';
+      // final k = ks.replaceFirst(RegExp('$identifierSuffix\\b'), "");
+
+      final k = '${relEntry.key}';
+      final ks = '$k$identifierSuffix';
+
       final type = relEntry.value.toString();
-      if (obj[k] is Map) {
+      if (map[ks] is Map) {
         final repo = relationshipMetadata['repository#$type'] as Repository;
-        final model = repo.deserialize(obj[k]);
-        obj[k] = model.id;
+        final model = repo.deserialize(map[ks]);
+        map[k] = model.id;
+        map.remove(ks);
+      } else {
+        map[k] = map[ks].toString();
       }
 
-      final dataId = manager.dataId(obj[k].toString(), type: type);
-      obj[k] = dataId.key;
+      final dataId = manager.dataId(map[k].toString(), type: type);
+      map[k] = dataId.key;
     }
 
-    return super.deserialize(obj);
+    return super.deserialize(map);
   }
 }
