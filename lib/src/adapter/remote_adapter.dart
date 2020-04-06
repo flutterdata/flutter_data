@@ -24,7 +24,7 @@ abstract class RemoteAdapter<T extends DataSupport<T>> {
 
   // serialize/deserialize
 
-  Map<String, dynamic> relationshipMetadata;
+  Map<String, dynamic> get relationshipMetadata;
 
   Map<String, dynamic> serialize(T model);
 
