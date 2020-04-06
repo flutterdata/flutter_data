@@ -6,7 +6,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:data_state/data_state.dart';
 import 'package:state_notifier/state_notifier.dart';
-// import 'package:json_api/document.dart' hide Relationship;
 import 'package:json_api/query.dart';
 import 'package:json_api/url_design.dart';
 import 'package:meta/meta.dart';
@@ -20,7 +19,7 @@ import 'package:uuid/uuid.dart';
 export 'package:data_state/data_state.dart';
 export 'package:state_notifier/state_notifier.dart' show Locator;
 
-export 'src/adapter/remote/offline_retry_adapter.dart';
+export 'src/adapter/remote/json_api_adapter.dart';
 export 'src/adapter/remote/standard_json_adapter.dart';
 
 part 'src/adapter/local/data_manager.dart';
