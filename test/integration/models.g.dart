@@ -51,8 +51,7 @@ class $ModelLocalAdapter extends LocalAdapter<Model> {
   @override
   serialize(model) {
     final map = model.toJson();
-
-    map['company'] = model.company?.key;
+    map['company'] = model.company?.toJson();
     return map;
   }
 }
@@ -139,8 +138,7 @@ class $CompanyLocalAdapter extends LocalAdapter<Company> {
   @override
   serialize(model) {
     final map = model.toJson();
-    map['models'] = model.models?.keys;
-
+    map['models'] = model.models?.toJson();
     return map;
   }
 }

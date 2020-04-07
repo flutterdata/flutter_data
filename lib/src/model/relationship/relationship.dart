@@ -20,5 +20,5 @@ abstract class Relationship<E extends DataSupportMixin<E>> {
     return _repository.watchAll();
   }
 
-  Map<String, dynamic> toJson() => throw UnsupportedError('rel tojson');
+  toJson();
 }

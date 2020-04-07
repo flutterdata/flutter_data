@@ -56,12 +56,15 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E> {
   String get key => dataId?.key;
 
   @override
-  String toString() => 'BelongsTo<$E>(${dataId.id})';
-
-  @override
   bool operator ==(dynamic other) =>
       identical(this, other) || dataId == other.dataId;
 
   @override
   int get hashCode => runtimeType.hashCode ^ dataId.hashCode;
+
+  @override
+  toJson() => key;
+
+  @override
+  String toString() => 'BelongsTo<$E>(${dataId?.id})';
 }

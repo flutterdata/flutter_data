@@ -77,14 +77,9 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
       return '''map['$name'] = { '_': [map['$name'], manager] };''';
     }).join('\n');
 
-    final serializeHasMany = hasManys.map((t) {
+    final serialize = all.map((t) {
       final name = t.first;
-      return '''map['$name'] = model.$name?.keys;''';
-    }).join('\n');
-
-    final serializeBelongsTo = belongsTos.map((t) {
-      final name = t.first;
-      return '''map['$name'] = model.$name?.key;''';
+      return '''map['$name'] = model.$name?.toJson();''';
     }).join('\n');
 
     //
@@ -155,8 +150,7 @@ class \$${type}LocalAdapter extends LocalAdapter<$type> {
   @override
   serialize(model) {
     final map = model.toJson();
-    $serializeHasMany
-    $serializeBelongsTo
+    $serialize
     return map;
   }
 }''';

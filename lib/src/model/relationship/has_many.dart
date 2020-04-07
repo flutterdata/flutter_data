@@ -76,12 +76,15 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
   List<String> get keys => dataIds.map((d) => d.key).toList();
 
   @override
-  String toString() => 'HasMany<$E>(${dataIds.map((d) => d.id)})';
-
-  @override
   bool operator ==(dynamic other) =>
       identical(this, other) || dataIds == other.dataIds;
 
   @override
   int get hashCode => runtimeType.hashCode ^ dataIds.hashCode;
+
+  @override
+  toJson() => keys;
+
+  @override
+  String toString() => 'HasMany<$E>(${dataIds.map((d) => d.id)})';
 }

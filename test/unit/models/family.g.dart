@@ -59,8 +59,8 @@ class $FamilyLocalAdapter extends LocalAdapter<Family> {
   @override
   serialize(model) {
     final map = model.toJson();
-    map['persons'] = model.persons?.keys;
-    map['house'] = model.house?.key;
+    map['persons'] = model.persons?.toJson();
+    map['house'] = model.house?.toJson();
     return map;
   }
 }
@@ -85,6 +85,6 @@ Family _$FamilyFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$FamilyToJson(Family instance) => <String, dynamic>{
       'id': instance.id,
       'surname': instance.surname,
-      'house': instance.house,
-      'persons': instance.persons,
+      'house': instance.house?.toJson(),
+      'persons': instance.persons?.toJson(),
     };

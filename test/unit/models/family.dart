@@ -8,7 +8,7 @@ import 'person.dart';
 
 part 'family.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 @DataRepository()
 class Family with DataSupportMixin<Family> {
   @override

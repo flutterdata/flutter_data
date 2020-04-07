@@ -51,8 +51,7 @@ class $PersonLocalAdapter extends LocalAdapter<Person> {
   @override
   serialize(model) {
     final map = model.toJson();
-
-    map['family'] = model.family?.key;
+    map['family'] = model.family?.toJson();
     return map;
   }
 }

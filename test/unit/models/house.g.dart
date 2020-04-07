@@ -51,8 +51,7 @@ class $HouseLocalAdapter extends LocalAdapter<House> {
   @override
   serialize(model) {
     final map = model.toJson();
-    map['families'] = model.families?.keys;
-
+    map['families'] = model.families?.toJson();
     return map;
   }
 }
