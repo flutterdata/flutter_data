@@ -1,15 +1,19 @@
-# Flutter Data
-
 Imagine annotating your models and magically getting:
 
- - instant API access and serialization
- - first-class relationship support
- - offline capabilities
- - streaming
- - multiple data sources support
+ - instant API access and serialization ⚡️
+ - first-class relationship support 🎎
+ - offline capabilities 🔌
+ - streaming 🚰
+ - multiple data sources support 🎛
  - and much more
 
-with zero boilerplate.
+with zero boilerplate!
+
+<h1 align="center">
+  <img src="https://avatars2.githubusercontent.com/u/61839689?s=200&v=4">
+  Flutter Data
+</h1>
+<h2 align="center">Build data-driven Flutter apps with minimal boilerplate</h2>
 
 ```dart
 // your model
@@ -52,9 +56,9 @@ It can connect to any JSON API. It's bundled with a "standard" JSON adapter and 
 
 Of course, it's super easy to customize without polluting your classes with a thousand annotations.
 
-## Usage
+## 👩🏾‍💻 Usage
 
-### Annotating your models
+### 1. Annotate models
 
 ```dart
 // models/todo.dart
@@ -127,7 +131,7 @@ mixin JSONPlaceholderAdapter<T extends DataSupport<T>> on StandardJSONAdapter<T>
 
 There are a million ways to extend capabilities through adapters. We'll get to that later.
 
-### Configure and boot
+### 2. Configure and boot app
 
 Flutter Data ships with a `dataProviders` method that will configure all the necessary Providers.
 
@@ -159,35 +163,193 @@ class TodoApp extends StatelessWidget {
 
 Flutter Data auto-generated the `main.data.dart` library so everything is ready to for use.
 
-Don't use Provider?
+#### No Provider? No problem!
 
 ```dart
+// main.dart
 
+import 'package:flutter/material.dart';
+import 'package:flutter_data/flutter_data.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:todo_app/main.data.dart';
+
+void main() {
+  runApp(Center(child: const CircularProgressIndicator()));
+
+  final baseDir = await getApplicationDocumentsDirectory();
+  final manager = await FlutterData.init(baseDir);
+  Locator locator = manager.locator;
+
+  runApp(MaterialApp(
+    // ...
+    final repository = locator<Repository<User>>();
+    // ...
+  ));
+}
 ```
 
-Don't use Flutter?
+`Locator` is a typedef suggested by [Remi Rousselet](https://twitter.com/remi_rousselet) which basically is
 
 ```dart
-
+typedef Locator = T Function<T>();
 ```
 
-### Use
+Any conforming type can be used, like our `locator` above (or `context.read` from the Provider package if using that DI system).
 
-
-### Extend
-
- - can easily override findOne(id) => super.findOne(id) in mixin
- - or can extend/supply new urlDesign
-
-To use:
+#### Don't even use Flutter?
 
 ```dart
-(adapter as MyAdapterMixin).customFindAll()
+void main() async {
+  Directory _dir;
+
+  try {
+    _dir = await Directory('../tmp').create();
+    final manager = await FlutterData.init(_dir);
+    Locator locator = manager.locator;
+    
+    final repository = locator<Repository<User>>();
+    // ...
+  }
+  // ...
+}
 ```
 
-show scout adapters
+### 3. Use it
 
-- withHttpClient transform in persistent connection (see how i did that for scout)
+#### Find models
+
+```dart
+final repository = context.read<Repository<User>>();
+
+// returns a list of all users from the remote API
+List<User> users = await repository.findAll();
+
+// returns just one user by ID
+User user = repository.findOne('34');
+
+// subscribe to updates (see the data_state package)
+DataStateNotifier<User> usersNotifier = repository.watchAll();
+
+// alternatively can get a stream version of it (RxDart ValueStream)
+ValueStream<User> usersStream = repository.watchAll().stream;
+
+// do you need to get updates for one model?
+// (yes, even updates in the local store)
+
+Widget build(BuildContext context) {
+  return StateNotifierBuilder<DataState<User>>(
+    stateNotifier: user.watch(),
+    builder: (context, state, _) {
+      if (state.hasModel) {
+        final user = state.model;
+```
+
+The default behavior is to get models from local storage (Hive) first
+and then fetch models from the remote server in the background.
+
+This strategy can easily be changed by overriding methods in a custom adapter.
+
+#### Saving and deleting a model
+
+```dart
+final user = User(name: 'Frank Treacy').save();
+
+// which is syntax sugar for writing
+final user = repository.save(User(name: 'Frank Treacy'));
+
+// only save locally
+User(name: 'Frank Treacy').save(remote: false);
+
+// delete user
+user.delete();
+```
+
+#### Using relationships
+
+Flutter Data has a powerful relationship mapping system.
+
+Provided the API responds correctly with relationship data,
+we can expect the following to work:
+
+```dart
+// recall that User has a HasMany<Todo> attribute
+User user = repository.findOne('Frank');
+
+Todo todo = user.todos.first;
+
+print(todo.title); // write Flutter Data docs
+
+print(todo.user.value.name); // Frank
+
+// or
+
+final family = Family(
+      surname: 'Kamchatka',
+      house: BelongsTo(House(address: "Sakharova Prospekt, 19"))
+    );
+print(family.house.value.families.first.surname);  // Kamchatka
+```
+
+### 4. Extend further
+
+Let's say we need extra headers in our requests:
+
+```dart
+mixin BaseAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
+  final _localStorageService = manager.locator<LocalStorageService>();
+
+  @override
+  get baseUrl => "http://my.remote.url:8080/";
+
+  @override
+  get headers {
+    final token = _localStorageService.getToken();
+    return super.headers..addAll({'Authorization': token});
+  }
+}
+```
+
+All `Repository` public methods like `findAll`, `save`, `serialize`, `deserialize`, ... are available.
+
+Or how about a JWT auth service:
+
+```dart
+mixin AuthAdapter<DataSupport> on RemoteAdapter<User> {
+  Future<String> login(String email, String password) async {
+    final repository = this as Repository<User>;
+
+    final response = await repository.withHttpClient(
+      (client) => client.post(
+        '$baseUrl/token',
+        body: _serializeCredentials(user, password),
+        headers: headers,
+      ),
+    );
+
+    final map = json.decode(response.body);
+    return map['token'] as String;
+  }
+}
+```
+
+Now this adapter can be configured and exposed *just* on the `User` model:
+
+```dart
+@JsonSerializable()
+@DataRepository([StandardJSONAdapter, BaseAdapter, AuthAdapter])
+class User extends DataSupport<User> {
+  // ...
+
+  loginWithPassword(String password) {
+    return (repository as AuthAdapter).login(email, password);
+  }
+}
+```
+
+And more, like:
+
+ - replace the HTTP client
+ - provide a completely new URL design
 
 ## FAQ
 
@@ -214,7 +376,7 @@ https://stackoverflow.com/questions/59248686/how-to-group-mixins-in-dart
  - in `*.g.dart` files (part of your models)
  - in `main.data.dart` (as a library)
 
-#### Can i use mutable classes?
+#### Can I use mutable classes?
 
 Immutable models are strongly recommended, equality is very important for things to work well. Use data classes like freezed or equality tools.
 
@@ -256,6 +418,8 @@ At the moment, the inverse relationship is looked up by type and it's not config
 ## ➕ Collaborating
 
 Please use Github to ask questions, open issues and send PRs. Thanks!
+
+Tests can be run with: `pub run test`
 
 ## 📝 License
 
