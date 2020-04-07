@@ -253,16 +253,16 @@ This strategy can easily be changed by overriding methods in a custom adapter.
 #### Saving and deleting a model
 
 ```dart
-final user = User(name: 'Frank Treacy').save();
+final user = await User(name: 'Frank Treacy').save();
 
-// which is syntax sugar for writing
-final user = repository.save(User(name: 'Frank Treacy'));
+// which is syntax sugar for
+final user = await repository.save(User(name: 'Frank Treacy'));
 
 // only save locally
-User(name: 'Frank Treacy').save(remote: false);
+await User(name: 'Frank Treacy').save(remote: false);
 
 // delete user
-user.delete();
+await user.delete();
 ```
 
 #### Using relationships
@@ -274,7 +274,7 @@ we can expect the following to work:
 
 ```dart
 // recall that User has a HasMany<Todo> attribute
-User user = repository.findOne('Frank');
+User user = await repository.findOne('Frank');
 
 Todo todo = user.todos.first;
 
