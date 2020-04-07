@@ -31,8 +31,8 @@ Tried to call $method but this instance of $T is not initialized.
 
 Please use: `$T(...).init(repository)`
 
-or, instead of extending `DataSupportMixinInit`, make your $T model mix
-in `DataSupportMixin` which doesn't require initialization.
+or, instead of mixing in `DataSupportMixin`, make your $T model
+extend `DataSupport` which doesn't require initialization.
 ''',
     );
   }
@@ -41,11 +41,11 @@ in `DataSupportMixin` which doesn't require initialization.
     final modelAutoInit = this is DataSupport;
     if (modelAutoInit) {
       assert(_manager.autoModelInit, '''\n
-This $T model mixes in DataSupportMixin but you initialized
+This $T model extends DataSupport but you initialized
 Flutter Data with autoModelInit: false.
 
 If you wish to manually initialize your models, please make
-sure $T extends DataSupportMixinInit.
+sure $T mixes in DataSupportMixin.
 
 If you wish Flutter Data to auto-initialize, call:
 
@@ -57,15 +57,17 @@ FlutterData.init();
 ''');
     } else {
       assert(!_manager.autoModelInit, '''\n
-This $T model extends DataSupportMixinInit but you initialized
+This $T model mixes in DataSupportMixin but you initialized
 Flutter Data with autoModelInit: true (the default).
 
 If you wish to automatically initialize your models, please make
-sure $T mixes in DataSupportMixin.
+sure $T extends DataSupport.
 
 If you wish to manually initialize your models, call:
 
 FlutterData.init(autoModelInit: false);
+
+and use DataSupportMixin instead.
 ''');
     }
   }
