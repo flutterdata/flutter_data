@@ -1,4 +1,6 @@
-Imagine annotating your models and magically getting:
+<h1><img style="display: inline-block;" src="https://avatars2.githubusercontent.com/u/61839689?s=200&v=4" width="45px">Flutter Data</h1>
+
+**Imagine annotating your models and magically getting:**
 
  - instant API access and serialization ⚡️
  - first-class relationship support 🎎
@@ -9,12 +11,6 @@ Imagine annotating your models and magically getting:
 
 with zero boilerplate!
 
-<h1 align="center">
-  <img src="https://avatars2.githubusercontent.com/u/61839689?s=200&v=4">
-  Flutter Data
-</h1>
-<h2 align="center">Build data-driven Flutter apps with minimal boilerplate</h2>
-
 ```dart
 // your model
 
@@ -23,7 +19,7 @@ with zero boilerplate!
 abstract class Todo extends DataSupport<Todo> implements _$Todo {
   Todo._();
   factory Todo({ String id, String title }) = _Todo;
-  // ...
+  factory Todo.fromJson(Map<String, dynamic> json) => _$TodoFromJson(json);
 }
 
 // your widget
@@ -39,9 +35,9 @@ return Scaffold(
         // ...
 ```
 
-It's configurable and composable. **Simple should be easy, complex should be possible.**
+### Simple should be easy, complex should be possible
 
-Fully compatible with the tools we know and love:
+It's configurable, composable and fully compatible with the tools we know and love:
 
  - `json_serializable`
  - `provider`
@@ -106,17 +102,17 @@ And run:
 flutter packages pub run build_runner build
 ```
 
-(Flutter Data will add a few generated classes to your `model.g.dart` file.)
+(Flutter Data will add small generated classes to your `model.g.dart` file.)
 
-Ready!
+**Ready! 🙌**
 
-A few notes about our configuration:
+A few notes about the configuration above:
 
  - Yes, you can use `freezed` or other immutable data structure, and you can combine them
- - Models must extend `DataSupport<T>` for the magic to happen (or mix in `DataSupportMixin<T>`, but you'll have to manually initialize new models)
+ - Models must extend `DataSupport<T>` for the magic to happen (or mix in `DataSupportMixin<T>`, but you'll have to manually initialize new models, e.g. `Todo(title: 'init').init(repo);`)
  - Models must declare a `fromJson` factory
  - `BelongsTo` and `HasMany` are relationships to help you traverse the object graph
- - `StandardJSONAdapter` is a bundled adapter to access standard REST APIs
+ - `StandardJSONAdapter` is an adapter to access standard REST APIs (provided with Flutter Data)
  - `JSONPlaceholderAdapter` is a mixin we defined with our configurations!
 
 ```dart
@@ -146,6 +142,7 @@ void main() {
   runApp(MultiProvider(
     providers: [
       ...dataProviders(getApplicationDocumentsDirectory),
+      // your providers here
     ],
     child: TodoApp(),
   ));
@@ -157,6 +154,7 @@ class TodoApp extends StatelessWidget {
     if (context.watch<DataManager>() == null) {
       return Spinner();
     }
+    // all Flutter Data providers are ready at this point
     return MaterialApp(
 // ...
 ```
@@ -188,13 +186,17 @@ void main() {
 }
 ```
 
-`Locator` is a typedef suggested by [Remi Rousselet](https://twitter.com/remi_rousselet) which basically is
+`Locator` is a typedef suggested by [Remi Rousselet](https://twitter.com/remi_rousselet):
 
 ```dart
 typedef Locator = T Function<T>();
 ```
 
-Any conforming type can be used, like our `locator` above (or `context.read` from the Provider package if using that DI system).
+Any conforming type can be used:
+
+ - the bundled `locator` shown above
+ - a `get_it` locator
+ - `context.read` from the Provider package
 
 #### Don't even use Flutter?
 
@@ -311,7 +313,21 @@ mixin BaseAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
 
 All `Repository` public methods like `findAll`, `save`, `serialize`, `deserialize`, ... are available.
 
-Or how about a JWT auth service:
+Let's make the stupid adapter, that appends `zzz` to any ID:
+
+```dart
+mixin StupidAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
+  @override
+  Future<T> findOne(String id,
+      {bool remote = true,
+      Map<String, String> params,
+      Map<String, String> headers}) {
+        return super.findOne('${id}zzz', remote: remote, params: params, headers: headers);
+      }
+}
+```
+
+Or how about a –much more useful– JWT auth service:
 
 ```dart
 mixin AuthAdapter<DataSupport> on RemoteAdapter<User> {
