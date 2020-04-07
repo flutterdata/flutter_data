@@ -40,17 +40,16 @@ return Scaffold(
 It's configurable, composable and fully compatible with the tools we know and love:
 
  - `json_serializable`
- - `provider`
+ - Provider
  - streams / bloc
  - `freezed`
  - `state_notifier`
+ - Hive (it uses it under the hood)
  - and many more
 
 ...and requires none (*except `json_serializable`* – for now!)
 
 It can connect to any JSON API. It's bundled with a "standard" JSON adapter and a JSON:API adapter. For example, a JWT auth or Github adapter are trivial to make. Firebase and more adapters are coming soon!
-
-Of course, it's super easy to customize without polluting your classes with a thousand annotations.
 
 ## 👩🏾‍💻 Usage
 
@@ -227,7 +226,7 @@ final repository = context.read<Repository<User>>();
 List<User> users = await repository.findAll();
 
 // returns just one user by ID
-User user = repository.findOne('34');
+User user = await repository.findOne('34');
 
 // subscribe to updates (see the data_state package)
 DataStateNotifier<User> usersNotifier = repository.watchAll();
@@ -246,7 +245,7 @@ Widget build(BuildContext context) {
         final user = state.model;
 ```
 
-The default behavior is to get models from local storage (Hive) first
+The default behavior is to get models from local storage first
 and then fetch models from the remote server in the background.
 
 This strategy can easily be changed by overriding methods in a custom adapter.
@@ -431,7 +430,7 @@ if you need to convert to `int`, for example.
 
 At the moment, the inverse relationship is looked up by type and it's not configurable.
 
-## ➕ Collaborating
+## ➕ Questions and collaborating
 
 Please use Github to ask questions, open issues and send PRs. Thanks!
 
