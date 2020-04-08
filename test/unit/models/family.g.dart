@@ -12,15 +12,17 @@ class _$FamilyRepository extends Repository<Family> {
 
   @override
   get relationshipMetadata => {
-        'HasMany': {'persons': 'people'},
+        'HasMany': {'persons': 'people', 'dogs': 'dogs'},
         'BelongsTo': {'house': 'houses'},
         'repository#people': manager.locator<Repository<Person>>(),
+        'repository#dogs': manager.locator<Repository<Dog>>(),
         'repository#houses': manager.locator<Repository<House>>()
       };
 
   @override
   setOwnerInRelationships(owner, model) {
     model.persons?.owner = owner;
+    model.dogs?.owner = owner;
     model.house?.owner = owner;
   }
 
@@ -28,6 +30,9 @@ class _$FamilyRepository extends Repository<Family> {
   void setInverseInModel(inverse, model) {
     if (inverse is DataId<Person>) {
       model.persons?.inverse = inverse;
+    }
+    if (inverse is DataId<Dog>) {
+      model.dogs?.inverse = inverse;
     }
     if (inverse is DataId<House>) {
       model.house?.inverse = inverse;
@@ -48,6 +53,9 @@ class $FamilyLocalAdapter extends LocalAdapter<Family> {
     map['persons'] = {
       '_': [map['persons'], manager]
     };
+    map['dogs'] = {
+      '_': [map['dogs'], manager]
+    };
     map['house'] = {
       '_': [map['house'], manager]
     };
@@ -60,6 +68,7 @@ class $FamilyLocalAdapter extends LocalAdapter<Family> {
   serialize(model) {
     final map = model.toJson();
     map['persons'] = model.persons?.toJson();
+    map['dogs'] = model.dogs?.toJson();
     map['house'] = model.house?.toJson();
     return map;
   }
@@ -79,6 +88,9 @@ Family _$FamilyFromJson(Map<String, dynamic> json) {
     persons: json['persons'] == null
         ? null
         : HasMany.fromJson(json['persons'] as Map<String, dynamic>),
+    dogs: json['dogs'] == null
+        ? null
+        : HasMany.fromJson(json['dogs'] as Map<String, dynamic>),
   );
 }
 
@@ -87,4 +99,5 @@ Map<String, dynamic> _$FamilyToJson(Family instance) => <String, dynamic>{
       'surname': instance.surname,
       'house': instance.house?.toJson(),
       'persons': instance.persons?.toJson(),
+      'dogs': instance.dogs?.toJson(),
     };

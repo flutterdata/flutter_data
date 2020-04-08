@@ -26,7 +26,8 @@ void main() async {
       'id': "1",
       'surname': "Smith",
       'house': houseRel.key,
-      'persons': personRel.keys
+      'persons': personRel.keys,
+      'dogs': null
     });
   });
 

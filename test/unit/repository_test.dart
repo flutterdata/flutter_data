@@ -56,7 +56,8 @@ void main() async {
       'id': '1',
       'surname': "Smith",
       'house': family.house.value.key,
-      'persons': family.persons.keys
+      'persons': family.persons.keys,
+      'dogs': null
     });
   });
 

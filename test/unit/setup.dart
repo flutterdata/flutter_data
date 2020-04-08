@@ -8,6 +8,7 @@ import 'package:mockito/mockito.dart';
 import 'models/family.dart';
 import 'models/house.dart';
 import 'models/person.dart';
+import 'models/pet.dart';
 
 class HiveMock extends Mock implements HiveInterface {}
 
@@ -72,14 +73,17 @@ final Function() setUpAllFn = () {
   final houseLocalAdapter = $HouseLocalAdapter(FakeBox<House>(), manager);
   final familyLocalAdapter = $FamilyLocalAdapter(FakeBox<Family>(), manager);
   final personLocalAdapter = $PersonLocalAdapter(FakeBox<Person>(), manager);
+  final dogLocalAdapter = $DogLocalAdapter(FakeBox<Dog>(), manager);
 
   injection.register<LocalAdapter<House>>(houseLocalAdapter);
   injection.register<LocalAdapter<Family>>(familyLocalAdapter);
   injection.register<LocalAdapter<Person>>(personLocalAdapter);
+  injection.register<LocalAdapter<Dog>>(dogLocalAdapter);
 
   injection.register<Repository<House>>($HouseRepository(houseLocalAdapter));
   injection.register<Repository<Family>>($FamilyRepository(familyLocalAdapter));
   injection.register<Repository<Person>>($PersonRepository(personLocalAdapter));
+  injection.register<Repository<Dog>>($DogRepository(dogLocalAdapter));
 
   injection.register<FamilyRepositoryWithStandardJSONAdapter>(
       FamilyRepositoryWithStandardJSONAdapter(familyLocalAdapter));

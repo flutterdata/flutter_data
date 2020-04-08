@@ -4,6 +4,7 @@ import 'package:test/test.dart';
 import 'models/family.dart';
 import 'models/house.dart';
 import 'models/person.dart';
+import 'models/pet.dart';
 import 'setup.dart';
 
 void main() async {
@@ -52,6 +53,15 @@ void main() async {
     expect(p1.key, p2.key);
 
     expect(repository.localAdapter.box.keys, contains(p2.key));
+  });
+
+  test('should work with subclasses', () {
+    var familyRepo = injection.locator<Repository<Family>>();
+    var dogRepo = injection.locator<Repository<Dog>>();
+    var dog = Dog('2', 'Walker').init(dogRepo);
+
+    var f = Family(surname: 'Walker', dogs: [dog].asHasMany).init(familyRepo);
+    expect(f.dogs.first.name, 'Walker');
   });
 
   test('relationship scenario #1', () {

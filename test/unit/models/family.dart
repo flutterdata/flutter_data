@@ -5,6 +5,7 @@ import 'package:meta/meta.dart';
 
 import 'house.dart';
 import 'person.dart';
+import 'pet.dart';
 
 part 'family.g.dart';
 
@@ -16,12 +17,14 @@ class Family with DataSupportMixin<Family> {
   final String surname;
   final BelongsTo<House> house; // immutable w/ default
   HasMany<Person> persons; // mutable and w/o default
+  HasMany<Dog> dogs;
 
   Family({
     this.id,
     @required this.surname,
     BelongsTo<House> house,
     this.persons,
+    this.dogs,
   }) : house = house ?? BelongsTo<House>();
 
   factory Family.fromJson(Map<String, dynamic> json) => _$FamilyFromJson(json);
