@@ -1,5 +1,7 @@
 <h1><img style="display: inline-block;" src="https://avatars2.githubusercontent.com/u/61839689?s=200&v=4" width="45px">Flutter Data</h1>
 
+<img src="https://github.com/flutterdata/flutter_data/workflows/Dart%20CI/badge.svg">
+
 **Imagine annotating your models and magically getting:**
 
  - instant API access and serialization ⚡️
