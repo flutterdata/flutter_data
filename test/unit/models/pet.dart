@@ -22,7 +22,7 @@ class Dog extends Pet with DataSupportMixin<Dog> {
 
 @DataRepository()
 @JsonSerializable()
-class Cat extends Pet with DataSupportMixin<Dog> {
+class Cat extends Pet with DataSupportMixin<Cat> {
   final bool meow;
 
   Cat(String id, this.meow) : super(id);
