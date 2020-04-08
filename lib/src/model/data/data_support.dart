@@ -8,7 +8,7 @@ abstract class DataSupportMixin<T extends DataSupportMixin<dynamic>> {
 
   Repository<T> _repository;
 
-  T _init(Repository<T> repository, {String key}) {
+  T _init(Repository<T> repository, {bool save = true, String key}) {
     assert(repository != null, 'Please provide an instance of Repository<$T>');
     _repository = repository;
     _manager = repository.manager;
@@ -16,7 +16,9 @@ abstract class DataSupportMixin<T extends DataSupportMixin<dynamic>> {
     final dataId = _manager.dataId<T>(id, key: key);
     // sync relationships
     _repository.setOwnerInRelationships(dataId, _this);
-    _repository.localAdapter.save(dataId.key, _this);
+    if (save) {
+      _repository.localAdapter.save(dataId.key, _this);
+    }
     return _this;
   }
 
@@ -83,10 +85,10 @@ FlutterData.init();
 
 extension DataSupportExtension<T extends DataSupportMixin<dynamic>>
     on DataSupportMixin<T> {
-  T init([Repository<T> repository, String key]) {
+  T init([Repository<T> repository, bool save = true]) {
     _assertCorrectRepo(repository);
     repository ??= _autoModelInitDataManager?.locator<Repository<T>>();
-    return _init(repository, key: key);
+    return _init(repository, save: save);
   }
 
   DataId<T> get dataId {
