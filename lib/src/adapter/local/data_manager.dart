@@ -1,16 +1,15 @@
 part of flutter_data;
 
 class DataManager {
-  DataManager.delegate(this.autoModelInit);
+  @visibleForTesting
+  DataManager.delegate();
+
   factory DataManager({bool autoModelInit = true}) {
     if (autoModelInit) {
-      return _autoModelInitDataManager = DataManager.delegate(true);
+      return _autoModelInitDataManager = DataManager.delegate();
     }
-    return DataManager.delegate(false);
+    return DataManager.delegate();
   }
-
-  @visibleForTesting
-  final bool autoModelInit;
 
   final _hive = Hive;
 
