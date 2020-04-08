@@ -2,7 +2,7 @@ name: flutter_data
 description: >
   A pragmatic tool to build data-driven Flutter apps
   with minimal boilerplate, based on the Active Record pattern.
-version: 0.3.0-dev+2
+version: 0.3.0-dev+3
 homepage: https://github.com/flutterdata/flutter_data
 documentation: https://flutterdata.dev/docs
 authors:
