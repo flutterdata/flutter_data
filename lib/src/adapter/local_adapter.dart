@@ -1,7 +1,8 @@
 part of flutter_data;
 
 // ignore: must_be_immutable
-abstract class LocalAdapter<T extends DataSupportMixin<T>> with TypeAdapter<T> {
+abstract class LocalAdapter<T extends DataSupportMixin<dynamic>>
+    with TypeAdapter<T> {
   @visibleForTesting
   @protected
   final DataManager manager;

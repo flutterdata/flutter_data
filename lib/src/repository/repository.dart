@@ -1,6 +1,7 @@
 part of flutter_data;
 
-abstract class Repository<T extends DataSupportMixin<T>> with RemoteAdapter<T> {
+abstract class Repository<T extends DataSupportMixin<dynamic>>
+    with RemoteAdapter<T> {
   @visibleForTesting
   @protected
   final LocalAdapter<T> localAdapter;
@@ -15,7 +16,7 @@ abstract class Repository<T extends DataSupportMixin<T>> with RemoteAdapter<T> {
   @override
   deserialize(object, {key}) => localAdapter
       .deserialize(Map<String, dynamic>.from(object as Map))
-      ._init(this, key: key);
+      ._init(this, key: key) as T;
 
   @override
   deserializeCollection(object) => (object as Iterable).map(deserialize);
@@ -203,7 +204,7 @@ abstract class Repository<T extends DataSupportMixin<T>> with RemoteAdapter<T> {
       Map<String, String> headers}) async {
     if (remote == false) {
       // ignore: unawaited_futures
-      localAdapter.save(model.key, model);
+      localAdapter.save(manager.dataId<T>(model.id).key, model);
       return model;
     }
 
@@ -228,13 +229,14 @@ abstract class Repository<T extends DataSupportMixin<T>> with RemoteAdapter<T> {
     print('[flutter_data] save $T: $uri [HTTP ${response.statusCode}]');
 
     return _withResponse<T>(response, (data) {
+      final key = manager.dataId<T>(model.id).key;
       if (data == null) {
         // return "old" model if response was empty
-        localAdapter.save(model.key, model);
+        localAdapter.save(key, model);
         return model;
       }
       // provide key of the existing model
-      return deserialize(data as Map<String, dynamic>, key: model.key);
+      return deserialize(data as Map<String, dynamic>, key: key);
     });
   }
 

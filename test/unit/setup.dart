@@ -41,7 +41,7 @@ class FakeBox<T> extends Fake implements Box<T> {
 }
 
 class TestDataManager extends DataManager {
-  TestDataManager(this.locator) : super.delegate(false);
+  TestDataManager(this.locator) : super.delegate();
   final Locator locator;
   final Box<String> keysBox = FakeBox<String>();
 

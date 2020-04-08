@@ -1,6 +1,6 @@
 part of flutter_data;
 
-abstract class DataSupportMixin<T extends DataSupportMixin<T>> {
+abstract class DataSupportMixin<T extends DataSupportMixin<dynamic>> {
   String get id;
   DataManager _manager;
 
@@ -13,7 +13,6 @@ abstract class DataSupportMixin<T extends DataSupportMixin<T>> {
     _repository = repository;
     _manager = repository.manager;
 
-    _assertAuto();
     final dataId = _manager.dataId<T>(id, key: key);
     // sync relationships
     _repository.setOwnerInRelationships(dataId, _this);
@@ -29,25 +28,48 @@ abstract class DataSupportMixin<T extends DataSupportMixin<T>> {
       '''\n
 Tried to call $method but this instance of $T is not initialized.
 
-Please use: `$T(...).init(repository)`
+Please use:
 
-or, instead of mixing in `DataSupportMixin`, make your $T model
-extend `DataSupport` which doesn't require initialization.
+ - `$T(...).init()`
+ - `$T(...).init(repository)` (if booted with autoModelInit: false)
+
+or otherwise make $T extend `DataSupport` which doesn't require
+explicit initialization.
 ''',
     );
   }
 
-  _assertAuto() {
-    final modelAutoInit = this is DataSupport;
+  _assertCorrectRepo(Repository<T> repository) {
+    final modelAutoInit = _autoModelInitDataManager != null;
     if (modelAutoInit) {
-      assert(_manager.autoModelInit, '''\n
-This $T model extends DataSupport but you initialized
-Flutter Data with autoModelInit: false.
+      assert(
+          repository == null || repository.manager == _autoModelInitDataManager,
+          '''\n
+This app has been configured with autoModelInit: true at boot,
+which means that model initialization is managed internally.
+
+You supplied an instance of Repository whose manager is NOT the
+internal manager.
+
+Either:
+ - supply NO repository at all (RECOMMENDED)
+ - supply an internally managed repository
 
 If you wish to manually initialize your models, please make
-sure $T mixes in DataSupportMixin.
+sure $T (and ALL your other models) mix in DataSupportMixin
+and you configure Flutter Data to do so, via:
 
-If you wish Flutter Data to auto-initialize, call:
+FlutterData.init(autoModelInit: false);
+''');
+    } else {
+      assert(repository != null, '''\n
+This app has been configured with autoModelInit: false at boot,
+which means that model initialization is managed by you.
+
+You called init() but supplied no repository.
+
+If you wish Flutter Data to auto-initialize your models,
+ensure you configure it at boot:
 
 FlutterData.init(autoModelInit: true);
 
@@ -55,27 +77,15 @@ or simply
 
 FlutterData.init();
 ''');
-    } else {
-      assert(!_manager.autoModelInit, '''\n
-This $T model mixes in DataSupportMixin but you initialized
-Flutter Data with autoModelInit: true (the default).
-
-If you wish to automatically initialize your models, please make
-sure $T extends DataSupport.
-
-If you wish to manually initialize your models, call:
-
-FlutterData.init(autoModelInit: false);
-
-and use DataSupportMixin instead.
-''');
     }
   }
 }
 
-extension DataSupportExtension<T extends DataSupportMixin<T>>
+extension DataSupportExtension<T extends DataSupportMixin<dynamic>>
     on DataSupportMixin<T> {
-  T init(Repository<T> repository, {String key}) {
+  T init([Repository<T> repository, String key]) {
+    _assertCorrectRepo(repository);
+    repository ??= _autoModelInitDataManager?.locator<Repository<T>>();
     return _init(repository, key: key);
   }
 
@@ -133,8 +143,9 @@ extension DataSupportExtension<T extends DataSupportMixin<T>>
 
 // auto
 
-abstract class DataSupport<T extends DataSupport<T>> with DataSupportMixin<T> {
+abstract class DataSupport<T extends DataSupport<dynamic>>
+    with DataSupportMixin<T> {
   DataSupport() {
-    _init(_autoModelInitDataManager?.locator<Repository<T>>());
+    init();
   }
 }

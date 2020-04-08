@@ -1,6 +1,6 @@
 part of flutter_data;
 
-class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
+class HasMany<E extends DataSupportMixin<dynamic>> extends Relationship<E>
     with ListMixin<E> {
   @protected
   @visibleForTesting

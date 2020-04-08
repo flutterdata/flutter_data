@@ -1,6 +1,6 @@
 part of flutter_data;
 
-class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E> {
+class BelongsTo<E extends DataSupportMixin<dynamic>> extends Relationship<E> {
   @protected
   @visibleForTesting
   DataId<E> dataId;
