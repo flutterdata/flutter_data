@@ -78,12 +78,14 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
       for (var relEntry in obj.relationships.entries) {
         final rel = relEntry.value;
         if (rel is ToOne && rel.linkage != null) {
-          final dataId = manager.dataId(rel.linkage.id, type: rel.linkage.type);
+          final type = DataId.getType(rel.linkage.type);
+          final dataId = manager.dataId(rel.linkage.id, type: type);
           nativeMap[relEntry.key] = dataId.key;
           includedDataIds.add(dataId);
         } else if (rel is ToMany) {
           nativeMap[relEntry.key] = rel.linkage.map((i) {
-            final dataId = manager.dataId(i.id, type: i.type);
+            final type = DataId.getType(i.type);
+            final dataId = manager.dataId(i.id, type: type);
             includedDataIds.add(dataId);
             return dataId.key;
           }).toList();
@@ -96,11 +98,11 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
     // included
     for (var dataId in includedDataIds) {
       final obj = included.firstWhere(
-          (obj) => obj.id == dataId.id && obj.type == dataId.type,
+          (r) => r.id == dataId.id && DataId.getType(r.type) == dataId.type,
           orElse: () => null);
       if (obj != null) {
-        final repo =
-            relationshipMetadata['repository#${obj.type}'] as Repository;
+        final type = DataId.getType(obj.type);
+        final repo = relationshipMetadata['repository#$type'] as Repository;
         repo.deserialize(obj);
       }
     }
