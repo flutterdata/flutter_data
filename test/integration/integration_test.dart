@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import "package:async/async.dart" show StreamQueue;
 import 'package:flutter_data/flutter_data.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:test/test.dart';

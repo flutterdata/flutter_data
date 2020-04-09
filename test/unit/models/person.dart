@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:json_annotation/json_annotation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:meta/meta.dart';
@@ -8,7 +11,7 @@ import 'family.dart';
 part 'person.g.dart';
 
 @JsonSerializable()
-@DataRepository()
+@DataRepository([PersonPollAdapter])
 class Person with DataSupportMixin<Person> {
   @override
   final String id;
@@ -28,4 +31,18 @@ class Person with DataSupportMixin<Person> {
 
   bool operator ==(o) => o is Person && name == o.name && age == o.age;
   int get hashCode => runtimeType.hashCode ^ name.hashCode ^ age.hashCode;
+
+  @override
+  String toString() {
+    return toJson().toString();
+  }
+}
+
+mixin PersonPollAdapter<T extends Person> on Repository<Person> {
+  generatePeople() {
+    Timer.periodic(Duration(seconds: 1), (_) async {
+      Person(name: 'zzz-${Random().nextInt(9999)}', age: Random().nextInt(88))
+          .init(this);
+    });
+  }
 }

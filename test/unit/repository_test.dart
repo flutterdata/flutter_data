@@ -110,4 +110,25 @@ void main() async {
     var house = House(address: "12 Lincoln Rd").init(repo);
     expect(house, repo.localAdapter.findOne(house.key));
   });
+
+  test('watchAll', () async {
+    var repo = injection.locator<Repository<Person>>();
+    // make sure there are no items in local storage from previous tests
+    await repo.localAdapter.clear();
+
+    var stream = repo.watchAll(remote: false).stream;
+    (repo as PersonPollAdapter).generatePeople();
+
+    final matcher = predicate((p) {
+      return p is Person && p.name.startsWith('zzz-') && p.age < 89;
+    });
+
+    await expectLater(
+        stream,
+        emitsInOrder([
+          [],
+          [matcher],
+          [matcher, matcher]
+        ]));
+  });
 }

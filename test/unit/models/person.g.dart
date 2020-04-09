@@ -30,7 +30,8 @@ class _$PersonRepository extends Repository<Person> {
   }
 }
 
-class $PersonRepository extends _$PersonRepository {
+class $PersonRepository extends _$PersonRepository
+    with PersonPollAdapter<Person> {
   $PersonRepository(LocalAdapter<Person> adapter) : super(adapter);
 }
 
