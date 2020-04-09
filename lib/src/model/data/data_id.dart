@@ -20,7 +20,10 @@ class DataId<T> {
   }
 
   String get key {
-    var _key = manager.keysBox.get('$type#$id');
+    String _key;
+    if (id != null) {
+      key = manager.keysBox.get('$type#$id');
+    }
     if (_key == null) {
       key = _key = '$type#${_uuid.v1().substring(0, 8)}';
     }

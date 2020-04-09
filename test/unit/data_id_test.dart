@@ -82,4 +82,9 @@ void main() async {
     final manager = TestDataManager(null);
     expect(manager.dataId<Person>("1"), isNot(manager.dataId<Family>("1")));
   });
+
+  test('two models without id should get different keys', () {
+    final manager = TestDataManager(null);
+    expect(manager.dataId<Person>(null), isNot(manager.dataId<Person>(null)));
+  });
 }
