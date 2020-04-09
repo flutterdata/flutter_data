@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import "package:async/async.dart" show StreamQueue;
 import 'package:flutter_data/flutter_data.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:test/test.dart';
 
 import '../unit/setup.dart';
@@ -44,10 +46,15 @@ void main() async {
   });
 
   test('watchOne', () async {
-    // var repo = injection.locator<Repository<Model>>();
-    // var stream = repo.watchOne('1');
-    // TODO implement watch() in FakeBox
-    // await expectLater(stream, emitsInOrder([Model(id: '1', name: 'Roadster')]));
+    var repo = injection.locator<Repository<Model>>();
+    // make sure there are no items in local storage from previous tests
+    await repo.localAdapter.clear();
+    ValueStream<Model> stream = repo.watchOne('1').stream;
+
+    await expectLater(
+        stream,
+        emitsInOrder(
+            [null, Model(id: '1', name: 'Roadster', company: BelongsTo())]));
   });
 
   test('save', () async {

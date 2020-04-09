@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:hive/hive.dart';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:mockito/mockito.dart';
+import 'package:rxdart/rxdart.dart';
 
 import 'models/family.dart';
 import 'models/house.dart';
@@ -14,6 +15,8 @@ class HiveMock extends Mock implements HiveInterface {}
 
 class FakeBox<T> extends Fake implements Box<T> {
   var _map = <String, T>{};
+  BehaviorSubject<T> _subject = BehaviorSubject<T>();
+
   @override
   T get(key, {T defaultValue}) {
     return _map[key] ?? defaultValue;
@@ -21,7 +24,13 @@ class FakeBox<T> extends Fake implements Box<T> {
 
   @override
   Future<void> put(key, T value) async {
+    _subject.add(value);
     _map[key.toString()] = value;
+  }
+
+  @override
+  Stream<BoxEvent> watch({key}) {
+    return _subject.stream.map((value) => BoxEvent(null, value, false));
   }
 
   @override
@@ -35,6 +44,12 @@ class FakeBox<T> extends Fake implements Box<T> {
 
   @override
   bool containsKey(key) => _map.containsKey(key);
+
+  @override
+  Future<int> clear() {
+    _map.clear();
+    return Future.value(0);
+  }
 
   @override
   Future<void> close() => Future.value();
