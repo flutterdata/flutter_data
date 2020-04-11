@@ -1,26 +1,40 @@
 part of flutter_data;
 
-abstract class Repository<T extends DataSupportMixin<T>> with RemoteAdapter<T> {
+abstract class Repository<T extends DataSupportMixin<T>> {
+  String get type => DataId.getType<T>();
+
   @visibleForTesting
   @protected
   final LocalAdapter<T> localAdapter;
   Repository(this.localAdapter);
 
-  @override
-  serialize(model) => localAdapter.serialize(model);
+  // url
 
-  @override
-  serializeCollection(models) => models.map(serialize);
+  String baseUrl = 'http://127.0.0.1:8080/';
 
-  @override
-  deserialize(object, {key}) => localAdapter
+  // FIXME when we get late fields
+  UrlDesign _urlDesign;
+  UrlDesign get urlDesign =>
+      _urlDesign ??= PathBasedUrlDesign(Uri.parse(baseUrl));
+
+  String updateHttpMethod = 'PATCH';
+
+  Map<String, String> get headers => {};
+
+  //
+
+  Map<String, dynamic> get relationshipMetadata;
+
+  Map<String, dynamic> serialize(T model) => localAdapter.serialize(model);
+
+  serializeCollection(Iterable<T> models) => models.map(serialize);
+
+  T deserialize(dynamic object, {String key}) => localAdapter
       .deserialize(Map<String, dynamic>.from(object as Map), key: key)
       ._init(this, key: key);
 
-  @override
-  deserializeCollection(object) => (object as Iterable).map(deserialize);
-
-  // abstract members, to be overriden by adapters
+  Iterable<T> deserializeCollection(object) =>
+      (object as Iterable).map(deserialize);
 
   @visibleForTesting
   @protected
@@ -32,17 +46,10 @@ abstract class Repository<T extends DataSupportMixin<T>> with RemoteAdapter<T> {
 
   @visibleForTesting
   @protected
-  @override
-  Locator get locator => manager.locator;
-
-  @visibleForTesting
-  @protected
-  @override
   DataManager get manager => localAdapter.manager;
 
   // repository methods
 
-  @override
   Future<List<T>> findAll(
       {bool remote = true,
       Map<String, String> params,
@@ -63,7 +70,6 @@ abstract class Repository<T extends DataSupportMixin<T>> with RemoteAdapter<T> {
     return _result;
   }
 
-  @override
   DataStateNotifier<List<T>> watchAll(
       {bool remote = true,
       Map<String, String> params,
@@ -99,7 +105,7 @@ abstract class Repository<T extends DataSupportMixin<T>> with RemoteAdapter<T> {
     return notifier;
   }
 
-  @override
+  @protected
   Future<List<T>> loadAll(
       {Map<String, String> params, Map<String, String> headers}) async {
     final uri = QueryParameters(params ?? const {}).addToUri(
@@ -119,7 +125,6 @@ abstract class Repository<T extends DataSupportMixin<T>> with RemoteAdapter<T> {
 
   // one
 
-  @override
   Future<T> findOne(String id,
       {bool remote = true,
       Map<String, String> params,
@@ -141,7 +146,6 @@ abstract class Repository<T extends DataSupportMixin<T>> with RemoteAdapter<T> {
     return _result;
   }
 
-  @override
   DataStateNotifier<T> watchOne(String id,
       {bool remote = true,
       Map<String, String> params,
@@ -178,7 +182,7 @@ abstract class Repository<T extends DataSupportMixin<T>> with RemoteAdapter<T> {
     return notifier;
   }
 
-  @override
+  @protected
   Future<T> loadOne(String id,
       {Map<String, String> params, Map<String, String> headers}) async {
     final uri = QueryParameters(params ?? const {}).addToUri(
@@ -196,7 +200,6 @@ abstract class Repository<T extends DataSupportMixin<T>> with RemoteAdapter<T> {
 
   // save & delete
 
-  @override
   Future<T> save(T model,
       {bool remote = true,
       Map<String, String> params = const {},
@@ -238,7 +241,6 @@ abstract class Repository<T extends DataSupportMixin<T>> with RemoteAdapter<T> {
     });
   }
 
-  @override
   Future<void> delete(String id,
       {bool remote = true,
       Map<String, String> params,
@@ -259,14 +261,13 @@ abstract class Repository<T extends DataSupportMixin<T>> with RemoteAdapter<T> {
   }
 
   @mustCallSuper
-  @override
   Future<void> dispose() async {
     await localAdapter.dispose();
   }
 
   // helpers
 
-  @override
+  @protected
   Future<R> withHttpClient<R>(OnRequest<R> onRequest) async {
     final client = http.Client();
     try {

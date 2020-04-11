@@ -25,9 +25,7 @@ void main() async {
     var manager = repo.manager;
 
     var house = {'id': '432337', 'address': 'Ozark Lake, MO'};
-
     var familyJson = {'surname': "Byrde", 'house': house};
-
     repo.deserialize(familyJson);
 
     expect(adapter.findOne(DataId<House>('432337', manager).key), isNotNull);

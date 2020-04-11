@@ -24,7 +24,6 @@ export 'src/adapter/remote/standard_json_adapter.dart';
 
 part 'src/adapter/local/data_manager.dart';
 part 'src/adapter/local_adapter.dart';
-part 'src/adapter/remote_adapter.dart';
 
 part 'src/model/data/data_id.dart';
 part 'src/model/data/data_exception.dart';

@@ -29,7 +29,7 @@ void main() async {
 
   test('locator', () {
     var repo = injection.locator<Repository<Person>>();
-    expect(repo.locator, isNotNull);
+    expect(repo.manager.locator, isNotNull);
   });
 
   test('serialize with relationships', () {

@@ -1,6 +1,6 @@
 import 'package:flutter_data/flutter_data.dart';
 
-mixin OfflineRetryAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
+mixin OfflineRetryAdapter<T extends DataSupportMixin<T>> on Repository<T> {
   //  = RetryWhenStream<List<T>>(
   //   () {
   //     // return stream

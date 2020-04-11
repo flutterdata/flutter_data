@@ -50,7 +50,7 @@ abstract class Company with _$Company, DataSupportMixin<Company> {
 
 //
 
-mixin TestMixin<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
+mixin TestMixin<T extends DataSupportMixin<T>> on Repository<T> {
   @override
   get baseUrl => 'http://127.0.0.1:17083/';
 }
