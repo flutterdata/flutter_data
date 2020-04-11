@@ -109,7 +109,7 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on Repository<T> {
       if (obj != null) {
         final type = DataId.getType(obj.type);
         final repo = relationshipMetadata['repository#$type'] as Repository;
-        repo.deserialize(obj);
+        repo?.deserialize(obj);
       }
     }
 
