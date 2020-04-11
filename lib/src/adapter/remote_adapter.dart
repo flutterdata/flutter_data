@@ -1,7 +1,7 @@
 part of flutter_data;
 
 // necessary to massage data via external mixins
-abstract class RemoteAdapter<T extends DataSupportMixin<dynamic>> {
+abstract class RemoteAdapter<T extends DataSupportMixin<T>> {
   String get type => DataId.getType<T>();
 
   // expose locator to mixins

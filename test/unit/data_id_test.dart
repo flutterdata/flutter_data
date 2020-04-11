@@ -24,17 +24,6 @@ void main() async {
     expect(dataId.id, '29');
   });
 
-  test('model is set only if manager is null', () {
-    final manager = TestDataManager(null);
-    var dataId =
-        DataId<Person>('1', null, model: Person(id: '1', name: "zzz", age: 7));
-    expect(dataId.model, isNotNull);
-
-    var dataId2 = manager.dataId<Person>('2',
-        model: Person(id: '2', name: "zzz", age: 7));
-    expect(dataId2.model, isNull);
-  });
-
   test('reuses a key', () {
     final manager = TestDataManager(null);
     var dataId = manager.dataId<Person>('1', key: 'people#a5a5a5');

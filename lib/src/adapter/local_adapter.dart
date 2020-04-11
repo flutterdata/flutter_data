@@ -1,8 +1,7 @@
 part of flutter_data;
 
 // ignore: must_be_immutable
-abstract class LocalAdapter<T extends DataSupportMixin<dynamic>>
-    with TypeAdapter<T> {
+abstract class LocalAdapter<T extends DataSupportMixin<T>> with TypeAdapter<T> {
   @visibleForTesting
   @protected
   final DataManager manager;
@@ -67,7 +66,9 @@ abstract class LocalAdapter<T extends DataSupportMixin<dynamic>>
   }
 
   Stream<List<T>> watchAll() {
-    return box.watch().map((_) => findAll()).debounceTime(_oneFrameDuration);
+    return box.watch().map((_) {
+      return findAll();
+    }).debounceTime(_oneFrameDuration);
   }
 
   T findOne(String key) => key != null ? box.get(key) : null;

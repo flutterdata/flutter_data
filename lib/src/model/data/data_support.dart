@@ -1,8 +1,9 @@
 part of flutter_data;
 
-abstract class DataSupportMixin<T extends DataSupportMixin<dynamic>> {
+abstract class DataSupportMixin<T extends DataSupportMixin<T>> {
   String get id;
   DataManager _manager;
+  DataId<T> _dataId;
 
   T get _this => this as T;
 
@@ -13,11 +14,11 @@ abstract class DataSupportMixin<T extends DataSupportMixin<dynamic>> {
     _repository = repository;
     _manager = repository.manager;
 
-    final dataId = _manager.dataId<T>(id, key: key);
+    _dataId = _manager.dataId<T>(id, key: key);
     // sync relationships
-    _repository.setOwnerInRelationships(dataId, _this);
+    _repository.setOwnerInRelationships(_dataId, _this);
     if (save) {
-      _repository.localAdapter.save(dataId.key, _this);
+      _repository.localAdapter.save(_dataId.key, _this);
     }
     return _this;
   }
@@ -83,7 +84,7 @@ FlutterData.init();
   }
 }
 
-extension DataSupportExtension<T extends DataSupportMixin<dynamic>>
+extension DataSupportExtension<T extends DataSupportMixin<T>>
     on DataSupportMixin<T> {
   T init([Repository<T> repository, bool save = true]) {
     _assertCorrectRepo(repository);
@@ -91,15 +92,8 @@ extension DataSupportExtension<T extends DataSupportMixin<dynamic>>
     return _init(repository, save: save);
   }
 
-  DataId<T> get dataId {
-    _assertRepo('get dataId');
-    return _manager.dataId<T>(id);
-  }
-
-  String get key {
-    _assertRepo('get key');
-    return dataId?.key;
-  }
+  DataId<T> get dataId => _dataId;
+  String get key => _dataId?.key;
 
   Future<T> save(
       {bool remote = true,
@@ -145,8 +139,7 @@ extension DataSupportExtension<T extends DataSupportMixin<dynamic>>
 
 // auto
 
-abstract class DataSupport<T extends DataSupport<dynamic>>
-    with DataSupportMixin<T> {
+abstract class DataSupport<T extends DataSupport<T>> with DataSupportMixin<T> {
   DataSupport() {
     init();
   }

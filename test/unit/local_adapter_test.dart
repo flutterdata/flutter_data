@@ -31,7 +31,7 @@ void main() async {
     });
   });
 
-  test('internalLocalDeserialize', () {
+  test('deserialize', () {
     var manager = injection.locator<DataManager>();
 
     var person = Person(id: '1', name: "Franco", age: 28);

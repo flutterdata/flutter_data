@@ -40,7 +40,7 @@ class Person with DataSupportMixin<Person> {
 
 mixin PersonPollAdapter<T extends Person> on Repository<Person> {
   generatePeople() {
-    Timer.periodic(Duration(seconds: 1), (_) async {
+    Timer.periodic(Duration(seconds: 1), (_) {
       Person(name: 'zzz-${Random().nextInt(9999)}', age: Random().nextInt(88))
           .init(this);
     });

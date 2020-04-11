@@ -55,7 +55,7 @@ void main() async {
     var family = Family(surname: "Toraine").init(familyRepo);
     var person = Person(name: "Claire", age: 31).init(personRepo);
     person.family = BelongsTo<Family>(family, familyRepo.manager);
-    expect(person.family.dataId, family.dataId);
+    expect(person.family.dataId.key, family.key);
     expect(person.family.debugOwner, isNull);
     person.init(personRepo);
     expect(person.family.debugOwner, isNotNull);

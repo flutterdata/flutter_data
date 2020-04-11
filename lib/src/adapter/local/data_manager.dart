@@ -82,5 +82,5 @@ either directly or through FlutterData.init().
 extension ManagerDataId on DataManager {
   @optionalTypeArgs
   DataId<T> dataId<T>(String id, {String key, String type, T model}) =>
-      DataId<T>(id, this, key: key, type: type, model: model);
+      DataId<T>(id, this, key: key, type: type);
 }

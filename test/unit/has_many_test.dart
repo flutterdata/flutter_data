@@ -18,7 +18,7 @@ void main() async {
     expect(rel.length, 0);
 
     rel = HasMany<Person>([person], manager);
-    expect(rel.first.dataId, manager.dataId<Person>('1'));
+    expect(rel.first.key, manager.dataId<Person>('1').key);
   });
 
   test('deserialize with included', () {
@@ -55,7 +55,7 @@ void main() async {
 
     expect(rel, HasMany<Person>([person], manager));
     expect(rel.first, person);
-    expect(rel.first.dataId, manager.dataId<Person>('1'));
+    expect(rel.first.key, manager.dataId<Person>('1').key);
   });
 
   test('re-assign hasmany in mutable model', () {
@@ -66,7 +66,7 @@ void main() async {
     var person = Person(name: "Claire", age: 31).init(personRepo);
     family.persons = HasMany<Person>([person], personRepo.manager);
 
-    expect(family.persons.first.dataId, person.dataId);
+    expect(family.persons.first.key, person.key);
     expect(family.persons.debugOwner, isNull);
     family.init(familyRepo);
     expect(family.persons.debugOwner, isNotNull);

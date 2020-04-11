@@ -1,5 +1,6 @@
 import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
+import 'package:async/async.dart';
 
 import 'models/family.dart';
 import 'models/house.dart';
@@ -19,17 +20,10 @@ void main() async {
         Person(id: '1', name: "John", age: 27, family: family.asBelongsTo)
             .init(repo);
 
-    // (1) it sets the manager in both model and relationship
-    // DataSupportMixin#_manager needs to remain private
-    // so that's compatible with freezed
-    // but it's equivalent to checking on dataId's
-    expect(model.dataId.manager, equals(manager));
-    expect(family.dataId.manager, equals(manager));
-
-    // (2) it wires up the relationship (setOwnerInRelationship)
+    // (1) it wires up the relationship (setOwnerInRelationship)
     expect(model.family.key, manager.dataId<Family>("55").key);
 
-    // (3) it saves the model locally
+    // (2) it saves the model locally
     expect(model, repo.localAdapter.box.get(model.key));
   });
 
@@ -94,13 +88,13 @@ void main() async {
         house: BelongsTo<House>(house),
         persons: HasMany<Person>([person]));
 
-    // no manager associated to family or relationships
-    expect(family.house.dataId.manager, isNull);
-    expect(family.persons.dataIds.first.manager, isNull);
+    // no dataId associated to family or relationships
+    expect(family.house.dataId, isNull);
+    expect(family.persons.dataIds, isEmpty);
 
     repo.setOwnerInRelationships(repo.manager.dataId<Family>("1"), family);
 
-    // relationships are now associated to a manager
+    // relationships are now associated to a dataId
     expect(family.house.dataId, repo.manager.dataId<House>("31"));
     expect(family.persons.dataIds.first, repo.manager.dataId<Person>("1"));
   });
@@ -116,19 +110,23 @@ void main() async {
     // make sure there are no items in local storage from previous tests
     await repo.localAdapter.clear();
 
-    var stream = repo.watchAll(remote: false).stream;
+    expect(repo.localAdapter.box.keys.length, 0);
+
+    var stream = StreamQueue(repo.watchAll(remote: false).stream);
     (repo as PersonPollAdapter).generatePeople();
 
     final matcher = predicate((p) {
       return p is Person && p.name.startsWith('zzz-') && p.age < 89;
     });
 
+    expect(stream, mayEmitMultiple(isEmpty));
+
     await expectLater(
-        stream,
-        emitsInOrder([
-          [],
-          [matcher],
-          [matcher, matcher]
-        ]));
+      stream,
+      emitsInOrder([
+        [matcher],
+        [matcher, matcher]
+      ]),
+    );
   });
 }

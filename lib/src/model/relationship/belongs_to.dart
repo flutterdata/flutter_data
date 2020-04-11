@@ -1,19 +1,18 @@
 part of flutter_data;
 
-class BelongsTo<E extends DataSupportMixin<dynamic>> extends Relationship<E> {
+class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E> {
   @protected
   @visibleForTesting
   DataId<E> dataId;
-
-  BelongsTo._(this.dataId, [DataManager manager]) {
-    super._manager = manager;
-  }
+  E _uninitializedModel;
 
   BelongsTo([E model, DataManager manager])
-      : this._(model != null ? manager.dataId<E>(model.id, model: model) : null,
-            manager);
+      : _uninitializedModel = model,
+        super(manager) {
+    initializeModel();
+  }
 
-  // serialization constructors
+  BelongsTo._(this.dataId, DataManager manager) : super(manager);
 
   factory BelongsTo.fromJson(Map<String, dynamic> map) {
     final key = map['_'][0] as String;
@@ -22,17 +21,19 @@ class BelongsTo<E extends DataSupportMixin<dynamic>> extends Relationship<E> {
         key != null ? DataId.byKey(key, manager) : null, manager);
   }
 
-  // end constructors
+  // ownership & init
+
+  initializeModel() {
+    if (_manager != null && _uninitializedModel != null) {
+      value = _uninitializedModel;
+      _uninitializedModel = null;
+    }
+  }
 
   set owner(DataId owner) {
     _owner = owner;
     _manager = owner.manager;
-    if (dataId != null) {
-      // if a "temporary" model is associated to the dataId, initialize
-      dataId.model?._init(_repository);
-      // trigger re-run DataId
-      dataId = _manager.dataId<E>(dataId.id);
-    }
+    initializeModel();
   }
 
   set inverse(DataId<E> inverse) {
@@ -50,7 +51,7 @@ class BelongsTo<E extends DataSupportMixin<dynamic>> extends Relationship<E> {
   }
 
   set value(E value) {
-    dataId = _manager.dataId<E>(value.id);
+    dataId = value?._init(_repository)?.dataId;
   }
 
   String get key => dataId?.key;

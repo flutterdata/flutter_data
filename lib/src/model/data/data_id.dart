@@ -7,31 +7,16 @@ class DataId<T> {
   final DataManager manager;
   String id;
   final String type;
-  // can temporarily hold a model
-  // (useful when DataManager is not yet available)
-  final T model;
+  final String key;
 
-  DataId(this.id, this.manager, {String key, String type, T model})
-      : type = getType<T>(type),
-        this.model = (manager == null ? model : null) {
-    if (key != null) {
-      this.key = key;
+  DataId(this.id, this.manager, {String key, String type})
+      : this.key = key ??
+            manager?.keysBox?.get('${getType<T>(type)}#$id') ??
+            '${getType<T>(type)}#${_uuid.v1().substring(0, 8)}',
+        this.type = getType<T>(type) {
+    if (id != null && manager != null && !exists) {
+      manager.keysBox.put('${this.type}#$id', this.key);
     }
-  }
-
-  String get key {
-    String _key;
-    if (id != null) {
-      key = manager.keysBox.get('$type#$id');
-    }
-    if (_key == null) {
-      key = _key = '$type#${_uuid.v1().substring(0, 8)}';
-    }
-    return _key;
-  }
-
-  set key(String key) {
-    manager.keysBox.put('$type#$id', key);
   }
 
   bool get exists {

@@ -13,28 +13,8 @@ void main() async {
 
   test('throws if not initialized', () {
     expect(() {
-      Family(surname: "Willis").dataId;
+      return Family(surname: "Willis").save();
     }, throwsA(isA<AssertionError>()));
-  });
-
-  test('should reuse key', () {
-    var manager = injection.locator<DataManager>();
-    var repository = injection.locator<Repository<Person>>();
-
-    // id-less person
-    var p1 = Person(name: "Frank", age: 20).init(repository);
-    expect(repository.localAdapter.box.keys.length, 1);
-
-    // person with new id, reusing existing key
-    manager.dataId<Person>('221', key: p1.key);
-    var p2 = Person(id: '221', name: 'Frank2', age: 32).init(repository);
-    expect(p1.key, p2.key);
-
-    expect(repository.localAdapter.box.keys.length, 1);
-
-    // another person, without reusing key
-    Person(id: '222', name: 'Frank3', age: 76).init(repository);
-    expect(repository.localAdapter.box.keys.length, 2);
   });
 
   // misc compatibility tests
@@ -53,6 +33,13 @@ void main() async {
     expect(p1.key, p2.key);
 
     expect(repository.localAdapter.box.keys, contains(p2.key));
+  });
+
+  test('should resolve to the same key', () {
+    var dogRepo = injection.locator<Repository<Dog>>();
+    var dog = Dog('2', 'Walker').init(dogRepo);
+    var dog2 = Dog('2', 'Walker').init(dogRepo);
+    expect(dog.key, dog2.key);
   });
 
   test('should work with subclasses', () {
@@ -86,6 +73,9 @@ void main() async {
         '_': [houseDataId.key, personRepo.manager]
       }),
     ).init(familyRepo);
+
+    expect(family.house.dataId, isNotNull);
+    expect(family.persons.dataIds, isNotEmpty);
 
     // (2) then load persons
     Person(id: '1', name: 'z1', age: 23).init(personRepo);
@@ -128,7 +118,7 @@ void main() async {
     expect(f1b.persons.first.family.value.surname, 'Kamchatka');
 
     var f2 = Family(surname: 'Kamchatka', persons: HasMany()).init(repository);
-    f2.persons.add(Person(name: 'Igor', age: 33));
+    f2.persons.add(Person(name: 'Igor', age: 33, family: BelongsTo()));
     expect(f2.persons.first.family.value.surname, 'Kamchatka');
 
     var f3 = Family(
