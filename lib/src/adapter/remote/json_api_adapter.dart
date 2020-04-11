@@ -9,12 +9,6 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on Repository<T> {
       'Accept': 'application/vnd.api+json',
     });
 
-  @override
-  deserializeCollection(object) {
-    final doc = Document.fromJson(object, ResourceCollectionData.fromJson);
-    return super.deserializeCollection(doc.data.collection);
-  }
-
   // Transforms native format into JSON:API
   @override
   Map<String, dynamic> serialize(model) {
@@ -54,6 +48,13 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on Repository<T> {
     return Document(ResourceData(resource)).toJson();
   }
 
+  @override
+  deserializeCollection(object) {
+    final doc = Document.fromJson(object, ResourceCollectionData.fromJson);
+    final tuples = doc.data.collection.map((obj) => [obj, doc.data.included]);
+    return super.deserializeCollection(tuples);
+  }
+
   // Transforms JSON:API into native format
   @override
   T deserialize(object, {key}) {
@@ -62,7 +63,12 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on Repository<T> {
     final included = <ResourceObject>[];
     ResourceObject obj;
 
-    if (object is ResourceObject) {
+    if (object is Iterable) {
+      obj = object.elementAt(0) as ResourceObject;
+      if (object.elementAt(1) != null) {
+        included.addAll(object.elementAt(1) as List<ResourceObject>);
+      }
+    } else if (object is ResourceObject) {
       obj = object;
     } else {
       final doc = Document.fromJson(object, ResourceData.fromJson);
