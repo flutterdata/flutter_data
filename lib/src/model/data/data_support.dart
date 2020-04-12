@@ -11,11 +11,14 @@ abstract class DataSupportMixin<T extends DataSupportMixin<T>> {
   Repository<T> _repository;
 
   T _init(Repository<T> repository, {String key, bool saveLocal = true}) {
-    assert(repository != null, 'Please provide an instance of Repository<$T>');
-    _repository = repository;
+    _assertCorrectRepo(repository);
+    _repository =
+        repository ?? _autoModelInitDataManager?.locator<Repository<T>>();
     _manager = _repository.manager;
+
     _dataId = _manager.dataId<T>(id, key: key);
     _repository.setOwnerInRelationships(_dataId, _this);
+
     _saveLocal = saveLocal;
     if (saveLocal) {
       _repository.localAdapter.save(_dataId.key, _this);
@@ -87,8 +90,6 @@ FlutterData.init();
 extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
     on DataSupportMixin<T> {
   T init(Repository<T> repository, {bool saveLocal = true}) {
-    _assertCorrectRepo(repository);
-    repository ??= _autoModelInitDataManager?.locator<Repository<T>>();
     return _init(repository, saveLocal: saveLocal);
   }
 
