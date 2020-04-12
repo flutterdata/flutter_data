@@ -84,8 +84,8 @@ class $CatLocalAdapter extends LocalAdapter<Cat> {
 
 Dog _$DogFromJson(Map<String, dynamic> json) {
   return Dog(
-    json['id'] as String,
-    json['name'] as String,
+    id: json['id'] as String,
+    name: json['name'] as String,
   );
 }
 
@@ -96,8 +96,8 @@ Map<String, dynamic> _$DogToJson(Dog instance) => <String, dynamic>{
 
 Cat _$CatFromJson(Map<String, dynamic> json) {
   return Cat(
-    json['id'] as String,
-    json['meow'] as bool,
+    id: json['id'] as String,
+    meow: json['meow'] as bool,
   );
 }
 

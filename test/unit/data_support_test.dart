@@ -37,15 +37,15 @@ void main() async {
 
   test('should resolve to the same key', () {
     var dogRepo = injection.locator<Repository<Dog>>();
-    var dog = Dog('2', 'Walker').init(dogRepo);
-    var dog2 = Dog('2', 'Walker').init(dogRepo);
+    var dog = Dog(id: '2', name: 'Walker').init(dogRepo);
+    var dog2 = Dog(id: '2', name: 'Walker').init(dogRepo);
     expect(dog.key, dog2.key);
   });
 
   test('should work with subclasses', () {
     var familyRepo = injection.locator<Repository<Family>>();
     var dogRepo = injection.locator<Repository<Dog>>();
-    var dog = Dog('2', 'Walker').init(dogRepo);
+    var dog = Dog(id: '2', name: 'Walker').init(dogRepo);
 
     var f = Family(surname: 'Walker', dogs: [dog].asHasMany).init(familyRepo);
     expect(f.dogs.first.name, 'Walker');
@@ -101,10 +101,10 @@ void main() async {
 
   test('relationship scenario #2', () {
     var repository = injection.locator<Repository<Family>>();
+    var repositoryPerson = injection.locator<Repository<Person>>();
 
-    var f1 = Family(
-            surname: 'Kamchatka',
-            persons: [Person(name: 'Igor', age: 33)].asHasMany)
+    final igor = Person(name: 'Igor', age: 33).init(repositoryPerson);
+    var f1 = Family(surname: 'Kamchatka', persons: [igor].asHasMany)
         .init(repository);
     // if Igor's family is NULL there's no way we can expect anything else
     // this is why setting an empty default relationship is recommended

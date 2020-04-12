@@ -49,8 +49,8 @@ void main() async {
     expect(obj, {
       'id': '1',
       'surname': "Smith",
-      'house': family.house.value.key,
-      'persons': family.persons.keys,
+      'house': house.key,
+      'persons': [person.key],
       'dogs': null
     });
   });
@@ -102,7 +102,7 @@ void main() async {
   test('create and save locally', () async {
     var repo = injection.locator<Repository<House>>();
     var house = House(address: "12 Lincoln Rd").init(repo);
-    expect(house, repo.localAdapter.findOne(house.key));
+    expect(repo.localAdapter.findOne(house.key), house);
   });
 
   test('watchAll', () async {
