@@ -6,8 +6,9 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
   @visibleForTesting
   final List<DataId<E>> dataIds;
   final List<E> _uninitializedModels;
+  final bool _saveLocal;
 
-  HasMany([List<E> models, DataManager manager])
+  HasMany([List<E> models, DataManager manager, this._saveLocal = true])
       : dataIds = [],
         _uninitializedModels = models ?? [],
         super(manager) {
@@ -16,6 +17,7 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
 
   HasMany._(this.dataIds, DataManager manager)
       : _uninitializedModels = [],
+        _saveLocal = true,
         super(manager);
 
   factory HasMany.fromJson(Map<String, dynamic> map) {
@@ -61,7 +63,7 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
 
   @override
   operator []=(int index, E value) {
-    dataIds[index] = value._init(_repository).dataId;
+    dataIds[index] = value?._init(_repository, saveLocal: _saveLocal)?.dataId;
   }
 
   @override

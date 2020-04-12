@@ -4,20 +4,20 @@ abstract class DataSupportMixin<T extends DataSupportMixin<T>> {
   String get id;
   DataManager _manager;
   DataId<T> _dataId;
+  bool _saveLocal = true;
 
   T get _this => this as T;
 
   Repository<T> _repository;
 
-  T _init(Repository<T> repository, {bool save = true, String key}) {
+  T _init(Repository<T> repository, {String key, bool saveLocal = true}) {
     assert(repository != null, 'Please provide an instance of Repository<$T>');
     _repository = repository;
-    _manager = repository.manager;
-
+    _manager = _repository.manager;
     _dataId = _manager.dataId<T>(id, key: key);
-    // sync relationships
     _repository.setOwnerInRelationships(_dataId, _this);
-    if (save) {
+    _saveLocal = saveLocal;
+    if (saveLocal) {
       _repository.localAdapter.save(_dataId.key, _this);
     }
     return _this;
@@ -25,11 +25,11 @@ abstract class DataSupportMixin<T extends DataSupportMixin<T>> {
 
   // asserts
 
-  _assertRepo(String method) {
+  _assertRepo() {
     assert(
       _repository != null,
       '''\n
-Tried to call $method but this instance of $T is not initialized.
+Tried to call a method on $this (of type $T), but it is not initialized.
 
 Please use:
 
@@ -84,12 +84,12 @@ FlutterData.init();
   }
 }
 
-extension DataSupportExtension<T extends DataSupportMixin<T>>
+extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
     on DataSupportMixin<T> {
-  T init([Repository<T> repository, bool save = true]) {
+  T init(Repository<T> repository, {bool saveLocal = true}) {
     _assertCorrectRepo(repository);
     repository ??= _autoModelInitDataManager?.locator<Repository<T>>();
-    return _init(repository, save: save);
+    return _init(repository, saveLocal: saveLocal);
   }
 
   DataId<T> get dataId => _dataId;
@@ -99,16 +99,22 @@ extension DataSupportExtension<T extends DataSupportMixin<T>>
       {bool remote = true,
       Map<String, String> params = const {},
       Map<String, String> headers}) async {
-    _assertRepo('save()');
+    _assertRepo();
     return await _repository.save(_this,
         remote: remote, params: params, headers: headers);
+  }
+
+  void saveLocal() {
+    _assertRepo();
+    _repository.localAdapter.save(key, _this);
+    return;
   }
 
   Future<void> delete(
       {bool remote = true,
       Map<String, String> params = const {},
       Map<String, String> headers}) async {
-    _assertRepo('delete()');
+    _assertRepo();
     await _repository.delete(id,
         remote: remote, params: params, headers: headers);
   }
@@ -117,7 +123,7 @@ extension DataSupportExtension<T extends DataSupportMixin<T>>
       {bool remote = true,
       Map<String, String> params,
       Map<String, String> headers}) {
-    _assertRepo('load()');
+    _assertRepo();
     return _repository.findOne(id,
         remote: remote, params: params, headers: headers);
   }
@@ -126,13 +132,13 @@ extension DataSupportExtension<T extends DataSupportMixin<T>>
       {bool remote = true,
       Map<String, String> params,
       Map<String, String> headers}) {
-    _assertRepo('watch()');
+    _assertRepo();
     return _repository.watchOne(id,
         remote: remote, params: params, headers: headers);
   }
 
   bool get isNew {
-    _assertRepo('isNew');
+    _assertRepo();
     return _repository.localAdapter.isNew(_this);
   }
 }
@@ -140,7 +146,13 @@ extension DataSupportExtension<T extends DataSupportMixin<T>>
 // auto
 
 abstract class DataSupport<T extends DataSupport<T>> with DataSupportMixin<T> {
-  DataSupport() {
-    init();
+  DataSupport({bool saveLocal = true}) {
+    _init(null, saveLocal: saveLocal);
   }
+}
+
+extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
+  @Deprecated('Do not call init() when this model extends DataSupport')
+  // ignore: missing_return
+  T init() {}
 }
