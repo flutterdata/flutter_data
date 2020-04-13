@@ -29,6 +29,11 @@ class FakeBox<T> extends Fake implements Box<T> {
   }
 
   @override
+  Future<void> delete(key) async {
+    _map.remove(key);
+  }
+
+  @override
   Stream<BoxEvent> watch({key}) {
     return _subject.stream.map((value) => BoxEvent(null, value, false));
   }
@@ -89,16 +94,19 @@ final Function() setUpAllFn = () {
   final familyLocalAdapter = $FamilyLocalAdapter(FakeBox<Family>(), manager);
   final personLocalAdapter = $PersonLocalAdapter(FakeBox<Person>(), manager);
   final dogLocalAdapter = $DogLocalAdapter(FakeBox<Dog>(), manager);
+  final zebraLocalAdapter = $ZebraLocalAdapter(FakeBox<Zebra>(), manager);
 
   injection.register<LocalAdapter<House>>(houseLocalAdapter);
   injection.register<LocalAdapter<Family>>(familyLocalAdapter);
   injection.register<LocalAdapter<Person>>(personLocalAdapter);
   injection.register<LocalAdapter<Dog>>(dogLocalAdapter);
+  injection.register<LocalAdapter<Zebra>>(zebraLocalAdapter);
 
   injection.register<Repository<House>>($HouseRepository(houseLocalAdapter));
   injection.register<Repository<Family>>($FamilyRepository(familyLocalAdapter));
   injection.register<Repository<Person>>($PersonRepository(personLocalAdapter));
   injection.register<Repository<Dog>>($DogRepository(dogLocalAdapter));
+  injection.register<Repository<Zebra>>($ZebraRepository(zebraLocalAdapter));
 
   injection.register<FamilyRepositoryWithStandardJSONAdapter>(
       FamilyRepositoryWithStandardJSONAdapter(familyLocalAdapter));
@@ -108,6 +116,8 @@ final Function() tearDownAllFn = () async {
   await injection.locator<Repository<House>>().dispose();
   await injection.locator<Repository<Family>>().dispose();
   await injection.locator<Repository<Person>>().dispose();
+  await injection.locator<Repository<Dog>>().dispose();
+  await injection.locator<Repository<Zebra>>().dispose();
   injection.clear();
 };
 

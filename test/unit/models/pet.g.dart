@@ -78,6 +78,42 @@ class $CatLocalAdapter extends LocalAdapter<Cat> {
   }
 }
 
+// ignore_for_file: unused_local_variable
+class _$ZebraRepository extends Repository<Zebra> {
+  _$ZebraRepository(LocalAdapter<Zebra> adapter) : super(adapter);
+
+  @override
+  get relationshipMetadata => {'HasMany': {}, 'BelongsTo': {}};
+
+  @override
+  setOwnerInRelationships(owner, model) {}
+
+  @override
+  void setInverseInModel(inverse, model) {}
+}
+
+class $ZebraRepository extends _$ZebraRepository {
+  $ZebraRepository(LocalAdapter<Zebra> adapter) : super(adapter);
+}
+
+// ignore: must_be_immutable, unused_local_variable
+class $ZebraLocalAdapter extends LocalAdapter<Zebra> {
+  $ZebraLocalAdapter(box, DataManager manager) : super(box, manager);
+
+  @override
+  deserialize(map, {key}) {
+    manager.dataId<Zebra>(map.id, key: key);
+    return Zebra.fromJson(map);
+  }
+
+  @override
+  serialize(model) {
+    final map = model.toJson();
+
+    return map;
+  }
+}
+
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
@@ -104,4 +140,16 @@ Cat _$CatFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$CatToJson(Cat instance) => <String, dynamic>{
       'id': instance.id,
       'meow': instance.meow,
+    };
+
+Zebra _$ZebraFromJson(Map<String, dynamic> json) {
+  return Zebra(
+    id: json['id'] as String,
+    name: json['name'] as String,
+  );
+}
+
+Map<String, dynamic> _$ZebraToJson(Zebra instance) => <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
     };

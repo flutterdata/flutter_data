@@ -29,9 +29,11 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   serializeCollection(Iterable<T> models) => models.map(serialize);
 
-  T deserialize(dynamic object, {String key}) => localAdapter
-      .deserialize(Map<String, dynamic>.from(object as Map), key: key)
-      ._init(this, key: key);
+  T deserialize(dynamic object, {String key}) {
+    final model = localAdapter
+        .deserialize(Map<String, dynamic>.from(object as Map), key: key);
+    return model._init(this);
+  }
 
   Iterable<T> deserializeCollection(object) =>
       (object as Iterable).map(deserialize);

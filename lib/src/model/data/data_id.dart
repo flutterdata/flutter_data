@@ -10,8 +10,8 @@ class DataId<T> {
   final String key;
 
   DataId(this.id, this.manager, {String key, String type})
-      : this.key = key ??
-            manager?.keysBox?.get('${getType<T>(type)}#$id') ??
+      : this.key = manager?.keysBox?.get('${getType<T>(type)}#$id') ??
+            key ??
             '${getType<T>(type)}#${_uuid.v1().substring(0, 8)}',
         this.type = getType<T>(type) {
     if (id != null && manager != null && !exists) {

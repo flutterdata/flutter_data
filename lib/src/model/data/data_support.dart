@@ -10,13 +10,22 @@ abstract class DataSupportMixin<T extends DataSupportMixin<T>> {
 
   Repository<T> _repository;
 
-  T _init(Repository<T> repository, {String key, bool saveLocal = true}) {
+  T _init(Repository<T> repository, {bool saveLocal = true}) {
     _assertCorrectRepo(repository);
     _repository =
         repository ?? _autoModelInitDataManager?.locator<Repository<T>>();
     _manager = _repository.manager;
 
-    _dataId = _manager.dataId<T>(id, key: key);
+    final originalKey = this.key;
+    this._dataId = _manager.dataId<T>(id, key: originalKey);
+
+    // if the existing key is different to the resulting key
+    // the original key for this ID has been found-
+    // therefore we need to delete the stray record
+    if (originalKey != null && originalKey != this.key) {
+      _repository.localAdapter.delete(originalKey);
+    }
+
     _repository.setOwnerInRelationships(_dataId, _this);
 
     _saveLocal = saveLocal;

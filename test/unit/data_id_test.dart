@@ -76,4 +76,22 @@ void main() async {
     final manager = TestDataManager(null);
     expect(manager.dataId<Person>(null), isNot(manager.dataId<Person>(null)));
   });
+
+  test('two models with id should get the same key', () {
+    final manager = TestDataManager(null);
+    expect(manager.dataId<Person>('2812'), manager.dataId<Person>('2812'));
+  });
+
+  test('should prioritize ID', () {
+    final manager = TestDataManager(null);
+    var dataId = manager.dataId<Person>('772');
+
+    var dataId2 = manager.dataId<Person>(null);
+    // we are telling DataId to reuse the existing key
+    // BUT a key for id=772 already exists, so that one will precede
+    var dataId3 = manager.dataId<Person>('772', key: dataId2.key);
+
+    expect(dataId2, isNot(dataId3));
+    expect(dataId, dataId3);
+  });
 }

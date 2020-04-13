@@ -4,7 +4,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'pet.g.dart';
 
-abstract class Pet<T extends Pet<T>> extends DataSupportMixin<T> {
+abstract class Pet<T extends Pet<T>> with DataSupportMixin<T> {
   final String id;
   Pet(this.id);
 }
@@ -27,4 +27,15 @@ class Cat extends Pet<Cat> {
   Cat({String id, this.meow}) : super(id);
   factory Cat.fromJson(Map<String, dynamic> json) => _$CatFromJson(json);
   Map<String, dynamic> toJson() => _$CatToJson(this);
+}
+
+@DataRepository()
+@JsonSerializable()
+class Zebra with DataSupportMixin<Zebra> {
+  String id;
+  String name;
+
+  Zebra({this.id, this.name});
+  factory Zebra.fromJson(Map<String, dynamic> json) => _$ZebraFromJson(json);
+  Map<String, dynamic> toJson() => _$ZebraToJson(this);
 }
