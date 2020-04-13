@@ -59,7 +59,6 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on Repository<T> {
   @override
   T deserialize(object, {key}) {
     Map<String, dynamic> nativeMap = {};
-    final includedDataIds = <DataId>[];
     final included = <ResourceObject>[];
     ResourceObject obj;
 
@@ -78,40 +77,31 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on Repository<T> {
       }
     }
 
+    // save included first (get keys for them before the relationships)
+    for (var i in included) {
+      final dataId = manager.dataId(i.id, type: i.type);
+      final repo =
+          relationshipMetadata['repository#${dataId.type}'] as Repository;
+      repo?.deserialize(i, key: dataId.key);
+    }
+
     nativeMap['id'] = obj.id;
 
     if (obj.relationships != null) {
       for (var relEntry in obj.relationships.entries) {
         final rel = relEntry.value;
         if (rel is ToOne && rel.linkage != null) {
-          final type = DataId.getType(rel.linkage.type);
-          final dataId = manager.dataId(rel.linkage.id, type: type);
+          final dataId = manager.dataId(rel.linkage.id, type: rel.linkage.type);
           nativeMap[relEntry.key] = dataId.key;
-          includedDataIds.add(dataId);
         } else if (rel is ToMany) {
-          nativeMap[relEntry.key] = rel.linkage.map((i) {
-            final type = DataId.getType(i.type);
-            final dataId = manager.dataId(i.id, type: type);
-            includedDataIds.add(dataId);
-            return dataId.key;
-          }).toList();
+          nativeMap[relEntry.key] = rel.linkage
+              .map((i) => manager.dataId(i.id, type: i.type).key)
+              .toList();
         }
       }
     }
 
     nativeMap.addAll(obj.attributes);
-
-    // included
-    for (var dataId in includedDataIds) {
-      final obj = included.firstWhere(
-          (r) => r.id == dataId.id && DataId.getType(r.type) == dataId.type,
-          orElse: () => null);
-      if (obj != null) {
-        final type = DataId.getType(obj.type);
-        final repo = relationshipMetadata['repository#$type'] as Repository;
-        repo?.deserialize(obj);
-      }
-    }
 
     return super.deserialize(nativeMap, key: key);
   }
