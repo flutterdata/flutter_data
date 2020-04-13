@@ -65,6 +65,7 @@ void main() async {
     final person = Person(id: "1", name: "John", age: 21).init(personRepo);
 
     var obj = {
+      'id': '1',
       'surname': "Smith",
       'house': house.key,
       'persons': [person.key]
@@ -125,7 +126,56 @@ void main() async {
       stream,
       emitsInOrder([
         [matcher],
-        [matcher, matcher]
+        [matcher, matcher],
+        [matcher, matcher, matcher]
+      ]),
+    );
+
+    expect(repo.localAdapter.box.keys.length, 3);
+  });
+
+  test('ensure there is never more than the amount of real IDs', () async {
+    var repo = injection.locator<Repository<Person>>();
+    // make sure there are no items in local storage from previous tests
+    await repo.localAdapter.clear();
+
+    expect(repo.localAdapter.box.keys.length, 0);
+
+    var stream = StreamQueue(repo.watchAll(remote: false).stream);
+
+    var matcherMaxLength =
+        (int length) => predicate((List<Person> s) => s.length <= length);
+
+    // ignore: unawaited_futures
+    (() async {
+      for (int i = 0; i < 15; i++) {
+        // wait for debounce with some margin
+        await Future.delayed(Duration(milliseconds: 50));
+        List.generate(28, (_) => Person.generateRandom(repo, withId: true));
+      }
+    })();
+
+    // ignore empty
+    expect(stream, mayEmitMultiple(isEmpty));
+
+    await expectLater(
+      stream,
+      emitsInOrder([
+        matcherMaxLength(28),
+        matcherMaxLength(56),
+        matcherMaxLength(84),
+        matcherMaxLength(84),
+        matcherMaxLength(84),
+        matcherMaxLength(84),
+        matcherMaxLength(84),
+        matcherMaxLength(84),
+        matcherMaxLength(84),
+        matcherMaxLength(84),
+        matcherMaxLength(84),
+        matcherMaxLength(84),
+        matcherMaxLength(84),
+        matcherMaxLength(84),
+        matcherMaxLength(84),
       ]),
     );
   });

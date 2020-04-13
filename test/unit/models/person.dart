@@ -29,20 +29,25 @@ class Person with DataSupportMixin<Person> {
   factory Person.fromJson(Map<String, dynamic> json) => _$PersonFromJson(json);
   Map<String, dynamic> toJson() => _$PersonToJson(this);
 
-  bool operator ==(o) => o is Person && name == o.name && age == o.age;
-  int get hashCode => runtimeType.hashCode ^ name.hashCode ^ age.hashCode;
-
   @override
   String toString() {
     return toJson().toString();
+  }
+
+  factory Person.generateRandom(Repository<Person> repository,
+      {bool withId = false}) {
+    return Person(
+            id: withId ? Random().nextInt(84).toString() : null,
+            name: 'zzz-${Random().nextInt(9999)}',
+            age: Random().nextInt(88))
+        .init(repository);
   }
 }
 
 mixin PersonPollAdapter<T extends Person> on Repository<Person> {
   generatePeople() {
     Timer.periodic(Duration(seconds: 1), (_) {
-      Person(name: 'zzz-${Random().nextInt(9999)}', age: Random().nextInt(88))
-          .init(this);
+      Person.generateRandom(this);
     });
   }
 }
