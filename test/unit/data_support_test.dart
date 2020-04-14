@@ -76,6 +76,13 @@ void main() async {
     expect(repository.localAdapter.findOne(taco.key), isNotNull);
   });
 
+  test('data exception equality', () {
+    expect(DataException(Exception('whatever'), 410),
+        DataException(Exception('whatever'), 410));
+    expect(DataException([Exception('whatever')], 410),
+        isNot(DataException(Exception('whatever'), 410)));
+  });
+
   test('relationship scenario #1', () {
     var personRepo = injection.locator<Repository<Person>>();
     var familyRepo = injection.locator<Repository<Family>>();
