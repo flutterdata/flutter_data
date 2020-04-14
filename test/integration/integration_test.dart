@@ -94,7 +94,8 @@ void main() async {
 
   test('times out', () {
     var repo = injection.locator<ImpatientModelTestRepository>();
-    expect(() => repo.loadAll(), throwsA(isA<TimeoutException>()));
+    expect(() => repo.loadAll(),
+        throwsA(predicate((DataException e) => e.errors is TimeoutException)));
   });
 
   tearDownAll(() async {

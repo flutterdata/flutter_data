@@ -277,6 +277,8 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     final client = http.Client();
     try {
       return await onRequest(client).timeout(requestTimeout);
+    } on TimeoutException catch (e) {
+      throw DataException(e);
     } finally {
       client.close();
     }
@@ -297,6 +299,9 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     final code = response.statusCode;
 
     if (code >= 200 && code < 300) {
+      if (error != null) {
+        throw DataException(error, response.statusCode);
+      }
       return onSuccess(data);
     } else if (code >= 400 && code < 600) {
       throw DataException(error ?? data, response.statusCode);
