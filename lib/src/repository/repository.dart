@@ -21,6 +21,8 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   Map<String, String> get headers => {};
 
+  Duration get requestTimeout => Duration(seconds: 8);
+
   //
 
   Map<String, dynamic> get relationshipMetadata;
@@ -107,6 +109,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     return notifier;
   }
 
+  @visibleForTesting
   @protected
   Future<List<T>> loadAll(
       {Map<String, String> params, Map<String, String> headers}) async {
@@ -120,7 +123,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
     print('[flutter_data] findAll $T: $uri [HTTP ${response.statusCode}]');
 
-    return _withResponse<List<T>>(response, (data) {
+    return withResponse<List<T>>(response, (data) {
       return deserializeCollection(data).toList();
     });
   }
@@ -197,7 +200,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
     print('[flutter_data] loadOne $T: $uri [HTTP ${response.statusCode}]');
 
-    return _withResponse<T>(response, deserialize);
+    return withResponse<T>(response, deserialize);
   }
 
   // save & delete
@@ -232,7 +235,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
     print('[flutter_data] save $T: $uri [HTTP ${response.statusCode}]');
 
-    return _withResponse<T>(response, (data) {
+    return withResponse<T>(response, (data) {
       if (data == null) {
         // return "old" model if response was empty
         localAdapter.save(model.key, model);
@@ -258,7 +261,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
       print('[flutter_data] delete $T: $uri [HTTP ${response.statusCode}]');
 
-      return _withResponse<Null>(response, (_) {});
+      return withResponse<Null>(response, (_) {});
     }
   }
 
@@ -273,13 +276,14 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   Future<R> withHttpClient<R>(OnRequest<R> onRequest) async {
     final client = http.Client();
     try {
-      return await onRequest(client);
+      return await onRequest(client).timeout(requestTimeout);
     } finally {
       client.close();
     }
   }
 
-  FutureOr<R> _withResponse<R>(
+  @protected
+  FutureOr<R> withResponse<R>(
       http.Response response, OnResponseSuccess<R> onSuccess) {
     dynamic data;
     dynamic error;

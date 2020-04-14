@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_data/flutter_data.dart';
@@ -29,6 +30,9 @@ void main() async {
     injection.register<Repository<City>>(CityTestRepository(cityLocalAdapter));
     injection
         .register<Repository<Model>>(ModelTestRepository(modelLocalAdapter));
+
+    injection.register<ImpatientModelTestRepository>(
+        ImpatientModelTestRepository(modelLocalAdapter));
   });
 
   test('findAll', () async {
@@ -86,6 +90,11 @@ void main() async {
     expect(() async {
       await injection.locator<Repository<Company>>().findOne('2332');
     }, throwsA(isA<DataException>()));
+  });
+
+  test('times out', () {
+    var repo = injection.locator<ImpatientModelTestRepository>();
+    expect(() => repo.loadAll(), throwsA(isA<TimeoutException>()));
   });
 
   tearDownAll(() async {
