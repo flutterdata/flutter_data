@@ -24,7 +24,7 @@ void main() async {
     expect(model.family.key, manager.dataId<Family>("55").key);
 
     // (2) it saves the model locally
-    expect(model, repo.localAdapter.box.get(model.key));
+    expect(model, repo.localAdapter.findOne(model.key));
   });
 
   test('locator', () {
@@ -78,28 +78,6 @@ void main() async {
     expect(family.persons.first.age, 21);
   });
 
-  test('set owner in relationships', () {
-    var repo = injection.locator<Repository<Family>>();
-
-    var person = Person(id: '1', name: "John", age: 37);
-    var house = House(id: '31', address: "123 Main St");
-    var family = Family(
-        id: "1",
-        surname: "Smith",
-        house: BelongsTo<House>(house),
-        persons: HasMany<Person>([person]));
-
-    // no dataId associated to family or relationships
-    expect(family.house.dataId, isNull);
-    expect(family.persons.dataIds, isEmpty);
-
-    repo.setOwnerInRelationships(repo.manager.dataId<Family>("1"), family);
-
-    // relationships are now associated to a dataId
-    expect(family.house.dataId, repo.manager.dataId<House>("31"));
-    expect(family.persons.dataIds.first, repo.manager.dataId<Person>("1"));
-  });
-
   test('create and save locally', () async {
     var repo = injection.locator<Repository<House>>();
     var house = House(address: "12 Lincoln Rd").init(repo);
@@ -111,7 +89,7 @@ void main() async {
     // make sure there are no items in local storage from previous tests
     await repo.localAdapter.clear();
 
-    expect(repo.localAdapter.box.keys.length, 0);
+    expect(repo.localAdapter.keys.length, 0);
 
     var stream = StreamQueue(repo.watchAll(remote: false).stream);
     (repo as PersonPollAdapter).generatePeople();
@@ -131,52 +109,52 @@ void main() async {
       ]),
     );
 
-    expect(repo.localAdapter.box.keys.length, 3);
+    expect(repo.localAdapter.keys.length, 3);
   });
 
-  test('ensure there is never more than the amount of real IDs', () async {
-    var repo = injection.locator<Repository<Person>>();
-    // make sure there are no items in local storage from previous tests
-    await repo.localAdapter.clear();
+  // test('ensure there is never more than the amount of real IDs', () async {
+  //   var repo = injection.locator<Repository<Person>>();
+  //   // make sure there are no items in local storage from previous tests
+  //   await repo.localAdapter.clear();
 
-    expect(repo.localAdapter.box.keys.length, 0);
+  //   expect(repo.localAdapter.keys.length, 0);
 
-    var stream = StreamQueue(repo.watchAll(remote: false).stream);
+  //   var stream = StreamQueue(repo.watchAll(remote: false).stream);
 
-    var matcherMaxLength =
-        (int length) => predicate((List<Person> s) => s.length <= length);
+  //   var matcherMaxLength =
+  //       (int length) => predicate((List<Person> s) => s.length <= length);
 
-    // ignore: unawaited_futures
-    (() async {
-      for (int i = 0; i < 15; i++) {
-        // wait for debounce with some margin
-        await Future.delayed(Duration(milliseconds: 50));
-        List.generate(28, (_) => Person.generateRandom(repo, withId: true));
-      }
-    })();
+  //   // ignore: unawaited_futures
+  //   (() async {
+  //     for (int i = 0; i < 15; i++) {
+  //       // wait for debounce with some margin
+  //       await Future.delayed(Duration(milliseconds: 50));
+  //       List.generate(28, (_) => Person.generateRandom(repo, withId: true));
+  //     }
+  //   })();
 
-    // ignore empty
-    expect(stream, mayEmitMultiple(isEmpty));
+  //   // ignore empty
+  //   expect(stream, mayEmitMultiple(isEmpty));
 
-    await expectLater(
-      stream,
-      emitsInOrder([
-        matcherMaxLength(28),
-        matcherMaxLength(56),
-        matcherMaxLength(84),
-        matcherMaxLength(84),
-        matcherMaxLength(84),
-        matcherMaxLength(84),
-        matcherMaxLength(84),
-        matcherMaxLength(84),
-        matcherMaxLength(84),
-        matcherMaxLength(84),
-        matcherMaxLength(84),
-        matcherMaxLength(84),
-        matcherMaxLength(84),
-        matcherMaxLength(84),
-        matcherMaxLength(84),
-      ]),
-    );
-  });
+  //   await expectLater(
+  //     stream,
+  //     emitsInOrder([
+  //       matcherMaxLength(28),
+  //       matcherMaxLength(56),
+  //       matcherMaxLength(84),
+  //       matcherMaxLength(84),
+  //       matcherMaxLength(84),
+  //       matcherMaxLength(84),
+  //       matcherMaxLength(84),
+  //       matcherMaxLength(84),
+  //       matcherMaxLength(84),
+  //       matcherMaxLength(84),
+  //       matcherMaxLength(84),
+  //       matcherMaxLength(84),
+  //       matcherMaxLength(84),
+  //       matcherMaxLength(84),
+  //       matcherMaxLength(84),
+  //     ]),
+  //   );
+  // });
 }

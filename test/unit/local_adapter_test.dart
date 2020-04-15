@@ -60,8 +60,8 @@ void main() async {
     var family1 = Family(id: "1", surname: "Smith");
     var family2 = Family(id: "2", surname: "Jones");
 
-    adapter.box.put('families#1', family1);
-    adapter.box.put('families#2', family2);
+    adapter.save(family1, key: 'families#1');
+    adapter.save(family2, key: 'families#2');
     var families = adapter.findAll();
 
     expect(families, [family1, family2]);
@@ -71,10 +71,43 @@ void main() async {
     var adapter = injection.locator<LocalAdapter<Family>>();
     var family1 = Family(id: "1", surname: "Smith");
 
-    adapter.box.put('families#1', family1);
+    adapter.save(family1, key: 'families#1');
     var family = adapter.findOne('families#1');
 
     expect(family, family1);
+  });
+
+  test('set owner in relationships', () {
+    var adapter = injection.locator<LocalAdapter<Family>>();
+
+    var person = Person(id: '1', name: "John", age: 37);
+    var house = House(id: '31', address: "123 Main St");
+    var family = Family(
+        id: "1",
+        surname: "Smith",
+        house: BelongsTo<House>(house),
+        persons: HasMany<Person>([person]));
+
+    // no dataId associated to family or relationships
+    expect(family.house.dataId, isNull);
+    expect(family.persons.dataIds, isEmpty);
+
+    adapter.setOwnerInRelationships(
+        adapter.manager.dataId<Family>("1"), family);
+
+    // relationships are now associated to a dataId
+    expect(family.house.dataId, adapter.manager.dataId<House>("31"));
+    expect(family.persons.dataIds.first, adapter.manager.dataId<Person>("1"));
+  });
+
+  test('save and find', () {
+    var adapter = injection.locator<LocalAdapter<Family>>();
+    var family = Family(id: '32423', surname: 'Toraine');
+    adapter.save(family);
+    var family2 = adapter.findOne(family.key);
+    expect(family, family2);
+    var family3 = adapter.findOne(family2.key);
+    expect(family2, family3);
   });
 
   test('fixMap', () {

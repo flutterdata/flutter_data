@@ -16,6 +16,30 @@ class _$ModelRepository extends Repository<Model> {
         'BelongsTo': {'company': 'companies'},
         'repository#companies': manager.locator<Repository<Company>>()
       };
+}
+
+class $ModelRepository extends _$ModelRepository {
+  $ModelRepository(LocalAdapter<Model> adapter) : super(adapter);
+}
+
+// ignore: must_be_immutable, unused_local_variable
+class $ModelLocalAdapter extends LocalAdapter<Model> {
+  $ModelLocalAdapter(DataManager manager, {box}) : super(manager, box: box);
+
+  @override
+  deserialize(map) {
+    map['company'] = {
+      '_': [map['company'], manager]
+    };
+    return Model.fromJson(map);
+  }
+
+  @override
+  serialize(model) {
+    final map = model.toJson();
+    map['company'] = model.company?.toJson();
+    return map;
+  }
 
   @override
   setOwnerInRelationships(owner, model) {
@@ -30,44 +54,12 @@ class _$ModelRepository extends Repository<Model> {
   }
 }
 
-class $ModelRepository extends _$ModelRepository {
-  $ModelRepository(LocalAdapter<Model> adapter) : super(adapter);
-}
-
-// ignore: must_be_immutable, unused_local_variable
-class $ModelLocalAdapter extends LocalAdapter<Model> {
-  $ModelLocalAdapter(box, DataManager manager) : super(box, manager);
-
-  @override
-  deserialize(map, {key}) {
-    map['company'] = {
-      '_': [map['company'], manager]
-    };
-
-    manager.dataId<Model>(map.id, key: key);
-    return Model.fromJson(map);
-  }
-
-  @override
-  serialize(model) {
-    final map = model.toJson();
-    map['company'] = model.company?.toJson();
-    return map;
-  }
-}
-
 // ignore_for_file: unused_local_variable
 class _$CityRepository extends Repository<City> {
   _$CityRepository(LocalAdapter<City> adapter) : super(adapter);
 
   @override
   get relationshipMetadata => {'HasMany': {}, 'BelongsTo': {}};
-
-  @override
-  setOwnerInRelationships(owner, model) {}
-
-  @override
-  void setInverseInModel(inverse, model) {}
 }
 
 class $CityRepository extends _$CityRepository {
@@ -76,11 +68,10 @@ class $CityRepository extends _$CityRepository {
 
 // ignore: must_be_immutable, unused_local_variable
 class $CityLocalAdapter extends LocalAdapter<City> {
-  $CityLocalAdapter(box, DataManager manager) : super(box, manager);
+  $CityLocalAdapter(DataManager manager, {box}) : super(manager, box: box);
 
   @override
-  deserialize(map, {key}) {
-    manager.dataId<City>(map.id, key: key);
+  deserialize(map) {
     return City.fromJson(map);
   }
 
@@ -90,6 +81,12 @@ class $CityLocalAdapter extends LocalAdapter<City> {
 
     return map;
   }
+
+  @override
+  setOwnerInRelationships(owner, model) {}
+
+  @override
+  void setInverseInModel(inverse, model) {}
 }
 
 // ignore_for_file: unused_local_variable
@@ -102,6 +99,31 @@ class _$CompanyRepository extends Repository<Company> {
         'BelongsTo': {},
         'repository#models': manager.locator<Repository<Model>>()
       };
+}
+
+class $CompanyRepository extends _$CompanyRepository
+    with JSONAPIAdapter<Company>, TestMixin<Company> {
+  $CompanyRepository(LocalAdapter<Company> adapter) : super(adapter);
+}
+
+// ignore: must_be_immutable, unused_local_variable
+class $CompanyLocalAdapter extends LocalAdapter<Company> {
+  $CompanyLocalAdapter(DataManager manager, {box}) : super(manager, box: box);
+
+  @override
+  deserialize(map) {
+    map['models'] = {
+      '_': [map['models'], manager]
+    };
+    return Company.fromJson(map);
+  }
+
+  @override
+  serialize(model) {
+    final map = model.toJson();
+    map['models'] = model.models?.toJson();
+    return map;
+  }
 
   @override
   setOwnerInRelationships(owner, model) {
@@ -113,33 +135,6 @@ class _$CompanyRepository extends Repository<Company> {
     if (inverse is DataId<Model>) {
       model.models?.inverse = inverse;
     }
-  }
-}
-
-class $CompanyRepository extends _$CompanyRepository
-    with JSONAPIAdapter<Company>, TestMixin<Company> {
-  $CompanyRepository(LocalAdapter<Company> adapter) : super(adapter);
-}
-
-// ignore: must_be_immutable, unused_local_variable
-class $CompanyLocalAdapter extends LocalAdapter<Company> {
-  $CompanyLocalAdapter(box, DataManager manager) : super(box, manager);
-
-  @override
-  deserialize(map, {key}) {
-    map['models'] = {
-      '_': [map['models'], manager]
-    };
-
-    manager.dataId<Company>(map.id, key: key);
-    return Company.fromJson(map);
-  }
-
-  @override
-  serialize(model) {
-    final map = model.toJson();
-    map['models'] = model.models?.toJson();
-    return map;
   }
 }
 

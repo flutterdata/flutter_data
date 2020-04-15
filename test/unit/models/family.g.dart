@@ -18,6 +18,38 @@ class _$FamilyRepository extends Repository<Family> {
         'repository#dogs': manager.locator<Repository<Dog>>(),
         'repository#houses': manager.locator<Repository<House>>()
       };
+}
+
+class $FamilyRepository extends _$FamilyRepository {
+  $FamilyRepository(LocalAdapter<Family> adapter) : super(adapter);
+}
+
+// ignore: must_be_immutable, unused_local_variable
+class $FamilyLocalAdapter extends LocalAdapter<Family> {
+  $FamilyLocalAdapter(DataManager manager, {box}) : super(manager, box: box);
+
+  @override
+  deserialize(map) {
+    map['persons'] = {
+      '_': [map['persons'], manager]
+    };
+    map['dogs'] = {
+      '_': [map['dogs'], manager]
+    };
+    map['house'] = {
+      '_': [map['house'], manager]
+    };
+    return Family.fromJson(map);
+  }
+
+  @override
+  serialize(model) {
+    final map = model.toJson();
+    map['persons'] = model.persons?.toJson();
+    map['dogs'] = model.dogs?.toJson();
+    map['house'] = model.house?.toJson();
+    return map;
+  }
 
   @override
   setOwnerInRelationships(owner, model) {
@@ -37,40 +69,6 @@ class _$FamilyRepository extends Repository<Family> {
     if (inverse is DataId<House>) {
       model.house?.inverse = inverse;
     }
-  }
-}
-
-class $FamilyRepository extends _$FamilyRepository {
-  $FamilyRepository(LocalAdapter<Family> adapter) : super(adapter);
-}
-
-// ignore: must_be_immutable, unused_local_variable
-class $FamilyLocalAdapter extends LocalAdapter<Family> {
-  $FamilyLocalAdapter(box, DataManager manager) : super(box, manager);
-
-  @override
-  deserialize(map, {key}) {
-    map['persons'] = {
-      '_': [map['persons'], manager]
-    };
-    map['dogs'] = {
-      '_': [map['dogs'], manager]
-    };
-    map['house'] = {
-      '_': [map['house'], manager]
-    };
-
-    manager.dataId<Family>(map.id, key: key);
-    return Family.fromJson(map);
-  }
-
-  @override
-  serialize(model) {
-    final map = model.toJson();
-    map['persons'] = model.persons?.toJson();
-    map['dogs'] = model.dogs?.toJson();
-    map['house'] = model.house?.toJson();
-    return map;
   }
 }
 

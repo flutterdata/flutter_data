@@ -39,7 +39,7 @@ void main() async {
       '_': [manager.dataId<Person>('1').key, manager]
     });
     var person = Person(id: '1', name: "zzz", age: 7);
-    adapter.save(rel.dataId.key, person);
+    adapter.save(person, key: rel.dataId.key);
 
     expect(rel, BelongsTo<Person>(person, manager));
     expect(rel.dataId, manager.dataId<Person>("1"));

@@ -16,6 +16,31 @@ class _$PersonRepository extends Repository<Person> {
         'BelongsTo': {'family': 'families'},
         'repository#families': manager.locator<Repository<Family>>()
       };
+}
+
+class $PersonRepository extends _$PersonRepository
+    with PersonPollAdapter<Person> {
+  $PersonRepository(LocalAdapter<Person> adapter) : super(adapter);
+}
+
+// ignore: must_be_immutable, unused_local_variable
+class $PersonLocalAdapter extends LocalAdapter<Person> {
+  $PersonLocalAdapter(DataManager manager, {box}) : super(manager, box: box);
+
+  @override
+  deserialize(map) {
+    map['family'] = {
+      '_': [map['family'], manager]
+    };
+    return Person.fromJson(map);
+  }
+
+  @override
+  serialize(model) {
+    final map = model.toJson();
+    map['family'] = model.family?.toJson();
+    return map;
+  }
 
   @override
   setOwnerInRelationships(owner, model) {
@@ -27,33 +52,6 @@ class _$PersonRepository extends Repository<Person> {
     if (inverse is DataId<Family>) {
       model.family?.inverse = inverse;
     }
-  }
-}
-
-class $PersonRepository extends _$PersonRepository
-    with PersonPollAdapter<Person> {
-  $PersonRepository(LocalAdapter<Person> adapter) : super(adapter);
-}
-
-// ignore: must_be_immutable, unused_local_variable
-class $PersonLocalAdapter extends LocalAdapter<Person> {
-  $PersonLocalAdapter(box, DataManager manager) : super(box, manager);
-
-  @override
-  deserialize(map, {key}) {
-    map['family'] = {
-      '_': [map['family'], manager]
-    };
-
-    manager.dataId<Person>(map.id, key: key);
-    return Person.fromJson(map);
-  }
-
-  @override
-  serialize(model) {
-    final map = model.toJson();
-    map['family'] = model.family?.toJson();
-    return map;
   }
 }
 

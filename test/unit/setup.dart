@@ -51,6 +51,11 @@ class FakeBox<T> extends Fake implements Box<T> {
   bool containsKey(key) => _map.containsKey(key);
 
   @override
+  Future<void> deleteFromDisk() async {
+    await clear();
+  }
+
+  @override
   Future<int> clear() {
     _map.clear();
     return Future.value(0);
@@ -72,12 +77,6 @@ class TestDataManager extends DataManager {
   }
 
   @override
-  Future<LocalAdapter<T>> initAdapter<T extends DataSupportMixin<T>>(
-      bool clear, LocalAdapter<T> Function(Box<T>) callback) {
-    throw UnimplementedError();
-  }
-
-  @override
   Future<void> dispose() {
     throw UnimplementedError();
   }
@@ -90,11 +89,13 @@ final Function() setUpAllFn = () {
   final manager = TestDataManager(injection.locator);
   injection.register<DataManager>(manager);
 
-  final houseLocalAdapter = $HouseLocalAdapter(FakeBox<House>(), manager);
-  final familyLocalAdapter = $FamilyLocalAdapter(FakeBox<Family>(), manager);
-  final personLocalAdapter = $PersonLocalAdapter(FakeBox<Person>(), manager);
-  final dogLocalAdapter = $DogLocalAdapter(FakeBox<Dog>(), manager);
-  final zebraLocalAdapter = $ZebraLocalAdapter(FakeBox<Zebra>(), manager);
+  final houseLocalAdapter = $HouseLocalAdapter(manager, box: FakeBox<House>());
+  final familyLocalAdapter =
+      $FamilyLocalAdapter(manager, box: FakeBox<Family>());
+  final personLocalAdapter =
+      $PersonLocalAdapter(manager, box: FakeBox<Person>());
+  final dogLocalAdapter = $DogLocalAdapter(manager, box: FakeBox<Dog>());
+  final zebraLocalAdapter = $ZebraLocalAdapter(manager, box: FakeBox<Zebra>());
 
   injection.register<LocalAdapter<House>>(houseLocalAdapter);
   injection.register<LocalAdapter<Family>>(familyLocalAdapter);

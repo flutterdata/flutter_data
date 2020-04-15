@@ -20,9 +20,10 @@ void main() async {
     injection.register<DataManager>(manager);
 
     final companyLocalAdapter =
-        $CompanyLocalAdapter(FakeBox<Company>(), manager);
-    final cityLocalAdapter = $CityLocalAdapter(FakeBox<City>(), manager);
-    final modelLocalAdapter = $ModelLocalAdapter(FakeBox<Model>(), manager);
+        $CompanyLocalAdapter(manager, box: FakeBox<Company>());
+    final cityLocalAdapter = $CityLocalAdapter(manager, box: FakeBox<City>());
+    final modelLocalAdapter =
+        $ModelLocalAdapter(manager, box: FakeBox<Model>());
 
     // we use $CompanyRepository as it already has the TestMixin baked in
     injection

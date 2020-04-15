@@ -16,6 +16,30 @@ class _$HouseRepository extends Repository<House> {
         'BelongsTo': {},
         'repository#families': manager.locator<Repository<Family>>()
       };
+}
+
+class $HouseRepository extends _$HouseRepository {
+  $HouseRepository(LocalAdapter<House> adapter) : super(adapter);
+}
+
+// ignore: must_be_immutable, unused_local_variable
+class $HouseLocalAdapter extends LocalAdapter<House> {
+  $HouseLocalAdapter(DataManager manager, {box}) : super(manager, box: box);
+
+  @override
+  deserialize(map) {
+    map['families'] = {
+      '_': [map['families'], manager]
+    };
+    return House.fromJson(map);
+  }
+
+  @override
+  serialize(model) {
+    final map = model.toJson();
+    map['families'] = model.families?.toJson();
+    return map;
+  }
 
   @override
   setOwnerInRelationships(owner, model) {
@@ -27,32 +51,6 @@ class _$HouseRepository extends Repository<House> {
     if (inverse is DataId<Family>) {
       model.families?.inverse = inverse;
     }
-  }
-}
-
-class $HouseRepository extends _$HouseRepository {
-  $HouseRepository(LocalAdapter<House> adapter) : super(adapter);
-}
-
-// ignore: must_be_immutable, unused_local_variable
-class $HouseLocalAdapter extends LocalAdapter<House> {
-  $HouseLocalAdapter(box, DataManager manager) : super(box, manager);
-
-  @override
-  deserialize(map, {key}) {
-    map['families'] = {
-      '_': [map['families'], manager]
-    };
-
-    manager.dataId<House>(map.id, key: key);
-    return House.fromJson(map);
-  }
-
-  @override
-  serialize(model) {
-    final map = model.toJson();
-    map['families'] = model.families?.toJson();
-    return map;
   }
 }
 

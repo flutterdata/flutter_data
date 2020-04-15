@@ -12,12 +12,6 @@ class _$DogRepository extends Repository<Dog> {
 
   @override
   get relationshipMetadata => {'HasMany': {}, 'BelongsTo': {}};
-
-  @override
-  setOwnerInRelationships(owner, model) {}
-
-  @override
-  void setInverseInModel(inverse, model) {}
 }
 
 class $DogRepository extends _$DogRepository {
@@ -26,11 +20,10 @@ class $DogRepository extends _$DogRepository {
 
 // ignore: must_be_immutable, unused_local_variable
 class $DogLocalAdapter extends LocalAdapter<Dog> {
-  $DogLocalAdapter(box, DataManager manager) : super(box, manager);
+  $DogLocalAdapter(DataManager manager, {box}) : super(manager, box: box);
 
   @override
-  deserialize(map, {key}) {
-    manager.dataId<Dog>(map.id, key: key);
+  deserialize(map) {
     return Dog.fromJson(map);
   }
 
@@ -40,14 +33,6 @@ class $DogLocalAdapter extends LocalAdapter<Dog> {
 
     return map;
   }
-}
-
-// ignore_for_file: unused_local_variable
-class _$CatRepository extends Repository<Cat> {
-  _$CatRepository(LocalAdapter<Cat> adapter) : super(adapter);
-
-  @override
-  get relationshipMetadata => {'HasMany': {}, 'BelongsTo': {}};
 
   @override
   setOwnerInRelationships(owner, model) {}
@@ -56,17 +41,24 @@ class _$CatRepository extends Repository<Cat> {
   void setInverseInModel(inverse, model) {}
 }
 
+// ignore_for_file: unused_local_variable
+class _$CatRepository extends Repository<Cat> {
+  _$CatRepository(LocalAdapter<Cat> adapter) : super(adapter);
+
+  @override
+  get relationshipMetadata => {'HasMany': {}, 'BelongsTo': {}};
+}
+
 class $CatRepository extends _$CatRepository {
   $CatRepository(LocalAdapter<Cat> adapter) : super(adapter);
 }
 
 // ignore: must_be_immutable, unused_local_variable
 class $CatLocalAdapter extends LocalAdapter<Cat> {
-  $CatLocalAdapter(box, DataManager manager) : super(box, manager);
+  $CatLocalAdapter(DataManager manager, {box}) : super(manager, box: box);
 
   @override
-  deserialize(map, {key}) {
-    manager.dataId<Cat>(map.id, key: key);
+  deserialize(map) {
     return Cat.fromJson(map);
   }
 
@@ -76,14 +68,6 @@ class $CatLocalAdapter extends LocalAdapter<Cat> {
 
     return map;
   }
-}
-
-// ignore_for_file: unused_local_variable
-class _$ZebraRepository extends Repository<Zebra> {
-  _$ZebraRepository(LocalAdapter<Zebra> adapter) : super(adapter);
-
-  @override
-  get relationshipMetadata => {'HasMany': {}, 'BelongsTo': {}};
 
   @override
   setOwnerInRelationships(owner, model) {}
@@ -92,17 +76,24 @@ class _$ZebraRepository extends Repository<Zebra> {
   void setInverseInModel(inverse, model) {}
 }
 
+// ignore_for_file: unused_local_variable
+class _$ZebraRepository extends Repository<Zebra> {
+  _$ZebraRepository(LocalAdapter<Zebra> adapter) : super(adapter);
+
+  @override
+  get relationshipMetadata => {'HasMany': {}, 'BelongsTo': {}};
+}
+
 class $ZebraRepository extends _$ZebraRepository {
   $ZebraRepository(LocalAdapter<Zebra> adapter) : super(adapter);
 }
 
 // ignore: must_be_immutable, unused_local_variable
 class $ZebraLocalAdapter extends LocalAdapter<Zebra> {
-  $ZebraLocalAdapter(box, DataManager manager) : super(box, manager);
+  $ZebraLocalAdapter(DataManager manager, {box}) : super(manager, box: box);
 
   @override
-  deserialize(map, {key}) {
-    manager.dataId<Zebra>(map.id, key: key);
+  deserialize(map) {
     return Zebra.fromJson(map);
   }
 
@@ -112,6 +103,12 @@ class $ZebraLocalAdapter extends LocalAdapter<Zebra> {
 
     return map;
   }
+
+  @override
+  setOwnerInRelationships(owner, model) {}
+
+  @override
+  void setInverseInModel(inverse, model) {}
 }
 
 // **************************************************************************
