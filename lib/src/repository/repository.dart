@@ -8,6 +8,9 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   final LocalAdapter<T> localAdapter;
   Repository(this.localAdapter);
 
+  DataStateNotifier<T> _watchOneNotifier;
+  DataStateNotifier<List<T>> _watchAllNotifier;
+
   // url
 
   String baseUrl = 'http://127.0.0.1:8080/';
@@ -70,23 +73,25 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       {bool remote = true,
       Map<String, String> params,
       Map<String, String> headers}) {
-    final notifier = DataStateNotifier<List<T>>();
+    _watchAllNotifier ??= DataStateNotifier<List<T>>();
 
     final _load = () async {
       if (remote == false) {
         return;
       }
-      notifier.state = notifier.state.copyWith(isLoading: true);
+      _watchAllNotifier.state =
+          _watchAllNotifier.state.copyWith(isLoading: true);
       // we're only interested in capturing errors
       // as models will pop up via localAdapter.watchAll()
       try {
         await loadAll(params: params, headers: headers);
       } catch (e) {
-        notifier.state = notifier.state.copyWith(exception: DataException(e));
+        _watchAllNotifier.state =
+            _watchAllNotifier.state.copyWith(exception: DataException(e));
       }
     };
 
-    notifier.state = DataState(
+    _watchAllNotifier.state = DataState(
       model: localAdapter.findAll(),
       reload: _load,
     );
@@ -94,11 +99,13 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     _load();
 
     localAdapter.watchAll().forEach((model) {
-      notifier.state = notifier.state.copyWith(model: model, isLoading: false);
+      _watchAllNotifier.state =
+          _watchAllNotifier.state.copyWith(model: model, isLoading: false);
     }).catchError((Object e) {
-      notifier.state = notifier.state.copyWith(exception: DataException(e));
+      _watchAllNotifier.state =
+          _watchAllNotifier.state.copyWith(exception: DataException(e));
     });
-    return notifier;
+    return _watchAllNotifier;
   }
 
   @visibleForTesting
@@ -150,23 +157,25 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       Map<String, String> params,
       Map<String, String> headers}) {
     final key = manager.dataId<T>(id).key;
-    final notifier = DataStateNotifier<T>();
+    _watchOneNotifier ??= DataStateNotifier<T>();
 
     final _load = () async {
       if (remote == false) {
         return;
       }
-      notifier.state = notifier.state.copyWith(isLoading: true);
+      _watchOneNotifier.state =
+          _watchOneNotifier.state.copyWith(isLoading: true);
       // we're only interested in capturing errors
       // as models will pop up via localAdapter.watchOne(_key)
       try {
         await loadOne(id, params: params, headers: headers);
       } catch (e) {
-        notifier.state = notifier.state.copyWith(exception: DataException(e));
+        _watchOneNotifier.state =
+            _watchOneNotifier.state.copyWith(exception: DataException(e));
       }
     };
 
-    notifier.state = DataState(
+    _watchOneNotifier.state = DataState(
       model: localAdapter.findOne(key),
       reload: _load,
     );
@@ -174,11 +183,13 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     _load();
 
     localAdapter.watchOne(key).forEach((model) {
-      notifier.state = notifier.state.copyWith(model: model, isLoading: false);
+      _watchOneNotifier.state =
+          _watchOneNotifier.state.copyWith(model: model, isLoading: false);
     }).catchError((Object e) {
-      notifier.state = notifier.state.copyWith(exception: DataException(e));
+      _watchOneNotifier.state =
+          _watchOneNotifier.state.copyWith(exception: DataException(e));
     });
-    return notifier;
+    return _watchOneNotifier;
   }
 
   @protected
