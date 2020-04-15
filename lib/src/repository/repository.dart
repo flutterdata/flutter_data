@@ -32,21 +32,13 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   serializeCollection(Iterable<T> models) => models.map(serialize);
 
   T deserialize(dynamic object, {String key}) {
-    final model = localAdapter
-        .deserialize(Map<String, dynamic>.from(object as Map), key: key);
-    return model._init(this);
+    final model =
+        localAdapter.deserialize(Map<String, dynamic>.from(object as Map));
+    return localAdapter._init(model, key: key);
   }
 
   Iterable<T> deserializeCollection(object) =>
       (object as Iterable).map(deserialize);
-
-  @visibleForTesting
-  @protected
-  void setOwnerInRelationships(DataId<T> owner, T model);
-
-  @visibleForTesting
-  @protected
-  void setInverseInModel(DataId inverse, T model);
 
   @visibleForTesting
   @protected
@@ -135,14 +127,16 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       Map<String, String> params,
       Map<String, String> headers}) async {
     assert(id != null);
-    var _result = localAdapter.findOne(manager.dataId<T>(id).key);
+    final key = manager.dataId<T>(id).key;
+    var _result = localAdapter.findOne(key);
 
     if (remote == false) {
       return _result;
     }
 
     if (_result == null) {
-      _result = await loadOne(id, params: params, headers: headers);
+      await loadOne(id, params: params, headers: headers);
+      _result = localAdapter.findOne(key);
     } else {
       // load in background
       // ignore: unawaited_futures
@@ -188,7 +182,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   }
 
   @protected
-  Future<T> loadOne(String id,
+  Future<void> loadOne(String id,
       {Map<String, String> params, Map<String, String> headers}) async {
     final uri = QueryParameters(params ?? const {}).addToUri(
       urlDesign.resource(type, id.toString()),
@@ -200,7 +194,10 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
     print('[flutter_data] loadOne $T: $uri [HTTP ${response.statusCode}]');
 
-    return withResponse<T>(response, deserialize);
+    // ignore: unnecessary_lambdas
+    return withResponse<T>(response, (data) {
+      return deserialize(data);
+    });
   }
 
   // save & delete
@@ -210,9 +207,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       Map<String, String> params = const {},
       Map<String, String> headers}) async {
     if (remote == false) {
-      // ignore: unawaited_futures
-      localAdapter.save(manager.dataId<T>(model.id).key, model);
-      return model;
+      return localAdapter._init(model);
     }
 
     final body = json.encode(serialize(model));
@@ -238,8 +233,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     return withResponse<T>(response, (data) {
       if (data == null) {
         // return "old" model if response was empty
-        localAdapter.save(model.key, model);
-        return model;
+        return localAdapter._init(model);
       }
       // provide key of the existing model
       return deserialize(data as Map<String, dynamic>, key: model.key);
@@ -261,13 +255,15 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
       print('[flutter_data] delete $T: $uri [HTTP ${response.statusCode}]');
 
-      return withResponse<Null>(response, (_) {});
+      return withResponse<void>(response, (_) {
+        return;
+      });
     }
   }
 
   @mustCallSuper
-  Future<void> dispose() async {
-    await localAdapter.dispose();
+  Future<void> dispose() {
+    return localAdapter.dispose();
   }
 
   // helpers
@@ -290,10 +286,12 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     dynamic data;
     dynamic error;
 
-    try {
-      data = json.decode(response.body);
-    } on FormatException catch (e) {
-      error = e;
+    if (response.body.isNotEmpty) {
+      try {
+        data = json.decode(response.body);
+      } on FormatException catch (e) {
+        error = e;
+      }
     }
 
     final code = response.statusCode;

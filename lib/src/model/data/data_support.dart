@@ -4,34 +4,19 @@ abstract class DataSupportMixin<T extends DataSupportMixin<T>> {
   String get id;
   DataManager _manager;
   DataId<T> _dataId;
-  bool _saveLocal = true;
+  bool _save = true;
 
   T get _this => this as T;
 
   Repository<T> _repository;
 
-  T _init(Repository<T> repository, {bool saveLocal = true}) {
+  T _init(Repository<T> repository, {bool save = true}) {
     _assertCorrectRepo(repository);
-    _repository =
-        repository ?? _autoModelInitDataManager?.locator<Repository<T>>();
-    _manager = _repository.manager;
+    _manager = repository?.manager ?? _autoModelInitDataManager;
+    _repository = repository ?? _manager.locator<Repository<T>>();
 
-    final originalKey = this.key;
-    this._dataId = _manager.dataId<T>(id, key: originalKey);
-
-    // if the existing key is different to the resulting key
-    // the original key for this ID has been found-
-    // therefore we need to delete the stray record
-    if (originalKey != null && originalKey != this.key) {
-      _repository.localAdapter.delete(originalKey);
-    }
-
-    _repository.setOwnerInRelationships(_dataId, _this);
-
-    _saveLocal = saveLocal;
-    if (saveLocal) {
-      _repository.localAdapter.save(_dataId.key, _this);
-    }
+    _save = save;
+    _repository?.localAdapter?._init(_this, save: _save);
     return _this;
   }
 
@@ -98,11 +83,10 @@ FlutterData.init();
 
 extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
     on DataSupportMixin<T> {
-  T init(Repository<T> repository, {bool saveLocal = true}) {
-    return _init(repository, saveLocal: saveLocal);
+  T init(Repository<T> repository, {bool save = true}) {
+    return _init(repository, save: save);
   }
 
-  DataId<T> get dataId => _dataId;
   String get key => _dataId?.key;
 
   Future<T> save(
@@ -116,7 +100,7 @@ extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
 
   void saveLocal() {
     _assertRepo();
-    _repository.localAdapter.save(key, _this);
+    _repository.localAdapter.save(_this);
     return;
   }
 
@@ -156,8 +140,8 @@ extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
 // auto
 
 abstract class DataSupport<T extends DataSupport<T>> with DataSupportMixin<T> {
-  DataSupport({bool saveLocal = true}) {
-    _init(null, saveLocal: saveLocal);
+  DataSupport({bool save = true}) {
+    _init(null, save: save);
   }
 }
 

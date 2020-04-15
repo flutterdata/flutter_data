@@ -119,6 +119,28 @@ class _\$${type}Repository extends Repository<$type> {
 
   @override
   get relationshipMetadata => $relationshipMetadata;
+}
+
+class \$${type}Repository extends _\$${type}Repository $mixinsString {
+  \$${type}Repository(LocalAdapter<$type> adapter) : super(adapter);
+}
+
+// ignore: must_be_immutable, unused_local_variable
+class \$${type}LocalAdapter extends LocalAdapter<$type> {
+  \$${type}LocalAdapter(DataManager manager, {box}) : super(manager, box: box);
+
+  @override
+  deserialize(map) {
+    $deserialize
+    return $type.fromJson(map);
+  }
+
+  @override
+  serialize(model) {
+    final map = model.toJson();
+    $serialize
+    return map;
+  }
 
   @override
   setOwnerInRelationships(owner, model) {
@@ -128,30 +150,6 @@ class _\$${type}Repository extends Repository<$type> {
   @override
   void setInverseInModel(inverse, model) {
     $setInverseInModel
-  }
-}
-
-class \$${type}Repository extends _\$${type}Repository $mixinsString {
-  \$${type}Repository(LocalAdapter<$type> adapter) : super(adapter);
-}
-
-// ignore: must_be_immutable, unused_local_variable
-class \$${type}LocalAdapter extends LocalAdapter<$type> {
-  \$${type}LocalAdapter(box, DataManager manager) : super(box, manager);
-
-  @override
-  deserialize(map, {key}) {
-    $deserialize
-    
-    manager.dataId<$type>(map.id, key: key);
-    return $type.fromJson(map);
-  }
-
-  @override
-  serialize(model) {
-    final map = model.toJson();
-    $serialize
-    return map;
   }
 }''';
   }
@@ -278,7 +276,7 @@ extension FlutterData on DataManager {
     injection.register(manager);
 ''' +
         classes.map((c) => '''
-    final ${c['name'].toLowerCase()}LocalAdapter = await manager.initAdapter<${c['name']}>(clear, (box) => \$${c['name']}LocalAdapter(box, manager));
+    final ${c['name'].toLowerCase()}LocalAdapter = await \$${c['name']}LocalAdapter(manager).init();
     injection.register(${c['name'].toLowerCase()}LocalAdapter);
     injection.register<Repository<${c['name']}>>(\$${c['name']}Repository(${c['name'].toLowerCase()}LocalAdapter));
 ''').join('\n') +

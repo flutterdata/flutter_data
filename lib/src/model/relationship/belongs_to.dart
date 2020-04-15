@@ -5,16 +5,16 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E> {
   @visibleForTesting
   DataId<E> dataId;
   E _uninitializedModel;
-  final bool _saveLocal;
+  final bool _save;
 
-  BelongsTo([E model, DataManager manager, this._saveLocal = true])
+  BelongsTo([E model, DataManager manager, this._save = true])
       : _uninitializedModel = model,
         super(manager) {
     initializeModel();
   }
 
   BelongsTo._(this.dataId, DataManager manager)
-      : _saveLocal = true,
+      : _save = true,
         super(manager);
 
   factory BelongsTo.fromJson(Map<String, dynamic> map) {
@@ -48,13 +48,15 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E> {
   E get value {
     final value = _repository.localAdapter.findOne(dataId?.key);
     if (value != null) {
-      _repository.setInverseInModel(_owner, value);
+      _repository.localAdapter.setInverseInModel(_owner, value);
     }
     return value;
   }
 
   set value(E value) {
-    dataId = value?._init(_repository, saveLocal: _saveLocal)?.dataId;
+    if (value != null) {
+      dataId = _repository.localAdapter._init(value, save: _save)._dataId;
+    }
   }
 
   String get key => dataId?.key;

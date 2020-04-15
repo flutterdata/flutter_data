@@ -6,18 +6,24 @@ abstract class LocalAdapter<T extends DataSupportMixin<T>> with TypeAdapter<T> {
   @protected
   final DataManager manager;
 
-  @visibleForTesting
-  @protected
-  final Box<T> box;
-
+  Box<T> _box;
+  final HiveInterface _hive;
   final Box<String> _keysBox;
 
   static const _oneFrameDuration = Duration(milliseconds: 16);
 
-  // dynamic so we don't expose the Box type to the .g files
-  LocalAdapter(dynamic box, this.manager)
-      : this.box = box as Box<T>,
-        _keysBox = manager.keysBox;
+  LocalAdapter(this.manager, {box})
+      : _keysBox = manager.keysBox,
+        _hive = manager._hive,
+        _box = box as Box<T>;
+
+  Future<LocalAdapter<T>> init() async {
+    if (_box == null) {
+      _hive.registerAdapter(this);
+      _box = await _hive.openBox(DataId.getType<T>());
+    }
+    return this;
+  }
 
   // abstract
 
@@ -27,7 +33,15 @@ abstract class LocalAdapter<T extends DataSupportMixin<T>> with TypeAdapter<T> {
 
   @visibleForTesting
   @protected
-  T deserialize(Map<String, dynamic> map, {String key});
+  T deserialize(Map<String, dynamic> map);
+
+  @visibleForTesting
+  @protected
+  void setOwnerInRelationships(DataId<T> owner, T model);
+
+  @visibleForTesting
+  @protected
+  void setInverseInModel(DataId inverse, T model);
 
   // hive serialization
 
@@ -59,43 +73,82 @@ abstract class LocalAdapter<T extends DataSupportMixin<T>> with TypeAdapter<T> {
     }
   }
 
-  // Repository methods
+  // methods
+
+  T _init(T model, {String key, bool save = true}) {
+    if (model == null) {
+      return null;
+    }
+
+    // (1) establish key
+    final originalKey = key ?? model.key;
+    model._dataId = manager.dataId<T>(model.id, key: originalKey);
+
+    // if the existing key is different to the resulting key
+    // the original key for this ID has been found-
+    // therefore we need to delete the stray record
+    if (originalKey != null && originalKey != model.key) {
+      // ignore: unawaited_futures
+      delete(originalKey);
+    }
+
+    // (2) set owner
+    setOwnerInRelationships(model._dataId, model);
+
+    if (save) {
+      this.save(model);
+    }
+
+    return model;
+  }
+
+  List<String> get keys => List<String>.from(_box.keys);
 
   List<T> findAll() {
-    return List<T>.from(box.values);
+    return keys.map(findOne).toList();
   }
 
   Stream<List<T>> watchAll() {
-    return box.watch().map((_) {
+    return _box.watch().map((_) {
       return findAll();
     }).debounceTime(_oneFrameDuration);
   }
 
-  T findOne(String key) => key != null ? box.get(key) : null;
+  @visibleForTesting
+  @protected
+  T findOne(String key) {
+    if (key == null) {
+      return null;
+    }
+    return _init(_box.get(key), key: key, save: false);
+  }
 
   Stream<T> watchOne(String key) {
-    return box
+    return _box
         .watch(key: key)
         .map((_) => findOne(key))
         .debounceTime(_oneFrameDuration);
   }
 
-  Future<void> save(String key, T model) async {
-    await box.put(key, model);
+  Future<void> save(T model, {String key}) async {
+    if (model.key == null) {
+      model = _init(model, key: key, save: false);
+    }
+    await _box.put(model.key, model);
   }
 
   Future<void> delete(String key) async {
-    await box.delete(key);
+    await _box.delete(key);
   }
 
   bool isNew(T model) => model.id == null;
 
   Future<void> clear() async {
-    await box?.clear();
+    await _box?.deleteFromDisk();
   }
 
   Future<void> dispose() async {
-    await box?.close();
+    await _box?.close();
   }
 
   // utils
