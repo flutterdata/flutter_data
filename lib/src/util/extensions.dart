@@ -29,3 +29,9 @@ extension DataSupportMixinRelationshipExtension<T extends DataSupportMixin<T>>
     return BelongsTo<T>(this as T, this._manager, this._saveLocal);
   }
 }
+
+extension ManagerDataId on DataManager {
+  @optionalTypeArgs
+  DataId<T> dataId<T>(String id, {String key, String type}) =>
+      DataId<T>(id, this, key: key, type: type);
+}

@@ -36,33 +36,14 @@ class DataManager {
     _locator = locator;
 
     // init hive + box
-    _hive.init(path_helper.join((await baseDir).path, 'flutter_data'));
-    _keysBox = await _openBox<String>('_keys', clear: clear);
-    return this;
-  }
-
-  //
-
-  Future<Box<T>> _openBox<T>(String name, {bool clear = false}) async {
+    final path = path_helper.join((await baseDir).path, 'flutter_data');
+    _hive.init(path);
     if (clear) {
-      print('[flutter_data] Destroying box: $name');
-      await _hive.deleteBoxFromDisk(name);
+      print('[flutter_data] Destroying all boxes');
+      await Directory(path).delete(recursive: true);
     }
-    return await _hive.openBox<T>(name);
-  }
-
-  Future<LocalAdapter<T>> initAdapter<T extends DataSupportMixin<T>>(
-      bool clear, LocalAdapter<T> Function(Box<T>) callback) async {
-    Box<T> box;
-    final boxName = DataId.getType<T>();
-    if (_hive.isBoxOpen(boxName)) {
-      box = _hive.box(boxName);
-    } else {
-      box = await _openBox<T>(boxName, clear: clear);
-    }
-    final adapter = callback(box);
-    _hive.registerAdapter(adapter);
-    return adapter;
+    _keysBox = await _hive.openBox<String>('_keys');
+    return this;
   }
 
   Future<void> dispose() async {
@@ -77,10 +58,4 @@ This manager has not been initialized.
 Please ensure you call DataManager#init(),
 either directly or through FlutterData.init().
 ''';
-}
-
-extension ManagerDataId on DataManager {
-  @optionalTypeArgs
-  DataId<T> dataId<T>(String id, {String key, String type}) =>
-      DataId<T>(id, this, key: key, type: type);
 }
