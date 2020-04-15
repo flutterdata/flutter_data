@@ -1,6 +1,8 @@
-<h1><img style="display: inline-block;" src="https://avatars2.githubusercontent.com/u/61839689?s=200&v=4" width="45px">Flutter Data</h1>
+<img align="center" src="https://avatars2.githubusercontent.com/u/61839689?s=200&v=4" width="45px">
 
-<img src="https://github.com/flutterdata/flutter_data/workflows/test/badge.svg">
+<h1 align="center">Flutter Data</h1>
+
+[![tests](https://img.shields.io/github/workflow/status/flutterdata/flutter_data/test/master?label=tests&labelColor=333940&logo=github)](https://github.com/flutterdata/data_state/actions) [![pub.dev](https://img.shields.io/pub/v/flutter_data?label=pub.dev&labelColor=333940&logo=dart)](https://pub.dev/packages/data_state) [![license](https://img.shields.io/github/license/flutterdata/flutter_data?color=%23007A88&labelColor=333940&logo=mit)](https://github.com/flutterdata/data_state/blob/master/LICENSE)
 
 **Imagine annotating your models and magically getting:**
 
@@ -431,6 +433,40 @@ if you need to convert to `int`, for example.
 #### How can I declare the inverse relationship?
 
 At the moment, the inverse relationship is looked up by type and it's not configurable.
+
+### Is Flutter Data a state management solution?
+
+Yes. It is essentially a stream/stream controller combo. Couple it with a DI like Provider or get_it (or the included service locator) and you're set.
+
+Want to use streams? Call `repo.watchAll().stream`.
+
+Want to use `StateNotifier`s? Call `repo.watchAll()`.
+
+https://www.reddit.com/r/FlutterDev/comments/fto3nt/use_hive_db_instead_of_other_state_management/
+
+### Polymorphism
+
+```dart
+abstract class User<T extends User<T>> extends DataSupport<T> {
+  final String id;
+  final String name;
+  User({this.id, this.name});
+}
+
+@JsonSerializable()
+@DataRepository([JSONAPIAdapter, BaseAdapter])
+class Customer extends User<Customer> {
+  final String abc;
+  Customer({String id, String name, this.abc}) : super(id: id, name: name);
+}
+
+@JsonSerializable()
+@DataRepository([JSONAPIAdapter, BaseAdapter])
+class Staff extends User<Staff> {
+  final String xyz;
+  Staff({String id, String name, this.xyz}) : super(id: id, name: name);
+}
+```
 
 ## ➕ Questions and collaborating
 
