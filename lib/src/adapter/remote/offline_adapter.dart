@@ -24,7 +24,9 @@ mixin OfflineAdapter<T extends DataSupportMixin<T>> on Repository<T> {
         _i = 0;
         notifier.state = notifier.state.copyWith(exception: null);
       } catch (e) {
-        notifier.state = notifier.state.copyWith(exception: DataException(e));
+        // notify error and remove isLoading state
+        notifier.state = notifier.state
+            .copyWith(exception: DataException(e), isLoading: false);
       }
     };
 
