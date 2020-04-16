@@ -150,3 +150,16 @@ extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
   // ignore: missing_return
   T init() {}
 }
+
+mixin IdDataSupportMixin<ID, T extends DataSupportMixin<T>>
+    on DataSupportMixin<T> {
+  @override
+  ID get id;
+}
+
+abstract class IdDataSupport<ID, T extends DataSupport<T>>
+    extends DataSupport<T> {
+  IdDataSupport({bool save = true}) : super(save: save);
+  @override
+  ID get id;
+}
