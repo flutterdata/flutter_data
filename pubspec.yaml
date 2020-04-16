@@ -2,11 +2,9 @@ name: flutter_data
 description: >
   A pragmatic tool to build data-driven Flutter apps
   with minimal boilerplate, based on the Active Record pattern.
-version: 0.3.1-rc1
+version: 0.3.1-rc2
 homepage: https://github.com/flutterdata/flutter_data
-documentation: https://flutterdata.dev/docs
-authors:
-  - Frank Treacy <me@frank06.net>
+documentation: https://flutterdata.dev/
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
@@ -21,19 +19,17 @@ dependencies:
   equatable: ^1.1.0
   json_api: ^3.2.3
   recase: ^3.0.0
-  data_state:
-    git:
-      url: git://github.com/flutterdata/data_state.git
-      ref: 0.2.1
   debounce_throttle: ^1.1.0
   rxdart: ^0.23.1
+  data_state: ^0.2.3
+  async: ^2.4.0
 
 dev_dependencies:
   test: ^1.9.4
   mockito: ^4.1.1
   analyzer: ^0.39.2+1
   pedantic: ^1.8.0+1
-  freezed: ^0.10.4
+  freezed: ^0.10.6
   freezed_annotation: ^0.7.1
 
   build_test: ^0.10.11

@@ -23,12 +23,12 @@ packages:
     source: hosted
     version: "1.5.2"
   async:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: async
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.4.0"
+    version: "2.4.1"
   boolean_selector:
     dependency: transitive
     description:
@@ -165,12 +165,10 @@ packages:
   data_state:
     dependency: "direct main"
     description:
-      path: "."
-      ref: "0.2.1"
-      resolved-ref: "9974d32d30de563d9dfd283a7718555dabe4ed56"
-      url: "git://github.com/flutterdata/data_state.git"
-    source: git
-    version: "0.2.1"
+      name: data_state
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.3"
   debounce_throttle:
     dependency: "direct main"
     description:
@@ -198,7 +196,7 @@ packages:
       name: freezed
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.10.4"
+    version: "0.10.6"
   freezed_annotation:
     dependency: "direct dev"
     description:
