@@ -7,9 +7,15 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'models.freezed.dart';
 part 'models.g.dart';
 
+abstract class FreezedDataSupport<T extends DataSupportMixin<T>>
+    with DataSupportMixin<T> {
+  @override
+  String get id;
+}
+
 @freezed
 @DataRepository()
-abstract class Model with _$Model, DataSupportMixin<Model> {
+abstract class Model extends FreezedDataSupport<Model> implements _$Model {
   Model._();
   factory Model({
     String id,
@@ -22,7 +28,7 @@ abstract class Model with _$Model, DataSupportMixin<Model> {
 
 @freezed
 @DataRepository()
-abstract class City with _$City, DataSupportMixin<City> {
+abstract class City extends FreezedDataSupport<City> implements _$City {
   City._();
   factory City({
     String id,
@@ -34,7 +40,8 @@ abstract class City with _$City, DataSupportMixin<City> {
 
 @freezed
 @DataRepository([JSONAPIAdapter, TestMixin])
-abstract class Company with _$Company, DataSupportMixin<Company> {
+abstract class Company extends FreezedDataSupport<Company>
+    implements _$Company {
   Company._();
   factory Company({
     String id,

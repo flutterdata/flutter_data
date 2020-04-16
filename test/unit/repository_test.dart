@@ -73,6 +73,7 @@ void main() async {
 
     var family = repo.deserialize(obj);
 
+    expect(family.isNew, false); // also checks if the model was init'd
     expect(family, Family(id: "1", surname: "Smith"));
     expect(family.house.value.address, "123 Main St");
     expect(family.persons.first.age, 21);
