@@ -1,7 +1,7 @@
 part of flutter_data;
 
 abstract class DataSupportMixin<T extends DataSupportMixin<T>> {
-  String get id;
+  dynamic get id;
   DataManager _manager;
   DataId<T> _dataId;
   bool _save = true;
@@ -10,13 +10,13 @@ abstract class DataSupportMixin<T extends DataSupportMixin<T>> {
 
   Repository<T> _repository;
 
-  T _init(Repository<T> repository, {bool save = true}) {
+  T _init(Repository<T> repository, {String key, bool save = true}) {
     _assertCorrectRepo(repository);
     _manager = repository?.manager ?? _autoModelInitDataManager;
     _repository = repository ?? _manager.locator<Repository<T>>();
 
     _save = save;
-    _repository?.localAdapter?._init(_this, save: _save);
+    _repository?.localAdapter?._init(_this, key: key, save: _save);
     return _this;
   }
 

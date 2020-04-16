@@ -23,7 +23,7 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on Repository<T> {
         final type = relEntry.value;
         final identifiers =
             DataId.byKeys(keys, manager, type: type.toString()).map((dataId) {
-          return IdentifierObject(dataId.type, dataId.id);
+          return IdentifierObject(dataId.type, dataId.id.toString());
         });
         relationships[name] = ToMany(identifiers);
         map.remove(name);
@@ -36,7 +36,8 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on Repository<T> {
         final key = map[name].toString();
         final type = relEntry.value;
         final dataId = DataId.byKey(key, manager, type: type.toString());
-        relationships[name] = ToOne(IdentifierObject(dataId.type, dataId.id));
+        relationships[name] =
+            ToOne(IdentifierObject(dataId.type, dataId.id.toString()));
         map.remove(name);
       }
     }

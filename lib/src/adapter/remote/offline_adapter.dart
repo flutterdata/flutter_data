@@ -49,18 +49,18 @@ mixin OfflineAdapter<T extends DataSupportMixin<T>> on Repository<T> {
       Map<String, String> headers}) {
     final notifier =
         super.watchAll(remote: remote, params: params, headers: headers);
-    _addListener(notifier, () => loadAll(params: params, headers: headers));
+    _addListener(notifier, () => findAll(params: params, headers: headers));
     return notifier;
   }
 
   @override
-  DataStateNotifier<T> watchOne(String id,
+  DataStateNotifier<T> watchOne(dynamic id,
       {bool remote = true,
       Map<String, String> params,
       Map<String, String> headers}) {
     final notifier =
         super.watchOne(id, remote: remote, params: params, headers: headers);
-    _addListener(notifier, () => loadOne(id, params: params, headers: headers));
+    _addListener(notifier, () => findOne(id, params: params, headers: headers));
     return notifier;
   }
 }

@@ -5,7 +5,7 @@ final _uuid = Uuid();
 @optionalTypeArgs
 class DataId<T> {
   final DataManager manager;
-  String id;
+  dynamic id;
   final String type;
   final String key;
 

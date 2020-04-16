@@ -1,6 +1,5 @@
 part of flutter_data;
 
-@sealed
 // ignore: must_be_immutable
 abstract class LocalAdapter<T extends DataSupportMixin<T>> with TypeAdapter<T> {
   @visibleForTesting

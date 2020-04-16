@@ -37,7 +37,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   T deserialize(dynamic object, {String key}) {
     final model =
         localAdapter.deserialize(Map<String, dynamic>.from(object as Map));
-    return localAdapter._init(model, key: key);
+    return model._init(this, key: key);
   }
 
   Iterable<T> deserializeCollection(object) =>
@@ -53,20 +53,23 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       {bool remote = true,
       Map<String, String> params,
       Map<String, String> headers}) async {
-    var _result = localAdapter.findAll();
-
     if (remote == false) {
-      return _result;
+      return localAdapter.findAll();
     }
 
-    if (_result.isEmpty) {
-      _result = await loadAll(params: params, headers: headers);
-    } else {
-      // load in background
-      // ignore: unawaited_futures
-      loadAll(params: params, headers: headers);
-    }
-    return _result;
+    final uri = QueryParameters(params ?? const {}).addToUri(
+      urlDesign.collection(type),
+    );
+
+    final response = await withHttpClient(
+      (client) => client.get(uri, headers: headers ?? this.headers),
+    );
+
+    print('[flutter_data] findAll $T: $uri [HTTP ${response.statusCode}]');
+
+    return withResponse<List<T>>(response, (data) {
+      return deserializeCollection(data).toList();
+    });
   }
 
   DataStateNotifier<List<T>> watchAll(
@@ -84,7 +87,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       // we're only interested in capturing errors
       // as models will pop up via localAdapter.watchAll()
       try {
-        await loadAll(params: params, headers: headers);
+        await findAll(params: params, headers: headers);
       } catch (e) {
         _watchAllNotifier.state =
             _watchAllNotifier.state.copyWith(exception: DataException(e));
@@ -108,51 +111,36 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     return _watchAllNotifier;
   }
 
-  @visibleForTesting
-  @protected
-  Future<List<T>> loadAll(
-      {Map<String, String> params, Map<String, String> headers}) async {
+  // one
+
+  Future<T> findOne(dynamic id,
+      {bool remote = true,
+      Map<String, String> params,
+      Map<String, String> headers}) async {
+    assert(id != null);
+
+    if (remote == false) {
+      final key = manager.dataId<T>(id).key;
+      return localAdapter.findOne(key);
+    }
+
     final uri = QueryParameters(params ?? const {}).addToUri(
-      urlDesign.collection(type),
+      urlDesign.resource(type, id.toString()),
     );
 
     final response = await withHttpClient(
       (client) => client.get(uri, headers: headers ?? this.headers),
     );
 
-    print('[flutter_data] findAll $T: $uri [HTTP ${response.statusCode}]');
+    print('[flutter_data] loadOne $T: $uri [HTTP ${response.statusCode}]');
 
-    return withResponse<List<T>>(response, (data) {
-      return deserializeCollection(data).toList();
+    // ignore: unnecessary_lambdas
+    return withResponse<T>(response, (data) {
+      return deserialize(data);
     });
   }
 
-  // one
-
-  Future<T> findOne(String id,
-      {bool remote = true,
-      Map<String, String> params,
-      Map<String, String> headers}) async {
-    assert(id != null);
-    final key = manager.dataId<T>(id).key;
-    var _result = localAdapter.findOne(key);
-
-    if (remote == false) {
-      return _result;
-    }
-
-    if (_result == null) {
-      await loadOne(id, params: params, headers: headers);
-      _result = localAdapter.findOne(key);
-    } else {
-      // load in background
-      // ignore: unawaited_futures
-      loadOne(id, params: params, headers: headers);
-    }
-    return _result;
-  }
-
-  DataStateNotifier<T> watchOne(String id,
+  DataStateNotifier<T> watchOne(dynamic id,
       {bool remote = true,
       Map<String, String> params,
       Map<String, String> headers}) {
@@ -168,7 +156,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       // we're only interested in capturing errors
       // as models will pop up via localAdapter.watchOne(_key)
       try {
-        await loadOne(id, params: params, headers: headers);
+        await findOne(id, params: params, headers: headers);
       } catch (e) {
         _watchOneNotifier.state =
             _watchOneNotifier.state.copyWith(exception: DataException(e));
@@ -192,25 +180,6 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     return _watchOneNotifier;
   }
 
-  @protected
-  Future<void> loadOne(String id,
-      {Map<String, String> params, Map<String, String> headers}) async {
-    final uri = QueryParameters(params ?? const {}).addToUri(
-      urlDesign.resource(type, id.toString()),
-    );
-
-    final response = await withHttpClient(
-      (client) => client.get(uri, headers: headers ?? this.headers),
-    );
-
-    print('[flutter_data] loadOne $T: $uri [HTTP ${response.statusCode}]');
-
-    // ignore: unnecessary_lambdas
-    return withResponse<T>(response, (data) {
-      return deserialize(data);
-    });
-  }
-
   // save & delete
 
   Future<T> save(T model,
@@ -226,7 +195,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     final queryParams = QueryParameters(params);
     Uri uri;
     if (model.id != null) {
-      uri = queryParams.addToUri(urlDesign.resource(type, model.id));
+      uri = queryParams.addToUri(urlDesign.resource(type, model.id.toString()));
     } else {
       uri = queryParams.addToUri(urlDesign.collection(type));
     }
@@ -251,7 +220,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     });
   }
 
-  Future<void> delete(String id,
+  Future<void> delete(dynamic id,
       {bool remote = true,
       Map<String, String> params,
       Map<String, String> headers}) async {

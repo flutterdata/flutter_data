@@ -32,6 +32,6 @@ extension DataSupportMixinRelationshipExtension<T extends DataSupportMixin<T>>
 
 extension ManagerDataId on DataManager {
   @optionalTypeArgs
-  DataId<T> dataId<T>(String id, {String key, String type}) =>
+  DataId<T> dataId<T>(dynamic id, {String key, String type}) =>
       DataId<T>(id, this, key: key, type: type);
 }
