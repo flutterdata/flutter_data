@@ -8,9 +8,6 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   final LocalAdapter<T> localAdapter;
   Repository(this.localAdapter);
 
-  DataStateNotifier<T> _watchOneNotifier;
-  DataStateNotifier<List<T>> _watchAllNotifier;
-
   // url
 
   String baseUrl = 'http://127.0.0.1:8080/';
@@ -37,7 +34,8 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   T deserialize(dynamic object, {String key}) {
     final model =
         localAdapter.deserialize(Map<String, dynamic>.from(object as Map));
-    return model._init(this, key: key);
+    // important to initialize here for "included" models
+    return _init(model, key: key, save: true);
   }
 
   Iterable<T> deserializeCollection(object) =>
@@ -54,7 +52,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       Map<String, String> params,
       Map<String, String> headers}) async {
     if (remote == false) {
-      return localAdapter.findAll();
+      return localAdapter.findAll().map(_init).toList();
     }
 
     final uri = QueryParameters(params ?? const {}).addToUri(
@@ -76,34 +74,38 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       {bool remote = true,
       Map<String, String> params,
       Map<String, String> headers}) {
-    _watchAllNotifier ??= DataStateNotifier<List<T>>();
+    final _watchAllNotifier = DataStateNotifier<List<T>>(
+      DataState(
+        model: localAdapter.findAll().map(_init).toList(),
+      ),
+      reload: (notifier) async {
+        if (remote == false) {
+          return;
+        }
+        notifier.state = notifier.state.copyWith(isLoading: true);
 
-    final _load = () async {
-      if (remote == false) {
-        return;
-      }
-      _watchAllNotifier.state =
-          _watchAllNotifier.state.copyWith(isLoading: true);
-      // we're only interested in capturing errors
-      // as models will pop up via localAdapter.watchAll()
-      try {
-        await findAll(params: params, headers: headers);
-      } catch (e) {
-        _watchAllNotifier.state =
-            _watchAllNotifier.state.copyWith(exception: DataException(e));
-      }
-    };
-
-    _watchAllNotifier.state = DataState(
-      model: localAdapter.findAll(),
-      reload: _load,
+        try {
+          // we're only interested in capturing errors
+          // as models will pop up via localAdapter.watchOne(_key)
+          await findAll(params: params, headers: headers);
+        } catch (error, stackTrace) {
+          notifier.state = notifier.state.copyWith(
+              exception: DataException(error), stackTrace: stackTrace);
+        }
+      },
+      onError: (notifier, error, stackTrace) {
+        notifier.state = notifier.state
+            .copyWith(exception: DataException(error), stackTrace: stackTrace);
+      },
     );
 
-    _load();
+    // kick off
+    _watchAllNotifier.reload();
 
-    localAdapter.watchAll().forEach((model) {
+    localAdapter.watchAll().forEach((models) {
+      models = models.map(_init).toList();
       _watchAllNotifier.state =
-          _watchAllNotifier.state.copyWith(model: model, isLoading: false);
+          _watchAllNotifier.state.copyWith(model: models, isLoading: false);
     }).catchError((Object e) {
       _watchAllNotifier.state =
           _watchAllNotifier.state.copyWith(exception: DataException(e));
@@ -121,7 +123,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
     if (remote == false) {
       final key = manager.dataId<T>(id).key;
-      return localAdapter.findOne(key);
+      return _init(localAdapter.findOne(key));
     }
 
     final uri = QueryParameters(params ?? const {}).addToUri(
@@ -145,34 +147,35 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       Map<String, String> params,
       Map<String, String> headers}) {
     final key = manager.dataId<T>(id).key;
-    _watchOneNotifier ??= DataStateNotifier<T>();
 
-    final _load = () async {
+    final _watchOneNotifier = DataStateNotifier<T>(
+        DataState(
+          model: _init(localAdapter.findOne(key)),
+        ), reload: (notifier) async {
       if (remote == false) {
         return;
       }
-      _watchOneNotifier.state =
-          _watchOneNotifier.state.copyWith(isLoading: true);
-      // we're only interested in capturing errors
-      // as models will pop up via localAdapter.watchOne(_key)
+      notifier.state = notifier.state.copyWith(isLoading: true);
+
       try {
+        // we're only interested in capturing errors
+        // as models will pop up via localAdapter.watchOne(_key)
         await findOne(id, params: params, headers: headers);
-      } catch (e) {
-        _watchOneNotifier.state =
-            _watchOneNotifier.state.copyWith(exception: DataException(e));
+      } catch (error, stackTrace) {
+        notifier.state = notifier.state
+            .copyWith(exception: DataException(error), stackTrace: stackTrace);
       }
-    };
+    }, onError: (notifier, error, stackTrace) {
+      notifier.state = notifier.state
+          .copyWith(exception: DataException(error), stackTrace: stackTrace);
+    });
 
-    _watchOneNotifier.state = DataState(
-      model: localAdapter.findOne(key),
-      reload: _load,
-    );
-
-    _load();
+    // kick off
+    _watchOneNotifier.reload();
 
     localAdapter.watchOne(key).forEach((model) {
-      _watchOneNotifier.state =
-          _watchOneNotifier.state.copyWith(model: model, isLoading: false);
+      _watchOneNotifier.state = _watchOneNotifier.state
+          .copyWith(model: _init(model), isLoading: false);
     }).catchError((Object e) {
       _watchOneNotifier.state =
           _watchOneNotifier.state.copyWith(exception: DataException(e));
@@ -186,8 +189,11 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       {bool remote = true,
       Map<String, String> params = const {},
       Map<String, String> headers}) async {
+    // get a key (either existing or new)
+    final key = manager.dataId<T>(model.id, key: model.key).key;
+
     if (remote == false) {
-      return localAdapter._init(model);
+      return _init(model, key: key, save: true);
     }
 
     final body = json.encode(serialize(model));
@@ -213,10 +219,10 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     return withResponse<T>(response, (data) {
       if (data == null) {
         // return "old" model if response was empty
-        return localAdapter._init(model);
+        return _init(model, key: key, save: true);
       }
-      // provide key of the existing model
-      return deserialize(data as Map<String, dynamic>, key: model.key);
+      // deserialize already inits models
+      return deserialize(data as Map<String, dynamic>, key: key);
     });
   }
 
@@ -240,6 +246,8 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       });
     }
   }
+
+  bool isNew(T model) => model.id == null;
 
   @mustCallSuper
   Future<void> dispose() {
@@ -285,6 +293,62 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       throw DataException(error ?? data, response.statusCode);
     } else {
       throw UnsupportedError('Failed request for type $R');
+    }
+  }
+
+  // initialization
+
+  T _init(T model, {String key, bool save = false}) {
+    if (model == null) {
+      return null;
+    }
+
+    _assertManager();
+    model._repository = this;
+    model._save = save;
+
+    // (1) establish key
+    final originalKey = key ?? model.key;
+    model._dataId = manager.dataId<T>(model.id, key: originalKey);
+
+    // if the existing key is different to the resulting key
+    // the original key for this ID has been found-
+    // therefore we need to delete the stray record
+    if (originalKey != null && originalKey != model.key) {
+      // ignore: unawaited_futures
+      localAdapter.delete(originalKey);
+    }
+
+    // (2) set owner
+    localAdapter.setOwnerInRelationships(model._dataId, model);
+
+    if (save) {
+      localAdapter.save(model.key, model);
+    }
+
+    return model;
+  }
+
+  _assertManager() {
+    final modelAutoInit = _autoModelInitDataManager != null;
+    if (modelAutoInit) {
+      assert(manager == _autoModelInitDataManager, '''\n
+This app has been configured with autoModelInit: true at boot,
+which means that model initialization is managed internally.
+
+You supplied an instance of Repository whose manager is NOT the
+internal manager.
+
+Either:
+ - supply NO repository at all (RECOMMENDED)
+ - supply an internally managed repository
+
+If you wish to manually initialize your models, please make
+sure $T (and ALL your other models) mix in DataSupportMixin
+and you configure Flutter Data to do so, via:
+
+FlutterData.init(autoModelInit: false);
+''');
     }
   }
 }

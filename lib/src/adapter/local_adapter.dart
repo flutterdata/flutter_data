@@ -75,37 +75,10 @@ abstract class LocalAdapter<T extends DataSupportMixin<T>> with TypeAdapter<T> {
 
   // methods
 
-  T _init(T model, {String key, bool save = true}) {
-    if (model == null) {
-      return null;
-    }
-
-    // (1) establish key
-    final originalKey = key ?? model.key;
-    model._dataId = manager.dataId<T>(model.id, key: originalKey);
-
-    // if the existing key is different to the resulting key
-    // the original key for this ID has been found-
-    // therefore we need to delete the stray record
-    if (originalKey != null && originalKey != model.key) {
-      // ignore: unawaited_futures
-      delete(originalKey);
-    }
-
-    // (2) set owner
-    setOwnerInRelationships(model._dataId, model);
-
-    if (save) {
-      this.save(model);
-    }
-
-    return model;
-  }
-
   List<String> get keys => List<String>.from(_box.keys);
 
   List<T> findAll() {
-    return keys.map(findOne).toList();
+    return List<T>.from(_box.values);
   }
 
   Stream<List<T>> watchAll() {
@@ -120,7 +93,7 @@ abstract class LocalAdapter<T extends DataSupportMixin<T>> with TypeAdapter<T> {
     if (key == null) {
       return null;
     }
-    return _init(_box.get(key), key: key, save: false);
+    return _box.get(key);
   }
 
   Stream<T> watchOne(String key) {
@@ -130,18 +103,13 @@ abstract class LocalAdapter<T extends DataSupportMixin<T>> with TypeAdapter<T> {
         .debounceTime(_oneFrameDuration);
   }
 
-  Future<void> save(T model, {String key}) async {
-    if (model.key == null) {
-      model = _init(model, key: key, save: false);
-    }
-    await _box.put(model.key, model);
+  Future<void> save(String key, T model) async {
+    await _box.put(key, model);
   }
 
   Future<void> delete(String key) async {
     await _box.delete(key);
   }
-
-  bool isNew(T model) => model.id == null;
 
   Future<void> clear() async {
     await _box?.deleteFromDisk();

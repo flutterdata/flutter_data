@@ -54,9 +54,7 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E> {
   }
 
   set value(E value) {
-    if (value != null) {
-      dataId = _repository.localAdapter._init(value, save: _save)._dataId;
-    }
+    dataId = _repository._init(value, save: _save)._dataId;
   }
 
   String get key => dataId?.key;

@@ -63,10 +63,7 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
 
   @override
   operator []=(int index, E value) {
-    if (value != null) {
-      dataIds[index] =
-          _repository.localAdapter._init(value, save: _save)._dataId;
-    }
+    dataIds[index] = _repository._init(value, save: _save)._dataId;
   }
 
   @override
