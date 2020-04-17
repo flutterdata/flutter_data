@@ -28,6 +28,21 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
 
     final classElement = element as ClassElement;
 
+    var class2 = classElement;
+    bool isFinal = true;
+
+    while (class2 != null && (isFinal = class2.getSetter('id') == null)) {
+      if (!isFinal) {
+        break;
+      }
+      class2 = class2.supertype?.element;
+    }
+
+    if (!isFinal) {
+      throw UnsupportedError(
+          "Can't generate repository for $type. Its `id` field MUST be final");
+    }
+
     List<String> getRelationshipsFor(String kind) =>
         classElement.constructors.fold([], (result, constructor) {
           for (var field in constructor.parameters) {

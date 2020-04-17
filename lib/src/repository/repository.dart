@@ -32,8 +32,8 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   serializeCollection(Iterable<T> models) => models.map(serialize);
 
   T deserialize(dynamic object, {String key}) {
-    final model =
-        localAdapter.deserialize(Map<String, dynamic>.from(object as Map));
+    final map = Map<String, dynamic>.from(object as Map);
+    final model = localAdapter.deserialize(map);
     // important to initialize here for "included" models
     return _init(model, key: key, save: true);
   }
