@@ -1,5 +1,6 @@
 import 'package:flutter_data/flutter_data.dart';
 import 'package:json_api/document.dart';
+import 'package:json_api/document.dart' as j show Relationship;
 
 mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on Repository<T> {
   @override
@@ -14,7 +15,7 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on Repository<T> {
   Map<String, dynamic> serialize(model) {
     final map = super.serialize(model);
 
-    final relationships = {};
+    final relationships = <String, j.Relationship>{};
 
     for (var relEntry in relationshipMetadata['HasMany'].entries) {
       final name = relEntry.key.toString();
@@ -42,8 +43,8 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on Repository<T> {
       }
     }
 
-    final resource =
-        ResourceObject(DataId.getType<T>(), map.id, attributes: map);
+    final resource = ResourceObject(DataId.getType<T>(), map.id,
+        attributes: map, relationships: relationships);
     map.remove('id');
 
     return Document(ResourceData(resource)).toJson();
