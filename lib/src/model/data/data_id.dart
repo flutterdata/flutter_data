@@ -9,18 +9,22 @@ class DataId<T> {
   final String type;
   final String key;
 
+  // key will be assigned in this order
+  // (1) if non-null ID is supplied, key will be found
+  // (2) if ID was null or not found, use provided key
+  // (3) if no key was provided, create one
   DataId(this.id, this.manager, {String key, String type})
       : this.key = manager?.keysBox?.get('${getType<T>(type)}#$id') ??
             key ??
             '${getType<T>(type)}#${_uuid.v1().substring(0, 8)}',
         this.type = getType<T>(type) {
-    if (id != null && manager != null && !exists) {
+    // key/ID association will only be made if
+    // ID is not null and key does not already exist
+    if (id != null &&
+        manager != null &&
+        !manager.keysBox.containsKey('${this.type}#$id')) {
       manager.keysBox.put('${this.type}#$id', this.key);
     }
-  }
-
-  bool get exists {
-    return manager.keysBox.containsKey('$type#$id');
   }
 
   // utils

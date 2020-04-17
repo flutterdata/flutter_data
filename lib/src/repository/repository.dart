@@ -308,20 +308,12 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     model._save = save;
 
     // (1) establish key
-    final originalKey = key ?? model.key;
-    model._dataId = manager.dataId<T>(model.id, key: originalKey);
-
-    // if the existing key is different to the resulting key
-    // the original key for this ID has been found-
-    // therefore we need to delete the stray record
-    if (originalKey != null && originalKey != model.key) {
-      // ignore: unawaited_futures
-      localAdapter.delete(originalKey);
-    }
+    model._dataId = manager.dataId<T>(model.id, key: key);
 
     // (2) set owner
     localAdapter.setOwnerInRelationships(model._dataId, model);
 
+    // (3) save locally
     if (save) {
       localAdapter.save(model.key, model);
     }

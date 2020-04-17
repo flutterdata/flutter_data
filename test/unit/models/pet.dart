@@ -28,14 +28,3 @@ class Cat extends Pet<Cat> {
   factory Cat.fromJson(Map<String, dynamic> json) => _$CatFromJson(json);
   Map<String, dynamic> toJson() => _$CatToJson(this);
 }
-
-@DataRepository()
-@JsonSerializable()
-class Zebra with DataSupportMixin<Zebra> {
-  String id;
-  String name;
-
-  Zebra({this.id, this.name});
-  factory Zebra.fromJson(Map<String, dynamic> json) => _$ZebraFromJson(json);
-  Map<String, dynamic> toJson() => _$ZebraToJson(this);
-}

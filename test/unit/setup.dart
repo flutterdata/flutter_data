@@ -95,19 +95,16 @@ final Function() setUpAllFn = () {
   final personLocalAdapter =
       $PersonLocalAdapter(manager, box: FakeBox<Person>());
   final dogLocalAdapter = $DogLocalAdapter(manager, box: FakeBox<Dog>());
-  final zebraLocalAdapter = $ZebraLocalAdapter(manager, box: FakeBox<Zebra>());
 
   injection.register<LocalAdapter<House>>(houseLocalAdapter);
   injection.register<LocalAdapter<Family>>(familyLocalAdapter);
   injection.register<LocalAdapter<Person>>(personLocalAdapter);
   injection.register<LocalAdapter<Dog>>(dogLocalAdapter);
-  injection.register<LocalAdapter<Zebra>>(zebraLocalAdapter);
 
   injection.register<Repository<House>>($HouseRepository(houseLocalAdapter));
   injection.register<Repository<Family>>($FamilyRepository(familyLocalAdapter));
   injection.register<Repository<Person>>($PersonRepository(personLocalAdapter));
   injection.register<Repository<Dog>>($DogRepository(dogLocalAdapter));
-  injection.register<Repository<Zebra>>($ZebraRepository(zebraLocalAdapter));
 
   injection.register<FamilyRepositoryWithStandardJSONAdapter>(
       FamilyRepositoryWithStandardJSONAdapter(familyLocalAdapter));
@@ -118,7 +115,6 @@ final Function() tearDownAllFn = () async {
   await injection.locator<Repository<Family>>().dispose();
   await injection.locator<Repository<Person>>().dispose();
   await injection.locator<Repository<Dog>>().dispose();
-  await injection.locator<Repository<Zebra>>().dispose();
   injection.clear();
 };
 
