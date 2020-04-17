@@ -51,18 +51,18 @@ void main() async {
     expect(f.dogs.first.name, 'Walker');
   });
 
-  test('should remove "mutable" stray zebras', () {
+  test('should remove "mutable" stray zebras', () async {
     var manager = injection.locator<DataManager>();
     var repository = injection.locator<Repository<Zebra>>();
 
-    // a reference for dog id=772 has been created
+    // a reference for zebra id=772 has been created
     var dataId = manager.dataId<Zebra>('772');
 
     var taco = Zebra(id: null, name: 'Taco').init(repository);
     // key(id=772) will be different to key(id=null)
     expect(taco.key, isNot(dataId.key));
     // zebra was saved with id=null
-    expect(repository.localAdapter.findAll().length, 1);
+    expect((await repository.findAll(remote: false)).length, 1);
 
     // if we assign an id=772 and re-initialize
     taco.id = '772';
@@ -72,7 +72,7 @@ void main() async {
     expect(taco.key, dataId.key);
     // and the stray zebra (id=null) will be removed
     // so we only keep the record for id=772
-    expect(repository.localAdapter.findAll().length, 1);
+    expect((await repository.findAll(remote: false)).length, 1);
     expect(repository.localAdapter.findOne(taco.key), isNotNull);
   });
 

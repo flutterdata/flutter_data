@@ -39,8 +39,12 @@ void main() async {
   test('findAll', () async {
     var repo = injection.locator<Repository<City>>();
     var cities = await repo.findAll();
+    expect(cities.first.isNew, false);
     expect(cities.first.name, "Munich");
     expect(cities.length, 3);
+
+    var citiesFromLocal = await repo.findAll(remote: false);
+    expect(citiesFromLocal.first.isNew, false);
   });
 
   test('findOne with include', () async {

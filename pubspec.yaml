@@ -21,7 +21,7 @@ dependencies:
   recase: ^3.0.0
   debounce_throttle: ^1.1.0
   rxdart: ^0.23.1
-  data_state: ^0.2.3
+  data_state: ^0.2.4
   async: ^2.4.0
 
 dev_dependencies:

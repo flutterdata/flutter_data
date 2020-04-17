@@ -60,9 +60,11 @@ void main() async {
     var family1 = Family(id: "1", surname: "Smith");
     var family2 = Family(id: "2", surname: "Jones");
 
-    adapter.save(family1, key: 'families#1');
-    adapter.save(family2, key: 'families#2');
+    adapter.save('families#1', family1);
+    adapter.save('families#2', family2);
     var families = adapter.findAll();
+
+    expect(() => families.first.isNew, throwsA(isA<AssertionError>()));
 
     expect(families, [family1, family2]);
   });
@@ -71,9 +73,9 @@ void main() async {
     var adapter = injection.locator<LocalAdapter<Family>>();
     var family1 = Family(id: "1", surname: "Smith");
 
-    adapter.save(family1, key: 'families#1');
+    adapter.save('families#1', family1);
     var family = adapter.findOne('families#1');
-
+    expect(() => family.isNew, throwsA(isA<AssertionError>()));
     expect(family, family1);
   });
 
@@ -103,11 +105,13 @@ void main() async {
   test('save and find', () {
     var adapter = injection.locator<LocalAdapter<Family>>();
     var family = Family(id: '32423', surname: 'Toraine');
-    adapter.save(family);
-    var family2 = adapter.findOne(family.key);
+    adapter.save('families#999', family);
+
+    expect(() => family.isNew, throwsA(isA<AssertionError>()));
+
+    var family2 = adapter.findOne('families#999');
+    expect(() => family2.isNew, throwsA(isA<AssertionError>()));
     expect(family, family2);
-    var family3 = adapter.findOne(family2.key);
-    expect(family2, family3);
   });
 
   test('fixMap', () {
