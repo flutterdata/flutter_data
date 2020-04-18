@@ -55,6 +55,50 @@ void main() async {
     });
   });
 
+  test('deserialize existing', () {
+    var repo = injection.locator<Repository<Family>>();
+    repo.localAdapter.clear();
+    expect(repo.localAdapter.keys, []);
+    var family = Family(surname: 'Moletto').init(repo);
+
+    // simulate "save"
+    var obj = {
+      'id': '1098',
+      'surname': "Moletto",
+    };
+    var family2 = repo.deserialize(obj, key: family.key).init(repo);
+
+    expect(family2.isNew, false); // also checks if the model was init'd
+    expect(family2, Family(id: "1098", surname: "Moletto"));
+    expect(repo.localAdapter.keys, [family2.key]);
+  });
+
+  test('deserialize many local for same remote ID', () {
+    var repo = injection.locator<Repository<Family>>();
+    repo.localAdapter.clear();
+    expect(repo.localAdapter.keys, []);
+    var family = Family(surname: 'Moletto').init(repo);
+    var family2 = Family(surname: 'Zandiver').init(repo);
+
+    // simulate "save" for family
+    var obj = {
+      'id': '1298',
+      'surname': "Helsinki",
+    };
+    var family1b = repo.deserialize(obj, key: family.key).init(repo);
+
+    // simulate "save" for family2
+    var obj2 = {
+      'id': '1298',
+      'surname': "Oslo",
+    };
+    var family2b = repo.deserialize(obj2, key: family2.key).init(repo);
+
+    // since obj returned with same ID - only one key is left
+    expect(family1b.key, family2b.key);
+    expect(repo.localAdapter.keys, [family.key]);
+  });
+
   test('deserialize with relationships', () {
     var repo = injection.locator<Repository<Family>>();
 

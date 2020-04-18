@@ -33,8 +33,6 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   T deserialize(dynamic object, {String key}) {
     final map = Map<String, dynamic>.from(object as Map);
-    // ensure key is associated with potentially new ID
-    manager.dataId<T>(map.id, key: key);
     final model = localAdapter.deserialize(map);
     // important to initialize (esp for "included" models)
     return _init(model, key: key, save: true);
