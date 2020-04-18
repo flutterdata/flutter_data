@@ -114,6 +114,15 @@ void main() async {
     expect(family, family2);
   });
 
+  test('delete', () {
+    var adapter = injection.locator<LocalAdapter<Family>>();
+    var family = Family(id: '111', surname: 'Smith');
+    adapter.save('f1', family);
+    adapter.delete('f1');
+    expect(adapter.findOne('f1'), isNull);
+    adapter.delete('f1');
+  });
+
   test('fixMap', () {
     var before = {
       'person': <dynamic, dynamic>{'age': 32}
