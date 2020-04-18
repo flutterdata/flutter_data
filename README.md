@@ -1,8 +1,55 @@
-<img align="center" src="https://avatars2.githubusercontent.com/u/61839689?s=200&v=4" width="45px">
+<p align="center" style="margin-bottom: 0px;">
+  <img src="https://avatars2.githubusercontent.com/u/61839689?s=200&v=4" width="85px">
+</p>
 
-<h1 align="center">Flutter Data</h1>
+<h1 align="center" style="margin-top: 0px; font-size: 3em;">Flutter Data</h1>
 
-[![tests](https://img.shields.io/github/workflow/status/flutterdata/flutter_data/test/master?label=tests&labelColor=333940&logo=github)](https://github.com/flutterdata/data_state/actions) [![pub.dev](https://img.shields.io/pub/v/flutter_data?label=pub.dev&labelColor=333940&logo=dart)](https://pub.dev/packages/data_state) [![license](https://img.shields.io/github/license/flutterdata/flutter_data?color=%23007A88&labelColor=333940&logo=mit)](https://github.com/flutterdata/data_state/blob/master/LICENSE)
+[![tests](https://img.shields.io/github/workflow/status/flutterdata/flutter_data/test/master?label=tests&labelColor=333940&logo=github)](https://github.com/flutterdata/flutter_data/actions) [![pub.dev](https://img.shields.io/pub/v/flutter_data?label=pub.dev&labelColor=333940&logo=dart)](https://pub.dev/packages/flutter_data) [![license](https://img.shields.io/github/license/flutterdata/flutter_data?color=%23007A88&labelColor=333940&logo=mit)](https://github.com/flutterdata/flutter_data/blob/master/LICENSE)
+
+
+
+## Usage
+
+```dart
+FutureBuilder<User>(
+  future: context.read<Repository<User>>().findOne('1', params: {'_embed': 'todos'}),
+  builder: (context, snapshot) {
+    return ListView.builder(
+      itemBuilder: (context, i) {
+        return Text('TO-DO: ${snapshot.data[i].todos.first.title}'),
+      },
+    );
+  }
+}
+
+// models
+
+@JsonSerializable()
+@DataRepository([StandardJSONAdapter, JSONPlaceholderAdapter])
+class User extends DataSupport<User> {
+  @override
+  final int id;
+  final String name;
+  final HasMany<Todo> todos;
+}
+
+@JsonSerializable()
+@DataRepository([StandardJSONAdapter, JSONPlaceholderAdapter])
+class Todo extends DataSupport<Todo> {
+  @override
+  final int id;
+  final String title;
+  final bool completed;
+  final BelongsTo<User> user;
+}
+```
+
+This is a **real working example** that you can find here: (share url).
+
+(share screenshot)
+
+
+
 
 **Imagine annotating your models and magically getting:**
 
@@ -14,30 +61,6 @@
  - and much more
 
 with zero boilerplate!
-
-```dart
-// your model
-
-@freezed
-@DataRepository([StandardJSONAdapter, JSONPlaceholderAdapter])
-abstract class Todo extends DataSupport<Todo> implements _$Todo {
-  Todo._();
-  factory Todo({ String id, String title }) = _Todo;
-  factory Todo.fromJson(Map<String, dynamic> json) => _$TodoFromJson(json);
-}
-
-// your widget
-
-return Scaffold(
-  body: StreamBuilder<List<Todo>>(
-    stream: context.read<Repository<Todo>>().watchAll().stream,
-    builder: (context, snapshot) {
-      return ListView.builder(
-        itemBuilder: (context, i) {
-          return Text('TO-DO! ${snapshot.data[i].title}'),
-        },
-        // ...
-```
 
 ### Simple should be easy, complex should be possible
 
