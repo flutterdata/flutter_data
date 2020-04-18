@@ -6,17 +6,19 @@
 
 [![tests](https://img.shields.io/github/workflow/status/flutterdata/flutter_data/test/master?label=tests&labelColor=333940&logo=github)](https://github.com/flutterdata/flutter_data/actions) [![pub.dev](https://img.shields.io/pub/v/flutter_data?label=pub.dev&labelColor=333940&logo=dart)](https://pub.dev/packages/flutter_data) [![license](https://img.shields.io/github/license/flutterdata/flutter_data?color=%23007A88&labelColor=333940&logo=mit)](https://github.com/flutterdata/flutter_data/blob/master/LICENSE)
 
-(➡️ jump to toc)
+You're working on a Flutter app that interacts with a remote server. You want to retrieve data, serialize it, store it for offline and hook it up with your state management solution – all that for 20 interrelated entities in your app.
 
-You're working on a Flutter app heavily using http/Dio, Hive, Chopper or Firebase, json_serializable, Provider and probably other tools. Making everything work together smoothly feels... painful 😫.
+Trying to make this work smoothly with manual http calls, `json_serializable`, Chopper or Firebase, get_it, Provider and sychronizing data to Hive or SQLite feels... painful 😫.
 
-What if you could remove all the headaches and have things **just work** in a very clean way?
+**What if you could achieve all this with minimal and clean code?**
 
 Here's how:
 
-### 🎯 Mini TO-DO list example
+([➡️ Or jump directly to the API Overview](#api-overview))
 
-Let's display [JSON Placeholder](https://jsonplaceholder.typicode.com/) "User 1"'s list of todos:
+### 🗒 Mini TO-DO list example
+
+Let's display [JSON Placeholder](https://jsonplaceholder.typicode.com/) _user 1_'s list of TO-DOs:
 
 ```dart
 FutureBuilder<List<Todo>>(
@@ -35,15 +37,17 @@ FutureBuilder<List<Todo>>(
 We just:
 
  - Got hold of a repository for `Todo` via Provider
- - Fetched a todo list for user id=1 (URL: `https://jsonplaceholder.typicode.com/todos?userId=1`)
+ - Fetched a TO-DO list for `User` with id=1 (URL: `https://jsonplaceholder.typicode.com/todos?userId=1`)
  - Deserialized JSON data into a list of `Todo` models
  - Displayed the list in a `FutureBuilder`
 
+(snap)
+
 How was that possible?
 
-1. We annotate two models `User` and `Todo` with `@DataRepository`
-1. We make our models `extend DataSupport` (a mixin is also available)
-1. We run codegen: `flutter packages pub run build_runner build`
+1. We annotated two models `User` and `Todo` with `@DataRepository`
+1. We made our models `extend DataSupport` (a mixin is also available)
+1. We ran codegen: `flutter packages pub run build_runner build`
 
 ```dart
 @JsonSerializable()
@@ -87,9 +91,6 @@ Answer: In a custom _adapter_!
 mixin JSONPlaceholderAdapter<T extends DataSupport<T>> on StandardJSONAdapter<T> {
   @override
   String get baseUrl => 'https://jsonplaceholder.typicode.com/';
-
-  @override
-  String get identifierSuffix => 'Id';
 }
 ```
 
@@ -99,13 +100,13 @@ Adapters (which are Dart mixins) are used to configure anything and everything! 
 @DataRepository([StandardJSONAdapter, JSONPlaceholderAdapter]);
 ```
 
-Our own `JSONPlaceholderAdapter` is _customizing_ the `StandardJSONAdapter` which ships with Flutter Data (notice `on StandardJSONAdapter<T>`). Order matters!
+Our own `JSONPlaceholderAdapter` is _customizing_ the `StandardJSONAdapter` which ships with Flutter Data (notice `on StandardJSONAdapter<T>`). Order matters!  We'll see many more adapter examples in the [cookbook](#cookbook).
 
-Want to see the real working app: https://github.com/flutterdata/flutter_data_todos
+Want to see the real working app? https://github.com/flutterdata/flutter_data_todos
 
-### Saving a new TO-DO!
+### ➕ Creating a new TO-DO
 
-Let's save a new TO-DO:
+We instantiate a new `Todo` model with a totally random title and save it:
 
 ```dart
 FloatingActionButton(
@@ -116,19 +117,17 @@ FloatingActionButton(
 
 Done!
 
-(We used a random title so we don't have to mess with inputs right now!)
-
 This triggered a `POST` HTTP request in the background to `https://jsonplaceholder.typicode.com/todos`
 
 (snap)
 
-Why can't we see it?
+But... why isn't it in our list?!
 
-### ⚡️ Reactive TO-DO list
+### ⚡️ Reactivity to the rescue
 
-We can't see it because we used a `FutureBuilder` which fetches the list just once.
+It's not there because we used a `FutureBuilder` which fetches the list _only once_.
 
-Let's make it reactive!
+The solution is making the list reactive – i.e. using `watchAll()`:
 
 ```dart
 DataStateBuilder<List<Todo>>(
@@ -146,11 +145,21 @@ DataStateBuilder<List<Todo>>(
 }
 ```
 
-Now using `watchAll()`, creating a new TO-DO _will_ show up in the list!
+We'll use `DataStreamBuilder` to access the state objects that carry our `Todo` models.
 
-Under the hood, we are using the `data_state` package which essentially is a [`StateNotifier`](https://pub.dev/packages/state_notifier), i.e. a "Flutter-free ValueNotifier".
+Creating a new TO-DO _will_ now show up!
 
-Prefer a Stream API? No problem:
+(snap)
+
+Under the hood, we are using the [`data_state`](https://pub.dev/packages/data_state) package which essentially is a [`StateNotifier`](https://pub.dev/packages/state_notifier). In other words, a "Flutter-free ValueNotifier" that emits immutable `DataState` objects.
+
+This new `Todo` appeared because `watchAll()` reflects the current **local storage** state. As a matter of fact, JSON Placeholder does not actually save anything.
+
+For this reason, Flutter Data is considered an **offline-first** framework. Models are fetched from the network _in the background_ by default. (This strategy can be changed by overriding methods in a custom adapter!)
+
+**Prefer a Stream API?**
+
+No problem:
 
 ```dart
 StreamBuilder<List<Todo>>(
@@ -166,9 +175,58 @@ StreamBuilder<List<Todo>>(
 }
 ```
 
+### ♻ Reloading
+
+For a minute, let's change that floating action button to _overwrite_ one of our TO-DOs. For example, `Todo` with id=1.
+
+```dart
+FloatingActionButton(
+  onPressed: () {
+    Todo(id: 1, title: "OVERWRITING TASK!").save();
+  },
+```
+
+Tip: To locate TO-DOs more easily, limit the amount to 5 items with the `_limit` query param:
+
+```dart
+notifier: context.read<Repository<Todo>>().watchAll(params: {'userId': '1', '_limit': '5'});
+```
+
+(snap)
+
+As discussed before, JSON Placeholder does not persist any data. We'll verify that claim by reloading our data with a "pull-to-refresh" library – and the very handy `DataStateNotifier#reload()`!
+
+```dart
+EasyRefresh.builder(
+  controller: _refreshController,
+  onRefresh: () async {
+    await notifier.reload();
+    _refreshController.finishRefresh();
+  },
+```
+
+(snap)
+
+And all `Todo`s have been reset!
+
+
+### ⛔️ Deleting a TO-DO
+
+There's stuff "User 1" just doesn't want to do!
+
+(snap)
+
+```dart
+onDelete: (model) {
+  model.delete();
+},
+```
+
+Done!
+
 ### 🎎 Relationships
 
-Let's now slightly rethink our query. Instead of "fetching all TO-DOs for user 1" we are going to "get user 1 with all their TO-DOs".
+Let's now slightly rethink our query. Instead of **"fetching all TO-DOs for user 1"** we are going to **"get user 1 with all their TO-DOs"**.
 
 ```dart
 DataStateBuilder<User>(
@@ -186,11 +244,9 @@ DataStateBuilder<User>(
 
 (snap)
 
-Relationships between models are automagically wired up!
+Relationships between models are automagically updated!
 
-Everything is automatically saved to local storage (Hive database). The default behavior is to get models from local storage first and then fetch models from the remote server in the background.
-
-This strategy can easily be changed by overriding methods in a custom adapter.
+They work even when data comes in at different times: when new models are loaded, relationships are automatically wired up.
 
 ## ☯️ Philosophy
 
