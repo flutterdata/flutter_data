@@ -68,7 +68,7 @@ void main() async {
 
     expect(family.persons.first.key, person.key);
     expect(family.persons.debugOwner, isNull);
-    family.init(familyRepo);
+    familyRepo.syncRelationships(family);
     expect(family.persons.debugOwner, isNotNull);
   });
 }

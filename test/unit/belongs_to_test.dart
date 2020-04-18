@@ -55,7 +55,7 @@ void main() async {
     person.family = BelongsTo<Family>(family, familyRepo.manager);
     expect(person.family.dataId.key, family.key);
     expect(person.family.debugOwner, isNull);
-    person.init(personRepo);
+    personRepo.syncRelationships(person);
     expect(person.family.debugOwner, isNotNull);
   });
 }

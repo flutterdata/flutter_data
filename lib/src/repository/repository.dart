@@ -33,8 +33,10 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   T deserialize(dynamic object, {String key}) {
     final map = Map<String, dynamic>.from(object as Map);
+    // ensure key is associated with potentially new ID
+    manager.dataId<T>(map.id, key: key);
     final model = localAdapter.deserialize(map);
-    // important to initialize here for "included" models
+    // important to initialize (esp for "included" models)
     return _init(model, key: key, save: true);
   }
 
@@ -189,11 +191,11 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       {bool remote = true,
       Map<String, String> params = const {},
       Map<String, String> headers}) async {
-    // get a key (either existing or new)
-    final key = manager.dataId<T>(model.id, key: model.key).key;
-
+    final key = model.key;
     if (remote == false) {
-      return _init(model, key: key, save: true);
+      // ignore: unawaited_futures
+      localAdapter.save(model.key, model);
+      return model;
     }
 
     final body = json.encode(serialize(model));
@@ -219,7 +221,8 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     return withResponse<T>(response, (data) {
       if (data == null) {
         // return "old" model if response was empty
-        return _init(model, key: key, save: true);
+        localAdapter.save(key, model);
+        return model;
       }
       // deserialize already inits models
       return deserialize(data as Map<String, dynamic>, key: key);
@@ -248,6 +251,11 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   }
 
   bool isNew(T model) => model.id == null;
+
+  void syncRelationships(T model) {
+    // set model as "owner" in its relationships
+    localAdapter.setOwnerInRelationships(model._dataId, model);
+  }
 
   @mustCallSuper
   Future<void> dispose() {
@@ -304,14 +312,24 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     }
 
     _assertManager();
-    model._repository = this;
+    model._repository ??= this;
     model._save = save;
 
-    // (1) establish key
-    model._dataId = manager.dataId<T>(model.id, key: key);
+    // only init dataId if
+    // (1) it hasn't been set
+    // (2) there's an updated key to set
+    if (model._dataId == null || (key != null && key != model._dataId.key)) {
+      // establish key
+      model._dataId = manager.dataId<T>(model.id, key: key);
 
-    // (2) set owner
-    localAdapter.setOwnerInRelationships(model._dataId, model);
+      // if ID was already linked to ID
+      // delete the "temporary" local record
+      if (key != null && key != model._dataId.key) {
+        localAdapter.delete(key);
+      }
+      // (2) sync relationships
+      syncRelationships(model);
+    }
 
     // (3) save locally
     if (save) {
