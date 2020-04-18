@@ -37,11 +37,15 @@ class DataManager {
 
     // init hive + box
     final path = path_helper.join((await baseDir).path, 'flutter_data');
-    _hive.init(path);
-    if (clear) {
+
+    final dirPath = Directory(path);
+    final exists = await dirPath.exists();
+    if (clear && exists) {
       print('[flutter_data] Destroying all boxes');
-      await Directory(path).delete(recursive: true);
+      await dirPath.delete(recursive: true);
     }
+
+    _hive.init(path);
     _keysBox = await _hive.openBox<String>('_keys');
     return this;
   }
