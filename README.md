@@ -44,7 +44,7 @@ FutureBuilder<List<Todo>>(
 
 Result:
 
-![](docs/10-user.png)
+![](docs/01.png)
 
 (This is a snapshot of the **final version of the app**: https://github.com/flutterdata/flutter_data_todos !)
 
@@ -108,7 +108,7 @@ FloatingActionButton(
 
 Done!
 
-This sent a request in background to `POST https://jsonplaceholder.typicode.com/todos`
+This sent a request in the background to `POST https://jsonplaceholder.typicode.com/todos`
 
 But... why can't we see this new `Todo` in the list?!
 
@@ -142,13 +142,13 @@ Done? **Restart** the app (no hot-reload this time).
 
 Creating a new TO-DO _will_ now show up:
 
+Before, with an `id=null` (temporary model which hasn't been persisted):
+
 ![](docs/02a.png)
 
-Before, with an `id=null` (temporary model which hasn't been persisted)
+After, with an `id=201` that was assigned by the API server:
 
 ![](docs/02b.png)
-
-After, with an `id=201` that was assigned by the API server.
 
 Notice that we passed a `_limit=5` query param, so we only got 5 items!
 
@@ -181,8 +181,6 @@ StreamBuilder<List<Todo>>(
 ### ♻ Reloading
 
 For a minute, let's change that floating action button to _overwrite_ one of our TO-DOs. For example, `Todo` with id=1.
-
-And now **Refresh** the app (no hot-reload for now).
 
 ```dart
 FloatingActionButton(
