@@ -8,6 +8,8 @@ import 'package:source_gen/source_gen.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/constant/value.dart';
+import 'package:package_resolver/package_resolver.dart';
+import 'package:build_resolvers/build_resolvers.dart';
 
 import 'package:glob/glob.dart';
 
@@ -179,18 +181,11 @@ class DataExtensionIntermediateBuilder implements Builder {
     '.dart': ['.info']
   };
 
-  bool isProvider = false;
-
   @override
   Future<void> build(BuildStep buildStep) async {
     final resolver = buildStep.resolver;
     if (!await resolver.isLibrary(buildStep.inputId)) return;
     final lib = LibraryReader(await buildStep.inputLibrary);
-    if (!isProvider) {
-      isProvider = lib.element.importedLibraries.any((e) {
-        return e.librarySource.fullName.startsWith('/provider/');
-      });
-    }
 
     final exportAnnotation = TypeChecker.fromRuntime(DataRepository);
     final annotated = [
@@ -200,8 +195,7 @@ class DataExtensionIntermediateBuilder implements Builder {
       await buildStep.writeAsString(
           buildStep.inputId.changeExtension('.info'),
           annotated
-              .map(
-                  (e) => '${e.name}#${e.location.components.first}#$isProvider')
+              .map((e) => '${e.name}#${e.location.components.first}')
               .join(','));
     }
   }
@@ -217,19 +211,17 @@ class DataExtensionBuilder implements Builder {
 
   @override
   Future<void> build(BuildStep b) async {
-    var importProvider = false;
     final finalAssetId = AssetId(b.inputId.package, 'lib/main.data.dart');
+
     final _classes = [
       await for (var file in b.findAssets(Glob('**/*.info')))
         await b.readAsString(file)
     ];
 
+    print(_classes.length);
     final classes = _classes.fold<List<Map<String, String>>>([], (acc, line) {
       for (var e in line.split(',')) {
         var parts = e.split('#');
-        if (!importProvider) {
-          importProvider = parts[2] == 'true';
-        }
         acc.add({'name': parts[0], 'path': parts[1]});
       }
       return acc;
@@ -245,6 +237,14 @@ class DataExtensionBuilder implements Builder {
 
     String provider = "";
     String provider2 = "";
+
+    var mainLibrary = await b.resolver
+        .libraryFor(AssetId(b.inputId.package, 'lib/main.dart'));
+
+    // check if Provider was imported in main.dart
+    bool importProvider = mainLibrary.importedLibraries.any((e) {
+      return e.librarySource.fullName.startsWith('/provider/');
+    });
 
     if (importProvider) {
       provider = '''
