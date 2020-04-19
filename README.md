@@ -16,13 +16,15 @@
 - [👩‍🍳 Cookbook/FAQ](#-cookbookfaq)
 - [📲 Apps using Flutter Data](#-apps-using-flutter-data)
 
-**Working on a Flutter app that talks to an API server?**
+----
+
+## Working on a Flutter app that talks to an API server?
 
 You want to retrieve data, serialize it, store it for offline use and hook it up with your state management solution – all that for 20 interconnected entities in your app.
 
-Trying to make this work with ad-hoc HTTP calls, custom loading/error states, caching,  json_serializable, Chopper or Firebase, Provider, auth – not to mention sychronizing with local storage, Hive or SQLite... 😫
+Trying to make this work with ad-hoc HTTP calls, custom loading/error states, caching,  json_serializable, Chopper or Firebase, Provider, authentication (not to mention sync'ing with local storage, Hive or SQLite)... can be painful 😫.
 
-**What if you could get all this working smoothly with minimal effort?**
+**What if you could get it all working smoothly with minimal effort?**
 
 ### 🗒 Mini TO-DO list example
 
