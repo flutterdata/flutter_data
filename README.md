@@ -6,17 +6,25 @@
 
 [![tests](https://img.shields.io/github/workflow/status/flutterdata/flutter_data/test/master?label=tests&labelColor=333940&logo=github)](https://github.com/flutterdata/flutter_data/actions) [![pub.dev](https://img.shields.io/pub/v/flutter_data?label=pub.dev&labelColor=333940&logo=dart)](https://pub.dev/packages/flutter_data) [![license](https://img.shields.io/github/license/flutterdata/flutter_data?color=%23007A88&labelColor=333940&logo=mit)](https://github.com/flutterdata/flutter_data/blob/master/LICENSE)
 
-**Working on a Flutter app that interacts with an API server?** You want to retrieve data, serialize it, store it for offline and hook it up with your state management solution – all that for 20 interrelated entities in your app.
+<!-- keep leading space to prevent re-generate toc -->
+-  [🗒 TO-DO example](#-mini-to-do-list-example)
+- [🌎 Philosophy](#-philosophy)
+- [🔧 Installing and configuring](#-installing-and-configuring)
+- [👩🏾‍💻 API](#-api)
+  - [Repository API](#repository-api)
+  - [DataSupport and Relationships API](#datasupport-and-relationships-api)
+- [👩‍🍳 Cookbook/FAQ](#-cookbookfaq)
+- [📲 Apps using Flutter Data](#-apps-using-flutter-data)
 
-Trying to make this work smoothly with manual HTTP calls, json_serializable, Chopper or Firebase, get_it, Provider and sychronizing data to Hive or SQLite feels... painful 😫.
+**Working on a Flutter app that talks to an API server?**
 
-**What if you could achieve all this with minimal and clean code?**
+You want to retrieve data, serialize it, store it for offline use and hook it up with your state management solution – all that for 20 interconnected entities in your app.
 
-[Table of Contents? Click here ➡️](#-overview)
+Trying to make this work with ad-hoc HTTP calls, custom loading/error states, caching,  json_serializable, Chopper or Firebase, Provider, auth – not to mention sychronizing with local storage, Hive or SQLite... 😫
 
-Otherwise **let's get started with a simple example!**
+**What if you could get all this working smoothly with minimal effort?**
 
-### 🗒 Mini TO-DO list
+### 🗒 Mini TO-DO list example
 
 Let's display [JSON Placeholder](https://jsonplaceholder.typicode.com/) _user 1_'s list of TO-DOs:
 
@@ -37,7 +45,7 @@ FutureBuilder<List<Todo>>(
 We just:
 
  - Got hold of a repository for `Todo` via Provider
- - Fetched a TO-DO list for `User` with id=1 (URL: `https://jsonplaceholder.typicode.com/todos?userId=1`)
+ - Fetched a TO-DO list for a user with id=1 (URL: `https://jsonplaceholder.typicode.com/todos?userId=1`)
  - Deserialized JSON data into a list of `Todo` models
  - Displayed the list in a `FutureBuilder`
 
@@ -45,22 +53,11 @@ We just:
 
 How was that possible?
 
-1. We annotated two models `User` and `Todo` with `@DataRepository`
-1. We made our models `extend DataSupport` (a mixin is also available)
+1. We annotated a `Todo` with `@DataRepository`
+1. We made our model `extend DataSupport` (a mixin is also available)
 1. We ran codegen: `flutter packages pub run build_runner build`
 
 ```dart
-@JsonSerializable()
-@DataRepository([StandardJSONAdapter, JSONPlaceholderAdapter])
-class User extends DataSupport<User> {
-  @override
-  final int id;
-  final String name;
-  final HasMany<Todo> todos;
-
-  User({ //... });
-}
-
 @JsonSerializable()
 @DataRepository([StandardJSONAdapter, JSONPlaceholderAdapter])
 class Todo extends DataSupport<Todo> {
@@ -68,20 +65,18 @@ class Todo extends DataSupport<Todo> {
   final int id;
   final String title;
   final bool completed;
-  final BelongsTo<User> user;
 
   Todo({ //... });
 }
 ```
 
-We now have a `UserRepository` and a `TodoRepository` that we can retrieve with Provider:
+We now have a `TodoRepository` that we can retrieve with Provider:
 
 ```dart
-final userRepository = context.read<Repository<User>>();
-final todoRepository = context.read<Repository<Todo>>();
+final repository = context.read<Repository<Todo>>();
 ```
 
-(We'll later see how we wired up Provider in literally one line of code.)
+(We'll later see how we wired up Provider in literally _one line of code_.)
 
 So where is the base URL `https://jsonplaceholder.typicode.com/` configured? 🤔
 
@@ -169,7 +164,7 @@ StreamBuilder<List<Todo>>(
 }
 ```
 
-**Want to see the real working app? https://github.com/flutterdata/flutter_data_todos**
+**Check out the working app: https://github.com/flutterdata/flutter_data_todos**
 
 ### ♻ Reloading
 
@@ -224,6 +219,29 @@ Done!
 
 Let's now slightly rethink our query. Instead of **"fetching all TO-DOs for user 1"** we are going to **"get user 1 with all their TO-DOs"**.
 
+First, we have to create the `User` model:
+
+```dart
+@JsonSerializable()
+@DataRepository([StandardJSONAdapter, JSONPlaceholderAdapter])
+class User extends DataSupport<User> {
+  @override
+  final int id;
+  final String name;
+  final HasMany<Todo> todos;
+
+  User({ //... });
+}
+```
+
+Remember to generate its repository:
+
+```
+flutter packages pub run build_runner build
+```
+
+And now `Repository<User>` is available. We are going to request the API to embed the linked `Todo` models:
+
 ```dart
 DataStateBuilder<User>(
   notifier: context.read<Repository<User>>().watchOne('1', params: {'_embed': 'todos'});
@@ -240,30 +258,19 @@ DataStateBuilder<User>(
 
 (snap)
 
-Relationships between models are automagically updated!
+Yep, relationships between models are automagically updated!
 
 They work even when data comes in at different times: when new models are loaded, relationships are automatically wired up.
 
-**Want to see the real working app? https://github.com/flutterdata/flutter_data_todos**
-
-# ☑ Overview
-
- - [Philosophy](#-philosophy)
- - [Installing and configuring](#-installing-and-configuring)
- - [API](#-api)
-   - [Repository API](#repository-api)
-   - [DataSupport and Relationships API](#datasupport-and-relationships-api)
- - [Cookbook/FAQ](#-cookbookfaq)
- - [Questions and collaborating](#-questions-and-collaborating)
- - [Apps using Flutter Data](#-apps-using-flutter-data)
- - [License](#-license)
-
+**Check out the working app: https://github.com/flutterdata/flutter_data_todos**
 
 ## 🌎 Philosophy
 
-> **"Simple should be easy, complex should be possible"**
+ - Developer experience is paramount
+ - Simple should be easy, complex should be possible
+ - Scales well both up and down
 
-In a nutshell, Flutter Data is:
+### Features
 
  - reactive architecture ⚡️
  - transparent API access and serialization 📩
@@ -272,23 +279,25 @@ In a nutshell, Flutter Data is:
  - extremely configurable and composable 🧱
  - with minimal boilerplate!
 
+### Compatibility
+
 Fully compatible with the tools we know and love:
 
 |                   | Compatible | Optional |
-|-------------------|------------|----------|
-| Flutter           |     ✅     |   Yes    |
-| Flutter Web       |     ✅(**) |   Yes    |
-| Pure Dart         |     ✅     |   No     |
-| json_serializable |     ✅     |   No     |
-| Firebase          |     ✅(*)  |   Yes    |
-| Firebase Auth     |     ✅(*)  |   Yes    |
-| REST API + JSON   |     ✅     |   Yes    |
-| JSON:API          |     ✅     |   Yes    |
-| Provider / Hooks  |     ✅     |   Yes    |
-| Streams / BLoC    |     ✅     |   Yes    |
-| Freezed           |     ✅     |   Yes    |
-| state_notifier    |     ✅     |   Yes    |
-| Hive              |     ✅     |   No     |
+| ----------------- | ---------- | -------- |
+| Flutter           | ✅          | Yes      |
+| Flutter Web       | ✅(**)      | Yes      |
+| Pure Dart         | ✅          | No       |
+| json_serializable | ✅          | No       |
+| Firebase          | ✅(*)       | Yes      |
+| Firebase Auth     | ✅(*)       | Yes      |
+| REST API + JSON   | ✅          | Yes      |
+| JSON:API          | ✅          | Yes      |
+| Provider / Hooks  | ✅          | Yes      |
+| Streams / BLoC    | ✅          | Yes      |
+| Freezed           | ✅          | Yes      |
+| state_notifier    | ✅          | Yes      |
+| Hive              | ✅          | No       |
 
 (*) **Firebase and other adapters are coming soon!**
 
@@ -552,7 +561,7 @@ print(family.house.value.families.first.surname);  // Kamchatka
 
 ## 👩‍🍳 Cookbook/FAQ
 
-#### Configuration: No Provider? No problem!
+### Configuration without Provider
 
 ```dart
 // main.dart
@@ -589,7 +598,7 @@ Any conforming type can be used:
  - a `get_it` locator
  - `context.read` from the Provider package
 
-#### Configuration: Don't even use Flutter?
+### Configuration for pure Dart projects (no Flutter)
 
 ```dart
 void main() async {
@@ -610,7 +619,7 @@ void main() async {
 }
 ```
 
-#### Adapter example: Headers
+### Adapter example: Headers
 
 ```dart
 mixin BaseAdapter<T extends DataSupportMixin<T>> on Repository<T> {
@@ -629,7 +638,7 @@ mixin BaseAdapter<T extends DataSupportMixin<T>> on Repository<T> {
 
 All `Repository` public methods like `findAll`, `save`, `serialize`, `deserialize`, ... are available.
 
-#### Adapter example: JWT authentication service
+### Adapter example: JWT authentication service
 
 ```dart
 mixin AuthAdapter<DataSupportMixin> on Repository<User> {
@@ -676,7 +685,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       },
 ```
 
-#### Adapter example: The stupid adapter
+### Adapter example: The stupid adapter
 
 Appends `zzz` to any ID:
 
@@ -692,34 +701,34 @@ mixin StupidAdapter<T extends DataSupportMixin<T>> on Repository<T> {
 }
 ```
 
-#### Can the HTTP client be overriden
+### Can the HTTP client be overriden
 
 Yes. Override `withHttpClient`.
 
-#### Does Flutter Data depend on Flutter?
+### Does Flutter Data depend on Flutter?
 
 No! Despite its name this library does not depend on Flutter at all.
 
 Here is a pure Dart example. Also see tests.
 
-#### Can i use it with Provider?
+### How do I get hold of Repositories with Provider?
 
-Yes! Remember to use `context.read<Repository<T>>()` (or `Provider.of<Repository<T>>(listen: false)) as repositories don't change.
+Remember to use `context.read<Repository<T>>()` (or `Provider.of<Repository<T>>(listen: false)) as repositories don't change.
 
-#### Offline support
+### Offline support
 
 See the provided offline adapter!
 
-#### Can I group adapter mixins into one?
+### Can I group adapter mixins into one?
 
 No. https://stackoverflow.com/questions/59248686/how-to-group-mixins-in-dart
 
-#### Where does Flutter Data generate code?
+### Where does Flutter Data generate code?
 
  - in `*.g.dart` files (part of your models)
  - in `main.data.dart` (as a library)
 
-#### Can I use mutable classes?
+### Can I use mutable classes?
 
 Immutable models are strongly recommended, equality is very important for things to work well. Use data classes like freezed or equality tools.
 
@@ -727,7 +736,7 @@ It is possible to use mutable classes such as `ChangeNotifier`s. However, `id` M
 
 Even then, it is recommended to have relationships (`BelongsTo`, `HasMany`) as final fields. If they are reassigned via a setter, the model MUST be manually reinitialized (`repository.syncRelationships(model)`) or relationship mappings WILL break.
 
-#### Why is model.save() not available?
+### Why is model.save() not available?
 
 `DataSupport` extensions are syntax sugar and will ONLY work when importing Flutter Data in the corresponding file:
 
@@ -735,26 +744,34 @@ Even then, it is recommended to have relationships (`BelongsTo`, `HasMany`) as f
 import 'package:flutter_data/flutter_data.dart';
 ```
 
-#### Local storage for long term persistence
+### Local storage for long term persistence
 
 tl;dr don't save anything critical (with Flutter Data) just yet
 
   - Flutter Data is in alpha state and therefore there are no guarantees: APIs WILL change, local formats WILL change (this is why `clear=true` by default, meaning that local storage will be wiped out when the app restarts)
   - Additionally, we are waiting until Hive 2 comes out
 
-#### Can only used id of type dynamic in Freezed?
+### Is it compatible with Freezed?
 
-You can use any type, but you have to parameterize it via `IdDataSupport`:
+Yes. Actually, Flutter Data's integration tests run off Freezed immutable models.
+
+Here's an example:
 
 ```dart
 @freezed
 @DataRepository([JSONAPIAdapter, BaseAdapter])
-abstract class Account extends IdDataSupport<String, Account> implements _$Account {
-  // ...
+abstract class City extends DataSupport<City> implements _$City {
+  City._();
+  factory City({dynamic id, String name}) = _City;
+  factory City.fromJson(Map<String, dynamic> json) => _$CityFromJson(json);
 }
 ```
 
-#### How can I declare the inverse relationship?
+If you need your ID to be of a specific type such as `String`, make it `extends IdDataSupport<String, City>` instead.
+
+`IdDataSupport` is not needed for classic immutable models.
+
+### How can I declare the inverse relationship?
 
 At the moment, the inverse relationship is looked up by type and it's not configurable. This will be fixed.
 
@@ -792,6 +809,13 @@ class Staff extends User<Staff> {
 }
 ```
 
+## 📲 Apps using Flutter Data
+
+![](docs/scout.png)
+
+The new offline-first [Scout](https://scoutforpets.com) Flutter app is being developed in record time with Flutter Data.
+
+<!-- omit in toc -->
 ## ➕ Questions and collaborating
 
 Please use Github to ask questions, open issues and send PRs. Thanks!
@@ -800,12 +824,7 @@ You can also hit me up on Twitter [@thefrank06](https://twitter.com/thefrank06)
 
 Tests can be run with: `pub run test`
 
-## 📲 Apps using Flutter Data
-
-![](docs/scout.png)
-
-The new offline-first [Scout](https://scoutforpets.com) Flutter app is being developed in record time with Flutter Data.
-
+<!-- omit in toc -->
 ## 📝 License
 
 See [LICENSE](https://github.com/flutterdata/flutter_data/blob/master/LICENSE).
