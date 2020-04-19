@@ -12,9 +12,9 @@ Trying to make this work smoothly with manual HTTP calls, json_serializable, Cho
 
 **What if you could achieve all this with minimal and clean code?**
 
-([Table of Contents? Click here ➡️](#-overview))
+[Table of Contents? Click here ➡️](#-overview)
 
-Let's get started with a simple example!
+Otherwise **let's get started with a simple example!**
 
 ### 🗒 Mini TO-DO list
 
@@ -94,15 +94,7 @@ mixin JSONPlaceholderAdapter<T extends DataSupport<T>> on StandardJSONAdapter<T>
 }
 ```
 
-Adapters (which are Dart mixins) are used to configure anything and everything! No need to pollute our models with a thousand annotations.
-
-We simply have to add them as parameters to `@DataRepository()`:
-
-```dart
-@DataRepository([StandardJSONAdapter, JSONPlaceholderAdapter]);
-```
-
-Our own `JSONPlaceholderAdapter` is _customizing_ the `StandardJSONAdapter` which ships with Flutter Data (notice `on StandardJSONAdapter<T>`). Order matters!  We'll see many more adapter examples in the [cookbook](#cookbook).
+For more info on adapters, see [Adapters](#-adapters).
 
 **Want to see the real working app? https://github.com/flutterdata/flutter_data_todos**
 
@@ -119,11 +111,11 @@ FloatingActionButton(
 
 Done!
 
-This triggered a `POST` HTTP request in the background to `https://jsonplaceholder.typicode.com/todos`
+This triggered a request in the background to `POST https://jsonplaceholder.typicode.com/todos`
 
 (snap)
 
-But... why isn't it in our list?!
+But... why isn't the new `Todo` in the list?!
 
 ### ⚡️ Reactivity to the rescue
 
@@ -256,11 +248,16 @@ They work even when data comes in at different times: when new models are loaded
 
 # ☑ Overview
 
-(toc here)
+ - [Philosophy](#-philosophy)
+ - [Installing and configuring](#-installing-and-configuring)
+ - [API](#-api)
+   - [Repository API](#repository-api)
+   - [DataSupport and Relationships API](#datasupport-and-relationships-api)
+ - [Cookbook/FAQ](#-cookbook-faq)
+ - [Questions and collaborating](#-questions-and-collaborating)
+ - [Apps using Flutter Data](#-apps-using-flutter-data)
+ - [License](#-license)
 
-![](docs/scout.png)
-
-The new offline-first [Scout](https://scoutforpets.com) Flutter app is being developed in record time with Flutter Data.
 
 ## ☯️ Philosophy
 
@@ -297,40 +294,210 @@ Fully compatible with the tools we know and love:
 
 (**) Needs testing but there's no reason why it shouldn't
 
+## 🔧 Installing and configuring
+
+Add `flutter_data` to your `pubspec.yaml` file:
+
+```yaml
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_data: ^0.3.1
+```
+
+Flutter Data ships with a `dataProviders` method that will configure all the necessary Providers.
+
+```dart
+// main.dart
+
+import 'package:flutter/material.dart';
+import 'package:flutter_data/flutter_data.dart';
+import 'package:provider/provider.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:todo_app/main.data.dart';
+
+void main() {
+  runApp(MultiProvider(
+    providers: [
+      ...dataProviders(getApplicationDocumentsDirectory),
+      // your providers here
+    ],
+    child: TodoApp(),
+  ));
+}
+
+class TodoApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    if (context.watch<DataManager>() == null) {
+      return Spinner();
+    }
+    // all Flutter Data providers are ready at this point
+    final repository = context.read<Repository<Todo>>();
+    return MaterialApp(
+// ...
+```
+
+Flutter Data auto-generated the `main.data.dart` library so everything is ready to for use.
+
+Not using Provider? Not using Flutter? No problem! The [cookbook](#-cookbook) explains how to configure Flutter Data in your app.
+
 ## 👩🏾‍💻 API
 
-### repo public api, extending with adapters; official docs soon
+### Repository API
+
+The Repository public API is shown below. Fully fledged documentation is coming soon!
 
 ```dart
 final repository = context.read<Repository<User>>();
 
-// returns a list of all users from the remote API
-List<User> users = await repository.findAll();
-
-// returns just one user by ID
-User user = await repository.findOne('34');
+// returns a list of all users
+Future<List<T>> findAll(
+      {bool remote = true,
+      Map<String, String> params,
+      Map<String, String> headers});
 
 // subscribe to updates (see the data_state package)
-DataStateNotifier<User> usersNotifier = repository.watchAll();
+DataStateNotifier<List<T>> watchAll(
+      {bool remote = true,
+      Map<String, String> params,
+      Map<String, String> headers});
 
-// alternatively can get a stream version of it (RxDart ValueStream)
-ValueStream<User> usersStream = repository.watchAll().stream;
+// .stream can be called on a DataStateNotifier for
+// obtaining a ValueStream
 
-// do you need to get updates for one model?
-// (yes, even updates in the local store)
+// returns just one user by ID
+Future<T> findOne(dynamic id,
+      {bool remote = true,
+      Map<String, String> params,
+      Map<String, String> headers})
 
-Widget build(BuildContext context) {
-  return StateNotifierBuilder<DataState<User>>(
-    stateNotifier: user.watch(),
-    builder: (context, state, _) {
-      if (state.hasModel) {
-        final user = state.model;
+DataStateNotifier<T> watchOne(dynamic id,
+      {bool remote = true,
+      Map<String, String> params,
+      Map<String, String> headers});
+
+// save
+Future<T> save(T model,
+      {bool remote = true,
+      Map<String, String> params = const {},
+      Map<String, String> headers});
+
+// delete
+Future<void> delete(dynamic id,
+      {bool remote = true,
+      Map<String, String> params,
+      Map<String, String> headers});
+
+// advanced usage
+void syncRelationships(T model);
+
+// http and serialization
+
+String baseUrl;
+
+Map<String, String> get headers => {};
+
+Duration get requestTimeout;
+
+Map<String, dynamic> serialize(T model);
+
+Iterable<Map<String, dynamic>> serializeCollection(Iterable<T> models) => models.map(serialize);
+
+T deserialize(dynamic object, {String key});
+
+Iterable<T> deserializeCollection(object);
+
+Future<R> withHttpClient<R>(OnRequest<R> onRequest);
+
+FutureOr<R> withResponse<R>(http.Response response, OnResponseSuccess<R> onSuccess);
 ```
 
-   - For example, Wordpress, Github or even a JWT auth adapters are easy to make.
-   - There are a million ways to extend capabilities through adapters. We'll get to that later.
+#### Adapters
+
+Flutter Data is extremely configurable and composable.
+
+The default `Repository` behavior can easily be customized via adapters (Dart mixins that `on Repository<T>`).
+
+A simple example would be:
+
+```dart
+mixin JSONPlaceholderAdapter<T extends DataSupport<T>> on StandardJSONAdapter<T> {
+  @override
+  String get baseUrl => 'https://jsonplaceholder.typicode.com/';
+}
+```
+
+We simply have to add adapters as parameters to `@DataRepository()`. No need to pollute our models with a thousand annotations!
+
+```dart
+@DataRepository([StandardJSONAdapter, JSONPlaceholderAdapter]);
+```
+
+Our own `JSONPlaceholderAdapter` is _customizing_ the `StandardJSONAdapter` which ships with Flutter Data (notice `on StandardJSONAdapter<T>` which in turn applies `on Repository<T>`). **Order matters!**
+
+There are three bundled adapters in Flutter Data that demonstrate how powerful this concept is:
+
+ - [StandardJSONAdapter](https://github.com/flutterdata/flutter_data/blob/master/lib/src/adapter/remote/standard_json_adapter.dart)
+ - [JSONAPIAdapter](https://github.com/flutterdata/flutter_data/blob/master/lib/src/adapter/remote/json_api_adapter.dart)
+ - [OfflineAdapter](https://github.com/flutterdata/flutter_data/blob/master/lib/src/adapter/remote/offline_adapter.dart)
+
+Adapters for Wordpress or Github REST access, or even a JWT authentication adapter are easy to make.
+
+There are many more adapter examples in the [cookbook](#cookbook).
  
-### datasupport<t>, mixin, fromjson required, relationships; is optional can just use repo
+### DataSupport and Relationships API
+
+```dart
+@JsonSerializable()
+@DataRepository([JSONAPIAdapter, BaseAdapter])
+class Appointment extends DataSupport<Appointment> {
+}
+```
+
+Extending `DataSupport` in your models gives access to handy extensions:
+
+```dart
+T init(Repository<T> repository, {String key, bool save = true});
+
+String get key;
+
+Future<T> save(
+    {bool remote = true,
+    Map<String, String> params = const {},
+    Map<String, String> headers});
+
+Future<void> delete(
+    {bool remote = true,
+    Map<String, String> params = const {},
+    Map<String, String> headers});
+
+Future<T> load(
+    {bool remote = true,
+    Map<String, String> params,
+    Map<String, String> headers});
+
+DataStateNotifier<T> watch(
+    {bool remote = true,
+    Map<String, String> params,
+    Map<String, String> headers});
+
+bool get isNew;
+```
+
+An alternative exists: `DataSupportMixin`, but model initialization MUST be done manually.
+
+Note that, for the time being, `fromJson` MUST be included in models:
+
+```dart
+@JsonSerializable()
+@DataRepository([JSONAPIAdapter, BaseAdapter])
+class Appointment extends DataSupport<Appointment> {
+  // ...
+  factory Appointment.fromJson(Map<String, dynamic> json) =>
+      _$AppointmentFromJson(json);
+}
+```
 
 #### Saving and deleting a model
 
@@ -373,51 +540,9 @@ final family = Family(
 print(family.house.value.families.first.surname);  // Kamchatka
 ```
 
-## 🔧 Installing and configuring
+## 👩‍🍳 Cookbook/FAQ
 
-Add `flutter_data` to your `pubspec.yaml` file:
-
-```yaml
-dependencies:
-  flutter:
-    sdk: flutter
-  flutter_data: ^0.3.1
-```
-
-Flutter Data ships with a `dataProviders` method that will configure all the necessary Providers.
-
-```dart
-import 'package:flutter/material.dart';
-import 'package:flutter_data/flutter_data.dart';
-import 'package:provider/provider.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:todo_app/main.data.dart';
-
-void main() {
-  runApp(MultiProvider(
-    providers: [
-      ...dataProviders(getApplicationDocumentsDirectory),
-      // your providers here
-    ],
-    child: TodoApp(),
-  ));
-}
-
-class TodoApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    if (context.watch<DataManager>() == null) {
-      return Spinner();
-    }
-    // all Flutter Data providers are ready at this point
-    final repository = context.read<Repository<Todo>>();
-    return MaterialApp(
-// ...
-```
-
-Flutter Data auto-generated the `main.data.dart` library so everything is ready to for use.
-
-#### No Provider? No problem!
+#### Configuration: No Provider? No problem!
 
 ```dart
 // main.dart
@@ -454,7 +579,7 @@ Any conforming type can be used:
  - a `get_it` locator
  - `context.read` from the Provider package
 
-#### Don't even use Flutter?
+#### Configuration: Don't even use Flutter?
 
 ```dart
 void main() async {
@@ -475,7 +600,7 @@ void main() async {
 }
 ```
 
-## 👩‍🍳 Cookbook
+#### Adapter examples
 
 Let's say we need extra headers in our requests:
 
@@ -561,8 +686,6 @@ And more, like:
 
  - replace the HTTP client
  - provide a completely new URL design
-
-## FAQ
 
 #### Does Flutter Data depend on Flutter?
 
@@ -667,6 +790,12 @@ Please use Github to ask questions, open issues and send PRs. Thanks!
 You can also hit me up on Twitter [@thefrank06](https://twitter.com/thefrank06)
 
 Tests can be run with: `pub run test`
+
+## 📲 Apps using Flutter Data
+
+![](docs/scout.png)
+
+The new offline-first [Scout](https://scoutforpets.com) Flutter app is being developed in record time with Flutter Data.
 
 ## 📝 License
 
