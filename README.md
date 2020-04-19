@@ -6,17 +6,17 @@
 
 [![tests](https://img.shields.io/github/workflow/status/flutterdata/flutter_data/test/master?label=tests&labelColor=333940&logo=github)](https://github.com/flutterdata/flutter_data/actions) [![pub.dev](https://img.shields.io/pub/v/flutter_data?label=pub.dev&labelColor=333940&logo=dart)](https://pub.dev/packages/flutter_data) [![license](https://img.shields.io/github/license/flutterdata/flutter_data?color=%23007A88&labelColor=333940&logo=mit)](https://github.com/flutterdata/flutter_data/blob/master/LICENSE)
 
-You're working on a Flutter app that interacts with a remote server. You want to retrieve data, serialize it, store it for offline and hook it up with your state management solution – all that for 20 interrelated entities in your app.
+**Working on a Flutter app that interacts with an API server?** You want to retrieve data, serialize it, store it for offline and hook it up with your state management solution – all that for 20 interrelated entities in your app.
 
-Trying to make this work smoothly with manual http calls, `json_serializable`, Chopper or Firebase, get_it, Provider and sychronizing data to Hive or SQLite feels... painful 😫.
+Trying to make this work smoothly with manual HTTP calls, json_serializable, Chopper or Firebase, get_it, Provider and sychronizing data to Hive or SQLite feels... painful 😫.
 
 **What if you could achieve all this with minimal and clean code?**
 
-Here's how:
+([Table of Contents? Click here ➡️](#-overview))
 
-([➡️ Or jump directly to the API Overview](#api-overview))
+Let's get started with a simple example!
 
-### 🗒 Mini TO-DO list example
+### 🗒 Mini TO-DO list
 
 Let's display [JSON Placeholder](https://jsonplaceholder.typicode.com/) _user 1_'s list of TO-DOs:
 
@@ -94,7 +94,9 @@ mixin JSONPlaceholderAdapter<T extends DataSupport<T>> on StandardJSONAdapter<T>
 }
 ```
 
-Adapters (which are Dart mixins) are used to configure anything and everything! We simply have to add them as parameters to our annotation.
+Adapters (which are Dart mixins) are used to configure anything and everything! No need to pollute our models with a thousand annotations.
+
+We simply have to add them as parameters to `@DataRepository()`:
 
 ```dart
 @DataRepository([StandardJSONAdapter, JSONPlaceholderAdapter]);
@@ -102,7 +104,7 @@ Adapters (which are Dart mixins) are used to configure anything and everything! 
 
 Our own `JSONPlaceholderAdapter` is _customizing_ the `StandardJSONAdapter` which ships with Flutter Data (notice `on StandardJSONAdapter<T>`). Order matters!  We'll see many more adapter examples in the [cookbook](#cookbook).
 
-Want to see the real working app? https://github.com/flutterdata/flutter_data_todos
+**Want to see the real working app? https://github.com/flutterdata/flutter_data_todos**
 
 ### ➕ Creating a new TO-DO
 
@@ -157,7 +159,7 @@ This new `Todo` appeared because `watchAll()` reflects the current **local stora
 
 For this reason, Flutter Data is considered an **offline-first** framework. Models are fetched from the network _in the background_ by default. (This strategy can be changed by overriding methods in a custom adapter!)
 
-**Prefer a Stream API?**
+#### ⛲️ Prefer a Stream API?
 
 No problem:
 
@@ -174,6 +176,8 @@ StreamBuilder<List<Todo>>(
   }
 }
 ```
+
+**Want to see the real working app? https://github.com/flutterdata/flutter_data_todos**
 
 ### ♻ Reloading
 
@@ -248,9 +252,19 @@ Relationships between models are automagically updated!
 
 They work even when data comes in at different times: when new models are loaded, relationships are automatically wired up.
 
+**Want to see the real working app? https://github.com/flutterdata/flutter_data_todos**
+
+# ☑ Overview
+
+(toc here)
+
+![](docs/scout.png)
+
+The new offline-first [Scout](https://scoutforpets.com) Flutter app is being developed in record time with Flutter Data.
+
 ## ☯️ Philosophy
 
-**"Simple should be easy, complex should be possible"**
+> **"Simple should be easy, complex should be possible"**
 
 In a nutshell, Flutter Data is:
 
@@ -266,6 +280,8 @@ Fully compatible with the tools we know and love:
 |                   | Compatible | Optional |
 |-------------------|------------|----------|
 | Flutter           |     ✅     |   Yes    |
+| Flutter Web       |     ✅(**) |   Yes    |
+| Pure Dart         |     ✅     |   No     |
 | json_serializable |     ✅     |   No     |
 | Firebase          |     ✅(*)  |   Yes    |
 | Firebase Auth     |     ✅(*)  |   Yes    |
@@ -276,13 +292,12 @@ Fully compatible with the tools we know and love:
 | Freezed           |     ✅     |   Yes    |
 | state_notifier    |     ✅     |   Yes    |
 | Hive              |     ✅     |   No     |
-| Pure Dart         |     ✅     |   No     |
 
 (*) **Firebase and other adapters are coming soon!**
 
-## 👩🏾‍💻 API overview
+(**) Needs testing but there's no reason why it shouldn't
 
-(toc here)
+## 👩🏾‍💻 API
 
 ### repo public api, extending with adapters; official docs soon
 
@@ -358,7 +373,16 @@ final family = Family(
 print(family.house.value.families.first.surname);  // Kamchatka
 ```
 
-## 🔧 Configuration
+## 🔧 Installing and configuring
+
+Add `flutter_data` to your `pubspec.yaml` file:
+
+```yaml
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_data: ^0.3.1
+```
 
 Flutter Data ships with a `dataProviders` method that will configure all the necessary Providers.
 
@@ -386,6 +410,7 @@ class TodoApp extends StatelessWidget {
       return Spinner();
     }
     // all Flutter Data providers are ready at this point
+    final repository = context.read<Repository<Todo>>();
     return MaterialApp(
 // ...
 ```
@@ -471,7 +496,7 @@ mixin BaseAdapter<T extends DataSupportMixin<T>> on Repository<T> {
 
 All `Repository` public methods like `findAll`, `save`, `serialize`, `deserialize`, ... are available.
 
-Let's make the stupid adapter, that appends `zzz` to any ID:
+Let's make the "stupid adapter", that appends `zzz` to any ID:
 
 ```dart
 mixin StupidAdapter<T extends DataSupportMixin<T>> on Repository<T> {
@@ -485,14 +510,12 @@ mixin StupidAdapter<T extends DataSupportMixin<T>> on Repository<T> {
 }
 ```
 
-Or how about a –much more useful– JWT auth service:
+Or how about a, much more useful, JWT auth service:
 
 ```dart
 mixin AuthAdapter<DataSupportMixin> on Repository<User> {
   Future<String> login(String email, String password) async {
-    final repository = this as Repository<User>;
-
-    final response = await repository.withHttpClient(
+    final response = await withHttpClient(
       (client) => client.post(
         '$baseUrl/token',
         body: _serializeCredentials(user, password),
@@ -513,18 +536,31 @@ Now this adapter can be configured and exposed *just* on the `User` model:
 @DataRepository([StandardJSONAdapter, BaseAdapter, AuthAdapter])
 class User extends DataSupport<User> {
   // ...
-
-  loginWithPassword(String password) {
-    return (repository as AuthAdapter).login(email, password);
-  }
 }
+```
+
+And use it in a widget or BLoC:
+
+```dart
+class AuthBloc extends Bloc<AuthEvent, AuthState> {
+  final Repository<User> _repository;
+  AuthBloc(this._repository);
+
+  @override
+  Stream<AuthState> mapEventToState(
+    AuthEvent event,
+  ) async* {
+    yield* event.map(
+      login: (e) async* {
+        final user = await (_repository as AuthAdapter).login(e.email, e.password);
+        yield AuthState(user);
+      },
 ```
 
 And more, like:
 
  - replace the HTTP client
  - provide a completely new URL design
-
 
 ## FAQ
 
@@ -555,9 +591,9 @@ No. https://stackoverflow.com/questions/59248686/how-to-group-mixins-in-dart
 
 Immutable models are strongly recommended, equality is very important for things to work well. Use data classes like freezed or equality tools.
 
-It is possible to use mutable classes such as `ChangeNotifier`s.
+It is possible to use mutable classes such as `ChangeNotifier`s. However, `id` MUST be a `final` field or at least not have a setter.
 
-Even then, it is recommended to have relationships (`BelongsTo`, `HasMany`) as final fields. If they are reassigned via a setter, the model MUST be manually reinitialized (`model.init()`) or relationship mappings WILL break.
+Even then, it is recommended to have relationships (`BelongsTo`, `HasMany`) as final fields. If they are reassigned via a setter, the model MUST be manually reinitialized (`repository.syncRelationships(model)`) or relationship mappings WILL break.
 
 #### Why is model.save() not available?
 
