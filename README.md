@@ -94,7 +94,7 @@ mixin JSONPlaceholderAdapter<T extends DataSupport<T>> on StandardJSONAdapter<T>
 }
 ```
 
-For more info on adapters, see [Adapters](#-adapters).
+For more info on adapters, see [Adapters](#adapters).
 
 **Want to see the real working app? https://github.com/flutterdata/flutter_data_todos**
 
@@ -253,13 +253,13 @@ They work even when data comes in at different times: when new models are loaded
  - [API](#-api)
    - [Repository API](#repository-api)
    - [DataSupport and Relationships API](#datasupport-and-relationships-api)
- - [Cookbook/FAQ](#-cookbook-faq)
+ - [Cookbook/FAQ](#-cookbookfaq)
  - [Questions and collaborating](#-questions-and-collaborating)
  - [Apps using Flutter Data](#-apps-using-flutter-data)
  - [License](#-license)
 
 
-## ☯️ Philosophy
+## 🌎 Philosophy
 
 > **"Simple should be easy, complex should be possible"**
 
@@ -340,7 +340,7 @@ class TodoApp extends StatelessWidget {
 
 Flutter Data auto-generated the `main.data.dart` library so everything is ready to for use.
 
-Not using Provider? Not using Flutter? No problem! The [cookbook](#-cookbook) explains how to configure Flutter Data in your app.
+Not using Provider? Not using Flutter? No problem! The [cookbook](#-cookbookfaq) explains how to configure Flutter Data in your app.
 
 ## 👩🏾‍💻 API
 
@@ -349,8 +349,6 @@ Not using Provider? Not using Flutter? No problem! The [cookbook](#-cookbook) ex
 The Repository public API is shown below. Fully fledged documentation is coming soon!
 
 ```dart
-final repository = context.read<Repository<User>>();
-
 // returns a list of all users
 Future<List<T>> findAll(
       {bool remote = true,
@@ -396,6 +394,8 @@ void syncRelationships(T model);
 
 String baseUrl;
 
+UrlDesign get urlDesign;
+
 Map<String, String> get headers => {};
 
 Duration get requestTimeout;
@@ -417,7 +417,7 @@ FutureOr<R> withResponse<R>(http.Response response, OnResponseSuccess<R> onSucce
 
 Flutter Data is extremely configurable and composable.
 
-The default `Repository` behavior can easily be customized via adapters (Dart mixins that `on Repository<T>`).
+The default `Repository` behavior can easily be customized via adapters (Dart mixins `on Repository<T>`).
 
 A simple example would be:
 
@@ -442,9 +442,11 @@ There are three bundled adapters in Flutter Data that demonstrate how powerful t
  - [JSONAPIAdapter](https://github.com/flutterdata/flutter_data/blob/master/lib/src/adapter/remote/json_api_adapter.dart)
  - [OfflineAdapter](https://github.com/flutterdata/flutter_data/blob/master/lib/src/adapter/remote/offline_adapter.dart)
 
-Adapters for Wordpress or Github REST access, or even a JWT authentication adapter are easy to make.
+Of course, these all can be combined!
 
-There are many more adapter examples in the [cookbook](#cookbook).
+Adapters for Wordpress or Github REST access, or even a [JWT authentication adapter](#adapter-example-jwt-authentication-service) are easy to build.
+
+There are many more adapter examples in the [cookbook](#cookbookfaq).
  
 ### DataSupport and Relationships API
 
@@ -458,8 +460,6 @@ class Appointment extends DataSupport<Appointment> {
 Extending `DataSupport` in your models gives access to handy extensions:
 
 ```dart
-T init(Repository<T> repository, {String key, bool save = true});
-
 String get key;
 
 Future<T> save(
@@ -485,7 +485,11 @@ DataStateNotifier<T> watch(
 bool get isNew;
 ```
 
-An alternative exists: `DataSupportMixin`, but model initialization MUST be done manually.
+An alternative exists: `DataSupportMixin`, but model initialization MUST be done manually. For example:
+
+```dart
+final post = Post(title: 'new post').init();
+```
 
 Note that, for the time being, `fromJson` MUST be included in models:
 
@@ -600,9 +604,7 @@ void main() async {
 }
 ```
 
-#### Adapter examples
-
-Let's say we need extra headers in our requests:
+#### Adapter example: Headers
 
 ```dart
 mixin BaseAdapter<T extends DataSupportMixin<T>> on Repository<T> {
@@ -621,21 +623,7 @@ mixin BaseAdapter<T extends DataSupportMixin<T>> on Repository<T> {
 
 All `Repository` public methods like `findAll`, `save`, `serialize`, `deserialize`, ... are available.
 
-Let's make the "stupid adapter", that appends `zzz` to any ID:
-
-```dart
-mixin StupidAdapter<T extends DataSupportMixin<T>> on Repository<T> {
-  @override
-  Future<T> findOne(String id,
-      {bool remote = true,
-      Map<String, String> params,
-      Map<String, String> headers}) {
-        return super.findOne('${id}zzz', remote: remote, params: params, headers: headers);
-      }
-}
-```
-
-Or how about a, much more useful, JWT auth service:
+#### Adapter example: JWT authentication service
 
 ```dart
 mixin AuthAdapter<DataSupportMixin> on Repository<User> {
@@ -682,10 +670,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       },
 ```
 
-And more, like:
+#### Adapter example: The stupid adapter
 
- - replace the HTTP client
- - provide a completely new URL design
+Appends `zzz` to any ID:
+
+```dart
+mixin StupidAdapter<T extends DataSupportMixin<T>> on Repository<T> {
+  @override
+  Future<T> findOne(String id,
+      {bool remote = true,
+      Map<String, String> params,
+      Map<String, String> headers}) {
+        return super.findOne('${id}zzz', remote: remote, params: params, headers: headers);
+      }
+}
+```
+
+#### Can the HTTP client be overriden
+
+Yes. Override `withHttpClient`.
 
 #### Does Flutter Data depend on Flutter?
 
