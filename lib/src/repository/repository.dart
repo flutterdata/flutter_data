@@ -21,8 +21,6 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   Map<String, String> get headers => {};
 
-  Duration get requestTimeout => Duration(seconds: 8);
-
   //
 
   Map<String, dynamic> get relationshipMetadata;
@@ -267,9 +265,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   Future<R> withHttpClient<R>(OnRequest<R> onRequest) async {
     final client = http.Client();
     try {
-      return await onRequest(client).timeout(requestTimeout);
-    } on TimeoutException catch (e) {
-      throw DataException(e);
+      return await onRequest(client);
     } finally {
       client.close();
     }
