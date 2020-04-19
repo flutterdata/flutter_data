@@ -34,12 +34,19 @@ FutureBuilder<List<Todo>>(
     return ListView.builder(
       itemBuilder: (context, i) {
         final todo = snapshot.data[i];
+        // Text or other more complex widget
         return Text('TO-DO: ${todo.title}'),
       },
     );
   }
 }
 ```
+
+Result:
+
+![](docs/10-user.png)
+
+(This is a snapshot of the **final version of the app**: https://github.com/flutterdata/flutter_data_todos !)
 
 We just:
 
@@ -48,13 +55,11 @@ We just:
  - Deserialized JSON data into a list of `Todo` models
  - Displayed the list in a `FutureBuilder`
 
-(snap)
-
-How was that possible?
+How was all that possible?
 
 1. We annotated a `Todo` with `@DataRepository`
-1. We made our model `extend DataSupport` (a mixin is also available)
-1. We ran codegen: `flutter packages pub run build_runner build`
+2. We made our model `extend DataSupport` (a mixin is also available)
+3. We ran codegen: `flutter packages pub run build_runner build`
 
 ```dart
 @JsonSerializable()
@@ -90,8 +95,6 @@ mixin JSONPlaceholderAdapter<T extends DataSupport<T>> on StandardJSONAdapter<T>
 
 For more info on adapters, see [Adapters](#adapters).
 
-**Want to see the real working app? https://github.com/flutterdata/flutter_data_todos**
-
 ### ➕ Creating a new TO-DO
 
 We instantiate a new `Todo` model with a totally random title and save it:
@@ -105,11 +108,9 @@ FloatingActionButton(
 
 Done!
 
-This triggered a request in the background to `POST https://jsonplaceholder.typicode.com/todos`
+This sent a request in background to `POST https://jsonplaceholder.typicode.com/todos`
 
-(snap)
-
-But... why isn't the new `Todo` in the list?!
+But... why can't we see this new `Todo` in the list?!
 
 ### ⚡️ Reactivity to the rescue
 
@@ -119,7 +120,7 @@ The solution is making the list reactive – i.e. using `watchAll()`:
 
 ```dart
 DataStateBuilder<List<Todo>>(
-  notifier: context.read<Repository<Todo>>().watchAll(params: {'userId': '1'});
+  notifier: context.read<Repository<Todo>>().watchAll(params: {'userId': '1', '_limit': '5'});
   builder: (context, state, _) {
     return ListView.builder(
       itemBuilder: (context, i) {
@@ -133,17 +134,29 @@ DataStateBuilder<List<Todo>>(
 }
 ```
 
-We'll use `DataStreamBuilder` to access the state objects that carry our `Todo` models.
+We'll use [`DataStreamBuilder`](https://pub.dev/packages/flutter_data_state) to access the state objects that carry our `Todo` models. It behaves pretty much like a `ValueListenableBuilder`.
 
-Creating a new TO-DO _will_ now show up!
+Add `flutter_data_state` to your `pubspec.yaml` and run `flutter pub get` again.
 
-(snap)
+Done? **Restart** the app (no hot-reload this time).
+
+Creating a new TO-DO _will_ now show up:
+
+![](docs/02a.png)
+
+Before, with an `id=null` (temporary model which hasn't been persisted)
+
+![](docs/02b.png)
+
+After, with an `id=201` that was assigned by the API server.
+
+Notice that we passed a `_limit=5` query param, so we only got 5 items!
 
 Under the hood, we are using the [`data_state`](https://pub.dev/packages/data_state) package which essentially is a [`StateNotifier`](https://pub.dev/packages/state_notifier). In other words, a "Flutter-free ValueNotifier" that emits immutable `DataState` objects.
 
 This new `Todo` appeared because `watchAll()` reflects the current **local storage** state. As a matter of fact, JSON Placeholder does not actually save anything.
 
-For this reason, Flutter Data is considered an **offline-first** framework. Models are fetched from the network _in the background_ by default. (This strategy can be changed by overriding methods in a custom adapter!)
+Models are fetched from the network _in the background_ by default. (This strategy can be changed by overriding methods in a custom adapter!)
 
 #### ⛲️ Prefer a Stream API?
 
@@ -151,7 +164,7 @@ No problem:
 
 ```dart
 StreamBuilder<List<Todo>>(
-  notifier: context.read<Repository<Todo>>().watchAll(params: {'userId': '1'}).stream;
+  notifier: context.read<Repository<Todo>>().watchAll(params: {'userId': '1', '_limit': '5'}).stream;
   builder: (context, snapshot) {
     return ListView.builder(
       itemBuilder: (context, i) {
@@ -163,56 +176,71 @@ StreamBuilder<List<Todo>>(
 }
 ```
 
-**Check out the working app: https://github.com/flutterdata/flutter_data_todos**
+**Check out the fully working app: https://github.com/flutterdata/flutter_data_todos**
 
 ### ♻ Reloading
 
 For a minute, let's change that floating action button to _overwrite_ one of our TO-DOs. For example, `Todo` with id=1.
 
+And now **Refresh** the app (no hot-reload for now).
+
 ```dart
 FloatingActionButton(
   onPressed: () {
-    Todo(id: 1, title: "OVERWRITING TASK!").save();
+    Todo(id: 1, title: "OVERWRITING TASK!", completed: true).save();
   },
 ```
 
-Tip: To locate TO-DOs more easily, limit the amount to 5 items with the `_limit` query param:
+If we click on the `+` button we get:
+
+![](docs/03.png)
+
+As discussed before, JSON Placeholder does not persist any data. We'll verify that claim by reloading our data with a `RefreshIndicator` and the very handy `DataStateNotifier#reload()`!
 
 ```dart
-notifier: context.read<Repository<Todo>>().watchAll(params: {'userId': '1', '_limit': '5'});
-```
-
-(snap)
-
-As discussed before, JSON Placeholder does not persist any data. We'll verify that claim by reloading our data with a "pull-to-refresh" library – and the very handy `DataStateNotifier#reload()`!
-
-```dart
-EasyRefresh.builder(
-  controller: _refreshController,
+RefreshIndicator(
   onRefresh: () async {
     await notifier.reload();
-    _refreshController.finishRefresh();
   },
 ```
 
-(snap)
+![](docs/04a.png)
 
-And all `Todo`s have been reset!
+And the state of `Todo` with `id=1` has been reset!
+
+![](docs/04b.png)
 
 
 ### ⛔️ Deleting a TO-DO
 
 There's stuff "User 1" just doesn't want to do!
 
-(snap)
+We can delete a `Todo` on dismiss:
 
 ```dart
-onDelete: (model) {
-  model.delete();
+onDismissed: (_) async {
+  await todo.delete();
 },
 ```
 
+![](docs/05a.png)
+
 Done! (well, not really "done" 😄)
+
+![](docs/05b.png)
+
+### ✅ Marking as done!
+
+If we add a `GestureDetector` to our list's tiles, we can easily toggle the `done` state:
+
+```dart
+GestureDetector(
+  onDoubleTap: () => todo.copyWith(completed: !todo.completed).save(),
+```
+
+![](docs/06.png)
+
+All tasks done!
 
 ### 🎎 Relationships
 
@@ -255,7 +283,7 @@ DataStateBuilder<User>(
 }
 ```
 
-(snap)
+![](docs/01.png)
 
 Yep, relationships between models are automagically updated!
 
@@ -401,9 +429,6 @@ Future<void> delete(dynamic id,
       Map<String, String> params,
       Map<String, String> headers});
 
-// advanced usage
-void syncRelationships(T model);
-
 // http and serialization
 
 String baseUrl;
@@ -411,8 +436,6 @@ String baseUrl;
 UrlDesign get urlDesign;
 
 Map<String, String> get headers => {};
-
-Duration get requestTimeout;
 
 Map<String, dynamic> serialize(T model);
 
@@ -620,7 +643,7 @@ void main() async {
 
 ### Is it compatible with Freezed?
 
-Yes. Actually, Flutter Data's integration tests run off Freezed immutable models.
+Yes. Actually, Flutter Data's integration tests (and the TO-DOs example app) run off Freezed immutable models.
 
 Here's an example:
 
