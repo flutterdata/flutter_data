@@ -7,8 +7,7 @@
 [![tests](https://img.shields.io/github/workflow/status/flutterdata/flutter_data/test/master?label=tests&labelColor=333940&logo=github)](https://github.com/flutterdata/flutter_data/actions) [![pub.dev](https://img.shields.io/pub/v/flutter_data?label=pub.dev&labelColor=333940&logo=dart)](https://pub.dev/packages/flutter_data) [![license](https://img.shields.io/github/license/flutterdata/flutter_data?color=%23007A88&labelColor=333940&logo=mit)](https://github.com/flutterdata/flutter_data/blob/master/LICENSE)
 
 <!-- keep leading space to prevent re-generate toc -->
--  [🗒 TO-DO example](#-mini-to-do-list-example)
-- [🌎 Philosophy](#-philosophy)
+-  [🌎 Philosophy](#-philosophy)
 - [🔧 Installing and configuring](#-installing-and-configuring)
 - [👩🏾‍💻 API](#-api)
   - [Repository API](#repository-api)
@@ -16,9 +15,7 @@
 - [👩‍🍳 Cookbook/FAQ](#-cookbookfaq)
 - [📲 Apps using Flutter Data](#-apps-using-flutter-data)
 
-----
-
-## Working on a Flutter app that talks to an API server?
+### Working on a Flutter app that talks to an API server?
 
 You want to retrieve data, serialize it, store it for offline use and hook it up with your state management solution – all that for 20 interconnected entities in your app.
 
@@ -707,19 +704,41 @@ mixin StupidAdapter<T extends DataSupportMixin<T>> on Repository<T> {
 
 Yes. Override `withHttpClient`.
 
+Example:
+
+```dart
+mixin HttpProxyAdapter<T extends DataSupportMixin<T>> on Repository<T> {
+  final _httpClient = HttpClient();
+  IOClient _ioClient;
+
+  @override
+  Future<T> withHttpClient<T>(fn) {
+    _httpClient.findProxy = (uri) => "PROXY http://proxy.url";
+    _ioClient = IOClient(_httpClient);
+    return fn(_ioClient);
+  }
+
+  @override
+  Future<void> dispose() {
+    _ioClient.close();
+    return super.dispose();
+  }
+}
+```
+
 ### Does Flutter Data depend on Flutter?
 
 No! Despite its name this library does not depend on Flutter at all.
 
-Here is a pure Dart example. Also see tests.
+See the `example` folder for an, uh, example.
 
 ### How do I get hold of Repositories with Provider?
 
-Remember to use `context.read<Repository<T>>()` (or `Provider.of<Repository<T>>(listen: false)) as repositories don't change.
+Remember to use `context.read<Repository<T>>()` (or `Provider.of<Repository<T>>(listen: false)`) as repositories don't change.
 
 ### Offline support
 
-See the provided offline adapter!
+Use or extend the provided [offline adapter](https://github.com/flutterdata/flutter_data/blob/master/lib/src/adapter/remote/offline_adapter.dart).
 
 ### Can I group adapter mixins into one?
 
@@ -734,7 +753,7 @@ No. https://stackoverflow.com/questions/59248686/how-to-group-mixins-in-dart
 
 Immutable models are strongly recommended, equality is very important for things to work well. Use data classes like freezed or equality tools.
 
-It is possible to use mutable classes such as `ChangeNotifier`s. However, `id` MUST be a `final` field or at least not have a setter.
+It is possible to use mutable classes such as `ChangeNotifier`s. However, `id` MUST be a `final` field (or at least not have a setter).
 
 Even then, it is recommended to have relationships (`BelongsTo`, `HasMany`) as final fields. If they are reassigned via a setter, the model MUST be manually reinitialized (`repository.syncRelationships(model)`) or relationship mappings WILL break.
 
