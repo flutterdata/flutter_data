@@ -29,12 +29,6 @@ extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
         remote: remote, params: params, headers: headers);
   }
 
-  void saveLocal() {
-    _assertRepo();
-    _repository.save(_this, remote: false);
-    return;
-  }
-
   Future<void> delete(
       {bool remote = true,
       Map<String, String> params = const {},
