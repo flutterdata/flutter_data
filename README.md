@@ -305,7 +305,15 @@ dependencies:
   flutter_data: ^0.3.1
 ```
 
-Flutter Data ships with a `dataProviders` method that will configure all the necessary Providers.
+Annotate your models with `@DataRepository()` and the corresponding mixins.
+
+Then, trigger a build:
+
+```
+flutter packages pub run build_runner build
+```
+
+Flutter Data auto-generated the `main.data.dart` library so everything is ready for use. It makes the `dataProviders` method available, which will configure all the necessary Providers.
 
 ```dart
 // main.dart
@@ -337,8 +345,6 @@ class TodoApp extends StatelessWidget {
     return MaterialApp(
 // ...
 ```
-
-Flutter Data auto-generated the `main.data.dart` library so everything is ready to for use.
 
 Not using Provider? Not using Flutter? No problem! The [cookbook](#-cookbookfaq) explains how to configure Flutter Data in your app.
 
