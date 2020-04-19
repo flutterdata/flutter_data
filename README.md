@@ -212,7 +212,7 @@ onDelete: (model) {
 },
 ```
 
-Done!
+Done! (well, not really "done" 😄)
 
 ### 🎎 Relationships
 
@@ -618,6 +618,26 @@ void main() async {
 }
 ```
 
+### Is it compatible with Freezed?
+
+Yes. Actually, Flutter Data's integration tests run off Freezed immutable models.
+
+Here's an example:
+
+```dart
+@freezed
+@DataRepository([JSONAPIAdapter, BaseAdapter])
+abstract class City extends DataSupport<City> implements _$City {
+  City._();
+  factory City({dynamic id, String name}) = _City;
+  factory City.fromJson(Map<String, dynamic> json) => _$CityFromJson(json);
+}
+```
+
+If you need your ID to be of a specific type such as `String`, make it `extends IdDataSupport<String, City>` instead.
+
+`IdDataSupport` is not needed for classic immutable models.
+
 ### Adapter example: Headers
 
 ```dart
@@ -700,7 +720,7 @@ mixin StupidAdapter<T extends DataSupportMixin<T>> on Repository<T> {
 }
 ```
 
-### Can the HTTP client be overriden
+### Can the HTTP client be overriden?
 
 Yes. Override `withHttpClient`.
 
@@ -771,26 +791,6 @@ tl;dr don't save anything critical (with Flutter Data) just yet
 
   - Flutter Data is in alpha state and therefore there are no guarantees: APIs WILL change, local formats WILL change (this is why `clear=true` by default, meaning that local storage will be wiped out when the app restarts)
   - Additionally, we are waiting until Hive 2 comes out
-
-### Is it compatible with Freezed?
-
-Yes. Actually, Flutter Data's integration tests run off Freezed immutable models.
-
-Here's an example:
-
-```dart
-@freezed
-@DataRepository([JSONAPIAdapter, BaseAdapter])
-abstract class City extends DataSupport<City> implements _$City {
-  City._();
-  factory City({dynamic id, String name}) = _City;
-  factory City.fromJson(Map<String, dynamic> json) => _$CityFromJson(json);
-}
-```
-
-If you need your ID to be of a specific type such as `String`, make it `extends IdDataSupport<String, City>` instead.
-
-`IdDataSupport` is not needed for classic immutable models.
 
 ### How can I declare the inverse relationship?
 

@@ -218,7 +218,6 @@ class DataExtensionBuilder implements Builder {
         await b.readAsString(file)
     ];
 
-    print(_classes.length);
     final classes = _classes.fold<List<Map<String, String>>>([], (acc, line) {
       for (var e in line.split(',')) {
         var parts = e.split('#');
