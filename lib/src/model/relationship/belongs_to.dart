@@ -26,7 +26,7 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E> {
 
   // ownership & init
 
-  initializeModel() {
+  void initializeModel() {
     if (_manager != null && _uninitializedModel != null) {
       value = _uninitializedModel;
       _uninitializedModel = null;
@@ -67,7 +67,7 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E> {
   int get hashCode => runtimeType.hashCode ^ dataId.hashCode;
 
   @override
-  toJson() => key;
+  dynamic toJson() => key;
 
   @override
   String toString() => 'BelongsTo<$E>(${dataId?.id})';

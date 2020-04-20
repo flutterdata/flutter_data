@@ -12,7 +12,7 @@ void main() async {
   test('constructor', () {
     var manager = injection.locator<DataManager>();
     var repo = injection.locator<Repository<Person>>();
-    var person = Person(id: '1', name: "zzz", age: 7).init(repo);
+    var person = Person(id: '1', name: 'zzz', age: 7).init(repo);
 
     var rel = HasMany<Person>([], manager);
     expect(rel.length, 0);
@@ -27,11 +27,11 @@ void main() async {
     var adapter = injection.locator<Repository<Person>>().localAdapter;
     var manager = repo.manager;
 
-    var marty = {'id': '71', 'name': "Marty", 'age': 52};
-    var wendy = {'id': '72', 'name': "Wendy", 'age': 54};
+    var marty = {'id': '71', 'name': 'Marty', 'age': 52};
+    var wendy = {'id': '72', 'name': 'Wendy', 'age': 54};
 
     var familyJson = {
-      'surname': "Byrde",
+      'surname': 'Byrde',
       'persons': [marty, wendy]
     };
 
@@ -51,7 +51,7 @@ void main() async {
         manager
       ]
     });
-    var person = Person(id: '1', name: "zzz", age: 7).init(repo);
+    var person = Person(id: '1', name: 'zzz', age: 7).init(repo);
 
     expect(rel, HasMany<Person>([person], manager));
     expect(rel.first, person);
@@ -62,8 +62,8 @@ void main() async {
     var familyRepo = injection.locator<Repository<Family>>();
     var personRepo = injection.locator<Repository<Person>>();
 
-    var family = Family(surname: "Toraine").init(familyRepo);
-    var person = Person(name: "Claire", age: 31).init(personRepo);
+    var family = Family(surname: 'Toraine').init(familyRepo);
+    var person = Person(name: 'Claire', age: 31).init(personRepo);
     family.persons = HasMany<Person>([person], personRepo.manager);
 
     expect(family.persons.first.key, person.key);

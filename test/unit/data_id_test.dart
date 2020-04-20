@@ -64,12 +64,12 @@ void main() async {
 
   test('equals', () {
     final manager = TestDataManager(null);
-    expect(manager.dataId<Person>("1"), manager.dataId<Person>("1"));
+    expect(manager.dataId<Person>('1'), manager.dataId<Person>('1'));
   });
 
   test('not equals', () {
     final manager = TestDataManager(null);
-    expect(manager.dataId<Person>("1"), isNot(manager.dataId<Family>("1")));
+    expect(manager.dataId<Person>('1'), isNot(manager.dataId<Family>('1')));
   });
 
   test('two models without id should get different keys', () {

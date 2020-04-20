@@ -17,8 +17,8 @@ void main() async {
     final manager = await FlutterData.init(_dir);
     final locator = manager.locator;
 
-    Repository<User> usersRepo = locator<Repository<User>>();
-    Repository<Post> postsRepo = locator<Repository<Post>>();
+    final usersRepo = locator<Repository<User>>();
+    final postsRepo = locator<Repository<Post>>();
     User user;
 
     try {

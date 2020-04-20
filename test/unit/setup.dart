@@ -14,8 +14,8 @@ import 'models/pet.dart';
 class HiveMock extends Mock implements HiveInterface {}
 
 class FakeBox<T> extends Fake implements Box<T> {
-  var _map = <String, T>{};
-  BehaviorSubject<T> _subject = BehaviorSubject<T>();
+  final _map = <String, T>{};
+  final _subject = BehaviorSubject<T>();
 
   @override
   T get(key, {T defaultValue}) {
@@ -67,8 +67,10 @@ class FakeBox<T> extends Fake implements Box<T> {
 
 class TestDataManager extends DataManager {
   TestDataManager(this.locator) : super.delegate();
+  @override
   final Locator locator;
-  final Box<String> keysBox = FakeBox<String>();
+  @override
+  final keysBox = FakeBox<String>();
 
   @override
   Future<DataManager> init(FutureOr<Directory> baseDir, Locator locator,

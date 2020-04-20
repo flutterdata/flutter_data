@@ -13,7 +13,7 @@ void main() async {
 
   test('throws if not initialized', () {
     expect(() {
-      return Family(surname: "Willis").save();
+      return Family(surname: 'Willis').save();
     }, throwsA(isA<AssertionError>()));
   });
 
@@ -24,7 +24,7 @@ void main() async {
     var repository = injection.locator<Repository<Person>>();
 
     // id-less person
-    var p1 = Person(name: "Frank", age: 20).init(repository);
+    var p1 = Person(name: 'Frank', age: 20).init(repository);
     expect(repository.localAdapter.keys, contains(p1.key));
 
     // person with new id, reusing existing key
@@ -71,8 +71,8 @@ void main() async {
     ];
     var houseDataId = personRepo.manager.dataId<House>('98');
     var family = Family(
-      id: "1",
-      surname: "Jones",
+      id: '1',
+      surname: 'Jones',
       persons: HasMany.fromJson({
         '_': [personDataIds.map((d) => d.key).toList(), personRepo.manager]
       }),
@@ -99,7 +99,7 @@ void main() async {
     expect(family.persons[2].age, 3);
 
     // (5) load family and assert it exists now
-    var house = House(id: '98', address: "21 Coconut Trail").init(houseRepo);
+    var house = House(id: '98', address: '21 Coconut Trail').init(houseRepo);
     // TODO should pass here too
     // expect(house.families, contains(family));
     expect(family.house.value.address, endsWith('Trail'));
@@ -130,12 +130,12 @@ void main() async {
 
     var f3 = Family(
             surname: 'Kamchatka',
-            house: House(address: "Sakharova Prospekt, 19").asBelongsTo)
+            house: House(address: 'Sakharova Prospekt, 19').asBelongsTo)
         .init(repository);
     expect(f3.house.value.families.first.surname, 'Kamchatka');
 
     var f4 = Family(surname: 'Kamchatka', house: BelongsTo()).init(repository);
-    f4.house.value = House(address: "Sakharova Prospekt, 19");
+    f4.house.value = House(address: 'Sakharova Prospekt, 19');
     expect(f4.house.value.families.first.surname, 'Kamchatka');
   });
 }

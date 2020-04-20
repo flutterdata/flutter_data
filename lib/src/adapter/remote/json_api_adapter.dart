@@ -4,7 +4,7 @@ import 'package:json_api/document.dart' as j show Relationship;
 
 mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on Repository<T> {
   @override
-  get headers => super.headers
+  Map<String, String> get headers => super.headers
     ..addAll({
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
@@ -51,7 +51,7 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on Repository<T> {
   }
 
   @override
-  deserializeCollection(object) {
+  Iterable<T> deserializeCollection(object) {
     final doc = Document.fromJson(object, ResourceCollectionData.fromJson);
     final tuples = doc.data.collection.map((obj) => [obj, doc.data.included]);
     return super.deserializeCollection(tuples);
@@ -60,7 +60,7 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on Repository<T> {
   // Transforms JSON:API into native format
   @override
   T deserialize(object, {key}) {
-    Map<String, dynamic> nativeMap = {};
+    final nativeMap = <String, dynamic>{};
     final included = <ResourceObject>[];
     ResourceObject obj;
 

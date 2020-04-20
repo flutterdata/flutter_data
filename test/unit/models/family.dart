@@ -30,6 +30,9 @@ class Family with DataSupportMixin<Family> {
   factory Family.fromJson(Map<String, dynamic> json) => _$FamilyFromJson(json);
   Map<String, dynamic> toJson() => _$FamilyToJson(this);
 
+  @override
   bool operator ==(o) => o is Family && surname == o.surname;
+
+  @override
   int get hashCode => runtimeType.hashCode ^ surname.hashCode;
 }

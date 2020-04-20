@@ -1,13 +1,13 @@
 name: flutter_data
 description: >
-  A pragmatic tool to build data-driven Flutter apps
-  with minimal boilerplate, based on the Active Record pattern.
-version: 0.3.1
+  A tool to build data-driven Flutter apps
+  with minimal boilerplate
+version: 0.3.2
 homepage: https://github.com/flutterdata/flutter_data
 documentation: https://flutterdata.dev/
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
+  sdk: ">=2.7.1 <3.0.0"
 
 dependencies:
   source_gen: ^0.9.0
@@ -20,7 +20,6 @@ dependencies:
   json_api: ^3.2.3
   recase: ^3.0.0
   debounce_throttle: ^1.1.0
-  rxdart: ^0.23.1
   data_state: ^0.2.4
   async: ^2.4.0
 

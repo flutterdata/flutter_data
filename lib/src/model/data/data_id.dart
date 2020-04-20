@@ -13,6 +13,7 @@ class DataId<T> {
   // (1) if non-null ID is supplied, key will be found
   // (2) if ID was null or not found, use provided key
   // (3) if no key was provided, create one
+  // ignore_for_file: unnecessary_this
   DataId(this.id, this.manager, {String key, String type})
       : this.key = manager?.keysBox?.get('${getType<T>(type)}#$id') ??
             key ??

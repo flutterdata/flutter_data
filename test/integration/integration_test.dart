@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_data/flutter_data.dart';
@@ -32,15 +31,15 @@ void main() async {
     injection
         .register<Repository<Model>>(ModelTestRepository(modelLocalAdapter));
 
-    injection.register<ImpatientModelTestRepository>(
-        ImpatientModelTestRepository(modelLocalAdapter));
+    // injection.register<ImpatientModelTestRepository>(
+    //     ImpatientModelTestRepository(modelLocalAdapter));
   });
 
   test('findAll', () async {
     var repo = injection.locator<Repository<City>>();
     var cities = await repo.findAll();
     expect(cities.first.isNew, false);
-    expect(cities.first.name, "Munich");
+    expect(cities.first.name, 'Munich');
     expect(cities.length, 3);
 
     var citiesFromLocal = await repo.findAll(remote: false);
@@ -49,8 +48,8 @@ void main() async {
 
   test('findOne with include', () async {
     var repo = injection.locator<Repository<Company>>();
-    var company = await repo.findOne("1", params: {'include': 'models'});
-    expect(company.models.last.name, "Model 3");
+    var company = await repo.findOne('1', params: {'include': 'models'});
+    expect(company.models.last.name, 'Model 3');
   });
 
   test('watchOne', () async {
@@ -74,7 +73,7 @@ void main() async {
         .save();
     var m2 = await repo.findOne('3');
     expect(m.id, m2.id);
-    expect(m2.name, "Elon X");
+    expect(m2.name, 'Elon X');
     // following assertions won't pass as server data
     // "loses" information (returns 0 relationships)
     // expect(m, m2);
@@ -83,7 +82,7 @@ void main() async {
 
   test('save without id', () async {
     var repo = injection.locator<Repository<Company>>();
-    var company = Company(name: "New Co", models: HasMany()).init(repo);
+    var company = Company(name: 'New Co', models: HasMany()).init(repo);
 
     var c2 = await company.save();
     expect(c2.id, isNotNull);

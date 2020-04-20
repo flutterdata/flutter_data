@@ -12,7 +12,7 @@ mixin OfflineAdapter<T extends DataSupportMixin<T>> on Repository<T> {
 
   var _i = 0;
 
-  _addListener(DataStateNotifier notifier, Future Function() loadFn) {
+  void _addListener(DataStateNotifier notifier, Future Function() loadFn) {
     final _load = () async {
       if (_i == 0) {
         return;

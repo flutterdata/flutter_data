@@ -1,6 +1,7 @@
 part of flutter_data;
 
 abstract class Relationship<E extends DataSupportMixin<E>> {
+  // ignore: prefer_final_fields
   DataManager _manager;
 
   Relationship(this._manager);
@@ -22,5 +23,5 @@ abstract class Relationship<E extends DataSupportMixin<E>> {
     return _repository.watchAll();
   }
 
-  toJson();
+  dynamic toJson();
 }

@@ -31,7 +31,7 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
 
   // ownership & init
 
-  initializeModels() {
+  void initializeModels() {
     if (_manager != null) {
       addAll(_uninitializedModels);
       _uninitializedModels.clear();
@@ -84,7 +84,7 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
   int get hashCode => runtimeType.hashCode ^ dataIds.hashCode;
 
   @override
-  toJson() => keys;
+  dynamic toJson() => keys;
 
   @override
   String toString() => 'HasMany<$E>(${dataIds.map((d) => d.id)})';

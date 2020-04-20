@@ -5,6 +5,7 @@ abstract class DataSupportMixin<T extends DataSupportMixin<T>> {
 
   Repository<T> _repository;
   DataId<T> _dataId;
+  // ignore: prefer_final_fields
   bool _save = true;
 
   DataManager get _manager => _repository?.manager;
@@ -61,7 +62,7 @@ extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
     return _repository.isNew(_this);
   }
 
-  _assertRepo() {
+  void _assertRepo() {
     assert(
       _repository != null,
       '''\n

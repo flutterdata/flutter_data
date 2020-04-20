@@ -15,13 +15,13 @@ void main() async {
     var repo = injection.locator<Repository<Person>>();
     final manager = repo.manager;
 
-    var family = Family(id: "55", surname: 'Kelley');
+    var family = Family(id: '55', surname: 'Kelley');
     var model =
-        Person(id: '1', name: "John", age: 27, family: family.asBelongsTo)
+        Person(id: '1', name: 'John', age: 27, family: family.asBelongsTo)
             .init(repo);
 
     // (1) it wires up the relationship (setOwnerInRelationship)
-    expect(model.family.key, manager.dataId<Family>("55").key);
+    expect(model.family.key, manager.dataId<Family>('55').key);
 
     // (2) it saves the model locally
     expect(model, repo.localAdapter.findOne(model.key));
@@ -35,11 +35,11 @@ void main() async {
   test('serialize with relationships', () {
     var repo = injection.locator<Repository<Family>>();
 
-    var person = Person(id: '1', name: "John", age: 37);
-    var house = House(id: '1', address: "123 Main St");
+    var person = Person(id: '1', name: 'John', age: 37);
+    var house = House(id: '1', address: '123 Main St');
     var family = Family(
-            id: "1",
-            surname: "Smith",
+            id: '1',
+            surname: 'Smith',
             house: house.asBelongsTo,
             persons: [person].asHasMany)
         .init(repo);
@@ -48,7 +48,7 @@ void main() async {
     expect(obj, isA<Map<String, dynamic>>());
     expect(obj, {
       'id': '1',
-      'surname': "Smith",
+      'surname': 'Smith',
       'house': house.key,
       'persons': [person.key],
       'dogs': null
@@ -64,12 +64,12 @@ void main() async {
     // simulate "save"
     var obj = {
       'id': '1098',
-      'surname': "Moletto",
+      'surname': 'Moletto',
     };
     var family2 = repo.deserialize(obj, key: family.key).init(repo);
 
     expect(family2.isNew, false); // also checks if the model was init'd
-    expect(family2, Family(id: "1098", surname: "Moletto"));
+    expect(family2, Family(id: '1098', surname: 'Moletto'));
     expect(repo.localAdapter.keys, [family2.key]);
   });
 
@@ -83,14 +83,14 @@ void main() async {
     // simulate "save" for family
     var obj = {
       'id': '1298',
-      'surname': "Helsinki",
+      'surname': 'Helsinki',
     };
     var family1b = repo.deserialize(obj, key: family.key).init(repo);
 
     // simulate "save" for family2
     var obj2 = {
       'id': '1298',
-      'surname': "Oslo",
+      'surname': 'Oslo',
     };
     var family2b = repo.deserialize(obj2, key: family2.key).init(repo);
 
@@ -105,12 +105,12 @@ void main() async {
     final houseRepo = injection.locator<Repository<House>>();
     final personRepo = injection.locator<Repository<Person>>();
 
-    final house = House(id: "1", address: "123 Main St").init(houseRepo);
-    final person = Person(id: "1", name: "John", age: 21).init(personRepo);
+    final house = House(id: '1', address: '123 Main St').init(houseRepo);
+    final person = Person(id: '1', name: 'John', age: 21).init(personRepo);
 
     var obj = {
       'id': '1',
-      'surname': "Smith",
+      'surname': 'Smith',
       'house': house.key,
       'persons': [person.key]
     };
@@ -118,14 +118,14 @@ void main() async {
     var family = repo.deserialize(obj);
 
     expect(family.isNew, false); // also checks if the model was init'd
-    expect(family, Family(id: "1", surname: "Smith"));
-    expect(family.house.value.address, "123 Main St");
+    expect(family, Family(id: '1', surname: 'Smith'));
+    expect(family.house.value.address, '123 Main St');
     expect(family.persons.first.age, 21);
   });
 
   test('create and save locally', () async {
     var repo = injection.locator<Repository<House>>();
-    var house = House(address: "12 Lincoln Rd").init(repo);
+    var house = House(address: '12 Lincoln Rd').init(repo);
     expect(repo.localAdapter.findOne(house.key), house);
   });
 

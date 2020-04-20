@@ -58,16 +58,16 @@ abstract class Company
 
 mixin TestMixin<T extends DataSupportMixin<T>> on Repository<T> {
   @override
-  get baseUrl => 'http://127.0.0.1:17083/';
+  String get baseUrl => 'http://127.0.0.1:17083/';
 }
 
-mixin ImpatientModel on Repository<Model> {
-  @override
-  Duration get requestTimeout => Duration(microseconds: 1);
-}
+// mixin ImpatientModel on Repository<Model> {
+//   @override
+//   Duration get requestTimeout => Duration(microseconds: 1);
+// }
 
 class ModelTestRepository = $ModelRepository with TestMixin, JSONAPIAdapter;
 class CityTestRepository = $CityRepository with TestMixin, JSONAPIAdapter;
 
-class ImpatientModelTestRepository = $ModelRepository
-    with TestMixin, JSONAPIAdapter, ImpatientModel;
+// class ImpatientModelTestRepository = $ModelRepository
+//     with TestMixin, JSONAPIAdapter, ImpatientModel;

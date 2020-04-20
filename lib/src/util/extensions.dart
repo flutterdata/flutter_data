@@ -16,8 +16,8 @@ extension MapIdExtension on Map {
 extension IterableRelationshipExtension<T extends DataSupportMixin<T>>
     on List<T> {
   HasMany<T> get asHasMany {
-    if (this.isNotEmpty) {
-      return HasMany<T>(this, this.first._manager, this.first._save);
+    if (isNotEmpty) {
+      return HasMany<T>(this, first._manager, first._save);
     }
     return HasMany<T>();
   }
@@ -26,7 +26,7 @@ extension IterableRelationshipExtension<T extends DataSupportMixin<T>>
 extension DataSupportMixinRelationshipExtension<T extends DataSupportMixin<T>>
     on DataSupportMixin<T> {
   BelongsTo<T> get asBelongsTo {
-    return BelongsTo<T>(this as T, this._manager, this._save);
+    return BelongsTo<T>(this as T, _manager, _save);
   }
 }
 

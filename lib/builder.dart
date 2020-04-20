@@ -8,8 +8,6 @@ import 'package:source_gen/source_gen.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:package_resolver/package_resolver.dart';
-import 'package:build_resolvers/build_resolvers.dart';
 
 import 'package:glob/glob.dart';
 
@@ -31,7 +29,7 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
     final classElement = element as ClassElement;
 
     var class2 = classElement;
-    bool isFinal = true;
+    var isFinal = true;
 
     while (class2 != null && (isFinal = class2.getSetter('id') == null)) {
       if (!isFinal) {
@@ -67,7 +65,7 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
 
     //
 
-    _prepareMeta(list) {
+    Map<String, String> _prepareMeta(list) {
       return {for (var e in list) '\'${e[0]}\'': '\'${e[1]}\''};
     }
 
@@ -234,14 +232,14 @@ class DataExtensionBuilder implements Builder {
     final modelImports =
         classes.map((c) => 'import \'${c["path"]}\';').toSet().join('\n');
 
-    String provider = "";
-    String provider2 = "";
+    var provider = '';
+    var provider2 = '';
 
     var mainLibrary = await b.resolver
         .libraryFor(AssetId(b.inputId.package, 'lib/main.dart'));
 
     // check if Provider was imported in main.dart
-    bool importProvider = mainLibrary.importedLibraries.any((e) {
+    var importProvider = mainLibrary.importedLibraries.any((e) {
       return e.librarySource.fullName.startsWith('/provider/');
     });
 
@@ -269,7 +267,7 @@ List<SingleChildWidget> dataProviders(Future<Directory> Function() directory, {b
           '];';
     }
 
-    String out = '''\n
+    var out = '''\n
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: directives_ordering
 

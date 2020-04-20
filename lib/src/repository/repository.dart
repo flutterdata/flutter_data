@@ -334,7 +334,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     return model;
   }
 
-  _assertManager() {
+  void _assertManager() {
     final modelAutoInit = _autoModelInitDataManager != null;
     if (modelAutoInit) {
       assert(manager == _autoModelInitDataManager, '''\n

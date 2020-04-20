@@ -14,7 +14,7 @@ void main() async {
     var manager = injection.locator<DataManager>();
     var rel = BelongsTo<Person>(null, manager);
     expect(rel.dataId, isNull);
-    rel = BelongsTo<Person>(Person(id: '1', name: "zzz", age: 7), manager);
+    rel = BelongsTo<Person>(Person(id: '1', name: 'zzz', age: 7), manager);
     expect(rel.dataId, manager.dataId<Person>('1'));
   });
 
@@ -25,7 +25,7 @@ void main() async {
     var manager = repo.manager;
 
     var house = {'id': '432337', 'address': 'Ozark Lake, MO'};
-    var familyJson = {'surname': "Byrde", 'house': house};
+    var familyJson = {'surname': 'Byrde', 'house': house};
     repo.deserialize(familyJson);
 
     expect(adapter.findOne(DataId<House>('432337', manager).key), isNotNull);
@@ -38,11 +38,11 @@ void main() async {
     var rel = BelongsTo<Person>.fromJson({
       '_': [manager.dataId<Person>('1').key, manager]
     });
-    var person = Person(id: '1', name: "zzz", age: 7);
+    var person = Person(id: '1', name: 'zzz', age: 7);
     adapter.save(rel.dataId.key, person);
 
     expect(rel, BelongsTo<Person>(person, manager));
-    expect(rel.dataId, manager.dataId<Person>("1"));
+    expect(rel.dataId, manager.dataId<Person>('1'));
     expect(rel.value, person);
   });
 
@@ -50,8 +50,8 @@ void main() async {
     var familyRepo = injection.locator<Repository<Family>>();
     var personRepo = injection.locator<Repository<Person>>();
 
-    var family = Family(surname: "Toraine").init(familyRepo);
-    var person = Person(name: "Claire", age: 31).init(personRepo);
+    var family = Family(surname: 'Toraine').init(familyRepo);
+    var person = Person(name: 'Claire', age: 31).init(personRepo);
     person.family = BelongsTo<Family>(family, familyRepo.manager);
     expect(person.family.dataId.key, family.key);
     expect(person.family.debugOwner, isNull);

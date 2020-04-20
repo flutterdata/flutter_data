@@ -2,7 +2,8 @@ import 'package:flutter_data/flutter_data.dart';
 
 mixin StandardJSONAdapter<T extends DataSupportMixin<T>> on Repository<T> {
   @override
-  get headers => super.headers..addAll({'Content-Type': 'application/json'});
+  Map<String, String> get headers =>
+      super.headers..addAll({'Content-Type': 'application/json'});
 
   String get identifier => 'id';
   String get identifierSuffix => '_id';

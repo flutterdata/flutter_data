@@ -56,7 +56,7 @@ class DataManager {
 
   // utils
 
-  String _assertMessage = '''\n
+  final _assertMessage = '''\n
 This manager has not been initialized.
 
 Please ensure you call DataManager#init(),
