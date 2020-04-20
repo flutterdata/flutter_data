@@ -11,8 +11,6 @@ import 'package:analyzer/dart/constant/value.dart';
 
 import 'package:glob/glob.dart';
 
-import 'annotations.dart';
-
 Builder repositoryBuilder(options) =>
     SharedPartBuilder([DataGenerator()], 'data');
 

@@ -1,5 +1,7 @@
 part of flutter_data;
 
+typedef Locator = T Function<T>();
+
 // Poor man's Provider
 @optionalTypeArgs
 class DataServiceLocator<E> {

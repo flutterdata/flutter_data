@@ -44,7 +44,7 @@ FutureBuilder<List<Todo>>(
 
 Result:
 
-![](docs/01.png)
+![](doc/01.png)
 
 (This is a snapshot of the **final version of the app**: https://github.com/flutterdata/flutter_data_todos !)
 
@@ -144,11 +144,11 @@ Creating a new TO-DO _will_ now show up:
 
 Before, with an `id=null` (temporary model which hasn't been persisted):
 
-![](docs/02a.png)
+![](doc/02a.png)
 
 After, with an `id=201` that was assigned by the API server:
 
-![](docs/02b.png)
+![](doc/02b.png)
 
 Notice that we passed a `_limit=5` query param, so we only got 5 items!
 
@@ -191,7 +191,7 @@ FloatingActionButton(
 
 If we click on the `+` button we get:
 
-![](docs/03.png)
+![](doc/03.png)
 
 As discussed before, JSON Placeholder does not persist any data. We'll verify that claim by reloading our data with a `RefreshIndicator` and the very handy `DataStateNotifier#reload()`!
 
@@ -202,11 +202,11 @@ RefreshIndicator(
   },
 ```
 
-![](docs/04a.png)
+![](doc/04a.png)
 
 And the state of `Todo` with `id=1` has been reset!
 
-![](docs/04b.png)
+![](doc/04b.png)
 
 
 ### ⛔️ Deleting a TO-DO
@@ -221,11 +221,11 @@ onDismissed: (_) async {
 },
 ```
 
-![](docs/05a.png)
+![](doc/05a.png)
 
 Done! (well, not really "done" 😄)
 
-![](docs/05b.png)
+![](doc/05b.png)
 
 ### ✅ Marking as done!
 
@@ -236,7 +236,7 @@ GestureDetector(
   onDoubleTap: () => todo.copyWith(completed: !todo.completed).save(),
 ```
 
-![](docs/06.png)
+![](doc/06.png)
 
 All tasks done!
 
@@ -281,7 +281,7 @@ DataStateBuilder<User>(
 }
 ```
 
-![](docs/01.png)
+![](doc/01.png)
 
 Yep, relationships between models are automagically updated!
 
@@ -853,7 +853,7 @@ class Staff extends User<Staff> {
 
 ## 📲 Apps using Flutter Data
 
-![](docs/scout.png)
+![](doc/scout.png)
 
 The new offline-first [Scout](https://scoutforpets.com) Flutter app is being developed in record time with Flutter Data.
 
