@@ -2,7 +2,7 @@ name: flutter_data
 description: >
   A tool to build data-driven Flutter apps
   with minimal boilerplate
-version: 0.3.2
+version: 0.3.4-rc1
 homepage: https://github.com/flutterdata/flutter_data
 documentation: https://flutterdata.dev/
 
@@ -20,6 +20,9 @@ dependencies:
   rxdart: ^0.24.0
   http: ^0.12.0+4
   hive: ^1.4.1+1
+  analyzer: ^0.39.7
+  
+  source_gen: ^0.9.5
 
 dev_dependencies:
   test: ^1.9.4

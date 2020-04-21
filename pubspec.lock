@@ -9,7 +9,7 @@ packages:
     source: hosted
     version: "2.2.0"
   analyzer:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: analyzer
       url: "https://pub.dartlang.org"
@@ -436,7 +436,7 @@ packages:
     source: hosted
     version: "0.2.3"
   source_gen:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: source_gen
       url: "https://pub.dartlang.org"
