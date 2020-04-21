@@ -1,3 +1,7 @@
+## [0.3.4] - 2020-04-21
+
+  - Package fixes and documentation
+
 ## [0.3.2] - 2020-04-19
 
   - Make linter and pana happy
