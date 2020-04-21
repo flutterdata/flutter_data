@@ -102,12 +102,16 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     _watchAllNotifier.reload();
 
     localAdapter.watchAll().forEach((models) {
-      models = models.map(_init).toList();
-      _watchAllNotifier.state =
-          _watchAllNotifier.state.copyWith(model: models, isLoading: false);
+      if (_watchAllNotifier.mounted) {
+        models = models.map(_init).toList();
+        _watchAllNotifier.state =
+            _watchAllNotifier.state.copyWith(model: models, isLoading: false);
+      }
     }).catchError((Object e) {
-      _watchAllNotifier.state =
-          _watchAllNotifier.state.copyWith(exception: DataException(e));
+      if (_watchAllNotifier.mounted) {
+        _watchAllNotifier.state =
+            _watchAllNotifier.state.copyWith(exception: DataException(e));
+      }
     });
     return _watchAllNotifier;
   }
@@ -133,7 +137,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       (client) => client.get(uri, headers: headers ?? this.headers),
     );
 
-    print('[flutter_data] loadOne $T: $uri [HTTP ${response.statusCode}]');
+    print('[flutter_data] findOne $T: $uri [HTTP ${response.statusCode}]');
 
     // ignore: unnecessary_lambdas
     return withResponse<T>(response, (data) {
@@ -173,11 +177,15 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     _watchOneNotifier.reload();
 
     localAdapter.watchOne(key).forEach((model) {
-      _watchOneNotifier.state = _watchOneNotifier.state
-          .copyWith(model: _init(model), isLoading: false);
+      if (_watchOneNotifier.mounted) {
+        _watchOneNotifier.state = _watchOneNotifier.state
+            .copyWith(model: _init(model), isLoading: false);
+      }
     }).catchError((Object e) {
-      _watchOneNotifier.state =
-          _watchOneNotifier.state.copyWith(exception: DataException(e));
+      if (_watchOneNotifier.mounted) {
+        _watchOneNotifier.state =
+            _watchOneNotifier.state.copyWith(exception: DataException(e));
+      }
     });
     return _watchOneNotifier;
   }
