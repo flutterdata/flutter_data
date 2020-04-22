@@ -1,3 +1,7 @@
+## [0.3.5] - 2020-04-22
+
+  - optional `fromJson`/`toJson`
+
 ## [0.3.4] - 2020-04-21
 
   - Package fixes and documentation
