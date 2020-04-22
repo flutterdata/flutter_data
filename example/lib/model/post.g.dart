@@ -7,6 +7,7 @@ part of 'post.dart';
 // **************************************************************************
 
 // ignore_for_file: unused_local_variable
+// ignore_for_file: always_declare_return_types
 class _$PostRepository extends Repository<Post> {
   _$PostRepository(LocalAdapter<Post> adapter) : super(adapter);
 
@@ -36,12 +37,12 @@ class $PostLocalAdapter extends LocalAdapter<Post> {
     map['user'] = {
       '_': [map['user'], manager]
     };
-    return Post.fromJson(map);
+    return _$PostFromJson(map);
   }
 
   @override
   serialize(model) {
-    final map = model.toJson();
+    final map = _$PostToJson(model);
     map['comments'] = model.comments?.toJson();
     map['user'] = model.user?.toJson();
     return map;

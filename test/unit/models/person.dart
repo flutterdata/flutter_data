@@ -26,6 +26,7 @@ class Person with DataSupportMixin<Person> {
     this.family,
   });
 
+  // fromJson or toJson on purpose (testing codegen)
   factory Person.fromJson(Map<String, dynamic> json) => _$PersonFromJson(json);
   Map<String, dynamic> toJson() => _$PersonToJson(this);
 

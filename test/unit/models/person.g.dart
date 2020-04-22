@@ -7,6 +7,7 @@ part of 'person.dart';
 // **************************************************************************
 
 // ignore_for_file: unused_local_variable
+// ignore_for_file: always_declare_return_types
 class _$PersonRepository extends Repository<Person> {
   _$PersonRepository(LocalAdapter<Person> adapter) : super(adapter);
 
@@ -37,7 +38,7 @@ class $PersonLocalAdapter extends LocalAdapter<Person> {
 
   @override
   serialize(model) {
-    final map = model.toJson();
+    final map = _$PersonToJson(model);
     map['family'] = model.family?.toJson();
     return map;
   }

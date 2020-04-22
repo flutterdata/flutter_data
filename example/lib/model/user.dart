@@ -16,12 +16,5 @@ class User extends DataSupport<User> {
   final String name;
   final String email;
 
-  User({
-    @required this.id,
-    @required this.name,
-    @required this.email,
-  });
-
-  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
-  Map<String, dynamic> toJson() => _$UserToJson(this);
+  User({this.id, this.name, @required this.email});
 }

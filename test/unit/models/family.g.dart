@@ -7,6 +7,7 @@ part of 'family.dart';
 // **************************************************************************
 
 // ignore_for_file: unused_local_variable
+// ignore_for_file: always_declare_return_types
 class _$FamilyRepository extends Repository<Family> {
   _$FamilyRepository(LocalAdapter<Family> adapter) : super(adapter);
 
@@ -39,12 +40,12 @@ class $FamilyLocalAdapter extends LocalAdapter<Family> {
     map['house'] = {
       '_': [map['house'], manager]
     };
-    return Family.fromJson(map);
+    return _$FamilyFromJson(map);
   }
 
   @override
   serialize(model) {
-    final map = model.toJson();
+    final map = _$FamilyToJson(model);
     map['persons'] = model.persons?.toJson();
     map['dogs'] = model.dogs?.toJson();
     map['house'] = model.house?.toJson();

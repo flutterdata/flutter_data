@@ -14,6 +14,7 @@ builders:
     auto_apply: dependents
     build_to: cache
     applies_builders: ["source_gen|combining_builder"]
+    required_inputs: [".freezed.dart"]
 
   data_extension_intermediate_builder:
     import: "package:flutter_data/builder.dart"

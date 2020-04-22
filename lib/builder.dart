@@ -95,6 +95,16 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
       return '''map['$name'] = model.$name?.toJson();''';
     }).join('\n');
 
+    final hasFromJson =
+        classElement.constructors.any((c) => c.name == 'fromJson');
+    final fromJson =
+        hasFromJson ? '$type.fromJson(map)' : '_\$${type}FromJson(map)';
+
+    final methods =
+        classElement.mixins.map((i) => i.methods).expand((i) => i).toList();
+    final hasToJson = methods.any((c) => c.name == 'toJson');
+    final toJson = hasToJson ? 'model.toJson()' : '_\$${type}ToJson(model)';
+
     //
 
     final setOwnerInRelationships = all.map((t) {
@@ -109,12 +119,7 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
 
     // mixins
 
-    // ensure we de-duplicate mixins as it is crucial to preserve super calls
-    final mixinsDedup =
-        LinkedHashSet<DartObject>.from(annotation.read('mixins').listValue)
-            .toList();
-
-    final mixins = mixinsDedup.map((o) {
+    final mixins = annotation.read('mixins').listValue.map((o) {
       return '${o.toTypeValue().element.name}<$type>';
     });
 
@@ -127,6 +132,7 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
 
     return '''
 // ignore_for_file: unused_local_variable
+// ignore_for_file: always_declare_return_types
 class _\$${type}Repository extends Repository<$type> {
   _\$${type}Repository(LocalAdapter<$type> adapter) : super(adapter);
 
@@ -145,12 +151,12 @@ class \$${type}LocalAdapter extends LocalAdapter<$type> {
   @override
   deserialize(map) {
     $deserialize
-    return $type.fromJson(map);
+    return $fromJson;
   }
 
   @override
   serialize(model) {
-    final map = model.toJson();
+    final map = $toJson;
     $serialize
     return map;
   }

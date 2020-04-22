@@ -21,13 +21,10 @@ class Post extends DataSupport<Post> {
 
   Post({
     this.id,
-    @required this.title,
-    @required this.body,
+    this.title,
+    this.body,
     HasMany<Comment> comments,
     BelongsTo<User> user,
   })  : comments = comments ?? HasMany<Comment>(),
         user = user ?? BelongsTo<User>();
-
-  factory Post.fromJson(Map<String, dynamic> json) => _$PostFromJson(json);
-  Map<String, dynamic> toJson() => _$PostToJson(this);
 }

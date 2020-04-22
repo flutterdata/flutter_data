@@ -7,6 +7,7 @@ part of 'pet.dart';
 // **************************************************************************
 
 // ignore_for_file: unused_local_variable
+// ignore_for_file: always_declare_return_types
 class _$DogRepository extends Repository<Dog> {
   _$DogRepository(LocalAdapter<Dog> adapter) : super(adapter);
 
@@ -29,7 +30,7 @@ class $DogLocalAdapter extends LocalAdapter<Dog> {
 
   @override
   serialize(model) {
-    final map = model.toJson();
+    final map = _$DogToJson(model);
 
     return map;
   }
@@ -42,6 +43,7 @@ class $DogLocalAdapter extends LocalAdapter<Dog> {
 }
 
 // ignore_for_file: unused_local_variable
+// ignore_for_file: always_declare_return_types
 class _$CatRepository extends Repository<Cat> {
   _$CatRepository(LocalAdapter<Cat> adapter) : super(adapter);
 
@@ -64,7 +66,7 @@ class $CatLocalAdapter extends LocalAdapter<Cat> {
 
   @override
   serialize(model) {
-    final map = model.toJson();
+    final map = _$CatToJson(model);
 
     return map;
   }

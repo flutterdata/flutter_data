@@ -39,10 +39,11 @@ For a given `User` model annotated with `@DataRepository`...
 class User extends DataSupport<User> {
   final int id;
   final String name;
-
-  // ...
+  User({this.id, this.name});
 }
 ```
+
+(`User.fromJson` and `toJson` are not required.)
 
 Flutter Data will generate a `Repository<User>` (after a source gen build):
 

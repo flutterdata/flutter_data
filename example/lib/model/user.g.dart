@@ -7,6 +7,7 @@ part of 'user.dart';
 // **************************************************************************
 
 // ignore_for_file: unused_local_variable
+// ignore_for_file: always_declare_return_types
 class _$UserRepository extends Repository<User> {
   _$UserRepository(LocalAdapter<User> adapter) : super(adapter);
 
@@ -25,12 +26,12 @@ class $UserLocalAdapter extends LocalAdapter<User> {
 
   @override
   deserialize(map) {
-    return User.fromJson(map);
+    return _$UserFromJson(map);
   }
 
   @override
   serialize(model) {
-    final map = model.toJson();
+    final map = _$UserToJson(model);
 
     return map;
   }

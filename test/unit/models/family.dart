@@ -27,8 +27,7 @@ class Family with DataSupportMixin<Family> {
     this.dogs,
   }) : house = house ?? BelongsTo<House>();
 
-  factory Family.fromJson(Map<String, dynamic> json) => _$FamilyFromJson(json);
-  Map<String, dynamic> toJson() => _$FamilyToJson(this);
+  // no fromJson or toJson on purpose (testing codegen)
 
   @override
   bool operator ==(o) => o is Family && surname == o.surname;

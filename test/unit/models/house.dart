@@ -19,7 +19,4 @@ class House with DataSupportMixin<House> {
     @required this.address,
     HasMany<Family> families,
   }) : families = families ?? HasMany<Family>();
-
-  factory House.fromJson(Map<String, dynamic> json) => _$HouseFromJson(json);
-  Map<String, dynamic> toJson() => _$HouseToJson(this);
 }

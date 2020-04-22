@@ -7,6 +7,7 @@ part of 'models.dart';
 // **************************************************************************
 
 // ignore_for_file: unused_local_variable
+// ignore_for_file: always_declare_return_types
 class _$ModelRepository extends Repository<Model> {
   _$ModelRepository(LocalAdapter<Model> adapter) : super(adapter);
 
@@ -55,6 +56,7 @@ class $ModelLocalAdapter extends LocalAdapter<Model> {
 }
 
 // ignore_for_file: unused_local_variable
+// ignore_for_file: always_declare_return_types
 class _$CityRepository extends Repository<City> {
   _$CityRepository(LocalAdapter<City> adapter) : super(adapter);
 
@@ -90,6 +92,7 @@ class $CityLocalAdapter extends LocalAdapter<City> {
 }
 
 // ignore_for_file: unused_local_variable
+// ignore_for_file: always_declare_return_types
 class _$CompanyRepository extends Repository<Company> {
   _$CompanyRepository(LocalAdapter<Company> adapter) : super(adapter);
 

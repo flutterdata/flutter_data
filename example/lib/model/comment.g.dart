@@ -7,6 +7,7 @@ part of 'comment.dart';
 // **************************************************************************
 
 // ignore_for_file: unused_local_variable
+// ignore_for_file: always_declare_return_types
 class _$CommentRepository extends Repository<Comment> {
   _$CommentRepository(LocalAdapter<Comment> adapter) : super(adapter);
 
@@ -32,12 +33,12 @@ class $CommentLocalAdapter extends LocalAdapter<Comment> {
     map['post'] = {
       '_': [map['post'], manager]
     };
-    return Comment.fromJson(map);
+    return _$CommentFromJson(map);
   }
 
   @override
   serialize(model) {
-    final map = model.toJson();
+    final map = _$CommentToJson(model);
     map['post'] = model.post?.toJson();
     return map;
   }

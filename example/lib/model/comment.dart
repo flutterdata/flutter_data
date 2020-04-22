@@ -23,8 +23,4 @@ class Comment extends DataSupport<Comment> {
     this.approved,
     BelongsTo<Post> post,
   }) : post = post ?? BelongsTo<Post>();
-
-  factory Comment.fromJson(Map<String, dynamic> json) =>
-      _$CommentFromJson(json);
-  Map<String, dynamic> toJson() => _$CommentToJson(this);
 }

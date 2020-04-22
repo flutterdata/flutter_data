@@ -44,7 +44,7 @@ void main() async {
     assert(p3.body == '3@fasd.io');
     assert(p3.user.value.email == user2.email);
 
-    var post = await postsRepo.findOne('1', params: {'_embed': 'comments'});
+    var post = await postsRepo.findOne(1, params: {'_embed': 'comments'});
 
     print(post.comments.map((c) => c.body));
 
