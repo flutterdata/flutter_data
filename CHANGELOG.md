@@ -1,3 +1,7 @@
+## [0.3.6] - 2020-04-22
+
+  - generate `dataProviders` only if 'provider' is a dependency
+
 ## [0.3.5] - 2020-04-22
 
   - optional `fromJson`/`toJson`
