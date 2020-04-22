@@ -1,14 +1,11 @@
 // ignore_for_file: prefer_interpolation_to_compose_strings
 
-import 'dart:collection';
-
 import 'package:build/build.dart';
 import 'package:flutter_data/flutter_data.dart';
+import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/constant/value.dart';
-
 import 'package:glob/glob.dart';
 
 Builder repositoryBuilder(options) =>
@@ -26,14 +23,15 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
 
     final classElement = element as ClassElement;
 
-    var class2 = classElement;
+    var _mutableClassElement = classElement;
     var isFinal = true;
 
-    while (class2 != null && (isFinal = class2.getSetter('id') == null)) {
+    while (_mutableClassElement != null &&
+        (isFinal = _mutableClassElement.getSetter('id') == null)) {
       if (!isFinal) {
         break;
       }
-      class2 = class2.supertype?.element;
+      _mutableClassElement = _mutableClassElement.supertype?.element;
     }
 
     if (!isFinal) {
@@ -239,13 +237,14 @@ class DataExtensionBuilder implements Builder {
     var provider = '';
     var provider2 = '';
 
-    var mainLibrary = await b.resolver
-        .libraryFor(AssetId(b.inputId.package, 'lib/main.dart'));
+    final yaml =
+        await b.readAsString(AssetId(b.inputId.package, 'pubspec.yaml'));
 
-    // check if Provider was imported in main.dart
-    var importProvider = mainLibrary.importedLibraries.any((e) {
-      return e.librarySource.fullName.startsWith('/provider/');
-    });
+    var pubspec = Pubspec.parse(yaml);
+
+    // is provider a dependency?
+    var importProvider =
+        pubspec.dependencies.keys.any((key) => key == 'provider');
 
     if (importProvider) {
       provider = '''
