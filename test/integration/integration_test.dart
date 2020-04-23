@@ -38,7 +38,7 @@ void main() async {
   test('findAll', () async {
     var repo = injection.locator<Repository<City>>();
     var cities = await repo.findAll(params: {
-      'page': {'limit': '1', 'offset': '20'}
+      'page': {'offset': 1}
     });
     expect(cities.first.isNew, false);
     expect(cities.first.name, 'Munich');

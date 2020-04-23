@@ -272,8 +272,10 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   @protected
   QueryParameters parseQueryParameters(Map<String, dynamic> params) {
-    var p2 = _parseQueryParametersMap(params);
-    return QueryParameters(p2 ?? const {});
+    final p = params != null
+        ? _parseQueryParametersMap(params)
+        : const <String, String>{};
+    return QueryParameters(p);
   }
 
   @protected
@@ -316,13 +318,16 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   // helpers
 
+  // { 'a': 1, 'page': {'limit': '5'}}
+
   Map<String, String> _parseQueryParametersMap(Map<String, dynamic> map) {
     return map.entries.fold<Map<String, String>>({}, (acc, e) {
-      if (e.value is String) {
+      if (e.value is Map<String, dynamic>) {
+        for (var e2 in (e.value as Map<String, dynamic>).entries) {
+          acc['${e.key}[${e2.key}]'] = e2.value.toString();
+        }
+      } else {
         acc[e.key] = e.value.toString();
-      } else if (e.value is Map<String, dynamic>) {
-        acc[e.key] = _parseQueryParametersMap(e.value as Map<String, dynamic>)
-            .toString();
       }
       return acc;
     });
