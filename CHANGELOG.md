@@ -1,10 +1,16 @@
+## [0.3.7] - 2020-04-23
+
+ - fix dependency issues
+ - Make `json_serializable` optional
+ - Make type arguments in adapters optional
+
 ## [0.3.6] - 2020-04-22
 
-  - generate `dataProviders` only if 'provider' is a dependency
+  - Generate `dataProviders` only if 'provider' is a dependency
 
 ## [0.3.5] - 2020-04-22
 
-  - optional `fromJson`/`toJson`
+  - Optional `fromJson`/`toJson`
 
 ## [0.3.4] - 2020-04-21
 
