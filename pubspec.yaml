@@ -21,8 +21,10 @@ dependencies:
   http: ^0.12.0+4
   hive: ^1.4.1+1
   analyzer: ^0.39.7
-  
   source_gen: ^0.9.5
+  pubspec_parse: ^0.1.5
+  glob: ^1.2.0
+  build: ^1.2.2
 
 dev_dependencies:
   test: ^1.9.4
