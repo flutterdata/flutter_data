@@ -48,18 +48,18 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   Future<List<T>> findAll(
       {bool remote = true,
-      Map<String, String> params,
-      Map<String, String> headers}) async {
+      Map<String, dynamic> params,
+      Map<String, dynamic> headers}) async {
     if (remote == false) {
       return localAdapter.findAll().map(_init).toList();
     }
 
-    final uri = QueryParameters(params ?? const {}).addToUri(
+    final uri = parseQueryParameters(params).addToUri(
       urlDesign.collection(type),
     );
 
     final response = await withHttpClient(
-      (client) => client.get(uri, headers: headers ?? this.headers),
+      (client) => client.get(uri, headers: headers?.cast() ?? this.headers),
     );
 
     print('[flutter_data] findAll $T: $uri [HTTP ${response.statusCode}]');
@@ -71,8 +71,8 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   DataStateNotifier<List<T>> watchAll(
       {bool remote = true,
-      Map<String, String> params,
-      Map<String, String> headers}) {
+      Map<String, dynamic> params,
+      Map<String, dynamic> headers}) {
     final _watchAllNotifier = DataStateNotifier<List<T>>(
       DataState(
         model: localAdapter.findAll().map(_init).toList(),
@@ -120,8 +120,8 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   Future<T> findOne(dynamic id,
       {bool remote = true,
-      Map<String, String> params,
-      Map<String, String> headers}) async {
+      Map<String, dynamic> params,
+      Map<String, dynamic> headers}) async {
     assert(id != null);
 
     if (remote == false) {
@@ -129,12 +129,12 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       return _init(localAdapter.findOne(key));
     }
 
-    final uri = QueryParameters(params ?? const {}).addToUri(
+    final uri = parseQueryParameters(params).addToUri(
       urlDesign.resource(type, id.toString()),
     );
 
     final response = await withHttpClient(
-      (client) => client.get(uri, headers: headers ?? this.headers),
+      (client) => client.get(uri, headers: headers?.cast() ?? this.headers),
     );
 
     print('[flutter_data] findOne $T: $uri [HTTP ${response.statusCode}]');
@@ -147,8 +147,8 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   DataStateNotifier<T> watchOne(dynamic id,
       {bool remote = true,
-      Map<String, String> params,
-      Map<String, String> headers}) {
+      Map<String, dynamic> params,
+      Map<String, dynamic> headers}) {
     final key = manager.dataId<T>(id).key;
 
     final _watchOneNotifier = DataStateNotifier<T>(
@@ -194,8 +194,8 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   Future<T> save(T model,
       {bool remote = true,
-      Map<String, String> params = const {},
-      Map<String, String> headers}) async {
+      Map<String, dynamic> params,
+      Map<String, dynamic> headers}) async {
     final key = model.key;
     if (remote == false) {
       // ignore: unawaited_futures
@@ -205,7 +205,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
     final body = json.encode(serialize(model));
 
-    final queryParams = QueryParameters(params);
+    final queryParams = parseQueryParameters(params);
     Uri uri;
     if (model.id != null) {
       uri = queryParams.addToUri(urlDesign.resource(type, model.id.toString()));
@@ -217,7 +217,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       (client) {
         final _patch = updateHttpMethod == 'PUT' ? client.put : client.patch;
         final _send = model.id != null ? _patch : client.post;
-        return _send(uri, headers: headers ?? this.headers, body: body);
+        return _send(uri, headers: headers?.cast() ?? this.headers, body: body);
       },
     );
 
@@ -236,15 +236,16 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   Future<void> delete(dynamic id,
       {bool remote = true,
-      Map<String, String> params,
-      Map<String, String> headers}) async {
+      Map<String, dynamic> params,
+      Map<String, dynamic> headers}) async {
     // ignore: unawaited_futures
     localAdapter.delete(manager.dataId<T>(id).key);
 
     if (remote) {
       final uri = urlDesign.resource(type, id.toString());
       final response = await withHttpClient(
-        (client) => client.delete(uri, headers: headers ?? this.headers),
+        (client) =>
+            client.delete(uri, headers: headers?.cast() ?? this.headers),
       );
 
       print('[flutter_data] delete $T: $uri [HTTP ${response.statusCode}]');
@@ -267,7 +268,13 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     return localAdapter.dispose();
   }
 
-  // helpers
+  // http
+
+  @protected
+  QueryParameters parseQueryParameters(Map<String, dynamic> params) {
+    var p2 = _parseQueryParametersMap(params);
+    return QueryParameters(p2 ?? const {});
+  }
 
   @protected
   Future<R> withHttpClient<R>(OnRequest<R> onRequest) async {
@@ -305,6 +312,20 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     } else {
       throw UnsupportedError('Failed request for type $R');
     }
+  }
+
+  // helpers
+
+  Map<String, String> _parseQueryParametersMap(Map<String, dynamic> map) {
+    return map.entries.fold<Map<String, String>>({}, (acc, e) {
+      if (e.value is String) {
+        acc[e.key] = e.value.toString();
+      } else if (e.value is Map<String, dynamic>) {
+        acc[e.key] = _parseQueryParametersMap(e.value as Map<String, dynamic>)
+            .toString();
+      }
+      return acc;
+    });
   }
 
   // initialization

@@ -13,7 +13,7 @@ abstract class Relationship<E extends DataSupportMixin<E>> {
   @visibleForTesting
   DataId get debugOwner => _owner;
 
-  Future<List<E>> load([Map<String, String> params]) {
+  Future<List<E>> load([Map<String, dynamic> params]) {
     // TODO should be filtered by inverse id
     return _repository.findAll();
   }
