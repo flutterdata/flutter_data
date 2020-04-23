@@ -100,6 +100,7 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
 
     final methods = [
       ...classElement.methods,
+      ...classElement.interfaces.map((i) => i.methods).expand((i) => i),
       ...classElement.mixins.map((i) => i.methods).expand((i) => i)
     ];
     final hasToJson = methods.any((c) => c.name == 'toJson');
