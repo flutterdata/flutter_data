@@ -1,3 +1,9 @@
+## [0.3.8] - 2020-04-23
+
+ - add toJson support for different freezed kinds
+ - improved query parameters
+ - improved docs
+
 ## [0.3.7] - 2020-04-23
 
  - fix dependency issues

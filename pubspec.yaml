@@ -2,7 +2,7 @@ name: flutter_data
 description: >
   A tool to build data-driven Flutter apps
   with minimal boilerplate
-version: 0.3.7
+version: 0.3.8
 homepage: https://github.com/flutterdata/flutter_data
 documentation: https://flutterdata.dev/
 
