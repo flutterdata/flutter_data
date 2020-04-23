@@ -1,4 +1,4 @@
 class DataRepository {
-  final List<Type> mixins;
-  const DataRepository([this.mixins = const []]);
+  final List<Type> adapters;
+  const DataRepository([this.adapters = const []]);
 }
