@@ -98,8 +98,10 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
     final fromJson =
         hasFromJson ? '$type.fromJson(map)' : '_\$${type}FromJson(map)';
 
-    final methods =
-        classElement.mixins.map((i) => i.methods).expand((i) => i).toList();
+    final methods = [
+      ...classElement.methods,
+      ...classElement.mixins.map((i) => i.methods).expand((i) => i)
+    ];
     final hasToJson = methods.any((c) => c.name == 'toJson');
     final toJson = hasToJson ? 'model.toJson()' : '_\$${type}ToJson(model)';
 
@@ -118,7 +120,15 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
     // mixins
 
     final mixins = annotation.read('mixins').listValue.map((o) {
-      return '${o.toTypeValue().element.name}<$type>';
+      var hasTypeArgument = false;
+      final mixinType = o.toTypeValue();
+      if (mixinType is ParameterizedType) {
+        final args = mixinType.typeArguments;
+        assert(args.length > 1,
+            'At most one type argument is supported for $mixinType');
+        hasTypeArgument = args.length == 1;
+      }
+      return '${mixinType.element.name}${hasTypeArgument ? "<$type>" : ""}';
     });
 
     var mixinsString = '';

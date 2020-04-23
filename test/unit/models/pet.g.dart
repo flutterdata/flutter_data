@@ -30,7 +30,7 @@ class $DogLocalAdapter extends LocalAdapter<Dog> {
 
   @override
   serialize(model) {
-    final map = _$DogToJson(model);
+    final map = model.toJson();
 
     return map;
   }
@@ -66,7 +66,7 @@ class $CatLocalAdapter extends LocalAdapter<Cat> {
 
   @override
   serialize(model) {
-    final map = _$CatToJson(model);
+    final map = model.toJson();
 
     return map;
   }

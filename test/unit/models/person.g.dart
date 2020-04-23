@@ -19,8 +19,7 @@ class _$PersonRepository extends Repository<Person> {
       };
 }
 
-class $PersonRepository extends _$PersonRepository
-    with PersonPollAdapter<Person> {
+class $PersonRepository extends _$PersonRepository with PersonPollAdapter {
   $PersonRepository(LocalAdapter<Person> adapter) : super(adapter);
 }
 
@@ -38,7 +37,7 @@ class $PersonLocalAdapter extends LocalAdapter<Person> {
 
   @override
   serialize(model) {
-    final map = _$PersonToJson(model);
+    final map = model.toJson();
     map['family'] = model.family?.toJson();
     return map;
   }
@@ -55,25 +54,3 @@ class $PersonLocalAdapter extends LocalAdapter<Person> {
     }
   }
 }
-
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-Person _$PersonFromJson(Map<String, dynamic> json) {
-  return Person(
-    id: json['id'] as String,
-    name: json['name'] as String,
-    age: json['age'] as int,
-    family: json['family'] == null
-        ? null
-        : BelongsTo.fromJson(json['family'] as Map<String, dynamic>),
-  );
-}
-
-Map<String, dynamic> _$PersonToJson(Person instance) => <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
-      'age': instance.age,
-      'family': instance.family,
-    };

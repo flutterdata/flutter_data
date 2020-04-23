@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:json_annotation/json_annotation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:flutter_data/flutter_data.dart';
@@ -10,7 +9,6 @@ import 'family.dart';
 
 part 'person.g.dart';
 
-@JsonSerializable()
 @DataRepository([PersonPollAdapter])
 class Person with DataSupportMixin<Person> {
   @override
@@ -26,9 +24,21 @@ class Person with DataSupportMixin<Person> {
     this.family,
   });
 
-  // fromJson or toJson on purpose (testing codegen)
-  factory Person.fromJson(Map<String, dynamic> json) => _$PersonFromJson(json);
-  Map<String, dynamic> toJson() => _$PersonToJson(this);
+  // testing without jsonserializable
+  factory Person.fromJson(Map<String, dynamic> json) => Person(
+        id: json['id'] as String,
+        name: json['name'] as String,
+        age: json['age'] as int,
+        family: json['family'] == null
+            ? null
+            : BelongsTo.fromJson(json['family'] as Map<String, dynamic>),
+      );
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'age': age,
+        'family': family,
+      };
 
   @override
   String toString() {
@@ -45,7 +55,9 @@ class Person with DataSupportMixin<Person> {
   }
 }
 
-mixin PersonPollAdapter<T extends Person> on Repository<Person> {
+// note: keep PersonPollAdapter without type arguments
+// as part of testing this feature
+mixin PersonPollAdapter on Repository<Person> {
   void generatePeople() {
     Timer.periodic(Duration(seconds: 1), (_) {
       Person.generateRandom(this);
