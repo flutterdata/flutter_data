@@ -12,12 +12,11 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   String baseUrl = 'http://127.0.0.1:8080/';
 
-  // FIXME when we get late fields
-  UrlDesign _urlDesign;
-  UrlDesign get urlDesign =>
-      _urlDesign ??= PathBasedUrlDesign(Uri.parse(baseUrl));
-
-  String updateHttpMethod = 'PATCH';
+  List<String> urlForFindAll(type) => ['GET', '$type'];
+  List<String> urlForFindOne(type, id) => ['GET', '$type/$id'];
+  List<String> urlForSave(type, id) =>
+      id != null ? ['PATCH', '$type/$id'] : ['POST', '$type'];
+  List<String> urlForDelete(type, id) => ['DELETE', '$type/$id'];
 
   Map<String, String> get headers => {};
 
@@ -54,15 +53,14 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       return localAdapter.findAll().map(_init).toList();
     }
 
-    final uri = parseQueryParameters(params).addToUri(
-      urlDesign.collection(type),
-    );
-
     final response = await withHttpClient(
-      (client) => client.get(uri, headers: headers?.cast() ?? this.headers),
+      (client) => _executeRequest(
+        client,
+        urlForFindAll(type),
+        params: params,
+        headers: headers,
+      ),
     );
-
-    print('[flutter_data] findAll $T: $uri [HTTP ${response.statusCode}]');
 
     return withResponse<List<T>>(response, (data) {
       return deserializeCollection(data).toList();
@@ -129,15 +127,14 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       return _init(localAdapter.findOne(key));
     }
 
-    final uri = parseQueryParameters(params).addToUri(
-      urlDesign.resource(type, id.toString()),
-    );
-
     final response = await withHttpClient(
-      (client) => client.get(uri, headers: headers?.cast() ?? this.headers),
+      (client) => _executeRequest(
+        client,
+        urlForFindOne(type, id),
+        params: params,
+        headers: headers,
+      ),
     );
-
-    print('[flutter_data] findOne $T: $uri [HTTP ${response.statusCode}]');
 
     // ignore: unnecessary_lambdas
     return withResponse<T>(response, (data) {
@@ -205,23 +202,15 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
     final body = json.encode(serialize(model));
 
-    final queryParams = parseQueryParameters(params);
-    Uri uri;
-    if (model.id != null) {
-      uri = queryParams.addToUri(urlDesign.resource(type, model.id.toString()));
-    } else {
-      uri = queryParams.addToUri(urlDesign.collection(type));
-    }
-
     final response = await withHttpClient(
-      (client) {
-        final _patch = updateHttpMethod == 'PUT' ? client.put : client.patch;
-        final _send = model.id != null ? _patch : client.post;
-        return _send(uri, headers: headers?.cast() ?? this.headers, body: body);
-      },
+      (client) => _executeRequest(
+        client,
+        urlForSave(type, model.id),
+        params: params,
+        headers: headers,
+        body: body,
+      ),
     );
-
-    print('[flutter_data] save $T: $uri [HTTP ${response.statusCode}]');
 
     return withResponse<T>(response, (data) {
       if (data == null) {
@@ -242,13 +231,14 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     localAdapter.delete(manager.dataId<T>(id).key);
 
     if (remote) {
-      final uri = urlDesign.resource(type, id.toString());
       final response = await withHttpClient(
-        (client) =>
-            client.delete(uri, headers: headers?.cast() ?? this.headers),
+        (client) => _executeRequest(
+          client,
+          urlForDelete(type, id),
+          params: params,
+          headers: headers,
+        ),
       );
-
-      print('[flutter_data] delete $T: $uri [HTTP ${response.statusCode}]');
 
       return withResponse<void>(response, (_) {
         return;
@@ -271,11 +261,19 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   // http
 
   @protected
-  QueryParameters parseQueryParameters(Map<String, dynamic> params) {
-    final p = params != null
-        ? _parseQueryParametersMap(params)
-        : const <String, String>{};
-    return QueryParameters(p);
+  Map<String, String> parseQueryParameters(Map<String, dynamic> params) {
+    params ??= const {};
+
+    return params.entries.fold<Map<String, String>>({}, (acc, e) {
+      if (e.value is Map<String, dynamic>) {
+        for (var e2 in (e.value as Map<String, dynamic>).entries) {
+          acc['${e.key}[${e2.key}]'] = e2.value.toString();
+        }
+      } else {
+        acc[e.key] = e.value.toString();
+      }
+      return acc;
+    });
   }
 
   @protected
@@ -318,19 +316,43 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   // helpers
 
-  // { 'a': 1, 'page': {'limit': '5'}}
+  Future<http.Response> _executeRequest(http.Client client, List<String> tuple,
+      {Map<String, dynamic> params,
+      Map<String, dynamic> headers,
+      String body}) async {
+    final verb = tuple.first;
+    var uri = Uri.parse('$baseUrl${tuple.last}');
+    if (params != null) {
+      uri = uri.replace(queryParameters: parseQueryParameters(params));
+    }
+    final _headers = headers?.cast<String, String>() ?? this.headers;
 
-  Map<String, String> _parseQueryParametersMap(Map<String, dynamic> map) {
-    return map.entries.fold<Map<String, String>>({}, (acc, e) {
-      if (e.value is Map<String, dynamic>) {
-        for (var e2 in (e.value as Map<String, dynamic>).entries) {
-          acc['${e.key}[${e2.key}]'] = e2.value.toString();
-        }
-      } else {
-        acc[e.key] = e.value.toString();
-      }
-      return acc;
-    });
+    http.Response response;
+    switch (verb) {
+      case 'GET':
+        response = await client.get(uri, headers: _headers);
+        break;
+      case 'PUT':
+        response = await client.put(uri, headers: _headers, body: body);
+        break;
+      case 'POST':
+        response = await client.post(uri, headers: _headers, body: body);
+        break;
+      case 'PATCH':
+        response = await client.patch(uri, headers: _headers, body: body);
+        break;
+      case 'DELETE':
+        response = await client.delete(uri, headers: _headers);
+        break;
+      default:
+        response = null;
+        break;
+    }
+
+    if (response != null) {
+      print('[flutter_data] $T: $uri [HTTP ${response.statusCode}]');
+    }
+    return response;
   }
 
   // initialization
