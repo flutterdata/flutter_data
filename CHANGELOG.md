@@ -1,3 +1,9 @@
+## [0.3.9] - 2020-04-24
+
+ - revamped URL design
+ - fix API consistency
+ - misc fixes
+
 ## [0.3.8] - 2020-04-23
 
  - add toJson support for different freezed kinds
