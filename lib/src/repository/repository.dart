@@ -321,7 +321,8 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       Map<String, dynamic> headers,
       String body}) async {
     final verb = tuple.first;
-    var uri = Uri.parse('$baseUrl${tuple.last}');
+    final _baseUrl = baseUrl.endsWith('/') ? baseUrl : '$baseUrl/';
+    var uri = Uri.parse('$_baseUrl${tuple.last}');
     if (params != null) {
       uri = uri.replace(queryParameters: parseQueryParameters(params));
     }
@@ -350,7 +351,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     }
 
     if (response != null) {
-      print('[flutter_data] $T: $uri [HTTP ${response.statusCode}]');
+      print('[flutter_data] $T: $verb $uri [HTTP ${response.statusCode}]');
     }
     return response;
   }
