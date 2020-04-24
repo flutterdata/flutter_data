@@ -39,7 +39,7 @@ extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
         remote: remote, params: params, headers: headers);
   }
 
-  Future<T> load(
+  Future<T> find(
       {bool remote = true,
       Map<String, dynamic> params,
       Map<String, dynamic> headers}) {
