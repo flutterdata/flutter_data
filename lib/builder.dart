@@ -120,7 +120,7 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
 
     // mixins
 
-    final mixins = annotation.read('mixins').listValue.map((o) {
+    final mixins = annotation.read('adapters').listValue.map((o) {
       var hasTypeArgument = false;
       final mixinType = o.toTypeValue();
       if (mixinType is ParameterizedType) {
