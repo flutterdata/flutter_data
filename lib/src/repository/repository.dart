@@ -10,7 +10,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   // url
 
-  String baseUrl = 'http://127.0.0.1:8080/';
+  String get baseUrl => 'http://127.0.0.1:8080/';
 
   List<String> urlForFindAll(type) => ['GET', '$type'];
   List<String> urlForFindOne(type, id) => ['GET', '$type/$id'];
