@@ -1,3 +1,7 @@
+## [0.3.10] - 2020-04-24
+
+ - builder hotfix
+
 ## [0.3.9] - 2020-04-24
 
  - revamped URL design
