@@ -121,9 +121,9 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       Map<String, dynamic> params,
       Map<String, dynamic> headers}) async {
     assert(id != null);
+    final key = manager.dataId<T>(id).key;
 
     if (remote == false) {
-      final key = manager.dataId<T>(id).key;
       return _init(localAdapter.findOne(key));
     }
 
@@ -136,9 +136,8 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       ),
     );
 
-    // ignore: unnecessary_lambdas
     return withResponse<T>(response, (data) {
-      return deserialize(data);
+      return deserialize(data, key: key);
     });
   }
 
@@ -368,24 +367,25 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     model._save = save;
 
     // only init dataId if
-    // (1) it hasn't been set
-    // (2) there's an updated key to set
+    //  - it hasn't been set
+    //  - there's an updated key to set
     if (model._dataId == null || (key != null && key != model._dataId.key)) {
-      // establish key
-      model._dataId = manager.dataId<T>(model.id, key: key);
+      // (1) establish key
+      model._dataId = DataId<T>(model.id, manager, key: key);
 
-      // if ID was already linked to ID
+      // if key was already linked to ID
       // delete the "temporary" local record
       if (key != null && key != model._dataId.key) {
         localAdapter.delete(key);
       }
+
       // (2) sync relationships
       syncRelationships(model);
     }
 
     // (3) save locally
     if (save) {
-      localAdapter.save(model.key, model);
+      localAdapter.save(model._dataId.key, model);
     }
 
     return model;
