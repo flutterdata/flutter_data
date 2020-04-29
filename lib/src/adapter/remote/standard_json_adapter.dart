@@ -43,7 +43,7 @@ mixin StandardJSONAdapter<T extends DataSupportMixin<T>> on Repository<T> {
 
   // Transforms standard JSON into a class
   @override
-  T deserialize(object, {key}) {
+  T deserialize(object, {String key, bool initialize = true}) {
     final map = object as Map<String, dynamic>;
 
     for (var relEntry in relationshipMetadata['HasMany'].entries) {
@@ -80,6 +80,6 @@ mixin StandardJSONAdapter<T extends DataSupportMixin<T>> on Repository<T> {
       map[k] = dataId.key;
     }
 
-    return super.deserialize(map, key: key);
+    return super.deserialize(map, key: key, initialize: initialize);
   }
 }

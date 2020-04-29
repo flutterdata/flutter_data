@@ -66,11 +66,23 @@ void main() async {
       'id': '1098',
       'surname': 'Moletto',
     };
-    var family2 = repo.deserialize(obj, key: family.key).init(repo);
+    var family2 = repo.deserialize(obj, key: family.key);
 
     expect(family2.isNew, false); // also checks if the model was init'd
     expect(family2, Family(id: '1098', surname: 'Moletto'));
     expect(repo.localAdapter.keys, [family2.key]);
+  });
+
+  test('deserialize existing without initializing', () {
+    var repo = injection.locator<Repository<Family>>();
+    var obj = {
+      'id': '3098',
+      'surname': 'Moletto',
+    };
+    var family2 = repo.deserialize(obj, initialize: false);
+    expect(family2.key, isNull);
+    family2.init(repo);
+    expect(family2.key, isNotNull);
   });
 
   test('deserialize many local for same remote ID', () {
@@ -85,14 +97,14 @@ void main() async {
       'id': '1298',
       'surname': 'Helsinki',
     };
-    var family1b = repo.deserialize(obj, key: family.key).init(repo);
+    var family1b = repo.deserialize(obj, key: family.key);
 
     // simulate "save" for family2
     var obj2 = {
       'id': '1298',
       'surname': 'Oslo',
     };
-    var family2b = repo.deserialize(obj2, key: family2.key).init(repo);
+    var family2b = repo.deserialize(obj2, key: family2.key);
 
     // since obj returned with same ID - only one key is left
     expect(family1b.key, family2b.key);

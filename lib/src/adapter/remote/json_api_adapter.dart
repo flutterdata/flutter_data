@@ -59,7 +59,7 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on Repository<T> {
 
   // Transforms JSON:API into native format
   @override
-  T deserialize(object, {key}) {
+  T deserialize(object, {String key, bool initialize = true}) {
     final nativeMap = <String, dynamic>{};
     final included = <ResourceObject>[];
     ResourceObject obj;
@@ -105,6 +105,6 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on Repository<T> {
 
     nativeMap.addAll(obj.attributes);
 
-    return super.deserialize(nativeMap, key: key);
+    return super.deserialize(nativeMap, key: key, initialize: initialize);
   }
 }
