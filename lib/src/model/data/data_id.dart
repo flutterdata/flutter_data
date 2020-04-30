@@ -21,10 +21,21 @@ class DataId<T> {
         this.type = getType<T>(type) {
     // key/ID association will only be made if
     // ID is not null and key does not already exist
-    if (id != null &&
-        manager != null &&
-        !manager.keysBox.containsKey('${this.type}#$id')) {
+    if (id != null && manager != null && !hasKey('${this.type}#$id')) {
       manager.keysBox.put('${this.type}#$id', this.key);
+    }
+  }
+
+  bool hasKey(key) {
+    // do not confuse key (map key) with this.key (fd key)
+    return manager.keysBox.containsKey(key);
+  }
+
+  void delete() {
+    // do not confuse key (map key) with this.key (fd key)
+    final key = '${this.type}#$id';
+    if (hasKey(key)) {
+      manager.keysBox.delete(key);
     }
   }
 

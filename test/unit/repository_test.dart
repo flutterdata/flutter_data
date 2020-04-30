@@ -111,6 +111,65 @@ void main() async {
     expect(repo.localAdapter.keys, [family.key]);
   });
 
+  test('returning a different remote ID for a requested ID is not supported',
+      () {
+    var repo = injection.locator<Repository<Family>>();
+    repo.localAdapter.clear();
+    expect(repo.localAdapter.keys, []);
+    var family0 = Family(id: '2908', surname: 'Moletto').init(repo);
+
+    // simulate a "findOne" with some id
+    var family = Family(id: '2905', surname: 'Moletto').init(repo);
+    var obj2 = {
+      'id': '2908', // that returns a different ID (already in the system)
+      'surname': 'Oslo',
+    };
+    var family2 = repo.deserialize(obj2, key: family.key);
+
+    // even though we supplied family.key, it will be different (family0's)
+    expect(family2.key, isNot(family.key));
+    expect(repo.localAdapter.keys, [family0.key]);
+  });
+
+  test('remote ID can be replaced with public methods', () {
+    var repo = injection.locator<Repository<Family>>();
+    repo.localAdapter.clear();
+    expect(repo.localAdapter.keys, []);
+    Family(id: '2908', surname: 'Moletto').init(repo);
+    // app is now ready and loaded one family from local storage
+
+    // simulate a "findOne" with some id
+    var family = Family(id: '2905', surname: 'Moletto').init(repo);
+    var originalKey = family.key;
+    var obj2 = {
+      'id': '2908', // that returns a different ID (already in the system)
+      'surname': 'Oslo',
+    };
+    var family2 = repo.deserialize(obj2, key: family.key);
+
+    // expect family to have been deleted by init, family2 remains
+    expect(repo.localAdapter.keys, [family2.key]);
+    expect(repo.manager.keysBox.keys, isNot(contains('families#${family.id}')));
+    expect(repo.manager.keysBox.keys, contains('families#${family2.id}'));
+
+    // delete family2 and its key
+    repo.delete(family2.id, remote: false);
+
+    // expect no keys remain
+    expect(repo.localAdapter.keys, isEmpty);
+    expect(repo.manager.keysBox.keys, isNot(contains('families#${family.id}')));
+    expect(
+        repo.manager.keysBox.keys, isNot(contains('families#${family2.id}')));
+
+    // associate new id to original existing key
+    family2.init(repo, key: originalKey, save: true);
+
+    // original key should now be associated to the deserialized model
+    expect(repo.manager.keysBox.get('families#${family2.id}'), originalKey);
+    expect(repo.localAdapter.keys, [originalKey]);
+    expect(repo.localAdapter.findOne(originalKey), family2);
+  });
+
   test('deserialize with relationships', () {
     var repo = injection.locator<Repository<Family>>();
 
@@ -133,6 +192,15 @@ void main() async {
     expect(family, Family(id: '1', surname: 'Smith'));
     expect(family.house.value.address, '123 Main St');
     expect(family.persons.first.age, 21);
+  });
+
+  test('delete', () async {
+    final repo = injection.locator<Repository<Person>>();
+    final person = Person(id: '1', name: 'John', age: 21).init(repo);
+    await repo.delete(person.id, remote: false);
+    var p2 = repo.localAdapter.findOne(person.key);
+    expect(p2, isNull);
+    expect(repo.manager.keysBox.get('people#${person.id}'), isNull);
   });
 
   test('create and save locally', () async {

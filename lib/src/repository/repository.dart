@@ -196,9 +196,10 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       Map<String, dynamic> params,
       Map<String, dynamic> headers}) async {
     final key = model.key;
+
     if (remote == false) {
       // ignore: unawaited_futures
-      localAdapter.save(model.key, model);
+      localAdapter.save(key, model);
       return model;
     }
 
@@ -229,8 +230,10 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       {bool remote = true,
       Map<String, dynamic> params,
       Map<String, dynamic> headers}) async {
+    final dataId = manager.dataId<T>(id);
     // ignore: unawaited_futures
-    localAdapter.delete(manager.dataId<T>(id).key);
+    localAdapter.delete(dataId.key);
+    dataId.delete();
 
     if (remote) {
       final response = await withHttpClient(
@@ -380,6 +383,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       // delete the "temporary" local record
       if (key != null && key != model._dataId.key) {
         localAdapter.delete(key);
+        DataId.byKey<T>(key, manager)?.delete();
       }
 
       // (2) sync relationships

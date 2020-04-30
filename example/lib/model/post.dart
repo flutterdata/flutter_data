@@ -1,4 +1,3 @@
-import 'package:meta/meta.dart';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:json_annotation/json_annotation.dart';
 
