@@ -97,7 +97,9 @@ abstract class DataSupport<T extends DataSupport<T>> with DataSupportMixin<T> {
 extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
   @Deprecated('Do not call init() when this model extends DataSupport')
   // ignore: missing_return
-  T init() {}
+  T init({String key, bool save = true}) {
+    return _repository._init(_this, key: key, save: save);
+  }
 }
 
 mixin IdDataSupportMixin<ID, T extends DataSupportMixin<T>>
