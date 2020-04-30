@@ -1,3 +1,11 @@
+## [0.3.11] - 2020-04-29
+
+  - new urlFor* API
+  - default params (closes #27)
+  - normalize params/headers
+  - delete keys when deleting models
+  - minor API fixes
+
 ## [0.3.10] - 2020-04-24
 
  - builder hotfix
