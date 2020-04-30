@@ -342,7 +342,9 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     var uri = Uri.parse('$_baseUrl$url');
 
     final _params = this.params & params;
-    uri = uri.replace(queryParameters: parseQueryParameters(_params));
+    if (_params.isNotEmpty) {
+      uri = uri.replace(queryParameters: parseQueryParameters(_params));
+    }
     final _headers = (this.headers & headers).castToString();
 
     http.Response response;
