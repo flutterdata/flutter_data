@@ -4,7 +4,7 @@ import 'package:json_api/document.dart' as j show Relationship;
 
 mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on Repository<T> {
   @override
-  Map<String, String> get headers => super.headers
+  Map<String, dynamic> get headers => super.headers
     ..addAll({
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',

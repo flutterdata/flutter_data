@@ -12,13 +12,21 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   String get baseUrl => 'http://127.0.0.1:8080/';
 
-  List<String> urlForFindAll(type) => ['GET', '$type'];
-  List<String> urlForFindOne(type, id) => ['GET', '$type/$id'];
-  List<String> urlForSave(type, id) =>
-      id != null ? ['PATCH', '$type/$id'] : ['POST', '$type'];
-  List<String> urlForDelete(type, id) => ['DELETE', '$type/$id'];
+  String urlForFindAll(params) => '$type';
+  DataRequestMethod methodForFindAll(params) => DataRequestMethod.GET;
 
-  Map<String, String> get headers => {};
+  String urlForFindOne(id, params) => '$type/$id';
+  DataRequestMethod methodForFindOne(id, params) => DataRequestMethod.GET;
+
+  String urlForSave(id, params) => id != null ? '$type/$id' : type;
+  DataRequestMethod methodForSave(id, params) =>
+      id != null ? DataRequestMethod.PATCH : DataRequestMethod.POST;
+
+  String urlForDelete(id, params) => '$type/$id';
+  DataRequestMethod methodForDelete(id, params) => DataRequestMethod.DELETE;
+
+  Map<String, dynamic> get params => {};
+  Map<String, dynamic> get headers => {};
 
   //
 
@@ -59,7 +67,8 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     final response = await withHttpClient(
       (client) => _executeRequest(
         client,
-        urlForFindAll(type),
+        urlForFindAll(params),
+        methodForFindAll(params),
         params: params,
         headers: headers,
       ),
@@ -133,7 +142,8 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     final response = await withHttpClient(
       (client) => _executeRequest(
         client,
-        urlForFindOne(type, id),
+        urlForFindOne(id, params),
+        methodForFindOne(id, params),
         params: params,
         headers: headers,
       ),
@@ -208,7 +218,8 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     final response = await withHttpClient(
       (client) => _executeRequest(
         client,
-        urlForSave(type, model.id),
+        urlForSave(model.id, params),
+        methodForSave(model.id, params),
         params: params,
         headers: headers,
         body: body,
@@ -239,7 +250,8 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       final response = await withHttpClient(
         (client) => _executeRequest(
           client,
-          urlForDelete(type, id),
+          urlForDelete(id, params),
+          methodForDelete(id, params),
           params: params,
           headers: headers,
         ),
@@ -321,33 +333,36 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   // helpers
 
-  Future<http.Response> _executeRequest(http.Client client, List<String> tuple,
+  Future<http.Response> _executeRequest(
+      http.Client client, String url, DataRequestMethod method,
       {Map<String, dynamic> params,
       Map<String, dynamic> headers,
       String body}) async {
-    final verb = tuple.first;
     final _baseUrl = baseUrl.endsWith('/') ? baseUrl : '$baseUrl/';
-    var uri = Uri.parse('$_baseUrl${tuple.last}');
-    if (params != null) {
-      uri = uri.replace(queryParameters: parseQueryParameters(params));
-    }
-    final _headers = headers?.cast<String, String>() ?? this.headers;
+    var uri = Uri.parse('$_baseUrl$url');
+
+    final _params = this.params & params;
+    uri = uri.replace(queryParameters: parseQueryParameters(_params));
+    final _headers = (this.headers & headers).castToString();
 
     http.Response response;
-    switch (verb) {
-      case 'GET':
+    switch (method) {
+      case DataRequestMethod.HEAD:
+        response = await client.head(uri, headers: _headers);
+        break;
+      case DataRequestMethod.GET:
         response = await client.get(uri, headers: _headers);
         break;
-      case 'PUT':
+      case DataRequestMethod.PUT:
         response = await client.put(uri, headers: _headers, body: body);
         break;
-      case 'POST':
+      case DataRequestMethod.POST:
         response = await client.post(uri, headers: _headers, body: body);
         break;
-      case 'PATCH':
+      case DataRequestMethod.PATCH:
         response = await client.patch(uri, headers: _headers, body: body);
         break;
-      case 'DELETE':
+      case DataRequestMethod.DELETE:
         response = await client.delete(uri, headers: _headers);
         break;
       default:
@@ -356,7 +371,8 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     }
 
     if (response != null) {
-      print('[flutter_data] $T: $verb $uri [HTTP ${response.statusCode}]');
+      print(
+          '[flutter_data] $T: ${method.toShortString()} $uri [HTTP ${response.statusCode}]');
     }
     return response;
   }
@@ -421,3 +437,6 @@ FlutterData.init(autoModelInit: false);
     }
   }
 }
+
+// ignore: constant_identifier_names
+enum DataRequestMethod { GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS, TRACE }

@@ -59,6 +59,14 @@ abstract class Company
 mixin TestMixin<T extends DataSupportMixin<T>> on Repository<T> {
   @override
   String get baseUrl => 'http://127.0.0.1:17083/';
+
+  @override
+  Map<String, dynamic> get params => {
+        'page': {'limit': 10}
+      };
+
+  @override
+  Map<String, dynamic> get headers => {'x-client-id': 2473272};
 }
 
 // mixin ImpatientModel on Repository<Model> {
