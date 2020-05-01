@@ -9,7 +9,8 @@ part of 'user.dart';
 // ignore_for_file: unused_local_variable
 // ignore_for_file: always_declare_return_types
 class _$UserRepository extends Repository<User> {
-  _$UserRepository(LocalAdapter<User> adapter) : super(adapter);
+  _$UserRepository(LocalAdapter<User> adapter, {bool remote, bool verbose})
+      : super(adapter, remote: remote, verbose: verbose);
 
   @override
   get relationshipMetadata => {'HasMany': {}, 'BelongsTo': {}};
@@ -17,12 +18,14 @@ class _$UserRepository extends Repository<User> {
 
 class $UserRepository extends _$UserRepository
     with StandardJSONAdapter<User>, JSONPlaceholderAdapter<User> {
-  $UserRepository(LocalAdapter<User> adapter) : super(adapter);
+  $UserRepository(LocalAdapter<User> adapter, {bool remote, bool verbose})
+      : super(adapter, remote: remote, verbose: verbose);
 }
 
 // ignore: must_be_immutable, unused_local_variable
 class $UserLocalAdapter extends LocalAdapter<User> {
-  $UserLocalAdapter(DataManager manager, {box}) : super(manager, box: box);
+  $UserLocalAdapter(DataManager manager, {List<int> encryptionKey, box})
+      : super(manager, encryptionKey: encryptionKey, box: box);
 
   @override
   deserialize(map) {

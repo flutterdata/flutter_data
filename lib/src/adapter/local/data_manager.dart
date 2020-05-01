@@ -31,7 +31,9 @@ class DataManager {
   // initialize shared resources
   // clear is true by default during alpha releases
   Future<DataManager> init(FutureOr<Directory> baseDir, Locator locator,
-      {bool clear = true}) async {
+      {bool clear, bool verbose}) async {
+    clear ??= true;
+    verbose ??= true;
     assert(locator != null);
     _locator = locator;
 
@@ -41,7 +43,9 @@ class DataManager {
     final dirPath = Directory(path);
     final exists = await dirPath.exists();
     if (clear && exists) {
-      print('[flutter_data] Destroying all boxes');
+      if (verbose) {
+        print('[flutter_data] Destroying all boxes');
+      }
       await dirPath.delete(recursive: true);
     }
 

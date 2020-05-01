@@ -14,6 +14,6 @@ class DataException implements Exception {
 
   @override
   String toString() {
-    return 'DataException: [HTTP $status] $errors';
+    return 'DataException: ${status != null ? "[HTTP $status] " : ""}$errors';
   }
 }

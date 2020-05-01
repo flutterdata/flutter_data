@@ -14,7 +14,8 @@ void main() async {
 
   try {
     _dir = await Directory('../tmp').create();
-    final manager = await FlutterData.init(_dir);
+    final manager = await FlutterData.init(_dir,
+        verbose: false, encryptionKey: _encryptionKey);
     final locator = manager.locator;
 
     final usersRepo = locator<Repository<User>>();
@@ -59,3 +60,38 @@ void main() async {
     await _dir.delete(recursive: true);
   }
 }
+
+const List<int> _encryptionKey = [
+  146,
+  54,
+  40,
+  58,
+  46,
+  90,
+  152,
+  02,
+  193,
+  210,
+  220,
+  199,
+  16,
+  96,
+  107,
+  4,
+  243,
+  133,
+  171,
+  31,
+  241,
+  26,
+  149,
+  53,
+  172,
+  36,
+  121,
+  103,
+  17,
+  155,
+  120,
+  61
+];

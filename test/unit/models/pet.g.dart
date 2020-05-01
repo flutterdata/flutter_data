@@ -9,19 +9,22 @@ part of 'pet.dart';
 // ignore_for_file: unused_local_variable
 // ignore_for_file: always_declare_return_types
 class _$DogRepository extends Repository<Dog> {
-  _$DogRepository(LocalAdapter<Dog> adapter) : super(adapter);
+  _$DogRepository(LocalAdapter<Dog> adapter, {bool remote, bool verbose})
+      : super(adapter, remote: remote, verbose: verbose);
 
   @override
   get relationshipMetadata => {'HasMany': {}, 'BelongsTo': {}};
 }
 
 class $DogRepository extends _$DogRepository {
-  $DogRepository(LocalAdapter<Dog> adapter) : super(adapter);
+  $DogRepository(LocalAdapter<Dog> adapter, {bool remote, bool verbose})
+      : super(adapter, remote: remote, verbose: verbose);
 }
 
 // ignore: must_be_immutable, unused_local_variable
 class $DogLocalAdapter extends LocalAdapter<Dog> {
-  $DogLocalAdapter(DataManager manager, {box}) : super(manager, box: box);
+  $DogLocalAdapter(DataManager manager, {List<int> encryptionKey, box})
+      : super(manager, encryptionKey: encryptionKey, box: box);
 
   @override
   deserialize(map) {
@@ -45,19 +48,22 @@ class $DogLocalAdapter extends LocalAdapter<Dog> {
 // ignore_for_file: unused_local_variable
 // ignore_for_file: always_declare_return_types
 class _$CatRepository extends Repository<Cat> {
-  _$CatRepository(LocalAdapter<Cat> adapter) : super(adapter);
+  _$CatRepository(LocalAdapter<Cat> adapter, {bool remote, bool verbose})
+      : super(adapter, remote: remote, verbose: verbose);
 
   @override
   get relationshipMetadata => {'HasMany': {}, 'BelongsTo': {}};
 }
 
 class $CatRepository extends _$CatRepository {
-  $CatRepository(LocalAdapter<Cat> adapter) : super(adapter);
+  $CatRepository(LocalAdapter<Cat> adapter, {bool remote, bool verbose})
+      : super(adapter, remote: remote, verbose: verbose);
 }
 
 // ignore: must_be_immutable, unused_local_variable
 class $CatLocalAdapter extends LocalAdapter<Cat> {
-  $CatLocalAdapter(DataManager manager, {box}) : super(manager, box: box);
+  $CatLocalAdapter(DataManager manager, {List<int> encryptionKey, box})
+      : super(manager, encryptionKey: encryptionKey, box: box);
 
   @override
   deserialize(map) {

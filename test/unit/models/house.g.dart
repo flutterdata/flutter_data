@@ -9,7 +9,8 @@ part of 'house.dart';
 // ignore_for_file: unused_local_variable
 // ignore_for_file: always_declare_return_types
 class _$HouseRepository extends Repository<House> {
-  _$HouseRepository(LocalAdapter<House> adapter) : super(adapter);
+  _$HouseRepository(LocalAdapter<House> adapter, {bool remote, bool verbose})
+      : super(adapter, remote: remote, verbose: verbose);
 
   @override
   get relationshipMetadata => {
@@ -20,12 +21,14 @@ class _$HouseRepository extends Repository<House> {
 }
 
 class $HouseRepository extends _$HouseRepository {
-  $HouseRepository(LocalAdapter<House> adapter) : super(adapter);
+  $HouseRepository(LocalAdapter<House> adapter, {bool remote, bool verbose})
+      : super(adapter, remote: remote, verbose: verbose);
 }
 
 // ignore: must_be_immutable, unused_local_variable
 class $HouseLocalAdapter extends LocalAdapter<House> {
-  $HouseLocalAdapter(DataManager manager, {box}) : super(manager, box: box);
+  $HouseLocalAdapter(DataManager manager, {List<int> encryptionKey, box})
+      : super(manager, encryptionKey: encryptionKey, box: box);
 
   @override
   deserialize(map) {

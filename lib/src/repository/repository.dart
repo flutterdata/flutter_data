@@ -1,14 +1,20 @@
 part of flutter_data;
 
 abstract class Repository<T extends DataSupportMixin<T>> {
-  String get type => DataId.getType<T>();
+  Repository(this.localAdapter, {bool remote, bool verbose})
+      : _remote = remote ?? true,
+        _verbose = verbose ?? true;
 
   @visibleForTesting
   @protected
   final LocalAdapter<T> localAdapter;
-  Repository(this.localAdapter);
 
-  // url
+  final bool _remote;
+  final bool _verbose;
+
+  //
+
+  String get type => DataId.getType<T>();
 
   String get baseUrl => 'http://127.0.0.1:8080/';
 
@@ -57,9 +63,11 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   // repository methods
 
   Future<List<T>> findAll(
-      {bool remote = true,
+      {bool remote,
       Map<String, dynamic> params,
       Map<String, dynamic> headers}) async {
+    remote ??= _remote;
+
     if (remote == false) {
       return localAdapter.findAll().map(_init).toList();
     }
@@ -80,9 +88,11 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   }
 
   DataStateNotifier<List<T>> watchAll(
-      {bool remote = true,
+      {bool remote,
       Map<String, dynamic> params,
       Map<String, dynamic> headers}) {
+    remote ??= _remote;
+
     final _watchAllNotifier = DataStateNotifier<List<T>>(
       DataState(
         model: localAdapter.findAll().map(_init).toList(),
@@ -129,10 +139,12 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   // one
 
   Future<T> findOne(dynamic id,
-      {bool remote = true,
+      {bool remote,
       Map<String, dynamic> params,
       Map<String, dynamic> headers}) async {
     assert(id != null);
+
+    remote ??= _remote;
     final key = manager.dataId<T>(id).key;
 
     if (remote == false) {
@@ -155,9 +167,10 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   }
 
   DataStateNotifier<T> watchOne(dynamic id,
-      {bool remote = true,
+      {bool remote,
       Map<String, dynamic> params,
       Map<String, dynamic> headers}) {
+    remote ??= _remote;
     final key = manager.dataId<T>(id).key;
 
     final _watchOneNotifier = DataStateNotifier<T>(
@@ -202,9 +215,10 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   // save & delete
 
   Future<T> save(T model,
-      {bool remote = true,
+      {bool remote,
       Map<String, dynamic> params,
       Map<String, dynamic> headers}) async {
+    remote ??= _remote;
     final key = model.key;
 
     if (remote == false) {
@@ -238,10 +252,12 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   }
 
   Future<void> delete(dynamic id,
-      {bool remote = true,
+      {bool remote,
       Map<String, dynamic> params,
       Map<String, dynamic> headers}) async {
+    remote ??= _remote;
     final dataId = manager.dataId<T>(id);
+
     // ignore: unawaited_futures
     localAdapter.delete(dataId.key);
     dataId.delete();
@@ -372,10 +388,11 @@ abstract class Repository<T extends DataSupportMixin<T>> {
         break;
     }
 
-    if (response != null) {
+    if (_verbose && response != null) {
       print(
           '[flutter_data] $T: ${method.toShortString()} $uri [HTTP ${response.statusCode}]');
     }
+
     return response;
   }
 

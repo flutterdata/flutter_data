@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 import 'package:async/async.dart';
@@ -203,10 +205,15 @@ void main() async {
     expect(repo.manager.keysBox.get('people#${person.id}'), isNull);
   });
 
-  test('create and save locally', () async {
+  test('create and save', () async {
     var repo = injection.locator<Repository<House>>();
-    var house = House(address: '12 Lincoln Rd').init(repo);
-    expect(repo.localAdapter.findOne(house.key), house);
+    var house = House(id: '25', address: '12 Lincoln Rd').init(repo);
+    // repo.findOne works because the House repo is remote=false
+    expect(await repo.findOne(house.id), house);
+    // but overriding remote works
+    expect(() async {
+      return await repo.findOne(house.id, remote: true);
+    }, throwsA(isA<SocketException>()));
   });
 
   test('watchAll', () async {

@@ -9,7 +9,9 @@ part of 'comment.dart';
 // ignore_for_file: unused_local_variable
 // ignore_for_file: always_declare_return_types
 class _$CommentRepository extends Repository<Comment> {
-  _$CommentRepository(LocalAdapter<Comment> adapter) : super(adapter);
+  _$CommentRepository(LocalAdapter<Comment> adapter,
+      {bool remote, bool verbose})
+      : super(adapter, remote: remote, verbose: verbose);
 
   @override
   get relationshipMetadata => {
@@ -21,12 +23,14 @@ class _$CommentRepository extends Repository<Comment> {
 
 class $CommentRepository extends _$CommentRepository
     with StandardJSONAdapter<Comment>, JSONPlaceholderAdapter<Comment> {
-  $CommentRepository(LocalAdapter<Comment> adapter) : super(adapter);
+  $CommentRepository(LocalAdapter<Comment> adapter, {bool remote, bool verbose})
+      : super(adapter, remote: remote, verbose: verbose);
 }
 
 // ignore: must_be_immutable, unused_local_variable
 class $CommentLocalAdapter extends LocalAdapter<Comment> {
-  $CommentLocalAdapter(DataManager manager, {box}) : super(manager, box: box);
+  $CommentLocalAdapter(DataManager manager, {List<int> encryptionKey, box})
+      : super(manager, encryptionKey: encryptionKey, box: box);
 
   @override
   deserialize(map) {

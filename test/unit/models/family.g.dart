@@ -9,7 +9,8 @@ part of 'family.dart';
 // ignore_for_file: unused_local_variable
 // ignore_for_file: always_declare_return_types
 class _$FamilyRepository extends Repository<Family> {
-  _$FamilyRepository(LocalAdapter<Family> adapter) : super(adapter);
+  _$FamilyRepository(LocalAdapter<Family> adapter, {bool remote, bool verbose})
+      : super(adapter, remote: remote, verbose: verbose);
 
   @override
   get relationshipMetadata => {
@@ -22,12 +23,14 @@ class _$FamilyRepository extends Repository<Family> {
 }
 
 class $FamilyRepository extends _$FamilyRepository {
-  $FamilyRepository(LocalAdapter<Family> adapter) : super(adapter);
+  $FamilyRepository(LocalAdapter<Family> adapter, {bool remote, bool verbose})
+      : super(adapter, remote: remote, verbose: verbose);
 }
 
 // ignore: must_be_immutable, unused_local_variable
 class $FamilyLocalAdapter extends LocalAdapter<Family> {
-  $FamilyLocalAdapter(DataManager manager, {box}) : super(manager, box: box);
+  $FamilyLocalAdapter(DataManager manager, {List<int> encryptionKey, box})
+      : super(manager, encryptionKey: encryptionKey, box: box);
 
   @override
   deserialize(map) {

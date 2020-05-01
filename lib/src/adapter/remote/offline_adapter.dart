@@ -44,7 +44,7 @@ mixin OfflineAdapter<T extends DataSupportMixin<T>> on Repository<T> {
 
   @override
   DataStateNotifier<List<T>> watchAll(
-      {bool remote = true,
+      {bool remote,
       Map<String, dynamic> params,
       Map<String, dynamic> headers}) {
     final notifier =
@@ -55,7 +55,7 @@ mixin OfflineAdapter<T extends DataSupportMixin<T>> on Repository<T> {
 
   @override
   DataStateNotifier<T> watchOne(dynamic id,
-      {bool remote = true,
+      {bool remote,
       Map<String, dynamic> params,
       Map<String, dynamic> headers}) {
     final notifier =

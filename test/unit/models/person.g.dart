@@ -9,7 +9,8 @@ part of 'person.dart';
 // ignore_for_file: unused_local_variable
 // ignore_for_file: always_declare_return_types
 class _$PersonRepository extends Repository<Person> {
-  _$PersonRepository(LocalAdapter<Person> adapter) : super(adapter);
+  _$PersonRepository(LocalAdapter<Person> adapter, {bool remote, bool verbose})
+      : super(adapter, remote: remote, verbose: verbose);
 
   @override
   get relationshipMetadata => {
@@ -20,12 +21,14 @@ class _$PersonRepository extends Repository<Person> {
 }
 
 class $PersonRepository extends _$PersonRepository with PersonPollAdapter {
-  $PersonRepository(LocalAdapter<Person> adapter) : super(adapter);
+  $PersonRepository(LocalAdapter<Person> adapter, {bool remote, bool verbose})
+      : super(adapter, remote: remote, verbose: verbose);
 }
 
 // ignore: must_be_immutable, unused_local_variable
 class $PersonLocalAdapter extends LocalAdapter<Person> {
-  $PersonLocalAdapter(DataManager manager, {box}) : super(manager, box: box);
+  $PersonLocalAdapter(DataManager manager, {List<int> encryptionKey, box})
+      : super(manager, encryptionKey: encryptionKey, box: box);
 
   @override
   deserialize(map) {

@@ -143,19 +143,19 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
 // ignore_for_file: unused_local_variable
 // ignore_for_file: always_declare_return_types
 class _\$${type}Repository extends Repository<$type> {
-  _\$${type}Repository(LocalAdapter<$type> adapter) : super(adapter);
+  _\$${type}Repository(LocalAdapter<$type> adapter, {bool remote, bool verbose}) : super(adapter, remote: remote, verbose: verbose);
 
   @override
   get relationshipMetadata => $relationshipMetadata;
 }
 
 class \$${type}Repository extends _\$${type}Repository $mixinsString {
-  \$${type}Repository(LocalAdapter<$type> adapter) : super(adapter);
+  \$${type}Repository(LocalAdapter<$type> adapter, {bool remote, bool verbose}) : super(adapter, remote: remote, verbose: verbose);
 }
 
 // ignore: must_be_immutable, unused_local_variable
 class \$${type}LocalAdapter extends LocalAdapter<$type> {
-  \$${type}LocalAdapter(DataManager manager, {box}) : super(manager, box: box);
+  \$${type}LocalAdapter(DataManager manager, {List<int> encryptionKey, box}) : super(manager, encryptionKey: encryptionKey, box: box);
 
   @override
   deserialize(map) {
@@ -267,10 +267,10 @@ List<SingleChildWidget> get providers {
 ''';
 
       provider2 = '''\n
-List<SingleChildWidget> dataProviders(Future<Directory> Function() directory, {bool clear = true}) => [
+List<SingleChildWidget> dataProviders(Future<Directory> Function() directory, {bool clear, bool remote, bool verbose, List<int> encryptionKey}) => [
   FutureProvider<DataManager>(
     create: (_) => directory().then((dir) {
-          return FlutterData.init(dir, clear: clear);
+          return FlutterData.init(dir, clear: clear, remote: remote, verbose: verbose, encryptionKey: encryptionKey);
         })),
 ''' +
           classes.map((c) => '''\n
@@ -293,18 +293,18 @@ $modelImports
 
 extension FlutterData on DataManager {
 
-  static Future<DataManager> init(Directory baseDir, {bool autoModelInit = true, bool clear = true, Function(void Function<R>(R)) also}) async {
+  static Future<DataManager> init(Directory baseDir, {bool autoModelInit = true, bool clear, bool remote, bool verbose, List<int> encryptionKey, Function(void Function<R>(R)) also}) async {
     assert(baseDir != null);
 
     final injection = DataServiceLocator();
 
-    final manager = await DataManager(autoModelInit: autoModelInit).init(baseDir, injection.locator, clear: clear);
+    final manager = await DataManager(autoModelInit: autoModelInit).init(baseDir, injection.locator, clear: clear, verbose: verbose);
     injection.register(manager);
 ''' +
         classes.map((c) => '''
-    final ${c['name'].toLowerCase()}LocalAdapter = await \$${c['name']}LocalAdapter(manager).init();
+    final ${c['name'].toLowerCase()}LocalAdapter = await \$${c['name']}LocalAdapter(manager, encryptionKey: encryptionKey).init();
     injection.register(${c['name'].toLowerCase()}LocalAdapter);
-    injection.register<Repository<${c['name']}>>(\$${c['name']}Repository(${c['name'].toLowerCase()}LocalAdapter));
+    injection.register<Repository<${c['name']}>>(\$${c['name']}Repository(${c['name'].toLowerCase()}LocalAdapter, remote: remote, verbose: verbose));
 ''').join('\n') +
         '''\n
     if (also != null) {

@@ -74,7 +74,7 @@ class TestDataManager extends DataManager {
 
   @override
   Future<DataManager> init(FutureOr<Directory> baseDir, Locator locator,
-      {bool clear = true}) {
+      {bool clear, bool verbose}) {
     throw UnimplementedError();
   }
 
@@ -103,7 +103,8 @@ final Function() setUpAllFn = () {
   injection.register<LocalAdapter<Person>>(personLocalAdapter);
   injection.register<LocalAdapter<Dog>>(dogLocalAdapter);
 
-  injection.register<Repository<House>>($HouseRepository(houseLocalAdapter));
+  injection.register<Repository<House>>(
+      $HouseRepository(houseLocalAdapter, remote: false));
   injection.register<Repository<Family>>($FamilyRepository(familyLocalAdapter));
   injection.register<Repository<Person>>($PersonRepository(personLocalAdapter));
   injection.register<Repository<Dog>>($DogRepository(dogLocalAdapter));

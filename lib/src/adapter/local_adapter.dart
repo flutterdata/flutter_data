@@ -9,18 +9,22 @@ abstract class LocalAdapter<T extends DataSupportMixin<T>> with TypeAdapter<T> {
   Box<T> _box;
   final HiveInterface _hive;
   final Box<String> _keysBox;
+  final HiveAesCipher _hiveEncryptionCipher;
 
   static const _oneFrameDuration = Duration(milliseconds: 16);
 
-  LocalAdapter(this.manager, {box})
+  LocalAdapter(this.manager, {List<int> encryptionKey, box})
       : _keysBox = manager.keysBox,
         _hive = manager._hive,
-        _box = box as Box<T>;
+        _box = box as Box<T>,
+        _hiveEncryptionCipher =
+            encryptionKey != null ? HiveAesCipher(encryptionKey) : null;
 
   Future<LocalAdapter<T>> init() async {
     if (_box == null) {
       _hive.registerAdapter(this);
-      _box = await _hive.openBox(DataId.getType<T>());
+      _box = await _hive.openBox(DataId.getType<T>(),
+          encryptionCipher: _hiveEncryptionCipher);
     }
     return this;
   }

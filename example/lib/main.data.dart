@@ -13,24 +13,24 @@ import 'package:jsonplaceholder_example/model/comment.dart';
 
 extension FlutterData on DataManager {
 
-  static Future<DataManager> init(Directory baseDir, {bool autoModelInit = true, bool clear = true, Function(void Function<R>(R)) also}) async {
+  static Future<DataManager> init(Directory baseDir, {bool autoModelInit = true, bool clear, bool remote, bool verbose, List<int> encryptionKey, Function(void Function<R>(R)) also}) async {
     assert(baseDir != null);
 
     final injection = DataServiceLocator();
 
-    final manager = await DataManager(autoModelInit: autoModelInit).init(baseDir, injection.locator, clear: clear);
+    final manager = await DataManager(autoModelInit: autoModelInit).init(baseDir, injection.locator, clear: clear, verbose: verbose);
     injection.register(manager);
-    final postLocalAdapter = await $PostLocalAdapter(manager).init();
+    final postLocalAdapter = await $PostLocalAdapter(manager, encryptionKey: encryptionKey).init();
     injection.register(postLocalAdapter);
-    injection.register<Repository<Post>>($PostRepository(postLocalAdapter));
+    injection.register<Repository<Post>>($PostRepository(postLocalAdapter, remote: remote, verbose: verbose));
 
-    final userLocalAdapter = await $UserLocalAdapter(manager).init();
+    final userLocalAdapter = await $UserLocalAdapter(manager, encryptionKey: encryptionKey).init();
     injection.register(userLocalAdapter);
-    injection.register<Repository<User>>($UserRepository(userLocalAdapter));
+    injection.register<Repository<User>>($UserRepository(userLocalAdapter, remote: remote, verbose: verbose));
 
-    final commentLocalAdapter = await $CommentLocalAdapter(manager).init();
+    final commentLocalAdapter = await $CommentLocalAdapter(manager, encryptionKey: encryptionKey).init();
     injection.register(commentLocalAdapter);
-    injection.register<Repository<Comment>>($CommentRepository(commentLocalAdapter));
+    injection.register<Repository<Comment>>($CommentRepository(commentLocalAdapter, remote: remote, verbose: verbose));
 
 
     if (also != null) {

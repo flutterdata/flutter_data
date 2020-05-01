@@ -9,7 +9,8 @@ part of 'post.dart';
 // ignore_for_file: unused_local_variable
 // ignore_for_file: always_declare_return_types
 class _$PostRepository extends Repository<Post> {
-  _$PostRepository(LocalAdapter<Post> adapter) : super(adapter);
+  _$PostRepository(LocalAdapter<Post> adapter, {bool remote, bool verbose})
+      : super(adapter, remote: remote, verbose: verbose);
 
   @override
   get relationshipMetadata => {
@@ -22,12 +23,14 @@ class _$PostRepository extends Repository<Post> {
 
 class $PostRepository extends _$PostRepository
     with StandardJSONAdapter<Post>, JSONPlaceholderAdapter<Post> {
-  $PostRepository(LocalAdapter<Post> adapter) : super(adapter);
+  $PostRepository(LocalAdapter<Post> adapter, {bool remote, bool verbose})
+      : super(adapter, remote: remote, verbose: verbose);
 }
 
 // ignore: must_be_immutable, unused_local_variable
 class $PostLocalAdapter extends LocalAdapter<Post> {
-  $PostLocalAdapter(DataManager manager, {box}) : super(manager, box: box);
+  $PostLocalAdapter(DataManager manager, {List<int> encryptionKey, box})
+      : super(manager, encryptionKey: encryptionKey, box: box);
 
   @override
   deserialize(map) {

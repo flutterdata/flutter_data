@@ -9,7 +9,8 @@ part of 'models.dart';
 // ignore_for_file: unused_local_variable
 // ignore_for_file: always_declare_return_types
 class _$ModelRepository extends Repository<Model> {
-  _$ModelRepository(LocalAdapter<Model> adapter) : super(adapter);
+  _$ModelRepository(LocalAdapter<Model> adapter, {bool remote, bool verbose})
+      : super(adapter, remote: remote, verbose: verbose);
 
   @override
   get relationshipMetadata => {
@@ -20,12 +21,14 @@ class _$ModelRepository extends Repository<Model> {
 }
 
 class $ModelRepository extends _$ModelRepository {
-  $ModelRepository(LocalAdapter<Model> adapter) : super(adapter);
+  $ModelRepository(LocalAdapter<Model> adapter, {bool remote, bool verbose})
+      : super(adapter, remote: remote, verbose: verbose);
 }
 
 // ignore: must_be_immutable, unused_local_variable
 class $ModelLocalAdapter extends LocalAdapter<Model> {
-  $ModelLocalAdapter(DataManager manager, {box}) : super(manager, box: box);
+  $ModelLocalAdapter(DataManager manager, {List<int> encryptionKey, box})
+      : super(manager, encryptionKey: encryptionKey, box: box);
 
   @override
   deserialize(map) {
@@ -58,19 +61,22 @@ class $ModelLocalAdapter extends LocalAdapter<Model> {
 // ignore_for_file: unused_local_variable
 // ignore_for_file: always_declare_return_types
 class _$CityRepository extends Repository<City> {
-  _$CityRepository(LocalAdapter<City> adapter) : super(adapter);
+  _$CityRepository(LocalAdapter<City> adapter, {bool remote, bool verbose})
+      : super(adapter, remote: remote, verbose: verbose);
 
   @override
   get relationshipMetadata => {'HasMany': {}, 'BelongsTo': {}};
 }
 
 class $CityRepository extends _$CityRepository {
-  $CityRepository(LocalAdapter<City> adapter) : super(adapter);
+  $CityRepository(LocalAdapter<City> adapter, {bool remote, bool verbose})
+      : super(adapter, remote: remote, verbose: verbose);
 }
 
 // ignore: must_be_immutable, unused_local_variable
 class $CityLocalAdapter extends LocalAdapter<City> {
-  $CityLocalAdapter(DataManager manager, {box}) : super(manager, box: box);
+  $CityLocalAdapter(DataManager manager, {List<int> encryptionKey, box})
+      : super(manager, encryptionKey: encryptionKey, box: box);
 
   @override
   deserialize(map) {
@@ -94,7 +100,9 @@ class $CityLocalAdapter extends LocalAdapter<City> {
 // ignore_for_file: unused_local_variable
 // ignore_for_file: always_declare_return_types
 class _$CompanyRepository extends Repository<Company> {
-  _$CompanyRepository(LocalAdapter<Company> adapter) : super(adapter);
+  _$CompanyRepository(LocalAdapter<Company> adapter,
+      {bool remote, bool verbose})
+      : super(adapter, remote: remote, verbose: verbose);
 
   @override
   get relationshipMetadata => {
@@ -106,12 +114,14 @@ class _$CompanyRepository extends Repository<Company> {
 
 class $CompanyRepository extends _$CompanyRepository
     with JSONAPIAdapter<Company>, TestMixin<Company> {
-  $CompanyRepository(LocalAdapter<Company> adapter) : super(adapter);
+  $CompanyRepository(LocalAdapter<Company> adapter, {bool remote, bool verbose})
+      : super(adapter, remote: remote, verbose: verbose);
 }
 
 // ignore: must_be_immutable, unused_local_variable
 class $CompanyLocalAdapter extends LocalAdapter<Company> {
-  $CompanyLocalAdapter(DataManager manager, {box}) : super(manager, box: box);
+  $CompanyLocalAdapter(DataManager manager, {List<int> encryptionKey, box})
+      : super(manager, encryptionKey: encryptionKey, box: box);
 
   @override
   deserialize(map) {

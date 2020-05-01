@@ -22,7 +22,7 @@ extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
   String get key => _dataId?.key;
 
   Future<T> save(
-      {bool remote = true,
+      {bool remote,
       Map<String, dynamic> params,
       Map<String, dynamic> headers}) async {
     _assertRepo();
@@ -31,7 +31,7 @@ extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
   }
 
   Future<void> delete(
-      {bool remote = true,
+      {bool remote,
       Map<String, dynamic> params,
       Map<String, dynamic> headers}) async {
     _assertRepo();
@@ -40,7 +40,7 @@ extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
   }
 
   Future<T> find(
-      {bool remote = true,
+      {bool remote,
       Map<String, dynamic> params,
       Map<String, dynamic> headers}) {
     _assertRepo();
@@ -49,7 +49,7 @@ extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
   }
 
   DataStateNotifier<T> watch(
-      {bool remote = true,
+      {bool remote,
       Map<String, dynamic> params,
       Map<String, dynamic> headers}) {
     _assertRepo();
