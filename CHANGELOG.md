@@ -1,3 +1,12 @@
+## [0.3.12] - 2020-05-04
+
+ - new `repositoryFor` API, useful for serialization adapters
+ - JSON:API adapter includes bugfix
+ - `Repository#dumpLocal` to dump the contents of this repository local storage
+ - `Repository#remote` flag (closes #30)
+ - verbose flag (closes #18)
+ - allow passing Hive AES encryption key (closes #29)
+
 ## [0.3.11] - 2020-04-29
 
   - new urlFor* API
