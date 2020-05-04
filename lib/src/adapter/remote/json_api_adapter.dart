@@ -53,8 +53,8 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on Repository<T> {
   @override
   Iterable<T> deserializeCollection(object) {
     final doc = Document.fromJson(object, ResourceCollectionData.fromJson);
-    final tuples = doc.data.collection.map((obj) => [obj, doc.data.included]);
-    return super.deserializeCollection(tuples);
+    _saveIncluded(doc.data.included);
+    return super.deserializeCollection(doc.data.collection);
   }
 
   // Transforms JSON:API into native format
@@ -64,12 +64,7 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on Repository<T> {
     final included = <ResourceObject>[];
     ResourceObject obj;
 
-    if (object is Iterable) {
-      obj = object.elementAt(0) as ResourceObject;
-      if (object.elementAt(1) != null) {
-        included.addAll(object.elementAt(1) as List<ResourceObject>);
-      }
-    } else if (object is ResourceObject) {
+    if (object is ResourceObject) {
       obj = object;
     } else {
       final doc = Document.fromJson(object, ResourceData.fromJson);
@@ -80,12 +75,7 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on Repository<T> {
     }
 
     // save included first (get keys for them before the relationships)
-    for (var i in included) {
-      final dataId = manager.dataId(i.id, type: i.type);
-      final repo =
-          relationshipMetadata['repository#${dataId.type}'] as Repository;
-      repo?.deserialize(i, key: dataId.key);
-    }
+    _saveIncluded(included);
 
     nativeMap['id'] = obj.id;
 
@@ -106,5 +96,14 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on Repository<T> {
     nativeMap.addAll(obj.attributes);
 
     return super.deserialize(nativeMap, key: key, initialize: initialize);
+  }
+
+  void _saveIncluded(List<ResourceObject> included) {
+    included ??= const [];
+    for (var i in included) {
+      final dataId = manager.dataId(i.id, type: i.type);
+      final repo = repositoryFor(dataId.type);
+      repo.deserialize(i, key: dataId.key);
+    }
   }
 }

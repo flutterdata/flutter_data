@@ -15,9 +15,15 @@ class _$PersonRepository extends Repository<Person> {
   @override
   get relationshipMetadata => {
         'HasMany': {},
-        'BelongsTo': {'family': 'families'},
-        'repository#families': manager.locator<Repository<Family>>()
+        'BelongsTo': {'family': 'families'}
       };
+
+  @override
+  Repository repositoryFor(String type) {
+    return <String, Repository>{
+      'families': manager.locator<Repository<Family>>()
+    }[type];
+  }
 }
 
 class $PersonRepository extends _$PersonRepository with PersonPollAdapter {

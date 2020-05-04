@@ -16,9 +16,15 @@ class _$CommentRepository extends Repository<Comment> {
   @override
   get relationshipMetadata => {
         'HasMany': {},
-        'BelongsTo': {'post': 'posts'},
-        'repository#posts': manager.locator<Repository<Post>>()
+        'BelongsTo': {'post': 'posts'}
       };
+
+  @override
+  Repository repositoryFor(String type) {
+    return <String, Repository>{
+      'posts': manager.locator<Repository<Post>>()
+    }[type];
+  }
 }
 
 class $CommentRepository extends _$CommentRepository

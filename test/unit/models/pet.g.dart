@@ -14,6 +14,11 @@ class _$DogRepository extends Repository<Dog> {
 
   @override
   get relationshipMetadata => {'HasMany': {}, 'BelongsTo': {}};
+
+  @override
+  Repository repositoryFor(String type) {
+    return <String, Repository>{}[type];
+  }
 }
 
 class $DogRepository extends _$DogRepository {
@@ -53,6 +58,11 @@ class _$CatRepository extends Repository<Cat> {
 
   @override
   get relationshipMetadata => {'HasMany': {}, 'BelongsTo': {}};
+
+  @override
+  Repository repositoryFor(String type) {
+    return <String, Repository>{}[type];
+  }
 }
 
 class $CatRepository extends _$CatRepository {

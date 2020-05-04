@@ -14,6 +14,11 @@ class _$UserRepository extends Repository<User> {
 
   @override
   get relationshipMetadata => {'HasMany': {}, 'BelongsTo': {}};
+
+  @override
+  Repository repositoryFor(String type) {
+    return <String, Repository>{}[type];
+  }
 }
 
 class $UserRepository extends _$UserRepository

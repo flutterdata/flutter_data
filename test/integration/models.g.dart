@@ -15,9 +15,15 @@ class _$ModelRepository extends Repository<Model> {
   @override
   get relationshipMetadata => {
         'HasMany': {},
-        'BelongsTo': {'company': 'companies'},
-        'repository#companies': manager.locator<Repository<Company>>()
+        'BelongsTo': {'company': 'companies'}
       };
+
+  @override
+  Repository repositoryFor(String type) {
+    return <String, Repository>{
+      'companies': manager.locator<Repository<Company>>()
+    }[type];
+  }
 }
 
 class $ModelRepository extends _$ModelRepository {
@@ -66,6 +72,11 @@ class _$CityRepository extends Repository<City> {
 
   @override
   get relationshipMetadata => {'HasMany': {}, 'BelongsTo': {}};
+
+  @override
+  Repository repositoryFor(String type) {
+    return <String, Repository>{}[type];
+  }
 }
 
 class $CityRepository extends _$CityRepository {
@@ -107,9 +118,15 @@ class _$CompanyRepository extends Repository<Company> {
   @override
   get relationshipMetadata => {
         'HasMany': {'models': 'models'},
-        'BelongsTo': {},
-        'repository#models': manager.locator<Repository<Model>>()
+        'BelongsTo': {}
       };
+
+  @override
+  Repository repositoryFor(String type) {
+    return <String, Repository>{
+      'models': manager.locator<Repository<Model>>()
+    }[type];
+  }
 }
 
 class $CompanyRepository extends _$CompanyRepository

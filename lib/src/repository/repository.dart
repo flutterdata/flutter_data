@@ -34,9 +34,13 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   Map<String, dynamic> get params => {};
   Map<String, dynamic> get headers => {};
 
-  //
+  // metadata
 
   Map<String, dynamic> get relationshipMetadata;
+
+  Repository repositoryFor(String type);
+
+  // serialization
 
   Map<String, dynamic> serialize(T model) => localAdapter.serialize(model);
 
@@ -432,6 +436,8 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
     return model;
   }
+
+  Map<dynamic, T> dumpLocal() => localAdapter._box.toMap();
 
   void _assertManager() {
     final modelAutoInit = _autoModelInitDataManager != null;

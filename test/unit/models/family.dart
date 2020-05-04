@@ -10,7 +10,7 @@ import 'pet.dart';
 part 'family.g.dart';
 
 @JsonSerializable(explicitToJson: true)
-@DataRepository()
+@DataRepository([])
 class Family with DataSupportMixin<Family> {
   @override
   final String id;

@@ -52,7 +52,7 @@ mixin StandardJSONAdapter<T extends DataSupportMixin<T>> on Repository<T> {
         map[k] = map[k].map((i) {
           final type = relEntry.value.toString();
           if (i is Map) {
-            final repo = relationshipMetadata['repository#$type'] as Repository;
+            final repo = repositoryFor(type);
             final model = repo.deserialize(i);
             i = model.id;
           }
@@ -68,7 +68,7 @@ mixin StandardJSONAdapter<T extends DataSupportMixin<T>> on Repository<T> {
 
       final type = relEntry.value.toString();
       if (map[k] is Map) {
-        final repo = relationshipMetadata['repository#$type'] as Repository;
+        final repo = repositoryFor(type);
         final model = repo.deserialize(map[k]);
         map[k] = model.id;
       } else if (map[ks] != null) {

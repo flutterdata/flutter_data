@@ -184,7 +184,7 @@ void main() async {
 //   expect(repository.localAdapter.keys, [z.key]);
 // });
 
-// @DataRepository()
+// @DataRepository([])
 // @JsonSerializable()
 // class Zebra with DataSupportMixin<Zebra> {
 //   String id;

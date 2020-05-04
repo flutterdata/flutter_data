@@ -7,7 +7,7 @@ import 'family.dart';
 part 'house.g.dart';
 
 @JsonSerializable()
-@DataRepository()
+@DataRepository([])
 class House with DataSupportMixin<House> {
   @override
   final String id;

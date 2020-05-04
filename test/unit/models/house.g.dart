@@ -15,9 +15,15 @@ class _$HouseRepository extends Repository<House> {
   @override
   get relationshipMetadata => {
         'HasMany': {'families': 'families'},
-        'BelongsTo': {},
-        'repository#families': manager.locator<Repository<Family>>()
+        'BelongsTo': {}
       };
+
+  @override
+  Repository repositoryFor(String type) {
+    return <String, Repository>{
+      'families': manager.locator<Repository<Family>>()
+    }[type];
+  }
 }
 
 class $HouseRepository extends _$HouseRepository {

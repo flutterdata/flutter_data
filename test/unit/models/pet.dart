@@ -10,7 +10,7 @@ abstract class Pet<T extends Pet<T>> with DataSupportMixin<T> {
   Pet(this.id);
 }
 
-@DataRepository()
+@DataRepository([])
 @JsonSerializable()
 class Dog extends Pet<Dog> {
   final String name;
@@ -20,7 +20,7 @@ class Dog extends Pet<Dog> {
   Map<String, dynamic> toJson() => _$DogToJson(this);
 }
 
-@DataRepository()
+@DataRepository([])
 @JsonSerializable()
 class Cat extends Pet<Cat> {
   final bool meow;

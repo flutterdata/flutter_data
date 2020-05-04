@@ -8,7 +8,7 @@ part 'models.freezed.dart';
 part 'models.g.dart';
 
 @freezed
-@DataRepository()
+@DataRepository([])
 abstract class Model
     with DataSupportMixin<Model>, IdDataSupportMixin<String, Model>, _$Model {
   Model._();
@@ -22,7 +22,7 @@ abstract class Model
 }
 
 @freezed
-@DataRepository()
+@DataRepository([])
 abstract class City
     with DataSupportMixin<City>, IdDataSupportMixin<String, City>, _$City {
   City._();

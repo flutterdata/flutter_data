@@ -39,21 +39,25 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
           "Can't generate repository for $type. Its `id` field MUST be final");
     }
 
+    // unique collection of constructor arguments and fields
+    final fieldSet = {
+      ...classElement.constructors.map((e) => e.parameters).expand((i) => i),
+      ...classElement.fields
+    };
+
     List<String> getRelationshipsFor(String kind) =>
-        classElement.constructors.fold([], (result, constructor) {
-          for (var field in constructor.parameters) {
-            if (field.type.element.name == kind &&
-                field.type is ParameterizedType) {
-              final typeParameterName = (field.type as ParameterizedType)
-                  .typeArguments
-                  .first
-                  .element
-                  .name;
-              var value =
-                  '${field.name}#${DataId.getType(typeParameterName)}#$kind#$typeParameterName';
-              if (!result.contains(value)) {
-                result.add(value);
-              }
+        fieldSet.fold([], (result, field) {
+          if (field.type.element.name == kind &&
+              field.type is ParameterizedType) {
+            final typeParameterName = (field.type as ParameterizedType)
+                .typeArguments
+                .first
+                .element
+                .name;
+            var value =
+                '${field.name}#${DataId.getType(typeParameterName)}#$kind#$typeParameterName';
+            if (!result.contains(value)) {
+              result.add(value);
             }
           }
           return result;
@@ -70,16 +74,20 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
         getRelationshipsFor('BelongsTo').map((s) => s.split('#'));
     final all = [...hasManys, ...belongsTos];
 
-    final repos = all.asMap().map((_, t) {
-      final type = DataId.getType(t.last);
-      return MapEntry(
-          '\'repository#$type\'', 'manager.locator<Repository<${t.last}>>()');
-    });
-
     final relationshipMetadata = <String, dynamic>{
       '\'HasMany\'': _prepareMeta(hasManys),
       '\'BelongsTo\'': _prepareMeta(belongsTos),
-    }..addAll(repos);
+    };
+
+    final additionalRepos = annotation
+        .read('repositoryFor')
+        .listValue
+        .map((e) => ['_', e.toTypeValue().toString()]);
+
+    final repositoryFors = [...all, ...additionalRepos].asMap().map((_, t) {
+      final type = DataId.getType(t.last);
+      return MapEntry('\'$type\'', 'manager.locator<Repository<${t.last}>>()');
+    });
 
     //
 
@@ -147,6 +155,11 @@ class _\$${type}Repository extends Repository<$type> {
 
   @override
   get relationshipMetadata => $relationshipMetadata;
+
+  @override
+  Repository repositoryFor(String type) {
+    return <String, Repository>$repositoryFors[type];
+  } 
 }
 
 class \$${type}Repository extends _\$${type}Repository $mixinsString {
