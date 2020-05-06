@@ -11,28 +11,30 @@ import 'package:inflection2/inflection2.dart';
 import 'package:path/path.dart' as path_helper;
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
-import 'package:rxdart/rxdart.dart';
+import 'adapters/notifier_extension.dart';
 
 export 'package:data_state/data_state.dart';
 
+export 'adapters/json_api_adapter.dart';
+export 'adapters/offline_adapter.dart';
+export 'adapters/standard_json_adapter.dart';
 export 'annotations.dart';
-export 'src/adapter/remote/json_api_adapter.dart';
-export 'src/adapter/remote/offline_adapter.dart';
-export 'src/adapter/remote/standard_json_adapter.dart';
 
-part 'src/adapter/local/data_manager.dart';
-part 'src/adapter/local_adapter.dart';
+part 'src/data_manager.dart';
+part 'src/repository/adapter/local_adapter.dart';
+part 'src/repository/adapter/remote_adapter.dart';
+part 'src/repository/adapter/reactive_adapter.dart';
 
-part 'src/model/data/data_id.dart';
-part 'src/model/data/data_exception.dart';
-part 'src/model/data/data_support.dart';
+part 'src/data/data_id.dart';
+part 'src/data/data_exception.dart';
+part 'src/model/data_support.dart';
 part 'src/model/relationship/relationship.dart';
 part 'src/model/relationship/has_many.dart';
 part 'src/model/relationship/belongs_to.dart';
 
 part 'src/repository/repository.dart';
 
-part 'src/util/extensions.dart';
+part 'src/data/extensions.dart';
 part 'src/util/service_locator.dart';
 
 DataManager _autoModelInitDataManager;

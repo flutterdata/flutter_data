@@ -54,9 +54,10 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
 
   @override
   E operator [](int index) {
-    final value = _repository.localAdapter.findOne(dataIds[index].key);
+    final localAdapter = _repository as LocalAdapter<E>;
+    final value = localAdapter.localFindOne(dataIds[index].key);
     if (value != null) {
-      _repository.localAdapter.setInverseInModel(_owner, value);
+      localAdapter.setInverseInModel(_owner, value);
     }
     return value;
   }
@@ -71,6 +72,14 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
 
   @override
   set length(int newLength) => dataIds.length = newLength;
+
+  // watch
+
+  @override
+  DataStateNotifier<List<E>> watch() {
+    return _repository.watchAll().map(
+        (state) => state.copyWith(model: state.model.where(contains).toList()));
+  }
 
   // misc
 

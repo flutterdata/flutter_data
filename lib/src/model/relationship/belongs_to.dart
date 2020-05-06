@@ -43,12 +43,18 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E> {
     dataId = inverse;
   }
 
+  @override
+  DataStateNotifier<E> watch() {
+    return _repository.watchOne(key);
+  }
+
   //
 
   E get value {
-    final value = _repository.localAdapter.findOne(dataId?.key);
+    final localAdapter = _repository as LocalAdapter<E>;
+    final value = localAdapter.localFindOne(dataId?.key);
     if (value != null) {
-      _repository.localAdapter.setInverseInModel(_owner, value);
+      localAdapter.setInverseInModel(_owner, value);
     }
     return value;
   }

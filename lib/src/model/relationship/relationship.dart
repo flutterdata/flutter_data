@@ -10,18 +10,10 @@ abstract class Relationship<E extends DataSupportMixin<E>> {
 
   DataId _owner;
 
+  DataStateNotifier watch();
+
   @visibleForTesting
   DataId get debugOwner => _owner;
-
-  Future<List<E>> load([Map<String, dynamic> params]) {
-    // TODO should be filtered by inverse id
-    return _repository.findAll();
-  }
-
-  DataStateNotifier<List<E>> watch() {
-    // TODO should be filtered by inverse id
-    return _repository.watchAll();
-  }
 
   dynamic toJson();
 }
