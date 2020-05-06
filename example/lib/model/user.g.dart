@@ -3,6 +3,48 @@
 part of 'user.dart';
 
 // **************************************************************************
+// DataGenerator
+// **************************************************************************
+
+// ignore_for_file: unused_local_variable
+// ignore_for_file: always_declare_return_types
+mixin _$UserModelAdapter on Repository<User> {
+  @override
+  get relationshipMetadata => {'HasMany': {}, 'BelongsTo': {}};
+
+  @override
+  Repository repositoryFor(String type) {
+    return <String, Repository>{}[type];
+  }
+
+  @override
+  deserialize(map, {key, initialize = true}) {
+    return _$UserFromJson(map as Map<String, dynamic>);
+  }
+
+  @override
+  serialize(model) {
+    final map = _$UserToJson(model);
+
+    return map;
+  }
+
+  @override
+  setOwnerInRelationships(owner, model) {}
+
+  @override
+  void setInverseInModel(inverse, model) {}
+}
+
+class $UserRepository = Repository<User>
+    with
+        _$UserModelAdapter,
+        RemoteAdapter<User>,
+        ReactiveAdapter<User>,
+        StandardJSONAdapter<User>,
+        JSONPlaceholderAdapter<User>;
+
+// **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
