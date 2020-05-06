@@ -67,7 +67,7 @@ mixin ReactiveAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
 
     final _notifier = DataStateNotifier<T>(
         DataState(
-          model: _init(box.get(key)),
+          model: _init(box.safeGet(key)),
         ), reload: (notifier) async {
       if (remote == false) {
         return;
