@@ -96,6 +96,10 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   Iterable<T> deserializeCollection(object);
 
+  String fieldForKey(String key);
+
+  String keyForField(String field);
+
   // initialization
 
   T _init(T model, {String key, bool save = false}) {
