@@ -54,7 +54,7 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
 
   @override
   E operator [](int index) {
-    final value = _repository.box.get(dataIds[index].key);
+    final value = _repository.box.safeGet(dataIds[index].key);
     if (value != null) {
       _repository.setInverseInModel(_owner, value);
     }

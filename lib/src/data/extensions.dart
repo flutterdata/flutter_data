@@ -51,3 +51,8 @@ extension ManagerDataId on DataManager {
   DataId<T> dataId<T>(dynamic id, {String key, String type}) =>
       DataId<T>(id, this, key: key, type: type);
 }
+
+extension SafeBoxX<T> on Box<T> {
+  T safeGet(key) => key != null ? get(key) : null;
+  Future<void> safeDelete(key) => key != null ? delete(key) : null;
+}

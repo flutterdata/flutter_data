@@ -55,6 +55,14 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
       (object as Iterable).map(deserialize);
 
   @override
+  String fieldForKey(String key) => key;
+
+  @override
+  String keyForField(String field) => field;
+
+  // repository
+
+  @override
   Future<T> findOne(dynamic id,
       {bool remote,
       Map<String, dynamic> params,
@@ -65,7 +73,7 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
     final dataId = manager.dataId<T>(id);
 
     if (remote == false) {
-      final model = box.get(dataId.key);
+      final model = box.safeGet(dataId.key);
       if (model == null) {
         // TODO should be handled by DataId
         dataId.delete();
@@ -159,7 +167,7 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
     final dataId = manager.dataId<T>(id);
 
     // ignore: unawaited_futures
-    box.delete(dataId.key);
+    box.safeDelete(dataId.key);
     dataId?.delete();
 
     if (remote) {

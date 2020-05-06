@@ -51,7 +51,7 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E> {
   //
 
   E get value {
-    final value = _repository.box.get(dataId?.key);
+    final value = _repository.box.safeGet(dataId?.key);
     if (value != null) {
       _repository.setInverseInModel(_owner, value);
     }
