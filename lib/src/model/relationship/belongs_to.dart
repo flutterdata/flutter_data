@@ -51,10 +51,9 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E> {
   //
 
   E get value {
-    final localAdapter = _repository as LocalAdapter<E>;
-    final value = localAdapter.localFindOne(dataId?.key);
+    final value = _repository.box.get(dataId?.key);
     if (value != null) {
-      localAdapter.setInverseInModel(_owner, value);
+      _repository.setInverseInModel(_owner, value);
     }
     return value;
   }

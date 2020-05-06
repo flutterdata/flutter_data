@@ -21,7 +21,7 @@ export 'adapters/standard_json_adapter.dart';
 export 'annotations.dart';
 
 part 'src/data_manager.dart';
-part 'src/repository/adapter/local_adapter.dart';
+part 'src/repository/util/hive_adapter.dart';
 part 'src/repository/adapter/remote_adapter.dart';
 part 'src/repository/adapter/reactive_adapter.dart';
 

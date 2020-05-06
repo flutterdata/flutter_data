@@ -57,6 +57,8 @@ extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
         remote: remote, params: params, headers: headers);
   }
 
+  bool get isNew => _this.id == null;
+
   void _assertRepo() {
     assert(
       _repository != null,

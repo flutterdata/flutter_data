@@ -8,10 +8,7 @@ part of 'pet.dart';
 
 // ignore_for_file: unused_local_variable
 // ignore_for_file: always_declare_return_types
-class _$DogRepository extends Repository<Dog> {
-  _$DogRepository(LocalAdapter<Dog> adapter, {bool remote, bool verbose})
-      : super(adapter, remote: remote, verbose: verbose);
-
+mixin _$DogModelAdapter on Repository<Dog> {
   @override
   get relationshipMetadata => {'HasMany': {}, 'BelongsTo': {}};
 
@@ -19,21 +16,10 @@ class _$DogRepository extends Repository<Dog> {
   Repository repositoryFor(String type) {
     return <String, Repository>{}[type];
   }
-}
-
-class $DogRepository extends _$DogRepository {
-  $DogRepository(LocalAdapter<Dog> adapter, {bool remote, bool verbose})
-      : super(adapter, remote: remote, verbose: verbose);
-}
-
-// ignore: must_be_immutable, unused_local_variable
-class $DogLocalAdapter extends LocalAdapter<Dog> {
-  $DogLocalAdapter(DataManager manager, {List<int> encryptionKey, box})
-      : super(manager, encryptionKey: encryptionKey, box: box);
 
   @override
-  deserialize(map) {
-    return Dog.fromJson(map);
+  deserialize(map, {key, initialize = true}) {
+    return Dog.fromJson(map as Map<String, dynamic>);
   }
 
   @override
@@ -49,13 +35,13 @@ class $DogLocalAdapter extends LocalAdapter<Dog> {
   @override
   void setInverseInModel(inverse, model) {}
 }
+
+class $DogRepository = Repository<Dog>
+    with _$DogModelAdapter, RemoteAdapter<Dog>, ReactiveAdapter<Dog>;
 
 // ignore_for_file: unused_local_variable
 // ignore_for_file: always_declare_return_types
-class _$CatRepository extends Repository<Cat> {
-  _$CatRepository(LocalAdapter<Cat> adapter, {bool remote, bool verbose})
-      : super(adapter, remote: remote, verbose: verbose);
-
+mixin _$CatModelAdapter on Repository<Cat> {
   @override
   get relationshipMetadata => {'HasMany': {}, 'BelongsTo': {}};
 
@@ -63,21 +49,10 @@ class _$CatRepository extends Repository<Cat> {
   Repository repositoryFor(String type) {
     return <String, Repository>{}[type];
   }
-}
-
-class $CatRepository extends _$CatRepository {
-  $CatRepository(LocalAdapter<Cat> adapter, {bool remote, bool verbose})
-      : super(adapter, remote: remote, verbose: verbose);
-}
-
-// ignore: must_be_immutable, unused_local_variable
-class $CatLocalAdapter extends LocalAdapter<Cat> {
-  $CatLocalAdapter(DataManager manager, {List<int> encryptionKey, box})
-      : super(manager, encryptionKey: encryptionKey, box: box);
 
   @override
-  deserialize(map) {
-    return Cat.fromJson(map);
+  deserialize(map, {key, initialize = true}) {
+    return Cat.fromJson(map as Map<String, dynamic>);
   }
 
   @override
@@ -93,6 +68,9 @@ class $CatLocalAdapter extends LocalAdapter<Cat> {
   @override
   void setInverseInModel(inverse, model) {}
 }
+
+class $CatRepository = Repository<Cat>
+    with _$CatModelAdapter, RemoteAdapter<Cat>, ReactiveAdapter<Cat>;
 
 // **************************************************************************
 // JsonSerializableGenerator

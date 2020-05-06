@@ -1,6 +1,6 @@
 part of flutter_data;
 
-mixin RemoteAdapter<T extends DataSupportMixin<T>> on LocalAdapter<T> {
+mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
   @override
   String get baseUrl => throw UnsupportedError('Please implement baseUrl');
 
@@ -62,10 +62,16 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on LocalAdapter<T> {
     assert(id != null);
 
     remote ??= _remote;
-    final key = manager.dataId<T>(id).key;
+    final dataId = manager.dataId<T>(id);
 
     if (remote == false) {
-      return _init(localFindOne(key));
+      final model = box.get(dataId.key);
+      if (model == null) {
+        // TODO should be handled by DataId
+        dataId.delete();
+        return null;
+      }
+      return _init(model, save: false);
     }
 
     final response = await withHttpClient(
@@ -79,7 +85,7 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on LocalAdapter<T> {
     );
 
     return withResponse<T>(response, (data) {
-      return deserialize(data, key: key);
+      return deserialize(data, key: dataId.key);
     });
   }
 
@@ -91,7 +97,7 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on LocalAdapter<T> {
     remote ??= _remote;
 
     if (remote == false) {
-      return localFindAll().map(_init).toList();
+      return box.values.map(_init).toList();
     }
 
     final response = await withHttpClient(
@@ -118,9 +124,7 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on LocalAdapter<T> {
     final key = model.key;
 
     if (remote == false) {
-      // ignore: unawaited_futures
-      localSave(key, model);
-      return model;
+      return _init(model, key: key, save: true);
     }
 
     final body = json.encode(serialize(model));
@@ -139,7 +143,6 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on LocalAdapter<T> {
     return withResponse<T>(response, (data) {
       if (data == null) {
         // return "old" model if response was empty
-        localSave(key, model);
         return model;
       }
       // deserialize already inits models
@@ -156,8 +159,8 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on LocalAdapter<T> {
     final dataId = manager.dataId<T>(id);
 
     // ignore: unawaited_futures
-    localDelete(dataId.key);
-    dataId.delete();
+    box.delete(dataId.key);
+    dataId?.delete();
 
     if (remote) {
       final response = await withHttpClient(

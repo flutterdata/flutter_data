@@ -8,10 +8,7 @@ part of 'models.dart';
 
 // ignore_for_file: unused_local_variable
 // ignore_for_file: always_declare_return_types
-class _$ModelRepository extends Repository<Model> {
-  _$ModelRepository(LocalAdapter<Model> adapter, {bool remote, bool verbose})
-      : super(adapter, remote: remote, verbose: verbose);
-
+mixin _$ModelModelAdapter on Repository<Model> {
   @override
   get relationshipMetadata => {
         'HasMany': {},
@@ -24,24 +21,13 @@ class _$ModelRepository extends Repository<Model> {
       'companies': manager.locator<Repository<Company>>()
     }[type];
   }
-}
-
-class $ModelRepository extends _$ModelRepository {
-  $ModelRepository(LocalAdapter<Model> adapter, {bool remote, bool verbose})
-      : super(adapter, remote: remote, verbose: verbose);
-}
-
-// ignore: must_be_immutable, unused_local_variable
-class $ModelLocalAdapter extends LocalAdapter<Model> {
-  $ModelLocalAdapter(DataManager manager, {List<int> encryptionKey, box})
-      : super(manager, encryptionKey: encryptionKey, box: box);
 
   @override
-  deserialize(map) {
+  deserialize(map, {key, initialize = true}) {
     map['company'] = {
       '_': [map['company'], manager]
     };
-    return Model.fromJson(map);
+    return Model.fromJson(map as Map<String, dynamic>);
   }
 
   @override
@@ -64,12 +50,12 @@ class $ModelLocalAdapter extends LocalAdapter<Model> {
   }
 }
 
+class $ModelRepository = Repository<Model>
+    with _$ModelModelAdapter, RemoteAdapter<Model>, ReactiveAdapter<Model>;
+
 // ignore_for_file: unused_local_variable
 // ignore_for_file: always_declare_return_types
-class _$CityRepository extends Repository<City> {
-  _$CityRepository(LocalAdapter<City> adapter, {bool remote, bool verbose})
-      : super(adapter, remote: remote, verbose: verbose);
-
+mixin _$CityModelAdapter on Repository<City> {
   @override
   get relationshipMetadata => {'HasMany': {}, 'BelongsTo': {}};
 
@@ -77,21 +63,10 @@ class _$CityRepository extends Repository<City> {
   Repository repositoryFor(String type) {
     return <String, Repository>{}[type];
   }
-}
-
-class $CityRepository extends _$CityRepository {
-  $CityRepository(LocalAdapter<City> adapter, {bool remote, bool verbose})
-      : super(adapter, remote: remote, verbose: verbose);
-}
-
-// ignore: must_be_immutable, unused_local_variable
-class $CityLocalAdapter extends LocalAdapter<City> {
-  $CityLocalAdapter(DataManager manager, {List<int> encryptionKey, box})
-      : super(manager, encryptionKey: encryptionKey, box: box);
 
   @override
-  deserialize(map) {
-    return City.fromJson(map);
+  deserialize(map, {key, initialize = true}) {
+    return City.fromJson(map as Map<String, dynamic>);
   }
 
   @override
@@ -108,13 +83,12 @@ class $CityLocalAdapter extends LocalAdapter<City> {
   void setInverseInModel(inverse, model) {}
 }
 
+class $CityRepository = Repository<City>
+    with _$CityModelAdapter, RemoteAdapter<City>, ReactiveAdapter<City>;
+
 // ignore_for_file: unused_local_variable
 // ignore_for_file: always_declare_return_types
-class _$CompanyRepository extends Repository<Company> {
-  _$CompanyRepository(LocalAdapter<Company> adapter,
-      {bool remote, bool verbose})
-      : super(adapter, remote: remote, verbose: verbose);
-
+mixin _$CompanyModelAdapter on Repository<Company> {
   @override
   get relationshipMetadata => {
         'HasMany': {'models': 'models'},
@@ -127,25 +101,13 @@ class _$CompanyRepository extends Repository<Company> {
       'models': manager.locator<Repository<Model>>()
     }[type];
   }
-}
-
-class $CompanyRepository extends _$CompanyRepository
-    with JSONAPIAdapter<Company>, TestMixin<Company> {
-  $CompanyRepository(LocalAdapter<Company> adapter, {bool remote, bool verbose})
-      : super(adapter, remote: remote, verbose: verbose);
-}
-
-// ignore: must_be_immutable, unused_local_variable
-class $CompanyLocalAdapter extends LocalAdapter<Company> {
-  $CompanyLocalAdapter(DataManager manager, {List<int> encryptionKey, box})
-      : super(manager, encryptionKey: encryptionKey, box: box);
 
   @override
-  deserialize(map) {
+  deserialize(map, {key, initialize = true}) {
     map['models'] = {
       '_': [map['models'], manager]
     };
-    return Company.fromJson(map);
+    return Company.fromJson(map as Map<String, dynamic>);
   }
 
   @override
@@ -167,6 +129,14 @@ class $CompanyLocalAdapter extends LocalAdapter<Company> {
     }
   }
 }
+
+class $CompanyRepository = Repository<Company>
+    with
+        _$CompanyModelAdapter,
+        RemoteAdapter<Company>,
+        ReactiveAdapter<Company>,
+        JSONAPIAdapter<Company>,
+        TestMixin<Company>;
 
 // **************************************************************************
 // JsonSerializableGenerator

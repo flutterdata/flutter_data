@@ -8,10 +8,7 @@ part of 'house.dart';
 
 // ignore_for_file: unused_local_variable
 // ignore_for_file: always_declare_return_types
-class _$HouseRepository extends Repository<House> {
-  _$HouseRepository(LocalAdapter<House> adapter, {bool remote, bool verbose})
-      : super(adapter, remote: remote, verbose: verbose);
-
+mixin _$HouseModelAdapter on Repository<House> {
   @override
   get relationshipMetadata => {
         'HasMany': {'families': 'families'},
@@ -24,24 +21,13 @@ class _$HouseRepository extends Repository<House> {
       'families': manager.locator<Repository<Family>>()
     }[type];
   }
-}
-
-class $HouseRepository extends _$HouseRepository {
-  $HouseRepository(LocalAdapter<House> adapter, {bool remote, bool verbose})
-      : super(adapter, remote: remote, verbose: verbose);
-}
-
-// ignore: must_be_immutable, unused_local_variable
-class $HouseLocalAdapter extends LocalAdapter<House> {
-  $HouseLocalAdapter(DataManager manager, {List<int> encryptionKey, box})
-      : super(manager, encryptionKey: encryptionKey, box: box);
 
   @override
-  deserialize(map) {
+  deserialize(map, {key, initialize = true}) {
     map['families'] = {
       '_': [map['families'], manager]
     };
-    return _$HouseFromJson(map);
+    return _$HouseFromJson(map as Map<String, dynamic>);
   }
 
   @override
@@ -63,6 +49,9 @@ class $HouseLocalAdapter extends LocalAdapter<House> {
     }
   }
 }
+
+class $HouseRepository = Repository<House>
+    with _$HouseModelAdapter, RemoteAdapter<House>, ReactiveAdapter<House>;
 
 // **************************************************************************
 // JsonSerializableGenerator

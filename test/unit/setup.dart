@@ -6,10 +6,10 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:mockito/mockito.dart';
 import 'package:rxdart/rxdart.dart';
 
-import 'models/family.dart';
-import 'models/house.dart';
-import 'models/person.dart';
-import 'models/pet.dart';
+import '../models/family.dart';
+import '../models/house.dart';
+import '../models/person.dart';
+import '../models/pet.dart';
 
 class HiveMock extends Mock implements HiveInterface {}
 
@@ -84,6 +84,9 @@ class TestDataManager extends DataManager {
   }
 }
 
+class FamilyRepositoryWithStandardJSONAdapter = $FamilyRepository
+    with StandardJSONAdapter;
+
 final injection = DataServiceLocator();
 
 final Function() setUpAllFn = () {
@@ -91,26 +94,17 @@ final Function() setUpAllFn = () {
   final manager = TestDataManager(injection.locator);
   injection.register<DataManager>(manager);
 
-  final houseLocalAdapter = $HouseLocalAdapter(manager, box: FakeBox<House>());
-  final familyLocalAdapter =
-      $FamilyLocalAdapter(manager, box: FakeBox<Family>());
-  final personLocalAdapter =
-      $PersonLocalAdapter(manager, box: FakeBox<Person>());
-  final dogLocalAdapter = $DogLocalAdapter(manager, box: FakeBox<Dog>());
-
-  injection.register<LocalAdapter<House>>(houseLocalAdapter);
-  injection.register<LocalAdapter<Family>>(familyLocalAdapter);
-  injection.register<LocalAdapter<Person>>(personLocalAdapter);
-  injection.register<LocalAdapter<Dog>>(dogLocalAdapter);
-
   injection.register<Repository<House>>(
-      $HouseRepository(houseLocalAdapter, remote: false));
-  injection.register<Repository<Family>>($FamilyRepository(familyLocalAdapter));
-  injection.register<Repository<Person>>($PersonRepository(personLocalAdapter));
-  injection.register<Repository<Dog>>($DogRepository(dogLocalAdapter));
-
+      $HouseRepository(manager, FakeBox<House>(), remote: false));
+  injection.register<Repository<Family>>(
+      $FamilyRepository(manager, FakeBox<Family>(), remote: false));
+  injection.register<Repository<Person>>(
+      $PersonRepository(manager, FakeBox<Person>(), remote: false));
+  injection.register<Repository<Dog>>(
+      $DogRepository(manager, FakeBox<Dog>(), remote: false));
   injection.register<FamilyRepositoryWithStandardJSONAdapter>(
-      FamilyRepositoryWithStandardJSONAdapter(familyLocalAdapter));
+      FamilyRepositoryWithStandardJSONAdapter(manager, FakeBox<Family>(),
+          remote: false));
 };
 
 final Function() tearDownAllFn = () async {
@@ -120,6 +114,3 @@ final Function() tearDownAllFn = () async {
   await injection.locator<Repository<Dog>>().dispose();
   injection.clear();
 };
-
-class FamilyRepositoryWithStandardJSONAdapter = $FamilyRepository
-    with StandardJSONAdapter;
