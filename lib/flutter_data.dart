@@ -12,6 +12,7 @@ import 'package:path/path.dart' as path_helper;
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 import 'adapters/notifier_extension.dart';
+import 'package:rxdart/rxdart.dart';
 
 export 'package:data_state/data_state.dart';
 
