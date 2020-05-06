@@ -1,6 +1,6 @@
 import 'package:flutter_data/flutter_data.dart';
 
-mixin StandardJSONAdapter<T extends DataSupportMixin<T>> on Repository<T> {
+mixin StandardJSONAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
   @override
   Map<String, dynamic> get headers =>
       super.headers..addAll({'Content-Type': 'application/json'});

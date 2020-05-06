@@ -1,6 +1,13 @@
 part of flutter_data;
 
+// enums
+
+// ignore: constant_identifier_names
+enum DataRequestMethod { GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS, TRACE }
+
 // typedefs
+
+typedef WithRelationships<T> = List<Relationship> Function(T);
 
 typedef OnResponseSuccess<R> = R Function(dynamic);
 
