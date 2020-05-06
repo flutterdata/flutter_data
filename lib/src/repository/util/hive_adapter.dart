@@ -1,11 +1,8 @@
 part of flutter_data;
 
 class _HiveTypeAdapter<T extends DataSupport<T>> with TypeAdapter<T> {
+  _HiveTypeAdapter(this.manager);
   final DataManager manager;
-  final Repository<T> repository;
-
-  _HiveTypeAdapter(this.manager)
-      : repository = manager.locator<Repository<T>>();
 
   @override
   int get typeId {
@@ -23,12 +20,12 @@ class _HiveTypeAdapter<T extends DataSupport<T>> with TypeAdapter<T> {
     var fields = <String, dynamic>{
       for (var i = 0; i < n; i++) reader.read().toString(): reader.read(),
     };
-    return repository.deserialize(fixMap(fields));
+    return manager.locator<Repository<T>>().deserialize(fixMap(fields));
   }
 
   @override
   void write(writer, T obj) {
-    final _map = repository.serialize(obj);
+    final _map = manager.locator<Repository<T>>().serialize(obj);
     writer.writeByte(_map.keys.length);
     for (var k in _map.keys) {
       writer.write(k);
