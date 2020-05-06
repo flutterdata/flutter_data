@@ -54,10 +54,9 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
 
   @override
   E operator [](int index) {
-    final localAdapter = _repository as LocalAdapter<E>;
-    final value = localAdapter.localFindOne(dataIds[index].key);
+    final value = _repository.box.get(dataIds[index].key);
     if (value != null) {
-      localAdapter.setInverseInModel(_owner, value);
+      _repository.setInverseInModel(_owner, value);
     }
     return value;
   }

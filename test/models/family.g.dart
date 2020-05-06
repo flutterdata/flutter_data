@@ -8,10 +8,7 @@ part of 'family.dart';
 
 // ignore_for_file: unused_local_variable
 // ignore_for_file: always_declare_return_types
-class _$FamilyRepository extends Repository<Family> {
-  _$FamilyRepository(LocalAdapter<Family> adapter, {bool remote, bool verbose})
-      : super(adapter, remote: remote, verbose: verbose);
-
+mixin _$FamilyModelAdapter on Repository<Family> {
   @override
   get relationshipMetadata => {
         'HasMany': {'persons': 'people', 'dogs': 'dogs'},
@@ -26,20 +23,9 @@ class _$FamilyRepository extends Repository<Family> {
       'houses': manager.locator<Repository<House>>()
     }[type];
   }
-}
-
-class $FamilyRepository extends _$FamilyRepository {
-  $FamilyRepository(LocalAdapter<Family> adapter, {bool remote, bool verbose})
-      : super(adapter, remote: remote, verbose: verbose);
-}
-
-// ignore: must_be_immutable, unused_local_variable
-class $FamilyLocalAdapter extends LocalAdapter<Family> {
-  $FamilyLocalAdapter(DataManager manager, {List<int> encryptionKey, box})
-      : super(manager, encryptionKey: encryptionKey, box: box);
 
   @override
-  deserialize(map) {
+  deserialize(map, {key, initialize = true}) {
     map['persons'] = {
       '_': [map['persons'], manager]
     };
@@ -49,7 +35,7 @@ class $FamilyLocalAdapter extends LocalAdapter<Family> {
     map['house'] = {
       '_': [map['house'], manager]
     };
-    return _$FamilyFromJson(map);
+    return _$FamilyFromJson(map as Map<String, dynamic>);
   }
 
   @override
@@ -81,6 +67,9 @@ class $FamilyLocalAdapter extends LocalAdapter<Family> {
     }
   }
 }
+
+class $FamilyRepository = Repository<Family>
+    with _$FamilyModelAdapter, RemoteAdapter<Family>, ReactiveAdapter<Family>;
 
 // **************************************************************************
 // JsonSerializableGenerator

@@ -4,8 +4,8 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:async/async.dart';
 import 'package:test/test.dart';
 
+import '../models/models.dart';
 import '../unit/setup.dart';
-import 'models.dart';
 import 'server/main.dart';
 
 final injection = DataServiceLocator();
@@ -18,21 +18,16 @@ void main() async {
     final manager = TestDataManager(injection.locator);
     injection.register<DataManager>(manager);
 
-    final companyLocalAdapter =
-        $CompanyLocalAdapter(manager, box: FakeBox<Company>());
-    final cityLocalAdapter = $CityLocalAdapter(manager, box: FakeBox<City>());
-    final modelLocalAdapter =
-        $ModelLocalAdapter(manager, box: FakeBox<Model>());
-
     // we use $CompanyRepository as it already has the TestMixin baked in
-    injection
-        .register<Repository<Company>>($CompanyRepository(companyLocalAdapter));
-    injection.register<Repository<City>>(CityTestRepository(cityLocalAdapter));
-    injection
-        .register<Repository<Model>>(ModelTestRepository(modelLocalAdapter));
+    injection.register<Repository<Company>>(
+        $CompanyRepository(manager, FakeBox<Company>()));
+    injection.register<Repository<City>>(
+        CityTestRepository(manager, FakeBox<City>()));
+    injection.register<Repository<Model>>(
+        ModelTestRepository(manager, FakeBox<Model>()));
 
     // injection.register<ImpatientModelTestRepository>(
-    //     ImpatientModelTestRepository(modelLocalAdapter));
+    //     ImpatientModelTestRepository(manager, FakeBox<Model>()));
   });
 
   test('findAll', () async {
@@ -54,17 +49,17 @@ void main() async {
     expect(company.models.last.name, 'Model 3');
   });
 
-  test('watchOne', () async {
-    var repo = injection.locator<Repository<Model>>();
-    // make sure there are no items in local storage from previous tests
-    await repo.localAdapter.clear();
-    var stream = StreamQueue(repo.watchOne('1').stream);
+  // test('watchOne', () async {
+  //   var repo = injection.locator<Repository<Model>>();
+  //   // make sure there are no items in local storage from previous tests
+  //   await repo.box.clear();
+  //   var stream = StreamQueue(repo.watchOne('1').stream);
 
-    expect(stream, mayEmitMultiple(isNull));
+  //   expect(stream, mayEmitMultiple(isNull));
 
-    await expectLater(
-        stream, emits(Model(id: '1', name: 'Roadster', company: BelongsTo())));
-  });
+  //   await expectLater(
+  //       stream, emits(Model(id: '1', name: 'Roadster', company: BelongsTo())));
+  // });
 
   test('save', () async {
     var repo = injection.locator<Repository<Model>>();

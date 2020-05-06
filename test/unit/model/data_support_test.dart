@@ -1,11 +1,11 @@
 import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
-import 'models/family.dart';
-import 'models/house.dart';
-import 'models/person.dart';
-import 'models/pet.dart';
-import 'setup.dart';
+import '../../models/family.dart';
+import '../../models/house.dart';
+import '../../models/person.dart';
+import '../../models/pet.dart';
+import '../setup.dart';
 
 void main() async {
   setUpAll(setUpAllFn);
@@ -17,6 +17,21 @@ void main() async {
     }, throwsA(isA<AssertionError>()));
   });
 
+  test('init', () async {
+    var repo = injection.locator<Repository<Person>>();
+
+    var family = Family(id: '55', surname: 'Kelley');
+    var model =
+        Person(id: '1', name: 'John', age: 27, family: family.asBelongsTo)
+            .init(repo);
+
+    // (1) it wires up the relationship (setOwnerInRelationship)
+    expect(model.family.key, repo.manager.dataId<Family>('55').key);
+
+    // (2) it saves the model locally
+    expect(model, await repo.findOne(model.id));
+  });
+
   // misc compatibility tests
 
   test('should reuse key', () {
@@ -25,14 +40,14 @@ void main() async {
 
     // id-less person
     var p1 = Person(name: 'Frank', age: 20).init(repository);
-    expect(repository.localAdapter.keys, contains(p1.key));
+    expect(repository.box.keys, contains(p1.key));
 
     // person with new id, reusing existing key
     manager.dataId<Person>('221', key: p1.key);
     var p2 = Person(id: '221', name: 'Frank2', age: 32).init(repository);
     expect(p1.key, p2.key);
 
-    expect(repository.localAdapter.keys, contains(p2.key));
+    expect(repository.box.keys, contains(p2.key));
   });
 
   test('should resolve to the same key', () {
@@ -153,7 +168,7 @@ void main() async {
 //   // key(id=772) will be different to key(id=null)
 //   expect(taco.key, isNot(dataId.key));
 //   // zebra was saved with id=null
-//   expect((await repository.findAll(remote: false)).length, 1);
+//   expect((await repository.findAll()).length, 1);
 
 //   // if we assign an id=772 and re-initialize
 //   taco.id = '772';
@@ -163,7 +178,7 @@ void main() async {
 //   expect(taco.key, dataId.key);
 //   // and the stray zebra (id=null) will be removed
 //   // so we only keep the record for id=772
-//   expect((await repository.findAll(remote: false)).length, 1);
+//   expect((await repository.findAll()).length, 1);
 //   expect(repository.localAdapter.findOne(taco.key), isNotNull);
 // });
 

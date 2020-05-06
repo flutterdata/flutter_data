@@ -20,17 +20,18 @@ extension FlutterData on DataManager {
 
     final manager = await DataManager(autoModelInit: autoModelInit).init(baseDir, injection.locator, clear: clear, verbose: verbose);
     injection.register(manager);
-    final postLocalAdapter = await $PostLocalAdapter(manager, encryptionKey: encryptionKey).init();
-    injection.register(postLocalAdapter);
-    injection.register<Repository<Post>>($PostRepository(postLocalAdapter, remote: remote, verbose: verbose));
 
-    final userLocalAdapter = await $UserLocalAdapter(manager, encryptionKey: encryptionKey).init();
-    injection.register(userLocalAdapter);
-    injection.register<Repository<User>>($UserRepository(userLocalAdapter, remote: remote, verbose: verbose));
+    final postBox = await Repository.getBox<Post>(manager, encryptionKey: encryptionKey);
+    final postRepository = $PostRepository(manager, postBox, remote: remote, verbose: verbose);
+    injection.register<Repository<Post>>(postRepository);
 
-    final commentLocalAdapter = await $CommentLocalAdapter(manager, encryptionKey: encryptionKey).init();
-    injection.register(commentLocalAdapter);
-    injection.register<Repository<Comment>>($CommentRepository(commentLocalAdapter, remote: remote, verbose: verbose));
+    final userBox = await Repository.getBox<User>(manager, encryptionKey: encryptionKey);
+    final userRepository = $UserRepository(manager, userBox, remote: remote, verbose: verbose);
+    injection.register<Repository<User>>(userRepository);
+
+    final commentBox = await Repository.getBox<Comment>(manager, encryptionKey: encryptionKey);
+    final commentRepository = $CommentRepository(manager, commentBox, remote: remote, verbose: verbose);
+    injection.register<Repository<Comment>>(commentRepository);
 
 
     if (also != null) {
@@ -40,9 +41,7 @@ extension FlutterData on DataManager {
 
     return manager;
 
-}
-
-  
+  }
   
 }
 

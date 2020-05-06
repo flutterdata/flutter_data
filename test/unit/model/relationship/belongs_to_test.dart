@@ -1,10 +1,10 @@
 import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
-import 'models/family.dart';
-import 'models/house.dart';
-import 'models/person.dart';
-import 'setup.dart';
+import '../../../models/family.dart';
+import '../../../models/house.dart';
+import '../../../models/person.dart';
+import '../../setup.dart';
 
 void main() async {
   setUpAll(setUpAllFn);
@@ -18,28 +18,28 @@ void main() async {
     expect(rel.dataId, manager.dataId<Person>('1'));
   });
 
-  test('deserialize with included', () {
+  test('deserialize with included BelongsTo', () async {
     // exceptionally uses this repo so we can supply included models
     var repo = injection.locator<FamilyRepositoryWithStandardJSONAdapter>();
-    var adapter = injection.locator<Repository<House>>().localAdapter;
-    var manager = repo.manager;
+    var houseRepo = injection.locator<Repository<House>>();
 
     var house = {'id': '432337', 'address': 'Ozark Lake, MO'};
     var familyJson = {'surname': 'Byrde', 'house': house};
     repo.deserialize(familyJson);
 
-    expect(adapter.findOne(DataId<House>('432337', manager).key), isNotNull);
+    expect(await houseRepo.findOne('432337'),
+        predicate((p) => p.address == 'Ozark Lake, MO'));
   });
 
   test('fromJson', () {
-    var adapter = injection.locator<Repository<Person>>().localAdapter;
-    var manager = adapter.manager;
+    var repo = injection.locator<Repository<Person>>();
+    var manager = repo.manager;
 
     var rel = BelongsTo<Person>.fromJson({
       '_': [manager.dataId<Person>('1').key, manager]
     });
     var person = Person(id: '1', name: 'zzz', age: 7);
-    adapter.save(rel.dataId.key, person);
+    repo.save(person);
 
     expect(rel, BelongsTo<Person>(person, manager));
     expect(rel.dataId, manager.dataId<Person>('1'));
@@ -57,5 +57,28 @@ void main() async {
     expect(person.family.debugOwner, isNull);
     personRepo.syncRelationships(person);
     expect(person.family.debugOwner, isNotNull);
+  });
+
+  test('set owner in relationships', () {
+    var adapter = injection.locator<Repository<Family>>();
+
+    var person = Person(id: '1', name: 'John', age: 37);
+    var house = House(id: '31', address: '123 Main St');
+    var family = Family(
+        id: '1',
+        surname: 'Smith',
+        house: BelongsTo<House>(house),
+        persons: HasMany<Person>([person]));
+
+    // no dataId associated to family or relationships
+    expect(family.house.dataId, isNull);
+    expect(family.persons.dataIds, isEmpty);
+
+    adapter.setOwnerInRelationships(
+        adapter.manager.dataId<Family>('1'), family);
+
+    // relationships are now associated to a dataId
+    expect(family.house.dataId, adapter.manager.dataId<House>('31'));
+    expect(family.persons.dataIds.first, adapter.manager.dataId<Person>('1'));
   });
 }

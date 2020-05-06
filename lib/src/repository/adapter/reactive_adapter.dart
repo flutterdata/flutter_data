@@ -1,6 +1,8 @@
 part of flutter_data;
 
 mixin ReactiveAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
+  static const _oneFrameDuration = Duration(milliseconds: 16);
+
   @override
   DataStateNotifier<List<T>> watchAll(
       {bool remote,
@@ -10,7 +12,7 @@ mixin ReactiveAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
 
     final _notifier = DataStateNotifier<List<T>>(
       DataState(
-        model: localFindAll().map(_init).toList(),
+        model: box.values.map(_init).toList(),
       ),
       reload: (notifier) async {
         if (remote == false) {
@@ -36,7 +38,7 @@ mixin ReactiveAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
     // kick off
     _notifier.reload();
 
-    _box.watch().forEach((state) {
+    box.watch().forEach((state) {
       if (_notifier.mounted) {
         // final models = state.model.map(_init).toList();
         // _notifier.state =
@@ -65,7 +67,7 @@ mixin ReactiveAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
 
     final _notifier = DataStateNotifier<T>(
         DataState(
-          model: _init(localFindOne(key)),
+          model: _init(box.get(key)),
         ), reload: (notifier) async {
       if (remote == false) {
         return;
@@ -88,7 +90,7 @@ mixin ReactiveAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
     // kick off
     _notifier.reload();
 
-    _box.watch(key: key).forEach((state) {
+    box.watch(key: key).forEach((state) {
       // final model = state.model;
 
       // if (_notifier.mounted && model != null) {

@@ -1,9 +1,9 @@
 import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
-import 'models/family.dart';
-import 'models/person.dart';
-import 'setup.dart';
+import '../../../models/family.dart';
+import '../../../models/person.dart';
+import '../../setup.dart';
 
 void main() async {
   setUpAll(setUpAllFn);
@@ -21,11 +21,10 @@ void main() async {
     expect(rel.first.key, manager.dataId<Person>('1').key);
   });
 
-  test('deserialize with included', () {
+  test('deserialize with included HasMany', () async {
     // exceptionally uses this repo so we can supply included models
     var repo = injection.locator<FamilyRepositoryWithStandardJSONAdapter>();
-    var adapter = injection.locator<Repository<Person>>().localAdapter;
-    var manager = repo.manager;
+    var personRepo = injection.locator<Repository<Person>>();
 
     var marty = {'id': '71', 'name': 'Marty', 'age': 52};
     var wendy = {'id': '72', 'name': 'Wendy', 'age': 54};
@@ -37,8 +36,8 @@ void main() async {
 
     repo.deserialize(familyJson);
 
-    expect(adapter.findOne(DataId<Person>('71', manager).key), isNotNull);
-    expect(adapter.findOne(DataId<Person>('72', manager).key), isNotNull);
+    expect(await personRepo.findOne('71'), predicate((p) => p.id == '71'));
+    expect(await personRepo.findOne('72'), predicate((p) => p.age == 54));
   });
 
   test('fromJson', () {

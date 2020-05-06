@@ -103,8 +103,9 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
 
     final hasFromJson =
         classElement.constructors.any((c) => c.name == 'fromJson');
-    final fromJson =
-        hasFromJson ? '$type.fromJson(map)' : '_\$${type}FromJson(map)';
+    final fromJson = hasFromJson
+        ? '$type.fromJson(map as Map<String, dynamic>)'
+        : '_\$${type}FromJson(map as Map<String, dynamic>)';
 
     final methods = [
       ...classElement.methods,
@@ -128,7 +129,7 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
 
     // mixins
 
-    final mixins = annotation.read('adapters').listValue.map((o) {
+    final additionalMixins = annotation.read('adapters').listValue.map((o) {
       var hasTypeArgument = false;
       final mixinType = o.toTypeValue();
       if (mixinType is ParameterizedType) {
@@ -140,18 +141,19 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
       return '${mixinType.element.name}${hasTypeArgument ? "<$type>" : ""}';
     });
 
-    var mixinsString = '';
-    if (mixins.isNotEmpty) {
-      mixinsString = 'with ${mixins.join(', ')}';
-    }
+    final mixins = [
+      '_\$${type}ModelAdapter',
+      'RemoteAdapter<$type>',
+      'ReactiveAdapter<$type>',
+      ...additionalMixins
+    ];
 
     // main
 
     return '''
 // ignore_for_file: unused_local_variable
 // ignore_for_file: always_declare_return_types
-class _\$${type}Repository extends Repository<$type> {
-  _\$${type}Repository(LocalAdapter<$type> adapter, {bool remote, bool verbose}) : super(adapter, remote: remote, verbose: verbose);
+mixin _\$${type}ModelAdapter on Repository<$type> {
 
   @override
   get relationshipMetadata => $relationshipMetadata;
@@ -160,18 +162,9 @@ class _\$${type}Repository extends Repository<$type> {
   Repository repositoryFor(String type) {
     return <String, Repository>$repositoryFors[type];
   } 
-}
-
-class \$${type}Repository extends _\$${type}Repository $mixinsString {
-  \$${type}Repository(LocalAdapter<$type> adapter, {bool remote, bool verbose}) : super(adapter, remote: remote, verbose: verbose);
-}
-
-// ignore: must_be_immutable, unused_local_variable
-class \$${type}LocalAdapter extends LocalAdapter<$type> {
-  \$${type}LocalAdapter(DataManager manager, {List<int> encryptionKey, box}) : super(manager, encryptionKey: encryptionKey, box: box);
 
   @override
-  deserialize(map) {
+  deserialize(map, {key, initialize = true}) {
     $deserialize
     return $fromJson;
   }
@@ -192,7 +185,11 @@ class \$${type}LocalAdapter extends LocalAdapter<$type> {
   void setInverseInModel(inverse, model) {
     $setInverseInModel
   }
-}''';
+}
+
+class \$${type}Repository = Repository<$type> with ${mixins.join(', ')};
+
+''';
   }
 }
 
@@ -259,7 +256,6 @@ class DataExtensionBuilder implements Builder {
         classes.map((c) => 'import \'${c["path"]}\';').toSet().join('\n');
 
     var provider = '';
-    var provider2 = '';
 
     final yaml =
         await b.readAsString(AssetId(b.inputId.package, 'pubspec.yaml'));
@@ -271,15 +267,7 @@ class DataExtensionBuilder implements Builder {
         pubspec.dependencies.keys.any((key) => key == 'provider');
 
     if (importProvider) {
-      provider = '''
-List<SingleChildWidget> get providers {
-  return [
-    ${classes.map((c) => 'Provider<Repository<' + c['name'] + '>>.value(value: locator<Repository<' + c['name'] + '>>()),').join('\n')}
-  ];
-}
-''';
-
-      provider2 = '''\n
+      provider = '''\n
 List<SingleChildWidget> dataProviders(Future<Directory> Function() directory, {bool clear, bool remote, bool verbose, List<int> encryptionKey}) => [
   FutureProvider<DataManager>(
     create: (_) => directory().then((dir) {
@@ -313,11 +301,12 @@ extension FlutterData on DataManager {
 
     final manager = await DataManager(autoModelInit: autoModelInit).init(baseDir, injection.locator, clear: clear, verbose: verbose);
     injection.register(manager);
+
 ''' +
         classes.map((c) => '''
-    final ${c['name'].toLowerCase()}LocalAdapter = await \$${c['name']}LocalAdapter(manager, encryptionKey: encryptionKey).init();
-    injection.register(${c['name'].toLowerCase()}LocalAdapter);
-    injection.register<Repository<${c['name']}>>(\$${c['name']}Repository(${c['name'].toLowerCase()}LocalAdapter, remote: remote, verbose: verbose));
+    final ${c['name'].toLowerCase()}Box = await Repository.getBox<${c['name']}>(manager, encryptionKey: encryptionKey);
+    final ${c['name'].toLowerCase()}Repository = \$${c['name']}Repository(manager, ${c['name'].toLowerCase()}Box, remote: remote, verbose: verbose);
+    injection.register<Repository<${c['name']}>>(${c['name'].toLowerCase()}Repository);
 ''').join('\n') +
         '''\n
     if (also != null) {
@@ -327,13 +316,11 @@ extension FlutterData on DataManager {
 
     return manager;
 
-}
-
-  $provider
+  }
   
 }
 
-$provider2
+$provider
 ''';
 
     await b.writeAsString(finalAssetId, out);

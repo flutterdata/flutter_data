@@ -3,8 +3,7 @@ targets:
     builders:
       flutter_data|data_adapter_builder:
         generate_for:
-        - test/unit/models/*.dart
-        - test/integration/models.dart
+        - test/models/*.dart
 
 builders:
   data_adapter_builder:

@@ -1,9 +1,9 @@
 import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
-import 'models/family.dart';
-import 'models/person.dart';
-import 'setup.dart';
+import '../../models/family.dart';
+import '../../models/person.dart';
+import '../setup.dart';
 
 void main() async {
   test('no id', () {
