@@ -38,20 +38,26 @@ mixin ReactiveAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
     // kick off
     _notifier.reload();
 
-    box.watch().forEach((state) {
+    box.watch().buffer(Stream.periodic(_oneFrameDuration)).forEach((events) {
+      final keys = events.map((event) => event.key);
+      if (_notifier.mounted && keys.isNotEmpty) {
+        final _models = _notifier.state.model;
+        for (var event in events) {
+          final key = event.key.toString();
+          if (event.deleted) {
+            _models.removeWhere((model) => model.key == key);
+          } else {
+            _models.add(_init(box.safeGet(key)));
+          }
+        }
+        _notifier.state =
+            _notifier.state.copyWith(model: _models, isLoading: false);
+      }
+    }).catchError((Object e) {
       if (_notifier.mounted) {
-        // final models = state.model.map(_init).toList();
-        // _notifier.state =
-        //     _notifier.state.copyWith(model: models, isLoading: false);
+        _notifier.state = _notifier.state.copyWith(exception: DataException(e));
       }
     });
-
-    // .catchError((Object e) {
-    //   if (_watchAllNotifier.mounted) {
-    //     _watchAllNotifier.state =
-    //         _watchAllNotifier.state.copyWith(exception: DataException(e));
-    //   }
-    // });
     return _notifier;
   }
 
@@ -90,21 +96,21 @@ mixin ReactiveAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
     // kick off
     _notifier.reload();
 
-    box.watch(key: key).forEach((state) {
-      // final model = state.model;
+    box
+        .watch(key: key)
+        .buffer(Stream.periodic(_oneFrameDuration))
+        .forEach((events) {
+      final model = box.safeGet(events.last.key.toString());
 
-      // if (_notifier.mounted && model != null) {
-      //   _notifier.state =
-      //       _notifier.state.copyWith(model: _init(model), isLoading: false);
-      // }
+      if (_notifier.mounted && model != null) {
+        _notifier.state = _notifier.state.copyWith(
+            model: events.last.deleted ? null : _init(model), isLoading: false);
+      }
+    }).catchError((Object e) {
+      if (_notifier.mounted) {
+        _notifier.state = _notifier.state.copyWith(exception: DataException(e));
+      }
     });
-
-    // .catchError((Object e) {
-    //   if (_watchOneNotifier.mounted) {
-    //     _watchOneNotifier.state =
-    //         _watchOneNotifier.state.copyWith(exception: DataException(e));
-    //   }
-    // });
     return _notifier;
   }
 }
