@@ -13,13 +13,16 @@ void main() async {
   Directory _dir;
 
   try {
-    _dir = await Directory('../tmp').create();
+    _dir = await Directory('tmp').create();
+    await _dir.delete(recursive: true);
+
     final manager = await FlutterData.init(_dir,
-        verbose: false, encryptionKey: _encryptionKey);
+        verbose: true, encryptionKey: _encryptionKey);
     final locator = manager.locator;
 
     final usersRepo = locator<Repository<User>>();
     final postsRepo = locator<Repository<Post>>();
+    final commentsRepo = locator<Repository<Comment>>();
     User user;
 
     try {
@@ -45,10 +48,12 @@ void main() async {
     assert(p3.body == '3@fasd.io');
     assert(p3.user.value.email == user2.email);
 
-    var post = await postsRepo.findOne(1, params: {'_embed': 'comments'});
+    var post = await postsRepo.findOne(1); // , params: {'_embed': 'comments'}
+    var comments = await commentsRepo.findAll(params: {'postId': 1});
 
-    print(post.comments.map((c) => c.body));
+    print(comments.map((c) => c.body).toList());
 
+    assert(comments.first.post.value == post);
     assert(user.name == post.user.value.name);
 
     var stream = usersRepo.watchAll().stream;
