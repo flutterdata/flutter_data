@@ -5,8 +5,30 @@ mixin StandardJSONAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
   Map<String, dynamic> get headers =>
       super.headers..addAll({'Content-Type': 'application/json'});
 
-  String get identifier => 'id';
   String get identifierSuffix => '_id';
+
+  @override
+  String keyForField(String field) {
+    final belongsToFields =
+        (relationshipMetadata['BelongsTo'] as Map<String, String>).keys;
+    if (belongsToFields.contains(field)) {
+      return '$field$identifierSuffix';
+    }
+    return super.keyForField(field);
+  }
+
+  @override
+  String fieldForKey(String key) {
+    if (key.endsWith(identifierSuffix)) {
+      final keyWithoutId = key.substring(0, key.length - 3);
+      final belongsToFields =
+          (relationshipMetadata['BelongsTo'] as Map<String, String>).keys;
+      if (belongsToFields.contains(keyWithoutId)) {
+        return keyWithoutId;
+      }
+    }
+    return super.fieldForKey(key);
+  }
 
   // Transforms a class into standard JSON
   @override
@@ -26,13 +48,14 @@ mixin StandardJSONAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
     }
 
     for (var relEntry in relationshipMetadata['BelongsTo'].entries) {
-      final k = '${relEntry.key}';
-      final ks = '$k$identifierSuffix';
+      final field = '${relEntry.key}';
+      final key = keyForField(field);
 
-      final key = map[k].toString();
+      final dataIdKey = map[field].toString();
       final type = relEntry.value;
-      relationships[ks] = DataId.byKey(key, manager, type: type.toString())?.id;
-      map.remove(k);
+      relationships[key] =
+          DataId.byKey(dataIdKey, manager, type: type.toString())?.id;
+      map.remove(field);
     }
 
     final json = map;
@@ -63,21 +86,21 @@ mixin StandardJSONAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
     }
 
     for (var relEntry in relationshipMetadata['BelongsTo'].entries) {
-      final k = '${relEntry.key}';
-      final ks = '$k$identifierSuffix';
+      final field = '${relEntry.key}';
+      final _key = keyForField(field);
 
       final type = relEntry.value.toString();
-      if (map[k] is Map) {
+      if (map[field] is Map) {
         final repo = repositoryFor(type);
-        final model = repo.deserialize(map[k]);
-        map[k] = model.id;
-      } else if (map[ks] != null) {
-        map[k] = map[ks].toString();
-        map.remove(ks);
+        final model = repo.deserialize(map[field]);
+        map[field] = model.id;
+      } else if (map[_key] != null) {
+        map[field] = map[_key].toString();
+        map.remove(_key);
       }
 
-      final dataId = manager.dataId(map[k]?.toString(), type: type);
-      map[k] = dataId.key;
+      final dataId = manager.dataId(map[field]?.toString(), type: type);
+      map[field] = dataId.key;
     }
 
     return super.deserialize(map, key: key, initialize: initialize);
