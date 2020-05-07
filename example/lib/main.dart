@@ -43,7 +43,7 @@ void main() async {
         title: 'new name',
         body: '3@fasd.io',
         user: user2.asBelongsTo,
-        comments: [Comment(id: 1, body: 'bla')].asHasMany);
+        comments: {Comment(id: 1, body: 'bla')}.asHasMany);
 
     assert(p3.body == '3@fasd.io');
     assert(p3.user.value.email == user2.email);

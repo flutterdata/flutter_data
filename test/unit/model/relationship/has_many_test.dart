@@ -14,11 +14,35 @@ void main() async {
     var repo = injection.locator<Repository<Person>>();
     var person = Person(id: '1', name: 'zzz', age: 7).init(repo);
 
-    var rel = HasMany<Person>([], manager);
+    var rel = HasMany<Person>({}, manager);
     expect(rel.length, 0);
 
-    rel = HasMany<Person>([person], manager);
+    rel = HasMany<Person>({person}, manager);
     expect(rel.first.key, manager.dataId<Person>('1').key);
+  });
+
+  test('HasMany is a Set', () {
+    final persons = HasMany<Person>();
+    var person = Person(name: 'zzz', age: 22);
+    persons.add(person);
+    persons.add(person);
+    persons.add(person);
+    persons.add(person);
+    expect(persons.length, 1);
+    expect(persons.lookup(person), person);
+
+    persons.manager = injection.locator<DataManager>();
+    persons.initializeModels();
+    final person2 = Person(name: 'zzz2', age: 2);
+    persons.add(person2);
+    expect(persons.length, 2);
+
+    persons.remove(person);
+    expect(persons.length, 1);
+    expect(persons.lookup(person2), person2);
+
+    persons.clear();
+    expect(persons.length, 0);
   });
 
   test('deserialize with included HasMany', () async {
@@ -52,7 +76,7 @@ void main() async {
     });
     var person = Person(id: '1', name: 'zzz', age: 7).init(repo);
 
-    expect(rel, HasMany<Person>([person], manager));
+    expect(rel, HasMany<Person>({person}, manager));
     expect(rel.first, person);
     expect(rel.first.key, manager.dataId<Person>('1').key);
   });
@@ -63,7 +87,7 @@ void main() async {
 
     var family = Family(surname: 'Toraine').init(familyRepo);
     var person = Person(name: 'Claire', age: 31).init(personRepo);
-    family.persons = HasMany<Person>([person], personRepo.manager);
+    family.persons = HasMany<Person>({person}, personRepo.manager);
 
     expect(family.persons.first.key, person.key);
     expect(family.persons.debugOwner, isNull);

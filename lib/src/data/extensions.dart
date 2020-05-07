@@ -30,7 +30,7 @@ extension MapX<K, V> on Map<K, V> {
 
 @optionalTypeArgs
 extension IterableRelationshipExtension<T extends DataSupportMixin<T>>
-    on List<T> {
+    on Set<T> {
   HasMany<T> get asHasMany {
     if (isNotEmpty) {
       return HasMany<T>(this, first._manager, first._save);

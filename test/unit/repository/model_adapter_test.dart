@@ -16,7 +16,7 @@ void main() async {
     var manager = injection.locator<DataManager>();
 
     var person = Person(id: '1', name: 'Franco', age: 28);
-    var personRel = HasMany<Person>([person], manager);
+    var personRel = HasMany<Person>({person}, manager);
     var house = House(id: '1', address: '123 Main St');
     var houseRel = BelongsTo<House>(house, manager);
 
@@ -42,7 +42,7 @@ void main() async {
             id: '1',
             surname: 'Smith',
             house: house.asBelongsTo,
-            persons: [person].asHasMany)
+            persons: {person}.asHasMany)
         .init(repo);
 
     var obj = repo.serialize(family);
@@ -60,7 +60,7 @@ void main() async {
     var manager = injection.locator<DataManager>();
 
     var person = Person(id: '1', name: 'Franco', age: 28);
-    var personRel = HasMany<Person>([person], manager);
+    var personRel = HasMany<Person>({person}, manager);
     var house = House(id: '1', address: '123 Main St');
     var houseRel = BelongsTo<House>(house, manager);
 

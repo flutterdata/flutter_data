@@ -68,7 +68,7 @@ void main() async {
         id: '1',
         surname: 'Smith',
         house: BelongsTo<House>(house),
-        persons: HasMany<Person>([person]));
+        persons: HasMany<Person>({person}));
 
     // no dataId associated to family or relationships
     expect(family.house.dataId, isNull);

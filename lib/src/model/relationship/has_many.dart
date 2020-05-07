@@ -5,18 +5,18 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
   @protected
   @visibleForTesting
   final LinkedHashSet<DataId<E>> dataIds;
-  final List<E> _uninitializedModels;
+  final Set<E> _uninitializedModels;
   final bool _save;
 
-  HasMany([List<E> models, DataManager manager, this._save = true])
+  HasMany([Set<E> models, DataManager manager, this._save = true])
       : dataIds = LinkedHashSet.from({}),
-        _uninitializedModels = models ?? [],
+        _uninitializedModels = models ?? {},
         super(manager) {
     initializeModels();
   }
 
   HasMany._(this.dataIds, DataManager manager)
-      : _uninitializedModels = [],
+      : _uninitializedModels = {},
         _save = true,
         super(manager);
 
@@ -32,8 +32,10 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
 
   // ownership & init
 
+  @protected
+  @visibleForTesting
   void initializeModels() {
-    if (_manager != null) {
+    if (_repository != null) {
       addAll(_uninitializedModels);
       _uninitializedModels.clear();
     }
@@ -41,7 +43,7 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
 
   set owner(DataId owner) {
     _owner = owner;
-    _manager = owner.manager;
+    manager = owner.manager;
     initializeModels();
   }
 
@@ -51,33 +53,43 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
     }
   }
 
+  // implement set
+
   @override
   bool add(E value) {
+    if (_repository == null) {
+      return _uninitializedModels.add(value);
+    }
     return dataIds.add(_repository._init(value, save: _save)._dataId);
   }
 
   @override
   bool contains(Object element) {
     if (element is E) {
-      return dataIds.contains(element._dataId);
+      return dataIds.contains(element._dataId) ||
+          _uninitializedModels.contains(element);
     }
     return false;
   }
 
-  Iterable<E> get _iterable => dataIds.map((dataId) {
-        final model = _repository.box.safeGet(dataId.key);
-        if (model != null) {
-          _repository.setInverseInModel(_owner, model);
-        }
-        return model;
-      });
+  Iterable<E> get _iterable => [
+        ...dataIds.map((dataId) {
+          final model = _repository.box.safeGet(dataId.key);
+          if (model != null) {
+            _repository.setInverseInModel(_owner, model);
+          }
+          return model;
+        }),
+        ..._uninitializedModels
+      ];
 
   @override
   Iterator<E> get iterator => _iterable.iterator;
 
   @override
   E lookup(Object element) {
-    if (element is E && contains(element)) {
+    if (element is E &&
+        (contains(element) || _uninitializedModels.contains(element))) {
       return element;
     }
     return null;
@@ -86,13 +98,14 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
   @override
   bool remove(Object value) {
     if (value is E) {
-      return dataIds.remove(value._dataId);
+      return dataIds.remove(value._dataId) ||
+          _uninitializedModels.remove(value);
     }
     return false;
   }
 
   @override
-  int get length => dataIds.length;
+  int get length => _iterable.length;
 
   @override
   Set<E> toSet() {
