@@ -100,18 +100,19 @@ void main() async {
     expect(family.persons.dataIds, isNotEmpty);
 
     // (2) then load persons
-    Person(id: '1', name: 'z1', age: 23).init(personRepo);
+    final p1 = Person(id: '1', name: 'z1', age: 23).init(personRepo);
     Person(id: '2', name: 'z2', age: 33).init(personRepo);
 
     // (3) assert two first are linked, third one null, house is null
-    expect(family.persons[0], isNotNull);
-    expect(family.persons[1], isNotNull);
-    expect(family.persons[2], isNull);
+    expect(family.persons.lookup(p1), p1);
+    expect(family.persons.elementAt(0), isNotNull);
+    expect(family.persons.elementAt(1), isNotNull);
+    expect(family.persons.elementAt(2), isNull);
     expect(family.house.value, isNull);
 
-    // (4) load the last person and assert it exists now
+    // // (4) load the last person and assert it exists now
     Person(id: '3', name: 'z3', age: 3).init(personRepo);
-    expect(family.persons[2].age, 3);
+    expect(family.persons.elementAt(2).age, 3);
 
     // (5) load family and assert it exists now
     var house = House(id: '98', address: '21 Coconut Trail').init(houseRepo);

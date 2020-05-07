@@ -154,8 +154,7 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
         return model;
       }
       // deserialize already inits models
-      var m = deserialize(data as Map<String, dynamic>, key: key);
-      return m;
+      return deserialize(data as Map<String, dynamic>, key: key);
     });
   }
 
