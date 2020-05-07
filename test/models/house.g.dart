@@ -51,7 +51,7 @@ mixin _$HouseModelAdapter on Repository<House> {
 }
 
 class $HouseRepository = Repository<House>
-    with _$HouseModelAdapter, RemoteAdapter<House>, ReactiveAdapter<House>;
+    with _$HouseModelAdapter, RemoteAdapter<House>, WatchAdapter<House>;
 
 // **************************************************************************
 // JsonSerializableGenerator

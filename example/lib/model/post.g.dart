@@ -63,7 +63,7 @@ class $PostRepository = Repository<Post>
     with
         _$PostModelAdapter,
         RemoteAdapter<Post>,
-        ReactiveAdapter<Post>,
+        WatchAdapter<Post>,
         StandardJSONAdapter<Post>,
         JSONPlaceholderAdapter<Post>;
 

@@ -72,7 +72,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       {bool remote,
       Map<String, dynamic> params,
       Map<String, dynamic> headers,
-      WithRelationships andAlso});
+      AlsoWatch<T> alsoWatch});
 
   String urlForSave(id, params);
   DataRequestMethod methodForSave(id, params);

@@ -51,7 +51,7 @@ mixin _$ModelModelAdapter on Repository<Model> {
 }
 
 class $ModelRepository = Repository<Model>
-    with _$ModelModelAdapter, RemoteAdapter<Model>, ReactiveAdapter<Model>;
+    with _$ModelModelAdapter, RemoteAdapter<Model>, WatchAdapter<Model>;
 
 // ignore_for_file: unused_local_variable
 // ignore_for_file: always_declare_return_types
@@ -84,7 +84,7 @@ mixin _$CityModelAdapter on Repository<City> {
 }
 
 class $CityRepository = Repository<City>
-    with _$CityModelAdapter, RemoteAdapter<City>, ReactiveAdapter<City>;
+    with _$CityModelAdapter, RemoteAdapter<City>, WatchAdapter<City>;
 
 // ignore_for_file: unused_local_variable
 // ignore_for_file: always_declare_return_types
@@ -134,7 +134,7 @@ class $CompanyRepository = Repository<Company>
     with
         _$CompanyModelAdapter,
         RemoteAdapter<Company>,
-        ReactiveAdapter<Company>,
+        WatchAdapter<Company>,
         JSONAPIAdapter<Company>,
         TestMixin<Company>;
 

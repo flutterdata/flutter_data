@@ -1,7 +1,7 @@
 part of flutter_data;
 
-mixin ReactiveAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
-  static const _oneFrameDuration = Duration(milliseconds: 16);
+mixin WatchAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
+  static const oneFrameDuration = Duration(milliseconds: 16);
 
   @override
   DataStateNotifier<List<T>> watchAll(
@@ -38,7 +38,7 @@ mixin ReactiveAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
     // kick off
     _notifier.reload();
 
-    box.watch().buffer(Stream.periodic(_oneFrameDuration)).forEach((events) {
+    box.watch().buffer(Stream.periodic(oneFrameDuration)).forEach((events) {
       final keys = events.map((event) => event.key);
       if (_notifier.mounted && keys.isNotEmpty) {
         final _models = _notifier.state.model;
@@ -66,10 +66,9 @@ mixin ReactiveAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
       {bool remote,
       Map<String, dynamic> params,
       Map<String, dynamic> headers,
-      WithRelationships andAlso}) {
+      AlsoWatch<T> alsoWatch}) {
     remote ??= _remote;
     final key = manager.dataId<T>(id).key;
-    // var relsok = false;
 
     final _notifier = DataStateNotifier<T>(
         DataState(
@@ -93,18 +92,40 @@ mixin ReactiveAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
           .copyWith(exception: DataException(error), stackTrace: stackTrace);
     });
 
+    var _watching = false;
+    void _tryWatchRelationships(T model) {
+      if (alsoWatch != null && !_watching) {
+        for (var rel in alsoWatch(model)) {
+          rel.watch().forEach((_) {
+            _notifier.state = _notifier.state;
+          });
+          _watching = true;
+        }
+      }
+    }
+
     // kick off
     _notifier.reload();
+    if (_notifier.state.model != null) {
+      _tryWatchRelationships(_notifier.state.model);
+    }
 
     box
         .watch(key: key)
-        .buffer(Stream.periodic(_oneFrameDuration))
+        .buffer(Stream.periodic(oneFrameDuration))
         .forEach((events) {
+      // we only care about the latest event in the window
       final model = box.safeGet(events.last.key.toString());
 
       if (_notifier.mounted && model != null) {
-        _notifier.state = _notifier.state.copyWith(
-            model: events.last.deleted ? null : _init(model), isLoading: false);
+        if (events.last.deleted) {
+          _notifier.state =
+              _notifier.state.copyWith(model: null, isLoading: false);
+        } else {
+          _notifier.state =
+              _notifier.state.copyWith(model: _init(model), isLoading: false);
+          _tryWatchRelationships(model);
+        }
       }
     }).catchError((Object e) {
       if (_notifier.mounted) {
