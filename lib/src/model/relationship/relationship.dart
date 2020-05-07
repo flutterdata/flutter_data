@@ -2,11 +2,13 @@ part of flutter_data;
 
 abstract class Relationship<E extends DataSupportMixin<E>> {
   // ignore: prefer_final_fields
-  DataManager _manager;
+  @protected
+  @visibleForTesting
+  DataManager manager;
 
-  Relationship(this._manager);
+  Relationship(this.manager);
 
-  Repository<E> get _repository => _manager.locator<Repository<E>>();
+  Repository<E> get _repository => manager?.locator<Repository<E>>();
 
   DataId _owner;
 

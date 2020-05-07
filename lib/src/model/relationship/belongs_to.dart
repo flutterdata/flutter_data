@@ -27,7 +27,7 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E> {
   // ownership & init
 
   void initializeModel() {
-    if (_manager != null && _uninitializedModel != null) {
+    if (_repository != null && _uninitializedModel != null) {
       value = _uninitializedModel;
       _uninitializedModel = null;
     }
@@ -35,7 +35,7 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E> {
 
   set owner(DataId owner) {
     _owner = owner;
-    _manager = owner.manager;
+    manager = owner.manager;
     initializeModel();
   }
 

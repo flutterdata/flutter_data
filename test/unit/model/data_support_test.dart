@@ -62,7 +62,7 @@ void main() async {
     var dogRepo = injection.locator<Repository<Dog>>();
     var dog = Dog(id: '2', name: 'Walker').init(dogRepo);
 
-    var f = Family(surname: 'Walker', dogs: [dog].asHasMany).init(familyRepo);
+    var f = Family(surname: 'Walker', dogs: {dog}.asHasMany).init(familyRepo);
     expect(f.dogs.first.name, 'Walker');
   });
 
@@ -127,7 +127,7 @@ void main() async {
     var repositoryPerson = injection.locator<Repository<Person>>();
 
     final igor = Person(name: 'Igor', age: 33).init(repositoryPerson);
-    var f1 = Family(surname: 'Kamchatka', persons: [igor].asHasMany)
+    var f1 = Family(surname: 'Kamchatka', persons: {igor}.asHasMany)
         .init(repository);
     // if Igor's family is NULL there's no way we can expect anything else
     // this is why setting an empty default relationship is recommended
@@ -136,7 +136,7 @@ void main() async {
     var f1b = Family(
             surname: 'Kamchatka',
             persons:
-                [Person(name: 'Igor', age: 33, family: BelongsTo())].asHasMany)
+                {Person(name: 'Igor', age: 33, family: BelongsTo())}.asHasMany)
         .init(repository);
     expect(f1b.persons.first.family.value.surname, 'Kamchatka');
 
