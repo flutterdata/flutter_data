@@ -76,20 +76,27 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
 
   @override
   DataStateNotifier<List<E>> watch() {
-    return _repository.watchAll().map(
-        (state) => state.copyWith(model: state.model.where(contains).toList()));
+    const oneFrameDuration = Duration(milliseconds: 16);
+    final _notifier = DataStateNotifier<List<E>>(DataState(model: this));
+    _repository.box
+        .watch()
+        .buffer(Stream.periodic(oneFrameDuration))
+        .forEach((events) {
+      // check if there are event keys in our keys
+      final hasKeys = keys
+          .toSet()
+          .intersection(events.map((e) => e.key.toString()).toSet())
+          .isNotEmpty;
+      if (hasKeys) {
+        _notifier.state = _notifier.state.copyWith(model: this);
+      }
+    });
+    return _notifier;
   }
 
   // misc
 
   List<String> get keys => dataIds.map((d) => d.key).toList();
-
-  @override
-  bool operator ==(dynamic other) =>
-      identical(this, other) || dataIds == other.dataIds;
-
-  @override
-  int get hashCode => runtimeType.hashCode ^ dataIds.hashCode;
 
   @override
   dynamic toJson() => keys;

@@ -7,7 +7,7 @@ enum DataRequestMethod { GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS, TRACE }
 
 // typedefs
 
-typedef WithRelationships<T> = List<Relationship> Function(T);
+typedef AlsoWatch<T> = List<Relationship> Function(T);
 
 typedef OnResponseSuccess<R> = R Function(dynamic);
 

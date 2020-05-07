@@ -40,7 +40,7 @@ class $UserRepository = Repository<User>
     with
         _$UserModelAdapter,
         RemoteAdapter<User>,
-        ReactiveAdapter<User>,
+        WatchAdapter<User>,
         StandardJSONAdapter<User>,
         JSONPlaceholderAdapter<User>;
 

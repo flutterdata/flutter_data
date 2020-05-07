@@ -37,7 +37,7 @@ mixin _$DogModelAdapter on Repository<Dog> {
 }
 
 class $DogRepository = Repository<Dog>
-    with _$DogModelAdapter, RemoteAdapter<Dog>, ReactiveAdapter<Dog>;
+    with _$DogModelAdapter, RemoteAdapter<Dog>, WatchAdapter<Dog>;
 
 // ignore_for_file: unused_local_variable
 // ignore_for_file: always_declare_return_types
@@ -70,7 +70,7 @@ mixin _$CatModelAdapter on Repository<Cat> {
 }
 
 class $CatRepository = Repository<Cat>
-    with _$CatModelAdapter, RemoteAdapter<Cat>, ReactiveAdapter<Cat>;
+    with _$CatModelAdapter, RemoteAdapter<Cat>, WatchAdapter<Cat>;
 
 // **************************************************************************
 // JsonSerializableGenerator

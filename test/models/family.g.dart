@@ -69,7 +69,7 @@ mixin _$FamilyModelAdapter on Repository<Family> {
 }
 
 class $FamilyRepository = Repository<Family>
-    with _$FamilyModelAdapter, RemoteAdapter<Family>, ReactiveAdapter<Family>;
+    with _$FamilyModelAdapter, RemoteAdapter<Family>, WatchAdapter<Family>;
 
 // **************************************************************************
 // JsonSerializableGenerator

@@ -54,7 +54,7 @@ class $CommentRepository = Repository<Comment>
     with
         _$CommentModelAdapter,
         RemoteAdapter<Comment>,
-        ReactiveAdapter<Comment>,
+        WatchAdapter<Comment>,
         StandardJSONAdapter<Comment>,
         JSONPlaceholderAdapter<Comment>;
 

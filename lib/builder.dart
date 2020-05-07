@@ -144,7 +144,7 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
     final mixins = [
       '_\$${type}ModelAdapter',
       'RemoteAdapter<$type>',
-      'ReactiveAdapter<$type>',
+      'WatchAdapter<$type>',
       ...additionalMixins
     ];
 

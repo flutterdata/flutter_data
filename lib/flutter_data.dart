@@ -9,10 +9,10 @@ import 'package:meta/meta.dart';
 import 'package:http/http.dart' as http;
 import 'package:inflection2/inflection2.dart';
 import 'package:path/path.dart' as path_helper;
+import 'package:rxdart/rxdart.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
-import 'adapters/notifier_extension.dart';
-import 'package:rxdart/rxdart.dart';
+import 'src/util/notifier_extension.dart';
 
 export 'package:data_state/data_state.dart';
 
@@ -24,7 +24,7 @@ export 'annotations.dart';
 part 'src/data_manager.dart';
 part 'src/repository/util/hive_adapter.dart';
 part 'src/repository/adapter/remote_adapter.dart';
-part 'src/repository/adapter/reactive_adapter.dart';
+part 'src/repository/adapter/watch_adapter.dart';
 
 part 'src/data/data_id.dart';
 part 'src/data/data_exception.dart';
