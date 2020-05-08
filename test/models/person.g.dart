@@ -23,15 +23,15 @@ mixin _$PersonModelAdapter on Repository<Person> {
   }
 
   @override
-  deserialize(map, {key, initialize = true}) {
+  localDeserialize(map) {
     map['family'] = {
       '_': [map['family'], manager]
     };
-    return Person.fromJson(map as Map<String, dynamic>);
+    return Person.fromJson(map);
   }
 
   @override
-  serialize(model) {
+  localSerialize(model) {
     final map = model.toJson();
     map['family'] = model.family?.toJson();
     return map;

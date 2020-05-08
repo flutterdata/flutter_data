@@ -24,18 +24,18 @@ mixin _$PostModelAdapter on Repository<Post> {
   }
 
   @override
-  deserialize(map, {key, initialize = true}) {
+  localDeserialize(map) {
     map['comments'] = {
       '_': [map['comments'], manager]
     };
     map['user'] = {
       '_': [map['user'], manager]
     };
-    return _$PostFromJson(map as Map<String, dynamic>);
+    return _$PostFromJson(map);
   }
 
   @override
-  serialize(model) {
+  localSerialize(model) {
     final map = _$PostToJson(model);
     map['comments'] = model.comments?.toJson();
     map['user'] = model.user?.toJson();

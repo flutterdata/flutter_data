@@ -18,12 +18,12 @@ mixin _$DogModelAdapter on Repository<Dog> {
   }
 
   @override
-  deserialize(map, {key, initialize = true}) {
-    return Dog.fromJson(map as Map<String, dynamic>);
+  localDeserialize(map) {
+    return Dog.fromJson(map);
   }
 
   @override
-  serialize(model) {
+  localSerialize(model) {
     final map = model.toJson();
 
     return map;
@@ -51,12 +51,12 @@ mixin _$CatModelAdapter on Repository<Cat> {
   }
 
   @override
-  deserialize(map, {key, initialize = true}) {
-    return Cat.fromJson(map as Map<String, dynamic>);
+  localDeserialize(map) {
+    return Cat.fromJson(map);
   }
 
   @override
-  serialize(model) {
+  localSerialize(model) {
     final map = model.toJson();
 
     return map;

@@ -23,15 +23,15 @@ mixin _$CommentModelAdapter on Repository<Comment> {
   }
 
   @override
-  deserialize(map, {key, initialize = true}) {
+  localDeserialize(map) {
     map['post'] = {
       '_': [map['post'], manager]
     };
-    return _$CommentFromJson(map as Map<String, dynamic>);
+    return _$CommentFromJson(map);
   }
 
   @override
-  serialize(model) {
+  localSerialize(model) {
     final map = _$CommentToJson(model);
     map['post'] = model.post?.toJson();
     return map;

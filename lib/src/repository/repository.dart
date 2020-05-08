@@ -29,9 +29,12 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   // metadata
 
+  @protected
+  @visibleForTesting
   Repository repositoryFor(String type);
 
   @protected
+  @visibleForTesting
   Map<String, dynamic> get relationshipMetadata;
 
   void syncRelationships(T model) {
@@ -50,10 +53,21 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   // remote
 
   String get baseUrl;
+
+  @protected
+  @visibleForTesting
   Map<String, dynamic> get params;
+
+  @protected
+  @visibleForTesting
   Map<String, dynamic> get headers;
 
+  @protected
+  @visibleForTesting
   String urlForFindAll(params);
+
+  @protected
+  @visibleForTesting
   DataRequestMethod methodForFindAll(params);
 
   Future<List<T>> findAll(
@@ -62,7 +76,12 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   DataStateNotifier<List<T>> watchAll(
       {bool remote, Map<String, dynamic> params, Map<String, dynamic> headers});
 
+  @protected
+  @visibleForTesting
   String urlForFindOne(id, params);
+
+  @protected
+  @visibleForTesting
   DataRequestMethod methodForFindOne(id, params);
 
   Future<T> findOne(dynamic id,
@@ -74,13 +93,23 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       Map<String, dynamic> headers,
       AlsoWatch<T> alsoWatch});
 
+  @protected
+  @visibleForTesting
   String urlForSave(id, params);
+
+  @protected
+  @visibleForTesting
   DataRequestMethod methodForSave(id, params);
 
   Future<T> save(T model,
       {bool remote, Map<String, dynamic> params, Map<String, dynamic> headers});
 
+  @protected
+  @visibleForTesting
   String urlForDelete(id, params);
+
+  @protected
+  @visibleForTesting
   DataRequestMethod methodForDelete(id, params);
 
   Future<void> delete(dynamic id,
@@ -88,16 +117,37 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   // serialization
 
-  Map<String, dynamic> serialize(T model);
+  @protected
+  @visibleForTesting
+  Map<String, dynamic> serialize(T model) => localSerialize(model);
 
+  @protected
+  @visibleForTesting
+  Map<String, dynamic> localSerialize(T model);
+
+  @protected
+  @visibleForTesting
   Iterable<Map<String, dynamic>> serializeCollection(Iterable<T> models);
 
-  T deserialize(dynamic object, {String key, bool initialize = true});
+  @protected
+  @visibleForTesting
+  T deserialize(dynamic object, {String key, bool initialize = true}) =>
+      localDeserialize(object as Map<String, dynamic>);
 
+  @protected
+  @visibleForTesting
+  T localDeserialize(Map<String, dynamic> map);
+
+  @protected
+  @visibleForTesting
   Iterable<T> deserializeCollection(object);
 
+  @protected
+  @visibleForTesting
   String fieldForKey(String key);
 
+  @protected
+  @visibleForTesting
   String keyForField(String field);
 
   // initialization

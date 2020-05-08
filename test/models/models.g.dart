@@ -23,15 +23,15 @@ mixin _$ModelModelAdapter on Repository<Model> {
   }
 
   @override
-  deserialize(map, {key, initialize = true}) {
+  localDeserialize(map) {
     map['company'] = {
       '_': [map['company'], manager]
     };
-    return Model.fromJson(map as Map<String, dynamic>);
+    return Model.fromJson(map);
   }
 
   @override
-  serialize(model) {
+  localSerialize(model) {
     final map = model.toJson();
     map['company'] = model.company?.toJson();
     return map;
@@ -65,12 +65,12 @@ mixin _$CityModelAdapter on Repository<City> {
   }
 
   @override
-  deserialize(map, {key, initialize = true}) {
-    return City.fromJson(map as Map<String, dynamic>);
+  localDeserialize(map) {
+    return City.fromJson(map);
   }
 
   @override
-  serialize(model) {
+  localSerialize(model) {
     final map = model.toJson();
 
     return map;
@@ -103,15 +103,15 @@ mixin _$CompanyModelAdapter on Repository<Company> {
   }
 
   @override
-  deserialize(map, {key, initialize = true}) {
+  localDeserialize(map) {
     map['models'] = {
       '_': [map['models'], manager]
     };
-    return Company.fromJson(map as Map<String, dynamic>);
+    return Company.fromJson(map);
   }
 
   @override
-  serialize(model) {
+  localSerialize(model) {
     final map = model.toJson();
     map['models'] = model.models?.toJson();
     return map;

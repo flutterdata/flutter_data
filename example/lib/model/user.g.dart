@@ -18,12 +18,12 @@ mixin _$UserModelAdapter on Repository<User> {
   }
 
   @override
-  deserialize(map, {key, initialize = true}) {
-    return _$UserFromJson(map as Map<String, dynamic>);
+  localDeserialize(map) {
+    return _$UserFromJson(map);
   }
 
   @override
-  serialize(model) {
+  localSerialize(model) {
     final map = _$UserToJson(model);
 
     return map;

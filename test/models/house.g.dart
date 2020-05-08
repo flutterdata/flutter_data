@@ -23,15 +23,15 @@ mixin _$HouseModelAdapter on Repository<House> {
   }
 
   @override
-  deserialize(map, {key, initialize = true}) {
+  localDeserialize(map) {
     map['families'] = {
       '_': [map['families'], manager]
     };
-    return _$HouseFromJson(map as Map<String, dynamic>);
+    return _$HouseFromJson(map);
   }
 
   @override
-  serialize(model) {
+  localSerialize(model) {
     final map = _$HouseToJson(model);
     map['families'] = model.families?.toJson();
     return map;
