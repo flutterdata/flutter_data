@@ -1,32 +1,39 @@
 part of flutter_data;
 
 mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
+  // request
+
   @override
   String get baseUrl => throw UnsupportedError('Please implement baseUrl');
 
   @override
   String urlForFindAll(params) => '$type';
+
   @override
   DataRequestMethod methodForFindAll(params) => DataRequestMethod.GET;
 
   @override
   String urlForFindOne(id, params) => '$type/$id';
+
   @override
   DataRequestMethod methodForFindOne(id, params) => DataRequestMethod.GET;
 
   @override
   String urlForSave(id, params) => id != null ? '$type/$id' : type;
+
   @override
   DataRequestMethod methodForSave(id, params) =>
       id != null ? DataRequestMethod.PATCH : DataRequestMethod.POST;
 
   @override
   String urlForDelete(id, params) => '$type/$id';
+
   @override
   DataRequestMethod methodForDelete(id, params) => DataRequestMethod.DELETE;
 
   @override
   Map<String, dynamic> get params => {};
+
   @override
   Map<String, dynamic> get headers => {};
 
@@ -60,7 +67,33 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
   @override
   String keyForField(String field) => field;
 
-  // repository
+  // repository implementation
+
+  @override
+  Future<List<T>> findAll(
+      {bool remote,
+      Map<String, dynamic> params,
+      Map<String, dynamic> headers}) async {
+    remote ??= _remote;
+
+    if (remote == false) {
+      return box.values.map(_init).toList();
+    }
+
+    final response = await withHttpClient(
+      (client) => _executeRequest(
+        client,
+        urlForFindAll(params),
+        methodForFindAll(params),
+        params: params,
+        headers: headers,
+      ),
+    );
+
+    return withResponse<List<T>>(response, (data) {
+      return deserializeCollection(data).toList();
+    });
+  }
 
   @override
   Future<T> findOne(dynamic id,
@@ -94,32 +127,6 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
 
     return withResponse<T>(response, (data) {
       return deserialize(data, key: dataId.key);
-    });
-  }
-
-  @override
-  Future<List<T>> findAll(
-      {bool remote,
-      Map<String, dynamic> params,
-      Map<String, dynamic> headers}) async {
-    remote ??= _remote;
-
-    if (remote == false) {
-      return box.values.map(_init).toList();
-    }
-
-    final response = await withHttpClient(
-      (client) => _executeRequest(
-        client,
-        urlForFindAll(params),
-        methodForFindAll(params),
-        params: params,
-        headers: headers,
-      ),
-    );
-
-    return withResponse<List<T>>(response, (data) {
-      return deserializeCollection(data).toList();
     });
   }
 
@@ -186,6 +193,8 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
       });
     }
   }
+
+  // utils
 
   @protected
   Map<String, String> parseQueryParameters(Map<String, dynamic> params) {

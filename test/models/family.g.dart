@@ -25,7 +25,7 @@ mixin _$FamilyModelAdapter on Repository<Family> {
   }
 
   @override
-  deserialize(map, {key, initialize = true}) {
+  localDeserialize(map) {
     map['persons'] = {
       '_': [map['persons'], manager]
     };
@@ -35,11 +35,11 @@ mixin _$FamilyModelAdapter on Repository<Family> {
     map['house'] = {
       '_': [map['house'], manager]
     };
-    return _$FamilyFromJson(map as Map<String, dynamic>);
+    return _$FamilyFromJson(map);
   }
 
   @override
-  serialize(model) {
+  localSerialize(model) {
     final map = _$FamilyToJson(model);
     map['persons'] = model.persons?.toJson();
     map['dogs'] = model.dogs?.toJson();

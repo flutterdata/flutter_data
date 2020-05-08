@@ -20,12 +20,12 @@ class _HiveTypeAdapter<T extends DataSupport<T>> with TypeAdapter<T> {
     var fields = <String, dynamic>{
       for (var i = 0; i < n; i++) reader.read().toString(): reader.read(),
     };
-    return manager.locator<Repository<T>>().deserialize(fixMap(fields));
+    return manager.locator<Repository<T>>().localDeserialize(fixMap(fields));
   }
 
   @override
   void write(writer, T obj) {
-    final _map = manager.locator<Repository<T>>().serialize(obj);
+    final _map = manager.locator<Repository<T>>().localSerialize(obj);
     writer.writeByte(_map.keys.length);
     for (var k in _map.keys) {
       writer.write(k);

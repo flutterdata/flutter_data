@@ -103,9 +103,8 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
 
     final hasFromJson =
         classElement.constructors.any((c) => c.name == 'fromJson');
-    final fromJson = hasFromJson
-        ? '$type.fromJson(map as Map<String, dynamic>)'
-        : '_\$${type}FromJson(map as Map<String, dynamic>)';
+    final fromJson =
+        hasFromJson ? '$type.fromJson(map)' : '_\$${type}FromJson(map)';
 
     final methods = [
       ...classElement.methods,
@@ -164,13 +163,13 @@ mixin _\$${type}ModelAdapter on Repository<$type> {
   } 
 
   @override
-  deserialize(map, {key, initialize = true}) {
+  localDeserialize(map) {
     $deserialize
     return $fromJson;
   }
 
   @override
-  serialize(model) {
+  localSerialize(model) {
     final map = $toJson;
     $serialize
     return map;
