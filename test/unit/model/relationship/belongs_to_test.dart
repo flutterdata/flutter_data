@@ -61,7 +61,6 @@ void main() async {
 
   test('set owner in relationships', () {
     var adapter = injection.locator<Repository<Family>>();
-
     var person = Person(id: '1', name: 'John', age: 37);
     var house = House(id: '31', address: '123 Main St');
     var family = Family(
@@ -80,5 +79,25 @@ void main() async {
     // relationships are now associated to a dataId
     expect(family.house.dataId, adapter.manager.dataId<House>('31'));
     expect(family.persons.dataIds.first, adapter.manager.dataId<Person>('1'));
+  });
+
+  test('watch', () {
+    var repository = injection.locator<Repository<Family>>();
+    var family = Family(
+      id: '1',
+      surname: 'Smith',
+      house: BelongsTo<House>(),
+    ).init(repository);
+
+    var notifier = family.house.watch();
+    for (var i = 0; i < 3; i++) {
+      if (i == 1) family.house.value = House(id: '31', address: '123 Main St');
+      if (i == 2) family.house.value = null;
+      notifier.addListener((state) {
+        if (i == 0) expect(state.model, null);
+        if (i == 1) expect(state.model, family.house.value);
+        if (i == 2) expect(state.model, null);
+      });
+    }
   });
 }

@@ -6,6 +6,7 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E> {
   DataId<E> dataId;
   E _uninitializedModel;
   final bool _save;
+  final _notifier = DataStateNotifier<E>(DataState());
 
   BelongsTo([E model, DataManager manager, this._save = true])
       : _uninitializedModel = model,
@@ -45,24 +46,28 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E> {
 
   @override
   DataStateNotifier<E> watch() {
-    return _repository.watchOne(key);
+    return _notifier;
   }
 
   //
 
   E get value {
-    final value = _repository.box.safeGet(dataId?.key);
+    final value = _repository?.box?.safeGet(dataId?.key) ?? _uninitializedModel;
     if (value != null) {
-      _repository.setInverseInModel(_owner, value);
+      _repository?.setInverseInModel(_owner, value);
     }
     return value;
   }
 
   set value(E value) {
-    dataId = _repository._init(value, save: _save)._dataId;
+    dataId = _repository?._init(value, save: _save)?._dataId;
+    _notifier.state = DataState(model: value);
   }
 
   String get key => dataId?.key;
+
+  @override
+  dynamic toJson() => key;
 
   @override
   bool operator ==(dynamic other) =>
@@ -70,9 +75,6 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E> {
 
   @override
   int get hashCode => runtimeType.hashCode ^ dataId.hashCode;
-
-  @override
-  dynamic toJson() => key;
 
   @override
   String toString() => 'BelongsTo<$E>(${dataId?.id})';
