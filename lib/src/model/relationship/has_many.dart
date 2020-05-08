@@ -7,6 +7,7 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
   final LinkedHashSet<DataId<E>> dataIds;
   final Set<E> _uninitializedModels;
   final bool _save;
+  final _notifier = DataStateNotifier<Set<E>>(DataState(model: {}));
 
   HasMany([Set<E> models, DataManager manager, this._save = true])
       : dataIds = LinkedHashSet.from({}),
@@ -57,10 +58,11 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
 
   @override
   bool add(E value) {
-    if (_repository == null) {
-      return _uninitializedModels.add(value);
-    }
-    return dataIds.add(_repository._init(value, save: _save)._dataId);
+    final ok = _repository != null
+        ? dataIds.add(_repository._init(value, save: _save)._dataId)
+        : _uninitializedModels.add(value);
+    _notifier.state = DataState(model: this);
+    return ok;
   }
 
   @override
@@ -98,8 +100,10 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
   @override
   bool remove(Object value) {
     if (value is E) {
-      return dataIds.remove(value._dataId) ||
-          _uninitializedModels.remove(value);
+      final ok =
+          dataIds.remove(value._dataId) || _uninitializedModels.remove(value);
+      _notifier.state = DataState(model: this);
+      return ok;
     }
     return false;
   }
@@ -116,22 +120,6 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
 
   @override
   DataStateNotifier<Set<E>> watch() {
-    const oneFrameDuration = Duration(milliseconds: 16);
-    final _notifier = DataStateNotifier<Set<E>>(DataState(model: this));
-    _repository.box
-        .watch()
-        .buffer(Stream.periodic(oneFrameDuration))
-        .forEach((events) {
-      // check if there are event keys in our keys
-      final hasKeys = events
-          .map((e) => e.key.toString())
-          .toSet()
-          .intersection(keys)
-          .isNotEmpty;
-      if (hasKeys) {
-        _notifier.state = _notifier.state.copyWith(model: this);
-      }
-    });
     return _notifier;
   }
 
@@ -140,7 +128,7 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
   Set<String> get keys => dataIds.map((d) => d.key).toSet();
 
   @override
-  dynamic toJson() => keys;
+  dynamic toJson() => keys.toList();
 
   @override
   String toString() => 'HasMany<$E>(${dataIds.map((dataId) => dataId.id)})';

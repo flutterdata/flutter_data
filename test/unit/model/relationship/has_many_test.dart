@@ -94,4 +94,29 @@ void main() async {
     familyRepo.syncRelationships(family);
     expect(family.persons.debugOwner, isNotNull);
   });
+
+  test('watch', () {
+    var repository = injection.locator<Repository<Family>>();
+    var family = Family(
+      id: '1',
+      surname: 'Smith',
+      persons: HasMany<Person>(),
+    ).init(repository);
+
+    final p1 = Person(name: 'a', age: 1);
+    final p2 = Person(name: 'b', age: 2);
+    var notifier = family.persons.watch();
+
+    for (var i = 0; i < 4; i++) {
+      if (i == 1) family.persons.add(p1);
+      if (i == 2) family.persons.add(p2);
+      if (i == 3) family.persons.remove(p1);
+      notifier.addListener((state) {
+        if (i == 0) expect(state.model, <Person>{});
+        if (i == 1) expect(state.model, {p1});
+        if (i == 2) expect(state.model, {p1, p2});
+        if (i == 3) expect(state.model, {p2});
+      });
+    }
+  });
 }
