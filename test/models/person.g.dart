@@ -55,4 +55,4 @@ class $PersonRepository = Repository<Person>
         _$PersonModelAdapter,
         RemoteAdapter<Person>,
         WatchAdapter<Person>,
-        PersonPollAdapter;
+        PersonLoginAdapter;

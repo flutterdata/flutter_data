@@ -4,7 +4,7 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
   // request
 
   @override
-  String get baseUrl => throw UnsupportedError('Please implement baseUrl');
+  String get baseUrl => throw UnsupportedError('Please override baseUrl');
 
   @override
   String urlForFindAll(params) => '$type';

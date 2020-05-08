@@ -1,4 +1,5 @@
 import 'package:flutter_data/flutter_data.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../../models/family.dart';
@@ -124,5 +125,20 @@ void main() async {
     expect(repo.manager.keysBox.get('families#${family2.id}'), originalKey);
     expect(repo.box.keys, [originalKey]);
     expect(repo.box.get(originalKey), family2);
+  });
+
+  test('custom login adapter', () async {
+    var repo = injection.locator<Repository<Person>>() as PersonLoginAdapter;
+    var token = await repo.login('email@email.com', 'password');
+    expect(token, 'zzz1');
+  });
+
+  test('mock repository', () async {
+    var bloc = Bloc(MockFamilyRepository());
+    when(bloc.repo.findAll())
+        .thenAnswer((_) => Future(() => [Family(surname: 'Smith')]));
+    final families = await bloc.repo.findAll();
+    expect(families, predicate((list) => list.first.surname == 'Smith'));
+    verify(bloc.repo.findAll());
   });
 }
