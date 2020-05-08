@@ -1,15 +1,18 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:http/testing.dart';
 import 'package:meta/meta.dart';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:flutter_data/annotations.dart';
+import 'package:http/http.dart' as http;
 import 'family.dart';
 
 part 'person.g.dart';
 
-@DataRepository([PersonPollAdapter])
+@DataRepository([PersonLoginAdapter])
 class Person with DataSupportMixin<Person> {
   @override
   final String id;
@@ -55,12 +58,37 @@ class Person with DataSupportMixin<Person> {
   }
 }
 
-// note: keep PersonPollAdapter without type arguments
-// as part of testing this feature
-mixin PersonPollAdapter on Repository<Person> {
+// note: keep this adapter without type arguments
+// as part of testing the type-parameter-less adapter feature
+mixin PersonLoginAdapter on RemoteAdapter<Person> {
+  @override
+  String get baseUrl => '';
+
+  Future<String> login(String email, String password) async {
+    final response = await withHttpClient(
+      (client) => client.post(
+        '$baseUrl/token',
+        body: '',
+        headers: headers.castToString(),
+      ),
+    );
+
+    final map = json.decode(response.body);
+    return map['token'] as String;
+  }
+
   void generatePeople() {
     Timer.periodic(Duration(seconds: 1), (_) {
       Person.generateRandom(this);
     });
+  }
+}
+
+mixin TestLoginAdapter on PersonLoginAdapter {
+  @override
+  Future<R> withHttpClient<R>(onRequest) {
+    return onRequest(MockClient((req) {
+      return Future(() => http.Response('{ "token": "zzz1" }', 200));
+    }));
   }
 }

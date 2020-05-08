@@ -11,6 +11,8 @@ import '../models/house.dart';
 import '../models/person.dart';
 import '../models/pet.dart';
 
+// mocks
+
 class HiveMock extends Mock implements HiveInterface {}
 
 class FakeBox<T> extends Fake implements Box<T> {
@@ -65,6 +67,8 @@ class FakeBox<T> extends Fake implements Box<T> {
   Future<void> close() => Future.value();
 }
 
+//
+
 class TestDataManager extends DataManager {
   TestDataManager(this.locator) : super.delegate();
   @override
@@ -84,8 +88,17 @@ class TestDataManager extends DataManager {
   }
 }
 
+class Bloc {
+  final Repository<Family> repo;
+  Bloc(this.repo);
+}
+
+class MockFamilyRepository extends Mock implements Repository<Family> {}
+
 class FamilyRepositoryWithStandardJSONAdapter = $FamilyRepository
     with StandardJSONAdapter;
+
+class PersonRepository = $PersonRepository with TestLoginAdapter;
 
 final injection = DataServiceLocator();
 
@@ -99,7 +112,7 @@ final Function() setUpAllFn = () {
   injection.register<Repository<Family>>(
       $FamilyRepository(manager, FakeBox<Family>(), remote: false));
   injection.register<Repository<Person>>(
-      $PersonRepository(manager, FakeBox<Person>(), remote: false));
+      PersonRepository(manager, FakeBox<Person>(), remote: false));
   injection.register<Repository<Dog>>(
       $DogRepository(manager, FakeBox<Dog>(), remote: false));
   injection.register<FamilyRepositoryWithStandardJSONAdapter>(
