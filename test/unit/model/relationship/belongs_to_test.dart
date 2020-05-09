@@ -93,11 +93,12 @@ void main() async {
     for (var i = 0; i < 3; i++) {
       if (i == 1) family.house.value = House(id: '31', address: '123 Main St');
       if (i == 2) family.house.value = null;
-      notifier.addListener((state) {
+      var dispose = notifier.addListener((state) {
         if (i == 0) expect(state.model, null);
         if (i == 1) expect(state.model, family.house.value);
         if (i == 2) expect(state.model, null);
       });
+      dispose();
     }
   });
 }

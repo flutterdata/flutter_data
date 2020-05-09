@@ -51,9 +51,9 @@ class Person with DataSupportMixin<Person> {
   factory Person.generateRandom(Repository<Person> repository,
       {bool withId = false}) {
     return Person(
-            id: withId ? Random().nextInt(84).toString() : null,
+            id: withId ? Random().nextInt(19).toString() : null,
             name: 'zzz-${Random().nextInt(9999)}',
-            age: Random().nextInt(88))
+            age: Random().nextInt(19))
         .init(repository);
   }
 }
@@ -78,7 +78,7 @@ mixin PersonLoginAdapter on RemoteAdapter<Person> {
   }
 
   void generatePeople() {
-    Timer.periodic(Duration(seconds: 1), (_) {
+    Timer.periodic(Duration(milliseconds: 60), (_) {
       Person.generateRandom(this);
     });
   }

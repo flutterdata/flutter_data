@@ -9,17 +9,22 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
   final bool _save;
   final _notifier = DataStateNotifier<Set<E>>(DataState(model: {}));
 
+  static const oneFrameDuration = Duration(milliseconds: 16);
+
   HasMany([Set<E> models, DataManager manager, this._save = true])
       : dataIds = LinkedHashSet.from({}),
         _uninitializedModels = models ?? {},
         super(manager) {
     initializeModels();
+    _initNotifier();
   }
 
   HasMany._(this.dataIds, DataManager manager)
       : _uninitializedModels = {},
         _save = true,
-        super(manager);
+        super(manager) {
+    _initNotifier();
+  }
 
   factory HasMany.fromJson(Map<String, dynamic> map) {
     final manager = map['_'][1] as DataManager;
@@ -55,6 +60,31 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
   }
 
   // implement set
+
+  void _initNotifier() {
+    if (_repository == null) {
+      return;
+    }
+    _repository.box
+        .watch()
+        .buffer(Stream.periodic(oneFrameDuration))
+        .forEach((events) {
+      final eventKeyMap = events.fold<Map<String, bool>>({}, (map, e) {
+        map[e.key.toString()] = e.deleted;
+        return map;
+      });
+
+      for (var entry in eventKeyMap.entries) {
+        if (keys.contains(entry.key)) {
+          if (entry.value) {
+            // entry.value is bool deleted
+            dataIds.removeWhere((dataId) => dataId.key == entry.key);
+          }
+          _notifier.state = DataState(model: this);
+        }
+      }
+    });
+  }
 
   @override
   bool add(E value) {
