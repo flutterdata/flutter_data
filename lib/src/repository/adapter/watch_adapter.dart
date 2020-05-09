@@ -39,15 +39,13 @@ mixin WatchAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
     _notifier.reload();
 
     box.watch().buffer(Stream.periodic(oneFrameDuration)).forEach((events) {
-      final keys = events.map((event) => event.key);
-      if (_notifier.mounted && keys.isNotEmpty) {
+      if (_notifier.mounted && events.isNotEmpty) {
         final _models = _notifier.state.model;
         for (var event in events) {
-          final key = event.key.toString();
           if (event.deleted) {
-            _models.removeWhere((model) => model.key == key);
+            _models.remove(event.value);
           } else {
-            _models.add(_init(box.safeGet(key)));
+            _models.add(event.value as T);
           }
         }
         _notifier.state =
@@ -114,8 +112,11 @@ mixin WatchAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
         .watch(key: key)
         .buffer(Stream.periodic(oneFrameDuration))
         .forEach((events) {
+      if (events.isEmpty) {
+        return;
+      }
       // we only care about the latest event in the window
-      final model = box.safeGet(events.last.key.toString());
+      final model = events.last.value as T;
 
       if (_notifier.mounted && model != null) {
         if (events.last.deleted) {

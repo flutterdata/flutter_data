@@ -21,7 +21,7 @@ class FakeBox<T> extends Fake implements Box<T> {
 
   @override
   T get(key, {T defaultValue}) {
-    return _map[key] ?? defaultValue;
+    return _map[key.toString()] ?? defaultValue;
   }
 
   @override
@@ -37,7 +37,9 @@ class FakeBox<T> extends Fake implements Box<T> {
 
   @override
   Stream<BoxEvent> watch({key}) {
-    return _subject.stream.map((value) => BoxEvent(null, value, false));
+    return _subject.map((value) {
+      return BoxEvent(key ?? _map.keys, value, false);
+    });
   }
 
   @override

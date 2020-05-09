@@ -8,15 +8,20 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E> {
   final bool _save;
   final _notifier = DataStateNotifier<E>(DataState());
 
+  static const oneFrameDuration = Duration(milliseconds: 16);
+
   BelongsTo([E model, DataManager manager, this._save = true])
       : _uninitializedModel = model,
         super(manager) {
     initializeModel();
+    _initNotifier();
   }
 
   BelongsTo._(this.dataId, DataManager manager)
       : _save = true,
-        super(manager);
+        super(manager) {
+    _initNotifier();
+  }
 
   factory BelongsTo.fromJson(Map<String, dynamic> map) {
     final key = map['_'][0] as String;
@@ -51,6 +56,23 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E> {
 
   //
 
+  void _initNotifier() {
+    if (_repository == null) {
+      return;
+    }
+    _repository.box
+        .watch(key: key)
+        .buffer(Stream.periodic(oneFrameDuration))
+        .forEach((events) {
+      if (events.isNotEmpty && events.last.deleted) {
+        dataId = null;
+      }
+      _notifier.state = DataState(model: value);
+    });
+  }
+
+  //
+
   E get value {
     final value = _repository?.box?.safeGet(dataId?.key) ?? _uninitializedModel;
     if (value != null) {
@@ -60,7 +82,8 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E> {
   }
 
   set value(E value) {
-    dataId = _repository?._init(value, save: _save)?._dataId;
+    dataId =
+        value != null ? _repository?._init(value, save: _save)?._dataId : null;
     _notifier.state = DataState(model: value);
   }
 
