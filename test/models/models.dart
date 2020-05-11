@@ -9,8 +9,7 @@ part 'models.g.dart';
 
 @freezed
 @DataRepository([])
-abstract class Model
-    with DataSupportMixin<Model>, IdDataSupportMixin<String, Model>, _$Model {
+abstract class Model with DataSupportMixin<Model>, _$Model {
   Model._();
   factory Model({
     String id,
@@ -23,8 +22,7 @@ abstract class Model
 
 @freezed
 @DataRepository([])
-abstract class City
-    with DataSupportMixin<City>, IdDataSupportMixin<String, City>, _$City {
+abstract class City with DataSupportMixin<City>, _$City {
   City._();
   factory City({
     String id,
@@ -36,11 +34,7 @@ abstract class City
 
 @freezed
 @DataRepository([JSONAPIAdapter, TestMixin])
-abstract class Company
-    with
-        DataSupportMixin<Company>,
-        IdDataSupportMixin<String, Company>,
-        _$Company {
+abstract class Company with DataSupportMixin<Company>, _$Company {
   Company._();
   factory Company({
     String id,

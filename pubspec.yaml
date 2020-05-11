@@ -30,7 +30,7 @@ dev_dependencies:
   mockito: ^4.1.1
   
   pedantic: ^1.8.0+1
-  freezed: ^0.10.6
+  freezed: ^0.10.8
   freezed_annotation: ^0.7.1
 
   build_test: ^0.10.11

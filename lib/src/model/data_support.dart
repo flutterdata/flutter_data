@@ -84,16 +84,3 @@ abstract class DataSupport<T extends DataSupport<T>> with DataSupportMixin<T> {
     _autoModelInitDataManager.locator<Repository<T>>()?.init(_this, save: save);
   }
 }
-
-mixin IdDataSupportMixin<ID, T extends DataSupportMixin<T>>
-    on DataSupportMixin<T> {
-  @override
-  ID get id;
-}
-
-abstract class IdDataSupport<ID, T extends DataSupport<T>>
-    extends DataSupport<T> {
-  IdDataSupport({bool save = true}) : super(save: save);
-  @override
-  ID get id;
-}
