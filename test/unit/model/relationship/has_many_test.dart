@@ -95,6 +95,18 @@ void main() async {
     expect(family.persons.debugOwner, isNotNull);
   });
 
+  test('does not contain nulls', () {
+    var repo = injection.locator<Repository<Person>>();
+    var person = Person(name: 'Claire', age: 31).init(repo);
+    var rel = HasMany<Person>({person}, repo.manager);
+
+    rel.add(null);
+    expect(rel, {person});
+
+    rel.dataIds.add(null);
+    expect(rel.toSet(), {person});
+  });
+
   test('watch', () {
     var repository = injection.locator<Repository<Family>>();
     var family = Family(

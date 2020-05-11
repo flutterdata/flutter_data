@@ -88,6 +88,9 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
 
   @override
   bool add(E value) {
+    if (value == null) {
+      return false;
+    }
     final ok = _repository != null
         ? dataIds.add(_repository._init(value, save: _save)._dataId)
         : _uninitializedModels.add(value);
@@ -98,7 +101,7 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
   @override
   bool contains(Object element) {
     if (element is E) {
-      return dataIds.contains(element._dataId) ||
+      return dataIds.contains(element?._dataId) ||
           _uninitializedModels.contains(element);
     }
     return false;
@@ -106,14 +109,14 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
 
   Iterable<E> get _iterable => [
         ...dataIds.map((dataId) {
-          final model = _repository.box.safeGet(dataId.key);
+          final model = _repository.box.safeGet(dataId?.key);
           if (model != null) {
             _repository.setInverseInModel(_owner, model);
           }
           return model;
         }),
         ..._uninitializedModels
-      ];
+      ].where((model) => model != null);
 
   @override
   Iterator<E> get iterator => _iterable.iterator;
@@ -131,7 +134,7 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
   bool remove(Object value) {
     if (value is E) {
       final ok =
-          dataIds.remove(value._dataId) || _uninitializedModels.remove(value);
+          dataIds.remove(value?._dataId) || _uninitializedModels.remove(value);
       _notifier.state = DataState(model: this);
       return ok;
     }
