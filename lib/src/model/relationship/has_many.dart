@@ -7,7 +7,7 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
   final LinkedHashSet<DataId<E>> dataIds;
   final Set<E> _uninitializedModels;
   final bool _save;
-  final _notifier = DataStateNotifier<Set<E>>(DataState(model: {}));
+  DataStateNotifier<Set<E>> _notifier;
 
   static const oneFrameDuration = Duration(milliseconds: 16);
 
@@ -16,15 +16,12 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
         _uninitializedModels = models ?? {},
         super(manager) {
     initializeModels();
-    _initNotifier();
   }
 
   HasMany._(this.dataIds, DataManager manager)
       : _uninitializedModels = {},
         _save = true,
-        super(manager) {
-    _initNotifier();
-  }
+        super(manager);
 
   factory HasMany.fromJson(Map<String, dynamic> map) {
     final manager = map['_'][1] as DataManager;
@@ -61,10 +58,8 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
 
   // implement set
 
-  void _initNotifier() {
-    if (_repository == null) {
-      return;
-    }
+  DataStateNotifier<Set<E>> _initNotifier() {
+    _notifier = DataStateNotifier<Set<E>>(DataState(model: {}));
     _repository.box
         .watch()
         .buffer(Stream.periodic(oneFrameDuration))
@@ -84,6 +79,7 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
         }
       }
     });
+    return _notifier;
   }
 
   @override
@@ -94,7 +90,7 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
     final ok = _repository != null
         ? dataIds.add(_repository._init(value, save: _save)._dataId)
         : _uninitializedModels.add(value);
-    _notifier.state = DataState(model: this);
+    _notifier?.state = DataState(model: this);
     return ok;
   }
 
@@ -135,7 +131,7 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
     if (value is E) {
       final ok =
           dataIds.remove(value?._dataId) || _uninitializedModels.remove(value);
-      _notifier.state = DataState(model: this);
+      _notifier?.state = DataState(model: this);
       return ok;
     }
     return false;
@@ -153,7 +149,8 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
 
   @override
   DataStateNotifier<Set<E>> watch() {
-    return _notifier;
+    // lazily initialize notifier
+    return _notifier ??= _initNotifier();
   }
 
   // misc
