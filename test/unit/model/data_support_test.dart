@@ -107,7 +107,7 @@ void main() async {
     expect(family.persons.lookup(p1), p1);
     expect(family.persons.elementAt(0), isNotNull);
     expect(family.persons.elementAt(1), isNotNull);
-    expect(family.persons.elementAt(2), isNull);
+    expect(family.persons.length, 2);
     expect(family.house.value, isNull);
 
     // // (4) load the last person and assert it exists now
