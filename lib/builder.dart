@@ -277,6 +277,7 @@ List<SingleChildWidget> dataProviders(Future<Directory> Function() directory, {b
     ProxyProvider<DataManager, Repository<${c['name']}>>(
       lazy: false,
       update: (_, m, __) => m?.locator<Repository<${c['name']}>>(),
+      dispose: (_, r) => r?.dispose(),
     ),''').join('\n') +
           '];';
     }
