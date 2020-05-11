@@ -43,7 +43,7 @@ void main() async {
     expect(repository.box.keys, contains(p1.key));
 
     // person with new id, reusing existing key
-    manager.dataId<Person>('221', key: p1.key);
+    manager.dataId<Person>('221', useKey: p1.key);
     var p2 = Person(id: '221', name: 'Frank2', age: 32).init(repository);
     expect(p1.key, p2.key);
 

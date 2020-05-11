@@ -19,14 +19,14 @@ void main() async {
 
   test('reuses a provided key', () {
     final manager = TestDataManager(null);
-    var dataId = manager.dataId<Person>('29', key: 'people#78a92b');
+    var dataId = manager.dataId<Person>('29', useKey: 'people#78a92b');
     expect(dataId.key, 'people#78a92b');
     expect(dataId.id, '29');
   });
 
   test('reuses a key', () {
     final manager = TestDataManager(null);
-    var dataId = manager.dataId<Person>('1', key: 'people#a5a5a5');
+    var dataId = manager.dataId<Person>('1', useKey: 'people#a5a5a5');
     expect(dataId.key, 'people#a5a5a5');
   });
 
@@ -89,7 +89,7 @@ void main() async {
     var dataId2 = manager.dataId<Person>(null);
     // we are telling DataId to reuse the existing key
     // BUT a key for id=772 already exists, so that one will precede
-    var dataId3 = manager.dataId<Person>('772', key: dataId2.key);
+    var dataId3 = manager.dataId<Person>('772', useKey: dataId2.key);
 
     expect(dataId2, isNot(dataId3));
     expect(dataId, dataId3);
