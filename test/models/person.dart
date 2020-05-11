@@ -69,7 +69,7 @@ mixin PersonLoginAdapter on RemoteAdapter<Person> {
       (client) => client.post(
         '$baseUrl/token',
         body: '',
-        headers: headers.castToString(),
+        headers: headers,
       ),
     );
 

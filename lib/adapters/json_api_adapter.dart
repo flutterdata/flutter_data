@@ -4,7 +4,7 @@ import 'package:json_api/document.dart' as j show Relationship;
 
 mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
   @override
-  Map<String, dynamic> get headers => super.headers
+  Map<String, String> get headers => super.headers
     ..addAll({
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
@@ -102,7 +102,7 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
     included ??= const [];
     for (var i in included) {
       final dataId = manager.dataId(i.id, type: i.type);
-      final repo = repositoryFor(dataId.type);
+      final repo = repositoryFor(dataId.type) as RemoteAdapter;
       repo.deserialize(i, key: dataId.key);
     }
   }

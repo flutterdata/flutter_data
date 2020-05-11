@@ -2,7 +2,7 @@ import 'package:flutter_data/flutter_data.dart';
 
 mixin StandardJSONAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
   @override
-  Map<String, dynamic> get headers =>
+  Map<String, String> get headers =>
       super.headers..addAll({'Content-Type': 'application/json'});
 
   String get identifierSuffix => '_id';
@@ -75,7 +75,7 @@ mixin StandardJSONAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
         map[k] = map[k].map((i) {
           final type = relEntry.value.toString();
           if (i is Map) {
-            final repo = repositoryFor(type);
+            final repo = repositoryFor(type) as RemoteAdapter;
             final model = repo.deserialize(i);
             i = model.id;
           }
@@ -91,7 +91,7 @@ mixin StandardJSONAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
 
       final type = relEntry.value.toString();
       if (map[field] is Map) {
-        final repo = repositoryFor(type);
+        final repo = repositoryFor(type) as RemoteAdapter;
         final model = repo.deserialize(map[field]);
         map[field] = model.id;
       } else if (map[_key] != null) {

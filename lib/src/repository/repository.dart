@@ -16,18 +16,37 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   final bool _verbose;
   String get type => DataId.getType<T>();
 
-  static Future<Box<E>> getBox<E extends DataSupport<E>>(DataManager manager,
-      {List<int> encryptionKey}) async {
-    final boxName = DataId.getType<E>();
-    if (!manager._hive.isBoxOpen(boxName)) {
-      manager._hive.registerAdapter(_HiveTypeAdapter<E>(manager));
-    }
-    return await manager._hive.openBox(boxName,
-        encryptionCipher:
-            encryptionKey != null ? HiveAesCipher(encryptionKey) : null);
+  // repo public API
+
+  Future<List<T>> findAll(
+      {bool remote, Map<String, dynamic> params, Map<String, String> headers});
+
+  DataStateNotifier<List<T>> watchAll(
+      {bool remote, Map<String, dynamic> params, Map<String, String> headers});
+
+  Future<T> findOne(dynamic id,
+      {bool remote, Map<String, dynamic> params, Map<String, String> headers});
+
+  DataStateNotifier<T> watchOne(dynamic id,
+      {bool remote,
+      Map<String, dynamic> params,
+      Map<String, String> headers,
+      AlsoWatch<T> alsoWatch});
+
+  Future<T> save(T model,
+      {bool remote, Map<String, dynamic> params, Map<String, String> headers});
+
+  Future<void> delete(dynamic id,
+      {bool remote, Map<String, dynamic> params, Map<String, String> headers});
+
+  Map<dynamic, T> dumpLocal() => box.toMap();
+
+  @mustCallSuper
+  Future<void> dispose() async {
+    await box?.close();
   }
 
-  // metadata
+  // generated model adapter API (metadata, relationships, serialization)
 
   @protected
   @visibleForTesting
@@ -37,11 +56,6 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   @visibleForTesting
   Map<String, dynamic> get relationshipMetadata;
 
-  void syncRelationships(T model) {
-    // set model as "owner" in its relationships
-    setOwnerInRelationships(model._dataId, model);
-  }
-
   @visibleForTesting
   @protected
   void setOwnerInRelationships(DataId<T> owner, T model);
@@ -50,76 +64,10 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   @protected
   void setInverseInModel(DataId inverse, T model);
 
-  // remote
-
-  String get baseUrl;
-
-  @protected
-  @visibleForTesting
-  Map<String, dynamic> get params;
-
-  @protected
-  @visibleForTesting
-  Map<String, dynamic> get headers;
-
-  @protected
-  @visibleForTesting
-  String urlForFindAll(params);
-
-  @protected
-  @visibleForTesting
-  DataRequestMethod methodForFindAll(params);
-
-  Future<List<T>> findAll(
-      {bool remote, Map<String, dynamic> params, Map<String, dynamic> headers});
-
-  DataStateNotifier<List<T>> watchAll(
-      {bool remote, Map<String, dynamic> params, Map<String, dynamic> headers});
-
-  @protected
-  @visibleForTesting
-  String urlForFindOne(id, params);
-
-  @protected
-  @visibleForTesting
-  DataRequestMethod methodForFindOne(id, params);
-
-  Future<T> findOne(dynamic id,
-      {bool remote, Map<String, dynamic> params, Map<String, dynamic> headers});
-
-  DataStateNotifier<T> watchOne(dynamic id,
-      {bool remote,
-      Map<String, dynamic> params,
-      Map<String, dynamic> headers,
-      AlsoWatch<T> alsoWatch});
-
-  @protected
-  @visibleForTesting
-  String urlForSave(id, params);
-
-  @protected
-  @visibleForTesting
-  DataRequestMethod methodForSave(id, params);
-
-  Future<T> save(T model,
-      {bool remote, Map<String, dynamic> params, Map<String, dynamic> headers});
-
-  @protected
-  @visibleForTesting
-  String urlForDelete(id, params);
-
-  @protected
-  @visibleForTesting
-  DataRequestMethod methodForDelete(id, params);
-
-  Future<void> delete(dynamic id,
-      {bool remote, Map<String, dynamic> params, Map<String, dynamic> headers});
-
-  // serialization
-
-  @protected
-  @visibleForTesting
-  Map<String, dynamic> serialize(T model) => localSerialize(model);
+  void syncRelationships(T model) {
+    // set model as "owner" in its relationships
+    setOwnerInRelationships(model._dataId, model);
+  }
 
   @protected
   @visibleForTesting
@@ -127,30 +75,9 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   @protected
   @visibleForTesting
-  Iterable<Map<String, dynamic>> serializeCollection(Iterable<T> models);
-
-  @protected
-  @visibleForTesting
-  T deserialize(dynamic object, {String key, bool initialize = true}) =>
-      localDeserialize(object as Map<String, dynamic>);
-
-  @protected
-  @visibleForTesting
   T localDeserialize(Map<String, dynamic> map);
 
-  @protected
-  @visibleForTesting
-  Iterable<T> deserializeCollection(object);
-
-  @protected
-  @visibleForTesting
-  String fieldForKey(String key);
-
-  @protected
-  @visibleForTesting
-  String keyForField(String field);
-
-  // initialization
+  // protected, private, static
 
   @protected
   T init(T model, {String key, bool save = false}) {
@@ -211,10 +138,14 @@ FlutterData.init(autoModelInit: false);
     }
   }
 
-  Map<dynamic, T> dumpLocal() => box.toMap();
-
-  @mustCallSuper
-  Future<void> dispose() async {
-    await box?.close();
+  static Future<Box<E>> getBox<E extends DataSupport<E>>(DataManager manager,
+      {List<int> encryptionKey}) async {
+    final boxName = DataId.getType<E>();
+    if (!manager._hive.isBoxOpen(boxName)) {
+      manager._hive.registerAdapter(_HiveTypeAdapter<E>(manager));
+    }
+    return await manager._hive.openBox(boxName,
+        encryptionCipher:
+            encryptionKey != null ? HiveAesCipher(encryptionKey) : null);
   }
 }

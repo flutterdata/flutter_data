@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_data/flutter_data.dart';
 
-mixin OfflineAdapter<T extends DataSupportMixin<T>> on Repository<T> {
+mixin OfflineAdapter<T extends DataSupportMixin<T>> on WatchAdapter<T> {
   Duration retryAfter(int i) {
     final list = [0, 1, 2, 2, 2, 2, 2, 4, 4, 4, 8, 8, 16, 16, 24];
     final index = i < list.length ? i : list.length - 1;
@@ -44,9 +44,7 @@ mixin OfflineAdapter<T extends DataSupportMixin<T>> on Repository<T> {
 
   @override
   DataStateNotifier<List<T>> watchAll(
-      {bool remote,
-      Map<String, dynamic> params,
-      Map<String, dynamic> headers}) {
+      {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
     final notifier =
         super.watchAll(remote: remote, params: params, headers: headers);
     _addListener(notifier, () => findAll(params: params, headers: headers));
@@ -57,7 +55,7 @@ mixin OfflineAdapter<T extends DataSupportMixin<T>> on Repository<T> {
   DataStateNotifier<T> watchOne(dynamic id,
       {bool remote,
       Map<String, dynamic> params,
-      Map<String, dynamic> headers,
+      Map<String, String> headers,
       AlsoWatch<T> alsoWatch}) {
     final notifier = super.watchOne(id,
         remote: remote, params: params, headers: headers, alsoWatch: alsoWatch);

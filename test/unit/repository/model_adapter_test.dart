@@ -23,7 +23,8 @@ void main() async {
     var family =
         Family(id: '1', surname: 'Smith', house: houseRel, persons: personRel);
 
-    var map = injection.locator<Repository<Family>>().serialize(family);
+    var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
+    var map = repo.serialize(family);
     expect(map, {
       'id': '1',
       'surname': 'Smith',
@@ -34,7 +35,7 @@ void main() async {
   });
 
   test('serialize with relationships', () {
-    var repo = injection.locator<Repository<Family>>();
+    var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
 
     var person = Person(id: '1', name: 'John', age: 37);
     var house = House(id: '1', address: '123 Main St');
@@ -71,13 +72,14 @@ void main() async {
       'persons': personRel.keys
     };
 
-    var family = injection.locator<Repository<Family>>().deserialize(map);
+    var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
+    var family = repo.deserialize(map);
     expect(family,
         Family(id: '1', surname: 'Smith', house: houseRel, persons: personRel));
   });
 
   test('deserialize existing', () {
-    var repo = injection.locator<Repository<Family>>();
+    var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
     repo.box.clear();
     expect(repo.box.keys, isEmpty);
     var family = Family(surname: 'Moletto').init(repo);
@@ -95,7 +97,7 @@ void main() async {
   });
 
   test('deserialize existing without initializing', () {
-    var repo = injection.locator<Repository<Family>>();
+    var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
     var obj = {
       'id': '3098',
       'surname': 'Moletto',
@@ -107,7 +109,7 @@ void main() async {
   });
 
   test('deserialize many local for same remote ID', () {
-    var repo = injection.locator<Repository<Family>>();
+    var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
     repo.box.clear();
     expect(repo.box.keys, isEmpty);
     var family = Family(surname: 'Moletto').init(repo);
@@ -133,7 +135,7 @@ void main() async {
   });
 
   test('deserialize with relationships', () {
-    var repo = injection.locator<Repository<Family>>();
+    var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
 
     final houseRepo = injection.locator<Repository<House>>();
     final personRepo = injection.locator<Repository<Person>>();

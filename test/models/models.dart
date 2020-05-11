@@ -56,7 +56,7 @@ abstract class Company
 
 //
 
-mixin TestMixin<T extends DataSupportMixin<T>> on Repository<T> {
+mixin TestMixin<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
   @override
   String get baseUrl => 'http://127.0.0.1:17083/';
 
@@ -66,7 +66,7 @@ mixin TestMixin<T extends DataSupportMixin<T>> on Repository<T> {
       };
 
   @override
-  Map<String, dynamic> get headers => {'x-client-id': 2473272};
+  Map<String, String> get headers => {'x-client-id': '2473272'};
 }
 
 // mixin ImpatientModel on Repository<Model> {

@@ -70,7 +70,7 @@ void main() async {
 
   test('returning a different remote ID for a requested ID is not supported',
       () {
-    var repo = injection.locator<Repository<Family>>();
+    var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
     repo.box.clear();
     expect(repo.box.keys, isEmpty);
     var family0 = Family(id: '2908', surname: 'Moletto').init(repo);
@@ -89,7 +89,7 @@ void main() async {
   });
 
   test('remote ID can be replaced with public methods', () {
-    var repo = injection.locator<Repository<Family>>();
+    var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
     repo.box.clear();
     expect(repo.box.keys, isEmpty);
     Family(id: '2908', surname: 'Moletto').init(repo);

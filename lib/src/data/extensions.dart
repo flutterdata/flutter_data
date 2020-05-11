@@ -24,8 +24,6 @@ extension ToStringX on DataRequestMethod {
 extension MapX<K, V> on Map<K, V> {
   String get id => this['id'] != null ? this['id'].toString() : null;
   Map<K, V> operator &(Map<K, V> more) => {...this, ...?more};
-  Map<String, String> castToString() => Map<String, String>.fromEntries(
-      entries.map((e) => MapEntry(e.key.toString(), e.value.toString())));
 }
 
 @optionalTypeArgs

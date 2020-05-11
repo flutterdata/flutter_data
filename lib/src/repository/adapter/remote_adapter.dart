@@ -3,53 +3,67 @@ part of flutter_data;
 mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
   // request
 
-  @override
+  @protected
+  @visibleForTesting
   String get baseUrl => throw UnsupportedError('Please override baseUrl');
 
-  @override
+  @protected
+  @visibleForTesting
   String urlForFindAll(params) => '$type';
 
-  @override
+  @protected
+  @visibleForTesting
   DataRequestMethod methodForFindAll(params) => DataRequestMethod.GET;
 
-  @override
+  @protected
+  @visibleForTesting
   String urlForFindOne(id, params) => '$type/$id';
 
-  @override
+  @protected
+  @visibleForTesting
   DataRequestMethod methodForFindOne(id, params) => DataRequestMethod.GET;
 
-  @override
+  @protected
+  @visibleForTesting
   String urlForSave(id, params) => id != null ? '$type/$id' : type;
 
-  @override
+  @protected
+  @visibleForTesting
   DataRequestMethod methodForSave(id, params) =>
       id != null ? DataRequestMethod.PATCH : DataRequestMethod.POST;
 
-  @override
+  @protected
+  @visibleForTesting
   String urlForDelete(id, params) => '$type/$id';
 
-  @override
+  @protected
+  @visibleForTesting
   DataRequestMethod methodForDelete(id, params) => DataRequestMethod.DELETE;
 
-  @override
+  @protected
+  @visibleForTesting
   Map<String, dynamic> get params => {};
 
-  @override
-  Map<String, dynamic> get headers => {};
+  @protected
+  @visibleForTesting
+  Map<String, String> get headers => {};
 
   // serialization
 
-  @override
-  Map<String, dynamic> serialize(T model) => super.serialize(model);
+  @protected
+  @visibleForTesting
+  Map<String, dynamic> serialize(T model) => localSerialize(model);
 
-  @override
+  @protected
+  @visibleForTesting
   Iterable<Map<String, dynamic>> serializeCollection(Iterable<T> models) =>
       models.map(serialize);
 
-  @override
+  @protected
+  @visibleForTesting
   T deserialize(dynamic object, {String key, bool initialize = true}) {
     final map = Map<String, dynamic>.from(object as Map);
-    final model = super.deserialize(map);
+    final model = localDeserialize(map);
     if (initialize) {
       // important to initialize (esp for "included" models)
       return init(model, key: key, save: true);
@@ -57,14 +71,17 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
     return model;
   }
 
-  @override
+  @protected
+  @visibleForTesting
   Iterable<T> deserializeCollection(object) =>
       (object as Iterable).map(deserialize);
 
-  @override
+  @protected
+  @visibleForTesting
   String fieldForKey(String key) => key;
 
-  @override
+  @protected
+  @visibleForTesting
   String keyForField(String field) => field;
 
   // repository implementation
@@ -73,7 +90,7 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
   Future<List<T>> findAll(
       {bool remote,
       Map<String, dynamic> params,
-      Map<String, dynamic> headers}) async {
+      Map<String, String> headers}) async {
     remote ??= _remote;
 
     if (remote == false) {
@@ -99,7 +116,7 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
   Future<T> findOne(dynamic id,
       {bool remote,
       Map<String, dynamic> params,
-      Map<String, dynamic> headers}) async {
+      Map<String, String> headers}) async {
     assert(id != null);
 
     remote ??= _remote;
@@ -134,7 +151,7 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
   Future<T> save(T model,
       {bool remote,
       Map<String, dynamic> params,
-      Map<String, dynamic> headers}) async {
+      Map<String, String> headers}) async {
     remote ??= _remote;
     final key = model.key;
 
@@ -169,7 +186,7 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
   Future<void> delete(dynamic id,
       {bool remote,
       Map<String, dynamic> params,
-      Map<String, dynamic> headers}) async {
+      Map<String, String> headers}) async {
     remote ??= _remote;
     final dataId = manager.dataId<T>(id);
 
@@ -255,7 +272,7 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
   Future<http.Response> _executeRequest(
       http.Client client, String url, DataRequestMethod method,
       {Map<String, dynamic> params,
-      Map<String, dynamic> headers,
+      Map<String, String> headers,
       String body}) async {
     final _baseUrl = baseUrl.endsWith('/') ? baseUrl : '$baseUrl/';
     var uri = Uri.parse('$_baseUrl$url');
@@ -264,7 +281,7 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
     if (_params.isNotEmpty) {
       uri = uri.replace(queryParameters: parseQueryParameters(_params));
     }
-    final _headers = (this.headers & headers).castToString();
+    final _headers = this.headers & headers;
 
     http.Response response;
     switch (method) {

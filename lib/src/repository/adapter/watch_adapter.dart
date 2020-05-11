@@ -5,9 +5,7 @@ mixin WatchAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
 
   @override
   DataStateNotifier<List<T>> watchAll(
-      {bool remote,
-      Map<String, dynamic> params,
-      Map<String, dynamic> headers}) {
+      {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
     remote ??= _remote;
 
     final _notifier = DataStateNotifier<List<T>>(
@@ -63,7 +61,7 @@ mixin WatchAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
   DataStateNotifier<T> watchOne(dynamic id,
       {bool remote,
       Map<String, dynamic> params,
-      Map<String, dynamic> headers,
+      Map<String, String> headers,
       AlsoWatch<T> alsoWatch}) {
     remote ??= _remote;
     final key = manager.dataId<T>(id).key;
