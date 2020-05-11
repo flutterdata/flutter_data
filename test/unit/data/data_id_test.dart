@@ -35,6 +35,8 @@ void main() async {
   test('getType', () {
     expect(DataId.getType<Person>(), 'people');
     expect(DataId.getType('Family'), 'families');
+    // type argument takes precedence
+    expect(DataId<Family>('28', null, type: 'animals').type, 'animals');
   });
 
   test('byKeys', () {
