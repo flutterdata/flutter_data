@@ -5,7 +5,7 @@ final _uuid = Uuid();
 @optionalTypeArgs
 class DataId<T> {
   final DataManager manager;
-  dynamic id;
+  final dynamic id;
   final String type;
   final String key;
 
@@ -14,9 +14,9 @@ class DataId<T> {
   // (2) if ID was null or not found, use provided key
   // (3) if no key was provided, create one
   // ignore_for_file: unnecessary_this
-  DataId(this.id, this.manager, {String key, String type})
+  DataId(this.id, this.manager, {String useKey, String type})
       : this.key = manager?.keysBox?.get('${getType<T>(type)}#$id') ??
-            key ??
+            useKey ??
             '${getType<T>(type)}#${_uuid.v1().substring(0, 8)}',
         this.type = getType<T>(type) {
     // key/ID association will only be made if

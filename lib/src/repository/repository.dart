@@ -152,7 +152,8 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   // initialization
 
-  T _init(T model, {String key, bool save = false}) {
+  @protected
+  T init(T model, {String key, bool save = false}) {
     if (model == null) {
       return null;
     }
@@ -166,7 +167,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     //  - there's an updated key to set
     if (model._dataId == null || (key != null && key != model._dataId.key)) {
       // (1) establish key
-      model._dataId = DataId<T>(model.id, manager, key: key);
+      model._dataId = DataId<T>(model.id, manager, useKey: key);
 
       // if key was already linked to ID
       // delete the "temporary" local record

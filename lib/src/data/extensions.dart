@@ -49,7 +49,7 @@ extension DataSupportMixinRelationshipExtension<T extends DataSupportMixin<T>>
 extension ManagerDataId on DataManager {
   @optionalTypeArgs
   DataId<T> dataId<T>(dynamic id, {String key, String type}) =>
-      DataId<T>(id, this, key: key, type: type);
+      DataId<T>(id, this, useKey: key, type: type);
 }
 
 extension SafeBoxX<T> on Box<T> {

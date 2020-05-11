@@ -12,7 +12,7 @@ mixin WatchAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
 
     final _notifier = DataStateNotifier<List<T>>(
       DataState(
-        model: box.values.map(_init).toList(),
+        model: box.values.map(init).toList(),
       ),
       reload: (notifier) async {
         if (remote == false) {
@@ -70,7 +70,7 @@ mixin WatchAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
 
     final _notifier = DataStateNotifier<T>(
         DataState(
-          model: _init(box.safeGet(key)),
+          model: init(box.safeGet(key)),
         ), reload: (notifier) async {
       if (remote == false) {
         return;
@@ -124,7 +124,7 @@ mixin WatchAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
               _notifier.state.copyWith(model: null, isLoading: false);
         } else {
           _notifier.state =
-              _notifier.state.copyWith(model: _init(model), isLoading: false);
+              _notifier.state.copyWith(model: init(model), isLoading: false);
           _tryWatchRelationships(model);
         }
       }
