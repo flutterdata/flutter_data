@@ -66,7 +66,7 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
     final model = localDeserialize(map);
     if (initialize) {
       // important to initialize (esp for "included" models)
-      return init(model, key: key, save: true);
+      return initModel(model, key: key, save: true);
     }
     return model;
   }
@@ -94,7 +94,7 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
     remote ??= _remote;
 
     if (remote == false) {
-      return box.values.map(init).toList();
+      return box.values.map(initModel).toList();
     }
 
     final response = await withHttpClient(
@@ -125,11 +125,10 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
     if (remote == false) {
       final model = box.safeGet(dataId.key);
       if (model == null) {
-        // TODO should be handled by DataId
         dataId.delete();
         return null;
       }
-      return init(model, save: false);
+      return initModel(model, save: false);
     }
 
     final response = await withHttpClient(
@@ -156,7 +155,7 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
     final key = model.key;
 
     if (remote == false) {
-      return init(model, key: key, save: true);
+      return initModel(model, key: key, save: true);
     }
 
     final body = json.encode(serialize(model));

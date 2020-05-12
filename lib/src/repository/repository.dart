@@ -3,7 +3,9 @@ part of flutter_data;
 abstract class Repository<T extends DataSupportMixin<T>> {
   Repository(this.manager, this.box, {bool remote, bool verbose})
       : _remote = remote ?? true,
-        _verbose = verbose ?? true;
+        _verbose = verbose ?? true {
+    initialize();
+  }
 
   @protected
   @visibleForTesting
@@ -46,6 +48,10 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     await box?.close();
   }
 
+  // allow adapters to optionally initialize
+
+  void initialize() => null;
+
   // generated model adapter API (metadata, relationships, serialization)
 
   @protected
@@ -77,10 +83,10 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   @visibleForTesting
   T localDeserialize(Map<String, dynamic> map);
 
-  // protected, private, static
+  // protected & private
 
   @protected
-  T init(T model, {String key, bool save = false}) {
+  T initModel(T model, {String key, bool save = false}) {
     if (model == null) {
       return null;
     }
@@ -137,6 +143,8 @@ FlutterData.init(autoModelInit: false);
 ''');
     }
   }
+
+  // static helper methods
 
   static Future<Box<E>> getBox<E extends DataSupport<E>>(DataManager manager,
       {List<int> encryptionKey}) async {

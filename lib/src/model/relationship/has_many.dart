@@ -88,7 +88,7 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
       return false;
     }
     final ok = _repository != null
-        ? dataIds.add(_repository.init(value, save: _save)._dataId)
+        ? dataIds.add(_repository.initModel(value, save: _save)._dataId)
         : _uninitializedModels.add(value);
     _notifier?.state = DataState(model: this);
     return ok;

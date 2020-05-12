@@ -79,8 +79,9 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E> {
   }
 
   set value(E value) {
-    dataId =
-        value != null ? _repository?.init(value, save: _save)?._dataId : null;
+    dataId = value != null
+        ? _repository?.initModel(value, save: _save)?._dataId
+        : null;
     _notifier?.state = DataState(model: value);
   }
 

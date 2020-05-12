@@ -14,7 +14,7 @@ abstract class DataSupportMixin<T extends DataSupportMixin<T>> {
 extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
     on DataSupportMixin<T> {
   T init(Repository<T> repository, {String key, bool save = true}) {
-    return repository?.init(_this, key: key, save: save);
+    return repository?.initModel(_this, key: key, save: save);
   }
 
   T get _this => this as T;
@@ -81,6 +81,8 @@ FlutterData.init();
 
 abstract class DataSupport<T extends DataSupport<T>> with DataSupportMixin<T> {
   DataSupport({bool save = true}) {
-    _autoModelInitDataManager.locator<Repository<T>>()?.init(_this, save: save);
+    _autoModelInitDataManager
+        .locator<Repository<T>>()
+        ?.initModel(_this, save: save);
   }
 }
