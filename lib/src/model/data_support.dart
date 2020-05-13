@@ -2,20 +2,31 @@ part of flutter_data;
 
 abstract class DataSupportMixin<T extends DataSupportMixin<T>> {
   dynamic get id;
-
-  Repository<T> _repository;
-  DataId<T> _dataId;
-  // ignore: prefer_final_fields
-  bool _save = true;
-
-  DataManager get _manager => _repository?.manager;
+  final Map<String, dynamic> _flutterDataMetadata = {};
 }
 
+// ignore_for_file: unused_element
 extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
     on DataSupportMixin<T> {
   T init(Repository<T> repository, {String key, bool save = true}) {
     return repository?.initModel(_this, key: key, save: save);
   }
+
+  // temp get/set while we figure out the new Metadata class
+  Map<String, dynamic> get flutterDataMetadata => _flutterDataMetadata;
+
+  Repository<T> get _repository =>
+      flutterDataMetadata['_repository'] as Repository<T>;
+  set _repository(Repository<T> value) =>
+      flutterDataMetadata['_repository'] = value;
+
+  DataId<T> get _dataId => flutterDataMetadata['_dataId'] as DataId<T>;
+  set _dataId(DataId<T> value) => flutterDataMetadata['_dataId'] = value;
+
+  bool get _save => flutterDataMetadata['_save'] as bool;
+  set _save(bool value) => flutterDataMetadata['_save'] = value;
+
+  DataManager get _manager => _repository?.manager;
 
   T get _this => this as T;
 

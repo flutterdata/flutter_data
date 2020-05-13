@@ -24,14 +24,14 @@ mixin _$PostModelAdapter on Repository<Post> {
   }
 
   @override
-  localDeserialize(map) {
+  localDeserialize(map, {metadata}) {
     map['comments'] = {
       '_': [map['comments'], manager]
     };
     map['user'] = {
       '_': [map['user'], manager]
     };
-    return _$PostFromJson(map);
+    return _$PostFromJson(map).._meta.addAll(metadata ?? const {});
   }
 
   @override
@@ -57,6 +57,10 @@ mixin _$PostModelAdapter on Repository<Post> {
       model.user?.inverse = inverse;
     }
   }
+}
+
+extension PostFDX on Post {
+  Map<String, dynamic> get _meta => flutterDataMetadata;
 }
 
 class $PostRepository = Repository<Post>

@@ -160,12 +160,12 @@ mixin _\$${type}ModelAdapter on Repository<$type> {
   @override
   Repository repositoryFor(String type) {
     return <String, Repository>$repositoryFors[type];
-  } 
+  }
 
   @override
-  localDeserialize(map) {
+  localDeserialize(map, {metadata}) {
     $deserialize
-    return $fromJson;
+    return $fromJson.._meta.addAll(metadata ?? const {});
   }
 
   @override
@@ -184,6 +184,10 @@ mixin _\$${type}ModelAdapter on Repository<$type> {
   void setInverseInModel(inverse, model) {
     $setInverseInModel
   }
+}
+
+extension ${type}FDX on $type {
+  Map<String, dynamic> get _meta => flutterDataMetadata;
 }
 
 class \$${type}Repository = Repository<$type> with ${mixins.join(', ')};
@@ -304,18 +308,22 @@ extension FlutterData on DataManager {
 
 ''' +
         classes.map((c) => '''
-    final ${c['name'].toLowerCase()}Box = await Repository.getBox<${c['name']}>(manager, encryptionKey: encryptionKey);
-    final ${c['name'].toLowerCase()}Repository = \$${c['name']}Repository(manager, ${c['name'].toLowerCase()}Box, remote: remote, verbose: verbose);
+    final ${c['name'].toLowerCase()}Repository = \$${c['name']}Repository(manager, remote: remote, verbose: verbose);
     injection.register<Repository<${c['name']}>>(${c['name'].toLowerCase()}Repository);
+    final ${c['name'].toLowerCase()}Box = await Repository.getBox<${c['name']}>(manager, encryptionKey: encryptionKey);
+    injection.register(${c['name'].toLowerCase()}Box);
 ''').join('\n') +
         '''\n
     if (also != null) {
       // ignore: unnecessary_lambdas
       also(<R>(R obj) => injection.register<R>(obj));
     }
-
+''' +
+        classes
+            .map((c) => '${c['name'].toLowerCase()}Repository.initialize();')
+            .join('\n') +
+        '''\n
     return manager;
-
   }
   
 }

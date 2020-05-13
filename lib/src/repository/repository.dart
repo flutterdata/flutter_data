@@ -1,18 +1,20 @@
 part of flutter_data;
 
 abstract class Repository<T extends DataSupportMixin<T>> {
-  Repository(this.manager, this.box, {bool remote, bool verbose})
-      : _remote = remote ?? true,
-        _verbose = verbose ?? true {
-    initialize();
-  }
+  Repository(this.manager,
+      {bool remote, bool verbose, @visibleForTesting Box<T> box})
+      : _box = box,
+        _remote = remote ?? true,
+        _verbose = verbose ?? true;
 
   @protected
   @visibleForTesting
   final DataManager manager;
+
   @protected
   @visibleForTesting
-  final Box<T> box;
+  Box<T> get box => _box ??= manager.locator<Box<T>>();
+  Box<T> _box; // waiting for `late` keyword
 
   final bool _remote;
   final bool _verbose;
@@ -41,16 +43,19 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   Future<void> delete(dynamic id,
       {bool remote, Map<String, dynamic> params, Map<String, String> headers});
 
-  Map<dynamic, T> dumpLocal() => box.toMap();
+  Map<dynamic, T> get localBoxMap => box.toMap();
+
+  // lifecycle hooks
+
+  @mustCallSuper
+  void initialize() {
+    box; // at this point box is init'd & assigned
+  }
 
   @mustCallSuper
   Future<void> dispose() async {
     await box?.close();
   }
-
-  // allow adapters to optionally initialize
-
-  void initialize() => null;
 
   // generated model adapter API (metadata, relationships, serialization)
 
@@ -81,7 +86,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   @protected
   @visibleForTesting
-  T localDeserialize(Map<String, dynamic> map);
+  T localDeserialize(Map<String, dynamic> map, {Map<String, dynamic> metadata});
 
   // protected & private
 
@@ -93,7 +98,6 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
     _assertManager();
     model._repository ??= this;
-    model._save = save;
 
     // only init dataId if
     //  - it hasn't been set
@@ -115,7 +119,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
     // (3) save locally
     if (save) {
-      box.put(model._dataId.key, model);
+      box?.put(model._dataId.key, model);
     }
 
     return model;

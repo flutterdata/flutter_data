@@ -18,8 +18,8 @@ mixin _$DogModelAdapter on Repository<Dog> {
   }
 
   @override
-  localDeserialize(map) {
-    return Dog.fromJson(map);
+  localDeserialize(map, {metadata}) {
+    return Dog.fromJson(map).._meta.addAll(metadata ?? const {});
   }
 
   @override
@@ -34,6 +34,10 @@ mixin _$DogModelAdapter on Repository<Dog> {
 
   @override
   void setInverseInModel(inverse, model) {}
+}
+
+extension DogFDX on Dog {
+  Map<String, dynamic> get _meta => flutterDataMetadata;
 }
 
 class $DogRepository = Repository<Dog>
@@ -51,8 +55,8 @@ mixin _$CatModelAdapter on Repository<Cat> {
   }
 
   @override
-  localDeserialize(map) {
-    return Cat.fromJson(map);
+  localDeserialize(map, {metadata}) {
+    return Cat.fromJson(map).._meta.addAll(metadata ?? const {});
   }
 
   @override
@@ -67,6 +71,10 @@ mixin _$CatModelAdapter on Repository<Cat> {
 
   @override
   void setInverseInModel(inverse, model) {}
+}
+
+extension CatFDX on Cat {
+  Map<String, dynamic> get _meta => flutterDataMetadata;
 }
 
 class $CatRepository = Repository<Cat>

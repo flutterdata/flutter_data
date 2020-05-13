@@ -23,11 +23,11 @@ mixin _$CommentModelAdapter on Repository<Comment> {
   }
 
   @override
-  localDeserialize(map) {
+  localDeserialize(map, {metadata}) {
     map['post'] = {
       '_': [map['post'], manager]
     };
-    return _$CommentFromJson(map);
+    return _$CommentFromJson(map).._meta.addAll(metadata ?? const {});
   }
 
   @override
@@ -48,6 +48,10 @@ mixin _$CommentModelAdapter on Repository<Comment> {
       model.post?.inverse = inverse;
     }
   }
+}
+
+extension CommentFDX on Comment {
+  Map<String, dynamic> get _meta => flutterDataMetadata;
 }
 
 class $CommentRepository = Repository<Comment>

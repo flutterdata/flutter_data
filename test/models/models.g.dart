@@ -23,11 +23,11 @@ mixin _$ModelModelAdapter on Repository<Model> {
   }
 
   @override
-  localDeserialize(map) {
+  localDeserialize(map, {metadata}) {
     map['company'] = {
       '_': [map['company'], manager]
     };
-    return Model.fromJson(map);
+    return Model.fromJson(map).._meta.addAll(metadata ?? const {});
   }
 
   @override
@@ -50,6 +50,10 @@ mixin _$ModelModelAdapter on Repository<Model> {
   }
 }
 
+extension ModelFDX on Model {
+  Map<String, dynamic> get _meta => flutterDataMetadata;
+}
+
 class $ModelRepository = Repository<Model>
     with _$ModelModelAdapter, RemoteAdapter<Model>, WatchAdapter<Model>;
 
@@ -65,8 +69,8 @@ mixin _$CityModelAdapter on Repository<City> {
   }
 
   @override
-  localDeserialize(map) {
-    return City.fromJson(map);
+  localDeserialize(map, {metadata}) {
+    return City.fromJson(map).._meta.addAll(metadata ?? const {});
   }
 
   @override
@@ -81,6 +85,10 @@ mixin _$CityModelAdapter on Repository<City> {
 
   @override
   void setInverseInModel(inverse, model) {}
+}
+
+extension CityFDX on City {
+  Map<String, dynamic> get _meta => flutterDataMetadata;
 }
 
 class $CityRepository = Repository<City>
@@ -103,11 +111,11 @@ mixin _$CompanyModelAdapter on Repository<Company> {
   }
 
   @override
-  localDeserialize(map) {
+  localDeserialize(map, {metadata}) {
     map['models'] = {
       '_': [map['models'], manager]
     };
-    return Company.fromJson(map);
+    return Company.fromJson(map).._meta.addAll(metadata ?? const {});
   }
 
   @override
@@ -128,6 +136,10 @@ mixin _$CompanyModelAdapter on Repository<Company> {
       model.models?.inverse = inverse;
     }
   }
+}
+
+extension CompanyFDX on Company {
+  Map<String, dynamic> get _meta => flutterDataMetadata;
 }
 
 class $CompanyRepository = Repository<Company>

@@ -16,11 +16,17 @@ class _HiveTypeAdapter<T extends DataSupport<T>> with TypeAdapter<T> {
 
   @override
   T read(reader) {
-    var n = reader.readByte();
+    final n = reader.readByte();
     var fields = <String, dynamic>{
       for (var i = 0; i < n; i++) reader.read().toString(): reader.read(),
     };
-    return manager.locator<Repository<T>>().localDeserialize(fixMap(fields));
+    final n2 = reader.readByte();
+    final metadata = <String, dynamic>{
+      for (var i = 0; i < n2; i++) reader.read().toString(): reader.read(),
+    };
+    return manager
+        .locator<Repository<T>>()
+        .localDeserialize(fixMap(fields), metadata: fixMap(metadata));
   }
 
   @override
@@ -30,6 +36,13 @@ class _HiveTypeAdapter<T extends DataSupport<T>> with TypeAdapter<T> {
     for (var k in _map.keys) {
       writer.write(k);
       writer.write(_map[k]);
+    }
+    final publicMetadata = Map.fromEntries(
+        obj.flutterDataMetadata.entries.where((e) => !e.key.startsWith('_')));
+    writer.writeByte(publicMetadata.length);
+    for (var e in publicMetadata.entries) {
+      writer.write(e.key);
+      writer.write(e.value);
     }
   }
 

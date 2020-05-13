@@ -109,17 +109,32 @@ final Function() setUpAllFn = () {
   final manager = TestDataManager(injection.locator);
   injection.register<DataManager>(manager);
 
-  injection.register<Repository<House>>(
-      $HouseRepository(manager, FakeBox<House>(), remote: false));
-  injection.register<Repository<Family>>(
-      $FamilyRepository(manager, FakeBox<Family>(), remote: false));
-  injection.register<Repository<Person>>(
-      PersonRepository(manager, FakeBox<Person>(), remote: false));
-  injection.register<Repository<Dog>>(
-      $DogRepository(manager, FakeBox<Dog>(), remote: false));
+  injection.register<Repository<House>>($HouseRepository(
+    manager,
+    remote: false,
+    box: FakeBox<House>(),
+  ));
+  injection.register<Repository<Family>>($FamilyRepository(
+    manager,
+    remote: false,
+    box: FakeBox<Family>(),
+  ));
+  injection.register<Repository<Person>>(PersonRepository(
+    manager,
+    remote: false,
+    box: FakeBox<Person>(),
+  ));
+  injection.register<Repository<Dog>>($DogRepository(
+    manager,
+    remote: false,
+    box: FakeBox<Dog>(),
+  ));
   injection.register<FamilyRepositoryWithStandardJSONAdapter>(
-      FamilyRepositoryWithStandardJSONAdapter(manager, FakeBox<Family>(),
-          remote: false));
+      FamilyRepositoryWithStandardJSONAdapter(
+    manager,
+    remote: false,
+    box: FakeBox<Family>(),
+  ));
 };
 
 final Function() tearDownAllFn = () async {

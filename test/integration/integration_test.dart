@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_data/flutter_data.dart';
+import 'package:hive/hive.dart';
 import 'package:test/test.dart';
 
 import '../models/models.dart';
@@ -19,11 +20,11 @@ void main() async {
 
     // we use $CompanyRepository as it already has the TestMixin baked in
     injection.register<Repository<Company>>(
-        $CompanyRepository(manager, FakeBox<Company>()));
+        $CompanyRepository(manager, box: FakeBox<Company>()));
     injection.register<Repository<City>>(
-        CityTestRepository(manager, FakeBox<City>()));
+        CityTestRepository(manager, box: FakeBox<City>()));
     injection.register<Repository<Model>>(
-        ModelTestRepository(manager, FakeBox<Model>()));
+        ModelTestRepository(manager, box: FakeBox<Model>()));
 
     // injection.register<ImpatientModelTestRepository>(
     //     ImpatientModelTestRepository(manager, FakeBox<Model>()));

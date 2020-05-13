@@ -18,8 +18,8 @@ mixin _$UserModelAdapter on Repository<User> {
   }
 
   @override
-  localDeserialize(map) {
-    return _$UserFromJson(map);
+  localDeserialize(map, {metadata}) {
+    return _$UserFromJson(map).._meta.addAll(metadata ?? const {});
   }
 
   @override
@@ -34,6 +34,10 @@ mixin _$UserModelAdapter on Repository<User> {
 
   @override
   void setInverseInModel(inverse, model) {}
+}
+
+extension UserFDX on User {
+  Map<String, dynamic> get _meta => flutterDataMetadata;
 }
 
 class $UserRepository = Repository<User>

@@ -23,11 +23,11 @@ mixin _$HouseModelAdapter on Repository<House> {
   }
 
   @override
-  localDeserialize(map) {
+  localDeserialize(map, {metadata}) {
     map['families'] = {
       '_': [map['families'], manager]
     };
-    return _$HouseFromJson(map);
+    return _$HouseFromJson(map).._meta.addAll(metadata ?? const {});
   }
 
   @override
@@ -48,6 +48,10 @@ mixin _$HouseModelAdapter on Repository<House> {
       model.families?.inverse = inverse;
     }
   }
+}
+
+extension HouseFDX on House {
+  Map<String, dynamic> get _meta => flutterDataMetadata;
 }
 
 class $HouseRepository = Repository<House>
