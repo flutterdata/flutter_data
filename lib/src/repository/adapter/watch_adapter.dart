@@ -21,7 +21,7 @@ mixin WatchAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
         try {
           // we're only interested in capturing errors
           // as models will pop up via localAdapter.watchOne(_key)
-          await findAll(params: params, headers: headers);
+          await findAll(params: params, headers: headers, remote: remote);
         } catch (error, stackTrace) {
           notifier.state = notifier.state.copyWith(
               exception: DataException(error), stackTrace: stackTrace);
@@ -78,7 +78,7 @@ mixin WatchAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
       try {
         // we're only interested in capturing errors
         // as models will pop up via localAdapter.watchOne(_key)
-        await findOne(id, params: params, headers: headers);
+        await findOne(id, params: params, headers: headers, remote: remote);
       } catch (error, stackTrace) {
         notifier.state = notifier.state
             .copyWith(exception: DataException(error), stackTrace: stackTrace);
@@ -123,6 +123,9 @@ mixin WatchAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
         } else {
           _notifier.state = _notifier.state
               .copyWith(model: initModel(model), isLoading: false);
+
+          // new model, reset relationship watch
+          _watching = false;
           _tryWatchRelationships(model);
         }
       }
