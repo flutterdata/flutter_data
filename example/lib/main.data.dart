@@ -21,26 +21,31 @@ extension FlutterData on DataManager {
     final manager = await DataManager(autoModelInit: autoModelInit).init(baseDir, injection.locator, clear: clear, verbose: verbose);
     injection.register(manager);
 
-    final postBox = await Repository.getBox<Post>(manager, encryptionKey: encryptionKey);
-    final postRepository = $PostRepository(manager, postBox, remote: remote, verbose: verbose);
+    final postRepository = $PostRepository(manager, remote: remote, verbose: verbose);
     injection.register<Repository<Post>>(postRepository);
+    final postBox = await Repository.getBox<Post>(manager, encryptionKey: encryptionKey);
+    injection.register(postBox);
 
-    final userBox = await Repository.getBox<User>(manager, encryptionKey: encryptionKey);
-    final userRepository = $UserRepository(manager, userBox, remote: remote, verbose: verbose);
+    final userRepository = $UserRepository(manager, remote: remote, verbose: verbose);
     injection.register<Repository<User>>(userRepository);
+    final userBox = await Repository.getBox<User>(manager, encryptionKey: encryptionKey);
+    injection.register(userBox);
 
-    final commentBox = await Repository.getBox<Comment>(manager, encryptionKey: encryptionKey);
-    final commentRepository = $CommentRepository(manager, commentBox, remote: remote, verbose: verbose);
+    final commentRepository = $CommentRepository(manager, remote: remote, verbose: verbose);
     injection.register<Repository<Comment>>(commentRepository);
+    final commentBox = await Repository.getBox<Comment>(manager, encryptionKey: encryptionKey);
+    injection.register(commentBox);
 
 
     if (also != null) {
       // ignore: unnecessary_lambdas
       also(<R>(R obj) => injection.register<R>(obj));
     }
+postRepository.initialize();
+userRepository.initialize();
+commentRepository.initialize();
 
     return manager;
-
   }
   
 }

@@ -91,10 +91,11 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   // protected & private
 
   @protected
-  T initModel(T model, {String key, bool save = false}) {
+  T initModel(T model, {String key, bool save}) {
     if (model == null) {
       return null;
     }
+    save ??= true;
 
     _assertManager();
     model._repository ??= this;
