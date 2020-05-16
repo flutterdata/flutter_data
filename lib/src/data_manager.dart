@@ -11,6 +11,8 @@ class DataManager {
     return DataManager.delegate();
   }
 
+  final graphNotifier = GraphNotifier(DirectedGraph<String, String>());
+
   final _hive = Hive;
 
   Locator _locator;

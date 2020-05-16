@@ -10,43 +10,30 @@ part of 'person.dart';
 // ignore_for_file: always_declare_return_types
 mixin _$PersonModelAdapter on Repository<Person> {
   @override
-  get relationshipMetadata => {
-        'HasMany': {},
-        'BelongsTo': {'family': 'families'}
-      };
+  Map<String, Relationship> relationshipsFor(Person model) =>
+      {'family': model?.family};
 
   @override
-  Repository repositoryFor(String type) {
-    return <String, Repository>{
-      'families': manager.locator<Repository<Family>>()
-    }[type];
-  }
+  Map<String, Repository> get relationshipRepositories =>
+      {'families': manager.locator<Repository<Family>>()};
 
   @override
   localDeserialize(map, {metadata}) {
-    map['family'] = {
-      '_': [map['family'], manager]
-    };
+    for (var key in relationshipsFor(null).keys) {
+      map[key] = {
+        '_': [map[key], !map.containsKey(key), manager]
+      };
+    }
     return Person.fromJson(map).._meta.addAll(metadata ?? const {});
   }
 
   @override
   localSerialize(model) {
     final map = model.toJson();
-    map['family'] = model.family?.toJson();
-    return map;
-  }
-
-  @override
-  setOwnerInRelationships(owner, model) {
-    model.family?.owner = owner;
-  }
-
-  @override
-  void setInverseInModel(inverse, model) {
-    if (inverse is DataId<Family>) {
-      model.family?.inverse = inverse;
+    for (var e in relationshipsFor(model).entries) {
+      map[e.key] = e.value?.toJson();
     }
+    return map;
   }
 }
 

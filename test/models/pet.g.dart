@@ -10,30 +10,29 @@ part of 'pet.dart';
 // ignore_for_file: always_declare_return_types
 mixin _$DogModelAdapter on Repository<Dog> {
   @override
-  get relationshipMetadata => {'HasMany': {}, 'BelongsTo': {}};
+  Map<String, Relationship> relationshipsFor(Dog model) => {};
 
   @override
-  Repository repositoryFor(String type) {
-    return <String, Repository>{}[type];
-  }
+  Map<String, Repository> get relationshipRepositories => {};
 
   @override
   localDeserialize(map, {metadata}) {
+    for (var key in relationshipsFor(null).keys) {
+      map[key] = {
+        '_': [map[key], !map.containsKey(key), manager]
+      };
+    }
     return Dog.fromJson(map).._meta.addAll(metadata ?? const {});
   }
 
   @override
   localSerialize(model) {
     final map = model.toJson();
-
+    for (var e in relationshipsFor(model).entries) {
+      map[e.key] = e.value?.toJson();
+    }
     return map;
   }
-
-  @override
-  setOwnerInRelationships(owner, model) {}
-
-  @override
-  void setInverseInModel(inverse, model) {}
 }
 
 extension DogFDX on Dog {
@@ -47,30 +46,29 @@ class $DogRepository = Repository<Dog>
 // ignore_for_file: always_declare_return_types
 mixin _$CatModelAdapter on Repository<Cat> {
   @override
-  get relationshipMetadata => {'HasMany': {}, 'BelongsTo': {}};
+  Map<String, Relationship> relationshipsFor(Cat model) => {};
 
   @override
-  Repository repositoryFor(String type) {
-    return <String, Repository>{}[type];
-  }
+  Map<String, Repository> get relationshipRepositories => {};
 
   @override
   localDeserialize(map, {metadata}) {
+    for (var key in relationshipsFor(null).keys) {
+      map[key] = {
+        '_': [map[key], !map.containsKey(key), manager]
+      };
+    }
     return Cat.fromJson(map).._meta.addAll(metadata ?? const {});
   }
 
   @override
   localSerialize(model) {
     final map = model.toJson();
-
+    for (var e in relationshipsFor(model).entries) {
+      map[e.key] = e.value?.toJson();
+    }
     return map;
   }
-
-  @override
-  setOwnerInRelationships(owner, model) {}
-
-  @override
-  void setInverseInModel(inverse, model) {}
 }
 
 extension CatFDX on Cat {

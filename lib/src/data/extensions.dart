@@ -54,3 +54,8 @@ extension SafeBoxX<T> on Box<T> {
   T safeGet(key) => key != null ? get(key) : null;
   Future<void> safeDelete(key) => key != null ? delete(key) : null;
 }
+
+extension RelationshipIterableX on Map<String, Relationship> {
+  Set<BelongsTo> get belongsTo => values.whereType<BelongsTo>().toSet();
+  Set<HasMany> get hasMany => values.whereType<HasMany>().toSet();
+}

@@ -10,61 +10,33 @@ part of 'family.dart';
 // ignore_for_file: always_declare_return_types
 mixin _$FamilyModelAdapter on Repository<Family> {
   @override
-  get relationshipMetadata => {
-        'HasMany': {'persons': 'people', 'dogs': 'dogs'},
-        'BelongsTo': {'house': 'houses'}
+  Map<String, Relationship> relationshipsFor(Family model) =>
+      {'persons': model?.persons, 'dogs': model?.dogs, 'house': model?.house};
+
+  @override
+  Map<String, Repository> get relationshipRepositories => {
+        'people': manager.locator<Repository<Person>>(),
+        'dogs': manager.locator<Repository<Dog>>(),
+        'houses': manager.locator<Repository<House>>()
       };
 
   @override
-  Repository repositoryFor(String type) {
-    return <String, Repository>{
-      'people': manager.locator<Repository<Person>>(),
-      'dogs': manager.locator<Repository<Dog>>(),
-      'houses': manager.locator<Repository<House>>()
-    }[type];
-  }
-
-  @override
   localDeserialize(map, {metadata}) {
-    map['persons'] = {
-      '_': [map['persons'], manager]
-    };
-    map['dogs'] = {
-      '_': [map['dogs'], manager]
-    };
-    map['house'] = {
-      '_': [map['house'], manager]
-    };
+    for (var key in relationshipsFor(null).keys) {
+      map[key] = {
+        '_': [map[key], !map.containsKey(key), manager]
+      };
+    }
     return _$FamilyFromJson(map).._meta.addAll(metadata ?? const {});
   }
 
   @override
   localSerialize(model) {
     final map = _$FamilyToJson(model);
-    map['persons'] = model.persons?.toJson();
-    map['dogs'] = model.dogs?.toJson();
-    map['house'] = model.house?.toJson();
+    for (var e in relationshipsFor(model).entries) {
+      map[e.key] = e.value?.toJson();
+    }
     return map;
-  }
-
-  @override
-  setOwnerInRelationships(owner, model) {
-    model.persons?.owner = owner;
-    model.dogs?.owner = owner;
-    model.house?.owner = owner;
-  }
-
-  @override
-  void setInverseInModel(inverse, model) {
-    if (inverse is DataId<Person>) {
-      model.persons?.inverse = inverse;
-    }
-    if (inverse is DataId<Dog>) {
-      model.dogs?.inverse = inverse;
-    }
-    if (inverse is DataId<House>) {
-      model.house?.inverse = inverse;
-    }
   }
 }
 

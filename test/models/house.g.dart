@@ -10,43 +10,30 @@ part of 'house.dart';
 // ignore_for_file: always_declare_return_types
 mixin _$HouseModelAdapter on Repository<House> {
   @override
-  get relationshipMetadata => {
-        'HasMany': {'families': 'families'},
-        'BelongsTo': {}
-      };
+  Map<String, Relationship> relationshipsFor(House model) =>
+      {'families': model?.families};
 
   @override
-  Repository repositoryFor(String type) {
-    return <String, Repository>{
-      'families': manager.locator<Repository<Family>>()
-    }[type];
-  }
+  Map<String, Repository> get relationshipRepositories =>
+      {'families': manager.locator<Repository<Family>>()};
 
   @override
   localDeserialize(map, {metadata}) {
-    map['families'] = {
-      '_': [map['families'], manager]
-    };
+    for (var key in relationshipsFor(null).keys) {
+      map[key] = {
+        '_': [map[key], !map.containsKey(key), manager]
+      };
+    }
     return _$HouseFromJson(map).._meta.addAll(metadata ?? const {});
   }
 
   @override
   localSerialize(model) {
     final map = _$HouseToJson(model);
-    map['families'] = model.families?.toJson();
-    return map;
-  }
-
-  @override
-  setOwnerInRelationships(owner, model) {
-    model.families?.owner = owner;
-  }
-
-  @override
-  void setInverseInModel(inverse, model) {
-    if (inverse is DataId<Family>) {
-      model.families?.inverse = inverse;
+    for (var e in relationshipsFor(model).entries) {
+      map[e.key] = e.value?.toJson();
     }
+    return map;
   }
 }
 

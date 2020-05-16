@@ -1,8 +1,6 @@
 part of flutter_data;
 
 mixin WatchAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
-  static const oneFrameDuration = Duration(milliseconds: 16);
-
   @override
   DataStateNotifier<List<T>> watchAll(
       {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {

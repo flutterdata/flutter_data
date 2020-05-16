@@ -5,6 +5,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'package:data_state/data_state.dart';
+import 'package:flutter_data/src/util/graph_notifier.dart';
 import 'package:meta/meta.dart';
 import 'package:http/http.dart' as http;
 import 'package:inflection2/inflection2.dart';

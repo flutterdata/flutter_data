@@ -1,102 +1,68 @@
 part of flutter_data;
 
-class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E> {
-  @protected
-  @visibleForTesting
-  DataId<E> dataId;
-  E _uninitializedModel;
-  final bool _save;
-  DataStateNotifier<E> _notifier;
+class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E, E> {
+  BelongsTo([E model, DataManager manager, bool _save])
+      : super({model}, manager, _save);
 
-  static const oneFrameDuration = Duration(milliseconds: 16);
-
-  BelongsTo([E model, DataManager manager, this._save = true])
-      : _uninitializedModel = model,
-        super(manager) {
-    initializeModel();
-  }
-
-  BelongsTo._(this.dataId, DataManager manager)
-      : _save = true,
-        super(manager);
+  BelongsTo._(String key, DataManager manager, bool _wasOmitted)
+      : super._({key}, manager, _wasOmitted);
 
   factory BelongsTo.fromJson(Map<String, dynamic> map) {
     final key = map['_'][0] as String;
-    final manager = map['_'][1] as DataManager;
-    return BelongsTo._(
-        key != null ? DataId.byKey(key, manager) : null, manager);
-  }
-
-  // ownership & init
-
-  void initializeModel() {
-    if (_repository != null && _uninitializedModel != null) {
-      value = _uninitializedModel;
-      _uninitializedModel = null;
+    final manager = map['_'][2] as DataManager;
+    if (key == null) {
+      final wasOmitted = map['_'][1] as bool;
+      return BelongsTo._(null, manager, wasOmitted);
     }
-  }
-
-  set owner(DataId owner) {
-    _owner = owner;
-    manager = owner.manager;
-    initializeModel();
-  }
-
-  set inverse(DataId<E> inverse) {
-    dataId = inverse;
-  }
-
-  @override
-  DataStateNotifier<E> watch() {
-    // lazily initialize notifier
-    return _notifier ??= _initNotifier();
-  }
-
-  //
-
-  DataStateNotifier<E> _initNotifier() {
-    _notifier = DataStateNotifier<E>(DataState());
-    _repository.box
-        .watch(key: key)
-        .buffer(Stream.periodic(oneFrameDuration))
-        .forEach((events) {
-      if (events.isNotEmpty && events.last.deleted) {
-        dataId = null;
-      }
-      _notifier.state = DataState(model: value);
-    });
-    return _notifier;
+    if (key.startsWith('${DataId.getType<E>()}#')) {
+      // we got key
+      return BelongsTo._(key, manager, false);
+    }
+    // we got id
+    return BelongsTo._(manager.dataId<E>(key).key, manager, false);
   }
 
   //
 
   E get value {
-    final value = _repository?.box?.safeGet(dataId?.key) ?? _uninitializedModel;
-    if (value != null) {
-      _repository?.setInverseInModel(_owner, value);
-    }
-    return value;
+    return super.isNotEmpty ? super.first : null;
   }
 
   set value(E value) {
-    dataId = value != null
-        ? _repository?.initModel(value, save: _save)?._dataId
-        : null;
-    _notifier?.state = DataState(model: value);
+    super.add(value);
   }
 
-  String get key => dataId?.key;
+  String get key => super.keys.isNotEmpty ? super.keys.first : null;
+
+  //
+
+  @override
+  DataStateNotifier<E> watch() {
+    // lazily initialize notifier
+    return _notifier ??= _initNotifierOne();
+  }
+
+  //
+
+  DataStateNotifier<E> _initNotifierOne() {
+    _notifier = DataStateNotifier<E>(DataState());
+    // _repository.box
+    //     .watch(key: key)
+    //     .buffer(Stream.periodic(_repository.oneFrameDuration))
+    //     .forEach((events) {
+    //   if (events.isNotEmpty && events.last.deleted) {
+    //     key = null;
+    //   }
+    //   _notifier.state = DataState(model: value);
+    // });
+    return _notifier;
+  }
+
+  //
 
   @override
   dynamic toJson() => key;
 
   @override
-  bool operator ==(dynamic other) =>
-      identical(this, other) || dataId == other.dataId;
-
-  @override
-  int get hashCode => runtimeType.hashCode ^ dataId.hashCode;
-
-  @override
-  String toString() => 'BelongsTo<$E>(${dataId?.id})';
+  String toString() => 'BelongsTo<$E>($key)';
 }

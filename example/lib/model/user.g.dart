@@ -10,30 +10,29 @@ part of 'user.dart';
 // ignore_for_file: always_declare_return_types
 mixin _$UserModelAdapter on Repository<User> {
   @override
-  get relationshipMetadata => {'HasMany': {}, 'BelongsTo': {}};
+  Map<String, Relationship> relationshipsFor(User model) => {};
 
   @override
-  Repository repositoryFor(String type) {
-    return <String, Repository>{}[type];
-  }
+  Map<String, Repository> get relationshipRepositories => {};
 
   @override
   localDeserialize(map, {metadata}) {
+    for (var key in relationshipsFor(null).keys) {
+      map[key] = {
+        '_': [map[key], !map.containsKey(key), manager]
+      };
+    }
     return _$UserFromJson(map).._meta.addAll(metadata ?? const {});
   }
 
   @override
   localSerialize(model) {
     final map = _$UserToJson(model);
-
+    for (var e in relationshipsFor(model).entries) {
+      map[e.key] = e.value?.toJson();
+    }
     return map;
   }
-
-  @override
-  setOwnerInRelationships(owner, model) {}
-
-  @override
-  void setInverseInModel(inverse, model) {}
 }
 
 extension UserFDX on User {

@@ -10,52 +10,32 @@ part of 'post.dart';
 // ignore_for_file: always_declare_return_types
 mixin _$PostModelAdapter on Repository<Post> {
   @override
-  get relationshipMetadata => {
-        'HasMany': {'comments': 'comments'},
-        'BelongsTo': {'user': 'users'}
+  Map<String, Relationship> relationshipsFor(Post model) =>
+      {'comments': model?.comments, 'user': model?.user};
+
+  @override
+  Map<String, Repository> get relationshipRepositories => {
+        'comments': manager.locator<Repository<Comment>>(),
+        'users': manager.locator<Repository<User>>()
       };
 
   @override
-  Repository repositoryFor(String type) {
-    return <String, Repository>{
-      'comments': manager.locator<Repository<Comment>>(),
-      'users': manager.locator<Repository<User>>()
-    }[type];
-  }
-
-  @override
   localDeserialize(map, {metadata}) {
-    map['comments'] = {
-      '_': [map['comments'], manager]
-    };
-    map['user'] = {
-      '_': [map['user'], manager]
-    };
+    for (var key in relationshipsFor(null).keys) {
+      map[key] = {
+        '_': [map[key], !map.containsKey(key), manager]
+      };
+    }
     return _$PostFromJson(map).._meta.addAll(metadata ?? const {});
   }
 
   @override
   localSerialize(model) {
     final map = _$PostToJson(model);
-    map['comments'] = model.comments?.toJson();
-    map['user'] = model.user?.toJson();
+    for (var e in relationshipsFor(model).entries) {
+      map[e.key] = e.value?.toJson();
+    }
     return map;
-  }
-
-  @override
-  setOwnerInRelationships(owner, model) {
-    model.comments?.owner = owner;
-    model.user?.owner = owner;
-  }
-
-  @override
-  void setInverseInModel(inverse, model) {
-    if (inverse is DataId<Comment>) {
-      model.comments?.inverse = inverse;
-    }
-    if (inverse is DataId<User>) {
-      model.user?.inverse = inverse;
-    }
   }
 }
 

@@ -2,6 +2,7 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
 import '../../../models/family.dart';
+import '../../../models/house.dart';
 import '../../../models/person.dart';
 import '../../setup.dart';
 
@@ -81,20 +82,6 @@ void main() async {
     expect(rel.first.key, manager.dataId<Person>('1').key);
   });
 
-  test('re-assign hasmany in mutable model', () {
-    var familyRepo = injection.locator<Repository<Family>>();
-    var personRepo = injection.locator<Repository<Person>>();
-
-    var family = Family(surname: 'Toraine').init(familyRepo);
-    var person = Person(name: 'Claire', age: 31).init(personRepo);
-    family.persons = HasMany<Person>({person}, personRepo.manager);
-
-    expect(family.persons.first.key, person.key);
-    expect(family.persons.debugOwner, isNull);
-    familyRepo.syncRelationships(family);
-    expect(family.persons.debugOwner, isNotNull);
-  });
-
   test('does not contain nulls', () {
     var repo = injection.locator<Repository<Person>>();
     var person = Person(name: 'Claire', age: 31).init(repo);
@@ -103,8 +90,43 @@ void main() async {
     rel.add(null);
     expect(rel, {person});
 
-    rel.dataIds.add(null);
+    rel.keys.add(null);
     expect(rel.toSet(), {person});
+  });
+
+  test('maintain relationship reference validity', () {
+    var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
+    var personRepo = injection.locator<Repository<Person>>();
+
+    // var brian = Person(name: 'Brian', age: 52);
+    // var family = Family(id: '229', surname: 'Rose', persons: {brian}.asHasMany)
+    //     .init(repo);
+    // expect(family.persons.length, 1);
+
+    // // // new family comes in locally with no persons relationship info
+    // // var family2 = Family(id: '229', surname: 'Rose').init(repo);
+    // // // it should keep the relationships unaltered
+    // // expect(family2.persons.length, 1);
+
+    // // new family comes in from API (simulate) with no persons relationship info
+    // var family3 = repo.deserialize({'id': '229', 'surname': 'Rose'});
+    // // it should keep the relationships unaltered
+    // expect(family3.persons.length, 1);
+
+    // new family comes in from API (simulate) with empty persons relationship
+    var family4 =
+        repo.deserialize({'id': '229', 'surname': 'Rose', 'persons': []});
+    // it should keep the relationships unaltered
+    expect(family4.persons.length, 0);
+
+    var family5 = repo.deserialize({
+      'id': '229',
+      'surname': 'Rose',
+      'persons': ['231']
+    });
+
+    var axl = Person(id: '231', name: 'Axl', age: 58).init(personRepo);
+    expect(family5.persons, {axl});
   });
 
   test('watch', () {

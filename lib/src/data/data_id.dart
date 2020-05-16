@@ -45,7 +45,7 @@ class DataId<T> {
       pluralize((type ?? T.toString()).toLowerCase());
 
   @optionalTypeArgs
-  static List<DataId<E>> byKeys<E>(List<String> keys, DataManager manager,
+  static Set<DataId<E>> byKeys<E>(List<String> keys, DataManager manager,
       {String type}) {
     assert(keys != null);
     return manager.keysBox
@@ -55,7 +55,7 @@ class DataId<T> {
         .map((e) => (e.key.toString().split('#')..removeAt(0))
             .join('#')) // (map keys are ids)
         .map((id) => DataId<E>(id, manager, type: type))
-        .toList();
+        .toSet();
   }
 
   @optionalTypeArgs

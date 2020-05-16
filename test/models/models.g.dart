@@ -10,43 +10,30 @@ part of 'models.dart';
 // ignore_for_file: always_declare_return_types
 mixin _$ModelModelAdapter on Repository<Model> {
   @override
-  get relationshipMetadata => {
-        'HasMany': {},
-        'BelongsTo': {'company': 'companies'}
-      };
+  Map<String, Relationship> relationshipsFor(Model model) =>
+      {'company': model?.company};
 
   @override
-  Repository repositoryFor(String type) {
-    return <String, Repository>{
-      'companies': manager.locator<Repository<Company>>()
-    }[type];
-  }
+  Map<String, Repository> get relationshipRepositories =>
+      {'companies': manager.locator<Repository<Company>>()};
 
   @override
   localDeserialize(map, {metadata}) {
-    map['company'] = {
-      '_': [map['company'], manager]
-    };
+    for (var key in relationshipsFor(null).keys) {
+      map[key] = {
+        '_': [map[key], !map.containsKey(key), manager]
+      };
+    }
     return Model.fromJson(map).._meta.addAll(metadata ?? const {});
   }
 
   @override
   localSerialize(model) {
     final map = model.toJson();
-    map['company'] = model.company?.toJson();
-    return map;
-  }
-
-  @override
-  setOwnerInRelationships(owner, model) {
-    model.company?.owner = owner;
-  }
-
-  @override
-  void setInverseInModel(inverse, model) {
-    if (inverse is DataId<Company>) {
-      model.company?.inverse = inverse;
+    for (var e in relationshipsFor(model).entries) {
+      map[e.key] = e.value?.toJson();
     }
+    return map;
   }
 }
 
@@ -61,30 +48,29 @@ class $ModelRepository = Repository<Model>
 // ignore_for_file: always_declare_return_types
 mixin _$CityModelAdapter on Repository<City> {
   @override
-  get relationshipMetadata => {'HasMany': {}, 'BelongsTo': {}};
+  Map<String, Relationship> relationshipsFor(City model) => {};
 
   @override
-  Repository repositoryFor(String type) {
-    return <String, Repository>{}[type];
-  }
+  Map<String, Repository> get relationshipRepositories => {};
 
   @override
   localDeserialize(map, {metadata}) {
+    for (var key in relationshipsFor(null).keys) {
+      map[key] = {
+        '_': [map[key], !map.containsKey(key), manager]
+      };
+    }
     return City.fromJson(map).._meta.addAll(metadata ?? const {});
   }
 
   @override
   localSerialize(model) {
     final map = model.toJson();
-
+    for (var e in relationshipsFor(model).entries) {
+      map[e.key] = e.value?.toJson();
+    }
     return map;
   }
-
-  @override
-  setOwnerInRelationships(owner, model) {}
-
-  @override
-  void setInverseInModel(inverse, model) {}
 }
 
 extension CityFDX on City {
@@ -98,43 +84,30 @@ class $CityRepository = Repository<City>
 // ignore_for_file: always_declare_return_types
 mixin _$CompanyModelAdapter on Repository<Company> {
   @override
-  get relationshipMetadata => {
-        'HasMany': {'models': 'models'},
-        'BelongsTo': {}
-      };
+  Map<String, Relationship> relationshipsFor(Company model) =>
+      {'models': model?.models};
 
   @override
-  Repository repositoryFor(String type) {
-    return <String, Repository>{
-      'models': manager.locator<Repository<Model>>()
-    }[type];
-  }
+  Map<String, Repository> get relationshipRepositories =>
+      {'models': manager.locator<Repository<Model>>()};
 
   @override
   localDeserialize(map, {metadata}) {
-    map['models'] = {
-      '_': [map['models'], manager]
-    };
+    for (var key in relationshipsFor(null).keys) {
+      map[key] = {
+        '_': [map[key], !map.containsKey(key), manager]
+      };
+    }
     return Company.fromJson(map).._meta.addAll(metadata ?? const {});
   }
 
   @override
   localSerialize(model) {
     final map = model.toJson();
-    map['models'] = model.models?.toJson();
-    return map;
-  }
-
-  @override
-  setOwnerInRelationships(owner, model) {
-    model.models?.owner = owner;
-  }
-
-  @override
-  void setInverseInModel(inverse, model) {
-    if (inverse is DataId<Model>) {
-      model.models?.inverse = inverse;
+    for (var e in relationshipsFor(model).entries) {
+      map[e.key] = e.value?.toJson();
     }
+    return map;
   }
 }
 

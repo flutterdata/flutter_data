@@ -65,26 +65,24 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
 
     //
 
-    Map<String, String> _prepareMeta(list) {
-      return {for (var e in list) '\'${e[0]}\'': '\'${e[1]}\''};
-    }
-
     final hasManys = getRelationshipsFor('HasMany').map((s) => s.split('#'));
     final belongsTos =
         getRelationshipsFor('BelongsTo').map((s) => s.split('#'));
     final all = [...hasManys, ...belongsTos];
 
-    final relationshipMetadata = <String, dynamic>{
-      '\'HasMany\'': _prepareMeta(hasManys),
-      '\'BelongsTo\'': _prepareMeta(belongsTos),
-    };
+    final relationshipsFor = all.asMap().map((_, e) {
+      return MapEntry('\'${e.first}\'', 'model?.${e.first}');
+    });
+
+    // model.persons: 'people', model.dogs: 'dogs', model.house: 'houses'
 
     final additionalRepos = annotation
         .read('repositoryFor')
         .listValue
         .map((e) => ['_', e.toTypeValue().toString()]);
 
-    final repositoryFors = [...all, ...additionalRepos].asMap().map((_, t) {
+    final relationshipRepositories =
+        [...all, ...additionalRepos].asMap().map((_, t) {
       final type = DataId.getType(t.last);
       return MapEntry('\'$type\'', 'manager.locator<Repository<${t.last}>>()');
     });
@@ -94,11 +92,6 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
     final deserialize = all.map((t) {
       final name = t.first;
       return '''map['$name'] = { '_': [map['$name'], manager] };''';
-    }).join('\n');
-
-    final serialize = all.map((t) {
-      final name = t.first;
-      return '''map['$name'] = model.$name?.toJson();''';
     }).join('\n');
 
     final hasFromJson =
@@ -119,11 +112,6 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
     final setOwnerInRelationships = all.map((t) {
       final name = t.first, localType = t.last;
       return '''model.$name?.owner = owner;''';
-    }).join('\n');
-
-    final setInverseInModel = all.map((t) {
-      final name = t.first, localType = t.last;
-      return '''if (inverse is DataId<$localType>) { model.$name?.inverse = inverse; }''';
     }).join('\n');
 
     // mixins
@@ -153,36 +141,31 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
 // ignore_for_file: unused_local_variable
 // ignore_for_file: always_declare_return_types
 mixin _\$${type}ModelAdapter on Repository<$type> {
+  @override
+  Map<String, Relationship> relationshipsFor($type model) =>
+    $relationshipsFor;
 
   @override
-  get relationshipMetadata => $relationshipMetadata;
-
-  @override
-  Repository repositoryFor(String type) {
-    return <String, Repository>$repositoryFors[type];
-  }
+  Map<String, Repository> get relationshipRepositories => 
+    $relationshipRepositories;
 
   @override
   localDeserialize(map, {metadata}) {
-    $deserialize
+    for (var key in relationshipsFor(null).keys) {
+      map[key] = {
+        '_': [map[key], !map.containsKey(key), manager]
+      };
+    }
     return $fromJson.._meta.addAll(metadata ?? const {});
   }
 
   @override
   localSerialize(model) {
     final map = $toJson;
-    $serialize
+    for (var e in relationshipsFor(model).entries) {
+      map[e.key] = e.value?.toJson();
+    }
     return map;
-  }
-
-  @override
-  setOwnerInRelationships(owner, model) {
-    $setOwnerInRelationships
-  }
-
-  @override
-  void setInverseInModel(inverse, model) {
-    $setInverseInModel
   }
 }
 

@@ -10,43 +10,30 @@ part of 'comment.dart';
 // ignore_for_file: always_declare_return_types
 mixin _$CommentModelAdapter on Repository<Comment> {
   @override
-  get relationshipMetadata => {
-        'HasMany': {},
-        'BelongsTo': {'post': 'posts'}
-      };
+  Map<String, Relationship> relationshipsFor(Comment model) =>
+      {'post': model?.post};
 
   @override
-  Repository repositoryFor(String type) {
-    return <String, Repository>{
-      'posts': manager.locator<Repository<Post>>()
-    }[type];
-  }
+  Map<String, Repository> get relationshipRepositories =>
+      {'posts': manager.locator<Repository<Post>>()};
 
   @override
   localDeserialize(map, {metadata}) {
-    map['post'] = {
-      '_': [map['post'], manager]
-    };
+    for (var key in relationshipsFor(null).keys) {
+      map[key] = {
+        '_': [map[key], !map.containsKey(key), manager]
+      };
+    }
     return _$CommentFromJson(map).._meta.addAll(metadata ?? const {});
   }
 
   @override
   localSerialize(model) {
     final map = _$CommentToJson(model);
-    map['post'] = model.post?.toJson();
-    return map;
-  }
-
-  @override
-  setOwnerInRelationships(owner, model) {
-    model.post?.owner = owner;
-  }
-
-  @override
-  void setInverseInModel(inverse, model) {
-    if (inverse is DataId<Post>) {
-      model.post?.inverse = inverse;
+    for (var e in relationshipsFor(model).entries) {
+      map[e.key] = e.value?.toJson();
     }
+    return map;
   }
 }
 

@@ -1,68 +1,44 @@
 part of flutter_data;
 
-class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
-    with SetMixin<E> {
-  @protected
-  @visibleForTesting
-  final LinkedHashSet<DataId<E>> dataIds;
-  final Set<E> _uninitializedModels;
-  final bool _save;
-  DataStateNotifier<Set<E>> _notifier;
+class HasMany<E extends DataSupportMixin<E>> extends Relationship<E, Set<E>> {
+  HasMany([Set<E> models, DataManager manager, bool _save])
+      : super(models, manager, _save);
 
-  static const oneFrameDuration = Duration(milliseconds: 16);
-
-  HasMany([Set<E> models, DataManager manager, this._save = true])
-      : dataIds = LinkedHashSet.from({}),
-        _uninitializedModels = models ?? {},
-        super(manager) {
-    initializeModels();
-  }
-
-  HasMany._(this.dataIds, DataManager manager)
-      : _uninitializedModels = {},
-        _save = true,
-        super(manager);
+  HasMany._(Iterable<String> keys, DataManager manager, bool _wasOmitted)
+      : super._(keys, manager, _wasOmitted);
 
   factory HasMany.fromJson(Map<String, dynamic> map) {
-    final manager = map['_'][1] as DataManager;
+    final manager = map['_'][2] as DataManager;
     if (map['_'][0] == null) {
-      return HasMany._(LinkedHashSet(), manager);
+      final wasOmitted = map['_'][1] as bool;
+      return HasMany._({}, manager, wasOmitted);
     }
     final keys = List<String>.from(map['_'][0] as Iterable);
+    // TEMP guess if these are keys or ids
+    if (keys.isNotEmpty && keys.first.startsWith('${DataId.getType<E>()}#')) {
+      // we got keys
+      return HasMany._(keys, manager, false);
+    }
+    // ignore_for_file: unnecessary_lambdas
+    // we got ids
     return HasMany._(
-        LinkedHashSet.from(DataId.byKeys<E>(keys, manager)), manager);
+        keys.map((id) => manager.dataId<E>(id).key), manager, false);
   }
 
-  // ownership & init
+  //
 
-  @protected
-  @visibleForTesting
-  void initializeModels() {
-    if (_repository != null) {
-      addAll(_uninitializedModels);
-      _uninitializedModels.clear();
-    }
+  @override
+  DataStateNotifier<Set<E>> watch() {
+    // lazily initialize notifier
+    return _notifier ??= _initNotifier();
   }
-
-  set owner(DataId owner) {
-    _owner = owner;
-    manager = owner.manager;
-    initializeModels();
-  }
-
-  set inverse(DataId<E> inverse) {
-    if (!dataIds.contains(inverse)) {
-      dataIds.add(inverse);
-    }
-  }
-
-  // implement set
 
   DataStateNotifier<Set<E>> _initNotifier() {
+    // REWRITE BASED ON GRAPH
     _notifier = DataStateNotifier<Set<E>>(DataState(model: {}));
     _repository.box
         .watch()
-        .buffer(Stream.periodic(oneFrameDuration))
+        .buffer(Stream.periodic(_repository.oneFrameDuration))
         .forEach((events) {
       final eventKeyMap = events.fold<Map<String, bool>>({}, (map, e) {
         map[e.key.toString()] = e.deleted;
@@ -73,7 +49,7 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
         if (keys.contains(entry.key)) {
           if (entry.value) {
             // entry.value is bool deleted
-            dataIds.removeWhere((dataId) => dataId.key == entry.key);
+            keys.removeWhere((key) => key == entry.key);
           }
           _notifier.state = DataState(model: this);
         }
@@ -82,84 +58,11 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E>
     return _notifier;
   }
 
-  @override
-  bool add(E value) {
-    if (value == null) {
-      return false;
-    }
-    final ok = _repository != null
-        ? dataIds.add(_repository.initModel(value, save: _save)._dataId)
-        : _uninitializedModels.add(value);
-    _notifier?.state = DataState(model: this);
-    return ok;
-  }
-
-  @override
-  bool contains(Object element) {
-    if (element is E) {
-      return dataIds.contains(element?._dataId) ||
-          _uninitializedModels.contains(element);
-    }
-    return false;
-  }
-
-  Iterable<E> get _iterable => [
-        ...dataIds.map((dataId) {
-          final model = _repository.box.safeGet(dataId?.key);
-          if (model != null) {
-            _repository.setInverseInModel(_owner, model);
-          }
-          return model;
-        }),
-        ..._uninitializedModels
-      ].where((model) => model != null);
-
-  @override
-  Iterator<E> get iterator => _iterable.iterator;
-
-  @override
-  E lookup(Object element) {
-    if (element is E &&
-        (contains(element) || _uninitializedModels.contains(element))) {
-      return element;
-    }
-    return null;
-  }
-
-  @override
-  bool remove(Object value) {
-    if (value is E) {
-      final ok =
-          dataIds.remove(value?._dataId) || _uninitializedModels.remove(value);
-      _notifier?.state = DataState(model: this);
-      return ok;
-    }
-    return false;
-  }
-
-  @override
-  int get length => _iterable.length;
-
-  @override
-  Set<E> toSet() {
-    return _iterable.toSet();
-  }
-
-  // watch
-
-  @override
-  DataStateNotifier<Set<E>> watch() {
-    // lazily initialize notifier
-    return _notifier ??= _initNotifier();
-  }
-
-  // misc
-
-  Set<String> get keys => dataIds.map((d) => d.key).toSet();
+  //
 
   @override
   dynamic toJson() => keys.toList();
 
   @override
-  String toString() => 'HasMany<$E>(${dataIds.map((dataId) => dataId.id)})';
+  String toString() => 'HasMany<$E>($keys)';
 }

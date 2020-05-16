@@ -13,9 +13,9 @@ void main() async {
   test('constructor', () {
     var manager = injection.locator<DataManager>();
     var rel = BelongsTo<Person>(null, manager);
-    expect(rel.dataId, isNull);
+    expect(rel.key, isNull);
     rel = BelongsTo<Person>(Person(id: '1', name: 'zzz', age: 7), manager);
-    expect(rel.dataId, manager.dataId<Person>('1'));
+    expect(rel.key, manager.dataId<Person>('1').key);
   });
 
   test('deserialize with included BelongsTo', () async {
@@ -42,21 +42,8 @@ void main() async {
     repo.save(person);
 
     expect(rel, BelongsTo<Person>(person, manager));
-    expect(rel.dataId, manager.dataId<Person>('1'));
+    expect(rel.key, manager.dataId<Person>('1').key);
     expect(rel.value, person);
-  });
-
-  test('re-assign belongsto in mutable model', () {
-    var familyRepo = injection.locator<Repository<Family>>();
-    var personRepo = injection.locator<Repository<Person>>();
-
-    var family = Family(surname: 'Toraine').init(familyRepo);
-    var person = Person(name: 'Claire', age: 31).init(personRepo);
-    person.family = BelongsTo<Family>(family, familyRepo.manager);
-    expect(person.family.dataId.key, family.key);
-    expect(person.family.debugOwner, isNull);
-    personRepo.syncRelationships(person);
-    expect(person.family.debugOwner, isNotNull);
   });
 
   test('set owner in relationships', () {
@@ -70,15 +57,14 @@ void main() async {
         persons: HasMany<Person>({person}));
 
     // no dataId associated to family or relationships
-    expect(family.house.dataId, isNull);
-    expect(family.persons.dataIds, isEmpty);
+    expect(family.house.key, isNull);
+    expect(family.persons.keys, isEmpty);
 
-    adapter.setOwnerInRelationships(
-        adapter.manager.dataId<Family>('1'), family);
+    adapter.syncRelationships(family);
 
     // relationships are now associated to a dataId
-    expect(family.house.dataId, adapter.manager.dataId<House>('31'));
-    expect(family.persons.dataIds.first, adapter.manager.dataId<Person>('1'));
+    expect(family.house.key, adapter.manager.dataId<House>('31'));
+    expect(family.persons.keys.first, adapter.manager.dataId<Person>('1'));
   });
 
   test('watch', () {

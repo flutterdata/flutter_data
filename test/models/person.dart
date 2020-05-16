@@ -18,14 +18,14 @@ class Person with DataSupportMixin<Person> {
   final String id;
   final String name;
   final int age;
-  BelongsTo<Family> family;
+  final BelongsTo<Family> family;
 
   Person({
     this.id,
     @required this.name,
     @required this.age,
-    this.family,
-  });
+    BelongsTo<Family> family,
+  }) : family = family ?? BelongsTo();
 
   // testing without jsonserializable
   factory Person.fromJson(Map<String, dynamic> json) => Person(

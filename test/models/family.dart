@@ -15,9 +15,9 @@ class Family with DataSupportMixin<Family> {
   @override
   final String id;
   final String surname;
-  final BelongsTo<House> house; // immutable w/ default
-  HasMany<Person> persons; // mutable and w/o default
-  HasMany<Dog> dogs;
+  final BelongsTo<House> house;
+  final HasMany<Person> persons;
+  final HasMany<Dog> dogs;
 
   Family({
     this.id,

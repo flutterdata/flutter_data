@@ -18,7 +18,9 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   final bool _remote;
   final bool _verbose;
-  String get type => DataId.getType<T>();
+  final type = DataId.getType<T>();
+
+  final oneFrameDuration = Duration(milliseconds: 16);
 
   // repo public API
 
@@ -61,23 +63,17 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   @protected
   @visibleForTesting
-  Repository repositoryFor(String type);
+  Map<String, Repository> get relationshipRepositories;
 
   @protected
   @visibleForTesting
-  Map<String, dynamic> get relationshipMetadata;
-
-  @visibleForTesting
-  @protected
-  void setOwnerInRelationships(DataId<T> owner, T model);
-
-  @visibleForTesting
-  @protected
-  void setInverseInModel(DataId inverse, T model);
+  Map<String, Relationship> relationshipsFor(T model);
 
   void syncRelationships(T model) {
     // set model as "owner" in its relationships
-    setOwnerInRelationships(model._dataId, model);
+    for (var rel in relationshipsFor(model).values) {
+      rel?.owner = model._dataId;
+    }
   }
 
   @protected
