@@ -41,12 +41,19 @@ class GraphNotifier extends StateNotifier<DirectedGraph<String, String>> {
     return e?.key?.substring(1, e.key.length);
   }
 
-  String getKey(String id) {
+  String getKey(String id, {String keyIfAbsent}) {
     final node = state.findNode('_$id');
     if (node != null && node.isNotEmpty) {
       return node.keys.first;
     }
+    if (keyIfAbsent != null) {
+      add(keyIfAbsent, id, true);
+    }
     return null;
+  }
+
+  void deleteKey(String key) {
+    state.removeNode(key);
   }
 }
 

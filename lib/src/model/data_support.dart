@@ -1,7 +1,7 @@
 part of flutter_data;
 
 abstract class DataSupportMixin<T extends DataSupportMixin<T>> {
-  dynamic get id;
+  Object get id;
   final Map<String, dynamic> _flutterDataMetadata = {};
 }
 
@@ -17,20 +17,20 @@ extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
 
   Repository<T> get _repository =>
       flutterDataMetadata['_repository'] as Repository<T>;
-  set _repository(Repository<T> value) =>
-      flutterDataMetadata['_repository'] = value;
-
-  DataId<T> get _dataId => flutterDataMetadata['_dataId'] as DataId<T>;
-  set _dataId(DataId<T> value) => flutterDataMetadata['_dataId'] = value;
+  set _repository(Repository<T> value) {
+    if (_repository != null) flutterDataMetadata['_repository'] = value;
+  }
 
   bool get _save => flutterDataMetadata['_save'] as bool;
   set _save(bool value) => flutterDataMetadata['_save'] = value;
+
+  //
 
   DataManager get _manager => _repository?.manager;
 
   T get _this => this as T;
 
-  String get key => _dataId?.key;
+  String get key => _repository?.manager?.getKey(id.toString());
 
   Future<T> save(
       {bool remote,

@@ -15,7 +15,7 @@ void main() async {
     var rel = BelongsTo<Person>(null, manager);
     expect(rel.key, isNull);
     rel = BelongsTo<Person>(Person(id: '1', name: 'zzz', age: 7), manager);
-    expect(rel.key, manager.dataId<Person>('1').key);
+    expect(rel.key, manager.getKey('1'));
   });
 
   test('deserialize with included BelongsTo', () async {
@@ -36,18 +36,18 @@ void main() async {
     var manager = repo.manager;
 
     var rel = BelongsTo<Person>.fromJson({
-      '_': [manager.dataId<Person>('1').key, manager]
+      '_': [manager.getKey('1'), false, manager]
     });
     var person = Person(id: '1', name: 'zzz', age: 7);
     repo.save(person);
 
     expect(rel, BelongsTo<Person>(person, manager));
-    expect(rel.key, manager.dataId<Person>('1').key);
+    expect(rel.key, manager.getKey('1'));
     expect(rel.value, person);
   });
 
   test('set owner in relationships', () {
-    var adapter = injection.locator<Repository<Family>>();
+    var repo = injection.locator<Repository<Family>>();
     var person = Person(id: '1', name: 'John', age: 37);
     var house = House(id: '31', address: '123 Main St');
     var family = Family(
@@ -60,11 +60,11 @@ void main() async {
     expect(family.house.key, isNull);
     expect(family.persons.keys, isEmpty);
 
-    adapter.syncRelationships(family);
+    family.init(repo);
 
-    // relationships are now associated to a dataId
-    expect(family.house.key, adapter.manager.dataId<House>('31'));
-    expect(family.persons.keys.first, adapter.manager.dataId<Person>('1'));
+    // relationships are now associated to a key
+    expect(family.house.key, repo.manager.getKey('31'));
+    expect(family.persons.keys.first, repo.manager.getKey('1'));
   });
 
   test('watch', () {

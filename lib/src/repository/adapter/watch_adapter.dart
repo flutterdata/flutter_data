@@ -62,11 +62,14 @@ mixin WatchAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
       Map<String, String> headers,
       AlsoWatch<T> alsoWatch}) {
     remote ??= _remote;
-    final key = manager.dataId<T>(id).key;
+    final key = manager.getKey(id.toString());
+    if (key == null) {
+      return null;
+    }
 
     final _notifier = DataStateNotifier<T>(
         DataState(
-          model: initModel(box.safeGet(key)),
+          model: initModel(box.get(key)),
         ), reload: (notifier) async {
       if (remote == false) {
         return;

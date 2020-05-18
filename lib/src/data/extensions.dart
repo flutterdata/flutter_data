@@ -44,16 +44,16 @@ extension DataSupportMixinRelationshipExtension<T extends DataSupportMixin<T>>
   }
 }
 
-extension ManagerDataId on DataManager {
-  @optionalTypeArgs
-  DataId<T> dataId<T>(dynamic id, {String useKey, String type}) =>
-      DataId<T>(id, this, useKey: useKey, type: type);
-}
+// extension ManagerDataId on DataManager {
+//   @optionalTypeArgs
+//   DataId<T> dataId<T>(dynamic id, {String useKey, String type}) =>
+//       DataId<T>(id, this, useKey: useKey, type: type);
+// }
 
-extension SafeBoxX<T> on Box<T> {
-  T safeGet(key) => key != null ? get(key) : null;
-  Future<void> safeDelete(key) => key != null ? delete(key) : null;
-}
+// extension SafeBoxX<T> on Box<T> {
+//   T safeGet(key) => key != null ? get(key) : null;
+//   Future<void> safeDelete(key) => key != null ? delete(key) : null;
+// }
 
 extension RelationshipIterableX on Map<String, Relationship> {
   Set<BelongsTo> get belongsTo => values.whereType<BelongsTo>().toSet();

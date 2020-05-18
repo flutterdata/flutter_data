@@ -43,7 +43,7 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
     //   }
     // }
 
-    final resource = ResourceObject(DataId.getType<T>(), map.id,
+    final resource = ResourceObject(type, map.id,
         attributes: map, relationships: relationships);
     map.remove('id');
 
@@ -79,19 +79,19 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
 
     nativeMap['id'] = obj.id;
 
-    if (obj.relationships != null) {
-      for (var relEntry in obj.relationships.entries) {
-        final rel = relEntry.value;
-        if (rel is ToOne && rel.linkage != null) {
-          final dataId = manager.dataId(rel.linkage.id, type: rel.linkage.type);
-          nativeMap[relEntry.key] = dataId.key;
-        } else if (rel is ToMany) {
-          nativeMap[relEntry.key] = rel.linkage
-              .map((i) => manager.dataId(i.id, type: i.type).key)
-              .toList();
-        }
-      }
-    }
+    // if (obj.relationships != null) {
+    //   for (var relEntry in obj.relationships.entries) {
+    //     final rel = relEntry.value;
+    //     if (rel is ToOne && rel.linkage != null) {
+    //       final dataId = manager.dataId(rel.linkage.id, type: rel.linkage.type);
+    //       nativeMap[relEntry.key] = dataId.key;
+    //     } else if (rel is ToMany) {
+    //       nativeMap[relEntry.key] = rel.linkage
+    //           .map((i) => manager.dataId(i.id, type: i.type).key)
+    //           .toList();
+    //     }
+    //   }
+    // }
 
     nativeMap.addAll(obj.attributes);
 
@@ -99,11 +99,11 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
   }
 
   void _saveIncluded(List<ResourceObject> included) {
-    included ??= const [];
-    for (var i in included) {
-      final dataId = manager.dataId(i.id, type: i.type);
-      final repo = relationshipRepositories[dataId.type] as RemoteAdapter;
-      repo.deserialize(i, key: dataId.key);
-    }
+    //   included ??= const [];
+    //   for (var i in included) {
+    //     final dataId = manager.dataId(i.id, type: i.type);
+    //     final repo = relationshipRepositories[dataId.type] as RemoteAdapter;
+    //     repo.deserialize(i, key: dataId.key);
+    //   }
   }
 }

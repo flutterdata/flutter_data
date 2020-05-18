@@ -11,7 +11,7 @@ class DataManager {
     return DataManager.delegate();
   }
 
-  final graphNotifier = GraphNotifier(DirectedGraph<String, String>());
+  final _graphNotifier = GraphNotifier(DirectedGraph<String, String>());
 
   final _hive = Hive;
 
@@ -59,6 +59,15 @@ class DataManager {
   Future<void> dispose() async {
     await keysBox.close();
   }
+
+  //
+
+  String getKey(String id, {String keyIfAbsent}) =>
+      _graphNotifier.getKey(id, keyIfAbsent: keyIfAbsent);
+
+  String getId(String key) => _graphNotifier.getId(key);
+
+  void deleteKey(String key) => _graphNotifier.deleteKey(key);
 
   // utils
 

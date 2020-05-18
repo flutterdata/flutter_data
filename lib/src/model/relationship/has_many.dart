@@ -15,14 +15,14 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E, Set<E>> {
     }
     final keys = List<String>.from(map['_'][0] as Iterable);
     // TEMP guess if these are keys or ids
-    if (keys.isNotEmpty && keys.first.startsWith('${DataId.getType<E>()}#')) {
+    if (keys.isNotEmpty &&
+        keys.first.startsWith('${Repository.getType<E>()}#')) {
       // we got keys
       return HasMany._(keys, manager, false);
     }
     // ignore_for_file: unnecessary_lambdas
     // we got ids
-    return HasMany._(
-        keys.map((id) => manager.dataId<E>(id).key), manager, false);
+    return HasMany._(keys.map((id) => manager.getId(id)), manager, false);
   }
 
   //

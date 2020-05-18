@@ -85,20 +85,21 @@ void main() async {
     var houseRepo = injection.locator<Repository<House>>();
 
     // (1) first load family (with relationships)
-    var personDataIds = [
-      personRepo.manager.dataId<Person>('1'),
-      personRepo.manager.dataId<Person>('2'),
-      personRepo.manager.dataId<Person>('3')
+    var personKeys = [
+      personRepo.manager.getKey('1'),
+      personRepo.manager.getKey('2'),
+      personRepo.manager.getKey('3')
     ];
-    var houseDataId = personRepo.manager.dataId<House>('98');
+    var houseKey = personRepo.manager.getKey('98');
+
     var family = Family(
       id: '1',
       surname: 'Jones',
       persons: HasMany.fromJson({
-        '_': [personDataIds.map((d) => d.key).toList(), personRepo.manager]
+        '_': [personKeys, false, personRepo.manager]
       }),
       house: BelongsTo.fromJson({
-        '_': [houseDataId.key, personRepo.manager]
+        '_': [houseKey, personRepo.manager]
       }),
     ).init(familyRepo);
 

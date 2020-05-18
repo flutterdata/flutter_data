@@ -27,7 +27,6 @@ part 'src/repository/util/hive_adapter.dart';
 part 'src/repository/adapter/remote_adapter.dart';
 part 'src/repository/adapter/watch_adapter.dart';
 
-part 'src/data/data_id.dart';
 part 'src/data/data_exception.dart';
 part 'src/model/data_support.dart';
 part 'src/model/relationship/relationship.dart';

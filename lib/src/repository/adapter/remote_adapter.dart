@@ -120,14 +120,13 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
     assert(id != null);
 
     remote ??= _remote;
-    final dataId = manager.dataId<T>(id);
+    final key = manager.getKey(id.toString());
 
     if (remote == false) {
-      final model = box.safeGet(dataId.key);
-      if (model == null) {
-        dataId.delete();
+      if (key == null) {
         return null;
       }
+      final model = box.get(key);
       return initModel(model, save: false);
     }
 
@@ -141,8 +140,11 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
       ),
     );
 
+    // ignore: unnecessary_lambdas
     return withResponse<T>(response, (data) {
-      return deserialize(data, key: dataId.key);
+      // data has an ID, deserialize will reuse
+      // corresponding key, if present
+      return deserialize(data);
     });
   }
 
@@ -152,10 +154,9 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
       Map<String, dynamic> params,
       Map<String, String> headers}) async {
     remote ??= _remote;
-    final key = model.key;
 
     if (remote == false) {
-      return initModel(model, key: key, save: true);
+      return initModel(model, save: true);
     }
 
     final body = json.encode(serialize(model));
@@ -176,8 +177,9 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
         // return "old" model if response was empty
         return model;
       }
-      // deserialize already inits models
-      return deserialize(data as Map<String, dynamic>, key: key);
+      // - deserialize already inits models
+      // - if model had a key already, reuse it
+      return deserialize(data as Map<String, dynamic>, key: model.key);
     });
   }
 
@@ -187,11 +189,9 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
       Map<String, dynamic> params,
       Map<String, String> headers}) async {
     remote ??= _remote;
-    final dataId = manager.dataId<T>(id);
 
-    // ignore: unawaited_futures
-    box.safeDelete(dataId.key);
-    dataId?.delete();
+    final key = manager.getKey(id.toString());
+    localDelete(key);
 
     if (remote) {
       final response = await withHttpClient(

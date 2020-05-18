@@ -18,8 +18,15 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   final bool _remote;
   final bool _verbose;
-  final type = DataId.getType<T>();
 
+  @nonVirtual
+  @protected
+  @visibleForTesting
+  final type = getType<T>();
+
+  @nonVirtual
+  @protected
+  @visibleForTesting
   final oneFrameDuration = Duration(milliseconds: 16);
 
   // repo public API
@@ -69,20 +76,23 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   @visibleForTesting
   Map<String, Relationship> relationshipsFor(T model);
 
-  void syncRelationships(T model) {
-    // set model as "owner" in its relationships
-    for (var rel in relationshipsFor(model).values) {
-      rel?.owner = model._dataId;
-    }
-  }
-
   @protected
   @visibleForTesting
   Map<String, dynamic> localSerialize(T model);
 
   @protected
   @visibleForTesting
-  T localDeserialize(Map<String, dynamic> map, {Map<String, dynamic> metadata});
+  T localDeserialize(Map<String, dynamic> map);
+
+  //
+
+  void localDelete(String key) {
+    if (key != null) {
+      box.delete(key);
+      // id will become orphan & purged
+      manager.deleteKey(key);
+    }
+  }
 
   // protected & private
 
@@ -96,27 +106,16 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     _assertManager();
     model._repository ??= this;
 
-    // only init dataId if
-    //  - it hasn't been set
-    //  - there's an updated key to set
-    if (model._dataId == null || (key != null && key != model._dataId.key)) {
-      // (1) establish key
-      model._dataId = DataId<T>(model.id, manager, useKey: key);
+    // ensure key is linked to ID
+    manager.getKey(model.id.toString(), keyIfAbsent: key);
 
-      // if key was already linked to ID
-      // delete the "temporary" local record
-      if (key != null && key != model._dataId.key) {
-        box.delete(key);
-        DataId.byKey<T>(key, manager)?.delete();
-      }
-
-      // (2) sync relationships
-      syncRelationships(model);
+    if (save) {
+      box?.put(model.key, model);
     }
 
-    // (3) save locally
-    if (save) {
-      box?.put(model._dataId.key, model);
+    // set model as "owner" in its relationships
+    for (var rel in relationshipsFor(model).values) {
+      rel?.setOwner(model.key, manager);
     }
 
     return model;
@@ -149,7 +148,7 @@ FlutterData.init(autoModelInit: false);
 
   static Future<Box<E>> getBox<E extends DataSupport<E>>(DataManager manager,
       {List<int> encryptionKey}) async {
-    final boxName = DataId.getType<E>();
+    final boxName = getType<E>();
     if (!manager._hive.isBoxOpen(boxName)) {
       manager._hive.registerAdapter(_HiveTypeAdapter<E>(manager));
     }
@@ -157,4 +156,7 @@ FlutterData.init(autoModelInit: false);
         encryptionCipher:
             encryptionKey != null ? HiveAesCipher(encryptionKey) : null);
   }
+
+  static String getType<T>([String type]) =>
+      pluralize((type ?? T.toString()).toLowerCase());
 }

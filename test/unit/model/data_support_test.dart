@@ -25,7 +25,7 @@ void main() async {
             .init(repo);
 
     // (1) it wires up the relationship (setOwnerInRelationship)
-    expect(model.family.key, repo.manager.dataId<Family>('55').key);
+    expect(model.family.key, repo.manager.getKey('55'));
 
     // (2) it saves the model locally
     expect(model, await repo.findOne(model.id));
@@ -42,7 +42,7 @@ void main() async {
     expect(repository.box.keys, contains(p1.key));
 
     // person with new id, reusing existing key
-    manager.dataId<Person>('221', useKey: p1.key);
+    manager.getKey('221', keyIfAbsent: p1.key);
     var p2 = Person(id: '221', name: 'Frank2', age: 32).init(repository);
     expect(p1.key, p2.key);
 
