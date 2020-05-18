@@ -45,23 +45,29 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
       ...classElement.fields
     };
 
-    List<String> getRelationshipsFor(String kind) =>
-        fieldSet.fold([], (result, field) {
-          if (field.type.element.name == kind &&
-              field.type is ParameterizedType) {
-            final typeParameterName = (field.type as ParameterizedType)
-                .typeArguments
-                .first
-                .element
-                .name;
-            var value =
-                '${field.name}#${DataId.getType(typeParameterName)}#$kind#$typeParameterName';
-            if (!result.contains(value)) {
-              result.add(value);
-            }
+    List<String> getRelationshipsFor(String kind) {
+      return fieldSet.fold([], (result, field) {
+        if (field.type.element.name == kind &&
+            field.type is ParameterizedType) {
+          final typeParameterName = (field.type as ParameterizedType)
+              .typeArguments
+              .first
+              .element
+              .name;
+          final value =
+              '${field.name}#${Repository.getType(typeParameterName)}#$kind#$typeParameterName';
+
+          if (classElement.getSetter(field.name) != null) {
+            throw UnsupportedError(
+                "Can't generate repository for $type. Its `${field.name}` relationship MUST be final");
           }
-          return result;
-        });
+          if (!result.contains(value)) {
+            result.add(value);
+          }
+        }
+        return result;
+      });
+    }
 
     //
 
@@ -83,7 +89,7 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
 
     final relationshipRepositories =
         [...all, ...additionalRepos].asMap().map((_, t) {
-      final type = DataId.getType(t.last);
+      final type = Repository.getType(t.last);
       return MapEntry('\'$type\'', 'manager.locator<Repository<${t.last}>>()');
     });
 
@@ -156,7 +162,7 @@ mixin _\$${type}ModelAdapter on Repository<$type> {
         '_': [map[key], !map.containsKey(key), manager]
       };
     }
-    return $fromJson.._meta.addAll(metadata ?? const {});
+    return $fromJson;
   }
 
   @override
@@ -167,10 +173,6 @@ mixin _\$${type}ModelAdapter on Repository<$type> {
     }
     return map;
   }
-}
-
-extension ${type}FDX on $type {
-  Map<String, dynamic> get _meta => flutterDataMetadata;
 }
 
 class \$${type}Repository = Repository<$type> with ${mixins.join(', ')};

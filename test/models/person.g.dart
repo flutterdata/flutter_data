@@ -24,7 +24,7 @@ mixin _$PersonModelAdapter on Repository<Person> {
         '_': [map[key], !map.containsKey(key), manager]
       };
     }
-    return Person.fromJson(map).._meta.addAll(metadata ?? const {});
+    return Person.fromJson(map);
   }
 
   @override
@@ -35,10 +35,6 @@ mixin _$PersonModelAdapter on Repository<Person> {
     }
     return map;
   }
-}
-
-extension PersonFDX on Person {
-  Map<String, dynamic> get _meta => flutterDataMetadata;
 }
 
 class $PersonRepository = Repository<Person>

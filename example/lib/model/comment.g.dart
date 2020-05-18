@@ -24,7 +24,7 @@ mixin _$CommentModelAdapter on Repository<Comment> {
         '_': [map[key], !map.containsKey(key), manager]
       };
     }
-    return _$CommentFromJson(map).._meta.addAll(metadata ?? const {});
+    return _$CommentFromJson(map);
   }
 
   @override
@@ -35,10 +35,6 @@ mixin _$CommentModelAdapter on Repository<Comment> {
     }
     return map;
   }
-}
-
-extension CommentFDX on Comment {
-  Map<String, dynamic> get _meta => flutterDataMetadata;
 }
 
 class $CommentRepository = Repository<Comment>

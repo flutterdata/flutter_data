@@ -22,7 +22,7 @@ mixin _$UserModelAdapter on Repository<User> {
         '_': [map[key], !map.containsKey(key), manager]
       };
     }
-    return _$UserFromJson(map).._meta.addAll(metadata ?? const {});
+    return _$UserFromJson(map);
   }
 
   @override
@@ -33,10 +33,6 @@ mixin _$UserModelAdapter on Repository<User> {
     }
     return map;
   }
-}
-
-extension UserFDX on User {
-  Map<String, dynamic> get _meta => flutterDataMetadata;
 }
 
 class $UserRepository = Repository<User>

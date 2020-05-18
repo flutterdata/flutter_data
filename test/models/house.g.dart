@@ -24,7 +24,7 @@ mixin _$HouseModelAdapter on Repository<House> {
         '_': [map[key], !map.containsKey(key), manager]
       };
     }
-    return _$HouseFromJson(map).._meta.addAll(metadata ?? const {});
+    return _$HouseFromJson(map);
   }
 
   @override
@@ -35,10 +35,6 @@ mixin _$HouseModelAdapter on Repository<House> {
     }
     return map;
   }
-}
-
-extension HouseFDX on House {
-  Map<String, dynamic> get _meta => flutterDataMetadata;
 }
 
 class $HouseRepository = Repository<House>

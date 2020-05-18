@@ -6,7 +6,7 @@ class _HiveTypeAdapter<T extends DataSupport<T>> with TypeAdapter<T> {
 
   @override
   int get typeId {
-    final type = DataId.getType<T>();
+    final type = Repository.getType<T>();
     final key = '_type_$type';
     final id = manager._keysBox
         .get(key, defaultValue: manager._keysBox.keys.length.toString());
@@ -20,13 +20,7 @@ class _HiveTypeAdapter<T extends DataSupport<T>> with TypeAdapter<T> {
     var fields = <String, dynamic>{
       for (var i = 0; i < n; i++) reader.read().toString(): reader.read(),
     };
-    final n2 = reader.readByte();
-    final metadata = <String, dynamic>{
-      for (var i = 0; i < n2; i++) reader.read().toString(): reader.read(),
-    };
-    return manager
-        .locator<Repository<T>>()
-        .localDeserialize(fixMap(fields), metadata: fixMap(metadata));
+    return manager.locator<Repository<T>>().localDeserialize(fixMap(fields));
   }
 
   @override

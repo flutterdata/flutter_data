@@ -22,7 +22,7 @@ mixin _$DogModelAdapter on Repository<Dog> {
         '_': [map[key], !map.containsKey(key), manager]
       };
     }
-    return Dog.fromJson(map).._meta.addAll(metadata ?? const {});
+    return Dog.fromJson(map);
   }
 
   @override
@@ -33,10 +33,6 @@ mixin _$DogModelAdapter on Repository<Dog> {
     }
     return map;
   }
-}
-
-extension DogFDX on Dog {
-  Map<String, dynamic> get _meta => flutterDataMetadata;
 }
 
 class $DogRepository = Repository<Dog>
@@ -58,7 +54,7 @@ mixin _$CatModelAdapter on Repository<Cat> {
         '_': [map[key], !map.containsKey(key), manager]
       };
     }
-    return Cat.fromJson(map).._meta.addAll(metadata ?? const {});
+    return Cat.fromJson(map);
   }
 
   @override
@@ -69,10 +65,6 @@ mixin _$CatModelAdapter on Repository<Cat> {
     }
     return map;
   }
-}
-
-extension CatFDX on Cat {
-  Map<String, dynamic> get _meta => flutterDataMetadata;
 }
 
 class $CatRepository = Repository<Cat>

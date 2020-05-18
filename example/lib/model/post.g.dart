@@ -26,7 +26,7 @@ mixin _$PostModelAdapter on Repository<Post> {
         '_': [map[key], !map.containsKey(key), manager]
       };
     }
-    return _$PostFromJson(map).._meta.addAll(metadata ?? const {});
+    return _$PostFromJson(map);
   }
 
   @override
@@ -37,10 +37,6 @@ mixin _$PostModelAdapter on Repository<Post> {
     }
     return map;
   }
-}
-
-extension PostFDX on Post {
-  Map<String, dynamic> get _meta => flutterDataMetadata;
 }
 
 class $PostRepository = Repository<Post>

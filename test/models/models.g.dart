@@ -24,7 +24,7 @@ mixin _$ModelModelAdapter on Repository<Model> {
         '_': [map[key], !map.containsKey(key), manager]
       };
     }
-    return Model.fromJson(map).._meta.addAll(metadata ?? const {});
+    return Model.fromJson(map);
   }
 
   @override
@@ -35,10 +35,6 @@ mixin _$ModelModelAdapter on Repository<Model> {
     }
     return map;
   }
-}
-
-extension ModelFDX on Model {
-  Map<String, dynamic> get _meta => flutterDataMetadata;
 }
 
 class $ModelRepository = Repository<Model>
@@ -60,7 +56,7 @@ mixin _$CityModelAdapter on Repository<City> {
         '_': [map[key], !map.containsKey(key), manager]
       };
     }
-    return City.fromJson(map).._meta.addAll(metadata ?? const {});
+    return City.fromJson(map);
   }
 
   @override
@@ -71,10 +67,6 @@ mixin _$CityModelAdapter on Repository<City> {
     }
     return map;
   }
-}
-
-extension CityFDX on City {
-  Map<String, dynamic> get _meta => flutterDataMetadata;
 }
 
 class $CityRepository = Repository<City>
@@ -98,7 +90,7 @@ mixin _$CompanyModelAdapter on Repository<Company> {
         '_': [map[key], !map.containsKey(key), manager]
       };
     }
-    return Company.fromJson(map).._meta.addAll(metadata ?? const {});
+    return Company.fromJson(map);
   }
 
   @override
@@ -109,10 +101,6 @@ mixin _$CompanyModelAdapter on Repository<Company> {
     }
     return map;
   }
-}
-
-extension CompanyFDX on Company {
-  Map<String, dynamic> get _meta => flutterDataMetadata;
 }
 
 class $CompanyRepository = Repository<Company>

@@ -27,7 +27,7 @@ mixin _$FamilyModelAdapter on Repository<Family> {
         '_': [map[key], !map.containsKey(key), manager]
       };
     }
-    return _$FamilyFromJson(map).._meta.addAll(metadata ?? const {});
+    return _$FamilyFromJson(map);
   }
 
   @override
@@ -38,10 +38,6 @@ mixin _$FamilyModelAdapter on Repository<Family> {
     }
     return map;
   }
-}
-
-extension FamilyFDX on Family {
-  Map<String, dynamic> get _meta => flutterDataMetadata;
 }
 
 class $FamilyRepository = Repository<Family>
