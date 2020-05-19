@@ -107,7 +107,9 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     model._repository ??= this;
 
     // ensure key is linked to ID
-    manager.getKey(model.id.toString(), keyIfAbsent: key);
+    key ??= Repository.generateKey<T>();
+    model.key = manager.getKeyForId(type, model.id, keyIfAbsent: key);
+    assert(model.key != null);
 
     if (save) {
       box?.put(model.key, model);
@@ -157,6 +159,18 @@ FlutterData.init(autoModelInit: false);
             encryptionKey != null ? HiveAesCipher(encryptionKey) : null);
   }
 
-  static String getType<T>([String type]) =>
-      pluralize((type ?? T.toString()).toLowerCase());
+  static String getType<T>([String type]) {
+    if (T == dynamic && type == null) {
+      return null;
+    }
+    return pluralize((type ?? T.toString()).toLowerCase());
+  }
+
+  static String generateKey<T>([String type]) {
+    final ts = getType<T>(type);
+    if (ts == null) {
+      return null;
+    }
+    return '${getType<T>(type)}#${DataManager._uuid.v1().substring(0, 8)}';
+  }
 }

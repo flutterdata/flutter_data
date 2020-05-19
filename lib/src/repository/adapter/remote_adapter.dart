@@ -120,7 +120,8 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
     assert(id != null);
 
     remote ??= _remote;
-    final key = manager.getKey(id.toString());
+    final key =
+        manager.getKeyForId(type, id, keyIfAbsent: Repository.generateKey());
 
     if (remote == false) {
       if (key == null) {
@@ -190,7 +191,7 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
       Map<String, String> headers}) async {
     remote ??= _remote;
 
-    final key = manager.getKey(id.toString());
+    final key = manager.getKeyForId(type, id);
     localDelete(key);
 
     if (remote) {

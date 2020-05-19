@@ -2,7 +2,6 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
 import '../../../models/family.dart';
-import '../../../models/house.dart';
 import '../../../models/person.dart';
 import '../../setup.dart';
 
@@ -19,7 +18,7 @@ void main() async {
     expect(rel.length, 0);
 
     rel = HasMany<Person>({person}, manager);
-    expect(rel.first.key, manager.getKey('1'));
+    expect(rel.first.key, manager.getKeyForId('people', '1'));
   });
 
   test('HasMany is a Set', () {
@@ -71,7 +70,7 @@ void main() async {
 
     var rel = HasMany<Person>.fromJson({
       '_': [
-        [manager.getKey('1')],
+        [manager.getKeyForId('people', '1')],
         false,
         manager
       ]
@@ -80,7 +79,7 @@ void main() async {
 
     expect(rel, HasMany<Person>({person}, manager));
     expect(rel.first, person);
-    expect(rel.first.key, manager.getKey('1'));
+    expect(rel.first.key, manager.getKeyForId('people', '1'));
   });
 
   test('does not contain nulls', () {

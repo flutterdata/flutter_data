@@ -1,53 +1,46 @@
 import 'dart:collection';
 import 'package:state_notifier/state_notifier.dart';
 
-class GraphNotifier extends StateNotifier<DirectedGraph<String, String>> {
-  GraphNotifier(DirectedGraph<String, String> graph) : super(graph);
+class GraphNotifier extends StateNotifier<_DirectedGraph<String, String>> {
+  GraphNotifier() : super(_DirectedGraph<String, String>());
 
-  void add(String key, [String to, bool isId = false]) {
+  // - translate keys/ids
+
+  void _add(String key, [String to]) {
     assert(key != null);
+    // print('_add: ${state.edgesFrom(key)} $hashCode');
     if (to == null) {
+      // print('adding node as $key');
       state.addNode(key);
     } else {
-      assert(!to.startsWith('_'));
-      if (isId) {
-        to = '_$to';
-      }
       state.addEdge(key, to);
-      state.addEdge(to, key);
     }
     state = state;
   }
 
-  void remove(String key, [String to, bool isId = false]) {
+  void _remove(String key, String to) {
     assert(key != null);
-    if (to == null) {
-      state.removeNode(key);
-    } else {
-      assert(!to.startsWith('_'));
-      if (isId) {
-        to = '_$to';
-      }
-      state.removeEdge(key, to);
-      state.removeEdge(to, key);
-    }
+    state.removeEdge(key, to);
     state = state;
   }
 
   String getId(String key) {
-    final entries = state.findNode(key)?.entries;
-    final e =
-        entries.firstWhere((e) => e.key.startsWith('_'), orElse: () => null);
-    return e?.key?.substring(1, e.key.length);
+    final edges = state.edgesFrom(key);
+    final id = edges?.firstWhere((e) => e.startsWith('_'), orElse: () => null);
+    return id != null ? (id.split('#')..removeAt(0)).join('#') : null;
   }
 
-  String getKey(String id, {String keyIfAbsent}) {
-    final node = state.findNode('_$id');
-    if (node != null && node.isNotEmpty) {
-      return node.keys.first;
+  String getKeyForId(String type, dynamic id, {String keyIfAbsent}) {
+    assert(!id.toString().startsWith('_'));
+
+    final nodeId = '_$type#$id';
+    final edges = state.edgesFrom(nodeId);
+    if (edges != null && edges.isNotEmpty) {
+      return edges.first;
     }
     if (keyIfAbsent != null) {
-      add(keyIfAbsent, id, true);
+      _add(keyIfAbsent, nodeId);
+      return keyIfAbsent;
     }
     return null;
   }
@@ -55,11 +48,14 @@ class GraphNotifier extends StateNotifier<DirectedGraph<String, String>> {
   void deleteKey(String key) {
     state.removeNode(key);
   }
+
+  Set<String> relationshipKeysFor<E>(String key, String type) =>
+      state.edgesFrom(key).where((key) => key.startsWith('$type#')).toSet();
 }
 
 class RelNotifier extends StateNotifier<Set<String>> {
   RelNotifier({this.notifier, this.ownerKey}) : super({}) {
-    notifier.add(ownerKey); // ensure key exists
+    notifier._add(ownerKey); // ensure key exists
     _disposeFn = notifier.addListener((graphState) {
       state = graphState.edgesFrom(ownerKey).toSet();
     });
@@ -68,9 +64,7 @@ class RelNotifier extends StateNotifier<Set<String>> {
   final GraphNotifier notifier;
   RemoveListener _disposeFn;
 
-  void add(String to, {String withKey}) {
-    notifier.add(withKey ?? ownerKey, to);
-  }
+  void add(String to) => notifier._add(ownerKey, to);
 
   void addAll(Iterable<String> tos) {
     for (var to in tos) {
@@ -78,34 +72,32 @@ class RelNotifier extends StateNotifier<Set<String>> {
     }
   }
 
-  void remove(String to, {String withKey}) {
-    notifier.remove(withKey ?? ownerKey, to);
-  }
+  void remove(String to) => notifier._remove(ownerKey, to);
 
-  void removeAll() {
-    for (var to in relationshipKeys) {
+  void removeAllFor(String type) {
+    for (var to in relationshipKeys(type)) {
       remove(to);
     }
   }
 
-  void addId(String id, {String withKey}) {
-    notifier.add(withKey ?? ownerKey, id, true);
-  }
+  // void addId(String id, {String withKey}) {
+  //   notifier._add(withKey ?? ownerKey, id, true);
+  // }
 
-  void removeId(String id, {String withKey}) {
-    notifier.remove(withKey ?? ownerKey, id, true);
-  }
+  // void removeId(String id, {String withKey}) {
+  //   notifier._remove(withKey ?? ownerKey, id, true);
+  // }
 
-  String getId({String withKey}) {
-    return notifier.getId(withKey ?? ownerKey);
-  }
+  // String getId({String withKey}) {
+  //   return notifier.getId(withKey ?? ownerKey);
+  // }
 
-  String getKey({String id}) {
-    return id != null ? notifier.getKey(id) : ownerKey;
-  }
+  // String getKey({String id}) {
+  //   return id != null ? notifier.getKeyForId(id) : ownerKey;
+  // }
 
-  Set<String> get relationshipKeys =>
-      state.where((key) => !key.startsWith('_')).toSet();
+  Set<String> relationshipKeys(String type) =>
+      state.where((key) => key.startsWith('$type#')).toSet();
 
   @override
   void dispose() {
@@ -196,8 +188,8 @@ extension GraphNotifierX on GraphNotifier {
 // under MIT license
 // https://github.com/kevmoo/graph/blob/14c7f0cf000aeede1c55a3298990a7007b16a4dd/LICENSE
 
-class DirectedGraph<K, E> {
-  final Map<K, NodeImpl<K, E>> _nodes;
+class _DirectedGraph<K, E> {
+  final Map<K, _NodeImpl<K, E>> _nodes;
   final Map<K, Map<K, Set<E>>> mapView;
 
   // final HashHelper<K> _hashHelper;
@@ -209,19 +201,19 @@ class DirectedGraph<K, E> {
   int get edgeCount =>
       _nodes.values.expand((n) => n.values).expand((s) => s).length;
 
-  DirectedGraph._(this._nodes) // , this._hashHelper
+  _DirectedGraph._(this._nodes) // , this._hashHelper
       : mapView = UnmodifiableMapView(_nodes);
 
-  DirectedGraph({
+  _DirectedGraph({
     bool Function(K key1, K key2) equals,
     int Function(K key) hashCode,
   }) : this._(
-          HashMap<K, NodeImpl<K, E>>(hashCode: hashCode, equals: equals),
+          HashMap<K, _NodeImpl<K, E>>(hashCode: hashCode, equals: equals),
           // HashHelper(equals, hashCode),
         );
 
-  factory DirectedGraph.fromMap(Map<K, Object> source) {
-    final graph = DirectedGraph<K, E>();
+  factory _DirectedGraph.fromMap(Map<K, Object> source) {
+    final graph = _DirectedGraph<K, E>();
 
     MapEntry<K, E> fromMapValue(Object e) {
       if (e is Map &&
@@ -292,22 +284,25 @@ class DirectedGraph<K, E> {
 
     // ensure the `to` node exists
     _nodeFor(to);
-    return _nodeFor(from).addEdge(to, edgeData);
+    return _nodeFor(from).addEdge(to, edgeData) &&
+        _nodeFor(to).addEdge(from, edgeData);
   }
 
   bool removeEdge(K from, K to, {E edgeData}) {
     final fromNode = _nodes[from];
+    final toNode = _nodes[to];
 
-    if (fromNode == null) {
+    if (fromNode == null || toNode == null) {
       return false;
     }
 
-    return fromNode.removeEdge(to, edgeData);
+    return fromNode.removeEdge(to, edgeData) &&
+        toNode.removeEdge(from, edgeData);
   }
 
-  NodeImpl<K, E> _nodeFor(K nodeKey) {
+  _NodeImpl<K, E> _nodeFor(K nodeKey) {
     assert(nodeKey != null);
-    final node = _nodes.putIfAbsent(nodeKey, () => NodeImpl());
+    final node = _nodes.putIfAbsent(nodeKey, () => _NodeImpl());
     return node;
   }
 
@@ -318,11 +313,6 @@ class DirectedGraph<K, E> {
   /// Returns all of the nodes with edges from [node].
   Iterable<K> edgesFrom(K node) {
     return _nodes[node]?.keys;
-  }
-
-  /// Returns [node].
-  NodeImpl<K, E> findNode(K node) {
-    return _nodes[node];
   }
 
   // removes: IDs (= keys starting with _) & orphan nodes from serialization
@@ -346,13 +336,13 @@ MapEntry<Key, List<Object>> _toMapValue<Key>(
   return MapEntry(entry.key, nodeEdges);
 }
 
-class NodeImpl<K, E> extends UnmodifiableMapBase<K, Set<E>> {
+class _NodeImpl<K, E> extends UnmodifiableMapBase<K, Set<E>> {
   final Map<K, Set<E>> _map;
 
-  NodeImpl._(this._map);
+  _NodeImpl._(this._map);
 
-  factory NodeImpl({Iterable<MapEntry<K, E>> edges}) {
-    final node = NodeImpl._(
+  factory _NodeImpl({Iterable<MapEntry<K, E>> edges}) {
+    final node = _NodeImpl._(
       HashMap<K, Set<E>>(
           // equals: hashHelper.equalsField,
           // hashCode: hashHelper.hashCodeField,

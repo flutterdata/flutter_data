@@ -62,7 +62,7 @@ mixin WatchAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
       Map<String, String> headers,
       AlsoWatch<T> alsoWatch}) {
     remote ??= _remote;
-    final key = manager.getKey(id.toString());
+    final key = manager.getKeyForId(type, id);
     if (key == null) {
       return null;
     }

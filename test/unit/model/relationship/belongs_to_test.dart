@@ -15,7 +15,7 @@ void main() async {
     var rel = BelongsTo<Person>(null, manager);
     expect(rel.key, isNull);
     rel = BelongsTo<Person>(Person(id: '1', name: 'zzz', age: 7), manager);
-    expect(rel.key, manager.getKey('1'));
+    expect(rel.key, manager.getKeyForId('people', '1'));
   });
 
   test('deserialize with included BelongsTo', () async {
@@ -36,13 +36,13 @@ void main() async {
     var manager = repo.manager;
 
     var rel = BelongsTo<Person>.fromJson({
-      '_': [manager.getKey('1'), false, manager]
+      '_': [manager.getKeyForId('people', '1'), false, manager]
     });
     var person = Person(id: '1', name: 'zzz', age: 7);
     repo.save(person);
 
     expect(rel, BelongsTo<Person>(person, manager));
-    expect(rel.key, manager.getKey('1'));
+    expect(rel.key, manager.getKeyForId('people', '1'));
     expect(rel.value, person);
   });
 
@@ -63,8 +63,9 @@ void main() async {
     family.init(repo);
 
     // relationships are now associated to a key
-    expect(family.house.key, repo.manager.getKey('31'));
-    expect(family.persons.keys.first, repo.manager.getKey('1'));
+    expect(family.house.key, repo.manager.getKeyForId('families', '31'));
+    expect(
+        family.persons.keys.first, repo.manager.getKeyForId('families', '1'));
   });
 
   test('watch', () {

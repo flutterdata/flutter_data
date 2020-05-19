@@ -17,9 +17,11 @@ extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
 
   Repository<T> get _repository =>
       flutterDataMetadata['_repository'] as Repository<T>;
-  set _repository(Repository<T> value) {
-    if (_repository != null) flutterDataMetadata['_repository'] = value;
-  }
+  set _repository(Repository<T> value) =>
+      flutterDataMetadata['_repository'] ??= value;
+
+  String get key => flutterDataMetadata['_key'] as String;
+  set key(String value) => flutterDataMetadata['_key'] ??= value;
 
   bool get _save => flutterDataMetadata['_save'] as bool;
   set _save(bool value) => flutterDataMetadata['_save'] = value;
@@ -29,8 +31,6 @@ extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
   DataManager get _manager => _repository?.manager;
 
   T get _this => this as T;
-
-  String get key => _repository?.manager?.getKey(id.toString());
 
   Future<T> save(
       {bool remote,

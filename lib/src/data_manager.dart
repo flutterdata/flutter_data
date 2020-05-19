@@ -6,12 +6,14 @@ class DataManager {
 
   factory DataManager({bool autoModelInit = true}) {
     if (autoModelInit) {
-      return _autoModelInitDataManager = DataManager.delegate();
+      return _autoModelInitDataManager ??= DataManager.delegate();
     }
     return DataManager.delegate();
   }
 
-  final _graphNotifier = GraphNotifier(DirectedGraph<String, String>());
+  static final _uuid = Uuid();
+
+  final _graphNotifier = GraphNotifier();
 
   final _hive = Hive;
 
@@ -60,16 +62,18 @@ class DataManager {
     await keysBox.close();
   }
 
-  //
+  // identity
 
-  String getKey(String id, {String keyIfAbsent}) =>
-      _graphNotifier.getKey(id, keyIfAbsent: keyIfAbsent);
+  String getKeyForId(String type, dynamic id, {String keyIfAbsent}) =>
+      _graphNotifier.getKeyForId(type, id, keyIfAbsent: keyIfAbsent);
 
   String getId(String key) => _graphNotifier.getId(key);
 
   void deleteKey(String key) => _graphNotifier.deleteKey(key);
 
   // utils
+
+  Map<String, Object> dumpGraph() => _graphNotifier.debugState.toMap();
 
   final _assertMessage = '''\n
 This manager has not been initialized.

@@ -2,7 +2,7 @@ part of flutter_data;
 
 class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E, E> {
   BelongsTo([E model, DataManager manager, bool _save])
-      : super({model}, manager, _save);
+      : super(model != null ? {model} : null, manager, _save);
 
   BelongsTo._(String key, DataManager manager, bool _wasOmitted)
       : super._({key}, manager, _wasOmitted);
@@ -14,12 +14,17 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E, E> {
       final wasOmitted = map['_'][1] as bool;
       return BelongsTo._(null, manager, wasOmitted);
     }
-    if (key.startsWith('${Repository.getType<E>()}#')) {
+    final type = Repository.getType<E>();
+    if (key.startsWith('$type#')) {
       // we got key
       return BelongsTo._(key, manager, false);
     }
     // we got id (key is actually the ID)
-    return BelongsTo._(manager.getId(key), manager, false);
+    return BelongsTo._(
+        manager.getKeyForId(type, key,
+            keyIfAbsent: Repository.generateKey<E>()),
+        manager,
+        false);
   }
 
   //

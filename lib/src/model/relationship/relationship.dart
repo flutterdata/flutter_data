@@ -18,6 +18,7 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
 
   DataStateNotifier<N> _notifier;
 
+  @protected
   final String type = Repository.getType<E>();
   Repository<E> get _repository => manager?.locator<Repository<E>>();
 
@@ -38,9 +39,21 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
   @protected
   @visibleForTesting
   void initializeModels() {
-    if (_repository != null) {
-      addAll(_uninitializedModels);
-      _uninitializedModels.clear();
+    // loop over a copy of the _uninitializedModels set
+    for (var model in _uninitializedModels.toSet()) {
+      // attempt to initialize
+      // if it doesn't work in the (first) constructor call
+      // it will work in the (second) setOwner call
+      if (_repository != null) {
+        _repository.initModel(model);
+      }
+      if (model.key != null) {
+        _uninitializedKeys.add(model.key);
+        _uninitializedModels.remove(model);
+      }
+      if (_repository != null) {
+        assert(_uninitializedModels.isEmpty == true);
+      }
     }
   }
 
@@ -50,13 +63,14 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
     _relNotifier = manager._graphNotifier.notifierFor(_owner);
     if (!_wasOmitted) {
       // if it wasn't omitted, we overwrite
-      _relNotifier.removeAll();
+      _relNotifier.removeAllFor(type);
       _relNotifier.addAll(_uninitializedKeys);
       _uninitializedKeys.clear();
     }
   }
 
   void setOwner(String key, DataManager manager) {
+    assert(key != null);
     _owner = key;
     this.manager = manager;
     initializeModels();
@@ -75,22 +89,21 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
     _repository != null
         ? _relNotifier?.add(_repository.initModel(value, save: _save).key)
         : _uninitializedModels.add(value);
-
-    // _notifier?.state = DataState(model: this);
     return true;
   }
 
   @override
   bool contains(Object element) {
     if (element is E && _relNotifier != null) {
-      return _relNotifier.relationshipKeys.contains(element?.key) ||
+      return _relNotifier.relationshipKeys(type).contains(element?.key) ||
           _uninitializedModels.contains(element);
     }
     return false;
   }
 
   Iterable<E> get _iterable => [
-        ..._relNotifier?.relationshipKeys
+        ..._relNotifier
+            ?.relationshipKeys(type)
             ?.map((key) => _repository.box.get(key)),
         ..._uninitializedModels
       ].where((model) => model != null);
@@ -112,7 +125,6 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
     if (value is E) {
       _relNotifier?.remove(value?.key);
       _uninitializedModels.remove(value);
-      // _notifier?.state = DataState(model: this);
       return true;
     }
     return false;
@@ -126,7 +138,7 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
     return _iterable.toSet();
   }
 
-  Set<String> get keys => _relNotifier?.relationshipKeys ?? {};
+  Set<String> get keys => _relNotifier?.relationshipKeys(type) ?? {};
 
   // abstract
 
