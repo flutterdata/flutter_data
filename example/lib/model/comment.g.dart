@@ -6,8 +6,7 @@ part of 'comment.dart';
 // DataGenerator
 // **************************************************************************
 
-// ignore_for_file: unused_local_variable
-// ignore_for_file: always_declare_return_types
+// ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names
 mixin _$CommentModelAdapter on Repository<Comment> {
   @override
   Map<String, Map<String, Object>> relationshipsFor(Comment model) => {

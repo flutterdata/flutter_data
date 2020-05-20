@@ -6,8 +6,7 @@ part of 'models.dart';
 // DataGenerator
 // **************************************************************************
 
-// ignore_for_file: unused_local_variable
-// ignore_for_file: always_declare_return_types
+// ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names
 mixin _$ModelModelAdapter on Repository<Model> {
   @override
   Map<String, Map<String, Object>> relationshipsFor(Model model) => {
@@ -41,8 +40,7 @@ mixin _$ModelModelAdapter on Repository<Model> {
 class $ModelRepository = Repository<Model>
     with _$ModelModelAdapter, RemoteAdapter<Model>, WatchAdapter<Model>;
 
-// ignore_for_file: unused_local_variable
-// ignore_for_file: always_declare_return_types
+// ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names
 mixin _$CityModelAdapter on Repository<City> {
   @override
   Map<String, Map<String, Object>> relationshipsFor(City model) => {};
@@ -73,8 +71,7 @@ mixin _$CityModelAdapter on Repository<City> {
 class $CityRepository = Repository<City>
     with _$CityModelAdapter, RemoteAdapter<City>, WatchAdapter<City>;
 
-// ignore_for_file: unused_local_variable
-// ignore_for_file: always_declare_return_types
+// ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names
 mixin _$CompanyModelAdapter on Repository<Company> {
   @override
   Map<String, Map<String, Object>> relationshipsFor(Company model) => {

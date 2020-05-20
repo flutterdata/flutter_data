@@ -27,7 +27,7 @@ void main() async {
     expect(houseRepo.box.keys, isEmpty);
   });
 
-  test('bt', () {
+  test('scenario #1', () {
     // house does not yet exist
     final f1 =
         familyRepo.deserialize({'id': '1', 'surname': 'Rose', 'house': '1'});
@@ -81,7 +81,7 @@ void main() async {
     expect(f1e.house.value, isNull);
   });
 
-  test('relationship scenario #1', () {
+  test('scenario #2', () {
     final personRepo = injection.locator<Repository<Person>>();
     final familyRepo = injection.locator<Repository<Family>>();
     final houseRepo = injection.locator<Repository<House>>();
@@ -127,7 +127,7 @@ void main() async {
     expect(house.families, contains(family)); // same, passes here again
   });
 
-  test('relationship scenario #2', () {
+  test('scenario #3', () {
     final repository = injection.locator<Repository<Family>>();
     final repositoryPerson = injection.locator<Repository<Person>>();
 

@@ -101,15 +101,24 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     if (model == null) {
       return null;
     }
-    save ??= true;
+    // already initialized
+    if (keyFor(model) != null) {
+      return model;
+    }
+
+    // initialize
+
+    save = true;
 
     _assertManager();
-    model._repository ??= this;
+    model._repository = this;
 
     // ensure key is linked to ID
+    // if no ID, register key
     key ??= Repository.generateKey<T>();
-    model._flutterDataMetadata['_key'] =
-        manager.getKeyForId(type, model.id, keyIfAbsent: key);
+    model._flutterDataMetadata['_key'] = model.id != null
+        ? manager.getKeyForId(type, model.id, keyIfAbsent: key)
+        : manager._graphNotifier.addNode(key);
     assert(keyFor(model) != null);
 
     if (save) {

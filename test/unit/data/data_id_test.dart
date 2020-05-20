@@ -21,11 +21,14 @@ void main() async {
     expect(manager.getId(key), '29');
   });
 
-  test('reuses a key', () {
+  test('reassign a key', () {
     final manager = TestDataManager(null);
     final key =
         manager.getKeyForId('people', '1', keyIfAbsent: 'people#a5a5a5');
     expect(key, 'people#a5a5a5');
+
+    manager.getKeyForId('people', '2', keyIfAbsent: 'people#a5a5a5');
+    expect(manager.getId(key), '2');
   });
 
   // static utils

@@ -5,7 +5,7 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E, E> {
       : super(model != null ? {model} : null, manager, _save);
 
   BelongsTo._(String key, DataManager manager, bool _wasOmitted)
-      : super._({key}, manager, _wasOmitted);
+      : super._(key != null ? {key} : {}, manager, _wasOmitted);
 
   factory BelongsTo.fromJson(Map<String, dynamic> map) {
     final key = map['_'][0] as String;

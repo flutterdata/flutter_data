@@ -31,8 +31,6 @@ void main() async {
       dispose();
     }
 
-    // TODO: test addListener continuously - via expectAsync1 (but it's difficult to work with)
-
     expect(repo.box.keys.length, 3);
   });
 

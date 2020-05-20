@@ -27,7 +27,6 @@ part 'src/repository/util/hive_adapter.dart';
 part 'src/repository/adapter/remote_adapter.dart';
 part 'src/repository/adapter/watch_adapter.dart';
 
-part 'src/data/data_exception.dart';
 part 'src/model/data_support.dart';
 part 'src/model/relationship/relationship.dart';
 part 'src/model/relationship/has_many.dart';
@@ -35,7 +34,8 @@ part 'src/model/relationship/belongs_to.dart';
 
 part 'src/repository/repository.dart';
 
-part 'src/data/extensions.dart';
+part 'src/util/data_exception.dart';
+part 'src/util/extensions.dart';
 part 'src/util/service_locator.dart';
 
 DataManager _autoModelInitDataManager;

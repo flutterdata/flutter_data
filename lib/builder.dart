@@ -156,8 +156,7 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
     // main
 
     return '''
-// ignore_for_file: unused_local_variable
-// ignore_for_file: always_declare_return_types
+// ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names
 mixin _\$${type}ModelAdapter on Repository<$type> {
   @override
   Map<String, Map<String, Object>> relationshipsFor($type model) =>
@@ -285,7 +284,7 @@ List<SingleChildWidget> dataProviders(Future<Directory> Function() directory, {b
 
     var out = '''\n
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: directives_ordering, non_constant_identifier_names
+// ignore_for_file: directives_ordering
 
 import 'dart:io';
 import 'package:flutter_data/flutter_data.dart';

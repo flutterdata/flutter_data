@@ -6,66 +6,76 @@ import 'package:state_notifier/state_notifier.dart';
 class GraphNotifier extends StateNotifier<DataGraph> {
   GraphNotifier() : super(DataGraph());
 
-  // this layer translates keys/ids
-  // tags rel names
+  // this layer translates keys/ids and adds metadata to edges
 
-  void add(String fromNode, [String toNode]) {
-    if (toNode == null) {
-      state.addNode(fromNode);
-    } else {
-      state.addEdge(fromNode, toNode);
-    }
+  String addNode(String key) {
+    state.addNode(key);
+    state = state;
+    return key;
+  }
+
+  void removeNode(String key) {
+    state.removeNode(key);
     state = state;
   }
 
-  void remove(String fromNode, [String toNode]) {
-    state.removeEdge(fromNode, toNode);
+  void add(String from, String to, {String fromMetadata, String toMetadata}) {
+    state.add(from, to, fromMetadata: fromMetadata, toMetadata: toMetadata);
     state = state;
   }
 
-  void addAll(String fromNode, Iterable<String> toNodes) {
-    for (var toNode in toNodes) {
-      add(fromNode, toNode);
+  void remove(String from, String to) {
+    state.remove(from, to);
+    state = state;
+  }
+
+  void addAll(String from, Iterable<String> tos,
+      {String fromMetadata, String toMetadata}) {
+    for (var to in tos) {
+      add(from, to, fromMetadata: fromMetadata, toMetadata: toMetadata);
     }
   }
 
-  void removeAllFor(String fromNode, String type) {
-    for (var toNode in relationshipKeysFor(fromNode, type)) {
-      remove(fromNode, toNode);
+  void removeAllFor(String from, String fromMetadata) {
+    final keys = relationshipKeysFor(from, fromMetadata);
+    if (keys != null) {
+      for (var to in keys) {
+        remove(from, to);
+      }
     }
-  }
-
-  //
-
-  String getId(String key) {
-    final edges = state.edgesFrom(key);
-    final id = edges?.firstWhere((e) => e.startsWith('_'), orElse: () => null);
-    return id != null ? (id.split('#')..removeAt(0)).join('#') : null;
-  }
-
-  String getKeyForId(String type, dynamic id, {String keyIfAbsent}) {
-    assert(!id.toString().startsWith('_'));
-
-    final nodeId = '_$type#$id';
-    final edges = state.edgesFrom(nodeId);
-    if (edges != null && edges.isNotEmpty) {
-      return edges.first;
-    }
-    if (keyIfAbsent != null) {
-      add(keyIfAbsent, nodeId);
-      return keyIfAbsent;
-    }
-    return null;
   }
 
   void deleteKey(String key) {
     state.removeNode(key);
   }
 
-  Set<String> relationshipKeysFor<E>(String fromNode, String type) => state
-      .edgesFrom(fromNode)
-      .where((key) => key.startsWith('$type#'))
-      .toSet();
+  Set<String> relationshipKeysFor<E>(
+          String fromNode, String relationshipName) =>
+      state.edgesFrom(fromNode, relationshipName)?.toSet();
+
+  //
+
+  String getId(String key) {
+    final edges = relationshipKeysFor(key, 'id');
+    return edges == null || edges.isEmpty
+        ? null
+        : (edges.first.split('#')..removeAt(0)).join('#');
+  }
+
+  String getKeyForId(String type, dynamic id, {String keyIfAbsent}) {
+    assert(id != null);
+    final nodeId = '$type#$id';
+    final edges = state.edgesFrom(nodeId, '_key');
+    if (edges != null && edges.isNotEmpty) {
+      return edges.first;
+    }
+    if (keyIfAbsent != null) {
+      removeAllFor(keyIfAbsent, 'id');
+      add(keyIfAbsent, nodeId, fromMetadata: 'id', toMetadata: '_key');
+      return keyIfAbsent;
+    }
+    return null;
+  }
 }
 
 // adapted from https://github.com/kevmoo/graph/
@@ -150,25 +160,22 @@ class DataGraph {
     return nodeA.containsKey(b) || _nodes[b].containsKey(a);
   }
 
-  bool addEdge(String from, String to,
-      {String metadata, String inverseMetadata}) {
+  bool add(String from, String to, {String fromMetadata, String toMetadata}) {
     assert(from != null, 'from cannot be null');
-    assert(to != null, 'to cannot be null');
 
     // ensure the `to` node exists
     _nodeFor(to);
-    return _nodeFor(from).addEdge(to, metadata) &&
-        _nodeFor(to).addEdge(from, inverseMetadata);
+    return _nodeFor(from).addEdge(to, fromMetadata) &&
+        _nodeFor(to).addEdge(from, toMetadata);
   }
 
-  bool removeEdge(String from, String to) {
+  bool remove(String from, String to) {
     final fromNode = _nodes[from];
     final toNode = _nodes[to];
 
     if (fromNode == null || toNode == null) {
       return false;
     }
-
     return fromNode.removeEdge(to) && toNode.removeEdge(from);
   }
 
@@ -182,9 +189,13 @@ class DataGraph {
     _nodes.clear();
   }
 
-  /// Returns all of the nodes with edges from [node].
-  Iterable<String> edgesFrom(String node, [String metadata]) {
-    return _nodes[node].entries.where((e) {
+  /// Returns all of the nodes with edges from [key].
+  Iterable<String> edgesFrom(String key, [String metadata]) {
+    final node = _nodes[key];
+    if (node == null) {
+      return null;
+    }
+    return node.entries.where((e) {
       if (metadata != null) {
         return e.value == metadata;
       }
@@ -227,7 +238,6 @@ class _NodeImpl extends UnmodifiableMapBase<String, String> {
   }
 
   bool removeEdge(String target) {
-    assert(target != null);
     return _map.remove(target) != null;
   }
 

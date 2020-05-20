@@ -21,9 +21,8 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E, Set<E>> {
       // we got keys
       return HasMany._(keys, manager, false);
     }
-    // ignore_for_file: unnecessary_lambdas
-    // we got ids
 
+    // we got ids
     return HasMany._(
         keys.map((id) => manager.getKeyForId(type, id,
             keyIfAbsent: Repository.generateKey<E>())),

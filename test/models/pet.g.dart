@@ -6,8 +6,7 @@ part of 'pet.dart';
 // DataGenerator
 // **************************************************************************
 
-// ignore_for_file: unused_local_variable
-// ignore_for_file: always_declare_return_types
+// ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names
 mixin _$DogModelAdapter on Repository<Dog> {
   @override
   Map<String, Map<String, Object>> relationshipsFor(Dog model) => {};
@@ -38,8 +37,7 @@ mixin _$DogModelAdapter on Repository<Dog> {
 class $DogRepository = Repository<Dog>
     with _$DogModelAdapter, RemoteAdapter<Dog>, WatchAdapter<Dog>;
 
-// ignore_for_file: unused_local_variable
-// ignore_for_file: always_declare_return_types
+// ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names
 mixin _$CatModelAdapter on Repository<Cat> {
   @override
   Map<String, Map<String, Object>> relationshipsFor(Cat model) => {};
