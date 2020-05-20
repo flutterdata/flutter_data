@@ -10,7 +10,11 @@ part of 'house.dart';
 mixin _$HouseModelAdapter on Repository<House> {
   @override
   Map<String, Map<String, Object>> relationshipsFor(House model) => {
-        'families': {'inverse': 'house', 'instance': model?.families}
+        'owner': {
+          'inverse': 'residence',
+          'type': 'families',
+          'instance': model?.owner
+        }
       };
 
   @override
@@ -19,7 +23,7 @@ mixin _$HouseModelAdapter on Repository<House> {
 
   @override
   localDeserialize(map, {metadata}) {
-    for (var key in relationshipsFor(null).keys) {
+    for (var key in relationshipNames) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
       };
@@ -48,14 +52,14 @@ House _$HouseFromJson(Map<String, dynamic> json) {
   return House(
     id: json['id'] as String,
     address: json['address'] as String,
-    families: json['families'] == null
+    owner: json['owner'] == null
         ? null
-        : HasMany.fromJson(json['families'] as Map<String, dynamic>),
+        : BelongsTo.fromJson(json['owner'] as Map<String, dynamic>),
   );
 }
 
 Map<String, dynamic> _$HouseToJson(House instance) => <String, dynamic>{
       'id': instance.id,
       'address': instance.address,
-      'families': instance.families,
+      'owner': instance.owner,
     };

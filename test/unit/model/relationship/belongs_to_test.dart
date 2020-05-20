@@ -24,7 +24,7 @@ void main() async {
     var houseRepo = injection.locator<Repository<House>>();
 
     var house = {'id': '432337', 'address': 'Ozark Lake, MO'};
-    var familyJson = {'surname': 'Byrde', 'house': house};
+    var familyJson = {'surname': 'Byrde', 'residence': house};
     repo.deserialize(familyJson);
 
     expect(await houseRepo.findOne('432337'),
@@ -53,17 +53,17 @@ void main() async {
     var family = Family(
         id: '1',
         surname: 'Smith',
-        house: BelongsTo<House>(house),
+        residence: BelongsTo<House>(house),
         persons: HasMany<Person>({person}));
 
     // no dataId associated to family or relationships
-    expect(family.house.key, isNull);
+    expect(family.residence.key, isNull);
     expect(family.persons.keys, isEmpty);
 
     family.init(repo);
 
     // relationships are now associated to a key
-    expect(family.house.key, repo.manager.getKeyForId('families', '31'));
+    expect(family.residence.key, repo.manager.getKeyForId('families', '31'));
     expect(
         family.persons.keys.first, repo.manager.getKeyForId('families', '1'));
   });
@@ -73,16 +73,20 @@ void main() async {
     var family = Family(
       id: '1',
       surname: 'Smith',
-      house: BelongsTo<House>(),
+      residence: BelongsTo<House>(),
     ).init(repository);
 
-    var notifier = family.house.watch();
+    var notifier = family.residence.watch();
     for (var i = 0; i < 3; i++) {
-      if (i == 1) family.house.value = House(id: '31', address: '123 Main St');
-      if (i == 2) family.house.value = null;
+      if (i == 1) {
+        family.residence.value = House(id: '31', address: '123 Main St');
+      }
+      if (i == 2) {
+        family.residence.value = null;
+      }
       var dispose = notifier.addListener((state) {
         if (i == 0) expect(state.model, null);
-        if (i == 1) expect(state.model, family.house.value);
+        if (i == 1) expect(state.model, family.residence.value);
         if (i == 2) expect(state.model, null);
       });
       dispose();

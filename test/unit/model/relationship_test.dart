@@ -29,16 +29,16 @@ void main() async {
 
   test('scenario #1', () {
     // house does not yet exist
-    final f1 =
-        familyRepo.deserialize({'id': '1', 'surname': 'Rose', 'house': '1'});
-    expect(f1.house.value, isNull);
+    final f1 = familyRepo
+        .deserialize({'id': '1', 'surname': 'Rose', 'residence': '1'});
+    expect(f1.residence.value, isNull);
     expect(keyFor(f1), isNotNull);
 
     // once it does
     final house = House(id: '1', address: '123 Main St').init(houseRepo);
     // it's automatically wired up
-    expect(f1.house.value, house);
-    expect(f1.house.value.families.first, f1);
+    expect(f1.residence.value, house);
+    expect(f1.residence.value.owner.value, f1);
 
     // house is omitted, but persons is included (no people exist yet)
     final f1b = familyRepo.deserialize({
@@ -47,7 +47,7 @@ void main() async {
       'persons': ['1']
     });
     // house remains wired
-    expect(f1b.house.value, house);
+    expect(f1b.residence.value, house);
 
     // once p1 exists
     final p1 = Person(id: '1', name: 'Axl', age: 58).init(personRepo);
@@ -57,7 +57,7 @@ void main() async {
     // relationships are omitted - so they remain unchanged
     final f1c = familyRepo.deserialize({'id': '1', 'surname': 'Rose'});
     expect(f1c.persons, {p1});
-    expect(f1c.house.value, isNotNull);
+    expect(f1c.residence.value, isNotNull);
 
     final p2 = Person(id: '2', name: 'Brian', age: 55).init(personRepo);
 
@@ -76,9 +76,25 @@ void main() async {
 
     // relationships are explicitly set to null
     final f1e = familyRepo.deserialize(
-        {'id': '1', 'surname': 'Rose', 'persons': null, 'house': null});
+        {'id': '1', 'surname': 'Rose', 'persons': null, 'residence': null});
     expect(f1e.persons, isEmpty);
-    expect(f1e.house.value, isNull);
+    expect(f1e.residence.value, isNull);
+
+    expect(keyFor(f1), equals(keyFor(f1e)));
+  });
+
+  test('scenario #1b (inverse)', () {
+    final h1 = houseRepo
+        .deserialize({'id': '1', 'address': '123 Main St', 'owner': '1'});
+    expect(h1.owner.value, isNull);
+    expect(keyFor(h1), isNotNull);
+
+    // once it does
+    final family = Family(id: '1', surname: 'Rose', residence: BelongsTo())
+        .init(familyRepo);
+    // it's automatically wired up & inverses work correctly
+    expect(h1.owner.value, family);
+    expect(h1.owner.value.residence.value, h1);
   });
 
   test('scenario #2', () {
@@ -97,12 +113,12 @@ void main() async {
           personRepo.manager
         ]
       }),
-      house: BelongsTo.fromJson({
+      residence: BelongsTo.fromJson({
         '_': ['98', false, personRepo.manager]
       }),
     ).init(familyRepo);
 
-    expect(family.house.key, isNotNull);
+    expect(family.residence.key, isNotNull);
     expect(family.persons.keys.length, 3);
 
     // (2) then load persons
@@ -114,7 +130,7 @@ void main() async {
     expect(family.persons.elementAt(0), isNotNull);
     expect(family.persons.elementAt(1), isNotNull);
     expect(family.persons.length, 2);
-    expect(family.house.value, isNull);
+    expect(family.residence.value, isNull);
 
     // (4) load the last person and assert it exists now
     final p3 = Person(id: '3', name: 'z3', age: 3).init(personRepo);
@@ -122,9 +138,9 @@ void main() async {
 
     // (5) load family and assert it exists now
     final house = House(id: '98', address: '21 Coconut Trail').init(houseRepo);
-    expect(house.families, contains(family));
-    expect(family.house.value.address, endsWith('Trail'));
-    expect(house.families, contains(family)); // same, passes here again
+    expect(house.owner.value, family);
+    expect(family.residence.value.address, endsWith('Trail'));
+    expect(house.owner.value, family); // same, passes here again
   });
 
   test('scenario #3', () {
@@ -150,13 +166,13 @@ void main() async {
 
     final f3 = Family(
             surname: 'Kamchatka',
-            house: House(address: 'Sakharova Prospekt, 19').asBelongsTo)
+            residence: House(address: 'Sakharova Prospekt, 19').asBelongsTo)
         .init(repository);
-    expect(f3.house.value.families.first.surname, 'Kamchatka');
+    expect(f3.residence.value.owner.value.surname, 'Kamchatka');
 
     final f4 =
-        Family(surname: 'Kamchatka', house: BelongsTo()).init(repository);
-    f4.house.value = House(address: 'Sakharova Prospekt, 19');
-    expect(f4.house.value.families.first.surname, 'Kamchatka');
+        Family(surname: 'Kamchatka', residence: BelongsTo()).init(repository);
+    f4.residence.value = House(address: 'Sakharova Prospekt, 19');
+    expect(f4.residence.value.owner.value.surname, 'Kamchatka');
   });
 }

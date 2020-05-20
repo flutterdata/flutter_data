@@ -16,7 +16,7 @@ mixin _$UserModelAdapter on Repository<User> {
 
   @override
   localDeserialize(map, {metadata}) {
-    for (var key in relationshipsFor(null).keys) {
+    for (var key in relationshipNames) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
       };

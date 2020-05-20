@@ -10,7 +10,7 @@ part of 'models.dart';
 mixin _$ModelModelAdapter on Repository<Model> {
   @override
   Map<String, Map<String, Object>> relationshipsFor(Model model) => {
-        'company': {'inverse': 'models', 'instance': model?.company}
+        'company': {'type': 'companies', 'instance': model?.company}
       };
 
   @override
@@ -19,7 +19,7 @@ mixin _$ModelModelAdapter on Repository<Model> {
 
   @override
   localDeserialize(map, {metadata}) {
-    for (var key in relationshipsFor(null).keys) {
+    for (var key in relationshipNames) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
       };
@@ -50,7 +50,7 @@ mixin _$CityModelAdapter on Repository<City> {
 
   @override
   localDeserialize(map, {metadata}) {
-    for (var key in relationshipsFor(null).keys) {
+    for (var key in relationshipNames) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
       };
@@ -75,7 +75,7 @@ class $CityRepository = Repository<City>
 mixin _$CompanyModelAdapter on Repository<Company> {
   @override
   Map<String, Map<String, Object>> relationshipsFor(Company model) => {
-        'models': {'inverse': 'company', 'instance': model?.models}
+        'models': {'type': 'models', 'instance': model?.models}
       };
 
   @override
@@ -84,7 +84,7 @@ mixin _$CompanyModelAdapter on Repository<Company> {
 
   @override
   localDeserialize(map, {metadata}) {
-    for (var key in relationshipsFor(null).keys) {
+    for (var key in relationshipNames) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
       };

@@ -10,7 +10,7 @@ part of 'comment.dart';
 mixin _$CommentModelAdapter on Repository<Comment> {
   @override
   Map<String, Map<String, Object>> relationshipsFor(Comment model) => {
-        'post': {'inverse': 'comments', 'instance': model?.post}
+        'post': {'type': 'posts', 'instance': model?.post}
       };
 
   @override
@@ -19,7 +19,7 @@ mixin _$CommentModelAdapter on Repository<Comment> {
 
   @override
   localDeserialize(map, {metadata}) {
-    for (var key in relationshipsFor(null).keys) {
+    for (var key in relationshipNames) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
       };

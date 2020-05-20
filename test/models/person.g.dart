@@ -10,7 +10,7 @@ part of 'person.dart';
 mixin _$PersonModelAdapter on Repository<Person> {
   @override
   Map<String, Map<String, Object>> relationshipsFor(Person model) => {
-        'family': {'inverse': 'persons', 'instance': model?.family}
+        'family': {'type': 'families', 'instance': model?.family}
       };
 
   @override
@@ -19,7 +19,7 @@ mixin _$PersonModelAdapter on Repository<Person> {
 
   @override
   localDeserialize(map, {metadata}) {
-    for (var key in relationshipsFor(null).keys) {
+    for (var key in relationshipNames) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
       };

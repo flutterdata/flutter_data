@@ -15,20 +15,19 @@ class Family with DataSupportMixin<Family> {
   @override
   final String id;
   final String surname;
-  final BelongsTo<House> house;
   final HasMany<Person> persons;
-  @DataRelationship()
-  final HasMany<Person> friends;
+  final BelongsTo<House> dacha;
+  final BelongsTo<House> residence;
   final HasMany<Dog> dogs;
 
   Family({
     this.id,
     @required this.surname,
-    BelongsTo<House> house,
     this.persons,
-    this.friends,
+    this.dacha,
+    this.residence,
     this.dogs,
-  }) : house = house ?? BelongsTo<House>();
+  });
 
   // no fromJson or toJson on purpose (testing codegen)
 

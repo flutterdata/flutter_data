@@ -10,8 +10,8 @@ part of 'post.dart';
 mixin _$PostModelAdapter on Repository<Post> {
   @override
   Map<String, Map<String, Object>> relationshipsFor(Post model) => {
-        'comments': {'inverse': 'post', 'instance': model?.comments},
-        'user': {'inverse': 'posts', 'instance': model?.user}
+        'comments': {'type': 'comments', 'instance': model?.comments},
+        'user': {'type': 'users', 'instance': model?.user}
       };
 
   @override
@@ -22,7 +22,7 @@ mixin _$PostModelAdapter on Repository<Post> {
 
   @override
   localDeserialize(map, {metadata}) {
-    for (var key in relationshipsFor(null).keys) {
+    for (var key in relationshipNames) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
       };

@@ -20,15 +20,15 @@ void main() async {
     var house = House(id: '1', address: '123 Main St');
     var houseRel = BelongsTo<House>(house, manager);
 
-    var family =
-        Family(id: '1', surname: 'Smith', house: houseRel, persons: personRel);
+    var family = Family(
+        id: '1', surname: 'Smith', residence: houseRel, persons: personRel);
 
     var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
     var map = repo.serialize(family);
     expect(map, {
       'id': '1',
       'surname': 'Smith',
-      'house': houseRel.key,
+      'residence': houseRel.key,
       'persons': personRel.keys,
       'dogs': null
     });
@@ -42,7 +42,7 @@ void main() async {
     var family = Family(
             id: '1',
             surname: 'Smith',
-            house: house.asBelongsTo,
+            residence: house.asBelongsTo,
             persons: {person}.asHasMany)
         .init(repo);
 
@@ -51,7 +51,7 @@ void main() async {
     expect(obj, {
       'id': '1',
       'surname': 'Smith',
-      'house': keyFor(house),
+      'residence': keyFor(house),
       'persons': [keyFor(person)],
       'dogs': null
     });
@@ -68,14 +68,19 @@ void main() async {
     var map = {
       'id': '1',
       'surname': 'Smith',
-      'house': houseRel.key,
+      'residence': houseRel.key,
       'persons': personRel.keys
     };
 
     var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
     var family = repo.deserialize(map);
-    expect(family,
-        Family(id: '1', surname: 'Smith', house: houseRel, persons: personRel));
+    expect(
+        family,
+        Family(
+            id: '1',
+            surname: 'Smith',
+            residence: houseRel,
+            persons: personRel));
   });
 
   test('deserialize existing', () {
@@ -146,7 +151,7 @@ void main() async {
     var obj = {
       'id': '1',
       'surname': 'Smith',
-      'house': keyFor(house),
+      'residence': keyFor(house),
       'persons': [keyFor(person)]
     };
 
@@ -154,7 +159,7 @@ void main() async {
 
     expect(family.isNew, false); // also checks if the model was init'd
     expect(family, Family(id: '1', surname: 'Smith'));
-    expect(family.house.value.address, '123 Main St');
+    expect(family.residence.value.address, '123 Main St');
     expect(family.persons.first.age, 21);
   });
 }

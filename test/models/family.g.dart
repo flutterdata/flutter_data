@@ -10,10 +10,10 @@ part of 'family.dart';
 mixin _$FamilyModelAdapter on Repository<Family> {
   @override
   Map<String, Map<String, Object>> relationshipsFor(Family model) => {
-        'persons': {'inverse': 'family', 'instance': model?.persons},
-        'friends': {'inverse': null, 'instance': model?.friends},
-        'dogs': {'inverse': 'family', 'instance': model?.dogs},
-        'house': {'inverse': 'families', 'instance': model?.house}
+        'persons': {'type': 'people', 'instance': model?.persons},
+        'dogs': {'type': 'dogs', 'instance': model?.dogs},
+        'dacha': {'type': 'houses', 'instance': model?.dacha},
+        'residence': {'type': 'houses', 'instance': model?.residence}
       };
 
   @override
@@ -25,7 +25,7 @@ mixin _$FamilyModelAdapter on Repository<Family> {
 
   @override
   localDeserialize(map, {metadata}) {
-    for (var key in relationshipsFor(null).keys) {
+    for (var key in relationshipNames) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
       };
@@ -54,15 +54,15 @@ Family _$FamilyFromJson(Map<String, dynamic> json) {
   return Family(
     id: json['id'] as String,
     surname: json['surname'] as String,
-    house: json['house'] == null
-        ? null
-        : BelongsTo.fromJson(json['house'] as Map<String, dynamic>),
     persons: json['persons'] == null
         ? null
         : HasMany.fromJson(json['persons'] as Map<String, dynamic>),
-    friends: json['friends'] == null
+    dacha: json['dacha'] == null
         ? null
-        : HasMany.fromJson(json['friends'] as Map<String, dynamic>),
+        : BelongsTo.fromJson(json['dacha'] as Map<String, dynamic>),
+    residence: json['residence'] == null
+        ? null
+        : BelongsTo.fromJson(json['residence'] as Map<String, dynamic>),
     dogs: json['dogs'] == null
         ? null
         : HasMany.fromJson(json['dogs'] as Map<String, dynamic>),
@@ -72,8 +72,8 @@ Family _$FamilyFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$FamilyToJson(Family instance) => <String, dynamic>{
       'id': instance.id,
       'surname': instance.surname,
-      'house': instance.house?.toJson(),
       'persons': instance.persons?.toJson(),
-      'friends': instance.friends?.toJson(),
+      'dacha': instance.dacha?.toJson(),
+      'residence': instance.residence?.toJson(),
       'dogs': instance.dogs?.toJson(),
     };

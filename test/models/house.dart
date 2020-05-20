@@ -12,11 +12,12 @@ class House with DataSupportMixin<House> {
   @override
   final String id;
   final String address;
-  final HasMany<Family> families;
+  @DataRelationship(inverse: 'residence')
+  final BelongsTo<Family> owner;
 
   House({
     this.id,
     @required this.address,
-    HasMany<Family> families,
-  }) : families = families ?? HasMany<Family>();
+    BelongsTo<Family> owner,
+  }) : owner = owner ?? BelongsTo();
 }

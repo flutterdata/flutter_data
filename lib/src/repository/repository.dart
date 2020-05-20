@@ -78,6 +78,10 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   @protected
   @visibleForTesting
+  Iterable<String> get relationshipNames => relationshipsFor(null).keys;
+
+  @protected
+  @visibleForTesting
   Map<String, dynamic> localSerialize(T model);
 
   @protected
@@ -126,11 +130,10 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     }
 
     // set model as "owner" in its relationships
-    final relMap = relationshipsFor(model);
-    for (var metadata in relMap.entries) {
+    for (var metadata in relationshipsFor(model).entries) {
       final relationship = metadata.value['instance'] as Relationship;
-      relationship?.setOwner(keyFor(model), metadata.key,
-          metadata.value['inverse'] as String, manager);
+      relationship?.setOwner(
+          type, keyFor(model), metadata.key, metadata.value, manager);
     }
 
     return model;

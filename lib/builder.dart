@@ -14,7 +14,8 @@ Builder repositoryBuilder(options) =>
 
 class DataGenerator extends GeneratorForAnnotation<DataRepository> {
   @override
-  String generateForAnnotatedElement(element, annotation, buildStep) {
+  Future<String> generateForAnnotatedElement(
+      element, annotation, buildStep) async {
     final type = element.name;
 
     if (element is! ClassElement) {
@@ -56,15 +57,13 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
               .element
               .name;
 
-          final annotation = TypeChecker.fromRuntime(DataRelationship)
-              .firstAnnotationOfExact(field, throwOnUnresolved: false);
+          final relationshipAnnotation =
+              TypeChecker.fromRuntime(DataRelationship)
+                  .firstAnnotationOfExact(field, throwOnUnresolved: false);
           String inverse;
-          if (annotation != null) {
-            inverse = annotation.getField('inverse')?.toStringValue();
-          } else {
-            // eg for current inverse type Person: person (if rel is HasMany), or people (if rel is BelongsTo)
-            final typeName = Repository.getType(type);
-            inverse = kind == 'BelongsTo' ? typeName : singularize(typeName);
+          if (relationshipAnnotation != null) {
+            inverse =
+                relationshipAnnotation.getField('inverse')?.toStringValue();
           }
           final value = '${field.name}#$inverse#$typeParameterName';
 
@@ -89,8 +88,9 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
 
     final relationshipsFor = all.asMap().map((_, t) {
       final name = t.first;
+      final typeName = Repository.getType(t.last);
       return MapEntry('\'$name\'',
-          '''{ 'inverse': ${t[1] == 'null' ? 'null' : '\'${t[1]}\''}, 'instance': model?.$name }''');
+          '''{ ${t[1] != 'null' ? '\'inverse\': \'${t[1]}\',' : ''} 'type': \'$typeName\', 'instance': model?.$name }''');
     });
 
     final additionalRepos = annotation
@@ -168,7 +168,7 @@ mixin _\$${type}ModelAdapter on Repository<$type> {
 
   @override
   localDeserialize(map, {metadata}) {
-    for (var key in relationshipsFor(null).keys) {
+    for (var key in relationshipNames) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
       };

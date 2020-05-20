@@ -71,13 +71,38 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
     }
   }
 
-  void setOwner(
-      String ownerKey, String name, String inverseName, DataManager manager) {
+  void setOwner(String ownerType, String ownerKey, String name,
+      Map<String, Object> relationshipMetadata, DataManager manager) {
     assert(ownerKey != null);
     _ownerKey = ownerKey;
-    _name = name;
-    _inverseName = inverseName;
+
     this.manager = manager;
+    _name = name;
+
+    _inverseName = relationshipMetadata['inverse'] as String;
+
+    if (_inverseName == null &&
+        _repository.relatedRepositories[ownerType] != null) {
+      final relType = relationshipMetadata['type'] as String;
+      final entries = _repository
+          .relatedRepositories[ownerType].relatedRepositories[relType]
+          .relationshipsFor(null)
+          .entries
+          .where((e) => e.value['type'] == ownerType);
+      if (entries.length > 1) {
+        throw UnsupportedError('''
+Too many possible inverses for '$name': ${entries.map((e) => e.key)}
+
+Please specify the correct inverse in the ${singularize(ownerType)} class annotating '$name' with, for example:
+
+@DataRelationship(inverse: '${entries.first.key}')
+
+and trigger a code generation build again.
+''');
+      }
+      _inverseName = entries.isNotEmpty ? entries.first.key : null;
+    }
+
     initializeModels();
     initializeKeys();
   }
@@ -116,9 +141,7 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
   }
 
   Iterable<E> get _iterable => [
-        ..._graphNotifier
-            ?.relationshipKeysFor(_ownerKey, _name)
-            ?.map((key) => _repository.box.get(key)),
+        ...keys.map((key) => _repository.box.get(key)),
         ..._uninitializedModels
       ].where((model) => model != null);
 

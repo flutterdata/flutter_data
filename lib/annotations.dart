@@ -1,3 +1,5 @@
+import 'package:meta/meta.dart';
+
 class DataRepository {
   final List<Type> adapters;
   final List<Type> repositoryFor;
@@ -6,5 +8,5 @@ class DataRepository {
 
 class DataRelationship {
   final String inverse;
-  const DataRelationship({this.inverse});
+  const DataRelationship({@required this.inverse});
 }
