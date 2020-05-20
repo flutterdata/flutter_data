@@ -17,6 +17,8 @@ class Family with DataSupportMixin<Family> {
   final String surname;
   final BelongsTo<House> house;
   final HasMany<Person> persons;
+  @DataRelationship()
+  final HasMany<Person> friends;
   final HasMany<Dog> dogs;
 
   Family({
@@ -24,6 +26,7 @@ class Family with DataSupportMixin<Family> {
     @required this.surname,
     BelongsTo<House> house,
     this.persons,
+    this.friends,
     this.dogs,
   }) : house = house ?? BelongsTo<House>();
 

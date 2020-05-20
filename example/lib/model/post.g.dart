@@ -10,11 +10,13 @@ part of 'post.dart';
 // ignore_for_file: always_declare_return_types
 mixin _$PostModelAdapter on Repository<Post> {
   @override
-  Map<String, Relationship> relationshipsFor(Post model) =>
-      {'comments': model?.comments, 'user': model?.user};
+  Map<String, Map<String, Object>> relationshipsFor(Post model) => {
+        'comments': {'inverse': 'post', 'instance': model?.comments},
+        'user': {'inverse': 'posts', 'instance': model?.user}
+      };
 
   @override
-  Map<String, Repository> get relationshipRepositories => {
+  Map<String, Repository> get relatedRepositories => {
         'comments': manager.locator<Repository<Comment>>(),
         'users': manager.locator<Repository<User>>()
       };
@@ -33,7 +35,7 @@ mixin _$PostModelAdapter on Repository<Post> {
   localSerialize(model) {
     final map = _$PostToJson(model);
     for (var e in relationshipsFor(model).entries) {
-      map[e.key] = e.value?.toJson();
+      map[e.key] = (e.value['instance'] as Relationship)?.toJson();
     }
     return map;
   }

@@ -5,6 +5,9 @@ abstract class DataSupportMixin<T extends DataSupportMixin<T>> {
   final Map<String, dynamic> _flutterDataMetadata = {};
 }
 
+String keyFor<T extends DataSupportMixin<T>>(T model) =>
+    model?._flutterDataMetadata['_key'] as String;
+
 // ignore_for_file: unused_element
 extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
     on DataSupportMixin<T> {
@@ -12,19 +15,13 @@ extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
     return repository?.initModel(_this, key: key, save: save);
   }
 
-  // temp get/set while we figure out the new Metadata class
-  Map<String, dynamic> get flutterDataMetadata => _flutterDataMetadata;
-
   Repository<T> get _repository =>
-      flutterDataMetadata['_repository'] as Repository<T>;
+      _flutterDataMetadata['_repository'] as Repository<T>;
   set _repository(Repository<T> value) =>
-      flutterDataMetadata['_repository'] ??= value;
+      _flutterDataMetadata['_repository'] ??= value;
 
-  String get _key => flutterDataMetadata['_key'] as String;
-  set _key(String value) => flutterDataMetadata['_key'] ??= value;
-
-  bool get _save => flutterDataMetadata['_save'] as bool;
-  set _save(bool value) => flutterDataMetadata['_save'] = value;
+  bool get _save => _flutterDataMetadata['_save'] as bool;
+  set _save(bool value) => _flutterDataMetadata['_save'] = value;
 
   //
 

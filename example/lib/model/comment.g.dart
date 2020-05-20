@@ -10,11 +10,12 @@ part of 'comment.dart';
 // ignore_for_file: always_declare_return_types
 mixin _$CommentModelAdapter on Repository<Comment> {
   @override
-  Map<String, Relationship> relationshipsFor(Comment model) =>
-      {'post': model?.post};
+  Map<String, Map<String, Object>> relationshipsFor(Comment model) => {
+        'post': {'inverse': 'comments', 'instance': model?.post}
+      };
 
   @override
-  Map<String, Repository> get relationshipRepositories =>
+  Map<String, Repository> get relatedRepositories =>
       {'posts': manager.locator<Repository<Post>>()};
 
   @override
@@ -31,7 +32,7 @@ mixin _$CommentModelAdapter on Repository<Comment> {
   localSerialize(model) {
     final map = _$CommentToJson(model);
     for (var e in relationshipsFor(model).entries) {
-      map[e.key] = e.value?.toJson();
+      map[e.key] = (e.value['instance'] as Relationship)?.toJson();
     }
     return map;
   }

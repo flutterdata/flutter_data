@@ -10,10 +10,10 @@ part of 'user.dart';
 // ignore_for_file: always_declare_return_types
 mixin _$UserModelAdapter on Repository<User> {
   @override
-  Map<String, Relationship> relationshipsFor(User model) => {};
+  Map<String, Map<String, Object>> relationshipsFor(User model) => {};
 
   @override
-  Map<String, Repository> get relationshipRepositories => {};
+  Map<String, Repository> get relatedRepositories => {};
 
   @override
   localDeserialize(map, {metadata}) {
@@ -29,7 +29,7 @@ mixin _$UserModelAdapter on Repository<User> {
   localSerialize(model) {
     final map = _$UserToJson(model);
     for (var e in relationshipsFor(model).entries) {
-      map[e.key] = e.value?.toJson();
+      map[e.key] = (e.value['instance'] as Relationship)?.toJson();
     }
     return map;
   }

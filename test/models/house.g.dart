@@ -10,11 +10,12 @@ part of 'house.dart';
 // ignore_for_file: always_declare_return_types
 mixin _$HouseModelAdapter on Repository<House> {
   @override
-  Map<String, Relationship> relationshipsFor(House model) =>
-      {'families': model?.families};
+  Map<String, Map<String, Object>> relationshipsFor(House model) => {
+        'families': {'inverse': 'house', 'instance': model?.families}
+      };
 
   @override
-  Map<String, Repository> get relationshipRepositories =>
+  Map<String, Repository> get relatedRepositories =>
       {'families': manager.locator<Repository<Family>>()};
 
   @override
@@ -31,7 +32,7 @@ mixin _$HouseModelAdapter on Repository<House> {
   localSerialize(model) {
     final map = _$HouseToJson(model);
     for (var e in relationshipsFor(model).entries) {
-      map[e.key] = e.value?.toJson();
+      map[e.key] = (e.value['instance'] as Relationship)?.toJson();
     }
     return map;
   }

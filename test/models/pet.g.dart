@@ -10,10 +10,10 @@ part of 'pet.dart';
 // ignore_for_file: always_declare_return_types
 mixin _$DogModelAdapter on Repository<Dog> {
   @override
-  Map<String, Relationship> relationshipsFor(Dog model) => {};
+  Map<String, Map<String, Object>> relationshipsFor(Dog model) => {};
 
   @override
-  Map<String, Repository> get relationshipRepositories => {};
+  Map<String, Repository> get relatedRepositories => {};
 
   @override
   localDeserialize(map, {metadata}) {
@@ -29,7 +29,7 @@ mixin _$DogModelAdapter on Repository<Dog> {
   localSerialize(model) {
     final map = model.toJson();
     for (var e in relationshipsFor(model).entries) {
-      map[e.key] = e.value?.toJson();
+      map[e.key] = (e.value['instance'] as Relationship)?.toJson();
     }
     return map;
   }
@@ -42,10 +42,10 @@ class $DogRepository = Repository<Dog>
 // ignore_for_file: always_declare_return_types
 mixin _$CatModelAdapter on Repository<Cat> {
   @override
-  Map<String, Relationship> relationshipsFor(Cat model) => {};
+  Map<String, Map<String, Object>> relationshipsFor(Cat model) => {};
 
   @override
-  Map<String, Repository> get relationshipRepositories => {};
+  Map<String, Repository> get relatedRepositories => {};
 
   @override
   localDeserialize(map, {metadata}) {
@@ -61,7 +61,7 @@ mixin _$CatModelAdapter on Repository<Cat> {
   localSerialize(model) {
     final map = model.toJson();
     for (var e in relationshipsFor(model).entries) {
-      map[e.key] = e.value?.toJson();
+      map[e.key] = (e.value['instance'] as Relationship)?.toJson();
     }
     return map;
   }

@@ -2,6 +2,7 @@
 
 import 'package:build/build.dart';
 import 'package:flutter_data/flutter_data.dart';
+import 'package:inflection2/inflection2.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -54,8 +55,18 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
               .first
               .element
               .name;
-          final value =
-              '${field.name}#${Repository.getType(typeParameterName)}#$kind#$typeParameterName';
+
+          final annotation = TypeChecker.fromRuntime(DataRelationship)
+              .firstAnnotationOfExact(field, throwOnUnresolved: false);
+          String inverse;
+          if (annotation != null) {
+            inverse = annotation.getField('inverse')?.toStringValue();
+          } else {
+            // eg for current inverse type Person: person (if rel is HasMany), or people (if rel is BelongsTo)
+            final typeName = Repository.getType(type);
+            inverse = kind == 'BelongsTo' ? typeName : singularize(typeName);
+          }
+          final value = '${field.name}#$inverse#$typeParameterName';
 
           if (classElement.getSetter(field.name) != null) {
             throw UnsupportedError(
@@ -71,26 +82,27 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
 
     //
 
-    final hasManys = getRelationshipsFor('HasMany').map((s) => s.split('#'));
-    final belongsTos =
+    final _hasManys = getRelationshipsFor('HasMany').map((s) => s.split('#'));
+    final _belongsTos =
         getRelationshipsFor('BelongsTo').map((s) => s.split('#'));
-    final all = [...hasManys, ...belongsTos];
+    final all = [..._hasManys, ..._belongsTos];
 
-    final relationshipsFor = all.asMap().map((_, e) {
-      return MapEntry('\'${e.first}\'', 'model?.${e.first}');
+    final relationshipsFor = all.asMap().map((_, t) {
+      final name = t.first;
+      return MapEntry('\'$name\'',
+          '''{ 'inverse': ${t[1] == 'null' ? 'null' : '\'${t[1]}\''}, 'instance': model?.$name }''');
     });
-
-    // model.persons: 'people', model.dogs: 'dogs', model.house: 'houses'
 
     final additionalRepos = annotation
         .read('repositoryFor')
         .listValue
         .map((e) => ['_', e.toTypeValue().toString()]);
 
-    final relationshipRepositories =
+    final relatedRepositories =
         [...all, ...additionalRepos].asMap().map((_, t) {
-      final type = Repository.getType(t.last);
-      return MapEntry('\'$type\'', 'manager.locator<Repository<${t.last}>>()');
+      final type = t.last;
+      final typeName = Repository.getType(type);
+      return MapEntry('\'$typeName\'', 'manager.locator<Repository<$type>>()');
     });
 
     //
@@ -116,7 +128,7 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
     //
 
     final setOwnerInRelationships = all.map((t) {
-      final name = t.first, localType = t.last;
+      final name = t.first;
       return '''model.$name?.owner = owner;''';
     }).join('\n');
 
@@ -148,12 +160,12 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
 // ignore_for_file: always_declare_return_types
 mixin _\$${type}ModelAdapter on Repository<$type> {
   @override
-  Map<String, Relationship> relationshipsFor($type model) =>
+  Map<String, Map<String, Object>> relationshipsFor($type model) =>
     $relationshipsFor;
 
   @override
-  Map<String, Repository> get relationshipRepositories => 
-    $relationshipRepositories;
+  Map<String, Repository> get relatedRepositories => 
+    $relatedRepositories;
 
   @override
   localDeserialize(map, {metadata}) {
@@ -169,7 +181,7 @@ mixin _\$${type}ModelAdapter on Repository<$type> {
   localSerialize(model) {
     final map = $toJson;
     for (var e in relationshipsFor(model).entries) {
-      map[e.key] = e.value?.toJson();
+      map[e.key] = (e.value['instance'] as Relationship)?.toJson();
     }
     return map;
   }
@@ -273,7 +285,7 @@ List<SingleChildWidget> dataProviders(Future<Directory> Function() directory, {b
 
     var out = '''\n
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: directives_ordering
+// ignore_for_file: directives_ordering, non_constant_identifier_names
 
 import 'dart:io';
 import 'package:flutter_data/flutter_data.dart';

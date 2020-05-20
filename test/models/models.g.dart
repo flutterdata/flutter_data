@@ -10,11 +10,12 @@ part of 'models.dart';
 // ignore_for_file: always_declare_return_types
 mixin _$ModelModelAdapter on Repository<Model> {
   @override
-  Map<String, Relationship> relationshipsFor(Model model) =>
-      {'company': model?.company};
+  Map<String, Map<String, Object>> relationshipsFor(Model model) => {
+        'company': {'inverse': 'models', 'instance': model?.company}
+      };
 
   @override
-  Map<String, Repository> get relationshipRepositories =>
+  Map<String, Repository> get relatedRepositories =>
       {'companies': manager.locator<Repository<Company>>()};
 
   @override
@@ -31,7 +32,7 @@ mixin _$ModelModelAdapter on Repository<Model> {
   localSerialize(model) {
     final map = model.toJson();
     for (var e in relationshipsFor(model).entries) {
-      map[e.key] = e.value?.toJson();
+      map[e.key] = (e.value['instance'] as Relationship)?.toJson();
     }
     return map;
   }
@@ -44,10 +45,10 @@ class $ModelRepository = Repository<Model>
 // ignore_for_file: always_declare_return_types
 mixin _$CityModelAdapter on Repository<City> {
   @override
-  Map<String, Relationship> relationshipsFor(City model) => {};
+  Map<String, Map<String, Object>> relationshipsFor(City model) => {};
 
   @override
-  Map<String, Repository> get relationshipRepositories => {};
+  Map<String, Repository> get relatedRepositories => {};
 
   @override
   localDeserialize(map, {metadata}) {
@@ -63,7 +64,7 @@ mixin _$CityModelAdapter on Repository<City> {
   localSerialize(model) {
     final map = model.toJson();
     for (var e in relationshipsFor(model).entries) {
-      map[e.key] = e.value?.toJson();
+      map[e.key] = (e.value['instance'] as Relationship)?.toJson();
     }
     return map;
   }
@@ -76,11 +77,12 @@ class $CityRepository = Repository<City>
 // ignore_for_file: always_declare_return_types
 mixin _$CompanyModelAdapter on Repository<Company> {
   @override
-  Map<String, Relationship> relationshipsFor(Company model) =>
-      {'models': model?.models};
+  Map<String, Map<String, Object>> relationshipsFor(Company model) => {
+        'models': {'inverse': 'company', 'instance': model?.models}
+      };
 
   @override
-  Map<String, Repository> get relationshipRepositories =>
+  Map<String, Repository> get relatedRepositories =>
       {'models': manager.locator<Repository<Model>>()};
 
   @override
@@ -97,7 +99,7 @@ mixin _$CompanyModelAdapter on Repository<Company> {
   localSerialize(model) {
     final map = model.toJson();
     for (var e in relationshipsFor(model).entries) {
-      map[e.key] = e.value?.toJson();
+      map[e.key] = (e.value['instance'] as Relationship)?.toJson();
     }
     return map;
   }

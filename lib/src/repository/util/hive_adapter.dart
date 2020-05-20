@@ -32,7 +32,7 @@ class _HiveTypeAdapter<T extends DataSupport<T>> with TypeAdapter<T> {
       writer.write(_map[k]);
     }
     final publicMetadata = Map.fromEntries(
-        obj.flutterDataMetadata.entries.where((e) => !e.key.startsWith('_')));
+        obj._flutterDataMetadata.entries.where((e) => !e.key.startsWith('_')));
     writer.writeByte(publicMetadata.length);
     for (var e in publicMetadata.entries) {
       writer.write(e.key);

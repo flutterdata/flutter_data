@@ -70,11 +70,11 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   @protected
   @visibleForTesting
-  Map<String, Repository> get relationshipRepositories;
+  Map<String, Repository> get relatedRepositories;
 
   @protected
   @visibleForTesting
-  Map<String, Relationship> relationshipsFor(T model);
+  Map<String, Map<String, Object>> relationshipsFor(T model);
 
   @protected
   @visibleForTesting
@@ -108,16 +108,20 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
     // ensure key is linked to ID
     key ??= Repository.generateKey<T>();
-    model._key = manager.getKeyForId(type, model.id, keyIfAbsent: key);
-    assert(model._key != null);
+    model._flutterDataMetadata['_key'] =
+        manager.getKeyForId(type, model.id, keyIfAbsent: key);
+    assert(keyFor(model) != null);
 
     if (save) {
-      box?.put(model._key, model);
+      box?.put(keyFor(model), model);
     }
 
     // set model as "owner" in its relationships
-    for (var rel in relationshipsFor(model).values) {
-      rel?.setOwner(model._key, manager);
+    final relMap = relationshipsFor(model);
+    for (var metadata in relMap.entries) {
+      final relationship = metadata.value['instance'] as Relationship;
+      relationship?.setOwner(keyFor(model), metadata.key,
+          metadata.value['inverse'] as String, manager);
     }
 
     return model;

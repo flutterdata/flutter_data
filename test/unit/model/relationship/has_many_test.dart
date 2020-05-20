@@ -18,7 +18,7 @@ void main() async {
     expect(rel.length, 0);
 
     rel = HasMany<Person>({person}, manager);
-    expect(rel.first._key, manager.getKeyForId('people', '1'));
+    expect(keyFor(rel.first), manager.getKeyForId('people', '1'));
   });
 
   test('HasMany is a Set', () {
@@ -79,7 +79,7 @@ void main() async {
 
     expect(rel, HasMany<Person>({person}, manager));
     expect(rel.first, person);
-    expect(rel.first._key, manager.getKeyForId('people', '1'));
+    expect(keyFor(rel.first), manager.getKeyForId('people', '1'));
   });
 
   test('does not contain nulls', () {
