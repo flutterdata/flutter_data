@@ -180,7 +180,7 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
       }
       // - deserialize already inits models
       // - if model had a key already, reuse it
-      return deserialize(data as Map<String, dynamic>, key: model.key);
+      return deserialize(data as Map<String, dynamic>, key: model._key);
     });
   }
 

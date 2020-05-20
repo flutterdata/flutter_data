@@ -20,8 +20,8 @@ extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
   set _repository(Repository<T> value) =>
       flutterDataMetadata['_repository'] ??= value;
 
-  String get key => flutterDataMetadata['_key'] as String;
-  set key(String value) => flutterDataMetadata['_key'] ??= value;
+  String get _key => flutterDataMetadata['_key'] as String;
+  set _key(String value) => flutterDataMetadata['_key'] ??= value;
 
   bool get _save => flutterDataMetadata['_save'] as bool;
   set _save(bool value) => flutterDataMetadata['_save'] = value;

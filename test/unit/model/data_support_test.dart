@@ -39,21 +39,21 @@ void main() async {
 
     // id-less person
     var p1 = Person(name: 'Frank', age: 20).init(repository);
-    expect(repository.box.keys, contains(p1.key));
+    expect(repository.box.keys, contains(p1._key));
 
     // person with new id, reusing existing key
-    manager.getKeyForId('people', '221', keyIfAbsent: p1.key);
+    manager.getKeyForId('people', '221', keyIfAbsent: p1._key);
     var p2 = Person(id: '221', name: 'Frank2', age: 32).init(repository);
-    expect(p1.key, p2.key);
+    expect(p1._key, p2._key);
 
-    expect(repository.box.keys, contains(p2.key));
+    expect(repository.box.keys, contains(p2._key));
   });
 
   test('should resolve to the same key', () {
     var dogRepo = injection.locator<Repository<Dog>>();
     var dog = Dog(id: '2', name: 'Walker').init(dogRepo);
     var dog2 = Dog(id: '2', name: 'Walker').init(dogRepo);
-    expect(dog.key, dog2.key);
+    expect(dog._key, dog2._key);
   });
 
   test('should work with subclasses', () {

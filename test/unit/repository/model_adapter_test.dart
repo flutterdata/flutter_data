@@ -51,8 +51,8 @@ void main() async {
     expect(obj, {
       'id': '1',
       'surname': 'Smith',
-      'house': house.key,
-      'persons': [person.key],
+      'house': house._key,
+      'persons': [person._key],
       'dogs': null
     });
   });
@@ -89,11 +89,11 @@ void main() async {
       'id': '1098',
       'surname': 'Moletto',
     };
-    var family2 = repo.deserialize(obj, key: family.key);
+    var family2 = repo.deserialize(obj, key: family._key);
 
     expect(family2.isNew, false); // also checks if the model was init'd
     expect(family2, Family(id: '1098', surname: 'Moletto'));
-    expect(repo.box.keys, [family2.key]);
+    expect(repo.box.keys, [family2._key]);
   });
 
   test('deserialize existing without initializing', () {
@@ -103,9 +103,9 @@ void main() async {
       'surname': 'Moletto',
     };
     var family2 = repo.deserialize(obj, initialize: false);
-    expect(family2.key, isNull);
+    expect(family2._key, isNull);
     family2.init(repo);
-    expect(family2.key, isNotNull);
+    expect(family2._key, isNotNull);
   });
 
   test('deserialize many local for same remote ID', () {
@@ -120,18 +120,18 @@ void main() async {
       'id': '1298',
       'surname': 'Helsinki',
     };
-    var family1b = repo.deserialize(obj, key: family.key);
+    var family1b = repo.deserialize(obj, key: family._key);
 
     // simulate "save" for family2
     var obj2 = {
       'id': '1298',
       'surname': 'Oslo',
     };
-    var family2b = repo.deserialize(obj2, key: family2.key);
+    var family2b = repo.deserialize(obj2, key: family2._key);
 
     // since obj returned with same ID - only one key is left
-    expect(family1b.key, family2b.key);
-    expect(repo.box.keys, [family.key]);
+    expect(family1b._key, family2b._key);
+    expect(repo.box.keys, [family._key]);
   });
 
   test('deserialize with relationships', () {
@@ -146,8 +146,8 @@ void main() async {
     var obj = {
       'id': '1',
       'surname': 'Smith',
-      'house': house.key,
-      'persons': [person.key]
+      'house': house._key,
+      'persons': [person._key]
     };
 
     var family = repo.deserialize(obj);

@@ -32,7 +32,7 @@ void main() async {
     final f1 =
         familyRepo.deserialize({'id': '1', 'surname': 'Rose', 'house': '1'});
     expect(f1.house.value, isNull);
-    expect(f1.key, isNotNull);
+    expect(f1._key, isNotNull);
 
     // once it does
     final house = House(id: '1', address: '123 Main St').init(houseRepo);

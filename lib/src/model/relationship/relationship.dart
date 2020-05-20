@@ -6,8 +6,9 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
   @visibleForTesting
   DataManager manager;
 
-  RelNotifier _relNotifier;
+  GraphNotifier get _graphNotifier => manager._graphNotifier;
   String _owner;
+  String _propertyName;
 
   // list of models waiting for a repository
   // to get initialized (and obtain a key)
@@ -19,7 +20,7 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
   DataStateNotifier<N> _notifier;
 
   @protected
-  final String type = Repository.getType<E>();
+  String get type => Repository.getType<E>();
   Repository<E> get _repository => manager?.locator<Repository<E>>();
 
   Relationship([Set<E> models, this.manager, this._save])
@@ -47,8 +48,8 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
       if (_repository != null) {
         _repository.initModel(model);
       }
-      if (model.key != null) {
-        _uninitializedKeys.add(model.key);
+      if (model._key != null) {
+        _uninitializedKeys.add(model._key);
         _uninitializedModels.remove(model);
       }
       if (_repository != null) {
@@ -60,11 +61,10 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
   @protected
   @visibleForTesting
   void initializeKeys() {
-    _relNotifier = manager._graphNotifier.notifierFor(_owner);
     if (!_wasOmitted) {
       // if it wasn't omitted, we overwrite
-      _relNotifier.removeAllFor(type);
-      _relNotifier.addAll(_uninitializedKeys);
+      _graphNotifier.removeAllFor(_owner, type);
+      _graphNotifier.addAll(_owner, _uninitializedKeys);
       _uninitializedKeys.clear();
     }
   }
@@ -72,6 +72,7 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
   void setOwner(String key, DataManager manager) {
     assert(key != null);
     _owner = key;
+    _propertyName = null; // TODO how this relationship is named in the owner
     this.manager = manager;
     initializeModels();
     initializeKeys();
@@ -87,23 +88,25 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
       return false;
     }
     _repository != null
-        ? _relNotifier?.add(_repository.initModel(value, save: _save).key)
+        ? _graphNotifier?.add(_repository.initModel(value, save: _save)._key)
         : _uninitializedModels.add(value);
     return true;
   }
 
   @override
   bool contains(Object element) {
-    if (element is E && _relNotifier != null) {
-      return _relNotifier.relationshipKeys(type).contains(element?.key) ||
+    if (element is E && _graphNotifier != null) {
+      return _graphNotifier
+              .relationshipKeysFor(_owner, type)
+              .contains(element?._key) ||
           _uninitializedModels.contains(element);
     }
     return false;
   }
 
   Iterable<E> get _iterable => [
-        ..._relNotifier
-            ?.relationshipKeys(type)
+        ..._graphNotifier
+            ?.relationshipKeysFor(_owner, type)
             ?.map((key) => _repository.box.get(key)),
         ..._uninitializedModels
       ].where((model) => model != null);
@@ -123,7 +126,7 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
   @override
   bool remove(Object value) {
     if (value is E) {
-      _relNotifier?.remove(value?.key);
+      _graphNotifier?.remove(value?._key);
       _uninitializedModels.remove(value);
       return true;
     }
@@ -138,7 +141,8 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
     return _iterable.toSet();
   }
 
-  Set<String> get keys => _relNotifier?.relationshipKeys(type) ?? {};
+  Set<String> get keys =>
+      _graphNotifier?.relationshipKeysFor(_owner, type) ?? {};
 
   // abstract
 

@@ -108,16 +108,16 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
     // ensure key is linked to ID
     key ??= Repository.generateKey<T>();
-    model.key = manager.getKeyForId(type, model.id, keyIfAbsent: key);
-    assert(model.key != null);
+    model._key = manager.getKeyForId(type, model.id, keyIfAbsent: key);
+    assert(model._key != null);
 
     if (save) {
-      box?.put(model.key, model);
+      box?.put(model._key, model);
     }
 
     // set model as "owner" in its relationships
     for (var rel in relationshipsFor(model).values) {
-      rel?.setOwner(model.key, manager);
+      rel?.setOwner(model._key, manager);
     }
 
     return model;

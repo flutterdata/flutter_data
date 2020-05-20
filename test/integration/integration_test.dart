@@ -82,12 +82,12 @@ void main() async {
 
     var c2 = await company.save();
     expect(c2.id, isNotNull);
-    expect(company.key, c2.key);
+    expect(company._key, c2._key);
 
     var c3 = await repo.findOne(c2.id);
     expect(c2.name, company.name);
     expect(c3.name, c2.name);
-    expect(c2.key, c3.key);
+    expect(c2._key, c3._key);
   });
 
   test('fetch with error', () async {

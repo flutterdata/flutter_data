@@ -81,11 +81,11 @@ void main() async {
       'id': '2908', // that returns a different ID (already in the system)
       'surname': 'Oslo',
     };
-    var family2 = repo.deserialize(obj2, key: family.key);
+    var family2 = repo.deserialize(obj2, key: family._key);
 
     // even though we supplied family.key, it will be different (family0's)
-    expect(family2.key, isNot(family.key));
-    expect(repo.box.keys, [family0.key]);
+    expect(family2._key, isNot(family._key));
+    expect(repo.box.keys, [family0._key]);
   });
 
   test('remote ID can be replaced with public methods', () {
@@ -97,15 +97,15 @@ void main() async {
 
     // simulate a "findOne" with some id
     var family = Family(id: '2905', surname: 'Moletto').init(repo);
-    var originalKey = family.key;
+    var originalKey = family._key;
     var obj2 = {
       'id': '2908', // that returns a different ID (already in the system)
       'surname': 'Oslo',
     };
-    var family2 = repo.deserialize(obj2, key: family.key);
+    var family2 = repo.deserialize(obj2, key: family._key);
 
     // expect family to have been deleted by init, family2 remains
-    expect(repo.box.keys, [family2.key]);
+    expect(repo.box.keys, [family2._key]);
     expect(repo.manager.keysBox.keys, isNot(contains('families#${family.id}')));
     expect(repo.manager.keysBox.keys, contains('families#${family2.id}'));
 

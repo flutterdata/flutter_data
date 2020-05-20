@@ -18,6 +18,7 @@ class Person with DataSupportMixin<Person> {
   final String id;
   final String name;
   final int age;
+  @DataRelationship(inverse: 'persons')
   final BelongsTo<Family> family;
 
   Person({

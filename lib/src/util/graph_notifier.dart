@@ -1,28 +1,41 @@
 import 'dart:collection';
+import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 import 'package:state_notifier/state_notifier.dart';
 
-class GraphNotifier extends StateNotifier<_DirectedGraph<String, String>> {
-  GraphNotifier() : super(_DirectedGraph<String, String>());
+class GraphNotifier extends StateNotifier<DataGraph> {
+  GraphNotifier() : super(DataGraph());
 
-  // - translate keys/ids
+  // this layer translates keys/ids
+  // tags rel names
 
-  void _add(String key, [String to]) {
-    assert(key != null);
-    // print('_add: ${state.edgesFrom(key)} $hashCode');
-    if (to == null) {
-      // print('adding node as $key');
-      state.addNode(key);
+  void add(String fromNode, [String toNode]) {
+    if (toNode == null) {
+      state.addNode(fromNode);
     } else {
-      state.addEdge(key, to);
+      state.addEdge(fromNode, toNode);
     }
     state = state;
   }
 
-  void _remove(String key, String to) {
-    assert(key != null);
-    state.removeEdge(key, to);
+  void remove(String fromNode, [String toNode]) {
+    state.removeEdge(fromNode, toNode);
     state = state;
   }
+
+  void addAll(String fromNode, Iterable<String> toNodes) {
+    for (var toNode in toNodes) {
+      add(fromNode, toNode);
+    }
+  }
+
+  void removeAllFor(String fromNode, String type) {
+    for (var toNode in relationshipKeysFor(fromNode, type)) {
+      remove(fromNode, toNode);
+    }
+  }
+
+  //
 
   String getId(String key) {
     final edges = state.edgesFrom(key);
@@ -39,7 +52,7 @@ class GraphNotifier extends StateNotifier<_DirectedGraph<String, String>> {
       return edges.first;
     }
     if (keyIfAbsent != null) {
-      _add(keyIfAbsent, nodeId);
+      add(keyIfAbsent, nodeId);
       return keyIfAbsent;
     }
     return null;
@@ -49,210 +62,69 @@ class GraphNotifier extends StateNotifier<_DirectedGraph<String, String>> {
     state.removeNode(key);
   }
 
-  Set<String> relationshipKeysFor<E>(String key, String type) =>
-      state.edgesFrom(key).where((key) => key.startsWith('$type#')).toSet();
+  Set<String> relationshipKeysFor<E>(String fromNode, String type) => state
+      .edgesFrom(fromNode)
+      .where((key) => key.startsWith('$type#'))
+      .toSet();
 }
-
-class RelNotifier extends StateNotifier<Set<String>> {
-  RelNotifier({this.notifier, this.ownerKey}) : super({}) {
-    notifier._add(ownerKey); // ensure key exists
-    _disposeFn = notifier.addListener((graphState) {
-      state = graphState.edgesFrom(ownerKey).toSet();
-    });
-  }
-  final String ownerKey;
-  final GraphNotifier notifier;
-  RemoveListener _disposeFn;
-
-  void add(String to) => notifier._add(ownerKey, to);
-
-  void addAll(Iterable<String> tos) {
-    for (var to in tos) {
-      add(to);
-    }
-  }
-
-  void remove(String to) => notifier._remove(ownerKey, to);
-
-  void removeAllFor(String type) {
-    for (var to in relationshipKeys(type)) {
-      remove(to);
-    }
-  }
-
-  // void addId(String id, {String withKey}) {
-  //   notifier._add(withKey ?? ownerKey, id, true);
-  // }
-
-  // void removeId(String id, {String withKey}) {
-  //   notifier._remove(withKey ?? ownerKey, id, true);
-  // }
-
-  // String getId({String withKey}) {
-  //   return notifier.getId(withKey ?? ownerKey);
-  // }
-
-  // String getKey({String id}) {
-  //   return id != null ? notifier.getKeyForId(id) : ownerKey;
-  // }
-
-  Set<String> relationshipKeys(String type) =>
-      state.where((key) => key.startsWith('$type#')).toSet();
-
-  @override
-  void dispose() {
-    _disposeFn?.call();
-    super.dispose();
-  }
-}
-
-extension GraphNotifierX on GraphNotifier {
-  RelNotifier notifierFor(String key) =>
-      RelNotifier(notifier: this, ownerKey: key);
-}
-
-// void main() {
-//   final _graph = DirectedGraph<String, String>();
-//   var gn = GraphNotifier(_graph);
-//   var b1 = gn.notifierFor('b1');
-//   var p1 = gn.notifierFor('p1');
-
-//   b1.addListener((keys) {
-//     print('from b1: $keys');
-//   });
-
-//   p1.addListener((keys) {
-//     print('from p1: $keys');
-//   });
-
-//   print('adding h1');
-//   b1.add('h1');
-//   print('adding p1');
-//   b1.add('p1');
-//   print('adding p2');
-//   b1.add('p2');
-//   print('adding id=1');
-//   b1.addId('1');
-//   print('adding p3');
-//   b1.add('p3');
-
-//   print('removing p1');
-//   b1.remove('p1');
-
-//   print('getting id for b1');
-//   print(b1.getId());
-
-//   print('getting key for id=1');
-//   print(b1.getKey());
-
-//   print('remove id=1');
-//   b1.removeId('1');
-//   b1.removeId('3');
-//   b1.remove('aaasda');
-//   // b1.removeLink('h1');
-//   // b1.removeLink('p2');
-//   // b1.removeLink('p3');
-
-//   print('getting id for b1');
-//   print(b1.getId());
-
-//   print('getting key for id=1');
-//   print(b1.getKey(id: '1'));
-
-//   print('assign id=1 to b2 from graph');
-//   gn.add('b2', '1', true);
-//   // b1.addId('1');
-
-//   print('get id for b1');
-//   print(b1.getId());
-//   print('get id for b2');
-//   print(b1.getId(withKey: 'b2'));
-
-//   print(gn.state.toMap());
-
-//   var _g2 = DirectedGraph<String, String>.fromMap(gn.state.toMap());
-//   var gn2 = GraphNotifier(_g2);
-
-//   print(gn2.state.toMap());
-
-//   var _b1 = gn2.notifierFor('b1');
-//   print('get key for id=1 in graph2');
-//   print(_b1.getKey(id: '1'));
-
-//   _b1.addListener((keys) {
-//     print('from _b1: $keys');
-//   });
-// }
 
 // adapted from https://github.com/kevmoo/graph/
 // under MIT license
 // https://github.com/kevmoo/graph/blob/14c7f0cf000aeede1c55a3298990a7007b16a4dd/LICENSE
 
-class _DirectedGraph<K, E> {
-  final Map<K, _NodeImpl<K, E>> _nodes;
-  final Map<K, Map<K, Set<E>>> mapView;
-
-  // final HashHelper<K> _hashHelper;
+class DataGraph {
+  final Map<String, _NodeImpl> _nodes;
+  final Map<String, Map<String, String>> mapView;
 
   int get nodeCount => _nodes.length;
 
-  Iterable<K> get nodes => _nodes.keys;
+  Iterable<String> get nodes => _nodes.keys;
 
-  int get edgeCount =>
-      _nodes.values.expand((n) => n.values).expand((s) => s).length;
+  int get edgeCount => _nodes.values.expand((n) => n.values).length;
 
-  _DirectedGraph._(this._nodes) // , this._hashHelper
-      : mapView = UnmodifiableMapView(_nodes);
+  DataGraph._(this._nodes) : mapView = UnmodifiableMapView(_nodes);
 
-  _DirectedGraph({
-    bool Function(K key1, K key2) equals,
-    int Function(K key) hashCode,
-  }) : this._(
-          HashMap<K, _NodeImpl<K, E>>(hashCode: hashCode, equals: equals),
-          // HashHelper(equals, hashCode),
-        );
+  @protected
+  @visibleForTesting
+  DataGraph() : this._(HashMap<String, _NodeImpl>());
 
-  factory _DirectedGraph.fromMap(Map<K, Object> source) {
-    final graph = _DirectedGraph<K, E>();
-
-    MapEntry<K, E> fromMapValue(Object e) {
-      if (e is Map &&
-          e.length == 2 &&
-          e.containsKey('target') &&
-          e.containsKey('data')) {
-        return MapEntry(e['target'] as K, e['data'] as E);
-      }
-
-      return MapEntry(e as K, null);
-    }
+  factory DataGraph.fromMap(Map<String, Map<String, Iterable<String>>> source) {
+    final graph = DataGraph();
 
     for (var entry in source.entries) {
       final entryNode = graph._nodeFor(entry.key);
-      final edgeData = entry.value as List ?? const [];
+      final map = entry.value;
 
-      for (var to in edgeData.map(fromMapValue)) {
-        graph._nodeFor(to.key);
-        entryNode.addEdge(to.key, to.value);
+      // map = {posts: (p2, p1), host: (h1)},
+      for (var group in map.entries) {
+        // group.key = posts
+        // group.value = (p2, p1)
+        graph._nodeFor(group.key);
+
+        if (group.key == 'id' && group.value.isNotEmpty) {
+          final idNode = graph._nodeFor(group.value.first);
+          idNode.addEdge(entry.key, '_key');
+        }
+
         // restore IDs (= keys starting with _) stripped out in serialization
-        if (to.key.toString().startsWith('_')) {
-          final inverseNode = graph._nodeFor(to.key);
-          inverseNode.addEdge(entry.key, to.value);
+        for (var to in group.value) {
+          // to = p2
+          // group.key = posts (group.key is now the metadata)
+          entryNode.addEdge(to, group.key);
         }
       }
     }
-
     return graph;
   }
 
-  bool addNode(K key) {
-    // bool add(K key)
+  bool addNode(String key) {
     assert(key != null, 'node cannot be null');
     final existingCount = nodeCount;
     _nodeFor(key);
     return existingCount < nodeCount;
   }
 
-  bool removeNode(K key) {
+  bool removeNode(String key) {
     final node = _nodes.remove(key);
 
     if (node == null) {
@@ -262,13 +134,13 @@ class _DirectedGraph<K, E> {
     // find all edges coming into `node` - and remove them
     for (var otherNode in _nodes.values) {
       assert(otherNode != node);
-      otherNode.removeAllEdgesTo(key);
+      otherNode.removeEdge(key);
     }
 
     return true;
   }
 
-  bool connected(K a, K b) {
+  bool connected(String a, String b) {
     final nodeA = _nodes[a];
 
     if (nodeA == null) {
@@ -278,17 +150,18 @@ class _DirectedGraph<K, E> {
     return nodeA.containsKey(b) || _nodes[b].containsKey(a);
   }
 
-  bool addEdge(K from, K to, {E edgeData}) {
+  bool addEdge(String from, String to,
+      {String metadata, String inverseMetadata}) {
     assert(from != null, 'from cannot be null');
     assert(to != null, 'to cannot be null');
 
     // ensure the `to` node exists
     _nodeFor(to);
-    return _nodeFor(from).addEdge(to, edgeData) &&
-        _nodeFor(to).addEdge(from, edgeData);
+    return _nodeFor(from).addEdge(to, metadata) &&
+        _nodeFor(to).addEdge(from, inverseMetadata);
   }
 
-  bool removeEdge(K from, K to, {E edgeData}) {
+  bool removeEdge(String from, String to) {
     final fromNode = _nodes[from];
     final toNode = _nodes[to];
 
@@ -296,11 +169,10 @@ class _DirectedGraph<K, E> {
       return false;
     }
 
-    return fromNode.removeEdge(to, edgeData) &&
-        toNode.removeEdge(from, edgeData);
+    return fromNode.removeEdge(to) && toNode.removeEdge(from);
   }
 
-  _NodeImpl<K, E> _nodeFor(K nodeKey) {
+  _NodeImpl _nodeFor(String nodeKey) {
     assert(nodeKey != null);
     final node = _nodes.putIfAbsent(nodeKey, () => _NodeImpl());
     return node;
@@ -311,82 +183,57 @@ class _DirectedGraph<K, E> {
   }
 
   /// Returns all of the nodes with edges from [node].
-  Iterable<K> edgesFrom(K node) {
-    return _nodes[node]?.keys;
+  Iterable<String> edgesFrom(String node, [String metadata]) {
+    return _nodes[node].entries.where((e) {
+      if (metadata != null) {
+        return e.value == metadata;
+      }
+      return true;
+    }).map((e) => e.key);
   }
 
-  // removes: IDs (= keys starting with _) & orphan nodes from serialization
-  Map<K, Object> toMap() => Map.fromEntries(_nodes.entries
-      .map(_toMapValue)
-      .where((e) => !e.key.toString().startsWith('_') && e.value.isNotEmpty));
+  Map<String, Map<String, Iterable<String>>> toMap() => Map.fromEntries(
+        _nodes.entries.map((entry) {
+          final map = groupBy<MapEntry<String, String>, String>(
+                  entry.value.entries, (entry) => entry.value)
+              .map((key, value) => MapEntry(key, value.map((e) => e.key)));
+          return MapEntry(entry.key, map);
+        }).where((e) {
+          // do not export IDs (entries containing _key) or empty metadata groups
+          return e.value.isNotEmpty && !e.value.containsKey('_key');
+        }),
+      );
 }
 
-MapEntry<Key, List<Object>> _toMapValue<Key>(
-    MapEntry<Key, Map<Key, Set>> entry) {
-  final nodeEdges = entry.value.entries.expand((e) {
-    assert(e.value.isNotEmpty);
-    return e.value.map((edgeData) {
-      if (edgeData == null) {
-        return e.key;
-      }
-      return {'target': e.key, 'data': edgeData};
-    });
-  }).toList();
-
-  return MapEntry(entry.key, nodeEdges);
-}
-
-class _NodeImpl<K, E> extends UnmodifiableMapBase<K, Set<E>> {
-  final Map<K, Set<E>> _map;
+class _NodeImpl extends UnmodifiableMapBase<String, String> {
+  final Map<String, String> _map;
 
   _NodeImpl._(this._map);
 
-  factory _NodeImpl({Iterable<MapEntry<K, E>> edges}) {
-    final node = _NodeImpl._(
-      HashMap<K, Set<E>>(
-          // equals: hashHelper.equalsField,
-          // hashCode: hashHelper.hashCodeField,
-          ),
-    );
-
+  factory _NodeImpl({Iterable<MapEntry<String, String>> edges}) {
+    final node = _NodeImpl._(HashMap<String, String>());
     if (edges != null) {
       for (var e in edges) {
         node.addEdge(e.key, e.value);
       }
     }
-
     return node;
   }
 
-  bool addEdge(K target, E data) {
+  bool addEdge(String target, String data) {
     assert(target != null);
-    return _map.putIfAbsent(target, _createSet).add(data);
+    _map.putIfAbsent(target, () => data);
+    return true;
   }
 
-  Set<E> _createSet() => HashSet<E>();
-
-  bool removeAllEdgesTo(K target) => _map.remove(target) != null;
-
-  bool removeEdge(K target, E data) {
+  bool removeEdge(String target) {
     assert(target != null);
-
-    final set = _map[target];
-    if (set == null) {
-      return false;
-    }
-    try {
-      return set.remove(data);
-    } finally {
-      if (set.isEmpty) {
-        _map.remove(target);
-      }
-      assert(!_map.containsKey(target) || _map[target].isNotEmpty);
-    }
+    return _map.remove(target) != null;
   }
 
   @override
-  Set<E> operator [](Object key) => _map[key];
+  String operator [](Object key) => _map[key.toString()];
 
   @override
-  Iterable<K> get keys => _map.keys;
+  Iterable<String> get keys => _map.keys;
 }
