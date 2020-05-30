@@ -9,14 +9,14 @@ part of 'user.dart';
 // ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names
 mixin _$UserModelAdapter on Repository<User> {
   @override
-  Map<String, Map<String, Object>> relationshipsFor(User model) => {};
+  Map<String, Map<String, Object>> relationshipsFor([User model]) => {};
 
   @override
   Map<String, Repository> get relatedRepositories => {};
 
   @override
   localDeserialize(map, {metadata}) {
-    for (var key in relationshipNames) {
+    for (var key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
       };

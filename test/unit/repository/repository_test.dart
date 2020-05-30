@@ -65,15 +65,19 @@ void main() async {
     await repo.delete(person.id);
     var p2 = await repo.findOne(person.id);
     expect(p2, isNull);
-    expect(repo.manager.keysBox.get('people#${person.id}'), isNull);
+    expect(repo.manager.metaBox.get('people#${keyFor(person)}'), isNull);
+    // the ID->key node is left orphan, which
+    // will eventually be removed with serialization
+    expect(repo.manager.metaBox.get('people#${person.id}'), isNotNull);
   });
 
   test('returning a different remote ID for a requested ID is not supported',
       () {
     var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
     repo.box.clear();
+
     expect(repo.box.keys, isEmpty);
-    var family0 = Family(id: '2908', surname: 'Moletto').init(repo);
+    Family(id: '2908', surname: 'Moletto').init(repo);
 
     // simulate a "findOne" with some id
     var family = Family(id: '2905', surname: 'Moletto').init(repo);
@@ -85,46 +89,6 @@ void main() async {
 
     // even though we supplied family.key, it will be different (family0's)
     expect(keyFor(family2), isNot(keyFor(family)));
-    expect(repo.box.keys, [keyFor(family0)]);
-  });
-
-  test('remote ID can be replaced with public methods', () {
-    var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
-    repo.box.clear();
-    expect(repo.box.keys, isEmpty);
-    Family(id: '2908', surname: 'Moletto').init(repo);
-    // app is now ready and loaded one family from local storage
-
-    // simulate a "findOne" with some id
-    var family = Family(id: '2905', surname: 'Moletto').init(repo);
-    var originalKey = keyFor(family);
-    var obj2 = {
-      'id': '2908', // that returns a different ID (already in the system)
-      'surname': 'Oslo',
-    };
-    var family2 = repo.deserialize(obj2, key: keyFor(family));
-
-    // expect family to have been deleted by init, family2 remains
-    expect(repo.box.keys, [keyFor(family2)]);
-    expect(repo.manager.keysBox.keys, isNot(contains('families#${family.id}')));
-    expect(repo.manager.keysBox.keys, contains('families#${family2.id}'));
-
-    // delete family2 and its key
-    repo.delete(family2.id);
-
-    // expect no keys remain
-    expect(repo.box.keys, isEmpty);
-    expect(repo.manager.keysBox.keys, isNot(contains('families#${family.id}')));
-    expect(
-        repo.manager.keysBox.keys, isNot(contains('families#${family2.id}')));
-
-    // associate new id to original existing key
-    family2.init(repo, key: originalKey, save: true);
-
-    // original key should now be associated to the deserialized model
-    expect(repo.manager.keysBox.get('families#${family2.id}'), originalKey);
-    expect(repo.box.keys, [originalKey]);
-    expect(repo.box.get(originalKey), family2);
   });
 
   test('custom login adapter', () async {

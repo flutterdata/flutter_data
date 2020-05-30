@@ -34,7 +34,7 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E, E> {
   }
 
   set value(E value) {
-    super.add(value);
+    value != null ? super.add(value) : super.remove(this.value);
   }
 
   String get key => super.keys.isNotEmpty ? super.keys.first : null;
@@ -69,5 +69,5 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E, E> {
   dynamic toJson() => key;
 
   @override
-  String toString() => 'BelongsTo<$E>($key)';
+  String toString() => 'BelongsTo<$E>(${key ?? ''})';
 }

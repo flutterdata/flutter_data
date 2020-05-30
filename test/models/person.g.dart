@@ -9,8 +9,12 @@ part of 'person.dart';
 // ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names
 mixin _$PersonModelAdapter on Repository<Person> {
   @override
-  Map<String, Map<String, Object>> relationshipsFor(Person model) => {
-        'family': {'type': 'families', 'instance': model?.family}
+  Map<String, Map<String, Object>> relationshipsFor([Person model]) => {
+        'family': {
+          'type': 'families',
+          'kind': 'BelongsTo',
+          'instance': model?.family
+        }
       };
 
   @override
@@ -19,7 +23,7 @@ mixin _$PersonModelAdapter on Repository<Person> {
 
   @override
   localDeserialize(map, {metadata}) {
-    for (var key in relationshipNames) {
+    for (var key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
       };

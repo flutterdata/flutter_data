@@ -13,7 +13,8 @@ class DataManager {
 
   static final _uuid = Uuid();
 
-  final _graphNotifier = GraphNotifier();
+  GraphNotifier _graphNotifier;
+  void Function() _disposeListener;
 
   final _hive = Hive;
 
@@ -24,12 +25,12 @@ class DataManager {
     return _locator;
   }
 
-  Box<String> _keysBox;
+  Box _metaBox;
 
   @visibleForTesting
-  Box<String> get keysBox {
-    assert(_keysBox != null, _assertMessage);
-    return _keysBox;
+  Box get metaBox {
+    assert(_metaBox != null, _assertMessage);
+    return _metaBox;
   }
 
   // initialize shared resources
@@ -54,12 +55,35 @@ class DataManager {
     }
 
     _hive.init(path);
-    _keysBox = await _hive.openBox<String>('_keys');
+    _metaBox = await _hive.openBox('_meta');
+    initGraphNotifier(Map.from(_metaBox.toMap()));
     return this;
   }
 
+  void initGraphNotifier(Map<String, Map<String, Set<String>>> source) {
+    // TODO do we need to exclude other "non-keys" like _type#posts for type adapter?
+    _graphNotifier = GraphNotifier(DataGraph.fromMap(source));
+
+    _graphNotifier.onError = (err, trace) {
+      throw err;
+    };
+
+    _disposeListener = _graphNotifier.addListener((event) {
+      for (final key in event.keys) {
+        final edges = event.graph.getAll(key);
+        if (edges == null) {
+          // node was deleted
+          metaBox.delete(key);
+        } else {
+          metaBox.put(key, edges);
+        }
+      }
+    });
+  }
+
   Future<void> dispose() async {
-    await keysBox.close();
+    _disposeListener?.call();
+    await _metaBox?.close();
   }
 
   // identity
@@ -69,11 +93,12 @@ class DataManager {
 
   String getId(String key) => _graphNotifier.getId(key);
 
-  void deleteKey(String key) => _graphNotifier.deleteKey(key);
+  void removeKey(String key) => _graphNotifier.removeKey(key);
 
   // utils
 
-  Map<String, Object> dumpGraph() => _graphNotifier.debugState.toMap();
+  Map<String, Object> dumpGraph({bool withKeys = true}) =>
+      _graphNotifier.debugState.graph.toMap(withKeys: withKeys);
 
   final _assertMessage = '''\n
 This manager has not been initialized.

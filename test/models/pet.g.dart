@@ -9,14 +9,14 @@ part of 'pet.dart';
 // ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names
 mixin _$DogModelAdapter on Repository<Dog> {
   @override
-  Map<String, Map<String, Object>> relationshipsFor(Dog model) => {};
+  Map<String, Map<String, Object>> relationshipsFor([Dog model]) => {};
 
   @override
   Map<String, Repository> get relatedRepositories => {};
 
   @override
   localDeserialize(map, {metadata}) {
-    for (var key in relationshipNames) {
+    for (var key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
       };
@@ -40,14 +40,14 @@ class $DogRepository = Repository<Dog>
 // ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names
 mixin _$CatModelAdapter on Repository<Cat> {
   @override
-  Map<String, Map<String, Object>> relationshipsFor(Cat model) => {};
+  Map<String, Map<String, Object>> relationshipsFor([Cat model]) => {};
 
   @override
   Map<String, Repository> get relatedRepositories => {};
 
   @override
   localDeserialize(map, {metadata}) {
-    for (var key in relationshipNames) {
+    for (var key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
       };

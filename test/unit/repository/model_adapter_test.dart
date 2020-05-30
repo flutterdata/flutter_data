@@ -30,7 +30,8 @@ void main() async {
       'surname': 'Smith',
       'residence': houseRel.key,
       'persons': personRel.keys,
-      'dogs': null
+      'dacha': null,
+      'dogs': null,
     });
   });
 
@@ -53,7 +54,8 @@ void main() async {
       'surname': 'Smith',
       'residence': keyFor(house),
       'persons': [keyFor(person)],
-      'dogs': null
+      'dacha': null,
+      'dogs': null,
     });
   });
 
@@ -69,7 +71,7 @@ void main() async {
       'id': '1',
       'surname': 'Smith',
       'residence': houseRel.key,
-      'persons': personRel.keys
+      'persons': personRel.keys,
     };
 
     var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
@@ -77,10 +79,11 @@ void main() async {
     expect(
         family,
         Family(
-            id: '1',
-            surname: 'Smith',
-            residence: houseRel,
-            persons: personRel));
+          id: '1',
+          surname: 'Smith',
+          residence: houseRel,
+          persons: personRel,
+        ));
   });
 
   test('deserialize existing', () {
@@ -90,10 +93,7 @@ void main() async {
     var family = Family(surname: 'Moletto').init(repo);
 
     // simulate "save"
-    var obj = {
-      'id': '1098',
-      'surname': 'Moletto',
-    };
+    var obj = {'id': '1098', 'surname': 'Moletto'};
     var family2 = repo.deserialize(obj, key: keyFor(family));
 
     expect(family2.isNew, false); // also checks if the model was init'd
@@ -103,10 +103,7 @@ void main() async {
 
   test('deserialize existing without initializing', () {
     var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
-    var obj = {
-      'id': '3098',
-      'surname': 'Moletto',
-    };
+    var obj = {'id': '3098', 'surname': 'Moletto'};
     var family2 = repo.deserialize(obj, initialize: false);
     expect(keyFor(family2), isNull);
     family2.init(repo);
@@ -117,26 +114,24 @@ void main() async {
     var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
     repo.box.clear();
     expect(repo.box.keys, isEmpty);
-    var family = Family(surname: 'Moletto').init(repo);
-    var family2 = Family(surname: 'Zandiver').init(repo);
+
+    final family = Family(surname: 'Moletto').init(repo);
+    final family2 = Family(surname: 'Zandiver').init(repo);
 
     // simulate "save" for family
-    var obj = {
+    final family1b = repo.deserialize({
       'id': '1298',
       'surname': 'Helsinki',
-    };
-    var family1b = repo.deserialize(obj, key: keyFor(family));
+    }, key: keyFor(family));
 
     // simulate "save" for family2
-    var obj2 = {
+    final family2b = repo.deserialize({
       'id': '1298',
       'surname': 'Oslo',
-    };
-    var family2b = repo.deserialize(obj2, key: keyFor(family2));
+    }, key: keyFor(family2));
 
-    // since obj returned with same ID - only one key is left
+    // since obj returned with same ID
     expect(keyFor(family1b), keyFor(family2b));
-    expect(repo.box.keys, [keyFor(family)]);
   });
 
   test('deserialize with relationships', () {

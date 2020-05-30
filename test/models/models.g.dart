@@ -9,8 +9,12 @@ part of 'models.dart';
 // ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names
 mixin _$ModelModelAdapter on Repository<Model> {
   @override
-  Map<String, Map<String, Object>> relationshipsFor(Model model) => {
-        'company': {'type': 'companies', 'instance': model?.company}
+  Map<String, Map<String, Object>> relationshipsFor([Model model]) => {
+        'company': {
+          'type': 'companies',
+          'kind': 'BelongsTo',
+          'instance': model?.company
+        }
       };
 
   @override
@@ -19,7 +23,7 @@ mixin _$ModelModelAdapter on Repository<Model> {
 
   @override
   localDeserialize(map, {metadata}) {
-    for (var key in relationshipNames) {
+    for (var key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
       };
@@ -43,14 +47,14 @@ class $ModelRepository = Repository<Model>
 // ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names
 mixin _$CityModelAdapter on Repository<City> {
   @override
-  Map<String, Map<String, Object>> relationshipsFor(City model) => {};
+  Map<String, Map<String, Object>> relationshipsFor([City model]) => {};
 
   @override
   Map<String, Repository> get relatedRepositories => {};
 
   @override
   localDeserialize(map, {metadata}) {
-    for (var key in relationshipNames) {
+    for (var key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
       };
@@ -74,8 +78,12 @@ class $CityRepository = Repository<City>
 // ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names
 mixin _$CompanyModelAdapter on Repository<Company> {
   @override
-  Map<String, Map<String, Object>> relationshipsFor(Company model) => {
-        'models': {'type': 'models', 'instance': model?.models}
+  Map<String, Map<String, Object>> relationshipsFor([Company model]) => {
+        'models': {
+          'type': 'models',
+          'kind': 'HasMany',
+          'instance': model?.models
+        }
       };
 
   @override
@@ -84,7 +92,7 @@ mixin _$CompanyModelAdapter on Repository<Company> {
 
   @override
   localDeserialize(map, {metadata}) {
-    for (var key in relationshipNames) {
+    for (var key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
       };

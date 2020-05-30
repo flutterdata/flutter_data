@@ -48,6 +48,7 @@ void main() async {
     });
     // house remains wired
     expect(f1b.residence.value, house);
+    expect(f1b.persons, isEmpty);
 
     // once p1 exists
     final p1 = Person(id: '1', name: 'Axl', age: 58).init(personRepo);
@@ -161,14 +162,20 @@ void main() async {
 
     final f2 =
         Family(surname: 'Kamchatka', persons: HasMany()).init(repository);
-    f2.persons.add(Person(name: 'Igor', age: 33, family: BelongsTo()));
+    final igor2 = Person(name: 'Igor', age: 33, family: BelongsTo());
+    f2.persons.add(igor2);
     expect(f2.persons.first.family.value.surname, 'Kamchatka');
+
+    f2.persons.remove(igor2);
+    expect(f2.persons, isEmpty);
 
     final f3 = Family(
             surname: 'Kamchatka',
             residence: House(address: 'Sakharova Prospekt, 19').asBelongsTo)
         .init(repository);
     expect(f3.residence.value.owner.value.surname, 'Kamchatka');
+    f3.residence.value = null;
+    expect(f3.residence.value, isNull);
 
     final f4 =
         Family(surname: 'Kamchatka', residence: BelongsTo()).init(repository);

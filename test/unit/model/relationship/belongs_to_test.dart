@@ -10,14 +10,6 @@ void main() async {
   setUpAll(setUpAllFn);
   tearDownAll(tearDownAllFn);
 
-  test('constructor', () {
-    var manager = injection.locator<DataManager>();
-    var rel = BelongsTo<Person>(null, manager);
-    expect(rel.key, isNull);
-    rel = BelongsTo<Person>(Person(id: '1', name: 'zzz', age: 7), manager);
-    expect(rel.key, manager.getKeyForId('people', '1'));
-  });
-
   test('deserialize with included BelongsTo', () async {
     // exceptionally uses this repo so we can supply included models
     var repo = injection.locator<FamilyRepositoryWithStandardJSONAdapter>();
@@ -35,11 +27,11 @@ void main() async {
     var repo = injection.locator<Repository<Person>>();
     var manager = repo.manager;
 
-    var rel = BelongsTo<Person>.fromJson({
-      '_': [manager.getKeyForId('people', '1'), false, manager]
-    });
     var person = Person(id: '1', name: 'zzz', age: 7);
     repo.save(person);
+    var rel = BelongsTo<Person>.fromJson({
+      '_': [keyFor(person), false, manager]
+    });
 
     expect(rel, BelongsTo<Person>(person, manager));
     expect(rel.key, manager.getKeyForId('people', '1'));

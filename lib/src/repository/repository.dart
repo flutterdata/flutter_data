@@ -13,6 +13,10 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   @protected
   @visibleForTesting
+  GraphNotifier get graphNotifier => manager?._graphNotifier;
+
+  @protected
+  @visibleForTesting
   Box<T> get box => _box ??= manager.locator<Box<T>>();
   Box<T> _box; // waiting for `late` keyword
 
@@ -74,11 +78,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   @protected
   @visibleForTesting
-  Map<String, Map<String, Object>> relationshipsFor(T model);
-
-  @protected
-  @visibleForTesting
-  Iterable<String> get relationshipNames => relationshipsFor(null).keys;
+  Map<String, Map<String, Object>> relationshipsFor([T model]);
 
   @protected
   @visibleForTesting
@@ -94,7 +94,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     if (key != null) {
       box.delete(key);
       // id will become orphan & purged
-      manager.deleteKey(key);
+      manager.removeKey(key);
     }
   }
 
@@ -122,7 +122,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     key ??= Repository.generateKey<T>();
     model._flutterDataMetadata['_key'] = model.id != null
         ? manager.getKeyForId(type, model.id, keyIfAbsent: key)
-        : manager._graphNotifier.addNode(key);
+        : graphNotifier.addNode(key);
     assert(keyFor(model) != null);
 
     if (save) {

@@ -64,9 +64,9 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
   void initializeKeys() {
     if (!_wasOmitted) {
       // if it wasn't omitted, we overwrite
-      _graphNotifier.removeAllFor(_ownerKey, _name);
+      _graphNotifier.removeAll(_ownerKey, metadata: _name);
       _graphNotifier.addAll(_ownerKey, _uninitializedKeys,
-          fromMetadata: _name, toMetadata: _inverseName);
+          metadata: _name, inverseMetadata: _inverseName);
       _uninitializedKeys.clear();
     }
   }
@@ -74,9 +74,8 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
   void setOwner(String ownerType, String ownerKey, String name,
       Map<String, Object> relationshipMetadata, DataManager manager) {
     assert(ownerKey != null);
-    _ownerKey = ownerKey;
-
     this.manager = manager;
+    _ownerKey = ownerKey;
     _name = name;
 
     _inverseName = relationshipMetadata['inverse'] as String;
@@ -117,12 +116,9 @@ and trigger a code generation build again.
       return false;
     }
     if (_repository != null) {
-      _graphNotifier.add(
-        _ownerKey,
-        keyFor(_repository.initModel(value, save: _save)),
-        fromMetadata: _name,
-        toMetadata: _inverseName,
-      );
+      final model = _repository.initModel(value, save: _save);
+      _graphNotifier.add(_ownerKey, keyFor(model),
+          metadata: _name, inverseMetadata: _inverseName);
     } else {
       _uninitializedModels.add(value);
     }
@@ -133,7 +129,7 @@ and trigger a code generation build again.
   bool contains(Object element) {
     if (element is E && _graphNotifier != null) {
       return _graphNotifier
-              .relationshipKeysFor(_ownerKey, _name)
+              .get(_ownerKey, metadata: _name)
               .contains(keyFor(element)) ||
           _uninitializedModels.contains(element);
     }
@@ -175,8 +171,7 @@ and trigger a code generation build again.
     return _iterable.toSet();
   }
 
-  Set<String> get keys =>
-      _graphNotifier?.relationshipKeysFor(_ownerKey, _name) ?? {};
+  Set<String> get keys => _graphNotifier?.get(_ownerKey, metadata: _name) ?? {};
 
   // abstract
 

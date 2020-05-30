@@ -72,11 +72,13 @@ class FakeBox<T> extends Fake implements Box<T> {
 //
 
 class TestDataManager extends DataManager {
-  TestDataManager(this.locator) : super.delegate();
+  TestDataManager(this.locator) : super.delegate() {
+    initGraphNotifier({});
+  }
   @override
   final Locator locator;
   @override
-  final keysBox = FakeBox<String>();
+  final metaBox = FakeBox();
 
   @override
   Future<DataManager> init(FutureOr<Directory> baseDir, Locator locator,

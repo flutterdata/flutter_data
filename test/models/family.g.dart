@@ -9,23 +9,35 @@ part of 'family.dart';
 // ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names
 mixin _$FamilyModelAdapter on Repository<Family> {
   @override
-  Map<String, Map<String, Object>> relationshipsFor(Family model) => {
-        'persons': {'type': 'people', 'instance': model?.persons},
-        'dogs': {'type': 'dogs', 'instance': model?.dogs},
-        'dacha': {'type': 'houses', 'instance': model?.dacha},
-        'residence': {'type': 'houses', 'instance': model?.residence}
+  Map<String, Map<String, Object>> relationshipsFor([Family model]) => {
+        'persons': {
+          'type': 'people',
+          'kind': 'HasMany',
+          'instance': model?.persons
+        },
+        'dacha': {
+          'type': 'houses',
+          'kind': 'BelongsTo',
+          'instance': model?.dacha
+        },
+        'residence': {
+          'type': 'houses',
+          'kind': 'BelongsTo',
+          'instance': model?.residence
+        },
+        'dogs': {'type': 'dogs', 'kind': 'HasMany', 'instance': model?.dogs}
       };
 
   @override
   Map<String, Repository> get relatedRepositories => {
         'people': manager.locator<Repository<Person>>(),
-        'dogs': manager.locator<Repository<Dog>>(),
-        'houses': manager.locator<Repository<House>>()
+        'houses': manager.locator<Repository<House>>(),
+        'dogs': manager.locator<Repository<Dog>>()
       };
 
   @override
   localDeserialize(map, {metadata}) {
-    for (var key in relationshipNames) {
+    for (var key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
       };

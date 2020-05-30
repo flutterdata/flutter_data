@@ -3,78 +3,104 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:state_notifier/state_notifier.dart';
 
-class GraphNotifier extends StateNotifier<DataGraph> {
-  GraphNotifier() : super(DataGraph());
+class GraphEvent {
+  const GraphEvent({this.keys, this.graph});
+  final Iterable<String> keys;
+  final DataGraph graph;
+}
+
+class GraphNotifier extends StateNotifier<GraphEvent> {
+  GraphNotifier(DataGraph graph)
+      : _graph = graph,
+        super(GraphEvent(keys: []));
+
+  final DataGraph _graph;
 
   // this layer translates keys/ids and adds metadata to edges
 
   String addNode(String key) {
-    state.addNode(key);
-    state = state;
-    return key;
+    if (_graph.addNode(key)) {
+      state = GraphEvent(keys: [key], graph: _graph);
+      return key;
+    }
+    return null;
   }
 
   void removeNode(String key) {
-    state.removeNode(key);
-    state = state;
+    if (_graph.removeNode(key)) {
+      state = GraphEvent(keys: [key], graph: _graph);
+    }
   }
 
-  void add(String from, String to, {String fromMetadata, String toMetadata}) {
-    state.add(from, to, fromMetadata: fromMetadata, toMetadata: toMetadata);
-    state = state;
+  void add(String from, String to, {String metadata, String inverseMetadata}) {
+    if (_graph.add(from, to,
+        metadata: metadata, inverseMetadata: inverseMetadata)) {
+      state = GraphEvent(keys: [from, to], graph: _graph);
+    }
   }
 
-  void remove(String from, String to) {
-    state.remove(from, to);
-    state = state;
+  void remove(String from, String to,
+      {String metadata, String inverseMetadata}) {
+    if (_graph.remove(from, to,
+        metadata: metadata, inverseMetadata: inverseMetadata)) {
+      state = GraphEvent(keys: [from, to], graph: _graph);
+    }
   }
 
   void addAll(String from, Iterable<String> tos,
-      {String fromMetadata, String toMetadata}) {
+      {String metadata, String inverseMetadata}) {
     for (var to in tos) {
-      add(from, to, fromMetadata: fromMetadata, toMetadata: toMetadata);
+      add(from, to, metadata: metadata, inverseMetadata: inverseMetadata);
     }
+    state = GraphEvent(keys: [...tos, from], graph: _graph);
   }
 
-  void removeAllFor(String from, String fromMetadata) {
-    final keys = relationshipKeysFor(from, fromMetadata);
-    if (keys != null) {
-      for (var to in keys) {
+  void removeAll(String from, {String metadata}) {
+    final tos = _graph.get(from, metadata: metadata)?.toSet(); // make a copy
+    if (tos != null) {
+      for (var to in tos) {
         remove(from, to);
       }
+      state = GraphEvent(
+        keys: [...tos, from],
+        graph: _graph,
+      );
     }
   }
-
-  void deleteKey(String key) {
-    state.removeNode(key);
-  }
-
-  Set<String> relationshipKeysFor<E>(
-          String fromNode, String relationshipName) =>
-      state.edgesFrom(fromNode, relationshipName)?.toSet();
 
   //
 
   String getId(String key) {
-    final edges = relationshipKeysFor(key, 'id');
-    return edges == null || edges.isEmpty
+    final tos = _graph.get(key, metadata: 'id');
+    return tos == null || tos.isEmpty
         ? null
-        : (edges.first.split('#')..removeAt(0)).join('#');
+        : (tos.first.split('#')..removeAt(0)).join('#');
+  }
+
+  void removeKey(String key) {
+    final tos = _graph.get(key, metadata: 'id');
+    if (tos.isNotEmpty) {
+      remove(key, tos.first, metadata: 'id');
+    }
   }
 
   String getKeyForId(String type, dynamic id, {String keyIfAbsent}) {
     assert(id != null);
     final nodeId = '$type#$id';
-    final edges = state.edgesFrom(nodeId, '_key');
-    if (edges != null && edges.isNotEmpty) {
-      return edges.first;
+    final tos = _graph.get(nodeId, metadata: '_key');
+    if (tos != null && tos.isNotEmpty) {
+      return tos.first;
     }
     if (keyIfAbsent != null) {
-      removeAllFor(keyIfAbsent, 'id');
-      add(keyIfAbsent, nodeId, fromMetadata: 'id', toMetadata: '_key');
+      removeAll(keyIfAbsent, metadata: 'id');
+      add(keyIfAbsent, nodeId, metadata: 'id', inverseMetadata: '_key');
       return keyIfAbsent;
     }
     return null;
+  }
+
+  Set<String> get<E>(String from, {String metadata}) {
+    return _graph.get(from, metadata: metadata);
   }
 }
 
@@ -84,21 +110,16 @@ class GraphNotifier extends StateNotifier<DataGraph> {
 
 class DataGraph {
   final Map<String, _NodeImpl> _nodes;
-  final Map<String, Map<String, String>> mapView;
-
-  int get nodeCount => _nodes.length;
 
   Iterable<String> get nodes => _nodes.keys;
 
-  int get edgeCount => _nodes.values.expand((n) => n.values).length;
-
-  DataGraph._(this._nodes) : mapView = UnmodifiableMapView(_nodes);
+  DataGraph._(this._nodes);
 
   @protected
   @visibleForTesting
   DataGraph() : this._(HashMap<String, _NodeImpl>());
 
-  factory DataGraph.fromMap(Map<String, Map<String, Iterable<String>>> source) {
+  factory DataGraph.fromMap(Map<String, Map<String, Set<String>>> source) {
     final graph = DataGraph();
 
     for (var entry in source.entries) {
@@ -111,16 +132,16 @@ class DataGraph {
         // group.value = (p2, p1)
         graph._nodeFor(group.key);
 
+        // restore IDs (= keys starting with _) stripped out in serialization
         if (group.key == 'id' && group.value.isNotEmpty) {
           final idNode = graph._nodeFor(group.value.first);
-          idNode.addEdge(entry.key, '_key');
+          idNode.addEdge(entry.key, metadata: '_key');
         }
 
-        // restore IDs (= keys starting with _) stripped out in serialization
         for (var to in group.value) {
           // to = p2
-          // group.key = posts (group.key is now the metadata)
-          entryNode.addEdge(to, group.key);
+          // group.key = posts
+          entryNode.addEdge(to, metadata: group.key);
         }
       }
     }
@@ -129,9 +150,9 @@ class DataGraph {
 
   bool addNode(String key) {
     assert(key != null, 'node cannot be null');
-    final existingCount = nodeCount;
+    final existingCount = _nodes.length;
     _nodeFor(key);
-    return existingCount < nodeCount;
+    return existingCount < _nodes.length;
   }
 
   bool removeNode(String key) {
@@ -144,7 +165,9 @@ class DataGraph {
     // find all edges coming into `node` - and remove them
     for (var otherNode in _nodes.values) {
       assert(otherNode != node);
-      otherNode.removeEdge(key);
+      for (final metadata in otherNode.keys.toSet()) {
+        otherNode.removeEdge(key, metadata: metadata);
+      }
     }
 
     return true;
@@ -152,31 +175,31 @@ class DataGraph {
 
   bool connected(String a, String b) {
     final nodeA = _nodes[a];
-
     if (nodeA == null) {
       return false;
     }
-
     return nodeA.containsKey(b) || _nodes[b].containsKey(a);
   }
 
-  bool add(String from, String to, {String fromMetadata, String toMetadata}) {
+  bool add(String from, String to, {String metadata, String inverseMetadata}) {
     assert(from != null, 'from cannot be null');
 
     // ensure the `to` node exists
     _nodeFor(to);
-    return _nodeFor(from).addEdge(to, fromMetadata) &&
-        _nodeFor(to).addEdge(from, toMetadata);
+    return _nodeFor(from).addEdge(to, metadata: metadata) &&
+        _nodeFor(to).addEdge(from, metadata: inverseMetadata);
   }
 
-  bool remove(String from, String to) {
+  bool remove(String from, String to,
+      {String metadata, String inverseMetadata}) {
     final fromNode = _nodes[from];
     final toNode = _nodes[to];
 
     if (fromNode == null || toNode == null) {
       return false;
     }
-    return fromNode.removeEdge(to) && toNode.removeEdge(from);
+    return fromNode.removeEdge(to, metadata: metadata) &&
+        toNode.removeEdge(from, metadata: inverseMetadata);
   }
 
   _NodeImpl _nodeFor(String nodeKey) {
@@ -189,31 +212,35 @@ class DataGraph {
     _nodes.clear();
   }
 
-  /// Returns all of the nodes with edges from [key].
-  Iterable<String> edgesFrom(String key, [String metadata]) {
-    final node = _nodes[key];
-    if (node == null) {
-      return null;
+  Set<String> get(String from, {String metadata}) {
+    final map = getAll(from);
+    if (map != null) {
+      return map[metadata];
     }
-    return node.entries.where((e) {
-      if (metadata != null) {
-        return e.value == metadata;
-      }
-      return true;
-    }).map((e) => e.key);
+    return null;
   }
 
-  Map<String, Map<String, Iterable<String>>> toMap() => Map.fromEntries(
-        _nodes.entries.map((entry) {
-          final map = groupBy<MapEntry<String, String>, String>(
-                  entry.value.entries, (entry) => entry.value)
-              .map((key, value) => MapEntry(key, value.map((e) => e.key)));
-          return MapEntry(entry.key, map);
-        }).where((e) {
-          // do not export IDs (entries containing _key) or empty metadata groups
-          return e.value.isNotEmpty && !e.value.containsKey('_key');
-        }),
-      );
+  Map<String, Set<String>> getAll(String from) {
+    final map = _nodes[from];
+    if (map == null) {
+      return null;
+    }
+    return groupBy<MapEntry<String, String>, String>(
+            map.entries, (entry) => entry.value)
+        .map((key, value) => MapEntry(key, value.map((e) => e.key).toSet()));
+  }
+
+  Map<String, Map<String, Set<String>>> toMap({bool withKeys = false}) {
+    return Map.fromEntries(
+        _nodes.entries.map((e) => MapEntry(e.key, getAll(e.key))).where((e) {
+      return e.value.isNotEmpty &&
+          (withKeys
+              ? true
+              // remove entries like: people#1: {_key: {people#a1a1a1}}
+              // that will be restored upon deserialization (if !withKeys)
+              : !(e.value.length == 1 && e.value.keys.first == '_key'));
+    }));
+  }
 }
 
 class _NodeImpl extends UnmodifiableMapBase<String, String> {
@@ -221,24 +248,20 @@ class _NodeImpl extends UnmodifiableMapBase<String, String> {
 
   _NodeImpl._(this._map);
 
-  factory _NodeImpl({Iterable<MapEntry<String, String>> edges}) {
+  factory _NodeImpl() {
     final node = _NodeImpl._(HashMap<String, String>());
-    if (edges != null) {
-      for (var e in edges) {
-        node.addEdge(e.key, e.value);
-      }
-    }
     return node;
   }
 
-  bool addEdge(String target, String data) {
-    assert(target != null);
-    _map.putIfAbsent(target, () => data);
+  bool addEdge(String to, {String metadata}) {
+    assert(to != null);
+    _map[to] = metadata;
     return true;
   }
 
-  bool removeEdge(String target) {
-    return _map.remove(target) != null;
+  bool removeEdge(String to, {String metadata}) {
+    _map.remove(to);
+    return true;
   }
 
   @override

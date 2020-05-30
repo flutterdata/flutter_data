@@ -2,7 +2,6 @@
 
 import 'package:build/build.dart';
 import 'package:flutter_data/flutter_data.dart';
-import 'package:inflection2/inflection2.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -47,10 +46,10 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
       ...classElement.fields
     };
 
-    List<String> getRelationshipsFor(String kind) {
+    List<String> getRelationships() {
       return fieldSet.fold([], (result, field) {
-        if (field.type.element.name == kind &&
-            field.type is ParameterizedType) {
+        if (field.type is ParameterizedType &&
+            ['BelongsTo', 'HasMany'].contains(field.type.element.name)) {
           final typeParameterName = (field.type as ParameterizedType)
               .typeArguments
               .first
@@ -65,7 +64,8 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
             inverse =
                 relationshipAnnotation.getField('inverse')?.toStringValue();
           }
-          final value = '${field.name}#$inverse#$typeParameterName';
+          final value =
+              '${field.name}#$inverse#${field.type.element.name}#$typeParameterName';
 
           if (classElement.getSetter(field.name) != null) {
             throw UnsupportedError(
@@ -81,16 +81,15 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
 
     //
 
-    final _hasManys = getRelationshipsFor('HasMany').map((s) => s.split('#'));
-    final _belongsTos =
-        getRelationshipsFor('BelongsTo').map((s) => s.split('#'));
-    final all = [..._hasManys, ..._belongsTos];
+    final all = getRelationships().map((s) => s.split('#')).toList();
 
     final relationshipsFor = all.asMap().map((_, t) {
       final name = t.first;
       final typeName = Repository.getType(t.last);
       return MapEntry('\'$name\'',
-          '''{ ${t[1] != 'null' ? '\'inverse\': \'${t[1]}\',' : ''} 'type': \'$typeName\', 'instance': model?.$name }''');
+          '''{ ${t[1] != 'null' ? '\'inverse\': \'${t[1]}\',' : ''} 'type': \'$typeName\',
+           'kind': '${t[2]}',
+           'instance': model?.$name }''');
     });
 
     final additionalRepos = annotation
@@ -159,7 +158,7 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
 // ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names
 mixin _\$${type}ModelAdapter on Repository<$type> {
   @override
-  Map<String, Map<String, Object>> relationshipsFor($type model) =>
+  Map<String, Map<String, Object>> relationshipsFor([$type model]) =>
     $relationshipsFor;
 
   @override
@@ -168,7 +167,7 @@ mixin _\$${type}ModelAdapter on Repository<$type> {
 
   @override
   localDeserialize(map, {metadata}) {
-    for (var key in relationshipNames) {
+    for (var key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
       };

@@ -7,11 +7,14 @@ class _HiveTypeAdapter<T extends DataSupport<T>> with TypeAdapter<T> {
   @override
   int get typeId {
     final type = Repository.getType<T>();
-    final key = '_type_$type';
-    final id = manager._keysBox
-        .get(key, defaultValue: manager._keysBox.keys.length.toString());
-    manager._keysBox.put(key, id);
-    return int.parse(id);
+    final key = '_type#$type';
+    final id = manager._metaBox.get(key,
+        defaultValue: manager._metaBox.keys
+            .where((key) => key.toString().startsWith('_type#'))
+            .length
+            .toString());
+    manager._metaBox.put(key, id);
+    return int.parse(id.toString());
   }
 
   @override

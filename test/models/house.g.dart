@@ -9,10 +9,11 @@ part of 'house.dart';
 // ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names
 mixin _$HouseModelAdapter on Repository<House> {
   @override
-  Map<String, Map<String, Object>> relationshipsFor(House model) => {
+  Map<String, Map<String, Object>> relationshipsFor([House model]) => {
         'owner': {
           'inverse': 'residence',
           'type': 'families',
+          'kind': 'BelongsTo',
           'instance': model?.owner
         }
       };
@@ -23,7 +24,7 @@ mixin _$HouseModelAdapter on Repository<House> {
 
   @override
   localDeserialize(map, {metadata}) {
-    for (var key in relationshipNames) {
+    for (var key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
       };
