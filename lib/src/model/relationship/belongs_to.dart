@@ -14,17 +14,7 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E, E> {
       final wasOmitted = map['_'][1] as bool;
       return BelongsTo._(null, manager, wasOmitted);
     }
-    final type = Repository.getType<E>();
-    if (key.startsWith('$type#')) {
-      // we got key
-      return BelongsTo._(key, manager, false);
-    }
-    // we got id (key is actually the ID)
-    return BelongsTo._(
-        manager.getKeyForId(type, key,
-            keyIfAbsent: Repository.generateKey<E>()),
-        manager,
-        false);
+    return BelongsTo._(key, manager, false);
   }
 
   //

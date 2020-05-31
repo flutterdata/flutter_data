@@ -14,20 +14,7 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E, Set<E>> {
       return HasMany._({}, manager, wasOmitted);
     }
     final keys = List<String>.from(map['_'][0] as Iterable);
-
-    final type = Repository.getType<E>();
-    // TEMP guess if these are keys or ids
-    if (keys.isNotEmpty && keys.first.startsWith('$type#')) {
-      // we got keys
-      return HasMany._(keys, manager, false);
-    }
-
-    // we got ids
-    return HasMany._(
-        keys.map((id) => manager.getKeyForId(type, id,
-            keyIfAbsent: Repository.generateKey<E>())),
-        manager,
-        false);
+    return HasMany._(keys, manager, false);
   }
 
   //

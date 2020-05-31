@@ -6,7 +6,7 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
   @visibleForTesting
   DataManager manager;
 
-  GraphNotifier get _graphNotifier => manager._graphNotifier;
+  GraphNotifier get _graphNotifier => manager?.graphNotifier;
   String _ownerKey;
   String _name;
   String _inverseName;
@@ -53,9 +53,9 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
         _uninitializedKeys.add(keyFor(model));
         _uninitializedModels.remove(model);
       }
-      if (_repository != null) {
-        assert(_uninitializedModels.isEmpty == true);
-      }
+    }
+    if (_repository != null) {
+      assert(_uninitializedModels.isEmpty == true);
     }
   }
 

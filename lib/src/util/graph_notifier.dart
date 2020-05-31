@@ -68,6 +68,10 @@ class GraphNotifier extends StateNotifier<GraphEvent> {
     }
   }
 
+  void clear() {
+    _graph.clear();
+  }
+
   //
 
   String getId(String key) {

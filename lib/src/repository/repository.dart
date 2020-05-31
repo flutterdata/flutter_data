@@ -13,7 +13,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   @protected
   @visibleForTesting
-  GraphNotifier get graphNotifier => manager?._graphNotifier;
+  GraphNotifier get graphNotifier => manager?.graphNotifier;
 
   @protected
   @visibleForTesting

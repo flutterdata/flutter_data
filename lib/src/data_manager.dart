@@ -13,7 +13,9 @@ class DataManager {
 
   static final _uuid = Uuid();
 
-  GraphNotifier _graphNotifier;
+  @visibleForTesting
+  @protected
+  GraphNotifier graphNotifier;
   void Function() _disposeListener;
 
   final _hive = Hive;
@@ -62,13 +64,13 @@ class DataManager {
 
   void initGraphNotifier(Map<String, Map<String, Set<String>>> source) {
     // TODO do we need to exclude other "non-keys" like _type#posts for type adapter?
-    _graphNotifier = GraphNotifier(DataGraph.fromMap(source));
+    graphNotifier = GraphNotifier(DataGraph.fromMap(source));
 
-    _graphNotifier.onError = (err, trace) {
+    graphNotifier.onError = (err, trace) {
       throw err;
     };
 
-    _disposeListener = _graphNotifier.addListener((event) {
+    _disposeListener = graphNotifier.addListener((event) {
       for (final key in event.keys) {
         final edges = event.graph.getAll(key);
         if (edges == null) {
@@ -89,16 +91,16 @@ class DataManager {
   // identity
 
   String getKeyForId(String type, dynamic id, {String keyIfAbsent}) =>
-      _graphNotifier.getKeyForId(type, id, keyIfAbsent: keyIfAbsent);
+      graphNotifier.getKeyForId(type, id, keyIfAbsent: keyIfAbsent);
 
-  String getId(String key) => _graphNotifier.getId(key);
+  String getId(String key) => graphNotifier.getId(key);
 
-  void removeKey(String key) => _graphNotifier.removeKey(key);
+  void removeKey(String key) => graphNotifier.removeKey(key);
 
   // utils
 
   Map<String, Object> dumpGraph({bool withKeys = true}) =>
-      _graphNotifier.debugState.graph.toMap(withKeys: withKeys);
+      graphNotifier.debugState.graph.toMap(withKeys: withKeys);
 
   final _assertMessage = '''\n
 This manager has not been initialized.

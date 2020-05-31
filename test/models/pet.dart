@@ -14,7 +14,8 @@ abstract class Pet<T extends Pet<T>> with DataSupportMixin<T> {
 @JsonSerializable()
 class Dog extends Pet<Dog> {
   final String name;
-
+  // NOTE: do not add BelongsTo<Family>, we are testing that
+  // one-way relationship (Family: HasMany<Dog>)
   Dog({String id, this.name}) : super(id);
   factory Dog.fromJson(Map<String, dynamic> json) => _$DogFromJson(json);
   Map<String, dynamic> toJson() => _$DogToJson(this);

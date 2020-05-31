@@ -4,6 +4,7 @@ import 'package:test/test.dart';
 import '../../models/family.dart';
 import '../../models/house.dart';
 import '../../models/person.dart';
+import '../../models/pet.dart';
 import '../setup.dart';
 
 void main() async {
@@ -25,12 +26,15 @@ void main() async {
     houseRepo = injection.locator<Repository<House>>() as RemoteAdapter<House>;
     houseRepo.box.clear();
     expect(houseRepo.box.keys, isEmpty);
+    houseRepo.manager.graphNotifier.clear();
   });
 
   test('scenario #1', () {
     // house does not yet exist
+    final residenceKey = familyRepo.manager.getKeyForId('houses', '1',
+        keyIfAbsent: Repository.generateKey<House>());
     final f1 = familyRepo
-        .deserialize({'id': '1', 'surname': 'Rose', 'residence': '1'});
+        .deserialize({'id': '1', 'surname': 'Rose', 'residence': residenceKey});
     expect(f1.residence.value, isNull);
     expect(keyFor(f1), isNotNull);
 
@@ -41,10 +45,11 @@ void main() async {
     expect(f1.residence.value.owner.value, f1);
 
     // house is omitted, but persons is included (no people exist yet)
+    familyRepo.manager.getKeyForId('people', '1', keyIfAbsent: 'people#a1a1a1');
     final f1b = familyRepo.deserialize({
       'id': '1',
       'surname': 'Rose',
-      'persons': ['1']
+      'persons': ['people#a1a1a1']
     });
     // house remains wired
     expect(f1b.residence.value, house);
@@ -66,7 +71,7 @@ void main() async {
     final f1d = familyRepo.deserialize({
       'id': '1',
       'surname': 'Rose',
-      'persons': ['2']
+      'persons': [keyFor(p2)]
     });
     // persons should be exactly equal to p2 (Brian)
     expect(f1d.persons, {p2});
@@ -85,10 +90,14 @@ void main() async {
   });
 
   test('scenario #1b (inverse)', () {
-    final h1 = houseRepo
-        .deserialize({'id': '1', 'address': '123 Main St', 'owner': '1'});
+    houseRepo.manager
+        .getKeyForId('families', '1', keyIfAbsent: 'families#a1a1a1');
+    final h1 = houseRepo.deserialize(
+        {'id': '1', 'address': '123 Main St', 'owner': 'families#a1a1a1'});
     expect(h1.owner.value, isNull);
     expect(keyFor(h1), isNotNull);
+
+    expect(houseRepo.manager.getKeyForId('families', '1'), 'families#a1a1a1');
 
     // once it does
     final family = Family(id: '1', surname: 'Rose', residence: BelongsTo())
@@ -109,13 +118,13 @@ void main() async {
       surname: 'Jones',
       persons: HasMany.fromJson({
         '_': [
-          ['1', '2', '3'],
+          ['people#c1c1c1', 'people#c2c2c2', 'people#c3c3c3'],
           false,
           personRepo.manager
         ]
       }),
       residence: BelongsTo.fromJson({
-        '_': ['98', false, personRepo.manager]
+        '_': ['houses#c98d1b', false, personRepo.manager]
       }),
     ).init(familyRepo);
 
@@ -123,8 +132,9 @@ void main() async {
     expect(family.persons.keys.length, 3);
 
     // (2) then load persons
-    final p1 = Person(id: '1', name: 'z1', age: 23).init(personRepo);
-    Person(id: '2', name: 'z2', age: 33).init(personRepo);
+    final p1 = Person(id: '1', name: 'z1', age: 23)
+        .init(personRepo, key: 'people#c1c1c1');
+    Person(id: '2', name: 'z2', age: 33).init(personRepo, key: 'people#c2c2c2');
 
     // (3) assert two first are linked, third one null, house is null
     expect(family.persons.lookup(p1), p1);
@@ -134,11 +144,13 @@ void main() async {
     expect(family.residence.value, isNull);
 
     // (4) load the last person and assert it exists now
-    final p3 = Person(id: '3', name: 'z3', age: 3).init(personRepo);
+    final p3 = Person(id: '3', name: 'z3', age: 3)
+        .init(personRepo, key: 'people#c3c3c3');
     expect(family.persons.lookup(p3), isNotNull);
 
     // (5) load family and assert it exists now
-    final house = House(id: '98', address: '21 Coconut Trail').init(houseRepo);
+    final house = House(id: '98', address: '21 Coconut Trail')
+        .init(houseRepo, key: 'houses#c98d1b');
     expect(house.owner.value, family);
     expect(family.residence.value.address, endsWith('Trail'));
     expect(house.owner.value, family); // same, passes here again
@@ -181,5 +193,15 @@ void main() async {
         Family(surname: 'Kamchatka', residence: BelongsTo()).init(repository);
     f4.residence.value = House(address: 'Sakharova Prospekt, 19');
     expect(f4.residence.value.owner.value.surname, 'Kamchatka');
+  });
+
+  test('one-way relationships', () {
+    final repository = injection.locator<Repository<Family>>();
+
+    final jerry = Dog(name: 'Jerry');
+    final zoe = Dog(name: 'Zoe');
+    final f1 = Family(surname: 'Carlson', dogs: {jerry, zoe}.asHasMany)
+        .init(repository);
+    expect(f1.dogs, {jerry, zoe});
   });
 }
