@@ -27,6 +27,8 @@ void main() async {
     var repo = injection.locator<Repository<Family>>();
     var person = Person(id: '1', name: 'John', age: 37);
     var house = House(id: '31', address: '123 Main St');
+    var house2 = House(id: '2', address: '456 Main St');
+
     var family = Family(
         id: '1',
         surname: 'Smith',
@@ -42,30 +44,38 @@ void main() async {
     // relationships are now associated to a key
     expect(family.residence.key, repo.manager.getKeyForId('houses', '31'));
     expect(family.persons.keys.first, repo.manager.getKeyForId('people', '1'));
+
+    // ensure there are not more than 1 key
+    family.residence.value = house2;
+    print(family.residence.keys);
+    expect(family.residence.keys, hasLength(1));
   });
 
-  // test('watch', () {
-  //   var repository = injection.locator<Repository<Family>>();
-  //   var family = Family(
-  //     id: '1',
-  //     surname: 'Smith',
-  //     residence: BelongsTo<House>(),
-  //   ).init(repository);
+  test('watch', () async {
+    var repository = injection.locator<Repository<Family>>();
+    var family = Family(
+      id: '1',
+      surname: 'Smith',
+      residence: BelongsTo<House>(),
+    ).init(repository);
 
-  //   var notifier = family.residence.watch();
-  //   for (var i = 0; i < 3; i++) {
-  //     if (i == 1) {
-  //       family.residence.value = House(id: '31', address: '123 Main St');
-  //     }
-  //     if (i == 2) {
-  //       family.residence.value = null;
-  //     }
-  //     var dispose = notifier.addListener((state) {
-  //       if (i == 0) expect(state.model, null);
-  //       if (i == 1) expect(state.model, family.residence.value);
-  //       if (i == 2) expect(state.model, null);
-  //     });
-  //     dispose();
-  //   }
-  // });
+    final notifier = family.residence.watch();
+
+    var i = 0;
+    notifier.addListener(
+      // NOTE if state_notifier throws an 'Error'
+      // the error originated inside this listener!
+      expectAsync1((house) {
+        if (i == 0) expect(house.address, startsWith('456'));
+        if (i == 1) expect(house.address, startsWith('123'));
+        if (i == 2) expect(house, isNull);
+        i++;
+      }, count: 3),
+      fireImmediately: false,
+    );
+
+    family.residence.value = House(id: '2', address: '456 Main St');
+    family.residence.value = House(id: '1', address: '123 Main St');
+    family.residence.value = null;
+  });
 }

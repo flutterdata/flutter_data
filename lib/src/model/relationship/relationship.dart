@@ -18,7 +18,7 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
   final bool _save;
   final bool _wasOmitted;
 
-  DataStateNotifier<N> _notifier;
+  ValueStateNotifier<N> _notifier;
 
   @protected
   String get type => Repository.getType<E>();
@@ -154,9 +154,10 @@ and trigger a code generation build again.
   }
 
   @override
-  bool remove(Object value) {
+  bool remove(Object value, {bool notify = true}) {
     if (value is E) {
-      _graphNotifier?.removeNode(keyFor(value));
+      _graphNotifier.remove(_ownerKey, keyFor(value),
+          metadata: _name, inverseMetadata: _inverseName, notify: notify);
       _uninitializedModels.remove(value);
       return true;
     }
@@ -171,11 +172,13 @@ and trigger a code generation build again.
     return _iterable.toSet();
   }
 
+  @protected
+  @visibleForTesting
   Set<String> get keys => _graphNotifier?.get(_ownerKey, metadata: _name) ?? {};
 
   // abstract
 
-  DataStateNotifier<N> watch();
+  ValueStateNotifier<N> watch();
 
   dynamic toJson();
 
@@ -186,8 +189,14 @@ and trigger a code generation build again.
 
   @override
   bool operator ==(dynamic other) =>
-      identical(this, other) || keys == other.keys;
+      identical(this, other) || other is Relationship && keys == other.keys;
 
   @override
   int get hashCode => runtimeType.hashCode ^ keys.hashCode;
+}
+
+class ValueStateNotifier<E> extends StateNotifier<E> {
+  ValueStateNotifier([E state]) : super(state);
+  E get value => state;
+  set value(E value) => state = value;
 }

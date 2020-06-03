@@ -20,32 +20,20 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E, Set<E>> {
   //
 
   @override
-  DataStateNotifier<Set<E>> watch() {
-    // lazily initialize notifier
-    return _notifier ??= _initNotifier();
-  }
-
-  DataStateNotifier<Set<E>> _initNotifier() {
-    // REWRITE BASED ON GRAPH
-    _notifier = DataStateNotifier<Set<E>>(DataState(model: {}));
-    _repository.box
-        .watch()
-        .buffer(Stream.periodic(_repository.oneFrameDuration))
-        .forEach((events) {
-      final eventKeyMap = events.fold<Map<String, bool>>({}, (map, e) {
-        map[e.key.toString()] = e.deleted;
-        return map;
-      });
-
-      for (var entry in eventKeyMap.entries) {
-        if (keys.contains(entry.key)) {
-          if (entry.value) {
-            // entry.value is bool deleted
-            keys.removeWhere((key) => key == entry.key);
-          }
-          _notifier.state = DataState(model: this);
-        }
+  ValueStateNotifier<Set<E>> watch() {
+    _notifier ??= ValueStateNotifier();
+    _graphNotifier.where((event) {
+      // this filter could be improved, but for now:
+      if (event.removed) {
+        // (removed) event.keys has _ownerKey and at least one key of this type
+        return event.keys.contains(_ownerKey) &&
+            event.keys.where((key) => key.startsWith(type)).isNotEmpty;
+      } else {
+        // (added) event.keys contains at least one of our keys
+        return event.keys.toSet().intersection(keys).isNotEmpty;
       }
+    }).forEach((event) {
+      _notifier.value = this;
     });
     return _notifier;
   }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
@@ -91,28 +93,47 @@ void main() async {
     expect(family5.persons, {axl});
   });
 
-  test('watch', () {
-    // var repository = injection.locator<Repository<Family>>();
-    // var family = Family(
-    //   id: '1',
-    //   surname: 'Smith',
-    //   persons: HasMany<Person>(),
-    // ).init(repository);
+  test('watch', () async {
+    var repository = injection.locator<Repository<Family>>();
+    var family = Family(
+      id: '1',
+      surname: 'Smith',
+      persons: HasMany<Person>(),
+    ).init(repository);
 
-    // final p1 = Person(name: 'a', age: 1);
-    // final p2 = Person(name: 'b', age: 2);
-    // var notifier = family.persons.watch();
+    final p1 = Person(name: 'a', age: 1);
+    final p2 = Person(name: 'b', age: 2);
+    final notifier = family.persons.watch();
 
-    // for (var i = 0; i < 4; i++) {
-    //   if (i == 1) family.persons.add(p1);
-    //   if (i == 2) family.persons.add(p2);
-    //   if (i == 3) family.persons.remove(p1);
-    //   notifier.addListener((state) {
-    //     if (i == 0) expect(state.model, <Person>{});
-    //     if (i == 1) expect(state.model, {p1});
-    //     if (i == 2) expect(state.model, {p1, p2});
-    //     if (i == 3) expect(state.model, {p2});
-    //   });
-    // }
+    var i = 0;
+    notifier.addListener(
+      // NOTE if state_notifier throws an 'Error'
+      // the error originated inside this listener!
+      expectAsync1((persons) {
+        if (i == 0) expect(persons, {p1});
+        if (i == 1) expect(persons, {p1, p2});
+        if (i == 2) expect(persons, {p2});
+        if (i == 3) expect(persons, {p2, p1});
+        i++;
+      }, count: 4),
+      fireImmediately: false,
+    );
+
+    family.persons.add(p1);
+    family.persons.add(p2);
+    family.persons.remove(p1);
+    family.persons.add(p1);
   });
 }
+
+// class IndexedStuff<T> {
+//   final int i;
+//   final T model;
+//   IndexedStuff(this.i, this.model);
+// }
+
+// class IndexedValueStateNotifier<T> extends ValueStateNotifier<IndexedStuff<T>> {
+//   void generate() async {
+//     await Future.microtask(() => this.add(p1));
+//   }
+// }

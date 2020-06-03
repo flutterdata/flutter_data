@@ -315,7 +315,8 @@ extension FlutterData on DataManager {
     }
 ''' +
         classes
-            .map((c) => '${c['name'].toLowerCase()}Repository.initialize();')
+            .map((c) =>
+                'await ${c['name'].toLowerCase()}Repository.initialize();')
             .join('\n') +
         '''\n
     return manager;

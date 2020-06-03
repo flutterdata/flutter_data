@@ -20,4 +20,7 @@ class House with DataSupportMixin<House> {
     @required this.address,
     BelongsTo<Family> owner,
   }) : owner = owner ?? BelongsTo();
+
+  @override
+  String toString() => address;
 }

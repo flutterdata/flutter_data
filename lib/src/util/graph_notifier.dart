@@ -4,15 +4,20 @@ import 'package:meta/meta.dart';
 import 'package:state_notifier/state_notifier.dart';
 
 class GraphEvent {
-  const GraphEvent({this.keys, this.graph});
+  const GraphEvent({this.keys, this.removed = false, this.graph});
   final Iterable<String> keys;
+  final bool removed;
   final DataGraph graph;
 }
 
 class GraphNotifier extends StateNotifier<GraphEvent> {
   GraphNotifier(DataGraph graph)
       : _graph = graph,
-        super(GraphEvent(keys: []));
+        super(GraphEvent(keys: [])) {
+    super.onError = (error, stackTrace) {
+      throw error;
+    };
+  }
 
   final DataGraph _graph;
 
@@ -28,7 +33,7 @@ class GraphNotifier extends StateNotifier<GraphEvent> {
 
   void removeNode(String key) {
     if (_graph.removeNode(key)) {
-      state = GraphEvent(keys: [key], graph: _graph);
+      state = GraphEvent(keys: [key], removed: true, graph: _graph);
     }
   }
 
@@ -40,10 +45,12 @@ class GraphNotifier extends StateNotifier<GraphEvent> {
   }
 
   void remove(String from, String to,
-      {String metadata, String inverseMetadata}) {
+      {String metadata, String inverseMetadata, bool notify = true}) {
     if (_graph.remove(from, to,
         metadata: metadata, inverseMetadata: inverseMetadata)) {
-      state = GraphEvent(keys: [from, to], graph: _graph);
+      if (notify) {
+        state = GraphEvent(keys: [from, to], removed: true, graph: _graph);
+      }
     }
   }
 
@@ -63,6 +70,7 @@ class GraphNotifier extends StateNotifier<GraphEvent> {
       }
       state = GraphEvent(
         keys: [...tos, from],
+        removed: true,
         graph: _graph,
       );
     }

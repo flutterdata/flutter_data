@@ -5,6 +5,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'package:data_state/data_state.dart';
+import 'package:state_notifier/state_notifier.dart';
 import 'package:flutter_data/src/util/graph_notifier.dart';
 import 'package:meta/meta.dart';
 import 'package:http/http.dart' as http;
@@ -21,6 +22,7 @@ export 'adapters/json_api_adapter.dart';
 export 'adapters/offline_adapter.dart';
 export 'adapters/standard_json_adapter.dart';
 export 'annotations.dart';
+export 'src/util/notifier_extension.dart';
 
 part 'src/data_manager.dart';
 part 'src/repository/util/hive_adapter.dart';

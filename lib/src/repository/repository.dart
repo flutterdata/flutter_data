@@ -61,7 +61,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   // lifecycle hooks
 
   @mustCallSuper
-  void initialize() {
+  FutureOr<void> initialize() {
     box; // at this point box is init'd & assigned
   }
 

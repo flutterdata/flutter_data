@@ -24,32 +24,40 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E, E> {
   }
 
   set value(E value) {
-    value != null ? super.add(value) : super.remove(this.value);
+    if (value != null) {
+      if (super.isNotEmpty) {
+        // remove to ensure there is only ONE key at most
+        // do not notify as it's an "update" operation
+        super.remove(super.first, notify: false);
+      }
+      super.add(value);
+    } else {
+      super.remove(this.value);
+    }
   }
 
+  @protected
+  @visibleForTesting
   String get key => super.keys.isNotEmpty ? super.keys.first : null;
 
   //
 
   @override
-  DataStateNotifier<E> watch() {
-    // lazily initialize notifier
-    return _notifier ??= _initNotifierOne();
-  }
-
-  //
-
-  DataStateNotifier<E> _initNotifierOne() {
-    _notifier = DataStateNotifier<E>(DataState());
-    // _repository.box
-    //     .watch(key: key)
-    //     .buffer(Stream.periodic(_repository.oneFrameDuration))
-    //     .forEach((events) {
-    //   if (events.isNotEmpty && events.last.deleted) {
-    //     key = null;
-    //   }
-    //   _notifier.state = DataState(model: value);
-    // });
+  ValueStateNotifier<E> watch() {
+    _notifier ??= ValueStateNotifier();
+    _graphNotifier.where((event) {
+      // this filter could be improved, but for now:
+      if (event.removed) {
+        // (removed) event.keys has _ownerKey and at least one key of this type
+        return event.keys.contains(_ownerKey) &&
+            event.keys.where((key) => key.startsWith(type)).isNotEmpty;
+      } else {
+        // (added) event.keys contains our key
+        return event.keys.contains(key);
+      }
+    }).forEach((event) {
+      _notifier.value = event.removed ? null : value;
+    });
     return _notifier;
   }
 
