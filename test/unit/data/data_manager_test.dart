@@ -1,9 +1,16 @@
+import 'dart:math';
+
 import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
+import '../../models/family.dart';
+import '../../models/house.dart';
 import '../../models/person.dart';
 import '../setup.dart';
 
 void main() async {
+  setUpAll(setUpAllFn);
+  tearDownAll(tearDownAllFn);
+
   test('produces a new key', () {
     final manager = TestDataManager(null);
     var key = manager.getKeyForId('people', '1');
@@ -91,12 +98,38 @@ void main() async {
     manager.getKeyForId('people', '1', keyIfAbsent: 'people#a1a1a1');
     manager.getKeyForId('people', 'a1a1a1', keyIfAbsent: 'people#a2a2a2');
     expect(manager.getKeyForId('people', 'a1a1a1'), 'people#a2a2a2');
-    expect(manager.dumpGraph().keys,
-        ['people#a2a2a2', 'people#a1a1a1', 'people#1']);
-    expect(manager.dumpGraph(withKeys: false).keys,
-        ['people#a2a2a2', 'people#a1a1a1']);
+    expect(manager.dumpGraph().keys.toSet(),
+        {'people#a2a2a2', 'people#a1a1a1', 'people#1'});
     expect(manager.getKeyForId('people', '1'), 'people#a1a1a1');
     manager.removeKey('people#a1a1a1');
     expect(manager.getKeyForId('people', '1'), isNull);
+  });
+
+  test('saves key', () async {
+    final repository = injection.locator<Repository<Family>>();
+    final manager = repository.manager;
+
+    for (var i = 0; i < 518; i++) {
+      final family = Family(
+        id: '$i',
+        surname: 'Smith',
+        residence: House(address: '123 Main St').asBelongsTo,
+        persons: HasMany(),
+      ).init(repository);
+
+      // add some people
+      if (i % 19 == 0) {
+        family.persons.add(Person(name: 'new kid #$i', age: 0));
+      }
+
+      // remove some residence relationships
+      if (Random().nextBool()) {
+        family.residence.value = null;
+      }
+
+      await family.save();
+    }
+
+    expect(manager.metaBox.toMap(), manager.dumpGraph());
   });
 }

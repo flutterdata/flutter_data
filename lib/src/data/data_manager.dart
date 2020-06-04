@@ -16,7 +16,6 @@ class DataManager {
   @visibleForTesting
   @protected
   GraphNotifier graphNotifier;
-  void Function() _disposeListener;
 
   final _hive = Hive;
 
@@ -27,10 +26,10 @@ class DataManager {
     return _locator;
   }
 
-  Box _metaBox;
+  Box<Map<String, String>> _metaBox;
 
   @visibleForTesting
-  Box get metaBox {
+  Box<Map<String, String>> get metaBox {
     assert(_metaBox != null, _assertMessage);
     return _metaBox;
   }
@@ -58,33 +57,11 @@ class DataManager {
 
     _hive.init(path);
     _metaBox = await _hive.openBox('_meta');
-    initGraphNotifier(Map.from(_metaBox.toMap()));
+    graphNotifier = GraphNotifier(_metaBox);
     return this;
   }
 
-  void initGraphNotifier(Map<String, Map<String, Set<String>>> source) {
-    // TODO do we need to exclude other "non-keys" like _type#posts for type adapter?
-    graphNotifier = GraphNotifier(DataGraph.fromMap(source));
-
-    graphNotifier.onError = (err, trace) {
-      throw err;
-    };
-
-    _disposeListener = graphNotifier.addListener((event) {
-      for (final key in event.keys) {
-        final edges = event.graph.getAll(key);
-        if (edges == null) {
-          // node was deleted
-          metaBox.delete(key);
-        } else {
-          metaBox.put(key, edges);
-        }
-      }
-    });
-  }
-
   Future<void> dispose() async {
-    _disposeListener?.call();
     await _metaBox?.close();
   }
 
@@ -99,8 +76,7 @@ class DataManager {
 
   // utils
 
-  Map<String, Object> dumpGraph({bool withKeys = true}) =>
-      graphNotifier.debugState.graph.toMap(withKeys: withKeys);
+  Map<String, Object> dumpGraph() => graphNotifier.debugState.graph.toMap();
 
   final _assertMessage = '''\n
 This manager has not been initialized.

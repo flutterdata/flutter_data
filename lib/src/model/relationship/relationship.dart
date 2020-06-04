@@ -129,7 +129,7 @@ and trigger a code generation build again.
   bool contains(Object element) {
     if (element is E && _graphNotifier != null) {
       return _graphNotifier
-              .get(_ownerKey, metadata: _name)
+              .getFor(_ownerKey, _name)
               .contains(keyFor(element)) ||
           _uninitializedModels.contains(element);
     }
@@ -156,8 +156,7 @@ and trigger a code generation build again.
   @override
   bool remove(Object value, {bool notify = true}) {
     if (value is E) {
-      _graphNotifier.remove(_ownerKey, keyFor(value),
-          metadata: _name, inverseMetadata: _inverseName, notify: notify);
+      _graphNotifier.remove(_ownerKey, keyFor(value), notify: notify);
       _uninitializedModels.remove(value);
       return true;
     }
@@ -174,7 +173,7 @@ and trigger a code generation build again.
 
   @protected
   @visibleForTesting
-  Set<String> get keys => _graphNotifier?.get(_ownerKey, metadata: _name) ?? {};
+  Set<String> get keys => _graphNotifier?.getFor(_ownerKey, _name) ?? {};
 
   // abstract
 

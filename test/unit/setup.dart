@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter_data/src/util/graph_notifier.dart';
 import 'package:hive/hive.dart';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:mockito/mockito.dart';
@@ -55,6 +56,9 @@ class FakeBox<T> extends Fake implements Box<T> {
   bool containsKey(key) => _map.containsKey(key);
 
   @override
+  int get length => _map.length;
+
+  @override
   Future<void> deleteFromDisk() async {
     await clear();
   }
@@ -73,8 +77,9 @@ class FakeBox<T> extends Fake implements Box<T> {
 
 class TestDataManager extends DataManager {
   TestDataManager(this.locator) : super.delegate() {
-    initGraphNotifier({});
+    graphNotifier = GraphNotifier(metaBox);
   }
+
   @override
   final Locator locator;
   @override
