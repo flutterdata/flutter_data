@@ -24,19 +24,19 @@ export 'adapters/standard_json_adapter.dart';
 export 'annotations.dart';
 export 'src/util/notifier_extension.dart';
 
-part 'src/data_manager.dart';
-part 'src/repository/util/hive_adapter.dart';
-part 'src/repository/adapter/remote_adapter.dart';
-part 'src/repository/adapter/watch_adapter.dart';
+part 'src/data/data_manager.dart';
+part 'src/data/data_exception.dart';
 
 part 'src/model/data_support.dart';
 part 'src/model/relationship/relationship.dart';
 part 'src/model/relationship/has_many.dart';
 part 'src/model/relationship/belongs_to.dart';
 
+part 'src/repository/util/hive_adapter.dart';
+part 'src/repository/adapter/remote_adapter.dart';
+part 'src/repository/adapter/watch_adapter.dart';
 part 'src/repository/repository.dart';
 
-part 'src/util/data_exception.dart';
 part 'src/util/extensions.dart';
 part 'src/util/service_locator.dart';
 

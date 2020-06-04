@@ -42,8 +42,7 @@ mixin StandardJSONAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
     for (var relEntry in hasManys.entries) {
       final name = relEntry.key.toString();
       final keys = List<String>.from(map[name] as Iterable);
-      relationships[name] =
-          keys; // TODO now relationships support keys directly (no need for IDs)
+      relationships[name] = keys;
       map.remove(name);
     }
 
