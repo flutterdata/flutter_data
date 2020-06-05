@@ -51,8 +51,8 @@ class Person with DataSupportMixin<Person> {
   factory Person.generateRandom(Repository<Person> repository,
       {bool withId = false}) {
     return Person(
-            id: withId ? Random().nextInt(19).toString() : null,
-            name: 'zzz-${Random().nextInt(9999)}',
+            id: withId ? Random().nextInt(999999999).toString() : null,
+            name: 'zzz-${Random().nextInt(999999999)}',
             age: Random().nextInt(19))
         .init(repository);
   }

@@ -67,16 +67,15 @@ class DataManager {
 
   // identity
 
-  String getKeyForId(String type, dynamic id, {String keyIfAbsent}) =>
-      graphNotifier.getKeyForId(type, id, keyIfAbsent: keyIfAbsent);
+  String getKeyForId(String type, dynamic id, {String keyIfAbsent}) {
+    return graphNotifier.getKeyForId(type, id, keyIfAbsent: keyIfAbsent);
+  }
 
   String getId(String key) => graphNotifier.getId(key);
 
   void removeKey(String key) => graphNotifier.removeKey(key);
 
-  // utils
-
-  Map<String, Object> dumpGraph() => graphNotifier.debugState.graph.toMap();
+  Map<String, Object> dumpGraph() => graphNotifier.toMap();
 
   final _assertMessage = '''\n
 This manager has not been initialized.

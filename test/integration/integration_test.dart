@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:async/async.dart';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
@@ -43,22 +44,22 @@ void main() async {
   });
 
   test('findOne with include', () async {
-    var repo = injection.locator<Repository<Company>>();
-    var company = await repo.findOne('1', params: {'include': 'models'});
+    final repo = injection.locator<Repository<Company>>();
+    final company = await repo.findOne('1', params: {'include': 'models'});
     expect(company.models.last.name, 'Model 3');
   });
 
-  // test('watchOne', () async {
-  //   var repo = injection.locator<Repository<Model>>();
-  //   // make sure there are no items in local storage from previous tests
-  //   await repo.box.clear();
-  //   var stream = StreamQueue(repo.watchOne('1').stream);
+  test('watchOne', () async {
+    var repo = injection.locator<Repository<Model>>();
+    // make sure there are no items in local storage from previous tests
+    await repo.box.clear();
+    var stream = StreamQueue(repo.watchOne('1').stream);
 
-  //   expect(stream, mayEmitMultiple(isNull));
+    expect(stream, mayEmitMultiple(isNull));
 
-  //   await expectLater(
-  //       stream, emits(Model(id: '1', name: 'Roadster', company: BelongsTo())));
-  // });
+    await expectLater(
+        stream, emits(Model(id: '1', name: 'Roadster', company: BelongsTo())));
+  });
 
   test('save', () async {
     var repo = injection.locator<Repository<Model>>();

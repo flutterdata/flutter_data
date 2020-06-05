@@ -24,7 +24,7 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E, Set<E>> {
     _notifier ??= ValueStateNotifier();
     _graphNotifier.where((event) {
       // this filter could be improved, but for now:
-      if (event.removed) {
+      if (event.type == GraphEventType.removed) {
         // (removed) event.keys has _ownerKey and at least one key of this type
         return event.keys.contains(_ownerKey) &&
             event.keys.where((key) => key.startsWith(type)).isNotEmpty;

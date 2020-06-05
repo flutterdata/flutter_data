@@ -28,11 +28,6 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   @visibleForTesting
   final type = getType<T>();
 
-  @nonVirtual
-  @protected
-  @visibleForTesting
-  final oneFrameDuration = Duration(milliseconds: 16);
-
   // repo public API
 
   Future<List<T>> findAll(
@@ -61,9 +56,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   // lifecycle hooks
 
   @mustCallSuper
-  FutureOr<void> initialize() {
-    box; // at this point box is init'd & assigned
-  }
+  FutureOr<void> initialize() {}
 
   @mustCallSuper
   Future<void> dispose() async {
@@ -88,11 +81,23 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   @visibleForTesting
   T localDeserialize(Map<String, dynamic> map);
 
-  //
+  // local
 
-  void localDelete(String key) {
+  T _localGet(String key) {
     if (key != null) {
-      box.delete(key);
+      return initModel(box.get(key));
+    }
+    return null;
+  }
+
+  void _localPut(String key, T model) {
+    assert(key != null);
+    box.put(key, model); // save in bg
+  }
+
+  void _localDelete(String key) {
+    if (key != null) {
+      box.delete(key); // delete in bg
       // id will become orphan & purged
       manager.removeKey(key);
     }
@@ -101,39 +106,45 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   // protected & private
 
   @protected
-  T initModel(T model, {String key, bool save}) {
+  T initModel(T model, {String key, bool save = false}) {
     if (model == null) {
       return null;
     }
-    // already initialized
-    if (keyFor(model) != null) {
-      return model;
+
+    final wasInitialized = keyFor(model) != null;
+    final existingKey = manager.getKeyForId(type, model.id);
+
+    // ensure we have a key, searching in the correct priority
+    key = keyFor(model) ?? existingKey ?? key ?? Repository.generateKey<T>();
+
+    if (!wasInitialized) {
+      _assertManager();
+      model._repository = this;
+      if (existingKey == null) {
+        save = true;
+      }
     }
-
-    // initialize
-
-    save = true;
-
-    _assertManager();
-    model._repository = this;
-
-    // ensure key is linked to ID
-    // if no ID, register key
-    key ??= Repository.generateKey<T>();
-    model._flutterDataMetadata['_key'] = model.id != null
-        ? manager.getKeyForId(type, model.id, keyIfAbsent: key)
-        : graphNotifier.addNode(key);
-    assert(keyFor(model) != null);
 
     if (save) {
-      box?.put(keyFor(model), model);
+      _localPut(key, model);
     }
 
-    // set model as "owner" in its relationships
-    for (var metadata in relationshipsFor(model).entries) {
-      final relationship = metadata.value['instance'] as Relationship;
-      relationship?.setOwner(
-          type, keyFor(model), metadata.key, metadata.value, manager);
+    if (!wasInitialized) {
+      model._flutterDataMetadata['_key'] =
+          existingKey ?? manager.getKeyForId(type, model.id, keyIfAbsent: key);
+
+      // set model as "owner" in its relationships
+      for (var metadata in relationshipsFor(model).entries) {
+        final relationship = metadata.value['instance'] as Relationship;
+        relationship?.setOwner(
+            type, keyFor(model), metadata.key, metadata.value, manager);
+      }
+    }
+
+    // all done, notify listeners
+    if (save) {
+      manager.graphNotifier.notify([key],
+          existingKey != null ? GraphEventType.updated : GraphEventType.added);
     }
 
     return model;

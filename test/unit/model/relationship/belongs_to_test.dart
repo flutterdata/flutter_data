@@ -47,13 +47,12 @@ void main() async {
 
     // ensure there are not more than 1 key
     family.residence.value = house2;
-    print(family.residence.keys);
     expect(family.residence.keys, hasLength(1));
   });
 
   test('watch', () async {
-    var repository = injection.locator<Repository<Family>>();
-    var family = Family(
+    final repository = injection.locator<Repository<Family>>();
+    final family = Family(
       id: '1',
       surname: 'Smith',
       residence: BelongsTo<House>(),
@@ -63,8 +62,6 @@ void main() async {
 
     var i = 0;
     notifier.addListener(
-      // NOTE if state_notifier throws an 'Error'
-      // the error originated inside this listener!
       expectAsync1((house) {
         if (i == 0) expect(house.address, startsWith('456'));
         if (i == 1) expect(house.address, startsWith('123'));

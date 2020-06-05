@@ -27,9 +27,9 @@ void main() async {
 
     expect(graph.getFor('h1', 'blogs'), {'b1'});
 
-    graph.add('h1', 'hosts#1', metadata: 'id', inverseMetadata: '_key');
+    graph.add('h1', 'hosts#1', metadata: 'id', inverseMetadata: 'key');
     expect(graph.getFor('h1', 'id'), contains('hosts#1'));
-    expect(graph.getFor('hosts#1', '_key'), contains('h1'));
+    expect(graph.getFor('hosts#1', 'key'), contains('h1'));
     // all edges without filtering by metadata
     expect(graph.getAll('h1'), {
       'blogs': {'b1'},
@@ -40,7 +40,7 @@ void main() async {
   test('serialize/deserialize', () {
     graph.add('h1', 'b1', metadata: 'blogs', inverseMetadata: 'host');
     graph.add('h1', 'b2', metadata: 'blogs', inverseMetadata: 'host');
-    graph.add('h1', 'hosts#1', metadata: 'id', inverseMetadata: '_key');
+    graph.add('h1', 'hosts#1', metadata: 'id', inverseMetadata: 'key');
 
     graph.add('b1', 'p1', metadata: 'posts', inverseMetadata: 'blog');
     graph.add('p2', 'b1', metadata: 'blog', inverseMetadata: 'posts');
@@ -51,7 +51,7 @@ void main() async {
     expect(box.toMap(), graph2.toMap());
 
     // keys are present in both graphs
-    expect(graph.getFor('hosts#1', '_key'), contains('h1'));
-    expect(graph2.getFor('hosts#1', '_key'), contains('h1'));
+    expect(graph.getFor('hosts#1', 'key'), contains('h1'));
+    expect(graph2.getFor('hosts#1', 'key'), contains('h1'));
   });
 }

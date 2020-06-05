@@ -28,9 +28,10 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E, E> {
       if (super.isNotEmpty) {
         // remove to ensure there is only ONE key at most
         // do not notify as it's an "update" operation
-        super.remove(super.first, notify: false);
+        super.replace(super.first, value);
+      } else {
+        super.add(value);
       }
-      super.add(value);
     } else {
       super.remove(this.value);
     }
@@ -47,7 +48,7 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E, E> {
     _notifier ??= ValueStateNotifier();
     _graphNotifier.where((event) {
       // this filter could be improved, but for now:
-      if (event.removed) {
+      if (event.type == GraphEventType.removed) {
         // (removed) event.keys has _ownerKey and at least one key of this type
         return event.keys.contains(_ownerKey) &&
             event.keys.where((key) => key.startsWith(type)).isNotEmpty;
@@ -56,7 +57,7 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E, E> {
         return event.keys.contains(key);
       }
     }).forEach((event) {
-      _notifier.value = event.removed ? null : value;
+      _notifier.value = event.type == GraphEventType.removed ? null : value;
     });
     return _notifier;
   }

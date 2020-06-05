@@ -16,7 +16,6 @@ dependencies:
   data_state: ">= 0.2.5 < 1.0.0"
   async: ^2.4.0
   meta: ^1.1.8
-  rxdart: ">= 0.23.1 < 1.0.0"
   http: ^0.12.0+4
   hive: ^1.4.1+1
   analyzer: ^0.39.7

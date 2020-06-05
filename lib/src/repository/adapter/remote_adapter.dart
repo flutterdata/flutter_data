@@ -118,17 +118,15 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
       Map<String, dynamic> params,
       Map<String, String> headers}) async {
     assert(id != null);
-
     remote ??= _remote;
-    final key =
-        manager.getKeyForId(type, id, keyIfAbsent: Repository.generateKey());
 
     if (remote == false) {
+      final key = manager.getKeyForId(type, id);
       if (key == null) {
         return null;
       }
-      final model = box.get(key);
-      return initModel(model, save: false);
+      final model = _localGet(key);
+      return initModel(model);
     }
 
     final response = await withHttpClient(
@@ -192,7 +190,7 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
     remote ??= _remote;
 
     final key = manager.getKeyForId(type, id);
-    localDelete(key);
+    _localDelete(key);
 
     if (remote) {
       final response = await withHttpClient(

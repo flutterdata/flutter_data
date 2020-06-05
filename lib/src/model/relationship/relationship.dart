@@ -111,14 +111,14 @@ and trigger a code generation build again.
   // implement set
 
   @override
-  bool add(E value) {
+  bool add(E value, {bool notify = true}) {
     if (value == null) {
       return false;
     }
     if (_repository != null) {
-      final model = _repository.initModel(value, save: _save);
+      final model = _repository.initModel(value, save: false);
       _graphNotifier.add(_ownerKey, keyFor(model),
-          metadata: _name, inverseMetadata: _inverseName);
+          metadata: _name, inverseMetadata: _inverseName, notify: notify);
     } else {
       _uninitializedModels.add(value);
     }
@@ -137,7 +137,7 @@ and trigger a code generation build again.
   }
 
   Iterable<E> get _iterable => [
-        ...keys.map((key) => _repository.box.get(key)),
+        ...keys.map((key) => _repository._localGet(key)),
         ..._uninitializedModels
       ].where((model) => model != null);
 
@@ -151,6 +151,19 @@ and trigger a code generation build again.
       return element;
     }
     return null;
+  }
+
+  void replace(E oldValue, E value) {
+    if (_repository != null) {
+      remove(oldValue, notify: false);
+      add(value, notify: false);
+      _graphNotifier.notify(
+          [_ownerKey, keyFor(oldValue), keyFor(value)], GraphEventType.updated);
+    } else {
+      _uninitializedModels
+        ..remove(oldValue)
+        ..add(value);
+    }
   }
 
   @override
@@ -195,7 +208,9 @@ and trigger a code generation build again.
 }
 
 class ValueStateNotifier<E> extends StateNotifier<E> {
-  ValueStateNotifier([E state]) : super(state);
+  ValueStateNotifier([E state]) : super(state) {
+    onError = Zone.current.handleUncaughtError;
+  }
   E get value => state;
   set value(E value) => state = value;
 }

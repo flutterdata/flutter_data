@@ -92,8 +92,8 @@ void main() async {
   });
 
   test('watch', () async {
-    var repository = injection.locator<Repository<Family>>();
-    var family = Family(
+    final repository = injection.locator<Repository<Family>>();
+    final family = Family(
       id: '1',
       surname: 'Smith',
       persons: HasMany<Person>(),
@@ -105,8 +105,6 @@ void main() async {
 
     var i = 0;
     notifier.addListener(
-      // NOTE if state_notifier throws an 'Error'
-      // the error originated inside this listener!
       expectAsync1((persons) {
         if (i == 0) expect(persons, {p1});
         if (i == 1) expect(persons, {p1, p2});
@@ -123,15 +121,3 @@ void main() async {
     family.persons.add(p1);
   });
 }
-
-// class IndexedStuff<T> {
-//   final int i;
-//   final T model;
-//   IndexedStuff(this.i, this.model);
-// }
-
-// class IndexedValueStateNotifier<T> extends ValueStateNotifier<IndexedStuff<T>> {
-//   void generate() async {
-//     await Future.microtask(() => this.add(p1));
-//   }
-// }

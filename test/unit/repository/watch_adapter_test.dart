@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
@@ -8,55 +11,76 @@ void main() async {
   setUpAll(setUpAllFn);
   tearDownAll(tearDownAllFn);
 
-  test('watchAll', () async {
-    var repo = injection.locator<Repository<Person>>();
-    // make sure there are no items in local storage from previous tests
-    await repo.box.clear();
-    expect(repo.box.keys, isEmpty);
+  Repository<Person> repository;
+  Function dispose;
 
-    var notifier = repo.watchAll();
+  setUp(() async {
+    repository = injection.locator<Repository<Person>>();
+    // make sure there are no items in local storage from previous tests
+    await repository.box.clear();
+    repository.manager.graphNotifier.clear();
+    expect(repository.box.keys, isEmpty);
+  });
+
+  tearDown(() {
+    dispose();
+  });
+
+  test('watchAll', () async {
+    final notifier = repository.watchAll();
 
     final matcher = predicate((p) {
       return p is Person && p.name.startsWith('zzz-') && p.age < 19;
     });
 
-    for (var i = 0; i < 3; i++) {
-      Person.generateRandom(repo);
-      var dispose = notifier.addListener((state) {
-        if (i == 0) expect(state.model, isNull);
-        if (i == 1) expect(state.model, [matcher]);
-        if (i == 2) expect(state.model, [matcher, matcher]);
-        if (i == 3) expect(state.model, [matcher, matcher, matcher]);
-      }, fireImmediately: false);
-      dispose();
+    notifier.onError = Zone.current.handleUncaughtError;
+
+    final count = 18;
+    var i = 0;
+    dispose = notifier.addListener(
+      expectAsync1((state) {
+        if (i == 0) {
+          expect(state.model, [matcher]);
+        } else if (i == 1) {
+          expect(state.model, [matcher, matcher]);
+        } else if (i == 2) {
+          expect(state.model, [matcher, matcher, matcher]);
+        } else {
+          expect(state.model, hasLength(i + 1));
+        }
+        i++;
+      }, count: count),
+      fireImmediately: false,
+    );
+
+    for (var j = 0; j < count; j++) {
+      Person.generateRandom(repository, withId: Random().nextBool());
     }
 
-    expect(repo.box.keys.length, 3);
+    expect(repository.box.keys.length, count);
   });
 
   test('watchOne', () async {
-    var repo = injection.locator<Repository<Person>>();
-    // make sure there are no items in local storage from previous tests
-    await repo.box.clear();
-    expect(repo.box.keys, isEmpty);
+    final notifier = repository.watchOne('1');
 
-    var notifier = repo.watchOne('1');
+    final matcher = (name) =>
+        predicate((p) => p is Person && p.id == '1' && p.name == name);
 
-    final matcher = (name) => predicate((p) {
-          return p is Person && p.name == name;
-        });
+    var i = 0;
+    dispose = notifier.addListener(
+      expectAsync1((state) {
+        if (i == 0) expect(state.model, matcher('Frank'));
+        if (i == 1) expect(state.model, matcher('Steve-O'));
+        if (i == 2) expect(state.model, matcher('Liam'));
+        i++;
+      }, count: 3),
+      fireImmediately: false,
+    );
 
-    for (var i = 0; i < 3; i++) {
-      if (i == 1) await repo.save(Person(id: '1', name: 'Frank', age: 30));
-      if (i == 2) await repo.save(Person(id: '1', name: 'Steve-O', age: 34));
-      if (i == 3) await repo.save(Person(id: '1', name: 'Liam', age: 34));
-      var dispose = notifier.addListener((state) {
-        if (i == 0) expect(state.model, isNull);
-        if (i == 1) expect(state.model, matcher('Frank'));
-        if (i == 2) expect(state.model, matcher('Steve-O'));
-        if (i == 3) expect(state.model, matcher('Liam'));
-      }, fireImmediately: false);
-      dispose();
-    }
+    Person(id: '1', name: 'Frank', age: 30).init(repository);
+    await repository.save(Person(id: '1', name: 'Steve-O', age: 34));
+    await repository.save(Person(id: '1', name: 'Liam', age: 36));
+    // a different ID doesn't trigger an extra call to expectAsync1(count=3)
+    await repository.save(Person(id: '2', name: 'Jupiter', age: 3));
   });
 }
