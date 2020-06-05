@@ -10,6 +10,12 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
       'Accept': 'application/vnd.api+json',
     });
 
+  Map<String, Map<String, Object>> get belongsTos => Map.fromEntries(
+      relationshipsFor().entries.where((e) => e.value['kind'] == 'BelongsTo'));
+
+  Map<String, Map<String, Object>> get hasManys => Map.fromEntries(
+      relationshipsFor().entries.where((e) => e.value['kind'] == 'HasMany'));
+
   // Transforms native format into JSON:API
   @override
   Map<String, dynamic> serialize(model) {
@@ -17,34 +23,31 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
 
     final relationships = <String, j.Relationship>{};
 
-    for (var relEntry in relationshipMetadata['HasMany'].entries) {
+    for (var relEntry in hasManys.entries) {
       final name = relEntry.key.toString();
       if (map[name] != null) {
         final keys = List<String>.from(map[name] as Iterable);
-        final type = relEntry.value;
-        final identifiers =
-            DataId.byKeys(keys, manager, type: type.toString()).map((dataId) {
-          return IdentifierObject(dataId.type, dataId.id.toString());
+        // final type = relEntry.value;
+        final identifiers = keys.map((key) {
+          return IdentifierObject(type, manager.getId(key));
         });
         relationships[name] = ToMany(identifiers);
         map.remove(name);
       }
     }
 
-    for (var relEntry in relationshipMetadata['BelongsTo'].entries) {
+    for (var relEntry in belongsTos.entries) {
       final name = relEntry.key.toString();
       if (map[name] != null) {
         final key = map[name].toString();
-        final type = relEntry.value;
-        final dataId = DataId.byKey(key, manager, type: type.toString());
-        relationships[name] =
-            ToOne(IdentifierObject(dataId.type, dataId.id.toString()));
+        // final type = relEntry.value;
+        relationships[name] = ToOne(IdentifierObject(type, manager.getId(key)));
         map.remove(name);
       }
     }
 
     map.remove('id');
-    final resource = ResourceObject(DataId.getType<T>(), map.id,
+    final resource = ResourceObject(type, map.id,
         attributes: map, relationships: relationships);
 
     return Document(ResourceData(resource)).toJson();
@@ -79,19 +82,19 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
 
     nativeMap['id'] = obj.id;
 
-    // if (obj.relationships != null) {
-    //   for (var relEntry in obj.relationships.entries) {
-    //     final rel = relEntry.value;
-    //     if (rel is ToOne && rel.linkage != null) {
-    //       final dataId = manager.dataId(rel.linkage.id, type: rel.linkage.type);
-    //       nativeMap[relEntry.key] = dataId.key;
-    //     } else if (rel is ToMany) {
-    //       nativeMap[relEntry.key] = rel.linkage
-    //           .map((i) => manager.dataId(i.id, type: i.type).key)
-    //           .toList();
-    //     }
-    //   }
-    // }
+    if (obj.relationships != null) {
+      for (var relEntry in obj.relationships.entries) {
+        final rel = relEntry.value;
+        if (rel is ToOne && rel.linkage != null) {
+          final key = manager.getKeyForId(rel.linkage.type, rel.linkage.id);
+          nativeMap[relEntry.key] = key;
+        } else if (rel is ToMany) {
+          nativeMap[relEntry.key] = rel.linkage
+              .map((i) => manager.getKeyForId(i.type, i.id))
+              .toList();
+        }
+      }
+    }
 
     nativeMap.addAll(obj.attributes);
 
@@ -99,11 +102,11 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
   }
 
   void _saveIncluded(List<ResourceObject> included) {
-    //   included ??= const [];
-    //   for (var i in included) {
-    //     final dataId = manager.dataId(i.id, type: i.type);
-    //     final repo = relationshipRepositories[dataId.type] as RemoteAdapter;
-    //     repo.deserialize(i, key: dataId.key);
-    //   }
+    included ??= const [];
+    for (var i in included) {
+      final key = manager.getKeyForId(i.type, i.id);
+      final repo = relatedRepositories[i.type] as RemoteAdapter;
+      repo.deserialize(i, key: key);
+    }
   }
 }
