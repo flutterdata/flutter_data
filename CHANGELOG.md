@@ -1,3 +1,7 @@
+## [Unreleased]
+ - the min required version of `json_api` bumped to 4.2.1
+ - do not send `id` as a resource attribute in the JSON:API request
+ 
 ## [0.3.12] - 2020-05-04
 
  - new `repositoryFor` API, useful for serialization adapters

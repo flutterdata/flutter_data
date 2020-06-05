@@ -12,7 +12,7 @@ dependencies:
   uuid: ^2.0.4
   inflection2: ^0.4.3
   path: ^1.6.4
-  json_api: ^3.2.3
+  json_api: ^4.2.1
   data_state: ">= 0.2.5 < 1.0.0"
   async: ^2.4.0
   meta: ^1.1.8

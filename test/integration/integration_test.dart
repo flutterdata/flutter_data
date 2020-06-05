@@ -4,8 +4,8 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
 import '../models/models.dart';
+import 'server.dart';
 import '../unit/setup.dart';
-import 'server/main.dart';
 
 final injection = DataServiceLocator();
 
