@@ -17,35 +17,35 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
 
     final relationships = <String, j.Relationship>{};
 
-    // for (var relEntry in relationshipMetadata['HasMany'].entries) {
-    //   final name = relEntry.key.toString();
-    //   if (map[name] != null) {
-    //     final keys = List<String>.from(map[name] as Iterable);
-    //     final type = relEntry.value;
-    //     final identifiers =
-    //         DataId.byKeys(keys, manager, type: type.toString()).map((dataId) {
-    //       return IdentifierObject(dataId.type, dataId.id.toString());
-    //     });
-    //     relationships[name] = ToMany(identifiers);
-    //     map.remove(name);
-    //   }
-    // }
+    for (var relEntry in relationshipMetadata['HasMany'].entries) {
+      final name = relEntry.key.toString();
+      if (map[name] != null) {
+        final keys = List<String>.from(map[name] as Iterable);
+        final type = relEntry.value;
+        final identifiers =
+            DataId.byKeys(keys, manager, type: type.toString()).map((dataId) {
+          return IdentifierObject(dataId.type, dataId.id.toString());
+        });
+        relationships[name] = ToMany(identifiers);
+        map.remove(name);
+      }
+    }
 
-    // for (var relEntry in relationshipMetadata['BelongsTo'].entries) {
-    //   final name = relEntry.key.toString();
-    //   if (map[name] != null) {
-    //     final key = map[name].toString();
-    //     final type = relEntry.value;
-    //     final dataId = DataId.byKey(key, manager, type: type.toString());
-    //     relationships[name] =
-    //         ToOne(IdentifierObject(dataId.type, dataId.id.toString()));
-    //     map.remove(name);
-    //   }
-    // }
+    for (var relEntry in relationshipMetadata['BelongsTo'].entries) {
+      final name = relEntry.key.toString();
+      if (map[name] != null) {
+        final key = map[name].toString();
+        final type = relEntry.value;
+        final dataId = DataId.byKey(key, manager, type: type.toString());
+        relationships[name] =
+            ToOne(IdentifierObject(dataId.type, dataId.id.toString()));
+        map.remove(name);
+      }
+    }
 
-    final resource = ResourceObject(type, map.id,
-        attributes: map, relationships: relationships);
     map.remove('id');
+    final resource = ResourceObject(DataId.getType<T>(), map.id,
+        attributes: map, relationships: relationships);
 
     return Document(ResourceData(resource)).toJson();
   }
