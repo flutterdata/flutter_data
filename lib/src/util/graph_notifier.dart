@@ -74,7 +74,7 @@ class GraphNotifier extends StateNotifier<GraphEvent> {
   }
 
   void removeAll(String from, {String metadata, bool notify = true}) {
-    final tos = _graph.getFor(from, metadata)?.toSet(); // make a copy
+    final tos = _graph.getEdge(from, metadata)?.toSet(); // make a copy
     if (tos != null) {
       for (var to in tos) {
         remove(from, to, notify: false);
@@ -96,7 +96,7 @@ class GraphNotifier extends StateNotifier<GraphEvent> {
   //
 
   String getId(String key) {
-    final tos = _graph.getFor(key, 'id');
+    final tos = _graph.getEdge(key, 'id');
     return tos == null || tos.isEmpty
         ? null
         : (tos.first.split('#')..removeAt(0)).join('#');
@@ -106,7 +106,7 @@ class GraphNotifier extends StateNotifier<GraphEvent> {
   String createKey(String key) => addNode(key, notify: false);
 
   void removeKey(String key) {
-    final tos = _graph.getFor(key, 'id');
+    final tos = _graph.getEdge(key, 'id');
     if (tos.isNotEmpty) {
       remove(key, tos.first, notify: false);
     }
@@ -115,7 +115,7 @@ class GraphNotifier extends StateNotifier<GraphEvent> {
   String getKeyForId(String type, dynamic id, {String keyIfAbsent}) {
     if (id != null) {
       final nodeId = '$type#$id';
-      final tos = _graph.getFor(nodeId, 'key');
+      final tos = _graph.getEdge(nodeId, 'key');
       if (tos != null && tos.isNotEmpty) {
         final key = tos.first;
         return key;
@@ -134,8 +134,8 @@ class GraphNotifier extends StateNotifier<GraphEvent> {
     return null;
   }
 
-  Set<String> getFor<E>(String from, String metadata) {
-    return _graph.getFor(from, metadata);
+  Set<String> getEdge<E>(String from, String metadata) {
+    return _graph.getEdge(from, metadata);
   }
 
   Map<String, Map<String, String>> toMap() => _graph.toMap();
@@ -232,15 +232,15 @@ class DataGraph {
     box.clear();
   }
 
-  Set<String> getFor(String from, String metadata) {
-    final map = getAll(from);
+  Set<String> getEdge(String from, String metadata) {
+    final map = getEdges(from);
     if (map != null) {
       return map[metadata];
     }
     return null;
   }
 
-  Map<String, Set<String>> getAll(String from) {
+  Map<String, Set<String>> getEdges(String from) {
     final fromNode = box.get(from);
     if (fromNode == null) {
       return null;

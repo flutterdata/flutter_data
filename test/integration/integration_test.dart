@@ -1,17 +1,18 @@
 import 'dart:io';
 
-import 'package:async/async.dart';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
 import '../models/models.dart';
-import 'server.dart';
 import '../unit/setup.dart';
+import 'server.dart';
 
 final injection = DataServiceLocator();
 
 void main() async {
   HttpServer server;
+  Function dispose;
+
   setUpAll(() async {
     server = await createServer(InternetAddress.loopbackIPv4, 17083);
     injection.register(HiveMock());
@@ -25,9 +26,10 @@ void main() async {
         CityTestRepository(manager, box: FakeBox<City>()));
     injection.register<Repository<Model>>(
         ModelTestRepository(manager, box: FakeBox<Model>()));
+  });
 
-    // injection.register<ImpatientModelTestRepository>(
-    //     ImpatientModelTestRepository(manager, FakeBox<Model>()));
+  tearDown(() {
+    dispose?.call();
   });
 
   test('findAll', () async {
@@ -50,15 +52,19 @@ void main() async {
   });
 
   test('watchOne', () async {
-    var repo = injection.locator<Repository<Model>>();
+    final modelRepo = injection.locator<Repository<Model>>();
     // make sure there are no items in local storage from previous tests
-    await repo.box.clear();
-    var stream = StreamQueue(repo.watchOne('1').stream);
+    // await repo.box.clear();
+    // await repo.manager.metaBox.clear();
+    final notifier = modelRepo.watchOne('1');
 
-    expect(stream, mayEmitMultiple(isNull));
-
-    await expectLater(
-        stream, emits(Model(id: '1', name: 'Roadster', company: BelongsTo())));
+    dispose = notifier.addListener(
+      expectAsync1((state) {
+        final model = Model(id: '1', name: 'Roadster', company: BelongsTo());
+        expect(state.model.name, equals(model.name));
+      }),
+      fireImmediately: false,
+    );
   });
 
   test('save', () async {
@@ -96,13 +102,6 @@ void main() async {
       await injection.locator<Repository<Company>>().findOne('2332');
     }, throwsA(isA<DataException>()));
   });
-
-  // disabled timeout for now
-  // test('times out', () {
-  //   var repo = injection.locator<ImpatientModelTestRepository>();
-  //   expect(() => repo.findAll(),
-  //       throwsA(predicate((DataException e) => e.errors is TimeoutException)));
-  // });
 
   tearDownAll(() async {
     await server.close();

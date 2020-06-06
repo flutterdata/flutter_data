@@ -11,7 +11,6 @@ import 'package:meta/meta.dart';
 import 'package:http/http.dart' as http;
 import 'package:inflection2/inflection2.dart';
 import 'package:path/path.dart' as path_helper;
-import 'package:rxdart/rxdart.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 import 'src/util/notifier_extension.dart';

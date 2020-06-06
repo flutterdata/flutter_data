@@ -7,17 +7,15 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'models.freezed.dart';
 part 'models.g.dart';
 
-@freezed
 @DataRepository([])
-abstract class Model with DataSupportMixin<Model>, _$Model {
-  Model._();
-  factory Model({
-    String id,
-    String name,
-    BelongsTo<Company> company,
-  }) = _Model;
+@JsonSerializable()
+class Model with DataSupportMixin<Model> {
+  @override
+  final String id;
+  final String name;
+  final BelongsTo<Company> company;
 
-  factory Model.fromJson(Map<String, dynamic> json) => _$ModelFromJson(json);
+  Model({this.id, this.name, this.company});
 }
 
 @freezed

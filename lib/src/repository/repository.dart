@@ -83,9 +83,14 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   // local
 
-  T _localGet(String key) {
+  T _localGet(String key, {bool init = true}) {
     if (key != null) {
-      return initModel(box.get(key));
+      final model = box.get(key);
+      if (init) {
+        return initModel(model);
+      } else {
+        return model;
+      }
     }
     return null;
   }
@@ -106,6 +111,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   // protected & private
 
   @protected
+  @visibleForTesting
   T initModel(T model, {String key, bool save = false}) {
     if (model == null) {
       return null;

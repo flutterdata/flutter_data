@@ -71,6 +71,7 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
     }
   }
 
+  // public
   void setOwner(String ownerType, String ownerKey, String name,
       Map<String, Object> relationshipMetadata, DataManager manager) {
     assert(ownerKey != null);
@@ -129,7 +130,7 @@ and trigger a code generation build again.
   bool contains(Object element) {
     if (element is E && _graphNotifier != null) {
       return _graphNotifier
-              .getFor(_ownerKey, _name)
+              .getEdge(_ownerKey, _name)
               .contains(keyFor(element)) ||
           _uninitializedModels.contains(element);
     }
@@ -137,7 +138,7 @@ and trigger a code generation build again.
   }
 
   Iterable<E> get _iterable => [
-        ...keys.map((key) => _repository._localGet(key)),
+        ...keys.map((key) => _repository._localGet(key, init: false)),
         ..._uninitializedModels
       ].where((model) => model != null);
 
@@ -153,7 +154,7 @@ and trigger a code generation build again.
     return null;
   }
 
-  void replace(E oldValue, E value) {
+  void _replace(E oldValue, E value) {
     if (_repository != null) {
       remove(oldValue, notify: false);
       add(value, notify: false);
@@ -186,7 +187,7 @@ and trigger a code generation build again.
 
   @protected
   @visibleForTesting
-  Set<String> get keys => _graphNotifier?.getFor(_ownerKey, _name) ?? {};
+  Set<String> get keys => _graphNotifier?.getEdge(_ownerKey, _name) ?? {};
 
   // abstract
 

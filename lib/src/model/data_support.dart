@@ -33,7 +33,7 @@ extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
       {bool remote,
       Map<String, dynamic> params,
       Map<String, String> headers}) async {
-    _assertRepo();
+    _assertRepository();
     return await _repository.save(_this,
         remote: remote, params: params, headers: headers);
   }
@@ -42,28 +42,28 @@ extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
       {bool remote,
       Map<String, dynamic> params,
       Map<String, String> headers}) async {
-    _assertRepo();
+    _assertRepository();
     await _repository.delete(id,
         remote: remote, params: params, headers: headers);
   }
 
   Future<T> find(
       {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
-    _assertRepo();
+    _assertRepository();
     return _repository.findOne(id,
         remote: remote, params: params, headers: headers);
   }
 
   DataStateNotifier<T> watch(
       {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
-    _assertRepo();
+    _assertRepository();
     return _repository.watchOne(id,
         remote: remote, params: params, headers: headers);
   }
 
   bool get isNew => _this.id == null;
 
-  void _assertRepo() {
+  void _assertRepository() {
     assert(
       _repository != null,
       '''\n

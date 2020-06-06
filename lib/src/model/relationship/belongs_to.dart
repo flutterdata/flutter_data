@@ -28,7 +28,7 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E, E> {
       if (super.isNotEmpty) {
         // remove to ensure there is only ONE key at most
         // do not notify as it's an "update" operation
-        super.replace(super.first, value);
+        super._replace(super.first, value);
       } else {
         super.add(value);
       }

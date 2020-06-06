@@ -28,12 +28,12 @@ mixin _$ModelModelAdapter on Repository<Model> {
         '_': [map[key], !map.containsKey(key), manager]
       };
     }
-    return Model.fromJson(map);
+    return _$ModelFromJson(map);
   }
 
   @override
   localSerialize(model) {
-    final map = model.toJson();
+    final map = _$ModelToJson(model);
     for (var e in relationshipsFor(model).entries) {
       map[e.key] = (e.value['instance'] as Relationship)?.toJson();
     }
@@ -122,8 +122,8 @@ class $CompanyRepository = Repository<Company>
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_Model _$_$_ModelFromJson(Map<String, dynamic> json) {
-  return _$_Model(
+Model _$ModelFromJson(Map<String, dynamic> json) {
+  return Model(
     id: json['id'] as String,
     name: json['name'] as String,
     company: json['company'] == null
@@ -132,7 +132,7 @@ _$_Model _$_$_ModelFromJson(Map<String, dynamic> json) {
   );
 }
 
-Map<String, dynamic> _$_$_ModelToJson(_$_Model instance) => <String, dynamic>{
+Map<String, dynamic> _$ModelToJson(Model instance) => <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
       'company': instance.company,
