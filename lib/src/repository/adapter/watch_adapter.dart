@@ -53,17 +53,28 @@ mixin WatchAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
   }
 
   @override
-  DataStateNotifier<T> watchOne(dynamic id,
+  DataStateNotifier<T> watchOne(dynamic model,
       {bool remote,
       Map<String, dynamic> params,
       Map<String, String> headers,
       AlsoWatch<T> alsoWatch}) {
     remote ??= _remote;
-    assert(id != null);
+    assert(model != null);
 
     // lazy key access
     String _key;
-    String key() => _key ??= manager.getKeyForId(type, id);
+    Object id;
+
+    String key() {
+      if (model is T) {
+        id = model.id;
+        return _key ??=
+            id != null ? manager.getKeyForId(type, id) : keyFor(model);
+      } else {
+        id = model;
+        return _key ??= manager.getKeyForId(type, id);
+      }
+    }
 
     final _alsoWatchFilters = <String>{};
 

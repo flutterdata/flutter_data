@@ -157,4 +157,34 @@ void main() async {
     expect(family.residence.value.address, '123 Main St');
     expect(family.persons.first.age, 21);
   });
+
+  test('findOne without ID', () async {
+    final repo = injection.locator<Repository<Family>>();
+    final family = Family(surname: 'Zliedowski').init(repo);
+    final f2 = Family(surname: 'Zliedowski').init(repo, key: keyFor(family));
+    final f3 = await family.find();
+    expect(family, f2);
+    expect(family, f3);
+  });
+
+  test('delete model with and without ID', () async {
+    final repository = injection.locator<Repository<Person>>();
+    await repository.box.clear();
+
+    // create a person WITH ID and assert it's there
+    final person = Person(id: '21103', name: 'John', age: 54).init(repository);
+    expect(repository.localFindAll(), hasLength(1));
+
+    // delete that person and assert it's not there
+    await person.delete();
+    expect(repository.localFindAll(), hasLength(0));
+
+    // create a person WITHOUT ID and assert it's there
+    final person2 = Person(name: 'Peter', age: 101).init(repository);
+    expect(repository.localFindAll(), hasLength(1));
+
+    // delete that person and assert it's not there
+    await person2.delete();
+    expect(repository.localFindAll(), hasLength(0));
+  });
 }

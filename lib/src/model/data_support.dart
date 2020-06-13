@@ -43,22 +43,25 @@ extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
       Map<String, dynamic> params,
       Map<String, String> headers}) async {
     _assertRepository();
-    await _repository.delete(id,
-        orKey: keyFor(this), remote: remote, params: params, headers: headers);
+    await _repository.delete(_this,
+        remote: remote, params: params, headers: headers);
   }
 
   Future<T> find(
       {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
     _assertRepository();
-    return _repository.findOne(id,
+    return _repository.findOne(_this,
         remote: remote, params: params, headers: headers);
   }
 
   DataStateNotifier<T> watch(
-      {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+      {bool remote,
+      Map<String, dynamic> params,
+      Map<String, String> headers,
+      AlsoWatch<T> alsoWatch}) {
     _assertRepository();
-    return _repository.watchOne(id,
-        remote: remote, params: params, headers: headers);
+    return _repository.watchOne(_this,
+        remote: remote, params: params, headers: headers, alsoWatch: alsoWatch);
   }
 
   bool get isNew => _this.id == null;
@@ -88,9 +91,9 @@ FlutterData.init();
 // auto
 
 abstract class DataSupport<T extends DataSupport<T>> with DataSupportMixin<T> {
-  DataSupport({bool save = true}) {
+  DataSupport() {
     _autoModelInitDataManager
         .locator<Repository<T>>()
-        ?.initModel(_this, save: save);
+        ?.initModel(_this, save: true);
   }
 }

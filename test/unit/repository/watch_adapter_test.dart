@@ -170,4 +170,22 @@ void main() async {
 
     await f1.delete();
   });
+
+  test('watchOne without ID and alsoWatch', () async {
+    final familyRepository = injection.locator<Repository<Family>>();
+    final frank = Person(name: 'Frank', age: 30).init(repository);
+
+    final notifier = frank.watch(alsoWatch: (p) => [p.family]);
+    dispose = notifier.addListener(
+      // it will be hit twice: one by Steve-O, one by the Family relationship watch
+      expectAsync1((state) {
+        expect(state.model.name, 'Steve-O');
+      }, count: 2),
+      fireImmediately: false,
+    );
+
+    final steve =
+        Person(name: 'Steve-O', age: 30).init(repository, key: keyFor(frank));
+    steve.family.value = Family(surname: 'Marquez').init(familyRepository);
+  });
 }

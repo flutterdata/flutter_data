@@ -113,20 +113,29 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
   }
 
   @override
-  Future<T> findOne(dynamic id,
+  Future<T> findOne(dynamic model,
       {bool remote,
       Map<String, dynamic> params,
       Map<String, String> headers}) async {
-    assert(id != null);
+    assert(model != null);
     remote ??= _remote;
 
+    Object id;
+    String key;
+
+    if (model is T) {
+      id = model.id;
+      key = id != null ? manager.getKeyForId(type, id) : keyFor(model);
+    } else {
+      id = model;
+      key = manager.getKeyForId(type, id);
+    }
+
     if (remote == false) {
-      final key = manager.getKeyForId(type, id);
       if (key == null) {
         return null;
       }
-      final model = localGet(key);
-      return initModel(model);
+      return localGet(key);
     }
 
     final response = await withHttpClient(
@@ -183,14 +192,26 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
   }
 
   @override
-  Future<void> delete(dynamic id,
+  Future<void> delete(dynamic model,
       {bool remote,
-      String orKey,
       Map<String, dynamic> params,
       Map<String, String> headers}) async {
     remote ??= _remote;
 
-    final key = manager.getKeyForId(type, id) ?? orKey;
+    Object id;
+    String key;
+    if (model is T) {
+      id = model.id;
+      key = id != null ? manager.getKeyForId(type, id) : keyFor(model);
+    } else {
+      id = model;
+      key = manager.getKeyForId(type, id);
+    }
+
+    if (key == null) {
+      return;
+    }
+
     localDelete(key);
 
     if (remote && id != null) {

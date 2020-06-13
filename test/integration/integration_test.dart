@@ -53,28 +53,27 @@ void main() async {
 
   test('watchOne', () async {
     final modelRepo = injection.locator<Repository<Model>>();
-    // make sure there are no items in local storage from previous tests
-    // await repo.box.clear();
-    // await repo.manager.metaBox.clear();
     final notifier = modelRepo.watchOne('1');
 
     dispose = notifier.addListener(
       expectAsync1((state) {
-        final model = Model(id: '1', name: 'Roadster', company: BelongsTo());
-        expect(state.model.name, equals(model.name));
+        expect(state.model.name, equals('Roadster'));
       }),
       fireImmediately: false,
     );
+
+    Model(id: '1', name: 'Roadster', company: BelongsTo());
   });
 
   test('save', () async {
-    var repo = injection.locator<Repository<Model>>();
-    var companies = await injection.locator<Repository<Company>>().findAll();
-    var c = companies.last;
-    var m = await Model(id: '3', name: 'Elon X', company: c.asBelongsTo)
+    // CHECK this test depends on previous `Model`s being loaded?
+    final repo = injection.locator<Repository<Model>>();
+    final companies = await injection.locator<Repository<Company>>().findAll();
+    final c = companies.last;
+    final m = await Model(id: '3', name: 'Elon X', company: c.asBelongsTo)
         .init(repo)
         .save();
-    var m2 = await repo.findOne('3');
+    final m2 = await repo.findOne('3');
     expect(m.id, m2.id);
     expect(m2.name, 'Elon X');
     // following assertions won't pass as server data

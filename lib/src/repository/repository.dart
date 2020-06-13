@@ -31,10 +31,10 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   DataStateNotifier<Iterable<T>> watchAll(
       {bool remote, Map<String, dynamic> params, Map<String, String> headers});
 
-  Future<T> findOne(dynamic id,
+  Future<T> findOne(dynamic model,
       {bool remote, Map<String, dynamic> params, Map<String, String> headers});
 
-  DataStateNotifier<T> watchOne(dynamic id,
+  DataStateNotifier<T> watchOne(dynamic model,
       {bool remote,
       Map<String, dynamic> params,
       Map<String, String> headers,
@@ -43,11 +43,8 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   Future<T> save(T model,
       {bool remote, Map<String, dynamic> params, Map<String, String> headers});
 
-  Future<void> delete(dynamic id,
-      {bool remote,
-      String orKey,
-      Map<String, dynamic> params,
-      Map<String, String> headers});
+  Future<void> delete(dynamic model,
+      {bool remote, Map<String, dynamic> params, Map<String, String> headers});
 
   Map<dynamic, T> get localBoxMap => box.toMap();
 
