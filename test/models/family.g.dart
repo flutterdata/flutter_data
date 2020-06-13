@@ -18,7 +18,7 @@ mixin _$FamilyModelAdapter on Repository<Family> {
         'dacha': {
           'type': 'houses',
           'kind': 'BelongsTo',
-          'instance': model?.dacha
+          'instance': model?.cottage
         },
         'residence': {
           'type': 'houses',
@@ -69,7 +69,7 @@ Family _$FamilyFromJson(Map<String, dynamic> json) {
     persons: json['persons'] == null
         ? null
         : HasMany.fromJson(json['persons'] as Map<String, dynamic>),
-    dacha: json['dacha'] == null
+    cottage: json['dacha'] == null
         ? null
         : BelongsTo.fromJson(json['dacha'] as Map<String, dynamic>),
     residence: json['residence'] == null
@@ -85,7 +85,7 @@ Map<String, dynamic> _$FamilyToJson(Family instance) => <String, dynamic>{
       'id': instance.id,
       'surname': instance.surname,
       'persons': instance.persons?.toJson(),
-      'dacha': instance.dacha?.toJson(),
+      'dacha': instance.cottage?.toJson(),
       'residence': instance.residence?.toJson(),
       'dogs': instance.dogs?.toJson(),
     };

@@ -2,54 +2,63 @@ part of flutter_data;
 
 mixin WatchAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
   @override
-  DataStateNotifier<List<T>> watchAll(
+  DataStateNotifier<Iterable<T>> watchAll(
       {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
     remote ??= _remote;
 
-    final _notifier = DataStateNotifier<List<T>>(
-      DataState(
-        model: box.values.map(initModel).toList(),
-      ),
+    final _notifier = DataStateNotifier<Set<T>>(
+      DataState(localAll().toSet()),
       reload: (notifier) async {
         if (remote == false) {
           return;
         }
-        notifier.state = notifier.state.copyWith(isLoading: true);
+        notifier.data = notifier.data.copyWith(isLoading: true);
 
         try {
           await findAll(params: params, headers: headers, remote: remote);
         } catch (error, stackTrace) {
           // we're only interested in notifying errors
           // as models will pop up via box events
-          notifier.state = notifier.state.copyWith(
+          notifier.data = notifier.data.copyWith(
               exception: DataException(error), stackTrace: stackTrace);
         }
       },
     );
 
-    _notifier.onError = Zone.current.handleUncaughtError;
-
     // kick off
     _notifier.reload();
 
-    _events.forEach((event) {
+    manager.graph.forEach((event) {
       if (!_notifier.mounted) {
         return;
       }
-      final models = _notifier.state.model;
-      for (final key in event.keys) {
-        if (event.type == GraphEventType.removed) {
-          models.removeWhere((model) => key == keyFor(model));
-        } else {
-          final model = _localGet(key);
-          // until DataState#model is a Set?
-          if (model != null && !models.contains(model)) {
-            models.add(model);
+
+      final keys = event.keys.where((key) =>
+          key.startsWith(type) && !event.graph.hasEdge(key, metadata: 'key'));
+
+      if (keys.isNotEmpty) {
+        final models = _notifier.data.model.toSet();
+
+        if ([
+          DataGraphEventType.addNode,
+          DataGraphEventType.updateNode,
+          DataGraphEventType.removeNode
+        ].contains(event.type)) {
+          for (final key in keys) {
+            if (event.type == DataGraphEventType.removeNode) {
+              models.removeWhere((model) => key == keyFor(model));
+            } else {
+              final model = localGet(key);
+              if (model != null) {
+                models.add(model);
+              }
+            }
           }
+
+          _notifier.data =
+              _notifier.data.copyWith(model: models, isLoading: false);
         }
       }
-      _notifier.state =
-          _notifier.state.copyWith(model: models, isLoading: false);
     });
 
     return _notifier;
@@ -62,78 +71,87 @@ mixin WatchAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
       Map<String, String> headers,
       AlsoWatch<T> alsoWatch}) {
     remote ??= _remote;
-
     assert(id != null);
-    var key = manager.getKeyForId(type, id);
 
-    final _state = DataState(model: _localGet(key));
-    final _notifier = DataStateNotifier<T>(_state, reload: (notifier) async {
-      if (remote == false) {
-        return;
-      }
-      notifier.state = notifier.state.copyWith(isLoading: true);
+    // lazy key access
+    String _key;
+    String key() => _key ??= manager.getKeyForId(type, id);
 
-      try {
-        await findOne(id, params: params, headers: headers, remote: remote);
-      } catch (error, stackTrace) {
-        // we're only interested in notifying errors
-        // as models will pop up via box events
-        notifier.state = notifier.state
-            .copyWith(exception: DataException(error), stackTrace: stackTrace);
-      }
-    });
+    final _alsoWatchFilters = <String>{};
 
-    var _watching = false;
-    void _tryWatchRelationships(T model) {
-      if (alsoWatch != null && !_watching) {
+    final _notifier = DataStateNotifier<T>(
+      DataState(localGet(key())),
+      reload: (notifier) async {
+        if (remote == false) return;
+        notifier.data = notifier.data.copyWith(isLoading: true);
+
+        try {
+          await findOne(id, params: params, headers: headers, remote: remote);
+        } catch (error, stackTrace) {
+          // we're only interested in notifying errors
+          // as models will pop up via box events
+          notifier.data = notifier.data.copyWith(
+              exception: DataException(error), stackTrace: stackTrace);
+        }
+      },
+    );
+
+    void _tryInitializeWatch(T model) {
+      print('calling tiw');
+      if (alsoWatch != null && model != null) {
         for (var rel in alsoWatch(model)) {
-          rel.watch().forEach((_) {
-            _notifier.state = _notifier.state;
-          });
-          _watching = true;
+          _alsoWatchFilters.add(rel._name);
         }
       }
     }
 
-    _notifier.onError = Zone.current.handleUncaughtError;
-
     // kick off
-    _notifier.reload();
-    if (_notifier.state.model != null) {
-      _tryWatchRelationships(_notifier.state.model);
-    }
 
-    _events.where((event) {
-      // recalculates key every time
-      final key = manager.getKeyForId(type, id);
-      return event.keys.contains(key);
+    _tryInitializeWatch(_notifier.data.model);
+    _notifier.reload();
+
+    manager.graph.where((event) {
+      if (key() == null) {
+        return false;
+      }
+
+      // if either the currently-watched key OR any of the nodes
+      // connected to it (by additional filters) are mentioned in
+      // the `event.keys` iterable, then send for further processing
+      final filteredConnectedKeys = event.graph
+          .connectedKeys(key(), metadatas: _alsoWatchFilters)
+            ..add(key());
+      return event.keys.any(filteredConnectedKeys.contains);
     }).forEach((event) {
       if (!_notifier.mounted) {
         return;
       }
-      if (event.type == GraphEventType.removed) {
-        _notifier.state =
-            _notifier.state.copyWith(model: null, isLoading: false);
-      } else {
-        final model = _localGet(manager.getKeyForId(type, id));
-        _notifier.state =
-            _notifier.state.copyWith(model: model, isLoading: false);
 
-        // new model, reset relationship watch
-        _watching = false;
-        _tryWatchRelationships(model);
+      if (event.keys.isNotEmpty && event.keys.first == key()) {
+        print('in foreach $key() => $event');
+        if (event.type == DataGraphEventType.addNode ||
+            event.type == DataGraphEventType.updateNode) {
+          final model = localGet(key());
+          if (model != null) {
+            print('emitting! ${_notifier.data.model} $model');
+            _tryInitializeWatch(model);
+            _notifier.data = _notifier.data.copyWith(model: model);
+          }
+        }
+        if (event.type == DataGraphEventType.removeNode) {
+          print('removing model with ${event.keys}');
+          _notifier.data =
+              _notifier.data.copyWith(model: null, isLoading: false);
+        }
+        if ([DataGraphEventType.addEdge, DataGraphEventType.removeEdge]
+                .contains(event.type) &&
+            _alsoWatchFilters.contains(event.metadata)) {
+          // simply refresh
+          _notifier.data = _notifier.data;
+        }
       }
     });
 
     return _notifier;
-  }
-
-  StateNotifier<GraphEvent> get _events {
-    return manager.graphNotifier.map((event) {
-      final keys = event.keys.where((key) {
-        return key.startsWith(type) && event.graph.hasEdge(key, 'id');
-      });
-      return GraphEvent(keys: keys, type: event.type, graph: event.graph);
-    });
   }
 }

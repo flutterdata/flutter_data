@@ -7,12 +7,11 @@ import 'package:data_state/data_state.dart';
 
 class _FunctionalStateNotifier<T> extends StateNotifier<T> {
   final StateNotifier<T> _source;
-  _FunctionalStateNotifier(this._source) : super(null) {
-    onError = Zone.current.handleUncaughtError;
-  }
+  _FunctionalStateNotifier(this._source) : super(null);
   RemoveListener _disposeFn;
   Timer _timer;
   bool _dirty = false;
+  StreamController<T> _controller;
 
   StateNotifier<T> where(bool Function(T) test) {
     _disposeFn = _source.addListener((_state) {
@@ -64,6 +63,23 @@ class _FunctionalStateNotifier<T> extends StateNotifier<T> {
     });
   }
 
+  // stream support
+
+  Stream<T> get stream {
+    // lazy init
+    return (_controller ??= StreamController<T>(onCancel: dispose)).stream;
+  }
+
+  @override
+  set state(T value) {
+    super.state = value;
+    _controller?.add(state);
+  }
+
+  @override
+  void Function(dynamic, StackTrace) get onError =>
+      (error, trace) => _controller?.addError(error, trace);
+
   @override
   void dispose() {
     _timer?.cancel();
@@ -98,7 +114,7 @@ extension StateNotifierX<T> on StateNotifier<T> {
 //
 
 class TestStateNotifier extends DataStateNotifier<int> {
-  TestStateNotifier() : super(DataState<int>(model: 0)) {
+  TestStateNotifier() : super(DataState(0)) {
     Timer.periodic(
         Duration(seconds: 1), (i) => state = state.copyWith(model: i.tick));
   }

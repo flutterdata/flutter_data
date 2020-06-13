@@ -9,20 +9,20 @@ class _HiveTypeAdapter<T extends DataSupport<T>> with TypeAdapter<T> {
     final type = Repository.getType<T>();
 
     // _types: {
-    //   'posts': '1',
-    //   'comments': '2',
-    //   'houses': '3',
+    //   'posts': {'1'},
+    //   'comments': {'2'},
+    //   'houses': {'3'},
     // }
 
     final _typesNode = manager._metaBox.get('_types');
 
-    if (_typesNode.containsKey(type)) {
-      return int.parse(_typesNode[type]);
+    if (_typesNode[type] != null && _typesNode[type].isNotEmpty) {
+      return int.parse(_typesNode[type].first);
     }
 
     final index = _typesNode.length;
-    // insert at last position
-    _typesNode[type] = index.toString();
+    // insert at last position of _typesNode map
+    _typesNode[type].add(index.toString());
     return index;
   }
 

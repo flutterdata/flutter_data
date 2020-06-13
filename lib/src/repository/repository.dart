@@ -1,8 +1,7 @@
 part of flutter_data;
 
 abstract class Repository<T extends DataSupportMixin<T>> {
-  Repository(this.manager,
-      {bool remote, bool verbose, @visibleForTesting Box<T> box})
+  Repository(this.manager, {bool remote, bool verbose, Box<T> box})
       : _box = box,
         _remote = remote ?? true,
         _verbose = verbose ?? true;
@@ -10,10 +9,6 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   @protected
   @visibleForTesting
   final DataManager manager;
-
-  @protected
-  @visibleForTesting
-  GraphNotifier get graphNotifier => manager?.graphNotifier;
 
   @protected
   @visibleForTesting
@@ -30,10 +25,10 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   // repo public API
 
-  Future<List<T>> findAll(
+  Future<Iterable<T>> findAll(
       {bool remote, Map<String, dynamic> params, Map<String, String> headers});
 
-  DataStateNotifier<List<T>> watchAll(
+  DataStateNotifier<Iterable<T>> watchAll(
       {bool remote, Map<String, dynamic> params, Map<String, String> headers});
 
   Future<T> findOne(dynamic id,
@@ -49,7 +44,10 @@ abstract class Repository<T extends DataSupportMixin<T>> {
       {bool remote, Map<String, dynamic> params, Map<String, String> headers});
 
   Future<void> delete(dynamic id,
-      {bool remote, Map<String, dynamic> params, Map<String, String> headers});
+      {bool remote,
+      String orKey,
+      Map<String, dynamic> params,
+      Map<String, String> headers});
 
   Map<dynamic, T> get localBoxMap => box.toMap();
 
@@ -83,7 +81,15 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   // local
 
-  T _localGet(String key, {bool init = true}) {
+  @protected
+  @visibleForTesting
+  Iterable<T> localAll() {
+    return box.values.map(initModel);
+  }
+
+  @protected
+  @visibleForTesting
+  T localGet(String key, {bool init = true}) {
     if (key != null) {
       final model = box.get(key);
       if (init) {
@@ -95,12 +101,16 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     return null;
   }
 
-  void _localPut(String key, T model) {
+  @protected
+  @visibleForTesting
+  void localPut(String key, T model) {
     assert(key != null);
     box.put(key, model); // save in bg
   }
 
-  void _localDelete(String key) {
+  @protected
+  @visibleForTesting
+  void localDelete(String key) {
     if (key != null) {
       box.delete(key); // delete in bg
       // id will become orphan & purged
@@ -112,7 +122,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   @protected
   @visibleForTesting
-  T initModel(T model, {String key, bool save = false}) {
+  T initModel(T model, {String key, bool save = false, bool notify = true}) {
     if (model == null) {
       return null;
     }
@@ -132,10 +142,11 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     }
 
     if (save) {
-      _localPut(key, model);
+      localPut(key, model);
     }
 
     if (!wasInitialized) {
+      // model.id could be null, that's okay
       model._flutterDataMetadata['_key'] =
           existingKey ?? manager.getKeyForId(type, model.id, keyIfAbsent: key);
 
@@ -148,9 +159,12 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     }
 
     // all done, notify listeners
-    if (save) {
-      manager.graphNotifier.notify([key],
-          existingKey != null ? GraphEventType.updated : GraphEventType.added);
+    if (save && notify) {
+      manager.graph.notify(
+          [key],
+          existingKey != null
+              ? DataGraphEventType.updateNode
+              : DataGraphEventType.addNode);
     }
 
     return model;

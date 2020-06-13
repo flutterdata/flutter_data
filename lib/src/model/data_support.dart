@@ -44,7 +44,7 @@ extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
       Map<String, String> headers}) async {
     _assertRepository();
     await _repository.delete(id,
-        remote: remote, params: params, headers: headers);
+        orKey: keyFor(this), remote: remote, params: params, headers: headers);
   }
 
   Future<T> find(

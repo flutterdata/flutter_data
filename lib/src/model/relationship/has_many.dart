@@ -22,19 +22,9 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E, Set<E>> {
   @override
   ValueStateNotifier<Set<E>> watch() {
     _notifier ??= ValueStateNotifier();
-    _graphNotifier.where((event) {
-      // this filter could be improved, but for now:
-      if (event.type == GraphEventType.removed) {
-        // (removed) event.keys has _ownerKey and at least one key of this type
-        return event.keys.contains(_ownerKey) &&
-            event.keys.where((key) => key.startsWith(type)).isNotEmpty;
-      } else {
-        // (added) event.keys contains at least one of our keys
-        return event.keys.toSet().intersection(keys).isNotEmpty;
-      }
-    }).forEach((event) {
-      _notifier.value = this;
-    });
+    manager.graph.where((event) {
+      return event.keys.any((k) => keys.contains(k));
+    }).forEach((_) => _notifier.value = this);
     return _notifier;
   }
 

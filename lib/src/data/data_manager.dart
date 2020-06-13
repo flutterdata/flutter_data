@@ -15,7 +15,7 @@ class DataManager {
 
   @visibleForTesting
   @protected
-  GraphNotifier graphNotifier;
+  DataGraphNotifier graph;
 
   final _hive = Hive;
 
@@ -26,10 +26,10 @@ class DataManager {
     return _locator;
   }
 
-  Box<Map<String, String>> _metaBox;
+  Box<Map<String, Set<String>>> _metaBox;
 
   @visibleForTesting
-  Box<Map<String, String>> get metaBox {
+  Box<Map<String, Set<String>>> get metaBox {
     assert(_metaBox != null, _assertMessage);
     return _metaBox;
   }
@@ -57,7 +57,7 @@ class DataManager {
 
     _hive.init(path);
     _metaBox = await _hive.openBox('_meta');
-    graphNotifier = GraphNotifier(_metaBox);
+    graph = DataGraphNotifier(_metaBox);
     return this;
   }
 
@@ -68,14 +68,18 @@ class DataManager {
   // identity
 
   String getKeyForId(String type, dynamic id, {String keyIfAbsent}) {
-    return graphNotifier.getKeyForId(type, id, keyIfAbsent: keyIfAbsent);
+    return graph.getKeyForId(type, id, keyIfAbsent: keyIfAbsent);
   }
 
-  String getId(String key) => graphNotifier.getId(key);
+  String getId(String key) => graph.getId(key);
 
-  void removeKey(String key) => graphNotifier.removeKey(key);
+  void removeKey(String key) => graph.removeNode(key);
 
-  Map<String, Object> dumpGraph() => graphNotifier.toMap();
+  void removeId(String type, dynamic id) => graph.removeNode('$type#$id');
+
+  Map<String, Object> dumpGraph() => graph.toMap();
+
+  //
 
   final _assertMessage = '''\n
 This manager has not been initialized.

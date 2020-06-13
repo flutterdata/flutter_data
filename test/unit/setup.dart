@@ -37,13 +37,6 @@ class FakeBox<T> extends Fake implements Box<T> {
   }
 
   @override
-  Stream<BoxEvent> watch({key}) {
-    return _subject.map((value) {
-      return BoxEvent(key ?? _map.keys, value, false);
-    });
-  }
-
-  @override
   Map<String, T> toMap() => _map;
 
   @override
@@ -77,7 +70,7 @@ class FakeBox<T> extends Fake implements Box<T> {
 
 class TestDataManager extends DataManager {
   TestDataManager(this.locator) : super.delegate() {
-    graphNotifier = GraphNotifier(metaBox);
+    graph = DataGraphNotifier(metaBox);
   }
 
   @override
@@ -92,9 +85,7 @@ class TestDataManager extends DataManager {
   }
 
   @override
-  Future<void> dispose() {
-    throw UnimplementedError();
-  }
+  Future<void> dispose() async {}
 }
 
 class Bloc {

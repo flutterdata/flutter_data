@@ -87,14 +87,14 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
   // repository implementation
 
   @override
-  Future<List<T>> findAll(
+  Future<Iterable<T>> findAll(
       {bool remote,
       Map<String, dynamic> params,
       Map<String, String> headers}) async {
     remote ??= _remote;
 
     if (remote == false) {
-      return box.values.map(initModel).toList();
+      return localAll();
     }
 
     final response = await withHttpClient(
@@ -125,7 +125,7 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
       if (key == null) {
         return null;
       }
-      final model = _localGet(key);
+      final model = localGet(key);
       return initModel(model);
     }
 
@@ -185,14 +185,16 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
   @override
   Future<void> delete(dynamic id,
       {bool remote,
+      String orKey,
       Map<String, dynamic> params,
       Map<String, String> headers}) async {
     remote ??= _remote;
 
-    final key = manager.getKeyForId(type, id);
-    _localDelete(key);
+    final key = manager.getKeyForId(type, id) ?? orKey;
+    localDelete(key);
 
-    if (remote) {
+    if (remote && id != null) {
+      manager.removeId(type, id);
       final response = await withHttpClient(
         (client) => _executeRequest(
           client,

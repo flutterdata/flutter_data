@@ -1,9 +1,10 @@
-import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
+import '../../models/family.dart';
+import '../../models/house.dart';
 import '../../models/person.dart';
 import '../setup.dart';
 
@@ -12,13 +13,15 @@ void main() async {
   tearDownAll(tearDownAllFn);
 
   Repository<Person> repository;
+  Repository<Family> familyRepository;
   Function dispose;
 
   setUp(() async {
     repository = injection.locator<Repository<Person>>();
+    familyRepository = injection.locator<Repository<Family>>();
     // make sure there are no items in local storage from previous tests
     await repository.box.clear();
-    repository.manager.graphNotifier.clear();
+    repository.manager.graph.clear();
     expect(repository.box.keys, isEmpty);
   });
 
@@ -33,8 +36,6 @@ void main() async {
       return p is Person && p.name.startsWith('zzz-') && p.age < 19;
     });
 
-    notifier.onError = Zone.current.handleUncaughtError;
-
     final count = 18;
     var i = 0;
     dispose = notifier.addListener(
@@ -45,19 +46,33 @@ void main() async {
           expect(state.model, [matcher, matcher]);
         } else if (i == 2) {
           expect(state.model, [matcher, matcher, matcher]);
-        } else {
+        } else if (i < count) {
           expect(state.model, hasLength(i + 1));
+        } else if (i == count) {
+          // the last event was a deletion, NOT an addition
+          // so instead of expecting i+1, we expect i-1
+          expect(state.model, hasLength(i - 1));
+          expect(repository.box.keys.length, i - 1);
         }
         i++;
-      }, count: count),
+      }, count: count + 1),
       fireImmediately: false,
     );
 
+    // this whole thing below emits count + 1 (watchAll-relevant) states
+    Person person;
     for (var j = 0; j < count; j++) {
-      Person.generateRandom(repository, withId: Random().nextBool());
-    }
+      person = Person.generateRandom(repository, withId: Random().nextBool());
+      if (Random().nextBool()) {
+        Family(surname: 'Snowden ${Random().nextDouble()}')
+            .init(familyRepository);
+      }
 
-    expect(repository.box.keys.length, count);
+      // in addition, delete last Person
+      if (j == count - 1) {
+        await person.delete();
+      }
+    }
   });
 
   test('watchOne', () async {
@@ -69,6 +84,7 @@ void main() async {
     var i = 0;
     dispose = notifier.addListener(
       expectAsync1((state) {
+        print('EA1 ${state.model}');
         if (i == 0) expect(state.model, matcher('Frank'));
         if (i == 1) expect(state.model, matcher('Steve-O'));
         if (i == 2) expect(state.model, matcher('Liam'));
@@ -77,10 +93,67 @@ void main() async {
       fireImmediately: false,
     );
 
-    Person(id: '1', name: 'Frank', age: 30).init(repository);
+    print('--- A ---');
+    var p1 = Person(id: '1', name: 'Frank', age: 30).init(repository);
+    print(keyFor(p1));
+    print('--- B ---');
     await repository.save(Person(id: '1', name: 'Steve-O', age: 34));
+    print('--- C ---');
     await repository.save(Person(id: '1', name: 'Liam', age: 36));
     // a different ID doesn't trigger an extra call to expectAsync1(count=3)
     await repository.save(Person(id: '2', name: 'Jupiter', age: 3));
+  });
+
+  test('watchOne reads latest version', () async {
+    final notifier = repository.watchOne('345');
+
+    Person(id: '345', name: 'Frank', age: 30).init(repository);
+    Person(id: '345', name: 'Steve-O', age: 34).init(repository);
+
+    dispose = notifier.addListener(
+      expectAsync1((state) {
+        expect(state.model.name, 'Steve-O');
+      }),
+    );
+  });
+
+  test('watchOne with alsoWatch relationships', () async {
+    final familyRepository = injection.locator<Repository<Family>>();
+    final notifier = familyRepository.watchOne('22',
+        alsoWatch: (family) => [family.persons, family.residence]);
+
+    final f1 = Family(
+      id: '22',
+      surname: 'Abagnale',
+      persons: HasMany(),
+      residence: BelongsTo(),
+      cottage: BelongsTo(),
+    ).init(familyRepository);
+
+    var i = 0;
+    dispose = notifier.addListener(
+      expectAsync1((state) {
+        print('expectAsync ($i) => ${state.model}');
+        if (i == 0) expect(state.model, isA<Family>());
+        if (i == 1) expect(state.model.persons, hasLength(1));
+        if (i == 2) expect(state.model.persons, hasLength(2));
+        if (i == 3) expect(state.model.residence.value.address, '123 Main St');
+        if (i == 4) expect(state.model.persons, hasLength(1));
+        if (i == 5) expect(state.model, isNull);
+        i++;
+      }, count: 6),
+      fireImmediately: true,
+    );
+
+    final p1 = Person(id: '1', name: 'Frank', age: 16).init(repository);
+    p1.family.value = f1;
+    f1.persons.add(Person(name: 'Martin', age: 44));
+    f1.residence.value = House(address: '123 Main St');
+    f1.persons.remove(p1);
+
+    // a non-watched relationship does not trigger
+    f1.cottage.value = House(address: '7342 Mountain Rd');
+
+    await f1.delete();
   });
 }

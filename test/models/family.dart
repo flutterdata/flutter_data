@@ -16,7 +16,7 @@ class Family with DataSupportMixin<Family> {
   final String id;
   final String surname;
   final HasMany<Person> persons;
-  final BelongsTo<House> dacha;
+  final BelongsTo<House> cottage;
   final BelongsTo<House> residence;
   final HasMany<Dog> dogs;
 
@@ -24,7 +24,7 @@ class Family with DataSupportMixin<Family> {
     this.id,
     @required this.surname,
     this.persons,
-    this.dacha,
+    this.cottage,
     this.residence,
     this.dogs,
   });

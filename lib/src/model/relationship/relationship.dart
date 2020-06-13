@@ -6,7 +6,6 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
   @visibleForTesting
   DataManager manager;
 
-  GraphNotifier get _graphNotifier => manager?.graphNotifier;
   String _ownerKey;
   String _name;
   String _inverseName;
@@ -64,9 +63,13 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
   void initializeKeys() {
     if (!_wasOmitted) {
       // if it wasn't omitted, we overwrite
-      _graphNotifier.removeAll(_ownerKey, metadata: _name);
-      _graphNotifier.addAll(_ownerKey, _uninitializedKeys,
-          metadata: _name, inverseMetadata: _inverseName);
+      manager.graph.removeEdges(_ownerKey, metadata: _name);
+      manager.graph.addEdges(
+        _ownerKey,
+        tos: _uninitializedKeys,
+        metadata: _name,
+        inverseMetadata: _inverseName,
+      );
       _uninitializedKeys.clear();
     }
   }
@@ -107,8 +110,6 @@ and trigger a code generation build again.
     initializeKeys();
   }
 
-  //
-
   // implement set
 
   @override
@@ -117,20 +118,22 @@ and trigger a code generation build again.
       return false;
     }
     if (_repository != null) {
-      final model = _repository.initModel(value, save: false);
-      _graphNotifier.add(_ownerKey, keyFor(model),
-          metadata: _name, inverseMetadata: _inverseName, notify: notify);
+      final model = _repository.initModel(value, save: false, notify: false);
+      manager.graph.addEdges(_ownerKey,
+          tos: [keyFor(model)], metadata: _name, inverseMetadata: _inverseName);
     } else {
       _uninitializedModels.add(value);
     }
     return true;
   }
 
+  // TODO override addAll ?
+
   @override
   bool contains(Object element) {
-    if (element is E && _graphNotifier != null) {
-      return _graphNotifier
-              .getEdge(_ownerKey, _name)
+    if (element is E && manager?.graph != null) {
+      return manager.graph
+              .getEdge(_ownerKey, metadata: _name)
               .contains(keyFor(element)) ||
           _uninitializedModels.contains(element);
     }
@@ -138,7 +141,7 @@ and trigger a code generation build again.
   }
 
   Iterable<E> get _iterable => [
-        ...keys.map((key) => _repository._localGet(key, init: false)),
+        ...keys.map((key) => _repository.localGet(key, init: false)),
         ..._uninitializedModels
       ].where((model) => model != null);
 
@@ -156,10 +159,10 @@ and trigger a code generation build again.
 
   void _replace(E oldValue, E value) {
     if (_repository != null) {
-      remove(oldValue, notify: false);
-      add(value, notify: false);
-      _graphNotifier.notify(
-          [_ownerKey, keyFor(oldValue), keyFor(value)], GraphEventType.updated);
+      remove(oldValue, notify: true);
+      add(value, notify: true);
+      // _graphNotifier.notify(
+      //     [_ownerKey, keyFor(oldValue), keyFor(value)], GraphEventType.updated);
     } else {
       _uninitializedModels
         ..remove(oldValue)
@@ -170,7 +173,8 @@ and trigger a code generation build again.
   @override
   bool remove(Object value, {bool notify = true}) {
     if (value is E) {
-      _graphNotifier.remove(_ownerKey, keyFor(value), notify: notify);
+      manager.graph
+          .removeEdges(_ownerKey, tos: [keyFor(value)], metadata: _name);
       _uninitializedModels.remove(value);
       return true;
     }
@@ -187,7 +191,8 @@ and trigger a code generation build again.
 
   @protected
   @visibleForTesting
-  Set<String> get keys => _graphNotifier?.getEdge(_ownerKey, _name) ?? {};
+  Set<String> get keys =>
+      manager?.graph?.getEdge(_ownerKey, metadata: _name) ?? {};
 
   // abstract
 
@@ -209,9 +214,7 @@ and trigger a code generation build again.
 }
 
 class ValueStateNotifier<E> extends StateNotifier<E> {
-  ValueStateNotifier([E state]) : super(state) {
-    onError = Zone.current.handleUncaughtError;
-  }
+  ValueStateNotifier([E state]) : super(state);
   E get value => state;
   set value(E value) => state = value;
 }

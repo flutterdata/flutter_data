@@ -21,11 +21,11 @@ void main() async {
 
     // we use $CompanyRepository as it already has the TestMixin baked in
     injection.register<Repository<Company>>(
-        $CompanyRepository(manager, box: FakeBox<Company>()));
+        $CompanyRepository(manager, box: FakeBox<Company>(), verbose: false));
     injection.register<Repository<City>>(
-        CityTestRepository(manager, box: FakeBox<City>()));
+        CityTestRepository(manager, box: FakeBox<City>(), verbose: false));
     injection.register<Repository<Model>>(
-        ModelTestRepository(manager, box: FakeBox<Model>()));
+        ModelTestRepository(manager, box: FakeBox<Model>(), verbose: false));
   });
 
   tearDown(() {
