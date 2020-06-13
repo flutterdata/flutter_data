@@ -26,15 +26,13 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E, E> {
   set value(E value) {
     if (value != null) {
       if (super.isNotEmpty) {
-        // remove to ensure there is only ONE key at most
-        // do not notify as it's an "update" operation
-        super._replace(super.first, value);
-      } else {
-        super.add(value);
+        super.remove(this.value);
       }
+      super.add(value);
     } else {
       super.remove(this.value);
     }
+    assert(length <= 1);
   }
 
   @protected
@@ -46,9 +44,7 @@ class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E, E> {
   @override
   ValueStateNotifier<E> watch() {
     _notifier ??= ValueStateNotifier();
-    manager.graph.where((event) {
-      return event.keys.contains(key);
-    }).forEach((event) {
+    graphEventNotifier.forEach((event) {
       _notifier.value =
           event.type == DataGraphEventType.removeNode ? null : value;
     });

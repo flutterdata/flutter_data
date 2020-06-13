@@ -48,11 +48,10 @@ class Person with DataSupportMixin<Person> {
     return toJson().toString();
   }
 
-  factory Person.generateRandom(Repository<Person> repository,
-      {bool withId = false}) {
+  factory Person.generate(Repository<Person> repository, {String withId}) {
     return Person(
-            id: withId ? Random().nextInt(999999999).toString() : null,
-            name: 'zzz-${Random().nextInt(999999999)}',
+            id: withId,
+            name: 'Person Number ${withId ?? Random().nextInt(999999999)}',
             age: Random().nextInt(19))
         .init(repository);
   }
@@ -75,12 +74,6 @@ mixin PersonLoginAdapter on RemoteAdapter<Person> {
 
     final map = json.decode(response.body);
     return map['token'] as String;
-  }
-
-  void generatePeople() {
-    Timer.periodic(Duration(milliseconds: 60), (_) {
-      Person.generateRandom(this);
-    });
   }
 }
 

@@ -33,7 +33,7 @@ void main() async {
     final notifier = repository.watchAll();
 
     final matcher = predicate((p) {
-      return p is Person && p.name.startsWith('zzz-') && p.age < 19;
+      return p is Person && p.name.startsWith('Person Number') && p.age < 19;
     });
 
     final count = 18;
@@ -62,7 +62,9 @@ void main() async {
     // this whole thing below emits count + 1 (watchAll-relevant) states
     Person person;
     for (var j = 0; j < count; j++) {
-      person = Person.generateRandom(repository, withId: Random().nextBool());
+      final id =
+          Random().nextBool() ? Random().nextInt(999999999).toString() : null;
+      person = Person.generate(repository, withId: id);
       if (Random().nextBool()) {
         Family(surname: 'Snowden ${Random().nextDouble()}')
             .init(familyRepository);
@@ -75,6 +77,24 @@ void main() async {
     }
   });
 
+  test('watchAll updates', () async {
+    final notifier = repository.watchAll();
+
+    Person(id: '1', name: 'Zof', age: 23).init(repository);
+
+    var i = 0;
+    dispose = notifier.addListener(
+      expectAsync1((state) {
+        if (i == 0) expect(state.model, hasLength(1));
+        if (i == 1) expect(state.model, hasLength(1));
+        i++;
+      }, count: 2),
+      fireImmediately: true,
+    );
+
+    Person(id: '1', name: 'Zofie', age: 23).init(repository);
+  });
+
   test('watchOne', () async {
     final notifier = repository.watchOne('1');
 
@@ -84,7 +104,6 @@ void main() async {
     var i = 0;
     dispose = notifier.addListener(
       expectAsync1((state) {
-        print('EA1 ${state.model}');
         if (i == 0) expect(state.model, matcher('Frank'));
         if (i == 1) expect(state.model, matcher('Steve-O'));
         if (i == 2) expect(state.model, matcher('Liam'));
@@ -93,12 +112,8 @@ void main() async {
       fireImmediately: false,
     );
 
-    print('--- A ---');
-    var p1 = Person(id: '1', name: 'Frank', age: 30).init(repository);
-    print(keyFor(p1));
-    print('--- B ---');
+    Person(id: '1', name: 'Frank', age: 30).init(repository);
     await repository.save(Person(id: '1', name: 'Steve-O', age: 34));
-    print('--- C ---');
     await repository.save(Person(id: '1', name: 'Liam', age: 36));
     // a different ID doesn't trigger an extra call to expectAsync1(count=3)
     await repository.save(Person(id: '2', name: 'Jupiter', age: 3));
@@ -133,7 +148,6 @@ void main() async {
     var i = 0;
     dispose = notifier.addListener(
       expectAsync1((state) {
-        print('expectAsync ($i) => ${state.model}');
         if (i == 0) expect(state.model, isA<Family>());
         if (i == 1) expect(state.model.persons, hasLength(1));
         if (i == 2) expect(state.model.persons, hasLength(2));

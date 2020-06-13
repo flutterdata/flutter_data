@@ -35,6 +35,12 @@ class DataGraphNotifier extends StateNotifier<DataGraphEvent> {
 
   // write
 
+  void addNodes(Iterable<String> keys, {bool notify = true}) {
+    for (final key in keys) {
+      addNode(key, notify: notify);
+    }
+  }
+
   void addNode(String key, {bool notify = true}) {
     assert(key != null, 'key cannot be null');
     if (!box.containsKey(key)) {
@@ -58,7 +64,7 @@ class DataGraphNotifier extends StateNotifier<DataGraphEvent> {
     for (final toKey in connectedKeys(key)) {
       final toNode = getNode(toKey);
       // remove deleted key from all metadatas
-      for (final entry in toNode.entries) {
+      for (final entry in toNode.entries.toSet()) {
         removeEdges(toKey, tos: [key], metadata: entry.key);
       }
     }
@@ -66,7 +72,6 @@ class DataGraphNotifier extends StateNotifier<DataGraphEvent> {
     box.delete(key);
 
     if (notify) {
-      print('emitting deletion for $key');
       state = DataGraphEvent(
           keys: [key], type: DataGraphEventType.removeNode, graph: this);
     }
@@ -102,11 +107,11 @@ class DataGraphNotifier extends StateNotifier<DataGraphEvent> {
 
     if (inverseMetadata != null) {
       for (final to in tos) {
-        final toNode = getNode(to);
-        if (toNode != null) {
-          toNode[inverseMetadata] ??= {};
-          toNode[inverseMetadata].add(from);
-        }
+        // get or create toNode
+        final toNode =
+            hasNode(to) ? getNode(to) : (this..addNode(to)).getNode(to);
+        toNode[inverseMetadata] ??= {};
+        toNode[inverseMetadata].add(from);
       }
       if (notify) {
         state = DataGraphEvent(
@@ -138,6 +143,9 @@ class DataGraphNotifier extends StateNotifier<DataGraphEvent> {
 
     if (tos != null) {
       fromNode[metadata]?.removeAll(tos);
+      if (fromNode[metadata].isEmpty) {
+        fromNode.remove(metadata);
+      }
     } else {
       // tos == null as argument means ALL
       // remove metadata and retrieve all tos
@@ -156,10 +164,17 @@ class DataGraphNotifier extends StateNotifier<DataGraphEvent> {
     if (tos != null && inverseMetadata != null) {
       for (final to in tos) {
         final toNode = getNode(to);
-        if (toNode != null) {
-          toNode[inverseMetadata]?.remove(from);
+        if (toNode != null && toNode[inverseMetadata] != null) {
+          toNode[inverseMetadata].remove(from);
+          if (toNode[inverseMetadata].isEmpty) {
+            toNode.remove(inverseMetadata);
+          }
+        }
+        if (toNode.isEmpty) {
+          removeNode(to, notify: notify);
         }
       }
+
       if (notify) {
         state = DataGraphEvent(
           keys: [...tos, from],
@@ -191,19 +206,23 @@ class DataGraphNotifier extends StateNotifier<DataGraphEvent> {
   String getKeyForId(String type, dynamic id, {String keyIfAbsent}) {
     if (id != null) {
       final _id = '$type#$id';
-      if (!hasNode(_id)) {
-        addNode(_id, notify: false);
-      }
 
-      final tos = getEdge(_id, metadata: 'key');
-      if (tos != null && tos.isNotEmpty) {
-        final key = tos.first;
-        return key;
+      if (getNode(_id) != null) {
+        final tos = getEdge(_id, metadata: 'key');
+        if (tos != null && tos.isNotEmpty) {
+          final key = tos.first;
+          return key;
+        }
       }
 
       if (keyIfAbsent != null) {
+        // this means the method is instructed to
+        // create nodes and edges
         if (!hasNode(keyIfAbsent)) {
           addNode(keyIfAbsent, notify: false);
+        }
+        if (!hasNode(_id)) {
+          addNode(_id, notify: false);
         }
         removeEdges(keyIfAbsent,
             metadata: 'id', inverseMetadata: 'key', notify: false);

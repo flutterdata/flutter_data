@@ -53,8 +53,8 @@ void main() async {
   test('watch', () async {
     final repository = injection.locator<Repository<Family>>();
     final family = Family(
-      id: '1',
-      surname: 'Smith',
+      id: '22',
+      surname: 'Besson',
       residence: BelongsTo<House>(),
     ).init(repository);
 
@@ -64,10 +64,14 @@ void main() async {
     notifier.addListener(
       expectAsync1((house) {
         if (i == 0) expect(house.address, startsWith('456'));
-        if (i == 1) expect(house.address, startsWith('123'));
-        if (i == 2) expect(house, isNull);
+        // we expect a null here, as replacing a value in a Set
+        // implies removing & adding
+        // this shouldn't be a problem in production with throttling
+        if (i == 1) expect(house, isNull);
+        if (i == 2) expect(house.address, startsWith('123'));
+        if (i == 3) expect(house, isNull);
         i++;
-      }, count: 3),
+      }, count: 4),
       fireImmediately: false,
     );
 

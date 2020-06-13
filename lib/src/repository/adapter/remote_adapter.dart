@@ -94,7 +94,7 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
     remote ??= _remote;
 
     if (remote == false) {
-      return localAll();
+      return localFindAll();
     }
 
     final response = await withHttpClient(

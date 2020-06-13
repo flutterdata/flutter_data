@@ -22,9 +22,7 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E, Set<E>> {
   @override
   ValueStateNotifier<Set<E>> watch() {
     _notifier ??= ValueStateNotifier();
-    manager.graph.where((event) {
-      return event.keys.any((k) => keys.contains(k));
-    }).forEach((_) => _notifier.value = this);
+    graphEventNotifier.forEach((_) => _notifier.value = this);
     return _notifier;
   }
 

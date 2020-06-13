@@ -17,18 +17,25 @@ void main() async {
   });
 
   test('add/remove edges with metadata', () {
-    graph.addNode('h1');
-    graph.addNode('b1');
-    graph.addNode('b2');
-    graph.addEdge('h1', 'b1', metadata: 'blogs', inverseMetadata: 'host');
-    graph.addEdge('h1', 'b2', metadata: 'blogs', inverseMetadata: 'host');
+    graph.addNodes(['h1', 'b1', 'b2']);
+    graph.addEdges('h1',
+        tos: ['b1', 'b2'], metadata: 'blogs', inverseMetadata: 'host');
 
     expect(graph.getEdge('b1', metadata: 'host'), {'h1'});
     expect(graph.getEdge('h1', metadata: 'blogs'), {'b1', 'b2'});
 
-    graph.removeEdge('h1', 'b2', metadata: 'blogs');
+    graph.removeEdge('h1', 'b2', metadata: 'blogs', inverseMetadata: 'host');
 
-    expect(graph.getEdge('h1', metadata: 'blogs'), {'b1'});
+    expect(graph.toMap(), {
+      'h1': {
+        'blogs': {'b1'}
+      },
+      'b1': {
+        'host': {'h1'}
+      }
+    });
+
+    expect(graph.getEdge('b2', metadata: 'host'), isNull);
 
     graph.addNode('hosts#1');
     graph.addEdge('h1', 'hosts#1', metadata: 'id', inverseMetadata: 'key');
@@ -42,13 +49,11 @@ void main() async {
   });
 
   test('serialize/deserialize', () {
-    graph.addNode('h1');
-    graph.addNode('b1');
-    graph.addNode('b2');
+    graph.addNodes(['h1', 'b1', 'b2']);
     graph.addNode('hosts#1');
 
-    graph.addEdge('h1', 'b1', metadata: 'blogs', inverseMetadata: 'host');
-    graph.addEdge('h1', 'b2', metadata: 'blogs', inverseMetadata: 'host');
+    graph.addEdges('h1',
+        tos: ['b1', 'b2'], metadata: 'blogs', inverseMetadata: 'host');
     graph.addEdge('h1', 'hosts#1', metadata: 'id', inverseMetadata: 'key');
 
     graph.addNode('p1');

@@ -63,7 +63,8 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
   void initializeKeys() {
     if (!_wasOmitted) {
       // if it wasn't omitted, we overwrite
-      manager.graph.removeEdges(_ownerKey, metadata: _name);
+      manager.graph.removeEdges(_ownerKey,
+          metadata: _name, inverseMetadata: _inverseName);
       manager.graph.addEdges(
         _ownerKey,
         tos: _uninitializedKeys,
@@ -105,7 +106,6 @@ and trigger a code generation build again.
       }
       _inverseName = entries.isNotEmpty ? entries.first.key : null;
     }
-
     initializeModels();
     initializeKeys();
   }
@@ -126,8 +126,6 @@ and trigger a code generation build again.
     }
     return true;
   }
-
-  // TODO override addAll ?
 
   @override
   bool contains(Object element) {
@@ -157,24 +155,14 @@ and trigger a code generation build again.
     return null;
   }
 
-  void _replace(E oldValue, E value) {
-    if (_repository != null) {
-      remove(oldValue, notify: true);
-      add(value, notify: true);
-      // _graphNotifier.notify(
-      //     [_ownerKey, keyFor(oldValue), keyFor(value)], GraphEventType.updated);
-    } else {
-      _uninitializedModels
-        ..remove(oldValue)
-        ..add(value);
-    }
-  }
-
   @override
   bool remove(Object value, {bool notify = true}) {
     if (value is E) {
-      manager.graph
-          .removeEdges(_ownerKey, tos: [keyFor(value)], metadata: _name);
+      manager.graph.removeEdges(_ownerKey,
+          tos: [keyFor(value)],
+          metadata: _name,
+          inverseMetadata: _inverseName,
+          notify: notify);
       _uninitializedModels.remove(value);
       return true;
     }
@@ -191,8 +179,29 @@ and trigger a code generation build again.
 
   @protected
   @visibleForTesting
-  Set<String> get keys =>
-      manager?.graph?.getEdge(_ownerKey, metadata: _name) ?? {};
+  Set<String> get keys {
+    // if not null return, else return empty set
+    final graph = manager?.graph;
+    if (graph != null && _ownerKey != null) {
+      return graph.getEdge(_ownerKey, metadata: _name) ?? {};
+    }
+    return {};
+  }
+
+  // notifier
+
+  @protected
+  @visibleForTesting
+  StateNotifier<DataGraphEvent> get graphEventNotifier =>
+      manager?.graph?.where((event) {
+        return [
+              DataGraphEventType.addEdge,
+              DataGraphEventType.updateEdge,
+              DataGraphEventType.removeEdge
+            ].contains(event.type) &&
+            event.metadata == _name &&
+            event.keys.containsFirst(_ownerKey);
+      });
 
   // abstract
 

@@ -26,6 +26,10 @@ extension MapX<K, V> on Map<K, V> {
   Map<K, V> operator &(Map<K, V> more) => {...this, ...?more};
 }
 
+extension ListX<T> on List<T> {
+  bool containsFirst(T model) => isNotEmpty ? first == model : false;
+}
+
 @optionalTypeArgs
 extension IterableRelationshipExtension<T extends DataSupportMixin<T>>
     on Set<T> {

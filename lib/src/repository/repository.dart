@@ -83,7 +83,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   @protected
   @visibleForTesting
-  Iterable<T> localAll() {
+  Iterable<T> localFindAll() {
     return box.values.map(initModel);
   }
 
@@ -151,7 +151,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
           existingKey ?? manager.getKeyForId(type, model.id, keyIfAbsent: key);
 
       // set model as "owner" in its relationships
-      for (var metadata in relationshipsFor(model).entries) {
+      for (final metadata in relationshipsFor(model).entries) {
         final relationship = metadata.value['instance'] as Relationship;
         relationship?.setOwner(
             type, keyFor(model), metadata.key, metadata.value, manager);

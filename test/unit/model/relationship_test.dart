@@ -31,32 +31,36 @@ void main() async {
 
   test('scenario #1', () {
     // house does not yet exist
-    final residenceKey = familyRepo.manager.getKeyForId('houses', '1',
-        keyIfAbsent: Repository.generateKey<House>());
+    final residenceKey = Repository.generateKey<House>();
     final f1 = familyRepo
         .deserialize({'id': '1', 'surname': 'Rose', 'residence': residenceKey});
     expect(f1.residence.value, isNull);
     expect(keyFor(f1), isNotNull);
 
     // once it does
-    final house = House(id: '1', address: '123 Main St').init(houseRepo);
+    final house = House(id: '1', address: '123 Main St')
+        .init(houseRepo, key: residenceKey);
     // it's automatically wired up
     expect(f1.residence.value, house);
     expect(f1.residence.value.owner.value, f1);
+    expect(house.owner.value, f1);
 
-    // house is omitted, but persons is included (no people exist yet)
-    familyRepo.manager.getKeyForId('people', '1', keyIfAbsent: 'people#a1a1a1');
+    // residence is omitted, but persons is included (no people exist yet)
+    final personKey = 'people#a1a1a1';
     final f1b = familyRepo.deserialize({
       'id': '1',
       'surname': 'Rose',
-      'persons': ['people#a1a1a1']
+      'persons': [personKey]
     });
-    // house remains wired
+    // therefore
+    // residence remains wired
     expect(f1b.residence.value, house);
+    // persons is empty since no people exist yet (despite having keys)
     expect(f1b.persons, isEmpty);
 
     // once p1 exists
-    final p1 = Person(id: '1', name: 'Axl', age: 58).init(personRepo);
+    final p1 =
+        Person(id: '1', name: 'Axl', age: 58).init(personRepo, key: personKey);
     // it's automatically wired up
     expect(f1b.persons, {p1});
 
@@ -90,18 +94,14 @@ void main() async {
   });
 
   test('scenario #1b (inverse)', () {
-    houseRepo.manager
-        .getKeyForId('families', '1', keyIfAbsent: 'families#a1a1a1');
     final h1 = houseRepo.deserialize(
         {'id': '1', 'address': '123 Main St', 'owner': 'families#a1a1a1'});
     expect(h1.owner.value, isNull);
     expect(keyFor(h1), isNotNull);
 
-    expect(houseRepo.manager.getKeyForId('families', '1'), 'families#a1a1a1');
-
     // once it does
     final family = Family(id: '1', surname: 'Rose', residence: BelongsTo())
-        .init(familyRepo);
+        .init(familyRepo, key: 'families#a1a1a1');
     // it's automatically wired up & inverses work correctly
     expect(h1.owner.value, family);
     expect(h1.owner.value.residence.value, h1);
@@ -136,7 +136,7 @@ void main() async {
         .init(personRepo, key: 'people#c1c1c1');
     Person(id: '2', name: 'z2', age: 33).init(personRepo, key: 'people#c2c2c2');
 
-    // (3) assert two first are linked, third one null, house is null
+    // (3) assert two first are linked, third one null, residence is null
     expect(family.persons.lookup(p1), p1);
     expect(family.persons.elementAt(0), isNotNull);
     expect(family.persons.elementAt(1), isNotNull);
@@ -147,6 +147,7 @@ void main() async {
     final p3 = Person(id: '3', name: 'z3', age: 3)
         .init(personRepo, key: 'people#c3c3c3');
     expect(family.persons.lookup(p3), isNotNull);
+    expect(p3.family.value, family);
 
     // (5) load family and assert it exists now
     final house = House(id: '98', address: '21 Coconut Trail')
