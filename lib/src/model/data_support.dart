@@ -20,9 +20,6 @@ extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
   set _repository(Repository<T> value) =>
       _flutterDataMetadata['_repository'] ??= value;
 
-  bool get _save => _flutterDataMetadata['_save'] as bool;
-  set _save(bool value) => _flutterDataMetadata['_save'] = value;
-
   //
 
   DataManager get _manager => _repository?.manager;

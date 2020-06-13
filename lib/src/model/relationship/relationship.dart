@@ -14,7 +14,6 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
   // to get initialized (and obtain a key)
   final Set<E> _uninitializedModels;
   final Set<String> _uninitializedKeys;
-  final bool _save;
   final bool _wasOmitted;
 
   ValueStateNotifier<N> _notifier;
@@ -23,7 +22,7 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
   String get type => Repository.getType<E>();
   Repository<E> get _repository => manager?.locator<Repository<E>>();
 
-  Relationship([Set<E> models, this.manager, this._save])
+  Relationship([Set<E> models, this.manager])
       : _uninitializedModels = models ?? {},
         _uninitializedKeys = {},
         _wasOmitted = models == null {
@@ -32,8 +31,7 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
 
   Relationship._(Iterable<String> keys, this.manager, this._wasOmitted)
       : _uninitializedModels = {},
-        _uninitializedKeys = keys.toSet(),
-        _save = true;
+        _uninitializedKeys = keys.toSet();
 
   //
 

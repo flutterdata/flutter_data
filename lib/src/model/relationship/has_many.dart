@@ -1,8 +1,7 @@
 part of flutter_data;
 
 class HasMany<E extends DataSupportMixin<E>> extends Relationship<E, Set<E>> {
-  HasMany([Set<E> models, DataManager manager, bool _save])
-      : super(models, manager, _save);
+  HasMany([Set<E> models, DataManager manager]) : super(models, manager);
 
   HasMany._(Iterable<String> keys, DataManager manager, bool _wasOmitted)
       : super._(keys, manager, _wasOmitted);

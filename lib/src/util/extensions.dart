@@ -35,7 +35,7 @@ extension IterableRelationshipExtension<T extends DataSupportMixin<T>>
     on Set<T> {
   HasMany<T> get asHasMany {
     if (isNotEmpty) {
-      return HasMany<T>(this, first._manager, first._save);
+      return HasMany<T>(this, first._manager);
     }
     return HasMany<T>();
   }
@@ -44,20 +44,9 @@ extension IterableRelationshipExtension<T extends DataSupportMixin<T>>
 extension DataSupportMixinRelationshipExtension<T extends DataSupportMixin<T>>
     on DataSupportMixin<T> {
   BelongsTo<T> get asBelongsTo {
-    return BelongsTo<T>(this as T, _manager, _save);
+    return BelongsTo<T>(this as T, _manager);
   }
 }
-
-// extension ManagerDataId on DataManager {
-//   @optionalTypeArgs
-//   DataId<T> dataId<T>(dynamic id, {String useKey, String type}) =>
-//       DataId<T>(id, this, useKey: useKey, type: type);
-// }
-
-// extension SafeBoxX<T> on Box<T> {
-//   T safeGet(key) => key != null ? get(key) : null;
-//   Future<void> safeDelete(key) => key != null ? delete(key) : null;
-// }
 
 extension RelationshipIterableX on Map<String, Relationship> {
   Set<BelongsTo> get belongsTo => values.whereType<BelongsTo>().toSet();

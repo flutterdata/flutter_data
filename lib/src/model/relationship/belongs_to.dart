@@ -1,8 +1,8 @@
 part of flutter_data;
 
 class BelongsTo<E extends DataSupportMixin<E>> extends Relationship<E, E> {
-  BelongsTo([E model, DataManager manager, bool _save])
-      : super(model != null ? {model} : null, manager, _save);
+  BelongsTo([E model, DataManager manager])
+      : super(model != null ? {model} : null, manager);
 
   BelongsTo._(String key, DataManager manager, bool _wasOmitted)
       : super._(key != null ? {key} : {}, manager, _wasOmitted);
