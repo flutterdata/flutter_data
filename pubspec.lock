@@ -165,10 +165,10 @@ packages:
   data_state:
     dependency: "direct main"
     description:
-      path: "../data_state/packages/data_state"
-      relative: true
-    source: path
-    version: "0.2.7"
+      name: data_state
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.3.0"
   fixnum:
     dependency: transitive
     description:
