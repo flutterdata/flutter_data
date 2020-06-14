@@ -14,15 +14,20 @@ class _HiveTypeAdapter<T extends DataSupport<T>> with TypeAdapter<T> {
     //   'houses': {'3'},
     // }
 
-    final _typesNode = manager._metaBox.get('_types');
+    if (!manager._metaBox.containsKey('_types')) {
+      manager._metaBox.put('_types', {});
+    }
+
+    final _typesNode = manager._metaBox.get('_types', defaultValue: {});
 
     if (_typesNode[type] != null && _typesNode[type].isNotEmpty) {
       return int.parse(_typesNode[type].first);
     }
 
-    final index = _typesNode.length;
+    final index = _typesNode.length + 1;
     // insert at last position of _typesNode map
-    _typesNode[type].add(index.toString());
+    _typesNode[type] = [index.toString()];
+    print('r: ${_typesNode[type]} / $type');
     return index;
   }
 

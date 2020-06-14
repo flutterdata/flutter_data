@@ -7,11 +7,11 @@ class DataGraphNotifier extends StateNotifier<DataGraphEvent> {
 
   @protected
   @visibleForTesting
-  final Box<Map<String, Set<String>>> box;
+  final Box<Map<String, List<String>>> box;
 
   // read
 
-  Map<String, Set<String>> getNode(String key) {
+  Map<String, List<String>> getNode(String key) {
     assert(key != null, 'key cannot be null');
     return box.get(key);
   }
@@ -20,7 +20,7 @@ class DataGraphNotifier extends StateNotifier<DataGraphEvent> {
     return box.containsKey(key);
   }
 
-  Set<String> getEdge(String key, {@required String metadata}) {
+  List<String> getEdge(String key, {@required String metadata}) {
     final node = getNode(key);
     if (node != null) {
       return node[metadata];
@@ -94,8 +94,9 @@ class DataGraphNotifier extends StateNotifier<DataGraphEvent> {
     final fromNode = getNode(from);
     assert(fromNode != null && tos != null);
 
-    fromNode[metadata] ??= {};
-    fromNode[metadata].addAll(tos);
+    // use a set to ensure resulting list elements are unique
+    fromNode[metadata] = {...?fromNode[metadata], ...tos}.toList();
+
     if (notify) {
       state = DataGraphEvent(
         keys: [from, ...tos],
@@ -110,9 +111,11 @@ class DataGraphNotifier extends StateNotifier<DataGraphEvent> {
         // get or create toNode
         final toNode =
             hasNode(to) ? getNode(to) : (this..addNode(to)).getNode(to);
-        toNode[inverseMetadata] ??= {};
-        toNode[inverseMetadata].add(from);
+
+        // use a set to ensure resulting list elements are unique
+        toNode[inverseMetadata] = {...?toNode[inverseMetadata], from}.toList();
       }
+
       if (notify) {
         state = DataGraphEvent(
           keys: [...tos, from],
@@ -141,8 +144,9 @@ class DataGraphNotifier extends StateNotifier<DataGraphEvent> {
     final fromNode = getNode(from);
     assert(fromNode != null);
 
-    if (tos != null) {
-      fromNode[metadata]?.removeAll(tos);
+    if (tos != null && fromNode[metadata] != null) {
+      // remove all tos from fromNode[metadata]
+      fromNode[metadata].removeWhere(tos.contains);
       if (fromNode[metadata].isEmpty) {
         fromNode.remove(metadata);
       }
@@ -260,7 +264,7 @@ class DataGraphNotifier extends StateNotifier<DataGraphEvent> {
     box.clear();
   }
 
-  Map<String, Map<String, Set<String>>> toMap() => box.toMap().cast();
+  Map<String, Map<String, List<String>>> toMap() => box.toMap().cast();
 }
 
 enum DataGraphEventType {

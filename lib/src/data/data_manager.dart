@@ -26,10 +26,10 @@ class DataManager {
     return _locator;
   }
 
-  Box<Map<String, Set<String>>> _metaBox;
+  Box<Map<String, List<String>>> _metaBox;
 
   @visibleForTesting
-  Box<Map<String, Set<String>>> get metaBox {
+  Box<Map<String, List<String>>> get metaBox {
     assert(_metaBox != null, _assertMessage);
     return _metaBox;
   }

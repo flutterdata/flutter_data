@@ -181,7 +181,7 @@ and trigger a code generation build again.
     // if not null return, else return empty set
     final graph = manager?.graph;
     if (graph != null && _ownerKey != null) {
-      return graph.getEdge(_ownerKey, metadata: _name) ?? {};
+      return graph.getEdge(_ownerKey, metadata: _name)?.toSet() ?? {};
     }
     return {};
   }
