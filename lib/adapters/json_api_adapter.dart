@@ -107,8 +107,9 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
     included ??= const [];
     for (var i in included) {
       final key = manager.getKeyForId(i.type, i.id);
-      final repo = relatedRepositories[i.type] as RemoteAdapter;
-      repo.deserialize(i, key: key);
+      final type = Repository.getType(i.type);
+      final repo = relatedRepositories[type] as RemoteAdapter;
+      repo?.deserialize(i, key: key);
     }
   }
 }

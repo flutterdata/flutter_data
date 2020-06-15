@@ -26,6 +26,7 @@ class DataManager {
     return _locator;
   }
 
+  // ignore: prefer_final_fields
   bool _autoInitEnabled = true;
 
   Box<Map<String, List<String>>> _metaBox;

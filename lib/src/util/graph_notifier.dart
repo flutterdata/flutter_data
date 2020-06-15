@@ -1,3 +1,4 @@
+import 'package:flutter_data/flutter_data.dart';
 import 'package:hive/hive.dart';
 import 'package:meta/meta.dart';
 import 'package:state_notifier/state_notifier.dart';
@@ -212,6 +213,7 @@ class DataGraphNotifier extends StateNotifier<DataGraphEvent> {
   }
 
   String getKeyForId(String type, dynamic id, {String keyIfAbsent}) {
+    type = Repository.getType(type);
     if (id != null) {
       final _id = '$type#$id';
 
