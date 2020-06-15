@@ -94,6 +94,10 @@ class DataGraphNotifier extends StateNotifier<DataGraphEvent> {
     final fromNode = getNode(from);
     assert(fromNode != null && tos != null);
 
+    if (tos.isEmpty) {
+      return;
+    }
+
     // use a set to ensure resulting list elements are unique
     fromNode[metadata] = {...?fromNode[metadata], ...tos}.toList();
 
@@ -274,6 +278,19 @@ enum DataGraphEventType {
   addEdge,
   removeEdge,
   updateEdge
+}
+
+extension on DataGraphEventType {
+  bool get isNode => [
+        DataGraphEventType.addNode,
+        DataGraphEventType.updateNode,
+        DataGraphEventType.removeNode,
+      ].contains(this);
+  bool get isEdge => [
+        DataGraphEventType.addEdge,
+        DataGraphEventType.updateEdge,
+        DataGraphEventType.removeEdge,
+      ].contains(this);
 }
 
 class DataGraphEvent {
