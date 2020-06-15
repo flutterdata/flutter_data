@@ -27,7 +27,6 @@ class _HiveTypeAdapter<T extends DataSupport<T>> with TypeAdapter<T> {
     final index = _typesNode.length + 1;
     // insert at last position of _typesNode map
     _typesNode[type] = [index.toString()];
-    print('r: ${_typesNode[type]} / $type');
     return index;
   }
 
@@ -47,13 +46,6 @@ class _HiveTypeAdapter<T extends DataSupport<T>> with TypeAdapter<T> {
     for (var k in _map.keys) {
       writer.write(k);
       writer.write(_map[k]);
-    }
-    final publicMetadata = Map.fromEntries(
-        obj._flutterDataMetadata.entries.where((e) => !e.key.startsWith('_')));
-    writer.writeByte(publicMetadata.length);
-    for (var e in publicMetadata.entries) {
-      writer.write(e.key);
-      writer.write(e.value);
     }
   }
 
