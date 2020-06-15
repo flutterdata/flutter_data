@@ -280,7 +280,7 @@ enum DataGraphEventType {
   updateEdge
 }
 
-extension on DataGraphEventType {
+extension DataGraphEventTypeX on DataGraphEventType {
   bool get isNode => [
         DataGraphEventType.addNode,
         DataGraphEventType.updateNode,
