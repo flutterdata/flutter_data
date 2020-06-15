@@ -42,7 +42,7 @@ mixin StandardJSONAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
     for (var relEntry in hasManys.entries) {
       final name = relEntry.key.toString();
       final keys = List<String>.from(map[name] as Iterable);
-      relationships[name] = keys;
+      relationships[name] = keys.map(manager.getId);
       map.remove(name);
     }
 
@@ -51,7 +51,7 @@ mixin StandardJSONAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
       final key = keyForField(field);
 
       final dataIdKey = map[field].toString();
-      relationships[key] = dataIdKey;
+      relationships[key] = manager.getId(dataIdKey);
       map.remove(field);
     }
 
@@ -63,7 +63,7 @@ mixin StandardJSONAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
 
   // Transforms standard JSON into a class
   @override
-  T deserialize(object, {String key, bool initialize = true}) {
+  T deserialize(object, {String key}) {
     final map = object as Map<String, dynamic>;
 
     for (var relEntry in hasManys.entries) {
@@ -76,7 +76,8 @@ mixin StandardJSONAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
             final model = repo.deserialize(i);
             i = model.id;
           }
-          return manager.getKeyForId(type, i);
+          return manager.getKeyForId(type, i,
+              keyIfAbsent: Repository.generateKey(type));
         }).toList();
       }
     }
@@ -96,10 +97,11 @@ mixin StandardJSONAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
       }
 
       if (map[field] != null) {
-        map[field] = manager.getKeyForId(type, map[field]);
+        map[field] = manager.getKeyForId(type, map[field],
+            keyIfAbsent: Repository.generateKey(type));
       }
     }
 
-    return super.deserialize(map, key: key, initialize: initialize);
+    return super.deserialize(map, key: key);
   }
 }

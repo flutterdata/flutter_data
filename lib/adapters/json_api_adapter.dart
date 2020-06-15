@@ -62,7 +62,7 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
 
   // Transforms JSON:API into native format
   @override
-  T deserialize(object, {String key, bool initialize = true}) {
+  T deserialize(object, {String key}) {
     final nativeMap = <String, dynamic>{};
     final included = <ResourceObject>[];
     ResourceObject obj;
@@ -86,11 +86,13 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
       for (var relEntry in obj.relationships.entries) {
         final rel = relEntry.value;
         if (rel is ToOne && rel.linkage != null) {
-          final key = manager.getKeyForId(rel.linkage.type, rel.linkage.id);
+          final key = manager.getKeyForId(rel.linkage.type, rel.linkage.id,
+              keyIfAbsent: Repository.generateKey(rel.linkage.type));
           nativeMap[relEntry.key] = key;
         } else if (rel is ToMany) {
           nativeMap[relEntry.key] = rel.linkage
-              .map((i) => manager.getKeyForId(i.type, i.id))
+              .map((i) => manager.getKeyForId(i.type, i.id,
+                  keyIfAbsent: Repository.generateKey(i.type)))
               .toList();
         }
       }
@@ -98,7 +100,7 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
 
     nativeMap.addAll(obj.attributes);
 
-    return super.deserialize(nativeMap, key: key, initialize: initialize);
+    return super.deserialize(nativeMap, key: key);
   }
 
   void _saveIncluded(List<ResourceObject> included) {
