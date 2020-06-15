@@ -166,7 +166,7 @@ mixin _\$${type}ModelAdapter on Repository<$type> {
     $relatedRepositories;
 
   @override
-  localDeserialize(map, {metadata}) {
+  localDeserialize(map) {
     for (var key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
