@@ -1,6 +1,17 @@
-## [Unreleased]
- - the min required version of `json_api` bumped to 4.2.1
- - do not send `id` as a resource attribute in the JSON:API request
+## [0.4.0]
+
+ - Flutter Data is now Adapter-based from the core
+ - New engine powering relationships and metadata, based on a persitent graph notifier
+ - Configurable inverses via `@DataRelationship`
+ - Notifiers and `watch`ing APIs vastly improved, `alsoWatch`, allow to work without IDs
+ - `DataSupport` now has `reload`, `watch`, `delete` (that can also work without IDs)
+ - Revamped JSON adapters; `fieldForKey` API
+ - De-pollute models (only carries a `_flutterDataMetadata` map)
+ - Remove `IdDataSupport` for Freezed, no longer needed
+ - Use `Set`s for relationships
+ - Relationships MUST be final
+ - Upgrade `data_state: ^0.3.0` and `json_api: ^4.2.1`, drop `rxdart`
+ - Massive testing improvements
  
 ## [0.3.12] - 2020-05-04
 
