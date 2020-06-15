@@ -20,6 +20,10 @@ extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
   set _repository(Repository<T> value) =>
       _flutterDataMetadata['_repository'] ??= value;
 
+  set _key(String key) {
+    _flutterDataMetadata['_key'] = key;
+  }
+
   //
 
   DataManager get _manager => _repository?.manager;
@@ -44,7 +48,7 @@ extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
         remote: remote, params: params, headers: headers);
   }
 
-  Future<T> find(
+  Future<T> reload(
       {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
     _assertRepository();
     return _repository.findOne(_this,
@@ -89,8 +93,10 @@ FlutterData.init();
 
 abstract class DataSupport<T extends DataSupport<T>> with DataSupportMixin<T> {
   DataSupport() {
-    _autoModelInitDataManager
-        .locator<Repository<T>>()
-        ?.initModel(_this, save: true);
+    if (_autoModelInitDataManager._autoInitEnabled) {
+      _autoModelInitDataManager
+          .locator<Repository<T>>()
+          ?.initModel(_this, save: true);
+    }
   }
 }

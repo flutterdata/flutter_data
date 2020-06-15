@@ -144,8 +144,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
     if (!wasInitialized) {
       // model.id could be null, that's okay
-      model._flutterDataMetadata['_key'] =
-          existingKey ?? manager.getKeyForId(type, model.id, keyIfAbsent: key);
+      model._key = manager.getKeyForId(type, model.id, keyIfAbsent: key);
 
       // set model as "owner" in its relationships
       for (final metadata in relationshipsFor(model).entries) {

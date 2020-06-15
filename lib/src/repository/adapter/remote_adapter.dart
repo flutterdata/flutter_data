@@ -61,14 +61,18 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
 
   @protected
   @visibleForTesting
-  T deserialize(dynamic object, {String key, bool initialize = true}) {
+  T deserialize(dynamic object, {String key}) {
     final map = Map<String, dynamic>.from(object as Map);
+
+    // briefly disable autoInit -
+    // unfortunately can only achieve this through a global
+    // (in a single-threaded program)
+    // while keeping the public API neat
+    _autoModelInitDataManager?._autoInitEnabled = false;
     final model = localDeserialize(map);
-    if (initialize) {
-      // important to initialize (esp for "included" models)
-      return initModel(model, key: key, save: true);
-    }
-    return model;
+    _autoModelInitDataManager?._autoInitEnabled = true;
+
+    return initModel(model, key: key, save: true);
   }
 
   @protected
@@ -185,9 +189,17 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
         // return "old" model if response was empty
         return model;
       }
-      // - deserialize already inits models
-      // - if model had a key already, reuse it
-      return deserialize(data as Map<String, dynamic>, key: keyFor(model));
+      // deserialize already inits models
+      // if model had a key already, reuse it
+      final newModel =
+          deserialize(data as Map<String, dynamic>, key: keyFor(model));
+      if (keyFor(newModel) != keyFor(model)) {
+        // in the unlikely case where supplied key couldn't be used
+        // ensure "old" copy of model carries the updated key
+        manager.removeKey(keyFor(model));
+        model._key = keyFor(newModel);
+      }
+      return newModel;
     });
   }
 

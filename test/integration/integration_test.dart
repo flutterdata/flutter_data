@@ -66,19 +66,23 @@ void main() async {
   });
 
   test('save', () async {
-    // CHECK this test depends on previous `Model`s being loaded?
     final repo = injection.locator<Repository<Model>>();
-    final companies = await injection.locator<Repository<Company>>().findAll();
+    final companies = await injection
+        .locator<Repository<Company>>()
+        .findAll(params: {'include': 'models'});
     final c = companies.last;
-    final m = await Model(id: '3', name: 'Elon X', company: c.asBelongsTo)
-        .init(repo)
-        .save();
+    final m = Model(id: '3', name: 'Elon X', company: c.asBelongsTo).init(repo);
+    final m1 = await m.save();
     final m2 = await repo.findOne('3');
+
+    expect(m.id, m1.id);
     expect(m.id, m2.id);
+
+    expect(keyFor(m1), keyFor(m2));
+    expect(keyFor(m), keyFor(m2));
     expect(m2.name, 'Elon X');
-    // following assertions won't pass as server data
+    // following assertion won't pass as server data
     // "loses" information (returns 0 relationships)
-    // expect(m, m2);
     // expect(m2.company.value, c);
   });
 
@@ -94,6 +98,32 @@ void main() async {
     expect(c2.name, company.name);
     expect(c3.name, c2.name);
     expect(keyFor(c2), keyFor(c3));
+  });
+
+  test('save after adding to rel', () async {
+    final repo = injection.locator<Repository<Company>>();
+    final modelRepo = injection.locator<Repository<Model>>();
+    final company = await repo.findOne('1');
+
+    final model =
+        Model(name: 'Zucchini 8', company: BelongsTo()).init(modelRepo);
+    company.models.add(model);
+    final m2 = await model.save();
+    expect(keyFor(model), keyFor(m2));
+    // print('m2 id: ${m2.id} / k: ${keyFor(m2)}');
+    // print('---');
+
+    final m3 = Model(name: 'Zucchini 93', company: BelongsTo()).init(modelRepo);
+    // print('m3 id: ${m3.id} / k: ${keyFor(m3)}');
+    final tempKeyM3 = keyFor(m3);
+    final m4 = await m3.save();
+
+    // saving a Model WILL ALWAYS RETURN AN ID=9217
+    // => key has changed after save!
+    expect(tempKeyM3, isNot(keyFor(m3)));
+    expect(keyFor(m3), keyFor(m4));
+
+    // print('m4 id: ${m4.id} / k: ${keyFor(m4)}');
   });
 
   test('fetch with error', () async {

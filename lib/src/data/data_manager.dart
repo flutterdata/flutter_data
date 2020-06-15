@@ -26,6 +26,8 @@ class DataManager {
     return _locator;
   }
 
+  bool _autoInitEnabled = true;
+
   Box<Map<String, List<String>>> _metaBox;
 
   @visibleForTesting
