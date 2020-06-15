@@ -166,25 +166,25 @@ void main() async {
         .init(repository);
     expect(f1.persons.first.family.value, f1);
 
-    final f1b = Family(
-            surname: 'Kamchatka',
-            persons:
-                {Person(name: 'Igor', age: 33, family: BelongsTo())}.asHasMany)
+    final igor1b = Person(name: 'Igor', age: 33, family: BelongsTo())
+        .init(repositoryPerson);
+
+    final f1b = Family(surname: 'Kamchatka', persons: {igor1b}.asHasMany)
         .init(repository);
     expect(f1b.persons.first.family.value.surname, 'Kamchatka');
 
     final f2 =
         Family(surname: 'Kamchatka', persons: HasMany()).init(repository);
-    final igor2 = Person(name: 'Igor', age: 33, family: BelongsTo());
+    final igor2 = Person(name: 'Igor', age: 33, family: BelongsTo())
+        .init(repositoryPerson);
     f2.persons.add(igor2);
     expect(f2.persons.first.family.value.surname, 'Kamchatka');
 
     f2.persons.remove(igor2);
     expect(f2.persons, isEmpty);
 
-    final f3 = Family(
-            surname: 'Kamchatka',
-            residence: House(address: 'Sakharova Prospekt, 19').asBelongsTo)
+    final residence = House(address: 'Sakharova Prospekt, 19').init(houseRepo);
+    final f3 = Family(surname: 'Kamchatka', residence: residence.asBelongsTo)
         .init(repository);
     expect(f3.residence.value.owner.value.surname, 'Kamchatka');
     f3.residence.value = null;
@@ -192,15 +192,18 @@ void main() async {
 
     final f4 =
         Family(surname: 'Kamchatka', residence: BelongsTo()).init(repository);
-    f4.residence.value = House(address: 'Sakharova Prospekt, 19');
+    f4.residence.value =
+        House(address: 'Sakharova Prospekt, 19').init(houseRepo);
     expect(f4.residence.value.owner.value.surname, 'Kamchatka');
   });
 
   test('one-way relationships', () {
+    // relationships that don't have an inverse
     final repository = injection.locator<Repository<Family>>();
+    final dogRepo = injection.locator<Repository<Dog>>();
 
-    final jerry = Dog(name: 'Jerry');
-    final zoe = Dog(name: 'Zoe');
+    final jerry = Dog(name: 'Jerry').init(dogRepo);
+    final zoe = Dog(name: 'Zoe').init(dogRepo);
     final f1 = Family(surname: 'Carlson', dogs: {jerry, zoe}.asHasMany)
         .init(repository);
     expect(f1.dogs, {jerry, zoe});

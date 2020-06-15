@@ -107,19 +107,24 @@ void main() async {
 
   test('saves key', () async {
     final repository = injection.locator<Repository<Family>>();
+    final houseRepo = injection.locator<Repository<House>>();
+    final personRepo = injection.locator<Repository<Person>>();
     final manager = repository.manager;
+
+    final residence = House(address: '123 Main St').init(houseRepo);
 
     for (var i = 0; i < 518; i++) {
       final family = Family(
         id: '$i',
         surname: 'Smith',
-        residence: House(address: '123 Main St').asBelongsTo,
+        residence: residence.asBelongsTo,
         persons: HasMany(),
       ).init(repository);
 
       // add some people
       if (i % 19 == 0) {
-        family.persons.add(Person(name: 'new kid #$i', age: 0));
+        family.persons
+            .add(Person(name: 'new kid #$i', age: 0).init(personRepo));
       }
 
       // remove some residence relationships

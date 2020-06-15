@@ -11,7 +11,8 @@ void main() async {
 
   test('HasMany is a Set', () {
     final repository = injection.locator<Repository<Family>>();
-    final anne = Person(name: 'Anne', age: 59);
+    final personRepository = injection.locator<Repository<Person>>();
+    final anne = Person(name: 'Anne', age: 59).init(personRepository);
     final f1 =
         Family(surname: 'Mayer', persons: {anne}.asHasMany).init(repository);
 
@@ -21,8 +22,8 @@ void main() async {
     expect(f1.persons.lookup(anne), anne);
 
     f1.persons.manager = injection.locator<DataManager>();
-    f1.persons.initializeModels();
-    final agnes = Person(name: 'Agnes', age: 29);
+
+    final agnes = Person(name: 'Agnes', age: 29).init(personRepository);
     f1.persons.add(agnes);
     expect(f1.persons.length, 2);
 
@@ -58,7 +59,7 @@ void main() async {
     var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
     var personRepo = injection.locator<Repository<Person>>();
 
-    var brian = Person(name: 'Brian', age: 52);
+    var brian = Person(name: 'Brian', age: 52).init(personRepo);
     var family = Family(id: '229', surname: 'Rose', persons: {brian}.asHasMany)
         .init(repo);
     expect(family.persons.length, 1);
@@ -93,14 +94,16 @@ void main() async {
 
   test('watch', () async {
     final repository = injection.locator<Repository<Family>>();
+    final personRepository = injection.locator<Repository<Person>>();
+
     final family = Family(
       id: '1',
       surname: 'Smith',
       persons: HasMany<Person>(),
     ).init(repository);
 
-    final p1 = Person(name: 'a', age: 1);
-    final p2 = Person(name: 'b', age: 2);
+    final p1 = Person(name: 'a', age: 1).init(personRepository);
+    final p2 = Person(name: 'b', age: 2).init(personRepository);
     final notifier = family.persons.watch();
 
     var i = 0;

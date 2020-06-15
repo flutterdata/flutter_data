@@ -134,6 +134,7 @@ void main() async {
 
   test('watchOne with alsoWatch relationships', () async {
     final familyRepository = injection.locator<Repository<Family>>();
+    final houseRepository = injection.locator<Repository<House>>();
     final notifier = familyRepository.watchOne('22',
         alsoWatch: (family) => [family.persons, family.residence]);
 
@@ -156,17 +157,16 @@ void main() async {
         if (i == 5) expect(state.model, isNull);
         i++;
       }, count: 6),
-      fireImmediately: true,
     );
 
     final p1 = Person(id: '1', name: 'Frank', age: 16).init(repository);
     p1.family.value = f1;
-    f1.persons.add(Person(name: 'Martin', age: 44));
-    f1.residence.value = House(address: '123 Main St');
+    f1.persons.add(Person(name: 'Martin', age: 44).init(repository));
+    f1.residence.value = House(address: '123 Main St').init(houseRepository);
     f1.persons.remove(p1);
 
     // a non-watched relationship does not trigger
-    f1.cottage.value = House(address: '7342 Mountain Rd');
+    f1.cottage.value = House(address: '7342 Mountain Rd').init(houseRepository);
 
     await f1.delete();
   });
@@ -177,15 +177,21 @@ void main() async {
 
     final notifier = frank.watch(alsoWatch: (p) => [p.family]);
     dispose = notifier.addListener(
-      // it will be hit twice: one by Steve-O, one by the Family relationship watch
+      // it will be hit three times
+      // (1) by Steve-O
+      // (2) by the Family relationship
+      // (3) by a change in the watched Family model
       expectAsync1((state) {
         expect(state.model.name, 'Steve-O');
-      }, count: 2),
+      }, count: 3),
       fireImmediately: false,
     );
 
     final steve =
         Person(name: 'Steve-O', age: 30).init(repository, key: keyFor(frank));
-    steve.family.value = Family(surname: 'Marquez').init(familyRepository);
+    steve.family.value =
+        Family(id: '922', surname: 'Marquez').init(familyRepository);
+
+    Family(id: '922', surname: 'Thomson').init(familyRepository);
   });
 }

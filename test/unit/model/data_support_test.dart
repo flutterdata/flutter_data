@@ -17,9 +17,10 @@ void main() async {
   });
 
   test('init', () async {
-    var repo = injection.locator<Repository<Person>>();
+    final repo = injection.locator<Repository<Person>>();
+    final familyRepo = injection.locator<Repository<Family>>();
 
-    var family = Family(id: '55', surname: 'Kelley');
+    var family = Family(id: '55', surname: 'Kelley').init(familyRepo);
     var model =
         Person(id: '1', name: 'John', age: 27, family: family.asBelongsTo)
             .init(repo);

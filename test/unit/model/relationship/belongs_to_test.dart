@@ -24,10 +24,13 @@ void main() async {
   });
 
   test('set owner in relationships', () {
-    var repo = injection.locator<Repository<Family>>();
-    var person = Person(id: '1', name: 'John', age: 37);
-    var house = House(id: '31', address: '123 Main St');
-    var house2 = House(id: '2', address: '456 Main St');
+    final repo = injection.locator<Repository<Family>>();
+    final houseRepo = injection.locator<Repository<House>>();
+    final personRepo = injection.locator<Repository<Person>>();
+
+    var person = Person(id: '1', name: 'John', age: 37).init(personRepo);
+    var house = House(id: '31', address: '123 Main St').init(houseRepo);
+    var house2 = House(id: '2', address: '456 Main St').init(houseRepo);
 
     var family = Family(
         id: '1',
@@ -52,6 +55,8 @@ void main() async {
 
   test('watch', () async {
     final repository = injection.locator<Repository<Family>>();
+    final houseRepo = injection.locator<Repository<House>>();
+
     final family = Family(
       id: '22',
       surname: 'Besson',
@@ -75,8 +80,10 @@ void main() async {
       fireImmediately: false,
     );
 
-    family.residence.value = House(id: '2', address: '456 Main St');
-    family.residence.value = House(id: '1', address: '123 Main St');
+    family.residence.value =
+        House(id: '2', address: '456 Main St').init(houseRepo);
+    family.residence.value =
+        House(id: '1', address: '123 Main St').init(houseRepo);
     family.residence.value = null;
   });
 }
