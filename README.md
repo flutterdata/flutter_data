@@ -47,7 +47,7 @@ class User extends DataSupport<User> {
   User({this.id, this.name});
 }
 
-mixin JSONPlaceholderAdapter on Repository<User> {
+mixin JSONPlaceholderAdapter on RemoteAdapter<User> {
   @override
   get baseUrl => "http://jsonplaceholder.typicode.com/";
 }
@@ -114,11 +114,11 @@ Fully compatible with the tools we know and love:
 | Provider          | ✅          | Not required! It can be automatically wired up                   |
 | get_it            | ✅          | Not required! Very easy to integrate                             |
 | Streams / BLoC    | ✅          | Great support                                                    |
-| Freezed           | ✅          | Good support                                                     |
+| Freezed           | ✅          | Great support                                                    |
 | Flutter Web       | ✅          | Full support coming soon!                                        |
 | Hive              | ✅          | Flutter Data uses Hive internally for local storage              |
 
-(**) That said, Chopper/Retrofit adapters are coming soon
+(**) That said, Chopper/Retrofit and OpenAPI adapters are being considered too!
 
 ## 📲 Apps using Flutter Data
 
