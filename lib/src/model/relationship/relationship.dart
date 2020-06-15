@@ -10,9 +10,6 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
   String _name;
   String _inverseName;
 
-  // list of models waiting for a repository
-  // to get initialized (and obtain a key)
-  final Set<E> _uninitializedModels;
   final Set<String> _uninitializedKeys;
   final bool _wasOmitted;
 
@@ -23,38 +20,17 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
   Repository<E> get _repository => manager?.locator<Repository<E>>();
 
   Relationship([Set<E> models, this.manager])
-      : _uninitializedModels = models ?? {},
-        _uninitializedKeys = {},
-        _wasOmitted = models == null {
-    initializeModels();
-  }
+      : _uninitializedKeys = models?.map((model) {
+              assert(keyFor(model) != null);
+              return keyFor(model);
+            })?.toSet() ??
+            {},
+        _wasOmitted = models == null;
 
   Relationship._(Iterable<String> keys, this.manager, this._wasOmitted)
-      : _uninitializedModels = {},
-        _uninitializedKeys = keys.toSet();
+      : _uninitializedKeys = keys.toSet();
 
   //
-
-  @protected
-  @visibleForTesting
-  void initializeModels() {
-    // loop over a copy of the _uninitializedModels set
-    for (var model in _uninitializedModels.toSet()) {
-      // attempt to initialize
-      // if it doesn't work in the (first) constructor call
-      // it will work in the (second) setOwner call
-      if (_repository != null) {
-        _repository.initModel(model);
-      }
-      if (keyFor(model) != null) {
-        _uninitializedKeys.add(keyFor(model));
-        _uninitializedModels.remove(model);
-      }
-    }
-    if (_repository != null) {
-      assert(_uninitializedModels.isEmpty == true);
-    }
-  }
 
   @protected
   @visibleForTesting
@@ -104,7 +80,6 @@ and trigger a code generation build again.
       }
       _inverseName = entries.isNotEmpty ? entries.first.key : null;
     }
-    initializeModels();
     initializeKeys();
   }
 
@@ -115,12 +90,13 @@ and trigger a code generation build again.
     if (value == null) {
       return false;
     }
+    final key = keyFor(value);
+    assert(key != null);
     if (_repository != null) {
-      final model = _repository.initModel(value, save: false, notify: false);
-      manager.graph.addEdges(_ownerKey,
-          tos: [keyFor(model)], metadata: _name, inverseMetadata: _inverseName);
+      manager.graph.addEdge(_ownerKey, key,
+          metadata: _name, inverseMetadata: _inverseName);
     } else {
-      _uninitializedModels.add(value);
+      _uninitializedKeys.add(key);
     }
     return true;
   }
@@ -129,25 +105,22 @@ and trigger a code generation build again.
   bool contains(Object element) {
     if (element is E && manager?.graph != null) {
       return manager.graph
-              .getEdge(_ownerKey, metadata: _name)
-              .contains(keyFor(element)) ||
-          _uninitializedModels.contains(element);
+          .getEdge(_ownerKey, metadata: _name)
+          .contains(keyFor(element));
     }
     return false;
   }
 
-  Iterable<E> get _iterable => [
-        ...keys.map((key) => _repository.localGet(key, init: false)),
-        ..._uninitializedModels
-      ].where((model) => model != null);
+  Iterable<E> get _iterable => keys
+      .map((key) => _repository.localGet(key, init: false))
+      .where((model) => model != null);
 
   @override
   Iterator<E> get iterator => _iterable.iterator;
 
   @override
   E lookup(Object element) {
-    if (element is E &&
-        (contains(element) || _uninitializedModels.contains(element))) {
+    if (element is E && contains(element)) {
       return element;
     }
     return null;
@@ -156,12 +129,14 @@ and trigger a code generation build again.
   @override
   bool remove(Object value, {bool notify = true}) {
     if (value is E) {
-      manager.graph.removeEdges(_ownerKey,
-          tos: [keyFor(value)],
-          metadata: _name,
-          inverseMetadata: _inverseName,
-          notify: notify);
-      _uninitializedModels.remove(value);
+      assert(keyFor(value) != null);
+      manager.graph.removeEdge(
+        _ownerKey,
+        keyFor(value),
+        metadata: _name,
+        inverseMetadata: _inverseName,
+        notify: notify,
+      );
       return true;
     }
     return false;
