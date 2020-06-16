@@ -12,7 +12,7 @@ class HasMany<E extends DataSupportMixin<E>> extends Relationship<E, Set<E>> {
       final wasOmitted = map['_'][1] as bool;
       return HasMany._({}, manager, wasOmitted);
     }
-    final keys = List<String>.from(map['_'][0] as Iterable);
+    final keys = <String>{...map['_'][0]};
     return HasMany._(keys, manager, false);
   }
 

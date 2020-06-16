@@ -91,14 +91,14 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
   // repository implementation
 
   @override
-  Future<Iterable<T>> findAll(
+  Future<List<T>> findAll(
       {bool remote,
       Map<String, dynamic> params,
       Map<String, String> headers}) async {
     remote ??= _remote;
 
     if (remote == false) {
-      return localFindAll();
+      return localFindAll().toList();
     }
 
     final response = await withHttpClient(
@@ -243,6 +243,9 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
       });
     }
   }
+
+  @override
+  Map<dynamic, T> get dumpBox => box.toMap();
 
   // utils
 

@@ -15,7 +15,7 @@ mixin _$FamilyModelAdapter on Repository<Family> {
           'kind': 'HasMany',
           'instance': model?.persons
         },
-        'dacha': {
+        'cottage': {
           'type': 'houses',
           'kind': 'BelongsTo',
           'instance': model?.cottage
@@ -36,7 +36,7 @@ mixin _$FamilyModelAdapter on Repository<Family> {
       };
 
   @override
-  localDeserialize(map, {metadata}) {
+  localDeserialize(map) {
     for (var key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
@@ -69,9 +69,9 @@ Family _$FamilyFromJson(Map<String, dynamic> json) {
     persons: json['persons'] == null
         ? null
         : HasMany.fromJson(json['persons'] as Map<String, dynamic>),
-    cottage: json['dacha'] == null
+    cottage: json['cottage'] == null
         ? null
-        : BelongsTo.fromJson(json['dacha'] as Map<String, dynamic>),
+        : BelongsTo.fromJson(json['cottage'] as Map<String, dynamic>),
     residence: json['residence'] == null
         ? null
         : BelongsTo.fromJson(json['residence'] as Map<String, dynamic>),
@@ -85,7 +85,7 @@ Map<String, dynamic> _$FamilyToJson(Family instance) => <String, dynamic>{
       'id': instance.id,
       'surname': instance.surname,
       'persons': instance.persons?.toJson(),
-      'dacha': instance.cottage?.toJson(),
+      'cottage': instance.cottage?.toJson(),
       'residence': instance.residence?.toJson(),
       'dogs': instance.dogs?.toJson(),
     };

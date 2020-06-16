@@ -2,12 +2,12 @@ part of flutter_data;
 
 mixin WatchAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
   @override
-  DataStateNotifier<Iterable<T>> watchAll(
+  DataStateNotifier<List<T>> watchAll(
       {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
     remote ??= _remote;
 
-    final _notifier = DataStateNotifier<Set<T>>(
-      DataState(localFindAll().toSet()),
+    final _notifier = DataStateNotifier<List<T>>(
+      DataState(localFindAll().toList()),
       reload: (notifier) async {
         if (remote == false) {
           return;
@@ -44,7 +44,7 @@ mixin WatchAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
           DataGraphEventType.removeNode
         ].contains(event.type)) {
           _notifier.data = _notifier.data
-              .copyWith(model: localFindAll().toSet(), isLoading: false);
+              .copyWith(model: localFindAll().toList(), isLoading: false);
         }
       }
     });

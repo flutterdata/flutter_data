@@ -15,7 +15,7 @@ mixin _$DogModelAdapter on Repository<Dog> {
   Map<String, Repository> get relatedRepositories => {};
 
   @override
-  localDeserialize(map, {metadata}) {
+  localDeserialize(map) {
     for (var key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
@@ -46,7 +46,7 @@ mixin _$CatModelAdapter on Repository<Cat> {
   Map<String, Repository> get relatedRepositories => {};
 
   @override
-  localDeserialize(map, {metadata}) {
+  localDeserialize(map) {
     for (var key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]

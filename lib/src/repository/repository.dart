@@ -25,10 +25,10 @@ abstract class Repository<T extends DataSupportMixin<T>> {
 
   // repo public API
 
-  Future<Iterable<T>> findAll(
+  Future<List<T>> findAll(
       {bool remote, Map<String, dynamic> params, Map<String, String> headers});
 
-  DataStateNotifier<Iterable<T>> watchAll(
+  DataStateNotifier<List<T>> watchAll(
       {bool remote, Map<String, dynamic> params, Map<String, String> headers});
 
   Future<T> findOne(dynamic model,
@@ -46,7 +46,7 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   Future<void> delete(dynamic model,
       {bool remote, Map<String, dynamic> params, Map<String, String> headers});
 
-  Map<dynamic, T> get localBoxMap => box.toMap();
+  Map<dynamic, T> get dumpBox;
 
   // lifecycle hooks
 

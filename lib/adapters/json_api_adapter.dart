@@ -28,6 +28,7 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
       if (map[name] != null) {
         final keys = List<String>.from(map[name] as Iterable);
         // final type = relEntry.value;
+        // TODO determine right type!
         final identifiers = keys.map((key) {
           return IdentifierObject(type, manager.getId(key));
         });
@@ -41,6 +42,7 @@ mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
       if (map[name] != null) {
         final key = map[name].toString();
         // final type = relEntry.value;
+        // TODO determine right type!
         relationships[name] = ToOne(IdentifierObject(type, manager.getId(key)));
         map.remove(name);
       }

@@ -44,7 +44,7 @@ mixin OfflineAdapter<T extends DataSupportMixin<T>> on WatchAdapter<T> {
   }
 
   @override
-  DataStateNotifier<Iterable<T>> watchAll(
+  DataStateNotifier<List<T>> watchAll(
       {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
     final notifier =
         super.watchAll(remote: remote, params: params, headers: headers);

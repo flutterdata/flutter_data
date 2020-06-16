@@ -32,7 +32,7 @@ void main() async {
       'surname': 'Smith',
       'residence': houseRel.key,
       'persons': personRel.keys,
-      'dacha': null,
+      'cottage': null,
       'dogs': null,
     });
   });
@@ -58,7 +58,7 @@ void main() async {
       'surname': 'Smith',
       'residence': keyFor(house),
       'persons': [keyFor(person)],
-      'dacha': null,
+      'cottage': null,
       'dogs': null,
     });
   });

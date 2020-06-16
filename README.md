@@ -64,12 +64,12 @@ final repository = context.read<Repository<User>>();
 return DataStateBuilder<List<User>>(
   notifier: repository.watchAll();
   builder: (context, state, notifier, _) {
+    if (state.isLoading) {
+      return CircularProgressIndicator();
+    }
     // state.model is a list of 10 user items
     return ListView.builder(
       itemBuilder: (context, i) {
-        if (state.isLoading) {
-          return CircularProgressIndicator();
-        }
         return UserTile(state.model[i]);
       },
     );

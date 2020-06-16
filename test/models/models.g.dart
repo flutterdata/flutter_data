@@ -22,7 +22,7 @@ mixin _$ModelModelAdapter on Repository<Model> {
       {'companies': manager.locator<Repository<Company>>()};
 
   @override
-  localDeserialize(map, {metadata}) {
+  localDeserialize(map) {
     for (var key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
@@ -53,7 +53,7 @@ mixin _$CityModelAdapter on Repository<City> {
   Map<String, Repository> get relatedRepositories => {};
 
   @override
-  localDeserialize(map, {metadata}) {
+  localDeserialize(map) {
     for (var key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
@@ -91,7 +91,7 @@ mixin _$CompanyModelAdapter on Repository<Company> {
       {'models': manager.locator<Repository<Model>>()};
 
   @override
-  localDeserialize(map, {metadata}) {
+  localDeserialize(map) {
     for (var key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
