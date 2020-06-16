@@ -137,4 +137,22 @@ void main() async {
     await injection.locator<Repository<Model>>().dispose();
     injection.clear();
   });
+
+  test('watchOne', () async {
+    final repo = injection.locator<Repository<City>>();
+    final toronto = City(id: '71c', name: 'Chicago').init(repo);
+    // SHOULD SUPPORT THIS WITHOUT ID
+
+    final notifier = toronto.watch();
+    var i = 0;
+    dispose = notifier.addListener(
+      expectAsync1((state) {
+        if (i == 0) expect(state.model.name, 'Chicago');
+        if (i == 1) expect(state.model.name, 'Windy City');
+        i++;
+      }, count: 2),
+    );
+
+    toronto.copyWith(name: 'Windy City').init(repo);
+  });
 }
