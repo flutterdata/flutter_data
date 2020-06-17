@@ -139,16 +139,16 @@ mixin WatchAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
           final model = localGet(key());
           if (model != null) {
             _tryInitializeWatch(model);
-            _notifier.data =
-                _notifier.data.copyWith(model: model, isLoading: false);
+            _notifier.data = _notifier.data
+                .copyWith(model: model, isLoading: false, exception: null);
           }
         }
 
         if (_notifier.data.model != null) {
           // listen to removal on current model
           if (event.type == DataGraphEventType.removeNode) {
-            _notifier.data =
-                _notifier.data.copyWith(model: null, isLoading: false);
+            _notifier.data = _notifier.data
+                .copyWith(model: null, isLoading: false, exception: null);
           }
           // listen to changes on specific relationships of this model
           if (event.type.isEdge && _alsoWatchFilters.contains(event.metadata)) {
