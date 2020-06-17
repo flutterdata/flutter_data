@@ -13,7 +13,7 @@ dependencies:
   inflection2: ^0.4.3
   path: ^1.6.4
   json_api: ^4.2.1
-  data_state: ^0.3.0
+  data_state: ^0.3.2
   async: ^2.4.0
   meta: ^1.1.8
   http: ^0.12.0+4

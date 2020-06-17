@@ -138,7 +138,7 @@ void main() async {
     injection.clear();
   });
 
-  test('watchOne', () async {
+  test('watch()', () async {
     final toronto = City(id: '71c', name: 'Chicago').init(manager);
     // SHOULD SUPPORT THIS WITHOUT ID
 

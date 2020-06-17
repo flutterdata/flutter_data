@@ -147,7 +147,7 @@ packages:
       name: data_state
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.7"
+    version: "0.3.1"
   fixnum:
     dependency: transitive
     description:
@@ -161,7 +161,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.3.11"
+    version: "0.4.0"
   freezed_annotation:
     dependency: transitive
     description:
@@ -252,7 +252,7 @@ packages:
       name: json_api
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.2.3"
+    version: "4.2.2"
   json_serializable:
     dependency: "direct dev"
     description:
@@ -357,7 +357,7 @@ packages:
       name: rxdart
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.24.0"
+    version: "0.24.1"
   shelf:
     dependency: transitive
     description:
@@ -399,7 +399,7 @@ packages:
       name: state_notifier
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.0"
+    version: "0.5.0"
   stream_channel:
     dependency: transitive
     description:
