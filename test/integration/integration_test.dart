@@ -34,15 +34,15 @@ void main() async {
   });
 
   test('findAll', () async {
-    var repo = injection.locator<Repository<City>>();
-    var cities = await repo.findAll(params: {
+    final repo = injection.locator<Repository<City>>();
+    final cities = await repo.findAll(params: {
       'page': {'offset': 1}
     });
     expect(cities.first.isNew, false);
     expect(cities.first.name, 'Munich');
     expect(cities.length, 3);
 
-    var citiesFromLocal = await repo.findAll(remote: false);
+    final citiesFromLocal = await repo.findAll(remote: false);
     expect(citiesFromLocal.first.isNew, false);
   });
 
@@ -89,14 +89,14 @@ void main() async {
   });
 
   test('save without id', () async {
-    var repo = injection.locator<Repository<Company>>();
-    var company = Company(name: 'New Co', models: HasMany()).init(manager);
+    final repo = injection.locator<Repository<Company>>();
+    final company = Company(name: 'New Co', models: HasMany()).init(manager);
 
-    var c2 = await company.save();
+    final c2 = await company.save();
     expect(c2.id, isNotNull);
     expect(keyFor(company), keyFor(c2));
 
-    var c3 = await repo.findOne(c2.id);
+    final c3 = await repo.findOne(c2.id);
     expect(c2.name, company.name);
     expect(c3.name, c2.name);
     expect(keyFor(c2), keyFor(c3));

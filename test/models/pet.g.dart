@@ -16,7 +16,7 @@ mixin _$DogModelAdapter on Repository<Dog> {
 
   @override
   localDeserialize(map) {
-    for (var key in relationshipsFor().keys) {
+    for (final key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
       };
@@ -27,7 +27,7 @@ mixin _$DogModelAdapter on Repository<Dog> {
   @override
   localSerialize(model) {
     final map = model.toJson();
-    for (var e in relationshipsFor(model).entries) {
+    for (final e in relationshipsFor(model).entries) {
       map[e.key] = (e.value['instance'] as Relationship)?.toJson();
     }
     return map;
@@ -47,7 +47,7 @@ mixin _$CatModelAdapter on Repository<Cat> {
 
   @override
   localDeserialize(map) {
-    for (var key in relationshipsFor().keys) {
+    for (final key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
       };
@@ -58,7 +58,7 @@ mixin _$CatModelAdapter on Repository<Cat> {
   @override
   localSerialize(model) {
     final map = model.toJson();
-    for (var e in relationshipsFor(model).entries) {
+    for (final e in relationshipsFor(model).entries) {
       map[e.key] = (e.value['instance'] as Relationship)?.toJson();
     }
     return map;

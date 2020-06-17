@@ -23,7 +23,7 @@ mixin _$ModelModelAdapter on Repository<Model> {
 
   @override
   localDeserialize(map) {
-    for (var key in relationshipsFor().keys) {
+    for (final key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
       };
@@ -34,7 +34,7 @@ mixin _$ModelModelAdapter on Repository<Model> {
   @override
   localSerialize(model) {
     final map = _$ModelToJson(model);
-    for (var e in relationshipsFor(model).entries) {
+    for (final e in relationshipsFor(model).entries) {
       map[e.key] = (e.value['instance'] as Relationship)?.toJson();
     }
     return map;
@@ -54,7 +54,7 @@ mixin _$CityModelAdapter on Repository<City> {
 
   @override
   localDeserialize(map) {
-    for (var key in relationshipsFor().keys) {
+    for (final key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
       };
@@ -65,7 +65,7 @@ mixin _$CityModelAdapter on Repository<City> {
   @override
   localSerialize(model) {
     final map = model.toJson();
-    for (var e in relationshipsFor(model).entries) {
+    for (final e in relationshipsFor(model).entries) {
       map[e.key] = (e.value['instance'] as Relationship)?.toJson();
     }
     return map;
@@ -92,7 +92,7 @@ mixin _$CompanyModelAdapter on Repository<Company> {
 
   @override
   localDeserialize(map) {
-    for (var key in relationshipsFor().keys) {
+    for (final key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
       };
@@ -103,7 +103,7 @@ mixin _$CompanyModelAdapter on Repository<Company> {
   @override
   localSerialize(model) {
     final map = model.toJson();
-    for (var e in relationshipsFor(model).entries) {
+    for (final e in relationshipsFor(model).entries) {
       map[e.key] = (e.value['instance'] as Relationship)?.toJson();
     }
     return map;

@@ -13,16 +13,17 @@ void main() async {
   // serialization tests
 
   test('serialize', () {
-    var person = Person(id: '1', name: 'Franco', age: 28).init(manager);
-    var personRel = HasMany<Person>({person}, manager);
-    var house = House(id: '1', address: '123 Main St').init(manager);
-    var houseRel = BelongsTo<House>(house, manager);
+    final person = Person(id: '1', name: 'Franco', age: 28).init(manager);
+    final personRel = HasMany<Person>({person}, manager);
+    final house = House(id: '1', address: '123 Main St').init(manager);
+    final houseRel = BelongsTo<House>(house, manager);
 
-    var family = Family(
+    final family = Family(
         id: '1', surname: 'Smith', residence: houseRel, persons: personRel);
 
-    var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
-    var map = repo.serialize(family);
+    final repo =
+        injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
+    final map = repo.serialize(family);
     expect(map, {
       'id': '1',
       'surname': 'Smith',
@@ -34,18 +35,19 @@ void main() async {
   });
 
   test('serialize with relationships', () {
-    var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
+    final repo =
+        injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
 
-    var person = Person(id: '1', name: 'John', age: 37).init(manager);
-    var house = House(id: '1', address: '123 Main St').init(manager);
-    var family = Family(
+    final person = Person(id: '1', name: 'John', age: 37).init(manager);
+    final house = House(id: '1', address: '123 Main St').init(manager);
+    final family = Family(
             id: '1',
             surname: 'Smith',
             residence: house.asBelongsTo,
             persons: {person}.asHasMany)
         .init(manager);
 
-    var obj = repo.serialize(family);
+    final obj = repo.serialize(family);
     expect(obj, isA<Map<String, dynamic>>());
     expect(obj, {
       'id': '1',
@@ -58,20 +60,21 @@ void main() async {
   });
 
   test('deserialize', () {
-    var person = Person(id: '1', name: 'Franco', age: 28).init(manager);
-    var personRel = HasMany<Person>({person}, manager);
-    var house = House(id: '1', address: '123 Main St').init(manager);
-    var houseRel = BelongsTo<House>(house, manager);
+    final person = Person(id: '1', name: 'Franco', age: 28).init(manager);
+    final personRel = HasMany<Person>({person}, manager);
+    final house = House(id: '1', address: '123 Main St').init(manager);
+    final houseRel = BelongsTo<House>(house, manager);
 
-    var map = {
+    final map = {
       'id': '1',
       'surname': 'Smith',
       'residence': houseRel.key,
       'persons': personRel.keys,
     };
 
-    var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
-    var family = repo.deserialize(map);
+    final repo =
+        injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
+    final family = repo.deserialize(map);
     expect(
         family,
         Family(
@@ -83,14 +86,15 @@ void main() async {
   });
 
   test('deserialize existing', () {
-    var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
+    final repo =
+        injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
     repo.box.clear();
     expect(repo.box.keys, isEmpty);
-    var family = Family(surname: 'Moletto').init(manager);
+    final family = Family(surname: 'Moletto').init(manager);
 
     // simulate "save"
-    var obj = {'id': '1098', 'surname': 'Moletto'};
-    var family2 = repo.deserialize(obj, key: keyFor(family));
+    final obj = {'id': '1098', 'surname': 'Moletto'};
+    final family2 = repo.deserialize(obj, key: keyFor(family));
 
     expect(family2.isNew, false); // also checks if the model was init'd
     expect(family2, Family(id: '1098', surname: 'Moletto'));
@@ -98,7 +102,8 @@ void main() async {
   });
 
   test('deserialize many local for same remote ID', () {
-    var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
+    final repo =
+        injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
     repo.box.clear();
     expect(repo.box.keys, isEmpty);
 
@@ -122,19 +127,20 @@ void main() async {
   });
 
   test('deserialize with relationships', () {
-    var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
+    final repo =
+        injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
 
     final house = House(id: '1', address: '123 Main St').init(manager);
     final person = Person(id: '1', name: 'John', age: 21).init(manager);
 
-    var obj = {
+    final obj = {
       'id': '1',
       'surname': 'Smith',
       'residence': keyFor(house),
       'persons': [keyFor(person)]
     };
 
-    var family = repo.deserialize(obj);
+    final family = repo.deserialize(obj);
 
     expect(family.isNew, false); // also checks if the model was init'd
     expect(family, Family(id: '1', surname: 'Smith'));

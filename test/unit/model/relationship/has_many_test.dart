@@ -34,13 +34,13 @@ void main() async {
 
   test('deserialize with included HasMany', () async {
     // exceptionally uses this repo so we can supply included models
-    var repo = injection.locator<FamilyRepositoryWithStandardJSONAdapter>();
-    var personRepo = injection.locator<Repository<Person>>();
+    final repo = injection.locator<FamilyRepositoryWithStandardJSONAdapter>();
+    final personRepo = injection.locator<Repository<Person>>();
 
-    var marty = {'id': '71', 'name': 'Marty', 'age': 52};
-    var wendy = {'id': '72', 'name': 'Wendy', 'age': 54};
+    final marty = {'id': '71', 'name': 'Marty', 'age': 52};
+    final wendy = {'id': '72', 'name': 'Wendy', 'age': 54};
 
-    var familyJson = {
+    final familyJson = {
       'surname': 'Byrde',
       'persons': [marty, wendy]
     };
@@ -52,37 +52,39 @@ void main() async {
   });
 
   test('maintain relationship reference validity', () {
-    var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
+    final repo =
+        injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
 
-    var brian = Person(name: 'Brian', age: 52).init(manager);
-    var family = Family(id: '229', surname: 'Rose', persons: {brian}.asHasMany)
-        .init(manager);
+    final brian = Person(name: 'Brian', age: 52).init(manager);
+    final family =
+        Family(id: '229', surname: 'Rose', persons: {brian}.asHasMany)
+            .init(manager);
     expect(family.persons.length, 1);
 
     // new family comes in locally with no persons relationship info
-    var family2 =
+    final family2 =
         Family(id: '229', surname: 'Rose', persons: HasMany()).init(manager);
     // it should keep the relationships unaltered
     expect(family2.persons.length, 1);
 
     // new family comes in from API (simulate) with no persons relationship info
-    var family3 = repo.deserialize({'id': '229', 'surname': 'Rose'});
+    final family3 = repo.deserialize({'id': '229', 'surname': 'Rose'});
     // it should keep the relationships unaltered
     expect(family3.persons.length, 1);
 
     // new family comes in from API (simulate) with empty persons relationship
-    var family4 =
+    final family4 =
         repo.deserialize({'id': '229', 'surname': 'Rose', 'persons': []});
     // it should keep the relationships unaltered
     expect(family4.persons.length, 0);
 
-    var family5 = repo.deserialize({
+    final family5 = repo.deserialize({
       'id': '229',
       'surname': 'Rose',
       'persons': ['people#231aaa']
     });
 
-    var axl = Person(id: '231', name: 'Axl', age: 58)
+    final axl = Person(id: '231', name: 'Axl', age: 58)
         .init(manager, key: 'people#231aaa');
     expect(family5.persons, {axl});
   });

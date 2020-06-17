@@ -19,8 +19,8 @@ void main() async {
   test('init', () async {
     final repo = injection.locator<Repository<Person>>();
 
-    var family = Family(id: '55', surname: 'Kelley').init(manager);
-    var model =
+    final family = Family(id: '55', surname: 'Kelley').init(manager);
+    final model =
         Person(id: '1', name: 'John', age: 27, family: family.asBelongsTo)
             .init(manager);
 
@@ -34,29 +34,29 @@ void main() async {
   // misc compatibility tests
 
   test('should reuse key', () {
-    var repository = injection.locator<Repository<Person>>();
+    final repository = injection.locator<Repository<Person>>();
 
     // id-less person
-    var p1 = Person(name: 'Frank', age: 20).init(manager);
+    final p1 = Person(name: 'Frank', age: 20).init(manager);
     expect(repository.box.keys, contains(keyFor(p1)));
 
     // person with new id, reusing existing key
     manager.getKeyForId('people', '221', keyIfAbsent: keyFor(p1));
-    var p2 = Person(id: '221', name: 'Frank2', age: 32).init(manager);
+    final p2 = Person(id: '221', name: 'Frank2', age: 32).init(manager);
     expect(keyFor(p1), keyFor(p2));
 
     expect(repository.box.keys, contains(keyFor(p2)));
   });
 
   test('should resolve to the same key', () {
-    var dog = Dog(id: '2', name: 'Walker').init(manager);
-    var dog2 = Dog(id: '2', name: 'Walker').init(manager);
+    final dog = Dog(id: '2', name: 'Walker').init(manager);
+    final dog2 = Dog(id: '2', name: 'Walker').init(manager);
     expect(keyFor(dog), keyFor(dog2));
   });
 
   test('should work with subclasses', () {
-    var dog = Dog(id: '2', name: 'Walker').init(manager);
-    var f = Family(surname: 'Walker', dogs: {dog}.asHasMany).init(manager);
+    final dog = Dog(id: '2', name: 'Walker').init(manager);
+    final f = Family(surname: 'Walker', dogs: {dog}.asHasMany).init(manager);
     expect(f.dogs.first.name, 'Walker');
   });
 
