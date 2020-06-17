@@ -11,8 +11,12 @@ void main() async {
   setUpAll(setUpAllFn);
   tearDownAll(tearDownAllFn);
 
+  setUp(() {
+    // reset manager for every test
+    manager = TestDataManager(null);
+  });
+
   test('produces a new key', () {
-    final manager = TestDataManager(null);
     var key = manager.getKeyForId('people', '1');
     expect(key, isNull);
     key = manager.getKeyForId('people', '1',
@@ -21,7 +25,6 @@ void main() async {
   });
 
   test('reuses a provided key', () {
-    final manager = TestDataManager(null);
     final key =
         manager.getKeyForId('people', '29', keyIfAbsent: 'people#78a92b');
     expect(key, 'people#78a92b');
@@ -29,7 +32,6 @@ void main() async {
   });
 
   test('reassign a key', () {
-    final manager = TestDataManager(null);
     final key =
         manager.getKeyForId('people', '1', keyIfAbsent: 'people#a5a5a5');
     expect(key, 'people#a5a5a5');
@@ -51,8 +53,6 @@ void main() async {
   });
 
   test('by keys', () {
-    final manager = TestDataManager(null);
-
     // including ids that contain '#' (also used in internal format)
     manager.getKeyForId('people', 'p#1', keyIfAbsent: 'people#a1a1a1');
     manager.getKeyForId('people', '2', keyIfAbsent: 'people#b2b2b2');
@@ -64,7 +64,6 @@ void main() async {
   });
 
   test('by key', () {
-    final manager = TestDataManager(null);
     manager.getKeyForId('families', '3', keyIfAbsent: 'families#c3c3c3');
 
     final key = 'families#c3c3c3';
@@ -72,13 +71,11 @@ void main() async {
   });
 
   test('two models with id should get the same key', () {
-    final manager = TestDataManager(null);
     expect(manager.getKeyForId('families', '2812', keyIfAbsent: 'f1'),
         manager.getKeyForId('families', '2812', keyIfAbsent: 'f1'));
   });
 
   test('should prioritize ID', () {
-    final manager = TestDataManager(null);
     final key = manager.getKeyForId('people', '772',
         keyIfAbsent: Repository.generateKey<Person>());
 
@@ -94,7 +91,6 @@ void main() async {
   });
 
   test('keys and IDs do not clash', () {
-    final manager = TestDataManager(null);
     manager.getKeyForId('people', '1', keyIfAbsent: 'people#a1a1a1');
     manager.getKeyForId('people', 'a1a1a1', keyIfAbsent: 'people#a2a2a2');
     expect(manager.getKeyForId('people', 'a1a1a1'), 'people#a2a2a2');
@@ -106,12 +102,9 @@ void main() async {
   });
 
   test('saves key', () async {
-    final repository = injection.locator<Repository<Family>>();
-    final houseRepo = injection.locator<Repository<House>>();
-    final personRepo = injection.locator<Repository<Person>>();
-    final manager = repository.manager;
-
-    final residence = House(address: '123 Main St').init(houseRepo);
+    // get back original manager
+    manager = injection.locator<DataManager>();
+    final residence = House(address: '123 Main St').init(manager);
 
     for (var i = 0; i < 518; i++) {
       final family = Family(
@@ -119,12 +112,11 @@ void main() async {
         surname: 'Smith',
         residence: residence.asBelongsTo,
         persons: HasMany(),
-      ).init(repository);
+      ).init(manager);
 
       // add some people
       if (i % 19 == 0) {
-        family.persons
-            .add(Person(name: 'new kid #$i', age: 0).init(personRepo));
+        family.persons.add(Person(name: 'new kid #$i', age: 0).init(manager));
       }
 
       // remove some residence relationships

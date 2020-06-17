@@ -18,12 +18,11 @@ void main() async {
 
   test('init', () async {
     final repo = injection.locator<Repository<Person>>();
-    final familyRepo = injection.locator<Repository<Family>>();
 
-    var family = Family(id: '55', surname: 'Kelley').init(familyRepo);
+    var family = Family(id: '55', surname: 'Kelley').init(manager);
     var model =
         Person(id: '1', name: 'John', age: 27, family: family.asBelongsTo)
-            .init(repo);
+            .init(manager);
 
     // (1) it wires up the relationship (setOwnerInRelationship)
     expect(model.family.key, repo.manager.getKeyForId('families', '55'));
@@ -35,34 +34,29 @@ void main() async {
   // misc compatibility tests
 
   test('should reuse key', () {
-    var manager = injection.locator<DataManager>();
     var repository = injection.locator<Repository<Person>>();
 
     // id-less person
-    var p1 = Person(name: 'Frank', age: 20).init(repository);
+    var p1 = Person(name: 'Frank', age: 20).init(manager);
     expect(repository.box.keys, contains(keyFor(p1)));
 
     // person with new id, reusing existing key
     manager.getKeyForId('people', '221', keyIfAbsent: keyFor(p1));
-    var p2 = Person(id: '221', name: 'Frank2', age: 32).init(repository);
+    var p2 = Person(id: '221', name: 'Frank2', age: 32).init(manager);
     expect(keyFor(p1), keyFor(p2));
 
     expect(repository.box.keys, contains(keyFor(p2)));
   });
 
   test('should resolve to the same key', () {
-    var dogRepo = injection.locator<Repository<Dog>>();
-    var dog = Dog(id: '2', name: 'Walker').init(dogRepo);
-    var dog2 = Dog(id: '2', name: 'Walker').init(dogRepo);
+    var dog = Dog(id: '2', name: 'Walker').init(manager);
+    var dog2 = Dog(id: '2', name: 'Walker').init(manager);
     expect(keyFor(dog), keyFor(dog2));
   });
 
   test('should work with subclasses', () {
-    var familyRepo = injection.locator<Repository<Family>>();
-    var dogRepo = injection.locator<Repository<Dog>>();
-    var dog = Dog(id: '2', name: 'Walker').init(dogRepo);
-
-    var f = Family(surname: 'Walker', dogs: {dog}.asHasMany).init(familyRepo);
+    var dog = Dog(id: '2', name: 'Walker').init(manager);
+    var f = Family(surname: 'Walker', dogs: {dog}.asHasMany).init(manager);
     expect(f.dogs.first.name, 'Walker');
   });
 

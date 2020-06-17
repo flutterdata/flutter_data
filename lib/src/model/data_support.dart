@@ -11,8 +11,10 @@ String keyFor<T extends DataSupportMixin<T>>(T model) =>
 // ignore_for_file: unused_element
 extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
     on DataSupportMixin<T> {
-  T init(Repository<T> repository, {String key, bool save = true}) {
-    return repository?.initModel(_this, key: key, save: save);
+  T init(DataManager manager, {String key, bool save = true}) {
+    return manager
+        .locator<Repository<T>>()
+        ?.initModel(_this, key: key, save: save);
   }
 
   Repository<T> get _repository =>

@@ -48,12 +48,12 @@ class Person with DataSupportMixin<Person> {
     return toJson().toString();
   }
 
-  factory Person.generate(Repository<Person> repository, {String withId}) {
+  factory Person.generate(DataManager manager, {String withId}) {
     return Person(
             id: withId,
             name: 'Person Number ${withId ?? Random().nextInt(999999999)}',
             age: Random().nextInt(19))
-        .init(repository);
+        .init(manager);
   }
 }
 

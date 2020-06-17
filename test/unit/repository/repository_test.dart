@@ -39,7 +39,7 @@ void main() async {
 
   test('create and save', () async {
     var repo = injection.locator<Repository<House>>();
-    var house = House(id: '25', address: '12 Lincoln Rd').init(repo);
+    var house = House(id: '25', address: '12 Lincoln Rd').init(manager);
     // repo.findOne works because the House repo is remote=false
     expect(await repo.findOne(house.id), house);
     // but overriding remote works
@@ -61,7 +61,7 @@ void main() async {
 
   test('delete', () async {
     final repo = injection.locator<Repository<Person>>();
-    final person = Person(id: '1', name: 'John', age: 21).init(repo);
+    final person = Person(id: '1', name: 'John', age: 21).init(manager);
     await repo.delete(person.id);
     var p2 = await repo.findOne(person.id);
     expect(p2, isNull);
@@ -77,10 +77,10 @@ void main() async {
     repo.box.clear();
 
     expect(repo.box.keys, isEmpty);
-    Family(id: '2908', surname: 'Moletto').init(repo);
+    Family(id: '2908', surname: 'Moletto').init(manager);
 
     // simulate a "findOne" with some id
-    var family = Family(id: '2905', surname: 'Moletto').init(repo);
+    var family = Family(id: '2905', surname: 'Moletto').init(manager);
     var obj2 = {
       'id': '2908', // that returns a different ID (already in the system)
       'surname': 'Oslo',

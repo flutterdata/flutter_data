@@ -102,9 +102,11 @@ class PersonRepository = $PersonRepository with TestLoginAdapter;
 
 final injection = DataServiceLocator();
 
+DataManager manager;
+
 final Function() setUpAllFn = () {
   injection.register(HiveMock());
-  final manager = TestDataManager(injection.locator);
+  manager = TestDataManager(injection.locator);
   injection.register<DataManager>(manager);
 
   injection.register<Repository<House>>($HouseRepository(

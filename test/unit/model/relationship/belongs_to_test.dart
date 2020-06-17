@@ -25,12 +25,10 @@ void main() async {
 
   test('set owner in relationships', () {
     final repo = injection.locator<Repository<Family>>();
-    final houseRepo = injection.locator<Repository<House>>();
-    final personRepo = injection.locator<Repository<Person>>();
 
-    var person = Person(id: '1', name: 'John', age: 37).init(personRepo);
-    var house = House(id: '31', address: '123 Main St').init(houseRepo);
-    var house2 = House(id: '2', address: '456 Main St').init(houseRepo);
+    var person = Person(id: '1', name: 'John', age: 37).init(manager);
+    var house = House(id: '31', address: '123 Main St').init(manager);
+    var house2 = House(id: '2', address: '456 Main St').init(manager);
 
     var family = Family(
         id: '1',
@@ -42,7 +40,7 @@ void main() async {
     expect(family.residence.key, isNull);
     expect(family.persons.keys, isEmpty);
 
-    family.init(repo);
+    family.init(manager);
 
     // relationships are now associated to a key
     expect(family.residence.key, repo.manager.getKeyForId('houses', '31'));
@@ -54,14 +52,11 @@ void main() async {
   });
 
   test('watch', () async {
-    final repository = injection.locator<Repository<Family>>();
-    final houseRepo = injection.locator<Repository<House>>();
-
     final family = Family(
       id: '22',
       surname: 'Besson',
       residence: BelongsTo<House>(),
-    ).init(repository);
+    ).init(manager);
 
     final notifier = family.residence.watch();
 
@@ -81,9 +76,9 @@ void main() async {
     );
 
     family.residence.value =
-        House(id: '2', address: '456 Main St').init(houseRepo);
+        House(id: '2', address: '456 Main St').init(manager);
     family.residence.value =
-        House(id: '1', address: '123 Main St').init(houseRepo);
+        House(id: '1', address: '123 Main St').init(manager);
     family.residence.value = null;
   });
 }

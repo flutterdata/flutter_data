@@ -13,13 +13,9 @@ void main() async {
   // serialization tests
 
   test('serialize', () {
-    final manager = injection.locator<DataManager>();
-    final personRepo = injection.locator<Repository<Person>>();
-    final houseRepo = injection.locator<Repository<House>>();
-
-    var person = Person(id: '1', name: 'Franco', age: 28).init(personRepo);
+    var person = Person(id: '1', name: 'Franco', age: 28).init(manager);
     var personRel = HasMany<Person>({person}, manager);
-    var house = House(id: '1', address: '123 Main St').init(houseRepo);
+    var house = House(id: '1', address: '123 Main St').init(manager);
     var houseRel = BelongsTo<House>(house, manager);
 
     var family = Family(
@@ -39,17 +35,15 @@ void main() async {
 
   test('serialize with relationships', () {
     var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
-    final personRepo = injection.locator<Repository<Person>>();
-    final houseRepo = injection.locator<Repository<House>>();
 
-    var person = Person(id: '1', name: 'John', age: 37).init(personRepo);
-    var house = House(id: '1', address: '123 Main St').init(houseRepo);
+    var person = Person(id: '1', name: 'John', age: 37).init(manager);
+    var house = House(id: '1', address: '123 Main St').init(manager);
     var family = Family(
             id: '1',
             surname: 'Smith',
             residence: house.asBelongsTo,
             persons: {person}.asHasMany)
-        .init(repo);
+        .init(manager);
 
     var obj = repo.serialize(family);
     expect(obj, isA<Map<String, dynamic>>());
@@ -64,13 +58,9 @@ void main() async {
   });
 
   test('deserialize', () {
-    var manager = injection.locator<DataManager>();
-    final personRepo = injection.locator<Repository<Person>>();
-    final houseRepo = injection.locator<Repository<House>>();
-
-    var person = Person(id: '1', name: 'Franco', age: 28).init(personRepo);
+    var person = Person(id: '1', name: 'Franco', age: 28).init(manager);
     var personRel = HasMany<Person>({person}, manager);
-    var house = House(id: '1', address: '123 Main St').init(houseRepo);
+    var house = House(id: '1', address: '123 Main St').init(manager);
     var houseRel = BelongsTo<House>(house, manager);
 
     var map = {
@@ -96,7 +86,7 @@ void main() async {
     var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
     repo.box.clear();
     expect(repo.box.keys, isEmpty);
-    var family = Family(surname: 'Moletto').init(repo);
+    var family = Family(surname: 'Moletto').init(manager);
 
     // simulate "save"
     var obj = {'id': '1098', 'surname': 'Moletto'};
@@ -112,8 +102,8 @@ void main() async {
     repo.box.clear();
     expect(repo.box.keys, isEmpty);
 
-    final family = Family(surname: 'Moletto').init(repo);
-    final family2 = Family(surname: 'Zandiver').init(repo);
+    final family = Family(surname: 'Moletto').init(manager);
+    final family2 = Family(surname: 'Zandiver').init(manager);
 
     // simulate "save" for family
     final family1b = repo.deserialize({
@@ -134,11 +124,8 @@ void main() async {
   test('deserialize with relationships', () {
     var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
 
-    final houseRepo = injection.locator<Repository<House>>();
-    final personRepo = injection.locator<Repository<Person>>();
-
-    final house = House(id: '1', address: '123 Main St').init(houseRepo);
-    final person = Person(id: '1', name: 'John', age: 21).init(personRepo);
+    final house = House(id: '1', address: '123 Main St').init(manager);
+    final person = Person(id: '1', name: 'John', age: 21).init(manager);
 
     var obj = {
       'id': '1',
@@ -156,9 +143,8 @@ void main() async {
   });
 
   test('findOne (reload) without ID', () async {
-    final repo = injection.locator<Repository<Family>>();
-    final family = Family(surname: 'Zliedowski').init(repo);
-    final f2 = Family(surname: 'Zliedowski').init(repo, key: keyFor(family));
+    final family = Family(surname: 'Zliedowski').init(manager);
+    final f2 = Family(surname: 'Zliedowski').init(manager, key: keyFor(family));
     final f3 = await family.reload();
     expect(family, f2);
     expect(family, f3);
@@ -169,7 +155,7 @@ void main() async {
     await repository.box.clear();
 
     // create a person WITH ID and assert it's there
-    final person = Person(id: '21103', name: 'John', age: 54).init(repository);
+    final person = Person(id: '21103', name: 'John', age: 54).init(manager);
     expect(repository.localFindAll(), hasLength(1));
 
     // delete that person and assert it's not there
@@ -177,7 +163,7 @@ void main() async {
     expect(repository.localFindAll(), hasLength(0));
 
     // create a person WITHOUT ID and assert it's there
-    final person2 = Person(name: 'Peter', age: 101).init(repository);
+    final person2 = Person(name: 'Peter', age: 101).init(manager);
     expect(repository.localFindAll(), hasLength(1));
 
     // delete that person and assert it's not there

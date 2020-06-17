@@ -12,11 +12,12 @@ final injection = DataServiceLocator();
 void main() async {
   HttpServer server;
   Function dispose;
+  DataManager manager;
 
   setUpAll(() async {
     server = await createServer(InternetAddress.loopbackIPv4, 17083);
     injection.register(HiveMock());
-    final manager = TestDataManager(injection.locator);
+    manager = TestDataManager(injection.locator);
     injection.register<DataManager>(manager);
 
     // we use $CompanyRepository as it already has the TestMixin baked in
@@ -62,7 +63,7 @@ void main() async {
       fireImmediately: false,
     );
 
-    Model(id: '1', name: 'Roadster', company: BelongsTo());
+    Model(id: '1', name: 'Roadster', company: BelongsTo()).init(manager);
   });
 
   test('save', () async {
@@ -71,7 +72,8 @@ void main() async {
         .locator<Repository<Company>>()
         .findAll(params: {'include': 'models'});
     final c = companies.last;
-    final m = Model(id: '3', name: 'Elon X', company: c.asBelongsTo).init(repo);
+    final m =
+        Model(id: '3', name: 'Elon X', company: c.asBelongsTo).init(manager);
     final m1 = await m.save();
     final m2 = await repo.findOne('3');
 
@@ -88,7 +90,7 @@ void main() async {
 
   test('save without id', () async {
     var repo = injection.locator<Repository<Company>>();
-    var company = Company(name: 'New Co', models: HasMany()).init(repo);
+    var company = Company(name: 'New Co', models: HasMany()).init(manager);
 
     var c2 = await company.save();
     expect(c2.id, isNotNull);
@@ -102,18 +104,16 @@ void main() async {
 
   test('save after adding to rel', () async {
     final repo = injection.locator<Repository<Company>>();
-    final modelRepo = injection.locator<Repository<Model>>();
     final company = await repo.findOne('1');
 
-    final model =
-        Model(name: 'Zucchini 8', company: BelongsTo()).init(modelRepo);
+    final model = Model(name: 'Zucchini 8', company: BelongsTo()).init(manager);
     company.models.add(model);
     final m2 = await model.save();
     expect(keyFor(model), keyFor(m2));
     // print('m2 id: ${m2.id} / k: ${keyFor(m2)}');
     // print('---');
 
-    final m3 = Model(name: 'Zucchini 93', company: BelongsTo()).init(modelRepo);
+    final m3 = Model(name: 'Zucchini 93', company: BelongsTo()).init(manager);
     // print('m3 id: ${m3.id} / k: ${keyFor(m3)}');
     final tempKeyM3 = keyFor(m3);
     final m4 = await m3.save();
@@ -139,8 +139,7 @@ void main() async {
   });
 
   test('watchOne', () async {
-    final repo = injection.locator<Repository<City>>();
-    final toronto = City(id: '71c', name: 'Chicago').init(repo);
+    final toronto = City(id: '71c', name: 'Chicago').init(manager);
     // SHOULD SUPPORT THIS WITHOUT ID
 
     final notifier = toronto.watch();
@@ -153,6 +152,6 @@ void main() async {
       }, count: 2),
     );
 
-    toronto.copyWith(name: 'Windy City').init(repo);
+    toronto.copyWith(name: 'Windy City').init(manager);
   });
 }

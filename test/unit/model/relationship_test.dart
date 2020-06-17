@@ -38,8 +38,8 @@ void main() async {
     expect(keyFor(f1), isNotNull);
 
     // once it does
-    final house = House(id: '1', address: '123 Main St')
-        .init(houseRepo, key: residenceKey);
+    final house =
+        House(id: '1', address: '123 Main St').init(manager, key: residenceKey);
     // it's automatically wired up
     expect(f1.residence.value, house);
     expect(f1.residence.value.owner.value, f1);
@@ -60,7 +60,7 @@ void main() async {
 
     // once p1 exists
     final p1 =
-        Person(id: '1', name: 'Axl', age: 58).init(personRepo, key: personKey);
+        Person(id: '1', name: 'Axl', age: 58).init(manager, key: personKey);
     // it's automatically wired up
     expect(f1b.persons, {p1});
 
@@ -69,7 +69,7 @@ void main() async {
     expect(f1c.persons, {p1});
     expect(f1c.residence.value, isNotNull);
 
-    final p2 = Person(id: '2', name: 'Brian', age: 55).init(personRepo);
+    final p2 = Person(id: '2', name: 'Brian', age: 55).init(manager);
 
     // persons has changed from [1] to [2]
     final f1d = familyRepo.deserialize({
@@ -101,7 +101,7 @@ void main() async {
 
     // once it does
     final family = Family(id: '1', surname: 'Rose', residence: BelongsTo())
-        .init(familyRepo, key: 'families#a1a1a1');
+        .init(manager, key: 'families#a1a1a1');
     // it's automatically wired up & inverses work correctly
     expect(h1.owner.value, family);
     expect(h1.owner.value.residence.value, h1);
@@ -109,8 +109,6 @@ void main() async {
 
   test('scenario #2', () {
     final personRepo = injection.locator<Repository<Person>>();
-    final familyRepo = injection.locator<Repository<Family>>();
-    final houseRepo = injection.locator<Repository<House>>();
 
     // (1) first load family (with relationships)
     final family = Family(
@@ -126,15 +124,15 @@ void main() async {
       residence: BelongsTo.fromJson({
         '_': ['houses#c98d1b', false, personRepo.manager]
       }),
-    ).init(familyRepo);
+    ).init(manager);
 
     expect(family.residence.key, isNotNull);
     expect(family.persons.keys.length, 3);
 
     // (2) then load persons
     final p1 = Person(id: '1', name: 'z1', age: 23)
-        .init(personRepo, key: 'people#c1c1c1');
-    Person(id: '2', name: 'z2', age: 33).init(personRepo, key: 'people#c2c2c2');
+        .init(manager, key: 'people#c1c1c1');
+    Person(id: '2', name: 'z2', age: 33).init(manager, key: 'people#c2c2c2');
 
     // (3) assert two first are linked, third one null, residence is null
     expect(family.persons.lookup(p1), p1);
@@ -144,68 +142,60 @@ void main() async {
     expect(family.residence.value, isNull);
 
     // (4) load the last person and assert it exists now
-    final p3 = Person(id: '3', name: 'z3', age: 3)
-        .init(personRepo, key: 'people#c3c3c3');
+    final p3 =
+        Person(id: '3', name: 'z3', age: 3).init(manager, key: 'people#c3c3c3');
     expect(family.persons.lookup(p3), isNotNull);
     expect(p3.family.value, family);
 
     // (5) load family and assert it exists now
     final house = House(id: '98', address: '21 Coconut Trail')
-        .init(houseRepo, key: 'houses#c98d1b');
+        .init(manager, key: 'houses#c98d1b');
     expect(house.owner.value, family);
     expect(family.residence.value.address, endsWith('Trail'));
     expect(house.owner.value, family); // same, passes here again
   });
 
   test('scenario #3', () {
-    final repository = injection.locator<Repository<Family>>();
-    final repositoryPerson = injection.locator<Repository<Person>>();
-
-    final igor = Person(name: 'Igor', age: 33).init(repositoryPerson);
-    final f1 = Family(surname: 'Kamchatka', persons: {igor}.asHasMany)
-        .init(repository);
+    final igor = Person(name: 'Igor', age: 33).init(manager);
+    final f1 =
+        Family(surname: 'Kamchatka', persons: {igor}.asHasMany).init(manager);
     expect(f1.persons.first.family.value, f1);
 
-    final igor1b = Person(name: 'Igor', age: 33, family: BelongsTo())
-        .init(repositoryPerson);
+    final igor1b =
+        Person(name: 'Igor', age: 33, family: BelongsTo()).init(manager);
 
-    final f1b = Family(surname: 'Kamchatka', persons: {igor1b}.asHasMany)
-        .init(repository);
+    final f1b =
+        Family(surname: 'Kamchatka', persons: {igor1b}.asHasMany).init(manager);
     expect(f1b.persons.first.family.value.surname, 'Kamchatka');
 
-    final f2 =
-        Family(surname: 'Kamchatka', persons: HasMany()).init(repository);
-    final igor2 = Person(name: 'Igor', age: 33, family: BelongsTo())
-        .init(repositoryPerson);
+    final f2 = Family(surname: 'Kamchatka', persons: HasMany()).init(manager);
+    final igor2 =
+        Person(name: 'Igor', age: 33, family: BelongsTo()).init(manager);
     f2.persons.add(igor2);
     expect(f2.persons.first.family.value.surname, 'Kamchatka');
 
     f2.persons.remove(igor2);
     expect(f2.persons, isEmpty);
 
-    final residence = House(address: 'Sakharova Prospekt, 19').init(houseRepo);
+    final residence = House(address: 'Sakharova Prospekt, 19').init(manager);
     final f3 = Family(surname: 'Kamchatka', residence: residence.asBelongsTo)
-        .init(repository);
+        .init(manager);
     expect(f3.residence.value.owner.value.surname, 'Kamchatka');
     f3.residence.value = null;
     expect(f3.residence.value, isNull);
 
     final f4 =
-        Family(surname: 'Kamchatka', residence: BelongsTo()).init(repository);
-    f4.residence.value =
-        House(address: 'Sakharova Prospekt, 19').init(houseRepo);
+        Family(surname: 'Kamchatka', residence: BelongsTo()).init(manager);
+    f4.residence.value = House(address: 'Sakharova Prospekt, 19').init(manager);
     expect(f4.residence.value.owner.value.surname, 'Kamchatka');
   });
 
   test('one-way relationships', () {
     // relationships that don't have an inverse
-    final repository = injection.locator<Repository<Family>>();
-    final dogRepo = injection.locator<Repository<Dog>>();
-
-    final jerry = Dog(name: 'Jerry').init(dogRepo);
-    final zoe = Dog(name: 'Zoe').init(dogRepo);
-    final f1 = Family(surname: 'Carlson', dogs: {jerry, zoe}.asHasMany)
-        .init(repository);
+    final jerry = Dog(name: 'Jerry').init(manager);
+    final zoe = Dog(name: 'Zoe').init(manager);
+    final f1 =
+        Family(surname: 'Carlson', dogs: {jerry, zoe}.asHasMany).init(manager);
     expect(f1.dogs, {jerry, zoe});
   });
 }

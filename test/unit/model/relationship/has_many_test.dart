@@ -10,20 +10,16 @@ void main() async {
   tearDownAll(tearDownAllFn);
 
   test('HasMany is a Set', () {
-    final repository = injection.locator<Repository<Family>>();
-    final personRepository = injection.locator<Repository<Person>>();
-    final anne = Person(name: 'Anne', age: 59).init(personRepository);
+    final anne = Person(name: 'Anne', age: 59).init(manager);
     final f1 =
-        Family(surname: 'Mayer', persons: {anne}.asHasMany).init(repository);
+        Family(surname: 'Mayer', persons: {anne}.asHasMany).init(manager);
 
     f1.persons.add(anne);
     f1.persons.add(anne);
     expect(f1.persons.length, 1);
     expect(f1.persons.lookup(anne), anne);
 
-    f1.persons.manager = injection.locator<DataManager>();
-
-    final agnes = Person(name: 'Agnes', age: 29).init(personRepository);
+    final agnes = Person(name: 'Agnes', age: 29).init(manager);
     f1.persons.add(agnes);
     expect(f1.persons.length, 2);
 
@@ -57,16 +53,15 @@ void main() async {
 
   test('maintain relationship reference validity', () {
     var repo = injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
-    var personRepo = injection.locator<Repository<Person>>();
 
-    var brian = Person(name: 'Brian', age: 52).init(personRepo);
+    var brian = Person(name: 'Brian', age: 52).init(manager);
     var family = Family(id: '229', surname: 'Rose', persons: {brian}.asHasMany)
-        .init(repo);
+        .init(manager);
     expect(family.persons.length, 1);
 
     // new family comes in locally with no persons relationship info
     var family2 =
-        Family(id: '229', surname: 'Rose', persons: HasMany()).init(repo);
+        Family(id: '229', surname: 'Rose', persons: HasMany()).init(manager);
     // it should keep the relationships unaltered
     expect(family2.persons.length, 1);
 
@@ -88,22 +83,19 @@ void main() async {
     });
 
     var axl = Person(id: '231', name: 'Axl', age: 58)
-        .init(personRepo, key: 'people#231aaa');
+        .init(manager, key: 'people#231aaa');
     expect(family5.persons, {axl});
   });
 
   test('watch', () async {
-    final repository = injection.locator<Repository<Family>>();
-    final personRepository = injection.locator<Repository<Person>>();
-
     final family = Family(
       id: '1',
       surname: 'Smith',
       persons: HasMany<Person>(),
-    ).init(repository);
+    ).init(manager);
 
-    final p1 = Person(name: 'a', age: 1).init(personRepository);
-    final p2 = Person(name: 'b', age: 2).init(personRepository);
+    final p1 = Person(name: 'a', age: 1).init(manager);
+    final p2 = Person(name: 'b', age: 2).init(manager);
     final notifier = family.persons.watch();
 
     var i = 0;

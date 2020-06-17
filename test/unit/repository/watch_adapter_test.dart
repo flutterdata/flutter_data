@@ -13,12 +13,10 @@ void main() async {
   tearDownAll(tearDownAllFn);
 
   Repository<Person> repository;
-  Repository<Family> familyRepository;
   Function dispose;
 
   setUp(() async {
     repository = injection.locator<Repository<Person>>();
-    familyRepository = injection.locator<Repository<Family>>();
     // make sure there are no items in local storage from previous tests
     await repository.box.clear();
     repository.manager.graph.clear();
@@ -64,10 +62,9 @@ void main() async {
     for (var j = 0; j < count; j++) {
       final id =
           Random().nextBool() ? Random().nextInt(999999999).toString() : null;
-      person = Person.generate(repository, withId: id);
+      person = Person.generate(manager, withId: id);
       if (Random().nextBool()) {
-        Family(surname: 'Snowden ${Random().nextDouble()}')
-            .init(familyRepository);
+        Family(surname: 'Snowden ${Random().nextDouble()}').init(manager);
       }
 
       // in addition, delete last Person
@@ -80,7 +77,7 @@ void main() async {
   test('watchAll updates', () async {
     final notifier = repository.watchAll();
 
-    Person(id: '1', name: 'Zof', age: 23).init(repository);
+    Person(id: '1', name: 'Zof', age: 23).init(manager);
 
     var i = 0;
     dispose = notifier.addListener(
@@ -92,7 +89,7 @@ void main() async {
       fireImmediately: true,
     );
 
-    Person(id: '1', name: 'Zofie', age: 23).init(repository);
+    Person(id: '1', name: 'Zofie', age: 23).init(manager);
   });
 
   test('watchOne', () async {
@@ -112,7 +109,7 @@ void main() async {
       fireImmediately: false,
     );
 
-    Person(id: '1', name: 'Frank', age: 30).init(repository);
+    Person(id: '1', name: 'Frank', age: 30).init(manager);
     await repository.save(Person(id: '1', name: 'Steve-O', age: 34));
     await repository.save(Person(id: '1', name: 'Liam', age: 36));
     // a different ID doesn't trigger an extra call to expectAsync1(count=3)
@@ -122,8 +119,8 @@ void main() async {
   test('watchOne reads latest version', () async {
     final notifier = repository.watchOne('345');
 
-    Person(id: '345', name: 'Frank', age: 30).init(repository);
-    Person(id: '345', name: 'Steve-O', age: 34).init(repository);
+    Person(id: '345', name: 'Frank', age: 30).init(manager);
+    Person(id: '345', name: 'Steve-O', age: 34).init(manager);
 
     dispose = notifier.addListener(
       expectAsync1((state) {
@@ -134,7 +131,6 @@ void main() async {
 
   test('watchOne with alsoWatch relationships', () async {
     final familyRepository = injection.locator<Repository<Family>>();
-    final houseRepository = injection.locator<Repository<House>>();
     final notifier = familyRepository.watchOne('22',
         alsoWatch: (family) => [family.persons, family.residence]);
 
@@ -144,7 +140,7 @@ void main() async {
       persons: HasMany(),
       residence: BelongsTo(),
       cottage: BelongsTo(),
-    ).init(familyRepository);
+    ).init(manager);
 
     var i = 0;
     dispose = notifier.addListener(
@@ -159,21 +155,20 @@ void main() async {
       }, count: 6),
     );
 
-    final p1 = Person(id: '1', name: 'Frank', age: 16).init(repository);
+    final p1 = Person(id: '1', name: 'Frank', age: 16).init(manager);
     p1.family.value = f1;
-    f1.persons.add(Person(name: 'Martin', age: 44).init(repository));
-    f1.residence.value = House(address: '123 Main St').init(houseRepository);
+    f1.persons.add(Person(name: 'Martin', age: 44).init(manager));
+    f1.residence.value = House(address: '123 Main St').init(manager);
     f1.persons.remove(p1);
 
     // a non-watched relationship does not trigger
-    f1.cottage.value = House(address: '7342 Mountain Rd').init(houseRepository);
+    f1.cottage.value = House(address: '7342 Mountain Rd').init(manager);
 
     await f1.delete();
   });
 
   test('watchOne without ID and alsoWatch', () async {
-    final familyRepository = injection.locator<Repository<Family>>();
-    final frank = Person(name: 'Frank', age: 30).init(repository);
+    final frank = Person(name: 'Frank', age: 30).init(manager);
 
     final notifier = frank.watch(alsoWatch: (p) => [p.family]);
     dispose = notifier.addListener(
@@ -188,10 +183,9 @@ void main() async {
     );
 
     final steve =
-        Person(name: 'Steve-O', age: 30).init(repository, key: keyFor(frank));
-    steve.family.value =
-        Family(id: '922', surname: 'Marquez').init(familyRepository);
+        Person(name: 'Steve-O', age: 30).init(manager, key: keyFor(frank));
+    steve.family.value = Family(id: '922', surname: 'Marquez').init(manager);
 
-    Family(id: '922', surname: 'Thomson').init(familyRepository);
+    Family(id: '922', surname: 'Thomson').init(manager);
   });
 }
