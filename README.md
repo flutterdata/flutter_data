@@ -62,7 +62,7 @@ Flutter Data will generate a `Repository<User>` (after a source gen build):
 final repository = context.read<Repository<User>>();
 
 return DataStateBuilder<List<User>>(
-  notifier: repository.watchAll();
+  notifier: () => repository.watchAll();
   builder: (context, state, notifier, _) {
     if (state.isLoading) {
       return CircularProgressIndicator();

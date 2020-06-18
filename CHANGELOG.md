@@ -1,4 +1,11 @@
-## [0.4.0]
+## [0.4.1] - 2020-06-18
+ 
+ - stabilize API (including `data_state` upgrade)
+ - ensure to reset exceptions in `watchOne` bugfix
+ - `DataSupportMixin` manual `init` now takes a `DataManager` argument
+ - clean up and minor fixes/additions in tests
+
+## [0.4.0] - 2020-06-15
 
  - Flutter Data is now Adapter-based from the core
  - New engine powering relationships and metadata, based on a persitent graph notifier
