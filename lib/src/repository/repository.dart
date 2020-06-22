@@ -86,7 +86,7 @@ abstract class Repository<T extends DataSupport<T>> {
 
   @protected
   @visibleForTesting
-  T localGet(String key) {
+  T localFindOne(String key) {
     if (key != null) {
       final model = box.get(key);
       return _initModel(model);
@@ -96,7 +96,7 @@ abstract class Repository<T extends DataSupport<T>> {
 
   @protected
   @visibleForTesting
-  void localPut(String key, T model, {bool notify = true}) {
+  void localSave(String key, T model, {bool notify = true}) {
     assert(key != null);
     final keyExisted = box.containsKey(key);
     box.put(key, model); // save in bg
@@ -143,7 +143,7 @@ abstract class Repository<T extends DataSupport<T>> {
     }
 
     if (save) {
-      localPut(model._key, model);
+      localSave(model._key, model);
     }
 
     return model;

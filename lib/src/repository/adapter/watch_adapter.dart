@@ -38,13 +38,25 @@ mixin WatchAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
           key.startsWith(type) && !event.graph.hasEdge(key, metadata: 'key'));
 
       if (keys.isNotEmpty) {
-        if ([
-          DataGraphEventType.addNode,
-          DataGraphEventType.updateNode,
-          DataGraphEventType.removeNode
-        ].contains(event.type)) {
-          _notifier.data = _notifier.data
-              .copyWith(model: localFindAll().toList(), isLoading: false);
+        switch (event.type) {
+          case DataGraphEventType.addNode:
+            final model = localFindOne(keys.first);
+            _notifier.data = _notifier.data
+                .copyWith(model: _notifier.data.model..add(model));
+            break;
+          case DataGraphEventType.updateNode:
+            final idx = _notifier.data.model
+                .indexWhere((model) => model._key == keys.first);
+            final model = localFindOne(keys.first);
+            _notifier.data = _notifier.data
+                .copyWith(model: _notifier.data.model..[idx] = model);
+            break;
+          case DataGraphEventType.removeNode:
+            _notifier.data = _notifier.data.copyWith(
+                model: _notifier.data.model
+                  ..removeWhere((model) => model._key == keys.first));
+            break;
+          default:
         }
       }
     });
@@ -62,6 +74,7 @@ mixin WatchAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
     assert(model != null);
 
     final id = model is T ? model.id : model;
+
     // lazy key access
     String _key;
     String key() => _key ??=
@@ -71,7 +84,7 @@ mixin WatchAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
     var _relatedKeys = <String>{};
 
     final _notifier = DataStateNotifier<T>(
-      DataState(localGet(key())),
+      DataState(localFindOne(key())),
       reload: (notifier) async {
         if (remote == false || id == null) return;
         notifier.data = notifier.data.copyWith(isLoading: true);
@@ -127,7 +140,7 @@ mixin WatchAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
         // listen to addition/update on current model
         if (event.type == DataGraphEventType.addNode ||
             event.type == DataGraphEventType.updateNode) {
-          final model = localGet(key());
+          final model = localFindOne(key());
           if (model != null) {
             _tryInitializeWatch(model);
             _notifier.data = _notifier.data

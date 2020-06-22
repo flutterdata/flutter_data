@@ -124,7 +124,7 @@ mixin RemoteAdapter<T extends DataSupport<T>> on Repository<T> {
       if (key == null) {
         return null;
       }
-      return localGet(key);
+      return localFindOne(key);
     }
 
     final response = await withHttpClient(
@@ -154,7 +154,7 @@ mixin RemoteAdapter<T extends DataSupport<T>> on Repository<T> {
 
     if (remote == false) {
       _initModel(model);
-      localPut(model._key, model);
+      localSave(model._key, model);
       return model;
     }
 

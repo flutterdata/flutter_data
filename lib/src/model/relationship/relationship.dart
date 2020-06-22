@@ -123,7 +123,7 @@ and trigger a code generation build again.
   }
 
   Iterable<E> get _iterable =>
-      keys.map((key) => _repository.localGet(key)).filterNulls;
+      keys.map((key) => _repository.localFindOne(key)).filterNulls;
 
   @override
   Iterator<E> get iterator => _iterable.iterator;
