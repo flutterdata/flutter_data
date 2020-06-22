@@ -81,28 +81,31 @@ abstract class Repository<T extends DataSupportMixin<T>> {
   @protected
   @visibleForTesting
   Iterable<T> localFindAll() {
-    return box.values.map(initModel);
+    return box.values.map(_initModel);
   }
 
   @protected
   @visibleForTesting
-  T localGet(String key, {bool init = true}) {
+  T localGet(String key) {
     if (key != null) {
       final model = box.get(key);
-      if (init) {
-        return initModel(model);
-      } else {
-        return model;
-      }
+      return _initModel(model);
     }
     return null;
   }
 
   @protected
   @visibleForTesting
-  void localPut(String key, T model) {
+  void localPut(String key, T model, {bool notify = true}) {
     assert(key != null);
+    final keyExisted = box.containsKey(key);
     box.put(key, model); // save in bg
+    if (notify) {
+      manager.graph.notify(
+        [key],
+        keyExisted ? DataGraphEventType.updateNode : DataGraphEventType.addNode,
+      );
+    }
   }
 
   @protected
@@ -115,83 +118,58 @@ abstract class Repository<T extends DataSupportMixin<T>> {
     }
   }
 
-  // protected & private
+  // private
 
-  @protected
-  @visibleForTesting
-  T initModel(T model, {String key, bool save = false, bool notify = true}) {
-    if (model == null) {
-      return null;
-    }
+  T _initModel(T model, {String key, bool save = false}) {
+    if (model == null) return null;
+    if (model._isInitialized) return model;
 
-    final wasInitialized = keyFor(model) != null;
-    final existingKey = manager.getKeyForId(type, model.id);
+    _assertManager();
+    model._repository = this;
 
-    // ensure we have a key, searching in the correct priority
-    key = keyFor(model) ?? existingKey ?? key ?? Repository.generateKey<T>();
+    // model.id could be null, that's okay
+    model._key = manager.getKeyForId(type, model.id,
+        keyIfAbsent: key ?? Repository.generateKey<T>());
 
-    if (!wasInitialized) {
-      _assertManager();
-      model._repository = this;
-      if (existingKey == null) {
-        save = true;
-      }
+    // initialize relationships
+    for (final metadata in relationshipsFor(model).entries) {
+      final relationship = metadata.value['instance'] as Relationship;
+      relationship?.initialize(
+          manager,
+          model,
+          metadata.key,
+          metadata.value['inverse'] as String,
+          metadata.value['type'] as String);
     }
 
     if (save) {
-      localPut(key, model);
-    }
-
-    if (!wasInitialized) {
-      // model.id could be null, that's okay
-      model._key = manager.getKeyForId(type, model.id, keyIfAbsent: key);
-
-      // set model as "owner" in its relationships
-      for (final metadata in relationshipsFor(model).entries) {
-        final relationship = metadata.value['instance'] as Relationship;
-        relationship?.setOwner(
-            type, keyFor(model), metadata.key, metadata.value, manager);
-      }
-    }
-
-    // all done, notify listeners
-    if (save && notify) {
-      manager.graph.notify(
-          [key],
-          existingKey != null
-              ? DataGraphEventType.updateNode
-              : DataGraphEventType.addNode);
+      localPut(model._key, model);
     }
 
     return model;
   }
 
   void _assertManager() {
-    final modelAutoInit = _autoModelInitDataManager != null;
-    if (modelAutoInit) {
-      assert(manager == _autoModelInitDataManager, '''\n
-This app has been configured with autoModelInit: true at boot,
-which means that model initialization is managed internally.
+    final auto = _autoManager != null;
+    if (auto) {
+      assert(manager == _autoManager, '''\n
+Flutter Data has been configured with autoManager: true
+at boot time. This means that the manager required for
+model initialization is provided by the framework.
 
-You supplied an instance of Repository whose manager is NOT the
-internal manager.
+You supplied a DataManager which is NOT the internal manager.
 
-Either:
- - supply NO repository at all (RECOMMENDED)
- - supply an internally managed repository
+Please initialize your models with no manager at all. Example:
 
-If you wish to manually initialize your models, please make
-sure $T (and ALL your other models) mix in DataSupportMixin
-and you configure Flutter Data to do so, via:
-
-FlutterData.init(autoModelInit: false);
+model.init();
 ''');
     }
   }
 
   // static helper methods
 
-  static Future<Box<E>> getBox<E extends DataSupport<E>>(DataManager manager,
+  static Future<Box<E>> getBox<E extends DataSupportMixin<E>>(
+      DataManager manager,
       {List<int> encryptionKey}) async {
     final boxName = getType<E>();
     if (!manager._hive.isBoxOpen(boxName)) {

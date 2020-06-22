@@ -16,7 +16,7 @@ mixin _$UserModelAdapter on Repository<User> {
 
   @override
   localDeserialize(map) {
-    for (var key in relationshipsFor().keys) {
+    for (final key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
       };
@@ -27,7 +27,7 @@ mixin _$UserModelAdapter on Repository<User> {
   @override
   localSerialize(model) {
     final map = _$UserToJson(model);
-    for (var e in relationshipsFor(model).entries) {
+    for (final e in relationshipsFor(model).entries) {
       map[e.key] = (e.value['instance'] as Relationship)?.toJson();
     }
     return map;

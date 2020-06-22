@@ -110,11 +110,8 @@ void main() async {
     company.models.add(model);
     final m2 = await model.save();
     expect(keyFor(model), keyFor(m2));
-    // print('m2 id: ${m2.id} / k: ${keyFor(m2)}');
-    // print('---');
 
     final m3 = Model(name: 'Zucchini 93', company: BelongsTo()).init(manager);
-    // print('m3 id: ${m3.id} / k: ${keyFor(m3)}');
     final tempKeyM3 = keyFor(m3);
     final m4 = await m3.save();
 
@@ -122,8 +119,6 @@ void main() async {
     // => key has changed after save!
     expect(tempKeyM3, isNot(keyFor(m3)));
     expect(keyFor(m3), keyFor(m4));
-
-    // print('m4 id: ${m4.id} / k: ${keyFor(m4)}');
   });
 
   test('fetch with error', () async {
@@ -139,8 +134,7 @@ void main() async {
   });
 
   test('watch()', () async {
-    final toronto = City(id: '71c', name: 'Chicago').init(manager);
-    // SHOULD SUPPORT THIS WITHOUT ID
+    final toronto = City(name: 'Chicago').init(manager);
 
     final notifier = toronto.watch();
     var i = 0;
@@ -152,6 +146,6 @@ void main() async {
       }, count: 2),
     );
 
-    toronto.copyWith(name: 'Windy City').init(manager);
+    toronto.copyWith(name: 'Windy City').was(toronto);
   });
 }

@@ -84,8 +84,8 @@ void main() async {
       'persons': ['people#231aaa']
     });
 
-    final axl = Person(id: '231', name: 'Axl', age: 58)
-        .init(manager, key: 'people#231aaa');
+    manager.getKeyForId('people', '231', keyIfAbsent: 'people#231aaa');
+    final axl = Person(id: '231', name: 'Axl', age: 58).init(manager);
     expect(family5.persons, {axl});
   });
 

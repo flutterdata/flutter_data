@@ -30,6 +30,10 @@ extension ListX<T> on List<T> {
   bool containsFirst(T model) => isNotEmpty ? first == model : false;
 }
 
+extension IterableX<T> on Iterable<T> {
+  Iterable<T> get filterNulls => where((elem) => elem != null);
+}
+
 @optionalTypeArgs
 extension IterableRelationshipExtension<T extends DataSupportMixin<T>>
     on Set<T> {

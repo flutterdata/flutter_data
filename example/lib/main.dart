@@ -26,7 +26,7 @@ void main() async {
     User user;
 
     try {
-      user = await usersRepo.findOne('1');
+      user = await usersRepo.findOne('2314444');
     } on DataException catch (e) {
       if (e.status == HttpStatus.notFound) {
         print('not found');

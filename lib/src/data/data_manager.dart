@@ -4,9 +4,9 @@ class DataManager {
   @visibleForTesting
   DataManager.delegate();
 
-  factory DataManager({bool autoModelInit = true}) {
-    if (autoModelInit) {
-      return _autoModelInitDataManager ??= DataManager.delegate();
+  factory DataManager({bool autoManager = true}) {
+    if (autoManager) {
+      return _autoManager ??= DataManager.delegate();
     }
     return DataManager.delegate();
   }
@@ -25,9 +25,6 @@ class DataManager {
     assert(_locator != null, _assertMessage);
     return _locator;
   }
-
-  // ignore: prefer_final_fields
-  bool _autoInitEnabled = true;
 
   Box<Map<String, List<String>>> _metaBox;
 

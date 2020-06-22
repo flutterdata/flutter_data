@@ -59,14 +59,14 @@ class DataGenerator extends GeneratorForAnnotation<DataRepository> {
           final relationshipAnnotation =
               TypeChecker.fromRuntime(DataRelationship)
                   .firstAnnotationOfExact(field, throwOnUnresolved: false);
-          String inverse;
-          if (relationshipAnnotation != null) {
-            inverse =
-                relationshipAnnotation.getField('inverse')?.toStringValue();
-          }
+
+          final inverse =
+              relationshipAnnotation?.getField('inverse')?.toStringValue();
+
           final value =
               '${field.name}#$inverse#${field.type.element.name}#$typeParameterName';
 
+          // having a setter implies it's NOT final
           if (classElement.getSetter(field.name) != null) {
             throw UnsupportedError(
                 "Can't generate repository for $type. Its `${field.name}` relationship MUST be final");
@@ -167,7 +167,7 @@ mixin _\$${type}ModelAdapter on Repository<$type> {
 
   @override
   localDeserialize(map) {
-    for (var key in relationshipsFor().keys) {
+    for (final key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key), manager]
       };
@@ -178,7 +178,7 @@ mixin _\$${type}ModelAdapter on Repository<$type> {
   @override
   localSerialize(model) {
     final map = $toJson;
-    for (var e in relationshipsFor(model).entries) {
+    for (final e in relationshipsFor(model).entries) {
       map[e.key] = (e.value['instance'] as Relationship)?.toJson();
     }
     return map;
@@ -293,12 +293,12 @@ $modelImports
 
 extension FlutterData on DataManager {
 
-  static Future<DataManager> init(Directory baseDir, {bool autoModelInit = true, bool clear, bool remote, bool verbose, List<int> encryptionKey, Function(void Function<R>(R)) also}) async {
+  static Future<DataManager> init(Directory baseDir, {bool autoManager = true, bool clear, bool remote, bool verbose, List<int> encryptionKey, Function(void Function<R>(R)) also}) async {
     assert(baseDir != null);
 
     final injection = DataServiceLocator();
 
-    final manager = await DataManager(autoModelInit: autoModelInit).init(baseDir, injection.locator, clear: clear, verbose: verbose);
+    final manager = await DataManager(autoManager: autoManager).init(baseDir, injection.locator, clear: clear, verbose: verbose);
     injection.register(manager);
 
 ''' +

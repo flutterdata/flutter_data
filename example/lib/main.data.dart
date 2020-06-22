@@ -13,12 +13,12 @@ import 'package:jsonplaceholder_example/model/comment.dart';
 
 extension FlutterData on DataManager {
 
-  static Future<DataManager> init(Directory baseDir, {bool autoModelInit = true, bool clear, bool remote, bool verbose, List<int> encryptionKey, Function(void Function<R>(R)) also}) async {
+  static Future<DataManager> init(Directory baseDir, {bool autoManager = true, bool clear, bool remote, bool verbose, List<int> encryptionKey, Function(void Function<R>(R)) also}) async {
     assert(baseDir != null);
 
     final injection = DataServiceLocator();
 
-    final manager = await DataManager(autoModelInit: autoModelInit).init(baseDir, injection.locator, clear: clear, verbose: verbose);
+    final manager = await DataManager(autoManager: autoManager).init(baseDir, injection.locator, clear: clear, verbose: verbose);
     injection.register(manager);
 
     final postRepository = $PostRepository(manager, remote: remote, verbose: verbose);
@@ -41,9 +41,9 @@ extension FlutterData on DataManager {
       // ignore: unnecessary_lambdas
       also(<R>(R obj) => injection.register<R>(obj));
     }
-postRepository.initialize();
-userRepository.initialize();
-commentRepository.initialize();
+await postRepository.initialize();
+await userRepository.initialize();
+await commentRepository.initialize();
 
     return manager;
   }

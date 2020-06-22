@@ -2,35 +2,36 @@ part of flutter_data;
 
 abstract class DataSupportMixin<T extends DataSupportMixin<T>> {
   Object get id;
-  final Map<String, dynamic> _flutterDataMetadata = {};
+  Repository<T> _repository;
+  String _key;
 }
 
-String keyFor<T extends DataSupportMixin<T>>(T model) =>
-    model?._flutterDataMetadata['_key'] as String;
+String keyFor<T extends DataSupportMixin<T>>(T model) => model?._key;
 
 // ignore_for_file: unused_element
 extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
     on DataSupportMixin<T> {
-  T init(DataManager manager, {String key, bool save = true}) {
-    return manager
-        .locator<Repository<T>>()
-        ?.initModel(_this, key: key, save: save);
+  /// Only pass in a manager if you know what you're doing.
+  T init([DataManager manager]) {
+    manager ??= _autoManager;
+    assert(manager != null);
+    return manager.locator<Repository<T>>()._initModel(_this, save: true);
   }
 
-  Repository<T> get _repository =>
-      _flutterDataMetadata['_repository'] as Repository<T>;
-  set _repository(Repository<T> value) =>
-      _flutterDataMetadata['_repository'] ??= value;
-
-  set _key(String key) {
-    _flutterDataMetadata['_key'] = key;
-  }
+  bool get _isInitialized => _key != null;
 
   //
 
   DataManager get _manager => _repository?.manager;
 
   T get _this => this as T;
+
+  T was(T model) {
+    assert(model._isInitialized,
+        'Please call `model.init` before passing it to `was`');
+    // initialize this model with existing model's repo & key
+    return model._repository?._initModel(_this, key: model._key, save: true);
+  }
 
   Future<T> save(
       {bool remote,
@@ -75,17 +76,14 @@ extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
       '''\n
 Tried to call a method on $this (of type $T), but it is not initialized.
 
-This app has been configured with autoModelInit: false at boot,
-which means that model initialization is managed by you.
+This app has been configured with autoManager: false at boot,
+which means that you must initialize your models with your own manager:
 
-If you wish Flutter Data to auto-initialize your models,
-ensure you configure it at boot:
+model.init(manager);
 
-FlutterData.init(autoModelInit: true);
+Or start Flutter Data with autoManager: true which allows you to do:
 
-or simply
-
-FlutterData.init();
+model.init();
 ''',
     );
   }
@@ -93,12 +91,6 @@ FlutterData.init();
 
 // auto
 
-abstract class DataSupport<T extends DataSupport<T>> with DataSupportMixin<T> {
-  DataSupport() {
-    if (_autoModelInitDataManager._autoInitEnabled) {
-      _autoModelInitDataManager
-          .locator<Repository<T>>()
-          ?.initModel(_this, save: true);
-    }
-  }
-}
+// TODO remove and name the mixin DataSupport
+
+abstract class DataSupport<T extends DataSupport<T>> with DataSupportMixin<T> {}

@@ -150,10 +150,11 @@ void main() async {
 
   test('findOne (reload) without ID', () async {
     final family = Family(surname: 'Zliedowski').init(manager);
-    final f2 = Family(surname: 'Zliedowski').init(manager, key: keyFor(family));
+    final f2 = Family(surname: 'Zliedowski').was(family);
+
     final f3 = await family.reload();
-    expect(family, f2);
-    expect(family, f3);
+    expect(keyFor(family), keyFor(f2));
+    expect(keyFor(family), keyFor(f3));
   });
 
   test('delete model with and without ID', () async {

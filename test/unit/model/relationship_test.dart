@@ -31,22 +31,24 @@ void main() async {
 
   test('scenario #1', () {
     // house does not yet exist
-    final residenceKey = Repository.generateKey<House>();
+    final residenceKey = manager.getKeyForId('houses', '1',
+        keyIfAbsent: Repository.generateKey<House>());
+
     final f1 = familyRepo
         .deserialize({'id': '1', 'surname': 'Rose', 'residence': residenceKey});
     expect(f1.residence.value, isNull);
     expect(keyFor(f1), isNotNull);
 
     // once it does
-    final house =
-        House(id: '1', address: '123 Main St').init(manager, key: residenceKey);
+    final house = House(id: '1', address: '123 Main St').init(manager);
     // it's automatically wired up
     expect(f1.residence.value, house);
     expect(f1.residence.value.owner.value, f1);
     expect(house.owner.value, f1);
 
     // residence is omitted, but persons is included (no people exist yet)
-    final personKey = 'people#a1a1a1';
+    final personKey =
+        manager.getKeyForId('people', '1', keyIfAbsent: 'people#a1a1a1');
     final f1b = familyRepo.deserialize({
       'id': '1',
       'surname': 'Rose',
@@ -59,8 +61,7 @@ void main() async {
     expect(f1b.persons, isEmpty);
 
     // once p1 exists
-    final p1 =
-        Person(id: '1', name: 'Axl', age: 58).init(manager, key: personKey);
+    final p1 = Person(id: '1', name: 'Axl', age: 58).init(manager);
     // it's automatically wired up
     expect(f1b.persons, {p1});
 
@@ -99,9 +100,11 @@ void main() async {
     expect(h1.owner.value, isNull);
     expect(keyFor(h1), isNotNull);
 
+    manager.getKeyForId('family', '1', keyIfAbsent: 'families#a1a1a1');
+
     // once it does
-    final family = Family(id: '1', surname: 'Rose', residence: BelongsTo())
-        .init(manager, key: 'families#a1a1a1');
+    final family =
+        Family(id: '1', surname: 'Rose', residence: BelongsTo()).init(manager);
     // it's automatically wired up & inverses work correctly
     expect(h1.owner.value, family);
     expect(h1.owner.value.residence.value, h1);
@@ -129,10 +132,16 @@ void main() async {
     expect(family.residence.key, isNotNull);
     expect(family.persons.keys.length, 3);
 
+    // associate ids with keys
+    manager.getKeyForId('people', '1', keyIfAbsent: 'people#c1c1c1');
+    manager.getKeyForId('people', '2', keyIfAbsent: 'people#c2c2c2');
+    manager.getKeyForId('people', '3', keyIfAbsent: 'people#c3c3c3');
+    manager.getKeyForId('houses', '98', keyIfAbsent: 'houses#c98d1b');
+
     // (2) then load persons
-    final p1 = Person(id: '1', name: 'z1', age: 23)
-        .init(manager, key: 'people#c1c1c1');
-    Person(id: '2', name: 'z2', age: 33).init(manager, key: 'people#c2c2c2');
+
+    final p1 = Person(id: '1', name: 'z1', age: 23).init(manager);
+    Person(id: '2', name: 'z2', age: 33).init(manager);
 
     // (3) assert two first are linked, third one null, residence is null
     expect(family.persons.lookup(p1), p1);
@@ -142,14 +151,12 @@ void main() async {
     expect(family.residence.value, isNull);
 
     // (4) load the last person and assert it exists now
-    final p3 =
-        Person(id: '3', name: 'z3', age: 3).init(manager, key: 'people#c3c3c3');
+    final p3 = Person(id: '3', name: 'z3', age: 3).init(manager);
     expect(family.persons.lookup(p3), isNotNull);
     expect(p3.family.value, family);
 
     // (5) load family and assert it exists now
-    final house = House(id: '98', address: '21 Coconut Trail')
-        .init(manager, key: 'houses#c98d1b');
+    final house = House(id: '98', address: '21 Coconut Trail').init(manager);
     expect(house.owner.value, family);
     expect(family.residence.value.address, endsWith('Trail'));
     expect(house.owner.value, family); // same, passes here again

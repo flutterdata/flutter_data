@@ -39,8 +39,4 @@ part 'src/repository/repository.dart';
 part 'src/util/extensions.dart';
 part 'src/util/service_locator.dart';
 
-DataManager _autoModelInitDataManager;
-
-// https://github.com/dart-lang/pana/issues/604
-@deprecated
-void doNotUse() {}
+DataManager _autoManager;

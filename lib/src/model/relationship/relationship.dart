@@ -6,11 +6,14 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
   @visibleForTesting
   DataManager manager;
 
+  bool get _isInitialized => _ownerKey != null;
+
   String _ownerKey;
   String _name;
   String _inverseName;
 
   final Set<String> _uninitializedKeys;
+  final Set<E> _uninitializedModels;
   final bool _wasOmitted;
 
   ValueStateNotifier<N> _notifier;
@@ -20,50 +23,36 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
   Repository<E> get _repository => manager?.locator<Repository<E>>();
 
   Relationship([Set<E> models, this.manager])
-      : _uninitializedKeys = models?.map((model) {
-              assert(keyFor(model) != null);
-              return keyFor(model);
-            })?.toSet() ??
-            {},
+      : _uninitializedKeys =
+            models?.map((model) => model._key)?.filterNulls?.toSet() ?? {},
+        _uninitializedModels =
+            models?.where((model) => model._key == null)?.toSet() ?? {},
         _wasOmitted = models == null;
 
   Relationship._(Iterable<String> keys, this.manager, this._wasOmitted)
-      : _uninitializedKeys = keys.toSet();
+      : _uninitializedKeys = keys.toSet(),
+        _uninitializedModels = {};
 
   //
 
-  @protected
-  @visibleForTesting
-  void initializeKeys() {
-    if (!_wasOmitted) {
-      // if it wasn't omitted, we overwrite
-      manager.graph.removeEdges(_ownerKey,
-          metadata: _name, inverseMetadata: _inverseName);
-      manager.graph.addEdges(
-        _ownerKey,
-        tos: _uninitializedKeys,
-        metadata: _name,
-        inverseMetadata: _inverseName,
-      );
-      _uninitializedKeys.clear();
+  void initialize(DataManager manager, DataSupportMixin owner, String name,
+      String inverseName, String inverseType) {
+    if (_isInitialized) {
+      return;
     }
-  }
 
-  // public
-  void setOwner(String ownerType, String ownerKey, String name,
-      Map<String, Object> relationshipMetadata, DataManager manager) {
-    assert(ownerKey != null);
+    assert(owner != null);
     this.manager = manager;
-    _ownerKey = ownerKey;
+    _ownerKey = owner._key;
     _name = name;
+    _inverseName = inverseName;
 
-    _inverseName = relationshipMetadata['inverse'] as String;
+    final ownerType = owner._repository.type;
 
     if (_inverseName == null &&
         _repository.relatedRepositories[ownerType] != null) {
-      final relType = relationshipMetadata['type'] as String;
       final entries = _repository
-          .relatedRepositories[ownerType].relatedRepositories[relType]
+          .relatedRepositories[ownerType].relatedRepositories[inverseType]
           .relationshipsFor(null)
           .entries
           .where((e) => e.value['type'] == ownerType);
@@ -80,7 +69,26 @@ and trigger a code generation build again.
       }
       _inverseName = entries.isNotEmpty ? entries.first.key : null;
     }
-    initializeKeys();
+
+    // initialize uninitialized models and get keys
+    final newKeys = _uninitializedModels.map((model) {
+      return _repository._initModel(model, save: true)._key;
+    });
+    _uninitializedKeys..addAll(newKeys);
+
+    // initialize keys
+    if (!_wasOmitted) {
+      // if it wasn't omitted, we overwrite
+      manager.graph.removeEdges(_ownerKey,
+          metadata: _name, inverseMetadata: _inverseName);
+      manager.graph.addEdges(
+        _ownerKey,
+        tos: _uninitializedKeys,
+        metadata: _name,
+        inverseMetadata: _inverseName,
+      );
+      _uninitializedKeys.clear();
+    }
   }
 
   // implement set
@@ -90,15 +98,18 @@ and trigger a code generation build again.
     if (value == null) {
       return false;
     }
-    final key = keyFor(value);
-    assert(key != null);
+
     if (_repository != null) {
-      manager.graph.addEdge(_ownerKey, key,
+      _repository._initModel(value, save: true);
+      manager.graph.addEdge(_ownerKey, value._key,
           metadata: _name, inverseMetadata: _inverseName);
+      return true;
+    } else if (value._key != null) {
+      _uninitializedKeys.add(value._key);
+      return true;
     } else {
-      _uninitializedKeys.add(key);
+      return false;
     }
-    return true;
   }
 
   @override
@@ -111,9 +122,8 @@ and trigger a code generation build again.
     return false;
   }
 
-  Iterable<E> get _iterable => keys
-      .map((key) => _repository.localGet(key, init: false))
-      .where((model) => model != null);
+  Iterable<E> get _iterable =>
+      keys.map((key) => _repository.localGet(key)).filterNulls;
 
   @override
   Iterator<E> get iterator => _iterable.iterator;

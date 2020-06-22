@@ -63,16 +63,8 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
   @visibleForTesting
   T deserialize(dynamic object, {String key}) {
     final map = Map<String, dynamic>.from(object as Map);
-
-    // briefly disable autoInit -
-    // unfortunately can only achieve this through a global
-    // (in a single-threaded program)
-    // while keeping the public API neat
-    _autoModelInitDataManager?._autoInitEnabled = false;
     final model = localDeserialize(map);
-    _autoModelInitDataManager?._autoInitEnabled = true;
-
-    return initModel(model, key: key, save: true);
+    return _initModel(model, key: key, save: true);
   }
 
   @protected
@@ -124,18 +116,11 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
     assert(model != null);
     remote ??= _remote;
 
-    Object id;
-    String key;
-
-    if (model is T) {
-      id = model.id;
-      key = id != null ? manager.getKeyForId(type, id) : keyFor(model);
-    } else {
-      id = model;
-      key = manager.getKeyForId(type, id);
-    }
+    final id = model is T ? model.id : model;
 
     if (remote == false) {
+      final key =
+          manager.getKeyForId(type, id) ?? (model is T ? model._key : null);
       if (key == null) {
         return null;
       }
@@ -168,7 +153,9 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
     remote ??= _remote;
 
     if (remote == false) {
-      return initModel(model, save: true);
+      _initModel(model);
+      localPut(model._key, model);
+      return model;
     }
 
     final body = json.encode(serialize(model));
@@ -187,7 +174,7 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
     return withResponse<T>(response, (data) {
       if (data == null) {
         // return "old" model if response was empty
-        return model;
+        return _initModel(model);
       }
       // deserialize already inits models
       // if model had a key already, reuse it
@@ -210,15 +197,9 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
       Map<String, String> headers}) async {
     remote ??= _remote;
 
-    Object id;
-    String key;
-    if (model is T) {
-      id = model.id;
-      key = id != null ? manager.getKeyForId(type, id) : keyFor(model);
-    } else {
-      id = model;
-      key = manager.getKeyForId(type, id);
-    }
+    final id = model is T ? model.id : model;
+    final key =
+        manager.getKeyForId(type, id) ?? (model is T ? model._key : null);
 
     if (key == null) {
       return;

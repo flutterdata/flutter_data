@@ -61,20 +61,11 @@ mixin WatchAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
     remote ??= _remote;
     assert(model != null);
 
+    final id = model is T ? model.id : model;
     // lazy key access
     String _key;
-    Object id;
-
-    String key() {
-      if (model is T) {
-        id = model.id;
-        return _key ??=
-            id != null ? manager.getKeyForId(type, id) : keyFor(model);
-      } else {
-        id = model;
-        return _key ??= manager.getKeyForId(type, id);
-      }
-    }
+    String key() => _key ??=
+        manager.getKeyForId(type, id) ?? (model is T ? model._key : null);
 
     final _alsoWatchFilters = <String>{};
     var _relatedKeys = <String>{};
@@ -82,7 +73,7 @@ mixin WatchAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
     final _notifier = DataStateNotifier<T>(
       DataState(localGet(key())),
       reload: (notifier) async {
-        if (remote == false) return;
+        if (remote == false || id == null) return;
         notifier.data = notifier.data.copyWith(isLoading: true);
 
         try {

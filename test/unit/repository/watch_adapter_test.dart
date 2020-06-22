@@ -182,10 +182,9 @@ void main() async {
       fireImmediately: false,
     );
 
-    final steve =
-        Person(name: 'Steve-O', age: 30).init(manager, key: keyFor(frank));
-    steve.family.value = Family(id: '922', surname: 'Marquez').init(manager);
-
-    Family(id: '922', surname: 'Thomson').init(manager);
+    final steve = Person(name: 'Steve-O', age: 30).was(frank);
+    final family = Family(surname: 'Marquez').init(manager);
+    steve.family.value = family;
+    Family(surname: 'Thomson').was(family);
   });
 }

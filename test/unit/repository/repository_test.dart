@@ -32,16 +32,24 @@ void main() async {
     final repo = injection.locator<Repository<Family>>();
     final family1 = Family(id: '1', surname: 'Smith');
 
-    await repo.save(family1);
+    await repo.save(family1); // possible to save without init
     final family = await repo.findOne('1');
     expect(family, family1);
   });
 
   test('create and save', () async {
     final repo = injection.locator<Repository<House>>();
-    final house = House(id: '25', address: '12 Lincoln Rd').init(manager);
+    final house = House(id: '25', address: '12 Lincoln Rd');
+
+    // the house is not initialized, so we shouldn't be able to find it
+    expect(await repo.findOne(house.id), isNull);
+
+    // now initialize
+    house.init(manager);
+
     // repo.findOne works because the House repo is remote=false
     expect(await repo.findOne(house.id), house);
+
     // but overriding remote works
     // throws an unsupported error as baseUrl was not configured
     expect(() async {
@@ -69,6 +77,13 @@ void main() async {
     // the ID->key node is left orphan, which
     // will eventually be removed with serialization
     expect(repo.manager.metaBox.get('people#${person.id}'), isNotNull);
+  });
+
+  test('delete without init', () async {
+    final repo = injection.locator<Repository<Person>>();
+    final person = Person(id: '911', name: 'Sammy', age: 47);
+    await repo.delete(person.id);
+    expect(await repo.findOne(person.id), isNull);
   });
 
   test('returning a different remote ID for a requested ID is not supported',

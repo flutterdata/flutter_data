@@ -57,6 +57,9 @@ class FakeBox<T> extends Fake implements Box<T> {
   }
 
   @override
+  bool get isEmpty => length == 0;
+
+  @override
   Future<int> clear() {
     _map.clear();
     return Future.value(0);
