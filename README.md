@@ -49,7 +49,7 @@ class User with DataSupport<User> {
 
 mixin JSONPlaceholderAdapter on RemoteAdapter<User> {
   @override
-  get baseUrl => "http://jsonplaceholder.typicode.com/";
+  String get baseUrl => "https://my-json-server.typicode.com/flutterdata/demo/";
 }
 ```
 
@@ -59,7 +59,7 @@ Flutter Data will generate a `Repository<User>` (after a source gen build):
 
 ```dart
 // obtain it via Provider
-final repository = context.read<Repository<User>>();
+final repository = context.watch<Repository<User>>();
 
 return DataStateBuilder<List<User>>(
   notifier: () => repository.watchAll();
@@ -77,19 +77,19 @@ return DataStateBuilder<List<User>>(
 }
 ```
 
-`repository.watchAll()` will make an HTTP request (to `http://jsonplaceholder.typicode.com/users` in this case), parse the incoming JSON and listen for any further changes to the `User` collection – whether those are local or remote!
+`repository.watchAll()` will make an HTTP request (to `https://my-json-server.typicode.com/flutterdata/demo/users` in this case), parse the incoming JSON and listen for any further changes to the `User` collection – whether those are local or remote!
 
 `state` is of type `DataState` which has loading/error/data substates. Moreover, `notifier.reload()` is available, useful for the classic "pull-to-refresh" scenario.
 
 In addition to the reactivity, a `User` now gets extensions and automatic relationships, ActiveRecord-style:
 
 ```dart
-final todo = await Todo(title: 'Finish docs').save();
-// POST http://jsonplaceholder.typicode.com/todos/
+final todo = await Todo(title: 'Finish docs').init().save();
+// POST https://my-json-server.typicode.com/flutterdata/demo/todos/
 print(todo.id); // 201
 
 final user = await repository.findOne(1, params: { '_embed': 'todos' });
-// GET http://jsonplaceholder.typicode.com/users/1?_embed=todos
+// GET https://my-json-server.typicode.com/flutterdata/demo/users/1?_embed=todos
 print(user.todos.length); // 20
 
 await user.todos.last.delete();
@@ -107,18 +107,18 @@ Fully compatible with the tools we know and love:
 | ----------------- | ---------- | ---------------------------------------------------------------- |
 | Flutter           | ✅          | It can also be used with pure Dart                               |
 | json_serializable | ✅          | Not required! Other `fromJson`/`toJson` can be supplied          |
-| Chopper/Retrofit  | ✅          | Not needed: Flutter Data **generates its own REST clients** (**) |
 | JSON REST API     | ✅          | Great support                                                    |
 | JSON:API          | ✅          | Great support                                                    |
 | Firebase          | ✅          | Adapter coming soon 🎉 as well as Firebase Auth                   |
 | Provider          | ✅          | Not required! It can be automatically wired up                   |
 | get_it            | ✅          | Not required! Very easy to integrate                             |
 | Streams / BLoC    | ✅          | Great support                                                    |
-| Freezed           | ✅          | Great support                                                    |
+| Freezed           | ✅          | Good support                                                     |
 | Flutter Web       | ✅          | Full support coming soon!                                        |
 | Hive              | ✅          | Flutter Data uses Hive internally for local storage              |
+| Chopper/Retrofit  |            | Not needed: Flutter Data **generates its own REST clients** (**) |
 
-(**) That said, Chopper/Retrofit and OpenAPI adapters are being considered too!
+(**) That said, adapters are being considered!
 
 ## 📲 Apps using Flutter Data
 
