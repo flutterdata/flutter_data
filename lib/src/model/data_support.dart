@@ -1,16 +1,15 @@
 part of flutter_data;
 
-abstract class DataSupportMixin<T extends DataSupportMixin<T>> {
+abstract class DataSupport<T extends DataSupport<T>> {
   Object get id;
   Repository<T> _repository;
   String _key;
 }
 
-String keyFor<T extends DataSupportMixin<T>>(T model) => model?._key;
+String keyFor<T extends DataSupport<T>>(T model) => model?._key;
 
 // ignore_for_file: unused_element
-extension DataSupportMixinExtension<T extends DataSupportMixin<T>>
-    on DataSupportMixin<T> {
+extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
   /// Only pass in a manager if you know what you're doing.
   T init([DataManager manager]) {
     manager ??= _autoManager;
@@ -88,9 +87,3 @@ model.init();
     );
   }
 }
-
-// auto
-
-// TODO remove and name the mixin DataSupport
-
-abstract class DataSupport<T extends DataSupport<T>> with DataSupportMixin<T> {}

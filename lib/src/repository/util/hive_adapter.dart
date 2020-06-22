@@ -1,6 +1,6 @@
 part of flutter_data;
 
-class _HiveTypeAdapter<T extends DataSupportMixin<T>> with TypeAdapter<T> {
+class _HiveTypeAdapter<T extends DataSupport<T>> with TypeAdapter<T> {
   _HiveTypeAdapter(this.manager);
   final DataManager manager;
 

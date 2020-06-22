@@ -1,6 +1,6 @@
 part of flutter_data;
 
-abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
+abstract class Relationship<E extends DataSupport<E>, N> with SetMixin<E> {
   // ignore: prefer_final_fields
   @protected
   @visibleForTesting
@@ -35,7 +35,7 @@ abstract class Relationship<E extends DataSupportMixin<E>, N> with SetMixin<E> {
 
   //
 
-  void initialize(DataManager manager, DataSupportMixin owner, String name,
+  void initialize(DataManager manager, DataSupport owner, String name,
       String inverseName, String inverseType) {
     if (_isInitialized) {
       return;
@@ -117,7 +117,7 @@ and trigger a code generation build again.
     if (element is E && manager?.graph != null) {
       return manager.graph
           .getEdge(_ownerKey, metadata: _name)
-          .contains(keyFor(element));
+          .contains(element._key);
     }
     return false;
   }
@@ -139,10 +139,10 @@ and trigger a code generation build again.
   @override
   bool remove(Object value, {bool notify = true}) {
     if (value is E) {
-      assert(keyFor(value) != null);
+      assert(value._key != null);
       manager.graph.removeEdge(
         _ownerKey,
-        keyFor(value),
+        value._key,
         metadata: _name,
         inverseMetadata: _inverseName,
         notify: notify,

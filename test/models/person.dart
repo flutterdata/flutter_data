@@ -13,7 +13,7 @@ import 'family.dart';
 part 'person.g.dart';
 
 @DataRepository([PersonLoginAdapter])
-class Person with DataSupportMixin<Person> {
+class Person with DataSupport<Person> {
   @override
   final String id;
   final String name;

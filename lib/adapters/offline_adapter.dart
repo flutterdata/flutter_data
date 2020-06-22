@@ -5,7 +5,7 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:flutter_data/src/util/graph_notifier.dart';
 import 'package:flutter_data/src/util/notifier_extension.dart';
 
-mixin OfflineAdapter<T extends DataSupportMixin<T>> on WatchAdapter<T> {
+mixin OfflineAdapter<T extends DataSupport<T>> on WatchAdapter<T> {
   Duration retryAfter(int i) {
     final list = [0, 1, 2, 2, 2, 2, 2, 4, 4, 4, 8, 8, 16, 16, 24];
     final index = i < list.length ? i : list.length - 1;

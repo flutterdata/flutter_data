@@ -13,7 +13,7 @@ part 'models.g.dart';
 
 @DataRepository([])
 @JsonSerializable()
-class Model with DataSupportMixin<Model> {
+class Model with DataSupport<Model> {
   @override
   final String id;
   final String name;
@@ -24,7 +24,7 @@ class Model with DataSupportMixin<Model> {
 
 @freezed
 @DataRepository([])
-abstract class City with DataSupportMixin<City>, _$City {
+abstract class City with DataSupport<City>, _$City {
   City._();
   factory City({
     String id,
@@ -36,7 +36,7 @@ abstract class City with DataSupportMixin<City>, _$City {
 
 @freezed
 @DataRepository([JSONAPIAdapter, TestMixin])
-abstract class Company with DataSupportMixin<Company>, _$Company {
+abstract class Company with DataSupport<Company>, _$Company {
   Company._();
   factory Company({
     String id,
@@ -52,7 +52,7 @@ abstract class Company with DataSupportMixin<Company>, _$Company {
 
 //
 
-mixin TestMixin<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
+mixin TestMixin<T extends DataSupport<T>> on RemoteAdapter<T> {
   @override
   String get baseUrl => 'http://127.0.0.1:17083/';
 

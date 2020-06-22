@@ -1,6 +1,6 @@
 part of flutter_data;
 
-class HasMany<E extends DataSupportMixin<E>> extends Relationship<E, Set<E>> {
+class HasMany<E extends DataSupport<E>> extends Relationship<E, Set<E>> {
   HasMany([Set<E> models, DataManager manager]) : super(models, manager);
 
   HasMany._(Iterable<String> keys, DataManager manager, bool _wasOmitted)

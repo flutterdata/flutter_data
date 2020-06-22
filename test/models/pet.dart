@@ -4,7 +4,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'pet.g.dart';
 
-abstract class Pet<T extends Pet<T>> with DataSupportMixin<T> {
+abstract class Pet<T extends Pet<T>> with DataSupport<T> {
   @override
   final String id;
   Pet(this.id);

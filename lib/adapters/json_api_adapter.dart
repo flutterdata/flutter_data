@@ -2,7 +2,7 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:json_api/document.dart';
 import 'package:json_api/document.dart' as j show Relationship;
 
-mixin JSONAPIAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
+mixin JSONAPIAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
   @override
   Map<String, String> get headers => super.headers
     ..addAll({

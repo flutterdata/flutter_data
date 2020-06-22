@@ -1,6 +1,6 @@
 part of flutter_data;
 
-mixin WatchAdapter<T extends DataSupportMixin<T>> on RemoteAdapter<T> {
+mixin WatchAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
   @override
   DataStateNotifier<List<T>> watchAll(
       {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {

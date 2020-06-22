@@ -35,8 +35,7 @@ extension IterableX<T> on Iterable<T> {
 }
 
 @optionalTypeArgs
-extension IterableRelationshipExtension<T extends DataSupportMixin<T>>
-    on Set<T> {
+extension IterableRelationshipExtension<T extends DataSupport<T>> on Set<T> {
   HasMany<T> get asHasMany {
     if (isNotEmpty) {
       return HasMany<T>(this, first._manager);
@@ -45,8 +44,8 @@ extension IterableRelationshipExtension<T extends DataSupportMixin<T>>
   }
 }
 
-extension DataSupportMixinRelationshipExtension<T extends DataSupportMixin<T>>
-    on DataSupportMixin<T> {
+extension DataSupportRelationshipExtension<T extends DataSupport<T>>
+    on DataSupport<T> {
   BelongsTo<T> get asBelongsTo {
     return BelongsTo<T>(this as T, _manager);
   }

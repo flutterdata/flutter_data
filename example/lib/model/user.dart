@@ -10,7 +10,7 @@ part 'user.g.dart';
 
 @JsonSerializable()
 @DataRepository([StandardJSONAdapter, JSONPlaceholderAdapter])
-class User extends DataSupport<User> {
+class User with DataSupport<User> {
   @override
   final int id;
   final String name;

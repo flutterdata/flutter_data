@@ -1,6 +1,6 @@
 part of flutter_data;
 
-abstract class Repository<T extends DataSupportMixin<T>> {
+abstract class Repository<T extends DataSupport<T>> {
   Repository(this.manager, {bool remote, bool verbose, Box<T> box})
       : _box = box,
         _remote = remote ?? true,
@@ -168,8 +168,7 @@ model.init();
 
   // static helper methods
 
-  static Future<Box<E>> getBox<E extends DataSupportMixin<E>>(
-      DataManager manager,
+  static Future<Box<E>> getBox<E extends DataSupport<E>>(DataManager manager,
       {List<int> encryptionKey}) async {
     final boxName = getType<E>();
     if (!manager._hive.isBoxOpen(boxName)) {

@@ -1,6 +1,6 @@
 part of flutter_data;
 
-mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
+mixin RemoteAdapter<T extends DataSupport<T>> on Repository<T> {
   // request
 
   @protected
@@ -179,12 +179,12 @@ mixin RemoteAdapter<T extends DataSupportMixin<T>> on Repository<T> {
       // deserialize already inits models
       // if model had a key already, reuse it
       final newModel =
-          deserialize(data as Map<String, dynamic>, key: keyFor(model));
-      if (keyFor(newModel) != keyFor(model)) {
+          deserialize(data as Map<String, dynamic>, key: model._key);
+      if (newModel._key != model._key) {
         // in the unlikely case where supplied key couldn't be used
         // ensure "old" copy of model carries the updated key
-        manager.removeKey(keyFor(model));
-        model._key = keyFor(newModel);
+        manager.removeKey(model._key);
+        model._key = newModel._key;
       }
       return newModel;
     });
