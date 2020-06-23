@@ -127,20 +127,20 @@ mixin OfflineAdapter<T extends DataSupport<T>> on WatchAdapter<T> {
     return writeNotifier;
   }
 
-  @override
-  Future<T> save(T model,
-      {bool remote,
-      Map<String, dynamic> params,
-      Map<String, String> headers}) async {
-    try {
-      // first ensure model is stored locally (and initialized)
-      model = await model.save(remote: false);
-      // then try to reach the network
-      return await super
-          .save(model, remote: true, params: params, headers: headers);
-    } on DataException {
-      // queue = queue..[keyFor(model)] = 'SAVE';
-      rethrow;
-    }
-  }
+  // @override
+  // Future<T> save(T model,
+  //     {bool remote,
+  //     Map<String, dynamic> params,
+  //     Map<String, String> headers}) async {
+  //   try {
+  //     // first ensure model is stored locally (and initialized)
+  //     model = await model.save(remote: false);
+  //     // then try to reach the network
+  //     return await super
+  //         .save(model, remote: true, params: params, headers: headers);
+  //   } on DataException {
+  //     // queue = queue..[keyFor(model)] = 'SAVE';
+  //     rethrow;
+  //   }
+  // }
 }
