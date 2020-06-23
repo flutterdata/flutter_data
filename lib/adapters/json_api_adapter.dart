@@ -23,33 +23,32 @@ mixin JSONAPIAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
 
     final relationships = <String, j.Relationship>{};
 
-    for (var relEntry in hasManys.entries) {
+    for (final relEntry in hasManys.entries) {
       final name = relEntry.key.toString();
       if (map[name] != null) {
         final keys = List<String>.from(map[name] as Iterable);
-        // final type = relEntry.value;
-        // TODO determine right type!
+        final relType = relEntry.value['type'] as String;
         final identifiers = keys.map((key) {
-          return IdentifierObject(type, manager.getId(key));
+          return IdentifierObject(relType, manager.getId(key));
         });
         relationships[name] = ToMany(identifiers);
         map.remove(name);
       }
     }
 
-    for (var relEntry in belongsTos.entries) {
+    for (final relEntry in belongsTos.entries) {
       final name = relEntry.key.toString();
       if (map[name] != null) {
         final key = map[name].toString();
-        // final type = relEntry.value;
-        // TODO determine right type!
-        relationships[name] = ToOne(IdentifierObject(type, manager.getId(key)));
+        final relType = relEntry.value['type'] as String;
+        relationships[name] =
+            ToOne(IdentifierObject(relType, manager.getId(key)));
         map.remove(name);
       }
     }
 
-    map.remove('id');
-    final resource = ResourceObject(type, map.id,
+    final id = map.remove('id');
+    final resource = ResourceObject(type, id.toString(),
         attributes: map, relationships: relationships);
 
     return Document(ResourceData(resource)).toJson();
