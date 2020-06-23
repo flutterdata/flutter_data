@@ -178,6 +178,8 @@ void main() async {
       // (3) by a change in the watched Family model
       expectAsync1((state) {
         expect(state.model.name, 'Steve-O');
+        expect(state.hasException, false);
+        expect(state.isLoading, false);
       }, count: 3),
       fireImmediately: false,
     );

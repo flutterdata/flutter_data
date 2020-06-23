@@ -10,12 +10,6 @@ void main() async {
   setUpAll(setUpAllFn);
   tearDownAll(tearDownAllFn);
 
-  test('throws if not initialized', () {
-    expect(() {
-      return Family(surname: 'Willis').save();
-    }, throwsA(isA<AssertionError>()));
-  });
-
   test('init', () async {
     final repo = injection.locator<Repository<Person>>();
 

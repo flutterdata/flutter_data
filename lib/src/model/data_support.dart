@@ -10,7 +10,8 @@ String keyFor<T extends DataSupport<T>>(T model) => model?._key;
 
 // ignore_for_file: unused_element
 extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
-  /// Only pass in a manager if you know what you're doing.
+  /// Only pass in a `DataManager` if you initialized
+  /// Flutter Data with `autoManager: false`
   T init([DataManager manager]) {
     manager ??= _autoManager;
     assert(manager != null);
@@ -19,9 +20,10 @@ extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
 
   bool get _isInitialized => _key != null;
 
-  //
-
   DataManager get _manager => _repository?.manager;
+
+  Repository<T> get _fallbackRepository =>
+      _repository ?? _autoManager?.locator<Repository<T>>();
 
   T get _this => this as T;
 
@@ -36,8 +38,7 @@ extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
       {bool remote,
       Map<String, dynamic> params,
       Map<String, String> headers}) async {
-    _assertRepository();
-    return await _repository.save(_this,
+    return await _fallbackRepository.save(_this,
         remote: remote, params: params, headers: headers);
   }
 
@@ -45,15 +46,13 @@ extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
       {bool remote,
       Map<String, dynamic> params,
       Map<String, String> headers}) async {
-    _assertRepository();
-    await _repository.delete(_this,
+    await _fallbackRepository.delete(_this,
         remote: remote, params: params, headers: headers);
   }
 
   Future<T> reload(
       {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
-    _assertRepository();
-    return _repository.findOne(_this,
+    return _fallbackRepository.findOne(_this,
         remote: remote, params: params, headers: headers);
   }
 
@@ -62,28 +61,9 @@ extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
       Map<String, dynamic> params,
       Map<String, String> headers,
       AlsoWatch<T> alsoWatch}) {
-    _assertRepository();
-    return _repository.watchOne(_this,
+    return _fallbackRepository.watchOne(_this,
         remote: remote, params: params, headers: headers, alsoWatch: alsoWatch);
   }
 
   bool get isNew => _this.id == null;
-
-  void _assertRepository() {
-    assert(
-      _repository != null,
-      '''\n
-Tried to call a method on $this (of type $T), but it is not initialized.
-
-This app has been configured with autoManager: false at boot,
-which means that you must initialize your models with your own manager:
-
-model.init(manager);
-
-Or start Flutter Data with autoManager: true which allows you to do:
-
-model.init();
-''',
-    );
-  }
 }
