@@ -180,7 +180,7 @@ mixin RemoteAdapter<T extends DataSupport<T>> on Repository<T> {
       // if model had a key already, reuse it
       final newModel =
           deserialize(data as Map<String, dynamic>, key: model._key);
-      if (newModel._key != model._key) {
+      if (model._key != null && model._key != newModel._key) {
         // in the unlikely case where supplied key couldn't be used
         // ensure "old" copy of model carries the updated key
         manager.removeKey(model._key);
