@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_data/flutter_data.dart';
@@ -133,19 +134,35 @@ void main() async {
     injection.clear();
   });
 
-  test('watch()', () async {
-    final toronto = City(name: 'Chicago').init(manager);
+  test('watch city', () async {
+    final city = City(id: '1', name: 'Chicago').init(manager);
 
-    final notifier = toronto.watch();
+    void changeCityName() {
+      Timer.run(() => city.copyWith(name: 'Montevideo').was(city));
+    }
+
+    final notifier = city.watch();
     var i = 0;
     dispose = notifier.addListener(
       expectAsync1((state) {
-        if (i == 0) expect(state.model.name, 'Chicago');
-        if (i == 1) expect(state.model.name, 'Windy City');
+        if (i == 0) {
+          // initial value
+          expect(state.isLoading, true);
+          expect(state.model.name, 'Chicago');
+        }
+        if (i == 1) {
+          // updated with API response
+          expect(state.isLoading, false);
+          expect(state.model.name, 'Munich');
+          changeCityName();
+        }
+        if (i == 2) {
+          // set by changeCityName()
+          expect(state.isLoading, false);
+          expect(state.model.name, 'Montevideo');
+        }
         i++;
-      }, count: 2),
+      }, count: 3),
     );
-
-    toronto.copyWith(name: 'Windy City').was(toronto);
   });
 }

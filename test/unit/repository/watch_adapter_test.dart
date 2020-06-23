@@ -34,7 +34,7 @@ void main() async {
       return p is Person && p.name.startsWith('Person Number') && p.age < 19;
     });
 
-    final count = 18;
+    final count = 29;
     var i = 0;
     dispose = notifier.addListener(
       expectAsync1((state) {
@@ -51,6 +51,7 @@ void main() async {
           // so instead of expecting i+1, we expect i-1
           expect(state.model, hasLength(i - 1));
           expect(repository.box.keys.length, i - 1);
+          expect(state.isLoading, false); // since it's not hitting any API
         }
         i++;
       }, count: count + 1),
