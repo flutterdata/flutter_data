@@ -54,31 +54,32 @@ void main() async {
           expect(state.isLoading, false); // since it's not hitting any API
         }
         i++;
-      }, count: count + 1),
+      }, count: count),
       fireImmediately: false,
     );
 
     // this whole thing below emits count + 1 (watchAll-relevant) states
     Person person;
     for (var j = 0; j < count; j++) {
-      final id =
-          Random().nextBool() ? Random().nextInt(999999999).toString() : null;
-      person = Person.generate(manager, withId: id);
-      if (Random().nextBool()) {
-        Family(surname: 'Snowden ${Random().nextDouble()}').init(manager);
-      }
+      await runAndWait(() async {
+        final id =
+            Random().nextBool() ? Random().nextInt(999999999).toString() : null;
+        person = Person.generate(manager, withId: id);
+        if (Random().nextBool()) {
+          Family(surname: 'Snowden ${Random().nextDouble()}').init(manager);
+        }
 
-      // in addition, delete last Person
-      if (j == count - 1) {
-        await person.delete();
-      }
+        // in addition, delete last Person
+        if (j == count - 1) {
+          await person.delete();
+        }
+      });
     }
   });
 
   test('watchAll updates', () async {
-    final notifier = repository.watchAll();
-
     Person(id: '1', name: 'Zof', age: 23).init(manager);
+    final notifier = repository.watchAll();
 
     var i = 0;
     dispose = notifier.addListener(
@@ -90,7 +91,8 @@ void main() async {
       fireImmediately: true,
     );
 
-    Person(id: '1', name: 'Zofie', age: 23).init(manager);
+    await runAndWait(
+        () => Person(id: '1', name: 'Zofie', age: 23).init(manager));
   });
 
   test('watchOne', () async {
@@ -110,18 +112,23 @@ void main() async {
       fireImmediately: false,
     );
 
-    Person(id: '1', name: 'Frank', age: 30).init(manager);
-    await repository.save(Person(id: '1', name: 'Steve-O', age: 34));
-    await repository.save(Person(id: '1', name: 'Liam', age: 36));
+    await runAndWait(
+        () => Person(id: '1', name: 'Frank', age: 30).init(manager));
+    await runAndWait(
+        () => repository.save(Person(id: '1', name: 'Steve-O', age: 34)));
+    await runAndWait(
+        () => repository.save(Person(id: '1', name: 'Liam', age: 36)));
+
     // a different ID doesn't trigger an extra call to expectAsync1(count=3)
-    await repository.save(Person(id: '2', name: 'Jupiter', age: 3));
+    await runAndWait(
+        () => repository.save(Person(id: '2', name: 'Jupiter', age: 3)));
   });
 
   test('watchOne reads latest version', () async {
-    final notifier = repository.watchOne('345');
-
     Person(id: '345', name: 'Frank', age: 30).init(manager);
     Person(id: '345', name: 'Steve-O', age: 34).init(manager);
+
+    final notifier = repository.watchOne('345');
 
     dispose = notifier.addListener(
       expectAsync1((state) {
@@ -131,10 +138,6 @@ void main() async {
   });
 
   test('watchOne with alsoWatch relationships', () async {
-    final familyRepository = injection.locator<Repository<Family>>();
-    final notifier = familyRepository.watchOne('22',
-        alsoWatch: (family) => [family.persons, family.residence]);
-
     final f1 = Family(
       id: '22',
       surname: 'Abagnale',
@@ -142,6 +145,9 @@ void main() async {
       residence: BelongsTo(),
       cottage: BelongsTo(),
     ).init(manager);
+
+    final notifier = injection.locator<Repository<Family>>().watchOne('22',
+        alsoWatch: (family) => [family.persons, family.residence]);
 
     var i = 0;
     dispose = notifier.addListener(
@@ -156,16 +162,26 @@ void main() async {
       }, count: 6),
     );
 
-    final p1 = Person(id: '1', name: 'Frank', age: 16).init(manager);
-    p1.family.value = f1;
-    f1.persons.add(Person(name: 'Martin', age: 44).init(manager));
-    f1.residence.value = House(address: '123 Main St').init(manager);
-    f1.persons.remove(p1);
+    Person p1;
+    await runAndWait(() {
+      p1 = Person(id: '1', name: 'Frank', age: 16).init(manager);
+      p1.family.value = f1;
+    });
+
+    await runAndWait(() {
+      f1.persons.add(Person(name: 'Martin', age: 44).init(manager));
+    });
+
+    await runAndWait(
+        () => f1.residence.value = House(address: '123 Main St').init(manager));
+
+    await runAndWait(() => f1.persons.remove(p1));
 
     // a non-watched relationship does not trigger
-    f1.cottage.value = House(address: '7342 Mountain Rd').init(manager);
+    await runAndWait(() =>
+        f1.cottage.value = House(address: '7342 Mountain Rd').init(manager));
 
-    await f1.delete();
+    await runAndWait(() => f1.delete());
   });
 
   test('watchOne without ID and alsoWatch', () async {
@@ -185,9 +201,15 @@ void main() async {
       fireImmediately: false,
     );
 
-    final steve = Person(name: 'Steve-O', age: 30).was(frank);
-    final family = Family(surname: 'Marquez').init(manager);
-    steve.family.value = family;
-    Family(surname: 'Thomson').was(family);
+    Person steve;
+    Family family;
+    await runAndWait(() => steve = Person(name: 'Steve-O', age: 30).was(frank));
+
+    await runAndWait(() {
+      family = Family(surname: 'Marquez').init(manager);
+      steve.family.value = family;
+    });
+
+    await runAndWait(() => Family(surname: 'Thomson').was(family));
   });
 }

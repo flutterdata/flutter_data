@@ -1,6 +1,9 @@
 part of flutter_data;
 
 mixin WatchAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
+  Duration get throttleDuration =>
+      Duration(milliseconds: 16); // 1 frame at 60fps
+
   @override
   DataStateNotifier<List<T>> watchAll(
       {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
@@ -28,37 +31,42 @@ mixin WatchAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
     // kick off
     _notifier.reload();
 
-    manager.graph.forEach((event) {
+    manager.graph.throttle(throttleDuration).forEach((events) {
       if (!_notifier.mounted) {
         return;
       }
 
       // filter by keys (that are not IDs)
-      final keys = event.keys.where((key) =>
-          key.startsWith(type) && !event.graph.hasEdge(key, metadata: 'key'));
+      final filteredEvents = events.where((event) =>
+          event.type.isNode &&
+          event.keys.first.startsWith(type) &&
+          !event.graph.hasEdge(event.keys.first, metadata: 'key'));
 
-      if (keys.isNotEmpty) {
+      if (filteredEvents.isEmpty) {
+        return;
+      }
+
+      final list = _notifier.data.model;
+
+      for (final event in filteredEvents) {
+        final key = event.keys.first;
+        assert(key != null);
         switch (event.type) {
           case DataGraphEventType.addNode:
-            final model = localFindOne(keys.first);
-            _notifier.data = _notifier.data
-                .copyWith(model: _notifier.data.model..add(model));
+            list.add(localFindOne(key));
             break;
           case DataGraphEventType.updateNode:
-            final idx = _notifier.data.model
-                .indexWhere((model) => model._key == keys.first);
-            final model = localFindOne(keys.first);
-            _notifier.data = _notifier.data
-                .copyWith(model: _notifier.data.model..[idx] = model);
+            final idx = list.indexWhere((model) => model?._key == key);
+            list[idx] = localFindOne(key);
             break;
           case DataGraphEventType.removeNode:
-            _notifier.data = _notifier.data.copyWith(
-                model: _notifier.data.model
-                  ..removeWhere((model) => model._key == keys.first));
+            list..removeWhere((model) => model?._key == key);
             break;
           default:
         }
       }
+
+      _notifier.data = _notifier.data.copyWith(model: list, isLoading: false);
     });
 
     return _notifier;
@@ -100,82 +108,98 @@ mixin WatchAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
       },
     );
 
-    void _tryInitializeWatch(T model) {
-      if (alsoWatch != null && model != null) {
-        for (var rel in alsoWatch(model)) {
-          _alsoWatchFilters.add(rel._name);
-        }
+    void _initializeRelationshipsToWatch(T model) {
+      if (alsoWatch != null && _alsoWatchFilters.isEmpty) {
+        _alsoWatchFilters.addAll(alsoWatch(model).map((rel) => rel._name));
       }
     }
 
     // kick off
 
-    _tryInitializeWatch(_notifier.data.model);
+    // try to find relationships to watch
+    if (_notifier.data.model != null) {
+      _initializeRelationshipsToWatch(_notifier.data.model);
+    }
+    // trigger local + async loading
     _notifier.reload();
 
-    manager.graph.where((event) {
-      if (key() == null) {
-        return false;
-      }
-
-      // if either the currently-watched key OR any of the nodes
-      // connected to it (by additional filters) are mentioned in
-      // the `event.keys` iterable, then send for further processing
-      return event.keys.containsFirst(key()) &&
-              (
-                  // listen to changes on current model
-                  event.type.isNode ||
-                      // listen to changes on specific relationships of this model
-                      event.type.isEdge &&
-                          _alsoWatchFilters.contains(event.metadata)) ||
-          // listen to updates on all models of specific relationships of this model
-          event.type == DataGraphEventType.updateNode &&
-              _relatedKeys.any(event.keys.contains);
-    }).forEach((event) {
-      if (!_notifier.mounted) {
-        return;
-      }
-
-      if (event.keys.containsFirst(key())) {
-        // listen to addition/update on current model
-        if (event.type == DataGraphEventType.addNode ||
-            event.type == DataGraphEventType.updateNode) {
-          final model = localFindOne(key());
-          if (model != null) {
-            _tryInitializeWatch(model);
-            _notifier.data = _notifier.data
-                .copyWith(model: model, isLoading: false, exception: null);
+    // start listening to graph for further changes
+    manager.graph
+        .where((event) {
+          if (key() == null) {
+            return false;
           }
-        }
 
-        if (_notifier.data.model != null) {
-          // listen to removal on current model
-          if (event.type == DataGraphEventType.removeNode) {
-            _notifier.data = _notifier.data
-                .copyWith(model: null, isLoading: false, exception: null);
+          // if either the currently-watched key OR any of the nodes
+          // connected to it (by additional filters) are mentioned in
+          // the `event.keys` iterable, then send for further processing
+          return event.keys.containsFirst(key()) &&
+                  (
+                      // listen to changes on current model
+                      event.type.isNode ||
+                          // listen to changes on specific relationships of this model
+                          event.type.isEdge &&
+                              _alsoWatchFilters.contains(event.metadata)) ||
+              // listen to updates on all models of specific relationships of this model
+              event.type == DataGraphEventType.updateNode &&
+                  _relatedKeys.any(event.keys.contains);
+        })
+        .throttle(throttleDuration)
+        .forEach((events) {
+          if (!_notifier.mounted) {
+            return;
           }
-          // listen to changes on specific relationships of this model
-          if (event.type.isEdge && _alsoWatchFilters.contains(event.metadata)) {
-            // calculate current related models
-            _relatedKeys = relationshipsFor(_notifier.data.model)
-                .values
-                .map((meta) => (meta['instance'] as Relationship)?.keys)
-                .where((keys) => keys != null)
-                .expand((key) => key)
-                .toSet();
 
-            // and refresh
-            _notifier.data = _notifier.data;
+          // buffers
+          var modelBuffer = _notifier.data.model;
+          var refresh = false;
+
+          for (final event in events) {
+            if (event.keys.containsFirst(key())) {
+              // add/update
+              if (event.type == DataGraphEventType.addNode ||
+                  event.type == DataGraphEventType.updateNode) {
+                final model = localFindOne(key());
+                if (model != null) {
+                  _initializeRelationshipsToWatch(model);
+                  modelBuffer = model;
+                }
+              }
+
+              // remove
+              if (event.type == DataGraphEventType.removeNode &&
+                  _notifier.data.model != null) {
+                modelBuffer = null;
+              }
+
+              // changes on specific relationships of this model
+              if (_notifier.data.model != null &&
+                  event.type.isEdge &&
+                  _alsoWatchFilters.contains(event.metadata)) {
+                // calculate current related models
+                _relatedKeys = relationshipsFor(_notifier.data.model)
+                    .values
+                    .map((meta) => (meta['instance'] as Relationship)?.keys)
+                    .where((keys) => keys != null)
+                    .expand((key) => key)
+                    .toSet();
+
+                refresh = true;
+              }
+            }
+
+            // updates on all models of specific relationships of this model
+            if (event.type == DataGraphEventType.updateNode &&
+                _relatedKeys.any(event.keys.contains)) {
+              refresh = true;
+            }
           }
-        }
-      }
 
-      // listen to updates on all models of specific relationships of this model
-      if (event.type == DataGraphEventType.updateNode &&
-          _relatedKeys.any(event.keys.contains)) {
-        _notifier.data = _notifier.data;
-      }
-    });
+          if (modelBuffer != _notifier.data.model || refresh) {
+            _notifier.data = _notifier.data.copyWith(
+                model: modelBuffer, isLoading: false, exception: null);
+          }
+        });
 
     return _notifier;
   }

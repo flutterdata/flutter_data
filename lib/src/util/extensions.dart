@@ -22,15 +22,11 @@ extension ToStringX on DataRequestMethod {
 }
 
 extension MapX<K, V> on Map<K, V> {
-  String get id => this['id'] != null ? this['id'].toString() : null;
   Map<K, V> operator &(Map<K, V> more) => {...this, ...?more};
 }
 
-extension ListX<T> on List<T> {
-  bool containsFirst(T model) => isNotEmpty ? first == model : false;
-}
-
 extension IterableX<T> on Iterable<T> {
+  bool containsFirst(T model) => isNotEmpty ? first == model : false;
   Iterable<T> get filterNulls => where((elem) => elem != null);
 }
 

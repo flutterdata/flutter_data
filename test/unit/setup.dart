@@ -98,10 +98,20 @@ class Bloc {
 
 class MockFamilyRepository extends Mock implements Repository<Family> {}
 
+mixin NoThrottleAdapter<T extends DataSupport<T>> on WatchAdapter<T> {
+  @override
+  Duration get throttleDuration => Duration.zero;
+}
+
+class FamilyRepository = $FamilyRepository with NoThrottleAdapter;
+
 class FamilyRepositoryWithStandardJSONAdapter = $FamilyRepository
     with StandardJSONAdapter;
 
-class PersonRepository = $PersonRepository with TestLoginAdapter;
+class PersonRepository = $PersonRepository
+    with TestLoginAdapter, NoThrottleAdapter;
+
+//
 
 final injection = DataServiceLocator();
 
@@ -117,7 +127,7 @@ final Function() setUpAllFn = () {
     remote: false,
     box: FakeBox<House>(),
   ));
-  injection.register<Repository<Family>>($FamilyRepository(
+  injection.register<Repository<Family>>(FamilyRepository(
     manager,
     remote: false,
     box: FakeBox<Family>(),
@@ -147,3 +157,10 @@ final Function() tearDownAllFn = () async {
   await injection.locator<Repository<Dog>>().dispose();
   injection.clear();
 };
+
+/// Runs `fn` and waits by default 1 millisecond (tests have a throttle of Duration.zero)
+Future<void> runAndWait(Function fn,
+    [Duration duration = const Duration(milliseconds: 1)]) async {
+  await fn.call();
+  await Future.delayed(duration);
+}

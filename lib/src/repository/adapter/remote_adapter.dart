@@ -137,7 +137,6 @@ mixin RemoteAdapter<T extends DataSupport<T>> on Repository<T> {
       ),
     );
 
-    // ignore: unnecessary_lambdas
     return withResponse<T>(response, (data) {
       // data has an ID, deserialize will reuse
       // corresponding key, if present

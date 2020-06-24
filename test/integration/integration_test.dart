@@ -63,8 +63,6 @@ void main() async {
       }),
       fireImmediately: false,
     );
-
-    Model(id: '1', name: 'Roadster', company: BelongsTo()).init(manager);
   });
 
   test('save', () async {
@@ -163,6 +161,31 @@ void main() async {
         }
         i++;
       }, count: 3),
+    );
+  });
+
+  test('watch all cities', () async {
+    // NOTE: CityRepository has a throttle duration set to zero!
+    final repo = injection.locator<Repository<City>>();
+    await repo.box.clear();
+
+    final notifier = repo.watchAll();
+    var i = 0;
+    dispose = notifier.addListener(
+      expectAsync1((state) {
+        if (i == 0) {
+          // initial value
+          expect(state.isLoading, true);
+          expect(state.model, isEmpty);
+        }
+        if (i == 1) {
+          // updated with API response
+          expect(state.isLoading, false);
+          expect(state.model.map((city) => city.name),
+              ['Munich', 'Palo Alto', 'Ingolstadt']);
+        }
+        i++;
+      }, count: 2),
     );
   });
 }

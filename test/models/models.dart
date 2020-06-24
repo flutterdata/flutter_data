@@ -81,5 +81,11 @@ mixin TestMixin<T extends DataSupport<T>> on RemoteAdapter<T> {
   }
 }
 
+mixin NoThrottleAdapter on WatchAdapter<City> {
+  @override
+  Duration get throttleDuration => Duration.zero;
+}
+
 class ModelTestRepository = $ModelRepository with TestMixin, JSONAPIAdapter;
-class CityTestRepository = $CityRepository with TestMixin, JSONAPIAdapter;
+class CityTestRepository = $CityRepository
+    with TestMixin, NoThrottleAdapter, JSONAPIAdapter;

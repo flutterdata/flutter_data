@@ -5,60 +5,49 @@ import 'dart:async';
 import 'package:state_notifier/state_notifier.dart';
 import 'package:data_state/data_state.dart';
 
-class _FunctionalStateNotifier<T> extends StateNotifier<T> {
-  final StateNotifier<T> _source;
+class _FunctionalStateNotifier<S, T> extends StateNotifier<T> {
+  final StateNotifier<S> _source;
   _FunctionalStateNotifier(this._source) : super(null);
   RemoveListener _disposeFn;
   Timer _timer;
-  bool _dirty = false;
   StreamController<T> _controller;
 
-  StateNotifier<T> where(bool Function(T) test) {
+  StateNotifier<T> where(bool Function(S) test) {
     _disposeFn = _source.addListener((_state) {
       if (test(_state)) {
-        state = _state;
+        state = _state as T;
       }
     }, fireImmediately: false);
     return this;
   }
 
-  void forEach(void Function(T) action) {
+  void forEach(void Function(S) action) {
     _disposeFn = _source.addListener(action, fireImmediately: false);
   }
 
-  StateNotifier<T> map(T Function(T) convert) {
+  StateNotifier<T> map(T Function(S) convert) {
     _disposeFn = _source.addListener((state) {
       super.state = convert(state);
     }, fireImmediately: false);
     return this;
   }
 
-  T _unthrottledState;
+  final _bufferedState = <S>[];
 
-  StateNotifier<T> throttle(int delay) {
-    _disposeFn = _source.addListener((state) {
-      if (_timer == null) {
-        _dirty = false;
-        super.state = state;
-        _timer = _makeTimer(delay);
-      } else {
-        _dirty = true;
-      }
-      _unthrottledState = state;
+  StateNotifier<T> throttle(Duration duration) {
+    _timer = _makeTimer(duration);
+    _disposeFn = _source.addListener((model) {
+      _bufferedState.add(model);
     }, fireImmediately: false);
     return this;
   }
 
-  Timer _makeTimer(int delay) {
-    return Timer(Duration(seconds: delay), () {
+  Timer _makeTimer(Duration duration) {
+    return Timer(duration, () {
       if (mounted) {
-        if (_dirty) {
-          _dirty = false;
-          _timer = _makeTimer(delay);
-          super.state = _unthrottledState;
-        } else {
-          _timer = null;
-        }
+        super.state = _bufferedState as T; // since T == List<S>
+        _bufferedState.clear(); // clear buffer
+        _timer = _makeTimer(duration); // reset timer
       }
     });
   }
@@ -76,9 +65,9 @@ class _FunctionalStateNotifier<T> extends StateNotifier<T> {
     _controller?.add(state);
   }
 
-  @override
-  void Function(dynamic, StackTrace) get onError =>
-      (error, trace) => _controller?.addError(error, trace);
+  // @override
+  // void Function(dynamic, StackTrace) get onError =>
+  //     (error, trace) => _controller?.addError(error, trace);
 
   @override
   void dispose() {
@@ -90,24 +79,24 @@ class _FunctionalStateNotifier<T> extends StateNotifier<T> {
 
 extension StateNotifierX<T> on StateNotifier<T> {
   StateNotifier<T> where(bool Function(T) test) {
-    return _FunctionalStateNotifier<T>(this).where(test);
+    return _FunctionalStateNotifier<T, T>(this).where(test);
   }
 
   StateNotifier<T> map(T Function(T) convert) {
-    return _FunctionalStateNotifier<T>(this).map(convert);
+    return _FunctionalStateNotifier<T, T>(this).map(convert);
   }
 
   void forEach(void Function(T) action) {
-    return _FunctionalStateNotifier<T>(this).forEach(action);
+    return _FunctionalStateNotifier<T, void>(this).forEach(action);
   }
 
-  // updates state maximum once per [delay]
-  StateNotifier<T> throttle(int delay) {
-    return _FunctionalStateNotifier<T>(this).throttle(delay);
+  /// Updates state maximum once per [duration]
+  StateNotifier<List<T>> throttle(Duration duration) {
+    return _FunctionalStateNotifier<T, List<T>>(this).throttle(duration);
   }
 
   Stream<T> get stream {
-    return _FunctionalStateNotifier<T>(this).stream;
+    return _FunctionalStateNotifier<T, T>(this).stream;
   }
 }
 
@@ -124,6 +113,6 @@ void main() {
   TestStateNotifier()
       .map((state) => state.copyWith(model: state.model * 3))
       .where((state) => state.model % 2 == 0)
-      .throttle(1)
-      .forEach(print);
+      .throttle(Duration(seconds: 8))
+      .forEach((numbers) => print(numbers.map((e) => e.model).join(', ')));
 }
