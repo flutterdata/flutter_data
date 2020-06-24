@@ -95,7 +95,7 @@ void main() async {
     manager.getKeyForId('people', 'a1a1a1', keyIfAbsent: 'people#a2a2a2');
     expect(manager.getKeyForId('people', 'a1a1a1'), 'people#a2a2a2');
     expect(manager.dumpGraph().keys.toSet(),
-        {'people#a2a2a2', 'people#a1a1a1', 'people#1'});
+        {'people#a2a2a2', 'people#a1a1a1', 'id:people#a1a1a1', 'id:people#1'});
     expect(manager.getKeyForId('people', '1'), 'people#a1a1a1');
     manager.removeKey('people#a1a1a1');
     expect(manager.getKeyForId('people', '1'), isNull);
@@ -128,5 +128,24 @@ void main() async {
     }
 
     expect(manager.metaBox.toMap(), manager.dumpGraph());
+  });
+
+  test('namespaced keys crud', () {
+    manager.addNode('superman', '1');
+    expect(manager.getNode('superman', '1'), isA<Map<String, List<String>>>());
+
+    manager.addNode('superman', '2');
+    expect(manager.getNodes('superman'), hasLength(2));
+
+    manager.removeNode('superman', '1');
+    expect(manager.hasNode('superman', '1'), isFalse);
+    expect(manager.getNodes('superman'), hasLength(1));
+
+    expect(() => manager.addNode('super:man', '1'),
+        throwsA(isA<AssertionError>()));
+  });
+
+  test('denamespace', () {
+    expect(manager.denamespace('superman:1'), '1');
   });
 }

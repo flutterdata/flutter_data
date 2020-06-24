@@ -24,6 +24,7 @@ export 'annotations.dart';
 export 'src/util/notifier_extension.dart';
 
 part 'src/data/data_manager.dart';
+part 'src/data/data_graph.dart';
 part 'src/data/data_exception.dart';
 
 part 'src/model/data_support.dart';

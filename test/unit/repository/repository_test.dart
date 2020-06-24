@@ -76,7 +76,7 @@ void main() async {
     expect(repo.manager.metaBox.get('people#${keyFor(person)}'), isNull);
     // the ID->key node is left orphan, which
     // will eventually be removed with serialization
-    expect(repo.manager.metaBox.get('people#${person.id}'), isNotNull);
+    expect(repo.manager.metaBox.get('id:people#${person.id}'), isNotNull);
   });
 
   test('delete without init', () async {

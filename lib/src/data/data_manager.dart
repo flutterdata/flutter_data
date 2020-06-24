@@ -1,6 +1,6 @@
 part of flutter_data;
 
-class DataManager {
+class DataManager with _DataGraph {
   @visibleForTesting
   DataManager.delegate();
 
@@ -12,8 +12,6 @@ class DataManager {
   }
 
   static final _uuid = Uuid();
-
-  DataGraphNotifier _graph;
 
   final _hive = Hive;
 
@@ -62,28 +60,6 @@ class DataManager {
   Future<void> dispose() async {
     await _metaBox?.close();
   }
-
-  // graph
-
-  String getKeyForId(String type, dynamic id, {String keyIfAbsent}) {
-    return _graph.getKeyForId(type, id, keyIfAbsent: keyIfAbsent);
-  }
-
-  String getId(String key) => _graph.getId(key);
-
-  void removeKey(String key) => _graph.removeNode(key);
-
-  void removeId(String type, dynamic id) => _graph.removeNode('$type#$id');
-
-  Map<String, Object> dumpGraph() => _graph.toMap();
-
-  @visibleForTesting
-  @protected
-  void debugClearGraph() => _graph.clear();
-
-  @visibleForTesting
-  @protected
-  set debugGraph(DataGraphNotifier value) => _graph = value;
 
   final _assertMessage = '''\n
 This manager has not been initialized.

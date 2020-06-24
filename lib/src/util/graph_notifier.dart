@@ -1,4 +1,3 @@
-import 'package:flutter_data/flutter_data.dart';
 import 'package:hive/hive.dart';
 import 'package:meta/meta.dart';
 import 'package:state_notifier/state_notifier.dart';
@@ -11,6 +10,14 @@ class DataGraphNotifier extends StateNotifier<DataGraphEvent> {
   final Box<Map<String, List<String>>> box;
 
   // read
+
+  List<Map<String, List<String>>> getNodes(String namespace) {
+    assert(namespace != null, 'namespace cannot be null');
+    return box.keys
+        .where((key) => key.toString().startsWith(namespace))
+        .map((key) => box.get(key))
+        .toList();
+  }
 
   Map<String, List<String>> getNode(String key) {
     assert(key != null, 'key cannot be null');
@@ -201,53 +208,6 @@ class DataGraphNotifier extends StateNotifier<DataGraphEvent> {
       keys: keys,
       graph: this,
     );
-  }
-
-  // key & id
-
-  String getId(String key) {
-    final tos = getEdge(key, metadata: 'id');
-    return tos == null || tos.isEmpty
-        ? null
-        : (tos.first.split('#')..removeAt(0)).join('#');
-  }
-
-  String getKeyForId(String type, dynamic id, {String keyIfAbsent}) {
-    type = Repository.getType(type);
-    if (id != null) {
-      final _id = '$type#$id';
-
-      if (getNode(_id) != null) {
-        final tos = getEdge(_id, metadata: 'key');
-        if (tos != null && tos.isNotEmpty) {
-          final key = tos.first;
-          return key;
-        }
-      }
-
-      if (keyIfAbsent != null) {
-        // this means the method is instructed to
-        // create nodes and edges
-        if (!hasNode(keyIfAbsent)) {
-          addNode(keyIfAbsent, notify: false);
-        }
-        if (!hasNode(_id)) {
-          addNode(_id, notify: false);
-        }
-        removeEdges(keyIfAbsent,
-            metadata: 'id', inverseMetadata: 'key', notify: false);
-        addEdge(keyIfAbsent, _id,
-            metadata: 'id', inverseMetadata: 'key', notify: false);
-        return keyIfAbsent;
-      }
-    } else if (keyIfAbsent != null) {
-      // if no ID is supplied but keyIfAbsent is, create node for key
-      if (!hasNode(keyIfAbsent)) {
-        addNode(keyIfAbsent, notify: false);
-      }
-      return keyIfAbsent;
-    }
-    return null;
   }
 
   // misc
