@@ -87,7 +87,7 @@ extension StateNotifierX<T> on StateNotifier<T> {
   }
 
   void forEach(void Function(T) action) {
-    return _FunctionalStateNotifier<T, void>(this).forEach(action);
+    _FunctionalStateNotifier<T, void>(this).forEach(action);
   }
 
   /// Updates state maximum once per [duration]

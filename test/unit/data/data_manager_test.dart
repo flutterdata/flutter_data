@@ -94,7 +94,7 @@ void main() async {
     manager.getKeyForId('people', '1', keyIfAbsent: 'people#a1a1a1');
     manager.getKeyForId('people', 'a1a1a1', keyIfAbsent: 'people#a2a2a2');
     expect(manager.getKeyForId('people', 'a1a1a1'), 'people#a2a2a2');
-    expect(manager.graph.toMap().keys.toSet(),
+    expect(manager.dumpGraph().keys.toSet(),
         {'people#a2a2a2', 'people#a1a1a1', 'people#1'});
     expect(manager.getKeyForId('people', '1'), 'people#a1a1a1');
     manager.removeKey('people#a1a1a1');

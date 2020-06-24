@@ -12,7 +12,7 @@ import '../models/house.dart';
 import '../models/person.dart';
 import '../models/pet.dart';
 
-// mocks
+// mocks, fakes and test impls
 
 class HiveMock extends Mock implements HiveInterface {}
 
@@ -69,11 +69,16 @@ class FakeBox<T> extends Fake implements Box<T> {
   Future<void> close() => Future.value();
 }
 
-//
+class Bloc {
+  final Repository<Family> repo;
+  Bloc(this.repo);
+}
+
+class MockFamilyRepository extends Mock implements Repository<Family> {}
 
 class TestDataManager extends DataManager {
   TestDataManager(this.locator) : super.delegate() {
-    graph = DataGraphNotifier(metaBox);
+    debugGraph = DataGraphNotifier(metaBox);
   }
 
   @override
@@ -91,17 +96,14 @@ class TestDataManager extends DataManager {
   Future<void> dispose() async {}
 }
 
-class Bloc {
-  final Repository<Family> repo;
-  Bloc(this.repo);
-}
+// repositories
 
-class MockFamilyRepository extends Mock implements Repository<Family> {}
-
-mixin NoThrottleAdapter<T extends DataSupport<T>> on WatchAdapter<T> {
+mixin NoThrottleAdapter<T extends DataSupport<T>> on Repository<T> {
   @override
   Duration get throttleDuration => Duration.zero;
 }
+
+class HouseRepository = $HouseRepository with NoThrottleAdapter;
 
 class FamilyRepository = $FamilyRepository with NoThrottleAdapter;
 
@@ -111,7 +113,7 @@ class FamilyRepositoryWithStandardJSONAdapter = $FamilyRepository
 class PersonRepository = $PersonRepository
     with TestLoginAdapter, NoThrottleAdapter;
 
-//
+// global setup and teardown
 
 final injection = DataServiceLocator();
 
@@ -122,7 +124,7 @@ final Function() setUpAllFn = () {
   manager = TestDataManager(injection.locator);
   injection.register<DataManager>(manager);
 
-  injection.register<Repository<House>>($HouseRepository(
+  injection.register<Repository<House>>(HouseRepository(
     manager,
     remote: false,
     box: FakeBox<House>(),
@@ -157,6 +159,8 @@ final Function() tearDownAllFn = () async {
   await injection.locator<Repository<Dog>>().dispose();
   injection.clear();
 };
+
+// utils
 
 /// Runs `fn` and waits by default 1 millisecond (tests have a throttle of Duration.zero)
 Future<void> runAndWait(Function fn,

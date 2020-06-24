@@ -19,7 +19,7 @@ void main() async {
     repository = injection.locator<Repository<Person>>();
     // make sure there are no items in local storage from previous tests
     await repository.box.clear();
-    repository.manager.graph.clear();
+    repository.manager.clearGraph();
     expect(repository.box.keys, isEmpty);
   });
 

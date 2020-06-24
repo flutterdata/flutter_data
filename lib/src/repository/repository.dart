@@ -101,7 +101,7 @@ abstract class Repository<T extends DataSupport<T>> {
     final keyExisted = box.containsKey(key);
     box.put(key, model); // save in bg
     if (notify) {
-      manager.graph.notify(
+      manager._graph.notify(
         [key],
         keyExisted ? DataGraphEventType.updateNode : DataGraphEventType.addNode,
       );
@@ -117,6 +117,13 @@ abstract class Repository<T extends DataSupport<T>> {
       manager.removeKey(key);
     }
   }
+
+  // watch
+
+  @protected
+  @visibleForTesting
+  Duration get throttleDuration =>
+      Duration(milliseconds: 16); // 1 frame at 60fps
 
   // private
 

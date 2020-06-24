@@ -44,9 +44,11 @@ class BelongsTo<E extends DataSupport<E>> extends Relationship<E, E> {
   @override
   ValueStateNotifier<E> watch() {
     _notifier ??= ValueStateNotifier();
-    graphEventNotifier.forEach((event) {
-      _notifier.value =
-          event.type == DataGraphEventType.removeNode ? null : value;
+    _graphEvents.forEach((events) {
+      if (events.isNotEmpty) {
+        _notifier.value =
+            events.last.type == DataGraphEventType.removeNode ? null : value;
+      }
     });
     return _notifier;
   }

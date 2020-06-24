@@ -13,9 +13,7 @@ class DataManager {
 
   static final _uuid = Uuid();
 
-  @visibleForTesting
-  @protected
-  DataGraphNotifier graph;
+  DataGraphNotifier _graph;
 
   final _hive = Hive;
 
@@ -57,7 +55,7 @@ class DataManager {
 
     _hive.init(path);
     _metaBox = await _hive.openBox('_meta');
-    graph = DataGraphNotifier(_metaBox);
+    _graph = DataGraphNotifier(_metaBox);
     return this;
   }
 
@@ -65,21 +63,28 @@ class DataManager {
     await _metaBox?.close();
   }
 
-  // identity
+  // graph
+
+  StateNotifier<List<DataGraphEvent>> get throttledGraph =>
+      _graph.throttle(Duration.zero);
 
   String getKeyForId(String type, dynamic id, {String keyIfAbsent}) {
-    return graph.getKeyForId(type, id, keyIfAbsent: keyIfAbsent);
+    return _graph.getKeyForId(type, id, keyIfAbsent: keyIfAbsent);
   }
 
-  String getId(String key) => graph.getId(key);
+  String getId(String key) => _graph.getId(key);
 
-  void removeKey(String key) => graph.removeNode(key);
+  void removeKey(String key) => _graph.removeNode(key);
 
-  void removeId(String type, dynamic id) => graph.removeNode('$type#$id');
+  void removeId(String type, dynamic id) => _graph.removeNode('$type#$id');
 
-  Map<String, Object> dumpGraph() => graph.toMap();
+  Map<String, Object> dumpGraph() => _graph.toMap();
 
-  //
+  void clearGraph() => _graph.clear();
+
+  @visibleForTesting
+  @protected
+  set debugGraph(DataGraphNotifier value) => _graph = value;
 
   final _assertMessage = '''\n
 This manager has not been initialized.

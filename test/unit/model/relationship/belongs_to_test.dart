@@ -64,21 +64,17 @@ void main() async {
     notifier.addListener(
       expectAsync1((house) {
         if (i == 0) expect(house.address, startsWith('456'));
-        // we expect a null here, as replacing a value in a Set
-        // implies removing & adding
-        // this shouldn't be a problem in production with throttling
-        if (i == 1) expect(house, isNull);
-        if (i == 2) expect(house.address, startsWith('123'));
-        if (i == 3) expect(house, isNull);
+        if (i == 1) expect(house.address, startsWith('123'));
+        if (i == 2) expect(house, isNull);
         i++;
-      }, count: 4),
+      }, count: 3),
       fireImmediately: false,
     );
 
-    family.residence.value =
-        House(id: '2', address: '456 Main St').init(manager);
-    family.residence.value =
-        House(id: '1', address: '123 Main St').init(manager);
-    family.residence.value = null;
+    await runAndWait(() => family.residence.value =
+        House(id: '2', address: '456 Main St').init(manager));
+    await runAndWait(() => family.residence.value =
+        House(id: '1', address: '123 Main St').init(manager));
+    await runAndWait(() => family.residence.value = null);
   });
 }

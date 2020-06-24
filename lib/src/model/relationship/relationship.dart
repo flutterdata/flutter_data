@@ -79,9 +79,9 @@ and trigger a code generation build again.
     // initialize keys
     if (!_wasOmitted) {
       // if it wasn't omitted, we overwrite
-      manager.graph.removeEdges(_ownerKey,
+      manager._graph.removeEdges(_ownerKey,
           metadata: _name, inverseMetadata: _inverseName);
-      manager.graph.addEdges(
+      manager._graph.addEdges(
         _ownerKey,
         tos: _uninitializedKeys,
         metadata: _name,
@@ -101,7 +101,7 @@ and trigger a code generation build again.
 
     if (_repository != null) {
       _repository._initModel(value, save: true);
-      manager.graph.addEdge(_ownerKey, value._key,
+      manager._graph.addEdge(_ownerKey, value._key,
           metadata: _name, inverseMetadata: _inverseName);
       return true;
     } else if (value._key != null) {
@@ -114,8 +114,8 @@ and trigger a code generation build again.
 
   @override
   bool contains(Object element) {
-    if (element is E && manager?.graph != null) {
-      return manager.graph
+    if (element is E && manager?._graph != null) {
+      return manager._graph
           .getEdge(_ownerKey, metadata: _name)
           .contains(element._key);
     }
@@ -140,7 +140,7 @@ and trigger a code generation build again.
   bool remove(Object value, {bool notify = true}) {
     if (value is E) {
       assert(value._key != null);
-      manager.graph.removeEdge(
+      manager._graph.removeEdge(
         _ownerKey,
         value._key,
         metadata: _name,
@@ -164,7 +164,7 @@ and trigger a code generation build again.
   @visibleForTesting
   Set<String> get keys {
     // if not null return, else return empty set
-    final graph = manager?.graph;
+    final graph = manager?._graph;
     if (graph != null && _ownerKey != null) {
       return graph.getEdge(_ownerKey, metadata: _name)?.toSet() ?? {};
     }
@@ -173,17 +173,14 @@ and trigger a code generation build again.
 
   // notifier
 
-  @protected
-  @visibleForTesting
-  StateNotifier<DataGraphEvent> get graphEventNotifier =>
-      manager?.graph?.where((event) {
-        return [
-              DataGraphEventType.addEdge,
-              DataGraphEventType.updateEdge,
-              DataGraphEventType.removeEdge
-            ].contains(event.type) &&
-            event.metadata == _name &&
-            event.keys.containsFirst(_ownerKey);
+  StateNotifier<List<DataGraphEvent>> get _graphEvents =>
+      manager?.throttledGraph?.map((events) {
+        final appliesToRelationship = (DataGraphEvent event) {
+          return event.type.isEdge &&
+              event.metadata == _name &&
+              event.keys.containsFirst(_ownerKey);
+        };
+        return events.where(appliesToRelationship).toList();
       });
 
   // abstract

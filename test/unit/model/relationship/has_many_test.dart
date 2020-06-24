@@ -105,16 +105,18 @@ void main() async {
       expectAsync1((persons) {
         if (i == 0) expect(persons, {p1});
         if (i == 1) expect(persons, {p1, p2});
-        if (i == 2) expect(persons, {p2});
-        if (i == 3) expect(persons, {p2, p1});
+        if (i == 2) expect(persons, {p1, p2});
+        if (i == 3) expect(persons, {p2});
+        if (i == 4) expect(persons, {p2, p1});
         i++;
-      }, count: 4),
+      }, count: 5),
       fireImmediately: false,
     );
 
-    family.persons.add(p1);
-    family.persons.add(p2);
-    family.persons.remove(p1);
-    family.persons.add(p1);
+    await runAndWait(() => family.persons.add(p1));
+    await runAndWait(() => family.persons.add(p2));
+    await runAndWait(() => family.persons.add(p2));
+    await runAndWait(() => family.persons.remove(p1));
+    await runAndWait(() => family.persons.add(p1));
   });
 }
