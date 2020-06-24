@@ -65,9 +65,6 @@ class DataManager {
 
   // graph
 
-  StateNotifier<List<DataGraphEvent>> get throttledGraph =>
-      _graph.throttle(Duration.zero);
-
   String getKeyForId(String type, dynamic id, {String keyIfAbsent}) {
     return _graph.getKeyForId(type, id, keyIfAbsent: keyIfAbsent);
   }
@@ -80,7 +77,9 @@ class DataManager {
 
   Map<String, Object> dumpGraph() => _graph.toMap();
 
-  void clearGraph() => _graph.clear();
+  @visibleForTesting
+  @protected
+  void debugClearGraph() => _graph.clear();
 
   @visibleForTesting
   @protected

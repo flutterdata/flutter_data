@@ -98,7 +98,7 @@ class TestDataManager extends DataManager {
 
 // repositories
 
-mixin NoThrottleAdapter<T extends DataSupport<T>> on Repository<T> {
+mixin NoThrottleAdapter<T extends DataSupport<T>> on WatchAdapter<T> {
   @override
   Duration get throttleDuration => Duration.zero;
 }

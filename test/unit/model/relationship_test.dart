@@ -26,7 +26,7 @@ void main() async {
     houseRepo = injection.locator<Repository<House>>() as RemoteAdapter<House>;
     houseRepo.box.clear();
     expect(houseRepo.box.keys, isEmpty);
-    houseRepo.manager.clearGraph();
+    houseRepo.manager.debugClearGraph();
   });
 
   test('scenario #1', () {

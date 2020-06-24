@@ -1,6 +1,14 @@
 part of flutter_data;
 
 mixin WatchAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
+  @protected
+  @visibleForTesting
+  Duration get throttleDuration =>
+      Duration(milliseconds: 16); // 1 frame at 60fps
+
+  StateNotifier<List<DataGraphEvent>> get _throttledGraph =>
+      manager._graph.throttle(throttleDuration);
+
   @override
   DataStateNotifier<List<T>> watchAll(
       {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
@@ -28,7 +36,7 @@ mixin WatchAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
     // kick off
     _notifier.reload();
 
-    manager.throttledGraph.forEach((events) {
+    _throttledGraph.forEach((events) {
       if (!_notifier.mounted) {
         return;
       }
@@ -122,7 +130,7 @@ mixin WatchAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
     _notifier.reload();
 
     // start listening to graph for further changes
-    manager.throttledGraph.forEach((events) {
+    _throttledGraph.forEach((events) {
       if (!_notifier.mounted) {
         return;
       }

@@ -118,13 +118,6 @@ abstract class Repository<T extends DataSupport<T>> {
     }
   }
 
-  // watch
-
-  @protected
-  @visibleForTesting
-  Duration get throttleDuration =>
-      Duration(milliseconds: 16); // 1 frame at 60fps
-
   // private
 
   T _initModel(T model, {String key, bool save = false}) {

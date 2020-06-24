@@ -173,15 +173,18 @@ and trigger a code generation build again.
 
   // notifier
 
-  StateNotifier<List<DataGraphEvent>> get _graphEvents =>
-      manager?.throttledGraph?.map((events) {
-        final appliesToRelationship = (DataGraphEvent event) {
-          return event.type.isEdge &&
-              event.metadata == _name &&
-              event.keys.containsFirst(_ownerKey);
-        };
-        return events.where(appliesToRelationship).toList();
-      });
+  StateNotifier<List<DataGraphEvent>> get _graphEvents {
+    assert(_repository != null);
+    final graph = (_repository as WatchAdapter<E>)._throttledGraph;
+    return graph.map((events) {
+      final appliesToRelationship = (DataGraphEvent event) {
+        return event.type.isEdge &&
+            event.metadata == _name &&
+            event.keys.containsFirst(_ownerKey);
+      };
+      return events.where(appliesToRelationship).toList();
+    });
+  }
 
   // abstract
 
