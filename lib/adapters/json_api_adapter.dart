@@ -48,7 +48,7 @@ mixin JSONAPIAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
     }
 
     final id = map.remove('id');
-    final resource = ResourceObject(type, id.toString(),
+    final resource = ResourceObject(type, id?.toString(),
         attributes: map, relationships: relationships);
 
     return Document(ResourceData(resource)).toJson();
