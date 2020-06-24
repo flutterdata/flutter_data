@@ -46,7 +46,7 @@ abstract class Repository<T extends DataSupport<T>> {
   Future<void> delete(dynamic model,
       {bool remote, Map<String, dynamic> params, Map<String, String> headers});
 
-  Map<dynamic, T> get dumpBox;
+  Map<dynamic, T> dumpBox();
 
   // lifecycle hooks
 

@@ -11,7 +11,7 @@ void main() async {
   tearDownAll(tearDownAllFn);
 
   test('init', () async {
-    final repo = injection.locator<Repository<Person>>();
+    final repo = manager.locator<Repository<Person>>();
 
     final family = Family(id: '55', surname: 'Kelley').init(manager);
     final model =
@@ -28,7 +28,7 @@ void main() async {
   // misc compatibility tests
 
   test('should reuse key', () {
-    final repository = injection.locator<Repository<Person>>();
+    final repository = manager.locator<Repository<Person>>();
 
     // id-less person
     final p1 = Person(name: 'Frank', age: 20).init(manager);

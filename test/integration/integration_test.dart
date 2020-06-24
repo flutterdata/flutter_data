@@ -35,7 +35,7 @@ void main() async {
   });
 
   test('findAll', () async {
-    final repo = injection.locator<Repository<City>>();
+    final repo = manager.locator<Repository<City>>();
     final cities = await repo.findAll(params: {
       'page': {'offset': 1}
     });
@@ -48,13 +48,13 @@ void main() async {
   });
 
   test('findOne with include', () async {
-    final repo = injection.locator<Repository<Company>>();
+    final repo = manager.locator<Repository<Company>>();
     final company = await repo.findOne('1', params: {'include': 'models'});
     expect(company.models.last.name, 'Model 3');
   });
 
   test('watchOne', () async {
-    final modelRepo = injection.locator<Repository<Model>>();
+    final modelRepo = manager.locator<Repository<Model>>();
     final notifier = modelRepo.watchOne('1');
 
     dispose = notifier.addListener(
@@ -66,7 +66,7 @@ void main() async {
   });
 
   test('save', () async {
-    final repo = injection.locator<Repository<Model>>();
+    final repo = manager.locator<Repository<Model>>();
     final companies = await injection
         .locator<Repository<Company>>()
         .findAll(params: {'include': 'models'});
@@ -88,7 +88,7 @@ void main() async {
   });
 
   test('save without id', () async {
-    final repo = injection.locator<Repository<Company>>();
+    final repo = manager.locator<Repository<Company>>();
     final company = Company(name: 'New Co', models: HasMany()).init(manager);
 
     final c2 = await company.save();
@@ -102,7 +102,7 @@ void main() async {
   });
 
   test('save after adding to rel', () async {
-    final repo = injection.locator<Repository<Company>>();
+    final repo = manager.locator<Repository<Company>>();
     final company = await repo.findOne('1');
 
     final model = Model(name: 'Zucchini 8', company: BelongsTo()).init(manager);
@@ -122,13 +122,13 @@ void main() async {
 
   test('fetch with error', () async {
     expect(() async {
-      await injection.locator<Repository<Company>>().findOne('2332');
+      await manager.locator<Repository<Company>>().findOne('2332');
     }, throwsA(isA<DataException>()));
   });
 
   tearDownAll(() async {
     await server.close();
-    await injection.locator<Repository<Model>>().dispose();
+    await manager.locator<Repository<Model>>().dispose();
     injection.clear();
   });
 
@@ -166,7 +166,7 @@ void main() async {
 
   test('watch all cities', () async {
     // NOTE: CityRepository has a throttle duration set to zero!
-    final repo = injection.locator<Repository<City>>();
+    final repo = manager.locator<Repository<City>>();
     await repo.box.clear();
 
     final notifier = repo.watchAll();

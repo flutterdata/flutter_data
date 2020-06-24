@@ -1,9 +1,19 @@
+## [0.4.2-dev.1] - 2020-06-24
+
+ - Throttle graph events, configure duration via `throttleDuration` of `WatchAdapter`
+ - Namespaced graph for custom adapters wanting to leverage graph capabilities
+ - JSON API adapter fixes
+ - Removed `DataSupportMixin`: only `DataSupport` left, can be used as class or mixin
+ - Possible to leave models uninitialized (i.e. empty models used in forms)
+ - `DataSupport#save`, `DataSupport#watch`, `DataSupport#delete` will auto-initialize
+ - Misc fixes and vastly improved `watch*` tests
+ 
 ## [0.4.1] - 2020-06-18
  
- - stabilize API (including `data_state` upgrade)
- - ensure to reset exceptions in `watchOne` bugfix
+ - Stabilize API (including `data_state` upgrade)
+ - Ensure to reset exceptions in `watchOne` bugfix
  - `DataSupportMixin` manual `init` now takes a `DataManager` argument
- - clean up and minor fixes/additions in tests
+ - Clean up and minor fixes/additions in tests
 
 ## [0.4.0] - 2020-06-15
 

@@ -225,7 +225,7 @@ mixin RemoteAdapter<T extends DataSupport<T>> on Repository<T> {
   }
 
   @override
-  Map<dynamic, T> get dumpBox => box.toMap();
+  Map<dynamic, T> dumpBox() => box.toMap();
 
   // utils
 

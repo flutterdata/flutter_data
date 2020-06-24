@@ -21,8 +21,7 @@ void main() async {
     final family = Family(
         id: '1', surname: 'Smith', residence: houseRel, persons: personRel);
 
-    final repo =
-        injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
+    final repo = manager.locator<Repository<Family>>() as RemoteAdapter<Family>;
     final map = repo.serialize(family);
     expect(map, {
       'id': '1',
@@ -35,8 +34,7 @@ void main() async {
   });
 
   test('serialize with relationships', () {
-    final repo =
-        injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
+    final repo = manager.locator<Repository<Family>>() as RemoteAdapter<Family>;
 
     final person = Person(id: '1', name: 'John', age: 37).init(manager);
     final house = House(id: '1', address: '123 Main St').init(manager);
@@ -72,8 +70,7 @@ void main() async {
       'persons': personRel.keys,
     };
 
-    final repo =
-        injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
+    final repo = manager.locator<Repository<Family>>() as RemoteAdapter<Family>;
     final family = repo.deserialize(map);
     expect(
         family,
@@ -86,8 +83,7 @@ void main() async {
   });
 
   test('deserialize existing', () {
-    final repo =
-        injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
+    final repo = manager.locator<Repository<Family>>() as RemoteAdapter<Family>;
     repo.box.clear();
     expect(repo.box.keys, isEmpty);
     final family = Family(surname: 'Moletto').init(manager);
@@ -102,8 +98,7 @@ void main() async {
   });
 
   test('deserialize many local for same remote ID', () {
-    final repo =
-        injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
+    final repo = manager.locator<Repository<Family>>() as RemoteAdapter<Family>;
     repo.box.clear();
     expect(repo.box.keys, isEmpty);
 
@@ -127,8 +122,7 @@ void main() async {
   });
 
   test('deserialize with relationships', () {
-    final repo =
-        injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
+    final repo = manager.locator<Repository<Family>>() as RemoteAdapter<Family>;
 
     final house = House(id: '1', address: '123 Main St').init(manager);
     final person = Person(id: '1', name: 'John', age: 21).init(manager);
@@ -158,7 +152,7 @@ void main() async {
   });
 
   test('delete model with and without ID', () async {
-    final repository = injection.locator<Repository<Person>>();
+    final repository = manager.locator<Repository<Person>>();
     await repository.box.clear();
 
     // create a person WITH ID and assert it's there

@@ -16,7 +16,7 @@ void main() async {
   Function dispose;
 
   setUp(() async {
-    repository = injection.locator<Repository<Person>>();
+    repository = manager.locator<Repository<Person>>();
     // make sure there are no items in local storage from previous tests
     await repository.box.clear();
     repository.manager.debugClearGraph();
@@ -146,7 +146,7 @@ void main() async {
       cottage: BelongsTo(),
     ).init(manager);
 
-    final notifier = injection.locator<Repository<Family>>().watchOne('22',
+    final notifier = manager.locator<Repository<Family>>().watchOne('22',
         alsoWatch: (family) => [family.persons, family.residence]);
 
     var i = 0;

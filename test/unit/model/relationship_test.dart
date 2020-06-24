@@ -15,15 +15,13 @@ void main() async {
   tearDownAll(tearDownAllFn);
 
   setUp(() {
-    familyRepo =
-        injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
+    familyRepo = manager.locator<Repository<Family>>() as RemoteAdapter<Family>;
     familyRepo.box.clear();
     expect(familyRepo.box.keys, isEmpty);
-    personRepo =
-        injection.locator<Repository<Person>>() as RemoteAdapter<Person>;
+    personRepo = manager.locator<Repository<Person>>() as RemoteAdapter<Person>;
     personRepo.box.clear();
     expect(personRepo.box.keys, isEmpty);
-    houseRepo = injection.locator<Repository<House>>() as RemoteAdapter<House>;
+    houseRepo = manager.locator<Repository<House>>() as RemoteAdapter<House>;
     houseRepo.box.clear();
     expect(houseRepo.box.keys, isEmpty);
     houseRepo.manager.debugClearGraph();
@@ -111,7 +109,7 @@ void main() async {
   });
 
   test('scenario #2', () {
-    final personRepo = injection.locator<Repository<Person>>();
+    final personRepo = manager.locator<Repository<Person>>();
 
     // (1) first load family (with relationships)
     final family = Family(

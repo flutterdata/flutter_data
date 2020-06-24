@@ -34,8 +34,8 @@ void main() async {
 
   test('deserialize with included HasMany', () async {
     // exceptionally uses this repo so we can supply included models
-    final repo = injection.locator<FamilyRepositoryWithStandardJSONAdapter>();
-    final personRepo = injection.locator<Repository<Person>>();
+    final repo = manager.locator<FamilyRepositoryWithStandardJSONAdapter>();
+    final personRepo = manager.locator<Repository<Person>>();
 
     final marty = {'id': '71', 'name': 'Marty', 'age': 52};
     final wendy = {'id': '72', 'name': 'Wendy', 'age': 54};
@@ -52,8 +52,7 @@ void main() async {
   });
 
   test('maintain relationship reference validity', () {
-    final repo =
-        injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
+    final repo = manager.locator<Repository<Family>>() as RemoteAdapter<Family>;
 
     final brian = Person(name: 'Brian', age: 52).init(manager);
     final family =

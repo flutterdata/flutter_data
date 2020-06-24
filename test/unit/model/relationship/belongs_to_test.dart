@@ -12,8 +12,8 @@ void main() async {
 
   test('deserialize with included BelongsTo', () async {
     // exceptionally uses this repo so we can supply included models
-    final repo = injection.locator<FamilyRepositoryWithStandardJSONAdapter>();
-    final houseRepo = injection.locator<Repository<House>>();
+    final repo = manager.locator<FamilyRepositoryWithStandardJSONAdapter>();
+    final houseRepo = manager.locator<Repository<House>>();
 
     final house = {'id': '432337', 'address': 'Ozark Lake, MO'};
     final familyJson = {'surname': 'Byrde', 'residence': house};
@@ -24,7 +24,7 @@ void main() async {
   });
 
   test('set owner in relationships', () {
-    final repo = injection.locator<Repository<Family>>();
+    final repo = manager.locator<Repository<Family>>();
 
     final person = Person(id: '1', name: 'John', age: 37).init(manager);
     final house = House(id: '31', address: '123 Main St').init(manager);

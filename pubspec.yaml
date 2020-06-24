@@ -1,7 +1,7 @@
 name: flutter_data
 description: >
   Flutter Data is a library for seamlessly managing persistent data in Flutter apps
-version: 0.4.1
+version: 0.4.2-dev.1
 homepage: https://github.com/flutterdata/flutter_data
 documentation: https://flutterdata.dev/
 

@@ -12,12 +12,12 @@ void main() async {
   tearDownAll(tearDownAllFn);
 
   test('locator', () {
-    final repo = injection.locator<Repository<Person>>();
+    final repo = manager.locator<Repository<Person>>();
     expect(repo.manager.locator, isNotNull);
   });
 
   test('findAll', () async {
-    final repo = injection.locator<Repository<Family>>();
+    final repo = manager.locator<Repository<Family>>();
     final family1 = Family(id: '1', surname: 'Smith');
     final family2 = Family(id: '2', surname: 'Jones');
 
@@ -29,7 +29,7 @@ void main() async {
   });
 
   test('findOne', () async {
-    final repo = injection.locator<Repository<Family>>();
+    final repo = manager.locator<Repository<Family>>();
     final family1 = Family(id: '1', surname: 'Smith');
 
     await repo.save(family1); // possible to save without init
@@ -38,7 +38,7 @@ void main() async {
   });
 
   test('create and save', () async {
-    final repo = injection.locator<Repository<House>>();
+    final repo = manager.locator<Repository<House>>();
     final house = House(id: '25', address: '12 Lincoln Rd');
 
     // the house is not initialized, so we shouldn't be able to find it
@@ -58,7 +58,7 @@ void main() async {
   });
 
   test('save and find', () async {
-    final repo = injection.locator<Repository<Family>>();
+    final repo = manager.locator<Repository<Family>>();
     final family = Family(id: '32423', surname: 'Toraine');
     await repo.save(family);
 
@@ -68,7 +68,7 @@ void main() async {
   });
 
   test('delete', () async {
-    final repo = injection.locator<Repository<Person>>();
+    final repo = manager.locator<Repository<Person>>();
     final person = Person(id: '1', name: 'John', age: 21).init(manager);
     await repo.delete(person.id);
     final p2 = await repo.findOne(person.id);
@@ -80,7 +80,7 @@ void main() async {
   });
 
   test('delete without init', () async {
-    final repo = injection.locator<Repository<Person>>();
+    final repo = manager.locator<Repository<Person>>();
     final person = Person(id: '911', name: 'Sammy', age: 47);
     await repo.delete(person.id);
     expect(await repo.findOne(person.id), isNull);
@@ -88,8 +88,7 @@ void main() async {
 
   test('returning a different remote ID for a requested ID is not supported',
       () {
-    final repo =
-        injection.locator<Repository<Family>>() as RemoteAdapter<Family>;
+    final repo = manager.locator<Repository<Family>>() as RemoteAdapter<Family>;
     repo.box.clear();
 
     expect(repo.box.keys, isEmpty);
@@ -108,7 +107,7 @@ void main() async {
   });
 
   test('custom login adapter', () async {
-    final repo = injection.locator<Repository<Person>>() as PersonLoginAdapter;
+    final repo = manager.locator<Repository<Person>>() as PersonLoginAdapter;
     final token = await repo.login('email@email.com', 'password');
     expect(token, 'zzz1');
   });
