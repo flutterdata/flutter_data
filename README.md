@@ -40,14 +40,14 @@ For a given `User` model annotated with `@DataRepository`...
 
 ```dart
 @JsonSerializable()
-@DataRepository([StandardJSONAdapter, JSONPlaceholderAdapter])
+@DataRepository([StandardJSONAdapter, JSONServerAdapter])
 class User with DataSupport<User> {
   final int id;
   final String name;
   User({this.id, this.name});
 }
 
-mixin JSONPlaceholderAdapter on RemoteAdapter<User> {
+mixin JSONServerAdapter on RemoteAdapter<User> {
   @override
   String get baseUrl => "https://my-json-server.typicode.com/flutterdata/demo/";
 }
@@ -84,7 +84,7 @@ return DataStateBuilder<List<User>>(
 In addition to the reactivity, a `User` now gets extensions and automatic relationships, ActiveRecord-style:
 
 ```dart
-final todo = await Todo(title: 'Finish docs').init().save();
+final todo = await Todo(title: 'Finish docs').save();
 // POST https://my-json-server.typicode.com/flutterdata/demo/todos/
 print(todo.id); // 201
 
