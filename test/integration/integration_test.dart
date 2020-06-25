@@ -67,6 +67,7 @@ void main() async {
 
   test('save', () async {
     final repo = manager.locator<Repository<Model>>();
+    await repo.box.clear();
     final companyRepo = manager.locator<Repository<Company>>();
 
     final company = await companyRepo.findOne(4, params: {'include': 'models'});
