@@ -80,6 +80,27 @@ mixin RemoteAdapter<T extends DataSupport<T>> on Repository<T> {
   @visibleForTesting
   String keyForField(String field) => field;
 
+  // caching
+
+  @protected
+  @visibleForTesting
+  bool shouldLoadRemoteAll(
+    bool remote,
+    Map<String, dynamic> params,
+    Map<String, String> headers,
+  ) =>
+      remote;
+
+  @protected
+  @visibleForTesting
+  bool shouldLoadRemoteOne(
+    dynamic id,
+    bool remote,
+    Map<String, dynamic> params,
+    Map<String, String> headers,
+  ) =>
+      remote;
+
   // repository implementation
 
   @override
@@ -88,8 +109,10 @@ mixin RemoteAdapter<T extends DataSupport<T>> on Repository<T> {
       Map<String, dynamic> params,
       Map<String, String> headers}) async {
     remote ??= _remote;
+    params = this.params & params;
+    headers = this.headers & headers;
 
-    if (remote == false) {
+    if (!shouldLoadRemoteAll(remote, params, headers)) {
       return localFindAll();
     }
 
@@ -115,10 +138,12 @@ mixin RemoteAdapter<T extends DataSupport<T>> on Repository<T> {
       Map<String, String> headers}) async {
     assert(model != null);
     remote ??= _remote;
+    params = this.params & params;
+    headers = this.headers & headers;
 
     final id = model is T ? model.id : model;
 
-    if (remote == false) {
+    if (!shouldLoadRemoteOne(id, remote, params, headers)) {
       final key =
           manager.getKeyForId(type, id) ?? (model is T ? model._key : null);
       if (key == null) {
@@ -127,6 +152,7 @@ mixin RemoteAdapter<T extends DataSupport<T>> on Repository<T> {
       return localFindOne(key);
     }
 
+    assert(id != null);
     final response = await withHttpClient(
       (client) => _executeRequest(
         client,
@@ -150,6 +176,8 @@ mixin RemoteAdapter<T extends DataSupport<T>> on Repository<T> {
       Map<String, dynamic> params,
       Map<String, String> headers}) async {
     remote ??= _remote;
+    params = this.params & params;
+    headers = this.headers & headers;
 
     if (remote == false) {
       _initModel(model);
@@ -195,6 +223,8 @@ mixin RemoteAdapter<T extends DataSupport<T>> on Repository<T> {
       Map<String, dynamic> params,
       Map<String, String> headers}) async {
     remote ??= _remote;
+    params = this.params & params;
+    headers = this.headers & headers;
 
     final id = model is T ? model.id : model;
     final key =
@@ -293,31 +323,29 @@ mixin RemoteAdapter<T extends DataSupport<T>> on Repository<T> {
     final _baseUrl = baseUrl.endsWith('/') ? baseUrl : '$baseUrl/';
     var uri = Uri.parse('$_baseUrl$url');
 
-    final _params = this.params & params;
-    if (_params.isNotEmpty) {
-      uri = uri.replace(queryParameters: parseQueryParameters(_params));
+    if (params.isNotEmpty) {
+      uri = uri.replace(queryParameters: parseQueryParameters(params));
     }
-    final _headers = this.headers & headers;
 
     http.Response response;
     switch (method) {
       case DataRequestMethod.HEAD:
-        response = await client.head(uri, headers: _headers);
+        response = await client.head(uri, headers: headers);
         break;
       case DataRequestMethod.GET:
-        response = await client.get(uri, headers: _headers);
+        response = await client.get(uri, headers: headers);
         break;
       case DataRequestMethod.PUT:
-        response = await client.put(uri, headers: _headers, body: body);
+        response = await client.put(uri, headers: headers, body: body);
         break;
       case DataRequestMethod.POST:
-        response = await client.post(uri, headers: _headers, body: body);
+        response = await client.post(uri, headers: headers, body: body);
         break;
       case DataRequestMethod.PATCH:
-        response = await client.patch(uri, headers: _headers, body: body);
+        response = await client.patch(uri, headers: headers, body: body);
         break;
       case DataRequestMethod.DELETE:
-        response = await client.delete(uri, headers: _headers);
+        response = await client.delete(uri, headers: headers);
         break;
       default:
         response = null;

@@ -67,12 +67,13 @@ void main() async {
 
   test('save', () async {
     final repo = manager.locator<Repository<Model>>();
-    final companies = await injection
-        .locator<Repository<Company>>()
-        .findAll(params: {'include': 'models'});
-    final c = companies.last;
-    final m =
-        Model(id: '3', name: 'Elon X', company: c.asBelongsTo).init(manager);
+    final companyRepo = manager.locator<Repository<Company>>();
+
+    final company = await companyRepo.findOne(4, params: {'include': 'models'});
+    expect(await repo.findAll(), hasLength(7));
+
+    final m = Model(id: '3', name: 'Elon X', company: company.asBelongsTo)
+        .init(manager);
     final m1 = await m.save();
     final m2 = await repo.findOne('3');
 
@@ -82,9 +83,19 @@ void main() async {
     expect(keyFor(m1), keyFor(m2));
     expect(keyFor(m), keyFor(m2));
     expect(m2.name, 'Elon X');
+
     // following assertion won't pass as server data
     // "loses" information (returns 0 relationships)
     // expect(m2.company.value, c);
+
+    // create a model, persist in server, remove local copy
+    final k = await Model(name: 'K').init(manager).save();
+    await k.delete(remote: false);
+
+    // since model repo has `shouldLoadRemoteAll` set to false
+    // if models exist locally --
+    // there are now 8 models on the server, but locally we know of 7
+    expect(await repo.findAll(), hasLength(7));
   });
 
   test('save without id', () async {
