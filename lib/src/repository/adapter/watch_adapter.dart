@@ -17,13 +17,10 @@ mixin WatchAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
     final _notifier = DataStateNotifier<List<T>>(
       DataState(localFindAll().toList()),
       reload: (notifier) async {
-        if (remote == false) {
-          return;
-        }
-        notifier.data = notifier.data.copyWith(isLoading: true);
-
         try {
-          await findAll(params: params, headers: headers, remote: remote);
+          // ignore: unawaited_futures
+          findAll(params: params, headers: headers, remote: remote);
+          notifier.data = notifier.data.copyWith(isLoading: true);
         } catch (error, stackTrace) {
           // we're only interested in notifying errors
           // as models will pop up via box events
@@ -99,11 +96,11 @@ mixin WatchAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
     final _notifier = DataStateNotifier<T>(
       DataState(localFindOne(key())),
       reload: (notifier) async {
-        if (remote == false || id == null) return;
-        notifier.data = notifier.data.copyWith(isLoading: true);
-
+        if (id == null) return;
         try {
-          await findOne(id, params: params, headers: headers, remote: remote);
+          // ignore: unawaited_futures
+          findOne(id, params: params, headers: headers, remote: remote);
+          notifier.data = notifier.data.copyWith(isLoading: true);
         } catch (error, stackTrace) {
           // we're only interested in notifying errors
           // as models will pop up via box events
