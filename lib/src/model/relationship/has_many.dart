@@ -32,7 +32,7 @@ class HasMany<E extends DataSupport<E>> extends Relationship<E, Set<E>> {
   //
 
   @override
-  dynamic toJson() => keys.toList();
+  dynamic toJson() => keys.toImmutableList();
 
   @override
   String toString() => 'HasMany<$E>($keys)';

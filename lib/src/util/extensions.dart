@@ -28,6 +28,7 @@ extension MapX<K, V> on Map<K, V> {
 extension IterableX<T> on Iterable<T> {
   bool containsFirst(T model) => isNotEmpty ? first == model : false;
   Iterable<T> get filterNulls => where((elem) => elem != null);
+  List<T> toImmutableList() => List.unmodifiable(this);
 }
 
 @optionalTypeArgs

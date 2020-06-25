@@ -90,7 +90,7 @@ mixin RemoteAdapter<T extends DataSupport<T>> on Repository<T> {
     remote ??= _remote;
 
     if (remote == false) {
-      return localFindAll().toList();
+      return localFindAll();
     }
 
     final response = await withHttpClient(
@@ -104,7 +104,7 @@ mixin RemoteAdapter<T extends DataSupport<T>> on Repository<T> {
     );
 
     return withResponse<List<T>>(response, (data) {
-      return deserializeCollection(data).toList();
+      return deserializeCollection(data).toImmutableList();
     });
   }
 

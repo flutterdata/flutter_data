@@ -182,7 +182,7 @@ and trigger a code generation build again.
             event.metadata == _name &&
             event.keys.containsFirst(_ownerKey);
       };
-      return events.where(appliesToRelationship).toList();
+      return events.where(appliesToRelationship).toImmutableList();
     });
   }
 

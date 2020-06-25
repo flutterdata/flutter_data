@@ -16,7 +16,7 @@ class DataGraphNotifier extends StateNotifier<DataGraphEvent> {
     return box.keys
         .where((key) => key.toString().startsWith(namespace))
         .map((key) => box.get(key))
-        .toList();
+        .toList(growable: false);
   }
 
   Map<String, List<String>> getNode(String key) {

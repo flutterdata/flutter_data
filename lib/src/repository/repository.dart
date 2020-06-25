@@ -80,8 +80,8 @@ abstract class Repository<T extends DataSupport<T>> {
 
   @protected
   @visibleForTesting
-  Iterable<T> localFindAll() {
-    return box.values.map(_initModel);
+  List<T> localFindAll() {
+    return box.values.map(_initModel).toImmutableList();
   }
 
   @protected

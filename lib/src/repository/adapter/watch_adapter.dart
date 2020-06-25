@@ -15,7 +15,7 @@ mixin WatchAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
     remote ??= _remote;
 
     final _notifier = DataStateNotifier<List<T>>(
-      DataState(localFindAll().toList()),
+      DataState(localFindAll()),
       reload: (notifier) async {
         try {
           // ignore: unawaited_futures
@@ -48,7 +48,7 @@ mixin WatchAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
         return;
       }
 
-      final list = _notifier.data.model;
+      final list = _notifier.data.model.toList();
 
       for (final event in filteredEvents) {
         final key = event.keys.first;
