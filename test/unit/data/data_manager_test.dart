@@ -44,7 +44,6 @@ void main() async {
     expect(Repository.getType('Family'), 'families');
     // `type` argument takes precedence
     expect(Repository.getType<Person>('animal'), 'animals');
-
     expect(Repository.generateKey(), isNull);
   });
 
@@ -126,18 +125,27 @@ void main() async {
   });
 
   test('namespaced keys crud', () {
-    manager.addNode('superman', '1');
-    expect(manager.getNode('superman', '1'), isA<Map<String, List<String>>>());
+    expect(() => manager.addNode('superman'), throwsA(isA<AssertionError>()));
 
-    manager.addNode('superman', '2');
-    expect(manager.getNodes('superman'), hasLength(2));
+    manager.addNode('superman:1');
+    expect(manager.getNode('superman:1'), isA<Map<String, List<String>>>());
 
-    manager.removeNode('superman', '1');
-    expect(manager.hasNode('superman', '1'), isFalse);
-    expect(manager.getNodes('superman'), hasLength(1));
-
-    expect(() => manager.addNode('super:man', '1'),
+    expect(
+        () => manager.addEdge('superman:1', 'nonamespace',
+            metadata: 'nonamespace'),
         throwsA(isA<AssertionError>()));
+
+    manager.addEdge('superman:1', 'nonamespace', metadata: 'superman:prefix');
+    expect(manager.getEdge('superman:1', metadata: 'superman:prefix'),
+        containsAll(['nonamespace']));
+    manager.removeEdges('superman:1', metadata: 'superman:prefix');
+    expect(manager.hasEdge('superman:1', metadata: 'superman:prefix'), false);
+
+    manager.removeNode('superman:1');
+    expect(manager.hasNode('superman:1'), isFalse);
+
+    expect(
+        () => manager.addNode('super:man:1'), throwsA(isA<AssertionError>()));
   });
 
   test('denamespace', () {

@@ -70,8 +70,10 @@ class DataGraphNotifier extends StateNotifier<DataGraphEvent> {
     for (final toKey in connectedKeys(key)) {
       final toNode = getNode(toKey);
       // remove deleted key from all metadatas
-      for (final entry in toNode.entries.toSet()) {
-        removeEdges(toKey, tos: [key], metadata: entry.key);
+      if (toNode != null) {
+        for (final entry in toNode.entries.toSet()) {
+          removeEdges(toKey, tos: [key], metadata: entry.key);
+        }
       }
     }
 

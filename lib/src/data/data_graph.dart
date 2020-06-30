@@ -4,6 +4,8 @@ part of flutter_data;
 mixin _DataGraph {
   DataGraphNotifier _graph;
 
+  // key
+
   String getKeyForId(String type, dynamic id, {String keyIfAbsent}) {
     type = Repository.getType(type);
     if (id != null) {
@@ -20,6 +22,7 @@ mixin _DataGraph {
       if (keyIfAbsent != null) {
         // this means the method is instructed to
         // create nodes and edges
+
         if (!_graph.hasNode(keyIfAbsent)) {
           _graph.addNode(keyIfAbsent, notify: false);
         }
@@ -42,6 +45,10 @@ mixin _DataGraph {
     return null;
   }
 
+  void removeKey(String key) => _graph.removeNode(key);
+
+  // id
+
   String getId(String key) {
     final tos = _graph.getEdge(key, metadata: 'id');
     return tos == null || tos.isEmpty
@@ -51,43 +58,85 @@ mixin _DataGraph {
 
   void removeId(String type, dynamic id) => _graph.removeNode('id:$type#$id');
 
-  ///
+  // other namespaced
 
-  void addNode(String namespace, String key) {
-    assert(!namespace.contains(':') && !key.contains(':'));
-    _graph.addNode('$namespace:$key');
+  // nodes
+
+  void _assertKey(String key) {
+    if (key != null) {
+      assert(key.split(':').length == 2);
+    }
   }
 
-  List<Map<String, List<String>>> getNodes(String namespace) {
-    return _graph.getNodes(namespace);
+  void addNode(String key, {bool notify = true}) {
+    _assertKey(key);
+    _graph.addNode(key, notify: notify);
   }
 
-  Map<String, List<String>> getNode(String namespace, String key) {
-    return _graph.getNode('$namespace:$key');
+  Map<String, List<String>> getNode(String key) {
+    _assertKey(key);
+    return _graph.getNode(key);
   }
 
-  bool hasNode(String namespace, String key) {
-    return _graph.hasNode('$namespace:$key');
+  bool hasNode(String key) {
+    _assertKey(key);
+    return _graph.hasNode(key);
   }
 
-  void removeNode(String namespace, String key) {
-    return _graph.removeNode('$namespace:$key');
+  void removeNode(String key) {
+    _assertKey(key);
+    return _graph.removeNode(key);
+  }
+
+  // edges
+
+  List<String> getEdge(String key, {@required String metadata}) {
+    _assertKey(key);
+    _assertKey(metadata);
+    return _graph.getEdge(key, metadata: metadata);
+  }
+
+  void addEdge(String from, String to,
+      {@required String metadata, String inverseMetadata, bool notify = true}) {
+    _assertKey(from);
+    _assertKey(metadata);
+    _assertKey(inverseMetadata);
+    return _graph.addEdge(from, to,
+        metadata: metadata, inverseMetadata: inverseMetadata, notify: notify);
+  }
+
+  void removeEdges(String from,
+      {@required String metadata,
+      Iterable<String> tos,
+      String inverseMetadata,
+      bool notify = true}) {
+    _assertKey(from);
+    _assertKey(metadata);
+    _assertKey(inverseMetadata);
+    return _graph.removeEdges(from,
+        metadata: metadata, inverseMetadata: inverseMetadata, notify: notify);
+  }
+
+  void removeEdge(String from, String to,
+      {@required String metadata, String inverseMetadata, bool notify = true}) {
+    _assertKey(from);
+    _assertKey(metadata);
+    _assertKey(inverseMetadata);
+    return _graph.removeEdge(from, to,
+        metadata: metadata, inverseMetadata: inverseMetadata, notify: notify);
+  }
+
+  bool hasEdge(String key, {@required String metadata}) {
+    _assertKey(key);
+    _assertKey(metadata);
+    return _graph.hasEdge(key, metadata: metadata);
   }
 
   String denamespace(String namespacedKey) => namespacedKey.split(':').last;
 
-  List<String> getEdge(String namespace, String key,
-      {@required String metadata}) {
-    return _graph.getEdge('$namespace:$key', metadata: metadata);
-  }
-
-  //
+  // debug utilities
 
   Map<String, Object> dumpGraph() => _graph.toMap();
-
-  @visibleForTesting
-  @protected
-  void removeKey(String key) => _graph.removeNode(key);
 
   @visibleForTesting
   @protected
