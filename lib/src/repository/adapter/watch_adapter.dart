@@ -6,15 +6,74 @@ mixin WatchAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
   Duration get throttleDuration =>
       Duration(milliseconds: 16); // 1 frame at 60fps
 
+  /// Sort-of-exponential backoff for reads
+  Duration readRetryAfter(int i) {
+    final list = [0, 1, 2, 2, 2, 2, 2, 4, 4, 4, 8, 8, 16, 16, 24, 36, 72];
+    final index = i < list.length ? i : list.length - 1;
+    return Duration(seconds: list[index]);
+  }
+
+  /// Sort-of-exponential backoff for writes
+  Duration writeRetryAfter(int i) => readRetryAfter(i);
+
   @protected
   @visibleForTesting
   StateNotifier<List<DataGraphEvent>> get graphNotifier =>
       manager._graph.throttle(throttleDuration);
 
-  // TODO TEMP
-  @protected
-  @visibleForTesting
-  DataGraphNotifier get graph => manager._graph;
+  // initialize & save
+
+  var _writeCounter = 0;
+
+  final _offlineAdapterKey = 'offline:adapter';
+  final _offlineSaveMetadata = 'offline:save';
+
+  @override
+  void initialize() {
+    _save();
+  }
+
+  void _save() async {
+    final keys =
+        manager.getEdge(_offlineAdapterKey, metadata: _offlineSaveMetadata);
+    for (final key in keys) {
+      final model = localFindOne(key);
+      if (model != null) {
+        await model.save(); // might throw here
+        manager.removeEdge(_offlineAdapterKey, key,
+            metadata: _offlineSaveMetadata);
+        _writeCounter = 0; // reset write counter
+      }
+    }
+  }
+
+  @override
+  Future<T> save(T model,
+      {bool remote,
+      Map<String, dynamic> params,
+      Map<String, String> headers}) async {
+    try {
+      return await super
+          .save(model, remote: remote, params: params, headers: headers);
+    } on SocketException {
+      // ensure offline node exists
+      if (!manager.hasNode(_offlineAdapterKey)) {
+        manager.addNode(_offlineAdapterKey);
+      }
+
+      // add model's key with offline meta
+      manager.addEdge(_offlineAdapterKey, keyFor(model),
+          metadata: _offlineSaveMetadata);
+
+      // there was a failure, so call _trySave again
+      Future.delayed(writeRetryAfter(_writeCounter++), _save);
+      rethrow;
+    }
+  }
+
+  // watchers
+
+  var _readCounter = 0;
 
   @override
   DataStateNotifier<List<T>> watchAll(
@@ -27,8 +86,12 @@ mixin WatchAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
         try {
           // ignore: unawaited_futures
           findAll(params: params, headers: headers, remote: remote);
+          _readCounter = 0; // reset counter
           notifier.data = notifier.data.copyWith(isLoading: true);
         } catch (error, stackTrace) {
+          if (error is SocketException) {
+            Future.delayed(readRetryAfter(_readCounter++), notifier.reload);
+          }
           // we're only interested in notifying errors
           // as models will pop up via box events
           notifier.data = notifier.data.copyWith(
@@ -107,8 +170,12 @@ mixin WatchAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
         try {
           // ignore: unawaited_futures
           findOne(id, params: params, headers: headers, remote: remote);
+          _readCounter = 0; // reset counter
           notifier.data = notifier.data.copyWith(isLoading: true);
         } catch (error, stackTrace) {
+          if (error is SocketException) {
+            Future.delayed(readRetryAfter(_readCounter++), notifier.reload);
+          }
           // we're only interested in notifying errors
           // as models will pop up via box events
           notifier.data = notifier.data.copyWith(

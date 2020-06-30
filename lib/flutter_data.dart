@@ -29,7 +29,6 @@ part 'src/model/relationship/belongs_to.dart';
 
 part 'src/repository/util/hive_adapter.dart';
 part 'src/repository/adapter/remote_adapter.dart';
-part 'src/repository/adapter/offline_adapter.dart';
 part 'src/repository/adapter/watch_adapter.dart';
 part 'src/repository/repository.dart';
 
