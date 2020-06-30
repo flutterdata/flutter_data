@@ -1,6 +1,4 @@
-import 'package:hive/hive.dart';
-import 'package:meta/meta.dart';
-import 'package:state_notifier/state_notifier.dart';
+part of flutter_data;
 
 class DataGraphNotifier extends StateNotifier<DataGraphEvent> {
   DataGraphNotifier(this.box) : super(null);

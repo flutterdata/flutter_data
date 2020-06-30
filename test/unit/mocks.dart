@@ -1,11 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter_data/src/util/graph_notifier.dart';
 import 'package:hive/hive.dart';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:mockito/mockito.dart';
-import 'package:rxdart/rxdart.dart';
 
 import '../models/family.dart';
 
@@ -35,7 +33,6 @@ class TestDataManager extends DataManager {
 
 class FakeBox<T> extends Fake implements Box<T> {
   final _map = <String, T>{};
-  final _subject = BehaviorSubject<T>();
 
   @override
   T get(key, {T defaultValue}) {
@@ -44,7 +41,6 @@ class FakeBox<T> extends Fake implements Box<T> {
 
   @override
   Future<void> put(key, T value) async {
-    _subject.add(value);
     _map[key.toString()] = value;
   }
 

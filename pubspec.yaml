@@ -13,7 +13,6 @@ dependencies:
   uuid: ^2.0.4
   inflection2: ^0.4.3
   path: ^1.6.4
-  json_api: ^4.2.1
   data_state: ^0.3.3
   async: ^2.4.0
   meta: ^1.1.8
@@ -29,12 +28,7 @@ dependencies:
 dev_dependencies:
   test: ^1.9.4
   mockito: ^4.1.1
-  
   pedantic: ^1.8.0+1
-  freezed: ^0.11.2
-  freezed_annotation: ^0.11.0
-  rxdart: ^0.24.1
-
   build_test: ^0.10.11
   build_runner: ^1.7.4
   matcher: ^0.12.6
