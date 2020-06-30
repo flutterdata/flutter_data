@@ -10,11 +10,7 @@ import '../setup.dart';
 void main() async {
   setUpAll(setUpAllFn);
   tearDownAll(tearDownAllFn);
-
-  setUp(() {
-    // reset manager for every test
-    manager = TestDataManager(null);
-  });
+  setUp(setUpFn);
 
   test('produces a new key', () {
     var key = manager.getKeyForId('people', '1');
@@ -102,9 +98,7 @@ void main() async {
   });
 
   test('saves key', () async {
-    // get back original manager
-    manager = injection.locator<DataManager>();
-    final residence = House(address: '123 Main St').init(manager);
+    final residence = House(address: '123 Main St').init(manager: manager);
 
     for (var i = 0; i < 518; i++) {
       final family = Family(
@@ -112,11 +106,12 @@ void main() async {
         surname: 'Smith',
         residence: residence.asBelongsTo,
         persons: HasMany(),
-      ).init(manager);
+      ).init(manager: manager);
 
       // add some people
       if (i % 19 == 0) {
-        family.persons.add(Person(name: 'new kid #$i', age: 0).init(manager));
+        family.persons
+            .add(Person(name: 'new kid #$i', age: 0).init(manager: manager));
       }
 
       // remove some residence relationships

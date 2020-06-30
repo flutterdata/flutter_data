@@ -10,25 +10,13 @@ void main() async {
   setUpAll(setUpAllFn);
   tearDownAll(tearDownAllFn);
 
-  test('deserialize with included BelongsTo', () async {
-    // exceptionally uses this repo so we can supply included models
-    final repo = manager.locator<FamilyRepositoryWithStandardJSONAdapter>();
-    final houseRepo = manager.locator<Repository<House>>();
-
-    final house = {'id': '432337', 'address': 'Ozark Lake, MO'};
-    final familyJson = {'surname': 'Byrde', 'residence': house};
-    repo.deserialize(familyJson);
-
-    expect(await houseRepo.findOne('432337'),
-        predicate((p) => p.address == 'Ozark Lake, MO'));
-  });
-
   test('set owner in relationships', () {
-    final repo = manager.locator<Repository<Family>>();
-
-    final person = Person(id: '1', name: 'John', age: 37).init(manager);
-    final house = House(id: '31', address: '123 Main St').init(manager);
-    final house2 = House(id: '2', address: '456 Main St').init(manager);
+    final person =
+        Person(id: '1', name: 'John', age: 37).init(manager: manager);
+    final house =
+        House(id: '31', address: '123 Main St').init(manager: manager);
+    final house2 =
+        House(id: '2', address: '456 Main St').init(manager: manager);
 
     final family = Family(
         id: '1',
@@ -40,11 +28,11 @@ void main() async {
     expect(family.residence.key, isNull);
     expect(family.persons.keys, isEmpty);
 
-    family.init(manager);
+    family.init(manager: manager);
 
     // relationships are now associated to a key
-    expect(family.residence.key, repo.manager.getKeyForId('houses', '31'));
-    expect(family.persons.keys.first, repo.manager.getKeyForId('people', '1'));
+    expect(family.residence.key, manager.getKeyForId('houses', '31'));
+    expect(family.persons.keys.first, manager.getKeyForId('people', '1'));
 
     // ensure there are not more than 1 key
     family.residence.value = house2;
@@ -56,7 +44,7 @@ void main() async {
       id: '22',
       surname: 'Besson',
       residence: BelongsTo<House>(),
-    ).init(manager);
+    ).init(manager: manager);
 
     final notifier = family.residence.watch();
 
@@ -72,9 +60,9 @@ void main() async {
     );
 
     await runAndWait(() => family.residence.value =
-        House(id: '2', address: '456 Main St').init(manager));
+        House(id: '2', address: '456 Main St').init(manager: manager));
     await runAndWait(() => family.residence.value =
-        House(id: '1', address: '123 Main St').init(manager));
+        House(id: '1', address: '123 Main St').init(manager: manager));
     await runAndWait(() => family.residence.value = null);
   });
 }

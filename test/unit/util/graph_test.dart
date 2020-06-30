@@ -1,7 +1,7 @@
 import 'package:flutter_data/src/util/graph_notifier.dart';
 import 'package:test/test.dart';
 
-import '../setup.dart';
+import '../mocks.dart';
 
 void main() async {
   DataGraphNotifier graph;

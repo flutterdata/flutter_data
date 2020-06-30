@@ -49,8 +49,7 @@ class $PostRepository = Repository<Post>
         _$PostModelAdapter,
         RemoteAdapter<Post>,
         WatchAdapter<Post>,
-        StandardJSONAdapter<Post>,
-        JSONPlaceholderAdapter<Post>;
+        JSONServerAdapter<Post>;
 
 // **************************************************************************
 // JsonSerializableGenerator

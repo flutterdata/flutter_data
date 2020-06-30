@@ -6,7 +6,7 @@ import 'model/comment.dart';
 import 'model/post.dart';
 import 'model/user.dart';
 
-// NOTE: FOR A COMPLETE FLUTTER EXAMPLE PLEASE SEE
+// NOTE: FOR AN UPDATED AND COMPLETE FLUTTER EXAMPLE FOLLOW
 // https://github.com/flutterdata/flutter_data_todos
 
 void main() async {
@@ -33,22 +33,23 @@ void main() async {
       }
     }
 
-    var user2 = User(id: 102, name: 'new name', email: 'new@fasd.io');
+    var user2 = User(id: 1, name: 'new name', email: 'new@fasd.io');
     await user2.save();
 
-    User(id: 102, name: 'new name', email: 'new@fasd.io');
+    User(id: 1, name: 'new name', email: 'new@fasd.io');
 
     var p3 = Post(
-        id: 102,
-        title: 'new name',
-        body: '3@fasd.io',
-        user: user2.asBelongsTo,
-        comments: {Comment(id: 1, body: 'bla')}.asHasMany);
+            id: 102,
+            title: 'new name',
+            body: '3@fasd.io',
+            user: user2.asBelongsTo,
+            comments: {Comment(id: 1, body: 'bla')}.asHasMany)
+        .init();
 
     assert(p3.body == '3@fasd.io');
     assert(p3.user.value.email == user2.email);
 
-    var post = await postsRepo.findOne(1); // , params: {'_embed': 'comments'}
+    var post = await postsRepo.findOne(1, params: {'_embed': 'comments'});
     var comments = await commentsRepo.findAll(params: {'postId': 1});
 
     print(comments.map((c) => c.body).toList());

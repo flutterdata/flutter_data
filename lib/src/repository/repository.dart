@@ -58,6 +58,17 @@ abstract class Repository<T extends DataSupport<T>> {
     await box?.close();
   }
 
+  // serialization
+
+  @protected
+  @visibleForTesting
+  Map<String, dynamic> serialize(T model);
+
+  @protected
+  @visibleForTesting
+  DeserializedData<T, DataSupport<dynamic>> deserialize(dynamic data,
+      {String key, bool save = true});
+
   // generated model adapter API (metadata, relationships, serialization)
 
   @protected

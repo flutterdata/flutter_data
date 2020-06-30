@@ -36,6 +36,7 @@ class Person with DataSupport<Person> {
             ? null
             : BelongsTo.fromJson(json['family'] as Map<String, dynamic>),
       );
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
@@ -44,16 +45,24 @@ class Person with DataSupport<Person> {
       };
 
   @override
-  String toString() {
-    return toJson().toString();
-  }
+  bool operator ==(other) =>
+      other is Person &&
+      id == other.id &&
+      name == other.name &&
+      age == other.age;
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^ id.hashCode ^ name.hashCode ^ age.hashCode;
+
+  //
 
   factory Person.generate(DataManager manager, {String withId}) {
     return Person(
             id: withId,
             name: 'Person Number ${withId ?? Random().nextInt(999999999)}',
             age: Random().nextInt(19))
-        .init(manager);
+        .init(manager: manager);
   }
 }
 

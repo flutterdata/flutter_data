@@ -6,8 +6,15 @@ mixin WatchAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
   Duration get throttleDuration =>
       Duration(milliseconds: 16); // 1 frame at 60fps
 
-  StateNotifier<List<DataGraphEvent>> get _throttledGraph =>
+  @protected
+  @visibleForTesting
+  StateNotifier<List<DataGraphEvent>> get graphNotifier =>
       manager._graph.throttle(throttleDuration);
+
+  // TODO TEMP
+  @protected
+  @visibleForTesting
+  DataGraphNotifier get graph => manager._graph;
 
   @override
   DataStateNotifier<List<T>> watchAll(
@@ -33,7 +40,7 @@ mixin WatchAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
     // kick off
     _notifier.reload();
 
-    _throttledGraph.forEach((events) {
+    graphNotifier.forEach((events) {
       if (!_notifier.mounted) {
         return;
       }
@@ -127,7 +134,7 @@ mixin WatchAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
     _notifier.reload();
 
     // start listening to graph for further changes
-    _throttledGraph.forEach((events) {
+    graphNotifier.forEach((events) {
       if (!_notifier.mounted) {
         return;
       }

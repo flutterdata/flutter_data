@@ -1,123 +1,20 @@
 import 'dart:async';
-import 'dart:io';
-
-import 'package:flutter_data/src/util/graph_notifier.dart';
-import 'package:hive/hive.dart';
 import 'package:flutter_data/flutter_data.dart';
-import 'package:mockito/mockito.dart';
-import 'package:rxdart/rxdart.dart';
+import 'package:test/test.dart';
 
 import '../models/family.dart';
 import '../models/house.dart';
 import '../models/person.dart';
 import '../models/pet.dart';
-
-// mocks, fakes and test impls
-
-class HiveMock extends Mock implements HiveInterface {}
-
-class FakeBox<T> extends Fake implements Box<T> {
-  final _map = <String, T>{};
-  final _subject = BehaviorSubject<T>();
-
-  @override
-  T get(key, {T defaultValue}) {
-    return _map[key.toString()] ?? defaultValue;
-  }
-
-  @override
-  Future<void> put(key, T value) async {
-    _subject.add(value);
-    _map[key.toString()] = value;
-  }
-
-  @override
-  Future<void> delete(key) async {
-    _map.remove(key);
-  }
-
-  @override
-  Map<String, T> toMap() => _map;
-
-  @override
-  Iterable<String> get keys => _map.keys;
-
-  @override
-  Iterable<T> get values => _map.values;
-
-  @override
-  bool containsKey(key) => _map.containsKey(key);
-
-  @override
-  int get length => _map.length;
-
-  @override
-  Future<void> deleteFromDisk() async {
-    await clear();
-  }
-
-  @override
-  bool get isEmpty => length == 0;
-
-  @override
-  Future<int> clear() {
-    _map.clear();
-    return Future.value(0);
-  }
-
-  @override
-  Future<void> close() => Future.value();
-}
-
-class Bloc {
-  final Repository<Family> repo;
-  Bloc(this.repo);
-}
-
-class MockFamilyRepository extends Mock implements Repository<Family> {}
-
-class TestDataManager extends DataManager {
-  TestDataManager(this.locator) : super.delegate() {
-    debugGraph = DataGraphNotifier(metaBox);
-  }
-
-  @override
-  final Locator locator;
-  @override
-  final metaBox = FakeBox();
-
-  @override
-  Future<DataManager> init(FutureOr<Directory> baseDir, Locator locator,
-      {bool clear, bool verbose}) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> dispose() async {}
-}
-
-// repositories
-
-mixin NoThrottleAdapter<T extends DataSupport<T>> on WatchAdapter<T> {
-  @override
-  Duration get throttleDuration => Duration.zero;
-}
-
-class HouseRepository = $HouseRepository with NoThrottleAdapter;
-
-class FamilyRepository = $FamilyRepository with NoThrottleAdapter;
-
-class FamilyRepositoryWithStandardJSONAdapter = $FamilyRepository
-    with StandardJSONAdapter;
-
-class PersonRepository = $PersonRepository
-    with TestLoginAdapter, NoThrottleAdapter;
-
-// global setup and teardown
+import 'mocks.dart';
 
 final injection = DataServiceLocator();
 
 DataManager manager;
+Repository<House> houseRepository;
+Repository<Family> familyRepository;
+Repository<Person> personRepository;
+Repository<Dog> dogRepository;
 
 final Function() setUpAllFn = () {
   injection.register(HiveMock());
@@ -129,27 +26,41 @@ final Function() setUpAllFn = () {
     remote: false,
     box: FakeBox<House>(),
   ));
+  houseRepository = injection.locator<Repository<House>>();
+
   injection.register<Repository<Family>>(FamilyRepository(
     manager,
     remote: false,
     box: FakeBox<Family>(),
   ));
+  familyRepository = injection.locator<Repository<Family>>();
+
   injection.register<Repository<Person>>(PersonRepository(
     manager,
     remote: false,
     box: FakeBox<Person>(),
   ));
+  personRepository = injection.locator<Repository<Person>>();
+
   injection.register<Repository<Dog>>($DogRepository(
     manager,
     remote: false,
     box: FakeBox<Dog>(),
   ));
-  injection.register<FamilyRepositoryWithStandardJSONAdapter>(
-      FamilyRepositoryWithStandardJSONAdapter(
-    manager,
-    remote: false,
-    box: FakeBox<Family>(),
-  ));
+  dogRepository = injection.locator<Repository<Dog>>();
+};
+
+final Function() setUpFn = () async {
+  manager.debugClearGraph();
+  for (final repo in [
+    houseRepository,
+    familyRepository,
+    personRepository,
+    dogRepository
+  ]) {
+    await repo.box.clear();
+    expect(repo.box.keys, isEmpty);
+  }
 };
 
 final Function() tearDownAllFn = () async {
@@ -159,6 +70,20 @@ final Function() tearDownAllFn = () async {
   await injection.locator<Repository<Dog>>().dispose();
   injection.clear();
 };
+
+// adapters
+
+mixin NoThrottleAdapter<T extends DataSupport<T>> on WatchAdapter<T> {
+  @override
+  Duration get throttleDuration => Duration.zero;
+}
+
+class HouseRepository = $HouseRepository with NoThrottleAdapter;
+
+class FamilyRepository = $FamilyRepository with NoThrottleAdapter;
+
+class PersonRepository = $PersonRepository
+    with TestLoginAdapter, NoThrottleAdapter;
 
 // utils
 

@@ -42,8 +42,7 @@ class $CommentRepository = Repository<Comment>
         _$CommentModelAdapter,
         RemoteAdapter<Comment>,
         WatchAdapter<Comment>,
-        StandardJSONAdapter<Comment>,
-        JSONPlaceholderAdapter<Comment>;
+        JSONServerAdapter<Comment>;
 
 // **************************************************************************
 // JsonSerializableGenerator

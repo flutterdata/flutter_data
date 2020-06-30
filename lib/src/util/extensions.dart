@@ -1,5 +1,12 @@
 part of flutter_data;
 
+class DeserializedData<T, I> {
+  const DeserializedData(this.models, {this.included});
+  final List<T> models;
+  final List<I> included;
+  T get model => models.single;
+}
+
 // enums
 
 // ignore: constant_identifier_names
@@ -29,6 +36,10 @@ extension IterableX<T> on Iterable<T> {
   bool containsFirst(T model) => isNotEmpty ? first == model : false;
   Iterable<T> get filterNulls => where((elem) => elem != null);
   List<T> toImmutableList() => List.unmodifiable(this);
+}
+
+extension IterableXX<T> on Iterable<Iterable<T>> {
+  Iterable<T> flatten() => expand((e) => e);
 }
 
 @optionalTypeArgs

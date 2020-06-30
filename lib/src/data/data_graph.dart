@@ -76,6 +76,11 @@ mixin _DataGraph {
 
   String denamespace(String namespacedKey) => namespacedKey.split(':').last;
 
+  List<String> getEdge(String namespace, String key,
+      {@required String metadata}) {
+    return _graph.getEdge('$namespace:$key', metadata: metadata);
+  }
+
   //
 
   Map<String, Object> dumpGraph() => _graph.toMap();

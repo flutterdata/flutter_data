@@ -32,8 +32,14 @@ class Family with DataSupport<Family> {
   // no fromJson or toJson on purpose (testing codegen)
 
   @override
-  bool operator ==(o) => o is Family && surname == o.surname;
+  bool operator ==(other) =>
+      other is Family && id == other.id && surname == other.surname;
 
   @override
-  int get hashCode => runtimeType.hashCode ^ surname.hashCode;
+  int get hashCode => runtimeType.hashCode ^ id.hashCode ^ surname.hashCode;
+
+  @override
+  String toString() {
+    return '{ id: $id, surname: $surname }';
+  }
 }

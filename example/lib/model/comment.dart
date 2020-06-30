@@ -9,7 +9,7 @@ import 'post.dart';
 part 'comment.g.dart';
 
 @JsonSerializable()
-@DataRepository([StandardJSONAdapter, JSONPlaceholderAdapter])
+@DataRepository([JSONServerAdapter])
 class Comment with DataSupport<Comment> {
   @override
   final int id;

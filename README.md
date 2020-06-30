@@ -40,7 +40,7 @@ For a given `User` model annotated with `@DataRepository`...
 
 ```dart
 @JsonSerializable()
-@DataRepository([StandardJSONAdapter, JSONServerAdapter])
+@DataRepository([JSONServerAdapter])
 class User with DataSupport<User> {
   final int id;
   final String name;

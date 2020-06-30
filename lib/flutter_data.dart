@@ -18,8 +18,6 @@ import 'src/util/notifier_extension.dart';
 export 'package:data_state/data_state.dart';
 
 export 'adapters/json_api_adapter.dart';
-export 'adapters/offline_adapter.dart';
-export 'adapters/standard_json_adapter.dart';
 export 'annotations.dart';
 export 'src/util/notifier_extension.dart';
 
@@ -34,6 +32,7 @@ part 'src/model/relationship/belongs_to.dart';
 
 part 'src/repository/util/hive_adapter.dart';
 part 'src/repository/adapter/remote_adapter.dart';
+part 'src/repository/adapter/offline_adapter.dart';
 part 'src/repository/adapter/watch_adapter.dart';
 part 'src/repository/repository.dart';
 

@@ -39,8 +39,7 @@ class $UserRepository = Repository<User>
         _$UserModelAdapter,
         RemoteAdapter<User>,
         WatchAdapter<User>,
-        StandardJSONAdapter<User>,
-        JSONPlaceholderAdapter<User>;
+        JSONServerAdapter<User>;
 
 // **************************************************************************
 // JsonSerializableGenerator

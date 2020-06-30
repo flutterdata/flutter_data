@@ -175,7 +175,7 @@ and trigger a code generation build again.
 
   StateNotifier<List<DataGraphEvent>> get _graphEvents {
     assert(_repository != null);
-    final graph = (_repository as WatchAdapter<E>)._throttledGraph;
+    final graph = (_repository as WatchAdapter<E>).graphNotifier;
     return graph.map((events) {
       final appliesToRelationship = (DataGraphEvent event) {
         return event.type.isEdge &&

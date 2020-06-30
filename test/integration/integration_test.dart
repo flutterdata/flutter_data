@@ -5,7 +5,7 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
 import '../models/models.dart';
-import '../unit/setup.dart';
+import '../unit/mocks.dart';
 import 'server.dart';
 
 final injection = DataServiceLocator();
@@ -74,7 +74,7 @@ void main() async {
     expect(await repo.findAll(), hasLength(7));
 
     final m = Model(id: '3', name: 'Elon X', company: company.asBelongsTo)
-        .init(manager);
+        .init(manager: manager);
     final m1 = await m.save();
     final m2 = await repo.findOne('3');
 
@@ -90,7 +90,7 @@ void main() async {
     // expect(m2.company.value, c);
 
     // create a model, persist in server, remove local copy
-    final k = await Model(name: 'K').init(manager).save();
+    final k = await Model(name: 'K').init(manager: manager).save();
     await k.delete(remote: false);
 
     // since model repo has `shouldLoadRemoteAll` set to false
@@ -101,7 +101,8 @@ void main() async {
 
   test('save without id', () async {
     final repo = manager.locator<Repository<Company>>();
-    final company = Company(name: 'New Co', models: HasMany()).init(manager);
+    final company =
+        Company(name: 'New Co', models: HasMany()).init(manager: manager);
 
     final c2 = await company.save();
     expect(c2.id, isNotNull);
@@ -117,12 +118,14 @@ void main() async {
     final repo = manager.locator<Repository<Company>>();
     final company = await repo.findOne('1');
 
-    final model = Model(name: 'Zucchini 8', company: BelongsTo()).init(manager);
+    final model =
+        Model(name: 'Zucchini 8', company: BelongsTo()).init(manager: manager);
     company.models.add(model);
     final m2 = await model.save();
     expect(keyFor(model), keyFor(m2));
 
-    final m3 = Model(name: 'Zucchini 93', company: BelongsTo()).init(manager);
+    final m3 =
+        Model(name: 'Zucchini 93', company: BelongsTo()).init(manager: manager);
     final tempKeyM3 = keyFor(m3);
     final m4 = await m3.save();
 
@@ -145,7 +148,7 @@ void main() async {
   });
 
   test('watch city', () async {
-    final city = City(id: '1', name: 'Chicago').init(manager);
+    final city = City(id: '1', name: 'Chicago').init(manager: manager);
 
     void changeCityName() {
       Timer.run(() => city.copyWith(name: 'Montevideo').was(city));

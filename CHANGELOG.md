@@ -1,3 +1,12 @@
+## [0.4.2-dev.2] - 2020-06-29
+
+ - new serializer API with `DeserializedData`
+ - adapt, fix & merge `StandardJSONAdapter` into core, no longer required as adapter
+ - new `DataSupport#init(manager, key, save)` API
+ - `shouldLoadRemoteAll`, `shouldLoadRemoteOne` APIs
+ - misc optimizations
+ - test infrastructure fixes
+
 ## [0.4.2-dev.1] - 2020-06-24
 
  - Throttle graph events, configure duration via `throttleDuration` of `WatchAdapter`

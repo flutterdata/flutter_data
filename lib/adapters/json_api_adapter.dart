@@ -10,41 +10,32 @@ mixin JSONAPIAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
       'Accept': 'application/vnd.api+json',
     });
 
-  Map<String, Map<String, Object>> get belongsTos => Map.fromEntries(
-      relationshipsFor().entries.where((e) => e.value['kind'] == 'BelongsTo'));
-
-  Map<String, Map<String, Object>> get hasManys => Map.fromEntries(
-      relationshipsFor().entries.where((e) => e.value['kind'] == 'HasMany'));
-
   // Transforms native format into JSON:API
   @override
   Map<String, dynamic> serialize(model) {
-    final map = super.serialize(model);
+    final map = localSerialize(model);
 
     final relationships = <String, j.Relationship>{};
 
-    for (final relEntry in hasManys.entries) {
-      final name = relEntry.key.toString();
-      if (map[name] != null) {
-        final keys = List<String>.from(map[name] as Iterable);
-        final relType = relEntry.value['type'] as String;
-        final identifiers = keys.map((key) {
-          return IdentifierObject(relType, manager.getId(key));
-        });
-        relationships[name] = ToMany(identifiers);
-        map.remove(name);
-      }
-    }
+    for (final relEntry in relationshipsFor().entries) {
+      final field = relEntry.key;
+      final relType = relEntry.value['type'] as String;
 
-    for (final relEntry in belongsTos.entries) {
-      final name = relEntry.key.toString();
-      if (map[name] != null) {
-        final key = map[name].toString();
-        final relType = relEntry.value['type'] as String;
-        relationships[name] =
-            ToOne(IdentifierObject(relType, manager.getId(key)));
-        map.remove(name);
+      if (map[field] != null) {
+        if (relEntry.value['kind'] == 'HasMany') {
+          final keys = List<String>.from(map[field] as Iterable);
+          final identifiers = keys.map((key) {
+            return IdentifierObject(relType, manager.getId(key));
+          });
+          relationships[field] = ToMany(identifiers);
+        } else if (relEntry.value['kind'] == 'BelongsTo') {
+          final key = map[field].toString();
+          relationships[field] =
+              ToOne(IdentifierObject(relType, manager.getId(key)));
+        }
       }
+
+      map.remove(field);
     }
 
     final id = map.remove('id');
@@ -54,63 +45,68 @@ mixin JSONAPIAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
     return Document(ResourceData(resource)).toJson();
   }
 
-  @override
-  Iterable<T> deserializeCollection(object) {
-    final doc = Document.fromJson(object, ResourceCollectionData.fromJson);
-    _saveIncluded(doc.data.included);
-    return super.deserializeCollection(doc.data.collection);
-  }
-
   // Transforms JSON:API into native format
   @override
-  T deserialize(object, {String key}) {
-    final nativeMap = <String, dynamic>{};
-    final included = <ResourceObject>[];
-    ResourceObject obj;
+  DeserializedData<T, DataSupport<dynamic>> deserialize(dynamic data,
+      {String key, bool save = true}) {
+    final result = DeserializedData<T, DataSupport<dynamic>>([], included: []);
+    ResourceCollectionData collectionData;
 
-    if (object is ResourceObject) {
-      obj = object;
+    if (data is! ResourceCollectionData) {
+      // single resource object (used when deserializing includes)
+      if (data is ResourceObject) {
+        collectionData = ResourceCollectionData([data]);
+      }
+      // multiple document json
+      if (data is Map && data['data'] is List) {
+        collectionData = ResourceCollectionData.fromJson(data);
+      }
+      // single document json
+      if (data is Map && data['data'] is Map) {
+        final resourceData = ResourceData.fromJson(data);
+        collectionData = ResourceCollectionData([resourceData.resourceObject],
+            included: resourceData.included);
+      }
     } else {
-      final doc = Document.fromJson(object, ResourceData.fromJson);
-      obj = doc.data.resourceObject;
-      if (doc.data.included != null) {
-        included.addAll(doc.data.included);
+      collectionData = data as ResourceCollectionData;
+    }
+
+    if (collectionData.included != null) {
+      for (final include in collectionData.included) {
+        final key = manager.getKeyForId(include.type, include.id);
+        final type = Repository.getType(include.type);
+        final repo = relatedRepositories[type] as RemoteAdapter;
+        final model = repo?.deserialize(include, key: key, save: save)?.model;
+        result.included.add(model);
       }
     }
 
-    // save included first (get keys for them before the relationships)
-    _saveIncluded(included);
+    for (final obj in collectionData.collection) {
+      final mapOut = <String, dynamic>{};
 
-    nativeMap['id'] = obj.id;
+      mapOut['id'] = obj.id;
 
-    if (obj.relationships != null) {
-      for (var relEntry in obj.relationships.entries) {
-        final rel = relEntry.value;
-        if (rel is ToOne && rel.linkage != null) {
-          final key = manager.getKeyForId(rel.linkage.type, rel.linkage.id,
-              keyIfAbsent: Repository.generateKey(rel.linkage.type));
-          nativeMap[relEntry.key] = key;
-        } else if (rel is ToMany) {
-          nativeMap[relEntry.key] = rel.linkage
-              .map((i) => manager.getKeyForId(i.type, i.id,
-                  keyIfAbsent: Repository.generateKey(i.type)))
-              .toList();
+      if (obj.relationships != null) {
+        for (final relEntry in obj.relationships.entries) {
+          final rel = relEntry.value;
+          if (rel is ToOne && rel.linkage != null) {
+            final key = manager.getKeyForId(rel.linkage.type, rel.linkage.id,
+                keyIfAbsent: Repository.generateKey(rel.linkage.type));
+            mapOut[relEntry.key] = key;
+          } else if (rel is ToMany) {
+            mapOut[relEntry.key] = rel.linkage
+                .map((i) => manager.getKeyForId(i.type, i.id,
+                    keyIfAbsent: Repository.generateKey(i.type)))
+                .toList();
+          }
         }
+        mapOut.addAll(obj.attributes);
       }
+
+      final model = localDeserialize(mapOut);
+      result.models.add(model.init(manager: manager, key: key, save: save));
     }
 
-    nativeMap.addAll(obj.attributes);
-
-    return super.deserialize(nativeMap, key: key);
-  }
-
-  void _saveIncluded(List<ResourceObject> included) {
-    included ??= const [];
-    for (var i in included) {
-      final key = manager.getKeyForId(i.type, i.id);
-      final type = Repository.getType(i.type);
-      final repo = relatedRepositories[type] as RemoteAdapter;
-      repo?.deserialize(i, key: key);
-    }
+    return result;
   }
 }
