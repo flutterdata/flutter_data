@@ -28,8 +28,9 @@ class Person with DataSupport<Person> {
   }) : family = family ?? BelongsTo();
 
   // testing without jsonserializable
+  // also, simulates a @JsonKey(name: '_id) on `id`
   factory Person.fromJson(Map<String, dynamic> json) => Person(
-        id: json['id'] as String,
+        id: json['_id'] as String,
         name: json['name'] as String,
         age: json['age'] as int,
         family: json['family'] == null
@@ -38,7 +39,7 @@ class Person with DataSupport<Person> {
       );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
+        '_id': id,
         'name': name,
         'age': age,
         'family': family,

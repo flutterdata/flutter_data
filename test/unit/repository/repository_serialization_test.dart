@@ -15,7 +15,7 @@ void main() async {
   test('serialize', () {
     final person = Person(id: '23', name: 'Ko', age: 24);
     expect(personRepository.serialize(person),
-        {'id': '23', 'name': 'Ko', 'age': 24});
+        {'_id': '23', 'name': 'Ko', 'age': 24});
   });
 
   test('serialize rel id', () {
@@ -25,7 +25,7 @@ void main() async {
             family: Family(id: '332', surname: 'Tao').asBelongsTo)
         .init(manager: manager);
     expect(personRepository.serialize(p2),
-        {'id': null, 'name': 'Ko', 'age': 24, 'family_id': '332'});
+        {'_id': null, 'name': 'Ko', 'age': 24, 'family_id': '332'});
   });
 
   test('serialize rel embedded', () {
@@ -47,8 +47,8 @@ void main() async {
 
   test('deserialize multiple', () {
     final models = personRepository.deserialize([
-      {'id': '23', 'name': 'Ko', 'age': 24},
-      {'id': '26', 'name': 'Ze', 'age': 58}
+      {'_id': '23', 'name': 'Ko', 'age': 24},
+      {'_id': '26', 'name': 'Ze', 'age': 58}
     ], save: false).models;
 
     expect(models, [
@@ -61,7 +61,7 @@ void main() async {
     Family(id: '332', surname: 'Tao').init(manager: manager);
 
     final p1 = personRepository.deserialize([
-      {'id': '27', 'name': 'Ko', 'age': 24, 'family_id': '332'}
+      {'_id': '27', 'name': 'Ko', 'age': 24, 'family_id': '332'}
     ], save: false).model;
 
     final p2 = Person(
@@ -83,8 +83,8 @@ void main() async {
         'id': '1',
         'surname': 'Byrde',
         'persons': <Map<String, dynamic>>[
-          {'id': '1', 'name': 'Wendy', 'age': 58},
-          {'id': '2', 'name': 'Marty', 'age': 60},
+          {'_id': '1', 'name': 'Wendy', 'age': 58},
+          {'_id': '2', 'name': 'Marty', 'age': 60},
         ],
       }
     ], save: false);
@@ -104,13 +104,14 @@ void main() async {
     ]);
   });
 
-  test('deserialize existing', () {
+  test('deserialize existing (with save)', () {
     final family = Family(surname: 'Moletto').init(manager: manager);
 
     // simulate "save"
     final obj = {'id': '1098', 'surname': 'Moletto'};
-    final family2 =
-        familyRepository.deserialize(obj, key: keyFor(family)).model;
+    final family2 = familyRepository
+        .deserialize(obj, key: keyFor(family), save: true)
+        .model;
 
     expect(family2.isNew, false); // also checks if the model was init'd
     expect(family2, Family(id: '1098', surname: 'Moletto'));
@@ -125,13 +126,13 @@ void main() async {
     final family1b = familyRepository.deserialize({
       'id': '1298',
       'surname': 'Helsinki',
-    }, key: keyFor(family)).model;
+    }, key: keyFor(family), save: true).model;
 
     // simulate "save" for family2
     final family2b = familyRepository.deserialize({
       'id': '1298',
       'surname': 'Oslo',
-    }, key: keyFor(family2)).model;
+    }, key: keyFor(family2), save: true).model;
 
     // since obj returned with same ID
     expect(keyFor(family1b), keyFor(family2b));
@@ -169,7 +170,7 @@ void main() async {
       'persons': p1r.keys,
     };
 
-    final family = familyRepository.deserialize(map).model;
+    final family = familyRepository.deserialize(map, save: false).model;
     expect(
         family,
         Family(
