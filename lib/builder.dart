@@ -208,7 +208,7 @@ class DataExtensionIntermediateBuilder implements Builder {
 
     final exportAnnotation = TypeChecker.fromRuntime(DataRepository);
     final annotated = [
-      for (var member in lib.annotatedWith(exportAnnotation)) member.element,
+      for (final member in lib.annotatedWith(exportAnnotation)) member.element,
     ];
     if (annotated.isNotEmpty) {
       await buildStep.writeAsString(
@@ -233,12 +233,12 @@ class DataExtensionBuilder implements Builder {
     final finalAssetId = AssetId(b.inputId.package, 'lib/main.data.dart');
 
     final _classes = [
-      await for (var file in b.findAssets(Glob('**/*.info')))
+      await for (final file in b.findAssets(Glob('**/*.info')))
         await b.readAsString(file)
     ];
 
     final classes = _classes.fold<List<Map<String, String>>>([], (acc, line) {
-      for (var e in line.split(',')) {
+      for (final e in line.split(',')) {
         var parts = e.split('#');
         acc.add({'name': parts[0], 'path': parts[1]});
       }
@@ -293,12 +293,12 @@ $modelImports
 
 extension FlutterData on DataManager {
 
-  static Future<DataManager> init(Directory baseDir, {bool autoManager = true, bool clear, bool remote, bool verbose, List<int> encryptionKey, Function(void Function<R>(R)) also}) async {
+  static Future<DataManager> init(Directory baseDir, {bool enableAutoManager = true, bool clear, bool remote, bool verbose, List<int> encryptionKey, Function(void Function<R>(R)) also}) async {
     assert(baseDir != null);
 
     final injection = DataServiceLocator();
 
-    final manager = await DataManager(autoManager: autoManager).init(baseDir, injection.locator, clear: clear, verbose: verbose);
+    final manager = await DataManager(enableAutoManager: enableAutoManager).init(baseDir, injection.locator, clear: clear, verbose: verbose);
     injection.register(manager);
 
 ''' +

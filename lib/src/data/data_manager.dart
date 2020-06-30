@@ -4,8 +4,8 @@ class DataManager with _DataGraph {
   @visibleForTesting
   DataManager.delegate();
 
-  factory DataManager({bool autoManager = true}) {
-    if (autoManager) {
+  factory DataManager({bool enableAutoManager = true}) {
+    if (enableAutoManager) {
       return _autoManager ??= DataManager.delegate();
     }
     return DataManager.delegate();

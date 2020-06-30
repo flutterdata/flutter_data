@@ -6,7 +6,7 @@ abstract class DataSupport<T extends DataSupport<T>> {
   String _key;
 
   /// Only pass in a `DataManager` if you initialized
-  /// Flutter Data with `autoManager: false`
+  /// Flutter Data with `enableAutoManager: false`
   T init({DataManager manager, String key, bool save = true}) {
     manager ??= _autoManager;
     assert(manager != null);

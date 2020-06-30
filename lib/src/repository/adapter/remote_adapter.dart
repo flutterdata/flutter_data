@@ -255,9 +255,10 @@ mixin RemoteAdapter<T extends DataSupport<T>> on Repository<T> {
     params = this.params & params;
     headers = this.headers & headers;
 
+    _initModel(model);
+    localSave(model._key, model);
+
     if (remote == false) {
-      _initModel(model);
-      localSave(model._key, model);
       return model;
     }
 
@@ -341,7 +342,7 @@ mixin RemoteAdapter<T extends DataSupport<T>> on Repository<T> {
 
     return params.entries.fold<Map<String, String>>({}, (acc, e) {
       if (e.value is Map<String, dynamic>) {
-        for (var e2 in (e.value as Map<String, dynamic>).entries) {
+        for (final e2 in (e.value as Map<String, dynamic>).entries) {
           acc['${e.key}[${e2.key}]'] = e2.value.toString();
         }
       } else {

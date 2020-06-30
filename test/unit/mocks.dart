@@ -32,16 +32,16 @@ class TestDataManager extends DataManager {
 // fakes
 
 class FakeBox<T> extends Fake implements Box<T> {
-  final _map = <String, T>{};
+  final _map = <dynamic, T>{};
 
   @override
   T get(key, {T defaultValue}) {
-    return _map[key.toString()] ?? defaultValue;
+    return _map[key] ?? defaultValue;
   }
 
   @override
   Future<void> put(key, T value) async {
-    _map[key.toString()] = value;
+    _map[key] = value;
   }
 
   @override
@@ -50,10 +50,10 @@ class FakeBox<T> extends Fake implements Box<T> {
   }
 
   @override
-  Map<String, T> toMap() => _map;
+  Map<dynamic, T> toMap() => _map;
 
   @override
-  Iterable<String> get keys => _map.keys;
+  Iterable get keys => _map.keys;
 
   @override
   Iterable<T> get values => _map.values;
@@ -71,6 +71,9 @@ class FakeBox<T> extends Fake implements Box<T> {
 
   @override
   bool get isEmpty => length == 0;
+
+  @override
+  bool get isNotEmpty => !isEmpty;
 
   @override
   Future<int> clear() {

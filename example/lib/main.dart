@@ -59,7 +59,7 @@ void main() async {
 
     var stream = usersRepo.watchAll().stream;
 
-    await for (var state in stream) {
+    await for (final state in stream) {
       print(state.length);
     }
   } finally {

@@ -43,7 +43,7 @@ class _HiveTypeAdapter<T extends DataSupport<T>> with TypeAdapter<T> {
   void write(writer, T obj) {
     final _map = manager.locator<Repository<T>>().localSerialize(obj);
     writer.writeByte(_map.keys.length);
-    for (var k in _map.keys) {
+    for (final k in _map.keys) {
       writer.write(k);
       writer.write(_map[k]);
     }
@@ -55,7 +55,7 @@ class _HiveTypeAdapter<T extends DataSupport<T>> with TypeAdapter<T> {
     // Hive deserializes maps as Map<dynamic, dynamic>
     // but we *know* we serialized them as Map<String, dynamic>
 
-    for (var e in map.entries) {
+    for (final e in map.entries) {
       if (e.value is Map && e.value is! Map<String, dynamic>) {
         map[e.key] = Map<String, dynamic>.from(e.value as Map);
       }

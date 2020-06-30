@@ -164,7 +164,7 @@ abstract class Repository<T extends DataSupport<T>> {
     final auto = _autoManager != null;
     if (auto) {
       assert(manager == _autoManager, '''\n
-Flutter Data has been configured with autoManager: true
+Flutter Data has been configured with enableAutoManager: true
 at boot time. This means that the manager required for
 model initialization is provided by the framework.
 
