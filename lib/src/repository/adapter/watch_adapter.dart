@@ -23,53 +23,53 @@ mixin WatchAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
 
   // initialize & save
 
-  var _writeCounter = 0;
+  // var _writeCounter = 0;
 
-  final _offlineAdapterKey = 'offline:adapter';
-  final _offlineSaveMetadata = 'offline:save';
+  // final _offlineAdapterKey = 'offline:adapter';
+  // final _offlineSaveMetadata = 'offline:save';
 
-  @override
-  void initialize() {
-    _save();
-  }
+  // @override
+  // void initialize() {
+  //   _save();
+  // }
 
-  void _save() async {
-    final keys =
-        manager.getEdge(_offlineAdapterKey, metadata: _offlineSaveMetadata);
-    for (final key in keys) {
-      final model = localFindOne(key);
-      if (model != null) {
-        await model.save(); // might throw here
-        manager.removeEdge(_offlineAdapterKey, key,
-            metadata: _offlineSaveMetadata);
-        _writeCounter = 0; // reset write counter
-      }
-    }
-  }
+  // void _save() async {
+  //   final keys =
+  //       manager.getEdge(_offlineAdapterKey, metadata: _offlineSaveMetadata);
+  //   for (final key in keys) {
+  //     final model = localFindOne(key);
+  //     if (model != null) {
+  //       await model.save(); // might throw here
+  //       manager.removeEdge(_offlineAdapterKey, key,
+  //           metadata: _offlineSaveMetadata);
+  //       _writeCounter = 0; // reset write counter
+  //     }
+  //   }
+  // }
 
-  @override
-  Future<T> save(T model,
-      {bool remote,
-      Map<String, dynamic> params,
-      Map<String, String> headers}) async {
-    try {
-      return await super
-          .save(model, remote: remote, params: params, headers: headers);
-    } on SocketException {
-      // ensure offline node exists
-      if (!manager.hasNode(_offlineAdapterKey)) {
-        manager.addNode(_offlineAdapterKey);
-      }
+  // @override
+  // Future<T> save(T model,
+  //     {bool remote,
+  //     Map<String, dynamic> params,
+  //     Map<String, String> headers}) async {
+  //   try {
+  //     return await super
+  //         .save(model, remote: remote, params: params, headers: headers);
+  //   } on SocketException {
+  //     // ensure offline node exists
+  //     if (!manager.hasNode(_offlineAdapterKey)) {
+  //       manager.addNode(_offlineAdapterKey);
+  //     }
 
-      // add model's key with offline meta
-      manager.addEdge(_offlineAdapterKey, keyFor(model),
-          metadata: _offlineSaveMetadata);
+  //     // add model's key with offline meta
+  //     manager.addEdge(_offlineAdapterKey, keyFor(model),
+  //         metadata: _offlineSaveMetadata);
 
-      // there was a failure, so call _trySave again
-      Future.delayed(writeRetryAfter(_writeCounter++), _save);
-      rethrow;
-    }
-  }
+  //     // there was a failure, so call _trySave again
+  //     Future.delayed(writeRetryAfter(_writeCounter++), _save);
+  //     rethrow;
+  //   }
+  // }
 
   // watchers
 
