@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
@@ -28,21 +30,23 @@ void main() async {
         {'_id': null, 'name': 'Ko', 'age': 24, 'family_id': '332'});
   });
 
-  test('serialize rel embedded', () {
+  test('serialize embedded relationships', () {
     final f1 = Family(
             id: '334',
             surname: 'Zhan',
-            residence: House(address: 'Zhiwan 2').asBelongsTo,
+            residence: House(id: '1', address: 'Zhiwan 2').asBelongsTo,
             dogs: {Dog(id: '1', name: 'Pluto'), Dog(id: '2', name: 'Ricky')}
                 .asHasMany)
         .init(manager: manager);
 
-    expect(familyRepository.serialize(f1), {
+    final serialized = familyRepository.serialize(f1);
+    expect(serialized, {
       'id': '334',
       'surname': 'Zhan',
-      'residence_id': null,
+      'residence_id': '1',
       'dogs': ['1', '2']
     });
+    expect(json.encode(serialized), isA<String>());
   });
 
   test('deserialize multiple', () {
@@ -77,7 +81,7 @@ void main() async {
     expect(p1.family.value, p2.family.value);
   });
 
-  test('deserialize rel embedded', () {
+  test('deserialize with embedded relationships', () {
     final data = familyRepository.deserialize([
       {
         'id': '1',
@@ -86,6 +90,10 @@ void main() async {
           {'_id': '1', 'name': 'Wendy', 'age': 58},
           {'_id': '2', 'name': 'Marty', 'age': 60},
         ],
+        'residence': <String, dynamic>{
+          'id': '1',
+          'address': '123 Main St',
+        }
       }
     ], save: false);
 
@@ -100,7 +108,30 @@ void main() async {
     // check included instead
     expect(data.included, [
       Person(id: '1', name: 'Wendy', age: 58),
-      Person(id: '2', name: 'Marty', age: 60)
+      Person(id: '2', name: 'Marty', age: 60),
+      House(id: '1', address: '123 Main St'),
+    ]);
+  });
+
+  test('deserialize with nested embedded relationships', () {
+    final data = personRepository.deserialize([
+      {
+        '_id': '1',
+        'name': 'Marty',
+        'family': <String, dynamic>{
+          'id': '1',
+          'surname': 'Byrde',
+          'residence': <String, dynamic>{
+            'id': '1',
+            'address': '123 Main St',
+          }
+        },
+      }
+    ], save: false);
+
+    expect(data.included, [
+      Family(id: '1', surname: 'Byrde'),
+      House(id: '1', address: '123 Main St'),
     ]);
   });
 

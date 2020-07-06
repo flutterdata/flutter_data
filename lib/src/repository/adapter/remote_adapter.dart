@@ -60,7 +60,7 @@ mixin RemoteAdapter<T extends DataSupport<T>> on Repository<T> {
       if (map[field] != null) {
         if (relEntry.value['kind'] == 'HasMany') {
           final dataIdKeys = List<String>.from(map[field] as Iterable);
-          relationships[key] = dataIdKeys.map(manager.getId);
+          relationships[key] = dataIdKeys.map(manager.getId).toList();
         } else if (relEntry.value['kind'] == 'BelongsTo') {
           final dataIdKey = map[field].toString();
           relationships[key] = manager.getId(dataIdKey);
@@ -79,10 +79,12 @@ mixin RemoteAdapter<T extends DataSupport<T>> on Repository<T> {
 
     Object addIncluded(id, Repository repository) {
       if (id is Map) {
-        final model = repository.localDeserialize(id as Map<String, dynamic>);
-        result.included.add(
-            model.init(manager: manager, key: key, save: save) as DataSupport);
-        return model.id;
+        final data =
+            repository.deserialize(id as Map<String, dynamic>, save: save);
+        result.included
+          ..add(data.model)
+          ..addAll(data.included);
+        return data.model.id;
       }
       return id;
     }

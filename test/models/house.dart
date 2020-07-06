@@ -22,5 +22,12 @@ class House with DataSupport<House> {
   }) : owner = owner ?? BelongsTo();
 
   @override
+  bool operator ==(other) =>
+      other is House && id == other.id && address == other.address;
+
+  @override
+  int get hashCode => runtimeType.hashCode ^ id.hashCode ^ address.hashCode;
+
+  @override
   String toString() => address;
 }
