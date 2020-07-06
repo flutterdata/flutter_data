@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:http/testing.dart';
 import 'package:meta/meta.dart';
 import 'package:flutter_data/flutter_data.dart';
