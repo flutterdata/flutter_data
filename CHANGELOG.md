@@ -1,11 +1,17 @@
+## [0.4.2-dev.3] - 2020-07-06
+
+ - Fix serialization tests
+ - Move `JSONAPIAdapter` to separate package
+ - Graph API for external adapters
+
 ## [0.4.2-dev.2] - 2020-06-29
 
- - new serializer API with `DeserializedData`
- - adapt, fix & merge `StandardJSONAdapter` into core, no longer required as adapter
- - new `DataSupport#init(manager, key, save)` API
+ - New serializer API with `DeserializedData`
+ - Adapt, fix & merge `StandardJSONAdapter` into core, no longer required as adapter
+ - New `DataSupport#init(manager, key, save)` API
  - `shouldLoadRemoteAll`, `shouldLoadRemoteOne` APIs
- - misc optimizations
- - test infrastructure fixes
+ - Misc optimizations
+ - Test infrastructure fixes
 
 ## [0.4.2-dev.1] - 2020-06-24
 
