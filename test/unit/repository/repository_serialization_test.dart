@@ -10,23 +10,21 @@ import '../../models/pet.dart';
 import '../setup.dart';
 
 void main() async {
-  setUpAll(setUpAllFn);
-  tearDownAll(tearDownAllFn);
   setUp(setUpFn);
 
   test('serialize', () {
     final person = Person(id: '23', name: 'Ko', age: 24);
-    expect(personRepository.serialize(person),
+    expect(personRemoteAdapter.serialize(person),
         {'_id': '23', 'name': 'Ko', 'age': 24});
   });
 
-  test('serialize rel id', () {
+  test('serialize with relationship', () {
     final p2 = Person(
             name: 'Ko',
             age: 24,
             family: Family(id: '332', surname: 'Tao').asBelongsTo)
-        .init(manager: manager);
-    expect(personRepository.serialize(p2),
+        .init(owner);
+    expect(personRemoteAdapter.serialize(p2),
         {'_id': null, 'name': 'Ko', 'age': 24, 'family_id': '332'});
   });
 
@@ -37,9 +35,9 @@ void main() async {
             residence: House(id: '1', address: 'Zhiwan 2').asBelongsTo,
             dogs: {Dog(id: '1', name: 'Pluto'), Dog(id: '2', name: 'Ricky')}
                 .asHasMany)
-        .init(manager: manager);
+        .init(owner);
 
-    final serialized = familyRepository.serialize(f1);
+    final serialized = familyRemoteAdapter.serialize(f1);
     expect(serialized, {
       'id': '334',
       'surname': 'Zhan',
@@ -50,30 +48,35 @@ void main() async {
   });
 
   test('deserialize multiple', () {
-    final models = personRepository.deserialize([
+    final models = personRemoteAdapter.deserialize([
       {'_id': '23', 'name': 'Ko', 'age': 24},
       {'_id': '26', 'name': 'Ze', 'age': 58}
-    ], save: false).models;
+    ]).models;
 
     expect(models, [
-      Person(id: '23', name: 'Ko', age: 24).init(manager: manager),
-      Person(id: '26', name: 'Ze', age: 58).init(manager: manager)
+      Person(id: '23', name: 'Ko', age: 24),
+      Person(id: '26', name: 'Ze', age: 58)
     ]);
   });
 
-  test('deserialize rel id', () {
-    Family(id: '332', surname: 'Tao').init(manager: manager);
+  test('deserialize relationship with id', () {
+    final p1 = personRemoteAdapter
+        .deserialize([
+          {'_id': '27', 'name': 'Ko', 'age': 24, 'family_id': '332'}
+        ])
+        .model
+        .init(owner);
 
-    final p1 = personRepository.deserialize([
-      {'_id': '27', 'name': 'Ko', 'age': 24, 'family_id': '332'}
-    ], save: false).model;
+    //
+
+    Family(id: '332', surname: 'Tao').init(owner);
 
     final p2 = Person(
             id: '27',
             name: 'Ko',
             age: 24,
             family: Family(id: '332', surname: 'Tao').asBelongsTo)
-        .init(manager: manager);
+        .init(owner);
 
     expect(p1, p2);
 
@@ -82,20 +85,22 @@ void main() async {
   });
 
   test('deserialize with embedded relationships', () {
-    final data = familyRepository.deserialize([
-      {
-        'id': '1',
-        'surname': 'Byrde',
-        'persons': <Map<String, dynamic>>[
-          {'_id': '1', 'name': 'Wendy', 'age': 58},
-          {'_id': '2', 'name': 'Marty', 'age': 60},
-        ],
-        'residence': <String, dynamic>{
+    final data = familyRemoteAdapter.deserialize(
+      [
+        {
           'id': '1',
-          'address': '123 Main St',
+          'surname': 'Byrde',
+          'persons': <Map<String, dynamic>>[
+            {'_id': '1', 'name': 'Wendy', 'age': 58},
+            {'_id': '2', 'name': 'Marty', 'age': 60},
+          ],
+          'residence': <String, dynamic>{
+            'id': '1',
+            'address': '123 Main St',
+          }
         }
-      }
-    ], save: false);
+      ],
+    );
 
     final f1 = data.model;
     final f2 = Family(id: '1', surname: 'Byrde');
@@ -114,20 +119,22 @@ void main() async {
   });
 
   test('deserialize with nested embedded relationships', () {
-    final data = personRepository.deserialize([
-      {
-        '_id': '1',
-        'name': 'Marty',
-        'family': <String, dynamic>{
-          'id': '1',
-          'surname': 'Byrde',
-          'residence': <String, dynamic>{
+    final data = personRemoteAdapter.deserialize(
+      [
+        {
+          '_id': '1',
+          'name': 'Marty',
+          'family': <String, dynamic>{
             'id': '1',
-            'address': '123 Main St',
-          }
-        },
-      }
-    ], save: false);
+            'surname': 'Byrde',
+            'residence': <String, dynamic>{
+              'id': '1',
+              'address': '123 Main St',
+            }
+          },
+        }
+      ],
+    );
 
     expect(data.included, [
       Family(id: '1', surname: 'Byrde'),
@@ -136,34 +143,35 @@ void main() async {
   });
 
   test('deserialize existing (with save)', () {
-    final family = Family(surname: 'Moletto').init(manager: manager);
+    final family = Family(surname: 'Moletto').init(owner);
 
     // simulate "save"
-    final obj = {'id': '1098', 'surname': 'Moletto'};
-    final family2 = familyRepository
-        .deserialize(obj, key: keyFor(family), save: true)
-        .model;
+    graph.getKeyForId('families', '1098', keyIfAbsent: keyFor(family));
+    final family2 = familyLocalAdapter
+        .deserialize({'id': '1098', 'surname': 'Moletto'}).init(owner);
 
-    expect(family2.isNew, false); // also checks if the model was init'd
     expect(family2, Family(id: '1098', surname: 'Moletto'));
-    expect(familyRepository.box.keys, [keyFor(family2)]);
+    expect((familyLocalAdapter as HiveLocalAdapter<Family>).box.keys,
+        [keyFor(family2)]);
   });
 
   test('deserialize many local for same remote ID', () {
-    final family = Family(surname: 'Moletto').init(manager: manager);
-    final family2 = Family(surname: 'Zandiver').init(manager: manager);
+    final family = Family(surname: 'Moletto').init(owner);
+    final family2 = Family(surname: 'Zandiver').init(owner);
 
     // simulate "save" for family
-    final family1b = familyRepository.deserialize({
+    graph.getKeyForId('families', '1298', keyIfAbsent: keyFor(family));
+    final family1b = familyLocalAdapter.deserialize({
       'id': '1298',
       'surname': 'Helsinki',
-    }, key: keyFor(family), save: true).model;
+    }).init(owner);
 
     // simulate "save" for family2
-    final family2b = familyRepository.deserialize({
+    graph.getKeyForId('families', '1298', keyIfAbsent: keyFor(family2));
+    final family2b = familyLocalAdapter.deserialize({
       'id': '1298',
       'surname': 'Oslo',
-    }, key: keyFor(family2), save: true).model;
+    }).init(owner);
 
     // since obj returned with same ID
     expect(keyFor(family1b), keyFor(family2b));
@@ -177,9 +185,9 @@ void main() async {
 
     final family =
         Family(id: '1', surname: 'Smith', residence: h1r, persons: p1r)
-            .init(manager: manager);
+            .init(owner);
 
-    final map = familyRepository.localSerialize(family);
+    final map = familyLocalAdapter.serialize(family);
     expect(map, {
       'id': '1',
       'surname': 'Smith',
@@ -201,7 +209,7 @@ void main() async {
       'persons': p1r.keys,
     };
 
-    final family = familyRepository.deserialize(map, save: false).model;
+    final family = familyLocalAdapter.deserialize(map);
     expect(
         family,
         Family(
@@ -213,9 +221,8 @@ void main() async {
   });
 
   test('local deserialize with relationships', () {
-    final house = House(id: '1', address: '123 Main St').init(manager: manager);
-    final person =
-        Person(id: '1', name: 'John', age: 21).init(manager: manager);
+    final house = House(id: '1', address: '123 Main St').init(owner);
+    final person = Person(id: '1', name: 'John', age: 21).init(owner);
 
     final obj = {
       'id': '1',
@@ -224,10 +231,8 @@ void main() async {
       'persons': [keyFor(person)]
     };
 
-    final family =
-        familyRepository.localDeserialize(obj).init(manager: manager);
+    final family = familyLocalAdapter.deserialize(obj).init(owner);
 
-    expect(family.isNew, false); // also checks if the model was init'd
     expect(family, Family(id: '1', surname: 'Smith'));
     expect(family.residence.value.address, '123 Main St');
     expect(family.persons.first.age, 21);

@@ -1,53 +1,88 @@
 
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: directives_ordering
+// ignore_for_file: directives_ordering, top_level_function_literal_block
 
-import 'dart:io';
+import 'dart:async';
 import 'package:flutter_data/flutter_data.dart';
 
+
+
+import 'package:get_it/get_it.dart';
 
 import 'package:jsonplaceholder_example/model/post.dart';
 import 'package:jsonplaceholder_example/model/user.dart';
 import 'package:jsonplaceholder_example/model/comment.dart';
 
-extension FlutterData on DataManager {
-
-  static Future<DataManager> init(Directory baseDir, {bool enableAutoManager = true, bool clear, bool remote, bool verbose, List<int> encryptionKey, Function(void Function<R>(R)) also}) async {
-    assert(baseDir != null);
-
-    final injection = DataServiceLocator();
-
-    final manager = await DataManager(enableAutoManager: enableAutoManager).init(baseDir, injection.locator, clear: clear, verbose: verbose);
-    injection.register(manager);
-
-    final postRepository = $PostRepository(manager, remote: remote, verbose: verbose);
-    injection.register<Repository<Post>>(postRepository);
-    final postBox = await Repository.getBox<Post>(manager, encryptionKey: encryptionKey);
-    injection.register(postBox);
-
-    final userRepository = $UserRepository(manager, remote: remote, verbose: verbose);
-    injection.register<Repository<User>>(userRepository);
-    final userBox = await Repository.getBox<User>(manager, encryptionKey: encryptionKey);
-    injection.register(userBox);
-
-    final commentRepository = $CommentRepository(manager, remote: remote, verbose: verbose);
-    injection.register<Repository<Comment>>(commentRepository);
-    final commentBox = await Repository.getBox<Comment>(manager, encryptionKey: encryptionKey);
-    injection.register(commentBox);
-
-
-    if (also != null) {
-      // ignore: unnecessary_lambdas
-      also(<R>(R obj) => injection.register<R>(obj));
+Future<void> initializeRepositories(ProviderReference ref,
+    {bool remote, bool verbose, FutureProvider<void> alsoInitialize}) async {
+    final graphs = <String, Map<String, RemoteAdapter>>{'comments,posts,users': {'comments': ref.read(commentsRemoteAdapterProvider), 'posts': ref.read(postsRemoteAdapterProvider), 'users': ref.read(usersRemoteAdapterProvider)}, 'users': {'users': ref.read(usersRemoteAdapterProvider)}};
+                await ref.read(postsRepositoryProvider).initialize(
+              remote: remote,
+              verbose: verbose,
+              adapters: graphs['comments,posts,users'],
+            );            await ref.read(usersRepositoryProvider).initialize(
+              remote: remote,
+              verbose: verbose,
+              adapters: graphs['users'],
+            );            await ref.read(commentsRepositoryProvider).initialize(
+              remote: remote,
+              verbose: verbose,
+              adapters: graphs['comments,posts,users'],
+            );
+    if (alsoInitialize != null) {
+      await ref.read(alsoInitialize);
     }
-await postRepository.initialize();
-await userRepository.initialize();
-await commentRepository.initialize();
+}
 
-    return manager;
-  }
-  
+StateNotifierProvider<RepositoryInitializerNotifier>
+    repositoryInitializerProvider(
+        {bool remote, bool verbose, FutureProvider<void> alsoInitialize}) {
+  return StateNotifierProvider<RepositoryInitializerNotifier>((ref) {
+    final notifier = RepositoryInitializerNotifier(false);
+    initializeRepositories(ref,
+            remote: remote, verbose: verbose, alsoInitialize: alsoInitialize)
+        .then((_) => notifier.value = true);
+    return notifier;
+  });
 }
 
 
+
+class RepositoryInitializer {}
+
+extension GetItFlutterDataX on GetIt {
+  void registerRepositories({FutureOr<String> Function() baseDirFn,
+    bool clear, bool remote, bool verbose, List<int> encryptionKey, FutureProvider<void> alsoInitialize}) {
+
+final _owner = ProviderStateOwner(overrides: [
+    hiveDirectoryProvider.overrideAs(FutureProvider((ref) async {
+      final dir = baseDirFn?.call();
+      return dir;
+    })),
+    hiveLocalStorageProvider.overrideAs(Provider(
+        (ref) => HiveLocalStorage(ref, encryptionKey: encryptionKey, clear: true)))
+  ]);
+
+GetIt.instance.registerSingletonAsync<RepositoryInitializer>(() async {
+    await initializeRepositories(_owner.ref,
+                remote: remote, verbose: verbose, alsoInitialize: alsoInitialize);
+    return RepositoryInitializer();
+  });  
+GetIt.instance.registerSingletonWithDependencies<Repository<Post>>(
+      () => _owner.ref.read(postsRepositoryProvider),
+      dependsOn: [RepositoryInitializer]);
+
+      
+  
+GetIt.instance.registerSingletonWithDependencies<Repository<User>>(
+      () => _owner.ref.read(usersRepositoryProvider),
+      dependsOn: [RepositoryInitializer]);
+
+      
+  
+GetIt.instance.registerSingletonWithDependencies<Repository<Comment>>(
+      () => _owner.ref.read(commentsRepositoryProvider),
+      dependsOn: [RepositoryInitializer]);
+
+      } }

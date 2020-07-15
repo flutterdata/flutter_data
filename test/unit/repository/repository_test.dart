@@ -9,8 +9,6 @@ import '../mocks.dart';
 import '../setup.dart';
 
 void main() async {
-  setUpAll(setUpAllFn);
-  tearDownAll(tearDownAllFn);
   setUp(setUpFn);
 
   test('findAll', () async {
@@ -39,7 +37,7 @@ void main() async {
     expect(await houseRepository.findOne(house.id), isNull);
 
     // now initialize
-    house.init(manager: manager);
+    house.init(owner);
 
     // repo.findOne works because the House repo is remote=false
     expect(await houseRepository.findOne(house.id), house);
@@ -56,49 +54,45 @@ void main() async {
     await familyRepository.save(family);
 
     final family2 = await familyRepository.findOne('32423');
-    expect(family2.isNew, false);
     expect(family, family2);
   });
 
   test('delete', () async {
-    final person =
-        Person(id: '1', name: 'John', age: 21).init(manager: manager);
-    await personRepository.delete(person.id);
-    final p2 = await personRepository.findOne(person.id);
-    expect(p2, isNull);
-    expect(manager.metaBox.get('people#${keyFor(person)}'), isNull);
-    // the ID->key node is left orphan, which
-    // will eventually be removed with serialization
-    expect(manager.metaBox.get('id:people#${person.id}'), isNotNull);
-  });
+    // init a person
+    final person = Person(id: '1', name: 'John', age: 21).init(owner);
+    // it does have a key
+    expect(graph.getKeyForId('people', person.id), isNotNull);
 
-  test('delete without init', () async {
-    final person = Person(id: '911', name: 'Sammy', age: 47);
+    // now delete
     await personRepository.delete(person.id);
+
+    // so fetching by id again is null
     expect(await personRepository.findOne(person.id), isNull);
+
+    // and now key & id are both non-existent
+    expect(graph.getNode(keyFor(person)), isNull);
+    expect(graph.getKeyForId('people', person.id), isNull);
   });
 
   test('returning a different remote ID for a requested ID is not supported',
       () {
-    Family(id: '2908', surname: 'Moletto').init(manager: manager);
+    Family(id: '2908', surname: 'Moletto').init(owner);
 
     // simulate a "findOne" with some id
-    final family =
-        Family(id: '2905', surname: 'Moletto').init(manager: manager);
-    final obj2 = {
+    final family = Family(id: '2905', surname: 'Moletto').init(owner);
+    graph.getKeyForId('people', '2908', keyIfAbsent: keyFor(family));
+    final obj2 = <String, dynamic>{
       'id': '2908', // that returns a different ID (already in the system)
       'surname': 'Oslo',
     };
-    final family2 =
-        familyRepository.deserialize(obj2, key: keyFor(family)).model;
+    final family2 = familyLocalAdapter.deserialize(obj2).init(owner);
 
     // even though we supplied family.key, it will be different (family0's)
     expect(keyFor(family2), isNot(keyFor(family)));
   });
 
-  test('custom login adapter', () async {
-    final repo = personRepository as PersonLoginAdapter;
-    final token = await repo.login('email@email.com', 'password');
+  test('custom login adapter with repo extension', () async {
+    final token = await personRepository.login('email@email.com', 'password');
     expect(token, 'zzz1');
   });
 

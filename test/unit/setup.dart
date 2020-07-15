@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_data/flutter_data.dart';
-import 'package:test/test.dart';
+import 'package:hive/hive.dart';
+import 'package:riverpod/riverpod.dart' hide Family;
 
 import '../models/family.dart';
 import '../models/house.dart';
@@ -8,82 +9,149 @@ import '../models/person.dart';
 import '../models/pet.dart';
 import 'mocks.dart';
 
-final injection = DataServiceLocator();
-
-DataManager manager;
-Repository<House> houseRepository;
-Repository<Family> familyRepository;
-Repository<Person> personRepository;
-Repository<Dog> dogRepository;
-
-final Function() setUpAllFn = () {
-  injection.register(HiveMock());
-  manager = TestDataManager(injection.locator);
-  injection.register<DataManager>(manager);
-
-  injection.register<Repository<House>>(HouseRepository(
-    manager,
-    remote: false,
-    box: FakeBox<House>(),
-  ));
-  houseRepository = injection.locator<Repository<House>>();
-
-  injection.register<Repository<Family>>(FamilyRepository(
-    manager,
-    remote: false,
-    box: FakeBox<Family>(),
-  ));
-  familyRepository = injection.locator<Repository<Family>>();
-
-  injection.register<Repository<Person>>(PersonRepository(
-    manager,
-    remote: false,
-    box: FakeBox<Person>(),
-  ));
-  personRepository = injection.locator<Repository<Person>>();
-
-  injection.register<Repository<Dog>>($DogRepository(
-    manager,
-    remote: false,
-    box: FakeBox<Dog>(),
-  ));
-  dogRepository = injection.locator<Repository<Dog>>();
-};
-
-final Function() setUpFn = () async {
-  manager.debugClearGraph();
-  for (final repo in [
-    houseRepository,
-    familyRepository,
-    personRepository,
-    dogRepository
-  ]) {
-    await repo.box.clear();
-    expect(repo.box.keys, isEmpty);
-  }
-};
-
-final Function() tearDownAllFn = () async {
-  await injection.locator<Repository<House>>().dispose();
-  await injection.locator<Repository<Family>>().dispose();
-  await injection.locator<Repository<Person>>().dispose();
-  await injection.locator<Repository<Dog>>().dispose();
-  injection.clear();
-};
-
 // adapters
 
-mixin NoThrottleAdapter<T extends DataSupport<T>> on WatchAdapter<T> {
+mixin TestMetaBox on DataGraphNotifier {
+  @override
+  // ignore: must_call_super
+  Future<DataGraphNotifier> initialize() async {
+    await super.initialize();
+    box = FakeBox<Map<String, List<String>>>();
+    return this;
+  }
+}
+
+mixin TestHiveLocalAdapter<T extends DataSupport<T>> on HiveLocalAdapter<T> {
+  @override
+  // ignore: must_call_super
+  Future<TestHiveLocalAdapter<T>> initialize() async {
+    await graph.initialize();
+    box = FakeBox<T>();
+    return this;
+  }
+}
+
+mixin NoThrottleAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
   @override
   Duration get throttleDuration => Duration.zero;
 }
 
-class HouseRepository = $HouseRepository with NoThrottleAdapter;
+//
 
-class FamilyRepository = $FamilyRepository with NoThrottleAdapter;
+class TestDataGraphNotifier = DataGraphNotifier with TestMetaBox;
 
-class PersonRepository = $PersonRepository
+// ignore: must_be_immutable
+class HouseLocalAdapter = $HouseHiveLocalAdapter
+    with TestHiveLocalAdapter<House>;
+class HouseRemoteAdapter = $HouseRemoteAdapter with NoThrottleAdapter;
+
+// ignore: must_be_immutable
+class FamilyLocalAdapter = $FamilyHiveLocalAdapter
+    with TestHiveLocalAdapter<Family>;
+class FamilyRemoteAdapter = $FamilyRemoteAdapter with NoThrottleAdapter;
+
+// ignore: must_be_immutable
+class PersonLocalAdapter = $PersonHiveLocalAdapter
+    with TestHiveLocalAdapter<Person>;
+class PersonRemoteAdapter = $PersonRemoteAdapter
     with TestLoginAdapter, NoThrottleAdapter;
+
+// ignore: must_be_immutable
+class DogLocalAdapter = $DogHiveLocalAdapter with TestHiveLocalAdapter<Dog>;
+
+//
+
+ProviderStateOwner owner;
+Box<Map<String, List<String>>> metaBox;
+DataGraphNotifier graph;
+
+LocalAdapter<House> houseLocalAdapter;
+LocalAdapter<Family> familyLocalAdapter;
+LocalAdapter<Person> personLocalAdapter;
+LocalAdapter<Dog> dogLocalAdapter;
+
+RemoteAdapter<House> houseRemoteAdapter;
+RemoteAdapter<Family> familyRemoteAdapter;
+RemoteAdapter<Person> personRemoteAdapter;
+
+Repository<Family> familyRepository;
+Repository<House> houseRepository;
+Repository<Person> personRepository;
+Repository<Dog> dogRepository;
+
+void setUpFn() async {
+  owner = createOwner();
+  graph = graphProvider.readOwner(owner);
+  // IMPORTANT: disable namespace assertions
+  // in order to test un-namespaced (key, id)
+  graph.debugAssert(false);
+
+  final adapterGraph = <String, RemoteAdapter<DataSupport>>{
+    'houses': housesRemoteAdapterProvider.readOwner(owner),
+    'families': familiesRemoteAdapterProvider.readOwner(owner),
+    'people': peopleRemoteAdapterProvider.readOwner(owner),
+    'dogs': dogsRemoteAdapterProvider.readOwner(owner),
+  };
+
+  houseLocalAdapter = housesLocalAdapterProvider.readOwner(owner);
+  familyLocalAdapter = familiesLocalAdapterProvider.readOwner(owner);
+  personLocalAdapter = peopleLocalAdapterProvider.readOwner(owner);
+  dogLocalAdapter = dogsLocalAdapterProvider.readOwner(owner);
+
+  houseRemoteAdapter = housesRemoteAdapterProvider.readOwner(owner);
+  familyRemoteAdapter = familiesRemoteAdapterProvider.readOwner(owner);
+  personRemoteAdapter = peopleRemoteAdapterProvider.readOwner(owner);
+
+  houseRepository = await housesRepositoryProvider.readOwner(owner).initialize(
+        remote: false,
+        verbose: true,
+        adapters: adapterGraph,
+      );
+
+  familyRepository =
+      await familiesRepositoryProvider.readOwner(owner).initialize(
+            remote: false,
+            verbose: true,
+            adapters: adapterGraph,
+          );
+
+  personRepository = await peopleRepositoryProvider.readOwner(owner).initialize(
+        remote: false,
+        verbose: true,
+        adapters: adapterGraph,
+      );
+
+  dogRepository = await dogsRepositoryProvider.readOwner(owner).initialize(
+        remote: false,
+        verbose: true,
+        adapters: adapterGraph,
+      );
+}
+
+ProviderStateOwner createOwner() {
+  return ProviderStateOwner(
+    overrides: [
+      hiveLocalStorageProvider.overrideAs(
+          Provider((_) => HiveLocalStorage(null, hive: HiveMock()))),
+      graphProvider.overrideAs(Provider(
+          (ref) => TestDataGraphNotifier(ref.read(hiveLocalStorageProvider)))),
+      housesLocalAdapterProvider.overrideAs(
+          Provider((ref) => HouseLocalAdapter(ref.read(graphProvider)))),
+      familiesLocalAdapterProvider.overrideAs(
+          Provider((ref) => FamilyLocalAdapter(ref.read(graphProvider)))),
+      peopleLocalAdapterProvider.overrideAs(
+          Provider((ref) => PersonLocalAdapter(ref.read(graphProvider)))),
+      dogsLocalAdapterProvider.overrideAs(
+          Provider((ref) => DogLocalAdapter(ref.read(graphProvider)))),
+      housesRemoteAdapterProvider.overrideAs(Provider(
+          (ref) => HouseRemoteAdapter(ref.read(housesLocalAdapterProvider)))),
+      familiesRemoteAdapterProvider.overrideAs(Provider((ref) =>
+          FamilyRemoteAdapter(ref.read(familiesLocalAdapterProvider)))),
+      peopleRemoteAdapterProvider.overrideAs(Provider(
+          (ref) => PersonRemoteAdapter(ref.read(peopleLocalAdapterProvider)))),
+    ],
+  );
+}
 
 // utils
 

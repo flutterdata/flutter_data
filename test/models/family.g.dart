@@ -3,62 +3,6 @@
 part of 'family.dart';
 
 // **************************************************************************
-// DataGenerator
-// **************************************************************************
-
-// ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names
-mixin _$FamilyModelAdapter on Repository<Family> {
-  @override
-  Map<String, Map<String, Object>> relationshipsFor([Family model]) => {
-        'persons': {
-          'type': 'people',
-          'kind': 'HasMany',
-          'instance': model?.persons
-        },
-        'cottage': {
-          'type': 'houses',
-          'kind': 'BelongsTo',
-          'instance': model?.cottage
-        },
-        'residence': {
-          'type': 'houses',
-          'kind': 'BelongsTo',
-          'instance': model?.residence
-        },
-        'dogs': {'type': 'dogs', 'kind': 'HasMany', 'instance': model?.dogs}
-      };
-
-  @override
-  Map<String, Repository> get relatedRepositories => {
-        'people': manager.locator<Repository<Person>>(),
-        'houses': manager.locator<Repository<House>>(),
-        'dogs': manager.locator<Repository<Dog>>()
-      };
-
-  @override
-  localDeserialize(map) {
-    for (final key in relationshipsFor().keys) {
-      map[key] = {
-        '_': [map[key], !map.containsKey(key), manager]
-      };
-    }
-    return _$FamilyFromJson(map);
-  }
-
-  @override
-  localSerialize(model) {
-    final map = _$FamilyToJson(model);
-    for (final e in relationshipsFor(model).entries) {
-      map[e.key] = (e.value['instance'] as Relationship)?.toJson();
-    }
-    return map;
-  }
-}
-
-class $FamilyRepository = Repository<Family>
-    with _$FamilyModelAdapter, RemoteAdapter<Family>, WatchAdapter<Family>;
-
-// **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
@@ -89,3 +33,79 @@ Map<String, dynamic> _$FamilyToJson(Family instance) => <String, dynamic>{
       'residence': instance.residence?.toJson(),
       'dogs': instance.dogs?.toJson(),
     };
+
+// **************************************************************************
+// RepositoryGenerator
+// **************************************************************************
+
+// ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names, invalid_use_of_protected_member
+
+mixin $FamilyLocalAdapter on LocalAdapter<Family> {
+  @override
+  Map<String, Map<String, Object>> relationshipsFor([Family model]) => {
+        'persons': {
+          'inverse': 'family',
+          'type': 'people',
+          'kind': 'HasMany',
+          'instance': model?.persons
+        },
+        'cottage': {
+          'inverse': 'owner',
+          'type': 'houses',
+          'kind': 'BelongsTo',
+          'instance': model?.cottage
+        },
+        'residence': {
+          'inverse': 'owner',
+          'type': 'houses',
+          'kind': 'BelongsTo',
+          'instance': model?.residence
+        },
+        'dogs': {'type': 'dogs', 'kind': 'HasMany', 'instance': model?.dogs}
+      };
+
+  @override
+  deserialize(map) {
+    for (final key in relationshipsFor().keys) {
+      map[key] = {
+        '_': [map[key], !map.containsKey(key)],
+      };
+    }
+    return _$FamilyFromJson(map);
+  }
+
+  @override
+  serialize(model) {
+    final map = _$FamilyToJson(model);
+    for (final e in relationshipsFor(model).entries) {
+      map[e.key] = (e.value['instance'] as Relationship)?.toJson();
+    }
+    return map;
+  }
+}
+
+// ignore: must_be_immutable
+class $FamilyHiveLocalAdapter = HiveLocalAdapter<Family>
+    with $FamilyLocalAdapter;
+
+class $FamilyRemoteAdapter = RemoteAdapter<Family> with NothingMixin;
+
+//
+
+final familiesLocalAdapterProvider = Provider<LocalAdapter<Family>>(
+    (ref) => $FamilyHiveLocalAdapter(ref.read(graphProvider)));
+
+final familiesRemoteAdapterProvider = Provider<RemoteAdapter<Family>>(
+    (ref) => $FamilyRemoteAdapter(ref.read(familiesLocalAdapterProvider)));
+
+final familiesRepositoryProvider =
+    Provider<Repository<Family>>((_) => Repository<Family>());
+
+extension FamilyX on Family {
+  Family init(owner) {
+    return initFromRepository(
+        owner.ref.read(familiesRepositoryProvider) as Repository<Family>);
+  }
+}
+
+extension FamilyRepositoryX on Repository<Family> {}

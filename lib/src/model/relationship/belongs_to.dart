@@ -1,23 +1,21 @@
 part of flutter_data;
 
 class BelongsTo<E extends DataSupport<E>> extends Relationship<E, E> {
-  BelongsTo([E model, DataManager manager])
-      : super(model != null ? {model} : null, manager);
+  BelongsTo([E model]) : super(model != null ? {model} : null);
 
-  BelongsTo._(String key, DataManager manager, bool _wasOmitted)
-      : super._(key != null ? {key} : {}, manager, _wasOmitted);
+  BelongsTo._(String key, bool _wasOmitted)
+      : super._(key != null ? {key} : {}, _wasOmitted);
 
   factory BelongsTo.fromJson(Map<String, dynamic> map) {
     final key = map['_'][0] as String;
-    final manager = map['_'][2] as DataManager;
     if (key == null) {
       final wasOmitted = map['_'][1] as bool;
-      return BelongsTo._(null, manager, wasOmitted);
+      return BelongsTo._(null, wasOmitted);
     }
-    return BelongsTo._(key, manager, false);
+    return BelongsTo._(key, false);
   }
 
-  //
+  /// Specific methods for [BelongsTo]
 
   E get value {
     return super.isNotEmpty ? super.first : null;
@@ -39,7 +37,9 @@ class BelongsTo<E extends DataSupport<E>> extends Relationship<E, E> {
   @visibleForTesting
   String get key => super.keys.isNotEmpty ? super.keys.first : null;
 
-  //
+  // notifier
+
+  ValueStateNotifier<E> _notifier;
 
   @override
   ValueStateNotifier<E> watch() {
@@ -53,7 +53,7 @@ class BelongsTo<E extends DataSupport<E>> extends Relationship<E, E> {
     return _notifier;
   }
 
-  //
+  // misc
 
   @override
   dynamic toJson() => key;

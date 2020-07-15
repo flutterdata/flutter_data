@@ -1,207 +1,105 @@
 part of flutter_data;
 
-abstract class Repository<T extends DataSupport<T>> {
-  Repository(this.manager, {bool remote, bool verbose, Box<T> box})
-      : _box = box,
-        _remote = remote ?? true,
-        _verbose = verbose ?? true;
+class Repository<T extends DataSupport<T>> with _Lifecycle<Repository<T>> {
+  @override
+  @mustCallSuper
+  FutureOr<Repository<T>> initialize(
+      {bool remote, bool verbose, Map<String, RemoteAdapter> adapters}) async {
+    if (isInitialized) return this;
+    if (!isInitialized) {
+      for (final e in adapters.entries) {
+        _adapters[e.key] = await e.value
+            .initialize(remote: remote, verbose: verbose, adapters: adapters);
+      }
+    }
+    await super.initialize();
+    return this;
+  }
+
+  @override
+  @mustCallSuper
+  Future<void> dispose() async {
+    await super.dispose();
+    await adapter?.dispose();
+  }
+
+  // adapters
 
   @protected
-  @visibleForTesting
-  final DataManager manager;
+  RemoteAdapter<T> get adapter =>
+      _adapters[DataHelpers.getType<T>()] as RemoteAdapter<T>;
 
-  @protected
-  @visibleForTesting
-  Box<T> get box => _box ??= manager.locator<Box<T>>();
-  Box<T> _box; // waiting for `late` keyword
-
-  final bool _remote;
-  final bool _verbose;
-
-  @nonVirtual
-  @protected
-  @visibleForTesting
-  final type = getType<T>();
+  final _adapters = <String, RemoteAdapter>{};
 
   // repo public API
 
   Future<List<T>> findAll(
-      {bool remote, Map<String, dynamic> params, Map<String, String> headers});
+      {bool remote,
+      Map<String, dynamic> params,
+      Map<String, String> headers}) async {
+    return (await adapter.findAll(
+            remote: remote, params: params, headers: headers))
+        ._initModels(_adapters, save: true);
+  }
 
-  DataStateNotifier<List<T>> watchAll(
-      {bool remote, Map<String, dynamic> params, Map<String, String> headers});
+  Future<T> findOne(final dynamic model,
+      {bool remote,
+      Map<String, dynamic> params,
+      Map<String, String> headers}) async {
+    final result = await adapter.findOne(model,
+        remote: remote, params: params, headers: headers);
+    return result?._initModel(_adapters, save: true);
+  }
 
-  Future<T> findOne(dynamic model,
-      {bool remote, Map<String, dynamic> params, Map<String, String> headers});
+  Future<T> save(T model,
+      {bool remote,
+      Map<String, dynamic> params,
+      Map<String, String> headers}) async {
+    assert(model != null);
+    model._initModel(_adapters);
+
+    final result = await adapter.save(model,
+        remote: remote, params: params, headers: headers);
+    result._initModel(_adapters, key: model._key);
+
+    // in the unlikely case where supplied key couldn't be used
+    // ensure "old" copy of model carries the updated key
+    if (model._key != null && model._key != result._key) {
+      adapter._graph.removeKey(model._key);
+      model._key = result._key;
+    }
+    return result;
+  }
+
+  Future<void> delete(dynamic model,
+      {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+    assert(model != null);
+    if (model is T) {
+      model._initModel(_adapters);
+    }
+    return adapter.delete(model,
+        remote: remote, params: params, headers: headers);
+  }
 
   DataStateNotifier<T> watchOne(dynamic model,
       {bool remote,
       Map<String, dynamic> params,
       Map<String, String> headers,
-      AlsoWatch<T> alsoWatch});
-
-  Future<T> save(T model,
-      {bool remote, Map<String, dynamic> params, Map<String, String> headers});
-
-  Future<void> delete(dynamic model,
-      {bool remote, Map<String, dynamic> params, Map<String, String> headers});
-
-  Map<dynamic, T> dumpBox();
-
-  // lifecycle hooks
-
-  @mustCallSuper
-  FutureOr<void> initialize() {}
-
-  @mustCallSuper
-  Future<void> dispose() async {
-    await box?.close();
+      AlsoWatch<T> alsoWatch}) {
+    return adapter.watchOne(model,
+        remote: remote, params: params, headers: headers, alsoWatch: alsoWatch);
   }
 
-  // serialization
-
-  @protected
-  @visibleForTesting
-  Map<String, dynamic> serialize(T model);
-
-  @protected
-  @visibleForTesting
-  DeserializedData<T, DataSupport<dynamic>> deserialize(dynamic data,
-      {String key, bool save = true});
-
-  // generated model adapter API (metadata, relationships, serialization)
-
-  @protected
-  @visibleForTesting
-  Map<String, Repository> get relatedRepositories;
-
-  @protected
-  @visibleForTesting
-  Map<String, Map<String, Object>> relationshipsFor([T model]);
-
-  @protected
-  @visibleForTesting
-  Map<String, dynamic> localSerialize(T model);
-
-  @protected
-  @visibleForTesting
-  T localDeserialize(Map<String, dynamic> map);
-
-  // local
-
-  @protected
-  @visibleForTesting
-  List<T> localFindAll() {
-    return box.values.map(_initModel).toImmutableList();
+  DataStateNotifier<List<T>> watchAll(
+      {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+    return adapter.watchAll(remote: remote, params: params, headers: headers);
   }
+}
 
-  @protected
-  @visibleForTesting
-  T localFindOne(String key) {
-    if (key != null) {
-      final model = box.get(key);
-      return _initModel(model);
-    }
-    return null;
-  }
+// annotation
 
-  @protected
-  @visibleForTesting
-  void localSave(String key, T model, {bool notify = true}) {
-    assert(key != null);
-    final keyExisted = box.containsKey(key);
-    box.put(key, model); // save in bg
-    if (notify) {
-      manager._graph.notify(
-        [key],
-        keyExisted ? DataGraphEventType.updateNode : DataGraphEventType.addNode,
-      );
-    }
-  }
-
-  @protected
-  @visibleForTesting
-  void localDelete(String key) {
-    if (key != null) {
-      box.delete(key); // delete in bg
-      // id will become orphan & purged
-      manager.removeKey(key);
-    }
-  }
-
-  // private
-
-  T _initModel(T model, {String key, bool save = false}) {
-    if (model == null) return null;
-    if (model._isInitialized) return model;
-
-    _assertManager();
-    model._repository = this;
-
-    // model.id could be null, that's okay
-    model._key = manager.getKeyForId(type, model.id,
-        keyIfAbsent: key ?? Repository.generateKey<T>());
-
-    // initialize relationships
-    for (final metadata in relationshipsFor(model).entries) {
-      final relationship = metadata.value['instance'] as Relationship;
-      relationship?.initialize(
-          manager,
-          model,
-          metadata.key,
-          metadata.value['inverse'] as String,
-          metadata.value['type'] as String);
-    }
-
-    if (save) {
-      localSave(model._key, model);
-    }
-
-    return model;
-  }
-
-  void _assertManager() {
-    final auto = _autoManager != null;
-    if (auto) {
-      assert(manager == _autoManager, '''\n
-Flutter Data has been configured with enableAutoManager: true
-at boot time. This means that the manager required for
-model initialization is provided by the framework.
-
-You supplied a DataManager which is NOT the internal manager.
-
-Please initialize your models with no manager at all. Example:
-
-model.init();
-''');
-    }
-  }
-
-  // static helper methods
-
-  static Future<Box<E>> getBox<E extends DataSupport<E>>(DataManager manager,
-      {List<int> encryptionKey}) async {
-    final boxName = getType<E>();
-    if (!manager._hive.isBoxOpen(boxName)) {
-      manager._hive.registerAdapter(_HiveTypeAdapter<E>(manager));
-    }
-    return await manager._hive.openBox(boxName,
-        encryptionCipher:
-            encryptionKey != null ? HiveAesCipher(encryptionKey) : null);
-  }
-
-  static String getType<T>([String type]) {
-    if (T == dynamic && type == null) {
-      return null;
-    }
-    return pluralize((type ?? T.toString()).toLowerCase());
-  }
-
-  static String generateKey<T>([String type]) {
-    final ts = getType<T>(type);
-    if (ts == null) {
-      return null;
-    }
-    return '${getType<T>(type)}#${DataManager._uuid.v1().substring(0, 8)}';
-  }
+class DataRepository {
+  final List<Type> adapters;
+  final List<Type> repositoryFor;
+  const DataRepository(this.adapters, {this.repositoryFor = const []});
 }

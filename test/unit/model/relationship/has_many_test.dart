@@ -6,20 +6,18 @@ import '../../../models/person.dart';
 import '../../setup.dart';
 
 void main() async {
-  setUpAll(setUpAllFn);
-  tearDownAll(tearDownAllFn);
+  setUp(setUpFn);
 
   test('HasMany is a Set', () {
-    final anne = Person(name: 'Anne', age: 59).init(manager: manager);
-    final f1 = Family(surname: 'Mayer', persons: {anne}.asHasMany)
-        .init(manager: manager);
+    final anne = Person(name: 'Anne', age: 59).init(owner);
+    final f1 = Family(surname: 'Mayer', persons: {anne}.asHasMany).init(owner);
 
     f1.persons.add(anne);
     f1.persons.add(anne);
     expect(f1.persons.length, 1);
     expect(f1.persons.lookup(anne), anne);
 
-    final agnes = Person(name: 'Agnes', age: 29).init(manager: manager);
+    final agnes = Person(name: 'Agnes', age: 29).init(owner);
     f1.persons.add(agnes);
     expect(f1.persons.length, 2);
 
@@ -37,10 +35,10 @@ void main() async {
       id: '1',
       surname: 'Smith',
       persons: HasMany<Person>(),
-    ).init(manager: manager);
+    ).init(owner);
 
-    final p1 = Person(name: 'a', age: 1).init(manager: manager);
-    final p2 = Person(name: 'b', age: 2).init(manager: manager);
+    final p1 = Person(name: 'a', age: 1).init(owner);
+    final p2 = Person(name: 'b', age: 2).init(owner);
     final notifier = family.persons.watch();
 
     var i = 0;

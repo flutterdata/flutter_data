@@ -5,7 +5,6 @@ import 'dart:math';
 import 'package:http/testing.dart';
 import 'package:meta/meta.dart';
 import 'package:flutter_data/flutter_data.dart';
-import 'package:flutter_data/annotations.dart';
 import 'package:http/http.dart' as http;
 import 'family.dart';
 
@@ -57,12 +56,12 @@ class Person with DataSupport<Person> {
 
   //
 
-  factory Person.generate(DataManager manager, {String withId}) {
+  factory Person.generate(owner, {String withId}) {
     return Person(
             id: withId,
             name: 'Person Number ${withId ?? Random().nextInt(999999999)}',
             age: Random().nextInt(19))
-        .init(manager: manager);
+        .init(owner);
   }
 }
 

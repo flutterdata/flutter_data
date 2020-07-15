@@ -1,33 +1,10 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:hive/hive.dart';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:mockito/mockito.dart';
 
 import '../models/family.dart';
-
-// test impls
-
-class TestDataManager extends DataManager {
-  TestDataManager(this.locator) : super.delegate() {
-    debugGraph = DataGraphNotifier(metaBox);
-  }
-
-  @override
-  final Locator locator;
-  @override
-  final metaBox = FakeBox();
-
-  @override
-  Future<DataManager> init(FutureOr<Directory> baseDir, Locator locator,
-      {bool clear, bool verbose}) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> dispose() async {}
-}
 
 // fakes
 

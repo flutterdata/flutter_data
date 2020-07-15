@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:flutter_data/flutter_data.dart';
+import 'package:get_it/get_it.dart';
+import 'package:riverpod/riverpod.dart';
 
 import 'main.data.dart';
 import 'model/comment.dart';
@@ -11,32 +13,38 @@ import 'model/user.dart';
 
 void main() async {
   Directory _dir;
+  final owner = ProviderStateOwner(overrides: [
+    hiveDirectoryProvider.overrideAs(FutureProvider((ref) async => _dir.path)),
+    hiveLocalStorageProvider.overrideAs(Provider((ref) {
+      return HiveLocalStorage(ref, encryptionKey: _encryptionKey, clear: true);
+    }))
+  ]);
 
   try {
     _dir = await Directory('tmp').create();
     await _dir.delete(recursive: true);
 
-    final manager = await FlutterData.init(_dir,
-        verbose: true, encryptionKey: _encryptionKey);
-    final locator = manager.locator;
+    GetIt.instance.registerRepositories(baseDirFn: () => _dir.path);
 
-    final usersRepo = locator<Repository<User>>();
-    final postsRepo = locator<Repository<Post>>();
-    final commentsRepo = locator<Repository<Comment>>();
-    User user;
+    final usersRepo = await GetIt.instance.getAsync<Repository<User>>();
+    final postsRepo = await GetIt.instance.getAsync<Repository<Post>>();
+    final commentsRepo = await GetIt.instance.getAsync<Repository<Comment>>();
+
+    // final usersRepo = usersRepositoryProvider.readOwner(owner);
+    // final postsRepo = postsRepositoryProvider.readOwner(owner);
+    // final commentsRepo = commentsRepositoryProvider.readOwner(owner);
 
     try {
-      user = await usersRepo.findOne('2314444');
+      await usersRepo.findOne('2314444');
     } on DataException catch (e) {
       if (e.status == HttpStatus.notFound) {
         print('not found');
       }
     }
 
-    var user2 = User(id: 1, name: 'new name', email: 'new@fasd.io');
+    final user2 =
+        User(id: 1, name: 'new name', email: 'new@fasd.io').init(owner);
     await user2.save();
-
-    User(id: 1, name: 'new name', email: 'new@fasd.io');
 
     var p3 = Post(
             id: 102,
@@ -44,24 +52,27 @@ void main() async {
             body: '3@fasd.io',
             user: user2.asBelongsTo,
             comments: {Comment(id: 1, body: 'bla')}.asHasMany)
-        .init();
+        .init(owner);
 
     assert(p3.body == '3@fasd.io');
     assert(p3.user.value.email == user2.email);
 
-    var post = await postsRepo.findOne(1, params: {'_embed': 'comments'});
-    var comments = await commentsRepo.findAll(params: {'postId': 1});
+    final post = await postsRepo.findOne(1, params: {'_embed': 'comments'});
+    final comments = await commentsRepo.findAll(params: {'postId': 1});
+
+    assert(comments
+        .map((c) => c.id)
+        .toSet()
+        .difference(post.comments.map((c) => c.id).toSet())
+        .isEmpty);
+
+    assert(user2.name == p3.user.value.name);
+    assert(comments.first.post.value == post);
 
     print(comments.map((c) => c.body).toList());
-
-    assert(comments.first.post.value == post);
-    assert(user.name == post.user.value.name);
-
-    var stream = usersRepo.watchAll().stream;
-
-    await for (final state in stream) {
-      print(state.length);
-    }
+  } catch (err, stack) {
+    print(err);
+    print(stack);
   } finally {
     await _dir.delete(recursive: true);
   }

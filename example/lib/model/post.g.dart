@@ -3,55 +3,6 @@
 part of 'post.dart';
 
 // **************************************************************************
-// DataGenerator
-// **************************************************************************
-
-// ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names
-mixin _$PostModelAdapter on Repository<Post> {
-  @override
-  Map<String, Map<String, Object>> relationshipsFor([Post model]) => {
-        'comments': {
-          'type': 'comments',
-          'kind': 'HasMany',
-          'instance': model?.comments
-        },
-        'user': {'type': 'users', 'kind': 'BelongsTo', 'instance': model?.user}
-      };
-
-  @override
-  Map<String, Repository> get relatedRepositories => {
-        'comments': manager.locator<Repository<Comment>>(),
-        'users': manager.locator<Repository<User>>()
-      };
-
-  @override
-  localDeserialize(map) {
-    for (final key in relationshipsFor().keys) {
-      map[key] = {
-        '_': [map[key], !map.containsKey(key), manager]
-      };
-    }
-    return _$PostFromJson(map);
-  }
-
-  @override
-  localSerialize(model) {
-    final map = _$PostToJson(model);
-    for (final e in relationshipsFor(model).entries) {
-      map[e.key] = (e.value['instance'] as Relationship)?.toJson();
-    }
-    return map;
-  }
-}
-
-class $PostRepository = Repository<Post>
-    with
-        _$PostModelAdapter,
-        RemoteAdapter<Post>,
-        WatchAdapter<Post>,
-        JSONServerAdapter<Post>;
-
-// **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
@@ -76,3 +27,66 @@ Map<String, dynamic> _$PostToJson(Post instance) => <String, dynamic>{
       'comments': instance.comments,
       'user': instance.user,
     };
+
+// **************************************************************************
+// RepositoryGenerator
+// **************************************************************************
+
+// ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names, invalid_use_of_protected_member
+
+mixin $PostLocalAdapter on LocalAdapter<Post> {
+  @override
+  Map<String, Map<String, Object>> relationshipsFor([Post model]) => {
+        'comments': {
+          'inverse': 'post',
+          'type': 'comments',
+          'kind': 'HasMany',
+          'instance': model?.comments
+        },
+        'user': {'type': 'users', 'kind': 'BelongsTo', 'instance': model?.user}
+      };
+
+  @override
+  deserialize(map) {
+    for (final key in relationshipsFor().keys) {
+      map[key] = {
+        '_': [map[key], !map.containsKey(key)],
+      };
+    }
+    return _$PostFromJson(map);
+  }
+
+  @override
+  serialize(model) {
+    final map = _$PostToJson(model);
+    for (final e in relationshipsFor(model).entries) {
+      map[e.key] = (e.value['instance'] as Relationship)?.toJson();
+    }
+    return map;
+  }
+}
+
+// ignore: must_be_immutable
+class $PostHiveLocalAdapter = HiveLocalAdapter<Post> with $PostLocalAdapter;
+
+class $PostRemoteAdapter = RemoteAdapter<Post> with JSONServerAdapter<Post>;
+
+//
+
+final postsLocalAdapterProvider = Provider<LocalAdapter<Post>>(
+    (ref) => $PostHiveLocalAdapter(ref.read(graphProvider)));
+
+final postsRemoteAdapterProvider = Provider<RemoteAdapter<Post>>(
+    (ref) => $PostRemoteAdapter(ref.read(postsLocalAdapterProvider)));
+
+final postsRepositoryProvider =
+    Provider<Repository<Post>>((_) => Repository<Post>());
+
+extension PostX on Post {
+  Post init(owner) {
+    return initFromRepository(
+        owner.ref.read(postsRepositoryProvider) as Repository<Post>);
+  }
+}
+
+extension PostRepositoryX on Repository<Post> {}

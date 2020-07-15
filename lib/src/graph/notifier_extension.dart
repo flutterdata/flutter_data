@@ -3,7 +3,6 @@ library notifier_extension;
 import 'dart:async';
 
 import 'package:state_notifier/state_notifier.dart';
-import 'package:data_state/data_state.dart';
 
 class _FunctionalStateNotifier<S, T> extends StateNotifier<T> {
   final StateNotifier<S> _source;
@@ -45,8 +44,10 @@ class _FunctionalStateNotifier<S, T> extends StateNotifier<T> {
   Timer _makeTimer(Duration duration) {
     return Timer(duration, () {
       if (mounted) {
-        super.state = _bufferedState as T; // since T == List<S>
-        _bufferedState.clear(); // clear buffer
+        if (_bufferedState.isNotEmpty) {
+          super.state = _bufferedState as T; // since T == List<S>;
+          _bufferedState.clear(); // clear buffer
+        }
         _timer = _makeTimer(duration); // reset timer
       }
     });
@@ -100,19 +101,17 @@ extension StateNotifierX<T> on StateNotifier<T> {
   }
 }
 
-//
+// class TestStateNotifier extends DataStateNotifier<int> {
+//   TestStateNotifier() : super(DataState(0)) {
+//     Timer.periodic(
+//         Duration(seconds: 1), (i) => state = state.copyWith(model: i.tick));
+//   }
+// }
 
-class TestStateNotifier extends DataStateNotifier<int> {
-  TestStateNotifier() : super(DataState(0)) {
-    Timer.periodic(
-        Duration(seconds: 1), (i) => state = state.copyWith(model: i.tick));
-  }
-}
-
-void main() {
-  TestStateNotifier()
-      .map((state) => state.copyWith(model: state.model * 3))
-      .where((state) => state.model % 2 == 0)
-      .throttle(Duration(seconds: 8))
-      .forEach((numbers) => print(numbers.map((e) => e.model).join(', ')));
-}
+// void main() {
+//   TestStateNotifier()
+//       .map((state) => state.copyWith(model: state.model * 3))
+//       .where((state) => state.model % 2 == 0)
+//       .throttle(Duration(seconds: 8))
+//       .forEach((numbers) => print(numbers.map((e) => e.model).join(', ')));
+// }

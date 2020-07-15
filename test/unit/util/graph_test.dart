@@ -1,13 +1,9 @@
-import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
-import '../mocks.dart';
+import '../setup.dart';
 
 void main() async {
-  DataGraphNotifier graph;
-  setUp(() {
-    graph = DataGraphNotifier(FakeBox());
-  });
+  setUp(setUpFn);
 
   test('add/remove nodes', () {
     graph.addNode('b1');
@@ -26,7 +22,7 @@ void main() async {
 
     graph.removeEdge('h1', 'b2', metadata: 'blogs', inverseMetadata: 'host');
 
-    expect(graph.toMap(), {
+    expect(graph.dumpGraph(), {
       'h1': {
         'blogs': {'b1'}
       },
@@ -46,28 +42,5 @@ void main() async {
       'blogs': {'b1'},
       'id': {'hosts#1'}
     });
-  });
-
-  test('serialize/deserialize', () {
-    graph.addNodes(['h1', 'b1', 'b2']);
-    graph.addNode('hosts#1');
-
-    graph.addEdges('h1',
-        tos: ['b1', 'b2'], metadata: 'blogs', inverseMetadata: 'host');
-    graph.addEdge('h1', 'hosts#1', metadata: 'id', inverseMetadata: 'key');
-
-    graph.addNode('p1');
-    graph.addNode('p2');
-    graph.addEdge('b1', 'p1', metadata: 'posts', inverseMetadata: 'blog');
-    graph.addEdge('p2', 'b1', metadata: 'blog', inverseMetadata: 'posts');
-
-    final box = graph.box;
-    final graph2 = DataGraphNotifier(box);
-    // deserializing a serialized graph should be equal
-    expect(box.toMap(), graph2.toMap());
-
-    // keys are present in both graphs
-    expect(graph.getEdge('hosts#1', metadata: 'key'), contains('h1'));
-    expect(graph2.getEdge('hosts#1', metadata: 'key'), contains('h1'));
   });
 }

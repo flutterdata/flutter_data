@@ -2,45 +2,70 @@ part of flutter_data;
 
 abstract class DataSupport<T extends DataSupport<T>> {
   Object get id;
-  Repository<T> _repository;
-  String _key;
 
-  /// Only pass in a `DataManager` if you initialized
-  /// Flutter Data with `enableAutoManager: false`
-  T init({DataManager manager, String key, bool save = true}) {
-    manager ??= _autoManager;
-    assert(manager != null);
-    return manager
-        .locator<Repository<T>>()
-        ._initModel(_this, key: key, save: save);
+  // "late" finals
+  String _key;
+  Map<String, RemoteAdapter> _adapters;
+
+  // computed
+  RemoteAdapter<T> get _adapter =>
+      _adapters[DataHelpers.getType<T>()] as RemoteAdapter<T>;
+  bool get _isInitialized => _key != null && _adapters != null;
+
+  // initializers
+
+  @protected
+  T initFromRepository(Repository<T> repository) {
+    return _initModel(repository._adapters, save: true);
+  }
+
+  T _initModel(Map<String, RemoteAdapter> adapters,
+      {String key, bool save = false}) {
+    if (_isInitialized) return _this;
+
+    _this._adapters = adapters;
+
+    // model.id could be null, that's okay
+    _this._key = _adapter._graph.getKeyForId(_this._adapter.type, _this.id,
+        keyIfAbsent: key ?? DataHelpers.generateKey<T>());
+
+    // initialize relationships
+    for (final metadata
+        in _adapter._localAdapter.relationshipsFor(_this).entries) {
+      final relationship = metadata.value['instance'] as Relationship;
+
+      relationship?.initialize(
+        adapters: adapters,
+        owner: _this,
+        name: metadata.key,
+        inverseName: metadata.value['inverse'] as String,
+      );
+    }
+
+    if (save) {
+      _adapter._localAdapter.save(_this._key, _this);
+    }
+
+    return _this;
   }
 }
 
-String keyFor<T extends DataSupport<T>>(T model) => model?._key;
-
 // ignore_for_file: unused_element
 extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
-  bool get _isInitialized => _key != null;
-
-  DataManager get _manager => _repository?.manager;
-
-  Repository<T> get _fallbackRepository =>
-      _repository ?? _autoManager?.locator<Repository<T>>();
-
   T get _this => this as T;
 
   T was(T model) {
-    assert(model._isInitialized,
-        'Please call `model.init` before passing it to `was`');
+    assert(model != null && model._isInitialized,
+        'Please initialize model before passing it to `was`');
     // initialize this model with existing model's repo & key
-    return model._repository?._initModel(_this, key: model._key, save: true);
+    return _this._initModel(model._adapters, key: model._key, save: true);
   }
 
   Future<T> save(
       {bool remote,
       Map<String, dynamic> params,
       Map<String, String> headers}) async {
-    return await _fallbackRepository.save(_this,
+    return await _adapter.save(_this,
         remote: remote, params: params, headers: headers);
   }
 
@@ -48,13 +73,15 @@ extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
       {bool remote,
       Map<String, dynamic> params,
       Map<String, String> headers}) async {
-    await _fallbackRepository.delete(_this,
+    await _adapter.delete(_this,
         remote: remote, params: params, headers: headers);
   }
 
   Future<T> reload(
-      {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
-    return _fallbackRepository.findOne(_this,
+      {bool remote,
+      Map<String, dynamic> params,
+      Map<String, String> headers}) async {
+    return await _adapter.findOne(_this,
         remote: remote, params: params, headers: headers);
   }
 
@@ -63,9 +90,22 @@ extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
       Map<String, dynamic> params,
       Map<String, String> headers,
       AlsoWatch<T> alsoWatch}) {
-    return _fallbackRepository.watchOne(_this,
+    return _adapter.watchOne(_this,
         remote: remote, params: params, headers: headers, alsoWatch: alsoWatch);
   }
-
-  bool get isNew => _this.id == null;
 }
+
+extension IterableDSX<T extends DataSupport<T>> on Iterable<T> {
+  List<T> _initModels(Map<String, RemoteAdapter> adapters,
+      {String key, bool save = false}) {
+    if (length == 1) {
+      // key argument only makes sense when dealing with one model
+      return [first._initModel(adapters, key: key, save: save)]
+          .toImmutableList();
+    }
+    return map((m) => m._initModel(adapters, save: save)).toImmutableList();
+  }
+}
+
+@visibleForTesting
+String keyFor<T extends DataSupport<T>>(T model) => model?._key;
