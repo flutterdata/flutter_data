@@ -8,14 +8,14 @@ class DataGraphNotifier extends StateNotifier<DataGraphEvent>
   final HiveLocalStorage _hiveLocalStorage;
 
   @protected
-  Box<Map<String, List<String>>> box;
+  Box<Map> box;
   bool _doAssert = true;
 
   @override
   Future<DataGraphNotifier> initialize() async {
     if (isInitialized) return this;
     await _hiveLocalStorage.initialize();
-    box = await _hiveLocalStorage.hive.openBox('_meta');
+    box = await _hiveLocalStorage.hive.openBox('_graph');
 
     await super.initialize();
     return this;
@@ -192,7 +192,7 @@ class DataGraphNotifier extends StateNotifier<DataGraphEvent>
 
   Map<String, List<String>> _getNode(String key) {
     assert(key != null, 'key cannot be null');
-    return box.get(key);
+    return box.get(key)?.cast<String, List<String>>();
   }
 
   bool _hasNode(String key) {
