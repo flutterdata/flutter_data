@@ -1,11 +1,13 @@
 import 'dart:math';
 
 import 'package:flutter_data/flutter_data.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../../models/family.dart';
 import '../../models/house.dart';
 import '../../models/person.dart';
+import '../mocks.dart';
 import '../setup.dart';
 
 void main() async {
@@ -69,20 +71,28 @@ void main() async {
   });
 
   test('watchAll updates', () async {
-    Person(id: '1', name: 'Zof', age: 23).init(owner);
+    final listener1 = Listener<DataState<List<Person>>>();
+
+    final p1 = Person(id: '1', name: 'Zof', age: 23).init(owner);
     final notifier = personRepository.watchAll();
 
-    var i = 0;
-    dispose = notifier.addListener(
-      expectAsync1((state) {
-        if (i == 0) expect(state.model, hasLength(1));
-        if (i == 1) expect(state.model, hasLength(1));
-        i++;
-      }, count: 2),
-      fireImmediately: true,
-    );
+    dispose = notifier.addListener(listener1, fireImmediately: true);
 
-    await runAndWait(() => Person(id: '1', name: 'Zofie', age: 23).init(owner));
+    verify(listener1(DataState([p1], isLoading: true))).called(1);
+    verifyNoMoreInteractions(listener1);
+
+    final p2 = Person(id: '1', name: 'Zofie', age: 23);
+    await runAndWait(() => p2.init(owner));
+
+    verify(listener1(DataState([p2], isLoading: false))).called(1);
+    verifyNoMoreInteractions(listener1);
+
+    // since p3 is not init() it won't show up thru watchAll
+    final p3 = Person(id: '1', name: 'Zofien', age: 23);
+    await runAndWait(() => p3);
+
+    verifyNever(listener1(DataState([p3], isLoading: false)));
+    verifyNoMoreInteractions(listener1);
   });
 
   test('watchOne', () async {

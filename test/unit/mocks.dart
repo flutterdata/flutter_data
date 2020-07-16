@@ -67,3 +67,7 @@ class FakeBox<T> extends Fake implements Box<T> {
 class HiveMock extends Mock implements HiveInterface {}
 
 class MockFamilyRepository extends Mock implements Repository<Family> {}
+
+class Listener<T> extends Mock {
+  void call(T value);
+}

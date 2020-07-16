@@ -724,6 +724,8 @@ class RemoteAdapter<T extends DataSupport<T>>
         }
       }
 
+      // NOTE: because of this comparison, use field equality
+      // rather than key equality (which wouldn't update)
       if (modelBuffer != _notifier.data.model || refresh) {
         _notifier.data = _notifier.data
             .copyWith(model: modelBuffer, isLoading: false, exception: null);

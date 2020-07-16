@@ -1,9 +1,11 @@
 import 'package:flutter_data/flutter_data.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../../models/family.dart';
 import '../../models/person.dart';
 import '../../models/pet.dart';
+import '../mocks.dart';
 import '../setup.dart';
 
 void main() async {
@@ -64,10 +66,46 @@ void main() async {
         contains(keyFor(p2)));
   });
 
-  test('should resolve to the same key', () {
+  test('field equality and key equality', () async {
+    /// [Person] is using field equality
+    /// Charles was once called Agnes
+    final p1a = Person(id: '2', name: 'Agnes', age: 20).init(owner);
+    final p1b = Person(id: '2', name: 'Charles', age: 21).init(owner);
+    // they maintain same key as they're the same person
+    expect(keyFor(p1a), keyFor(p1b));
+    expect(p1a, isNot(p1b));
+
+    /// [Dog] is using key equality
+    /// dog2 is the same dog who changed his name
     final dog = Dog(id: '2', name: 'Walker').init(owner);
-    final dog2 = Dog(id: '2', name: 'Walker').init(owner);
+    final dog2 = Dog(id: '2', name: 'Mandarin').init(owner);
     expect(keyFor(dog), keyFor(dog2));
+    expect(dog, dog2);
+
+    // but this kind of equality doesn't work with updates
+
+    final listener = Listener<DataState<Dog>>();
+
+    final notifier = dogRepository.watchOne('2');
+
+    final dispose = notifier.addListener(listener, fireImmediately: true);
+
+    verify(listener(argThat(
+      isA<DataState<Dog>>().having((s) => s.model.name, 'dog', 'Mandarin'),
+    ))).called(1);
+    verifyNoMoreInteractions(listener);
+
+    final dog3 = Dog(id: '2', name: 'Tango');
+    await runAndWait(() => dog3.init(owner));
+
+    // we DO NOT see "Tango" show up in the listener because
+    // `Dog` uses key equality (and it was already present as "Mandarin")
+    verifyNever(listener(argThat(
+      isA<DataState<Dog>>().having((s) => s.model.name, 'dog', 'Tango'),
+    )));
+    verifyNoMoreInteractions(listener);
+
+    dispose();
   });
 
   test('should work with subclasses', () {
