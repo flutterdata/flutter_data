@@ -17,9 +17,7 @@ class BelongsTo<E extends DataSupport<E>> extends Relationship<E, E> {
 
   /// Specific methods for [BelongsTo]
 
-  E get value {
-    return super.isNotEmpty ? super.first : null;
-  }
+  E get value => safeFirst;
 
   set value(E value) {
     if (value != null) {
@@ -35,7 +33,7 @@ class BelongsTo<E extends DataSupport<E>> extends Relationship<E, E> {
 
   @protected
   @visibleForTesting
-  String get key => super.keys.isNotEmpty ? super.keys.first : null;
+  String get key => super.keys.safeFirst;
 
   // notifier
 

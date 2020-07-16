@@ -172,14 +172,7 @@ mixin \$${type}LocalAdapter on LocalAdapter<$type> {
   }
 
   @override
-  serialize(model) {
-    final map = $toJson;
-    for (final e in relationshipsFor(model).entries) {
-      map[e.key] = (e.value['instance'] as Relationship)?.toJson();
-    }
-    return map;
-  }
-
+  serialize(model) => $toJson;
 }
 
 // ignore: must_be_immutable

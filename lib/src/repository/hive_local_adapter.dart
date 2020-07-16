@@ -95,18 +95,37 @@ abstract class HiveLocalAdapter<T extends DataSupport<T>>
 
   @override
   T read(reader) {
-    final n = reader.readByte();
-    final fields = <String, dynamic>{
-      for (var i = 0; i < n; i++) reader.read().toString(): reader.read(),
+    // read key first
+    final key = reader.read().toString();
+
+    // read attributes (no relationships stored)
+    final total = reader.readByte();
+    final map = <String, dynamic>{
+      for (var i = 0; i < total; i++) reader.read().toString(): reader.read(),
     };
-    return deserialize(fields);
+
+    // reconstruct relationship information from graph
+    for (final entry in relationshipsFor().entries) {
+      // entry keys are the name of relationships => metadata
+      final name = entry.key;
+      final relKeys = graph.getEdge(key, metadata: name);
+      map[name] =
+          entry.value['kind'] == 'BelongsTo' ? relKeys.safeFirst : relKeys;
+    }
+
+    return deserialize(map);
   }
 
   @override
   void write(writer, T obj) {
     final _map = serialize(obj);
-    writer.writeByte(_map.keys.length);
-    for (final k in _map.keys) {
+    // write key first
+    writer.write(obj._key);
+
+    // exclude relationships
+    final keys = _map.keys.where((k) => !relationshipsFor().containsKey(k));
+    writer.writeByte(keys.length);
+    for (final k in keys) {
       writer.write(k);
       writer.write(_map[k]);
     }
