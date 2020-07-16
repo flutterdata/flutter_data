@@ -102,9 +102,12 @@ final familiesRepositoryProvider =
     Provider<Repository<Family>>((_) => Repository<Family>());
 
 extension FamilyX on Family {
-  Family init(owner) {
-    return initFromRepository(
-        owner.ref.read(familiesRepositoryProvider) as Repository<Family>);
+  Family init([owner]) {
+    if (owner == null && debugGlobalServiceLocatorInstance != null) {
+      return debugInit(
+          debugGlobalServiceLocatorInstance.get<Repository<Family>>());
+    }
+    return debugInit(owner.ref.read(familiesRepositoryProvider));
   }
 }
 

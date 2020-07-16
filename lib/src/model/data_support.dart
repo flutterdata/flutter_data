@@ -15,8 +15,9 @@ abstract class DataSupport<T extends DataSupport<T>> {
   // initializers
 
   @protected
-  T initFromRepository(Repository<T> repository) {
-    return _initModel(repository._adapters, save: true);
+  T debugInit(dynamic repository) {
+    assert(repository is Repository<T>);
+    return _initModel((repository as Repository<T>)._adapters, save: true);
   }
 
   T _initModel(Map<String, RemoteAdapter> adapters,

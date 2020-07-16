@@ -4,9 +4,9 @@ import 'package:get_it/get_it.dart';
 import 'package:riverpod/riverpod.dart';
 
 import 'main.data.dart';
-import 'model/comment.dart';
-import 'model/post.dart';
-import 'model/user.dart';
+import 'models/comment.dart';
+import 'models/post.dart';
+import 'models/user.dart';
 
 // NOTE: FOR AN UPDATED AND COMPLETE FLUTTER EXAMPLE FOLLOW
 // https://github.com/flutterdata/flutter_data_todos
@@ -42,8 +42,8 @@ void main() async {
       }
     }
 
-    final user2 =
-        User(id: 1, name: 'new name', email: 'new@fasd.io').init(owner);
+    final user2 = User(id: 1, name: 'new name', email: 'new@fasd.io').init();
+    // .init(owner)
     await user2.save();
 
     var p3 = Post(
@@ -52,7 +52,8 @@ void main() async {
             body: '3@fasd.io',
             user: user2.asBelongsTo,
             comments: {Comment(id: 1, body: 'bla')}.asHasMany)
-        .init(owner);
+        .init();
+    // .init(owner)
 
     assert(p3.body == '3@fasd.io');
     assert(p3.user.value.email == user2.email);

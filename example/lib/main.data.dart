@@ -10,9 +10,9 @@ import 'package:flutter_data/flutter_data.dart';
 
 import 'package:get_it/get_it.dart';
 
-import 'package:jsonplaceholder_example/model/post.dart';
-import 'package:jsonplaceholder_example/model/user.dart';
-import 'package:jsonplaceholder_example/model/comment.dart';
+import 'package:jsonplaceholder_example/models/post.dart';
+import 'package:jsonplaceholder_example/models/user.dart';
+import 'package:jsonplaceholder_example/models/comment.dart';
 
 Future<void> initializeRepositories(ProviderReference ref,
     {bool remote, bool verbose, FutureProvider<void> alsoInitialize}) async {
@@ -49,11 +49,12 @@ StateNotifierProvider<RepositoryInitializerNotifier>
 
 
 
-class RepositoryInitializer {}
+class _RepositoryInitializer {}
 
 extension GetItFlutterDataX on GetIt {
   void registerRepositories({FutureOr<String> Function() baseDirFn,
-    bool clear, bool remote, bool verbose, List<int> encryptionKey, FutureProvider<void> alsoInitialize}) {
+    bool clear, bool remote, bool verbose, List<int> encryptionKey}) {
+final i = debugGlobalServiceLocatorInstance = GetIt.instance;
 
 final _owner = ProviderStateOwner(overrides: [
     hiveDirectoryProvider.overrideAs(FutureProvider((ref) async {
@@ -64,25 +65,24 @@ final _owner = ProviderStateOwner(overrides: [
         (ref) => HiveLocalStorage(ref, encryptionKey: encryptionKey, clear: true)))
   ]);
 
-GetIt.instance.registerSingletonAsync<RepositoryInitializer>(() async {
-    await initializeRepositories(_owner.ref,
-                remote: remote, verbose: verbose, alsoInitialize: alsoInitialize);
-    return RepositoryInitializer();
+i.registerSingletonAsync<_RepositoryInitializer>(() async {
+    await initializeRepositories(_owner.ref, remote: remote, verbose: verbose);
+    return _RepositoryInitializer();
   });  
-GetIt.instance.registerSingletonWithDependencies<Repository<Post>>(
+i.registerSingletonWithDependencies<Repository<Post>>(
       () => _owner.ref.read(postsRepositoryProvider),
-      dependsOn: [RepositoryInitializer]);
+      dependsOn: [_RepositoryInitializer]);
 
       
   
-GetIt.instance.registerSingletonWithDependencies<Repository<User>>(
+i.registerSingletonWithDependencies<Repository<User>>(
       () => _owner.ref.read(usersRepositoryProvider),
-      dependsOn: [RepositoryInitializer]);
+      dependsOn: [_RepositoryInitializer]);
 
       
   
-GetIt.instance.registerSingletonWithDependencies<Repository<Comment>>(
+i.registerSingletonWithDependencies<Repository<Comment>>(
       () => _owner.ref.read(commentsRepositoryProvider),
-      dependsOn: [RepositoryInitializer]);
+      dependsOn: [_RepositoryInitializer]);
 
       } }

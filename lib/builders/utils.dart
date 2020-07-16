@@ -18,7 +18,7 @@ Iterable<VariableElement> relationshipFields(ClassElement elem) {
   }.values;
 }
 
-extension VBX on VariableElement {
+extension VariableElementX on VariableElement {
   ClassElement get typeElement =>
       (type as ParameterizedType).typeArguments.single.element as ClassElement;
 }

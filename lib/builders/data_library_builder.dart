@@ -142,11 +142,12 @@ List<SingleChildWidget> repositoryProviders({FutureOr<String> Function() baseDir
 
     if (importGetIt) {
       getItRegistration = '''
-class RepositoryInitializer {}
+class _RepositoryInitializer {}
 
 extension GetItFlutterDataX on GetIt {
   void registerRepositories({FutureOr<String> Function() baseDirFn,
-    bool clear, bool remote, bool verbose, List<int> encryptionKey, FutureProvider<void> alsoInitialize}) {
+    bool clear, bool remote, bool verbose, List<int> encryptionKey}) {
+final i = debugGlobalServiceLocatorInstance = GetIt.instance;
 
 final _owner = ProviderStateOwner(overrides: [
     hiveDirectoryProvider.overrideAs(FutureProvider((ref) async {
@@ -157,16 +158,15 @@ final _owner = ProviderStateOwner(overrides: [
         (ref) => HiveLocalStorage(ref, encryptionKey: encryptionKey, clear: true)))
   ]);
 
-GetIt.instance.registerSingletonAsync<RepositoryInitializer>(() async {
-    await initializeRepositories(_owner.ref,
-                remote: remote, verbose: verbose, alsoInitialize: alsoInitialize);
-    return RepositoryInitializer();
+i.registerSingletonAsync<_RepositoryInitializer>(() async {
+    await initializeRepositories(_owner.ref, remote: remote, verbose: verbose);
+    return _RepositoryInitializer();
   });''' +
           classes.map((c) => '''
   
-GetIt.instance.registerSingletonWithDependencies<Repository<${(c['name']).singularize().capitalize()}>>(
+i.registerSingletonWithDependencies<Repository<${(c['name']).singularize().capitalize()}>>(
       () => _owner.ref.read(${c['name']}RepositoryProvider),
-      dependsOn: [RepositoryInitializer]);
+      dependsOn: [_RepositoryInitializer]);
 
       ''').join('\n') +
           '} }';

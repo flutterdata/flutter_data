@@ -76,9 +76,12 @@ final housesRepositoryProvider =
     Provider<Repository<House>>((_) => Repository<House>());
 
 extension HouseX on House {
-  House init(owner) {
-    return initFromRepository(
-        owner.ref.read(housesRepositoryProvider) as Repository<House>);
+  House init([owner]) {
+    if (owner == null && debugGlobalServiceLocatorInstance != null) {
+      return debugInit(
+          debugGlobalServiceLocatorInstance.get<Repository<House>>());
+    }
+    return debugInit(owner.ref.read(housesRepositoryProvider));
   }
 }
 

@@ -201,9 +201,12 @@ final ${typeInPlural}RepositoryProvider =
 
 
 extension ${type}X on $type {
-  $type init(owner) {
-    return initFromRepository(
-        owner.ref.read(${typeInPlural}RepositoryProvider) as Repository<$type>);
+  $type init([owner]) {
+    if (owner == null && debugGlobalServiceLocatorInstance != null) {
+      return debugInit(
+          debugGlobalServiceLocatorInstance.get<Repository<$type>>());
+    }
+    return debugInit(owner.ref.read(${typeInPlural}RepositoryProvider));
   }
 }
 

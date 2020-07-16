@@ -1,5 +1,9 @@
 part of flutter_data;
 
+/// For exclusive internal use of global service locator
+/// integration such as `get_it`'s
+dynamic debugGlobalServiceLocatorInstance;
+
 class DataHelpers {
   static final uuid = Uuid();
 

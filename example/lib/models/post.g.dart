@@ -83,9 +83,12 @@ final postsRepositoryProvider =
     Provider<Repository<Post>>((_) => Repository<Post>());
 
 extension PostX on Post {
-  Post init(owner) {
-    return initFromRepository(
-        owner.ref.read(postsRepositoryProvider) as Repository<Post>);
+  Post init([owner]) {
+    if (owner == null && debugGlobalServiceLocatorInstance != null) {
+      return debugInit(
+          debugGlobalServiceLocatorInstance.get<Repository<Post>>());
+    }
+    return debugInit(owner.ref.read(postsRepositoryProvider));
   }
 }
 

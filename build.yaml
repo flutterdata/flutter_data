@@ -4,7 +4,6 @@ targets:
       flutter_data|data_repository_builder:
         generate_for:
         - test/models/*.dart
-        - example/lib/model/*.dart
 
 builders:
   data_repository_builder:

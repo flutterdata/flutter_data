@@ -80,9 +80,12 @@ final commentsRepositoryProvider =
     Provider<Repository<Comment>>((_) => Repository<Comment>());
 
 extension CommentX on Comment {
-  Comment init(owner) {
-    return initFromRepository(
-        owner.ref.read(commentsRepositoryProvider) as Repository<Comment>);
+  Comment init([owner]) {
+    if (owner == null && debugGlobalServiceLocatorInstance != null) {
+      return debugInit(
+          debugGlobalServiceLocatorInstance.get<Repository<Comment>>());
+    }
+    return debugInit(owner.ref.read(commentsRepositoryProvider));
   }
 }
 

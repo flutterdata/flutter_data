@@ -67,9 +67,12 @@ final usersRepositoryProvider =
     Provider<Repository<User>>((_) => Repository<User>());
 
 extension UserX on User {
-  User init(owner) {
-    return initFromRepository(
-        owner.ref.read(usersRepositoryProvider) as Repository<User>);
+  User init([owner]) {
+    if (owner == null && debugGlobalServiceLocatorInstance != null) {
+      return debugInit(
+          debugGlobalServiceLocatorInstance.get<Repository<User>>());
+    }
+    return debugInit(owner.ref.read(usersRepositoryProvider));
   }
 }
 

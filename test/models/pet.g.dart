@@ -77,9 +77,12 @@ final dogsRepositoryProvider =
     Provider<Repository<Dog>>((_) => Repository<Dog>());
 
 extension DogX on Dog {
-  Dog init(owner) {
-    return initFromRepository(
-        owner.ref.read(dogsRepositoryProvider) as Repository<Dog>);
+  Dog init([owner]) {
+    if (owner == null && debugGlobalServiceLocatorInstance != null) {
+      return debugInit(
+          debugGlobalServiceLocatorInstance.get<Repository<Dog>>());
+    }
+    return debugInit(owner.ref.read(dogsRepositoryProvider));
   }
 }
 
@@ -128,9 +131,12 @@ final catsRepositoryProvider =
     Provider<Repository<Cat>>((_) => Repository<Cat>());
 
 extension CatX on Cat {
-  Cat init(owner) {
-    return initFromRepository(
-        owner.ref.read(catsRepositoryProvider) as Repository<Cat>);
+  Cat init([owner]) {
+    if (owner == null && debugGlobalServiceLocatorInstance != null) {
+      return debugInit(
+          debugGlobalServiceLocatorInstance.get<Repository<Cat>>());
+    }
+    return debugInit(owner.ref.read(catsRepositoryProvider));
   }
 }
 
