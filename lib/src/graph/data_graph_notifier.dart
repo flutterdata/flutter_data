@@ -180,15 +180,11 @@ class DataGraphNotifier extends StateNotifier<DataGraphEvent>
 
   Map<String, Map> dumpGraph() => _toMap();
 
-  @visibleForTesting
-  @protected
-  void debugClearGraph() => _clear();
-
   @protected
   @visibleForTesting
   void debugAssert(bool value) => _doAssert = value;
 
-  // PRIVATE API
+  // private API
 
   Map<String, List<String>> _getNode(String key) {
     assert(key != null, 'key cannot be null');
@@ -397,10 +393,6 @@ class DataGraphNotifier extends StateNotifier<DataGraphEvent>
       }
       return acc..addAll(entry.value);
     });
-  }
-
-  void _clear() {
-    box.clear();
   }
 
   Map<String, Map> _toMap() => box.toMap().cast();

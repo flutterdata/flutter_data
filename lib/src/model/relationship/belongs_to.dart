@@ -1,12 +1,12 @@
 part of flutter_data;
 
 class BelongsTo<E extends DataSupport<E>> extends Relationship<E, E> {
-  BelongsTo([E model]) : super(model != null ? {model} : null);
+  BelongsTo([final E model]) : super(model != null ? {model} : null);
 
   BelongsTo._(String key, bool _wasOmitted)
       : super._(key != null ? {key} : {}, _wasOmitted);
 
-  factory BelongsTo.fromJson(Map<String, dynamic> map) {
+  factory BelongsTo.fromJson(final Map<String, dynamic> map) {
     final key = map['_'][0] as String;
     if (key == null) {
       final wasOmitted = map['_'][1] as bool;

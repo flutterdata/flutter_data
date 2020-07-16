@@ -17,11 +17,11 @@ abstract class DataSupport<T extends DataSupport<T>> {
   @protected
   T debugInit(dynamic repository) {
     assert(repository is Repository<T>);
-    return _initModel((repository as Repository<T>)._adapters, save: true);
+    return _initialize((repository as Repository<T>)._adapters, save: true);
   }
 
-  T _initModel(Map<String, RemoteAdapter> adapters,
-      {String key, bool save = false}) {
+  T _initialize(final Map<String, RemoteAdapter> adapters,
+      {final String key, final bool save = false}) {
     if (_isInitialized) return _this;
 
     _this._adapters = adapters;
@@ -59,7 +59,7 @@ extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
     assert(model != null && model._isInitialized,
         'Please initialize model before passing it to `was`');
     // initialize this model with existing model's repo & key
-    return _this._initModel(model._adapters, key: model._key, save: true);
+    return _this._initialize(model._adapters, key: model._key, save: true);
   }
 
   Future<T> save(
@@ -96,15 +96,15 @@ extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
   }
 }
 
-extension IterableDSX<T extends DataSupport<T>> on Iterable<T> {
+extension IterableDataSupportX<T extends DataSupport<T>> on Iterable<T> {
   List<T> _initModels(Map<String, RemoteAdapter> adapters,
       {String key, bool save = false}) {
     if (length == 1) {
       // key argument only makes sense when dealing with one model
-      return [first._initModel(adapters, key: key, save: save)]
+      return [first._initialize(adapters, key: key, save: save)]
           .toImmutableList();
     }
-    return map((m) => m._initModel(adapters, save: save)).toImmutableList();
+    return map((m) => m._initialize(adapters, save: save)).toImmutableList();
   }
 }
 

@@ -31,10 +31,10 @@ abstract class Relationship<E extends DataSupport<E>, N>
   @override
   @mustCallSuper
   Future<Relationship<E, N>> initialize(
-      {Map<String, RemoteAdapter> adapters,
-      DataSupport owner,
-      String name,
-      String inverseName}) async {
+      {final Map<String, RemoteAdapter> adapters,
+      final DataSupport owner,
+      final String name,
+      final String inverseName}) async {
     if (isInitialized) return this;
 
     _adapters = adapters;
@@ -47,7 +47,7 @@ abstract class Relationship<E extends DataSupport<E>, N>
 
     // initialize uninitialized models and get keys
     final newKeys = _uninitializedModels.map((model) {
-      return model._initModel(_adapters, save: true)._key;
+      return model._initialize(_adapters, save: true)._key;
     });
     _uninitializedKeys..addAll(newKeys);
 
@@ -81,7 +81,7 @@ abstract class Relationship<E extends DataSupport<E>, N>
     }
 
     if (_adapters != null) {
-      value._initModel(_adapters, save: true);
+      value._initialize(_adapters, save: true);
       _graph._addEdge(_ownerKey, value._key,
           metadata: _name, inverseMetadata: _inverseName);
       return true;
@@ -140,7 +140,7 @@ abstract class Relationship<E extends DataSupport<E>, N>
 
   Iterable<E> get _iterable => keys
       .map((key) =>
-          _adapter._localAdapter.findOne(key)?._initModel(_adapters, key: key))
+          _adapter._localAdapter.findOne(key)?._initialize(_adapters, key: key))
       .filterNulls;
 
   @protected

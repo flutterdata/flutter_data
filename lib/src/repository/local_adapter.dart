@@ -6,7 +6,6 @@ abstract class LocalAdapter<T extends DataSupport<T>>
   LocalAdapter(this.graph);
 
   @protected
-  @visibleForTesting
   final DataGraphNotifier graph;
 
   @override
@@ -53,6 +52,5 @@ abstract class LocalAdapter<T extends DataSupport<T>>
   T deserialize(Map<String, dynamic> map);
 
   @protected
-  @visibleForTesting
   Map<String, Map<String, Object>> relationshipsFor([T model]);
 }

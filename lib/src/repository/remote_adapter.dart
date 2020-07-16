@@ -21,52 +21,43 @@ class RemoteAdapter<T extends DataSupport<T>>
   final type = DataHelpers.getType<T>();
 
   @protected
-  @visibleForTesting
   String get baseUrl => throw UnsupportedError('Please override baseUrl');
 
   @protected
-  @visibleForTesting
   String urlForFindAll(params) => '$type';
 
   @protected
-  @visibleForTesting
   DataRequestMethod methodForFindAll(params) => DataRequestMethod.GET;
 
   @protected
-  @visibleForTesting
   String urlForFindOne(id, params) => '$type/$id';
 
   @protected
-  @visibleForTesting
   DataRequestMethod methodForFindOne(id, params) => DataRequestMethod.GET;
 
   @protected
-  @visibleForTesting
   String urlForSave(id, params) => id != null ? '$type/$id' : type;
 
   @protected
-  @visibleForTesting
   DataRequestMethod methodForSave(id, params) =>
       id != null ? DataRequestMethod.PATCH : DataRequestMethod.POST;
 
   @protected
-  @visibleForTesting
   String urlForDelete(id, params) => '$type/$id';
 
   @protected
-  @visibleForTesting
   DataRequestMethod methodForDelete(id, params) => DataRequestMethod.DELETE;
 
   @protected
-  @visibleForTesting
   Map<String, dynamic> get params => {};
 
   @protected
-  @visibleForTesting
   Map<String, String> get headers => {'Content-Type': 'application/json'};
 
   // serialization
 
+  @protected
+  @visibleForTesting
   Map<String, dynamic> serialize(T model) {
     final map = _localAdapter.serialize(model);
 
@@ -90,6 +81,8 @@ class RemoteAdapter<T extends DataSupport<T>>
     return map..addAll(relationships);
   }
 
+  @protected
+  @visibleForTesting
   DeserializedData<T, DataSupport<dynamic>> deserialize(dynamic data) {
     final result = DeserializedData<T, DataSupport<dynamic>>([], included: []);
 
@@ -148,7 +141,6 @@ class RemoteAdapter<T extends DataSupport<T>>
   }
 
   @protected
-  @visibleForTesting
   String get identifierSuffix => '_id';
 
   Map<String, Map<String, Object>> get _belongsTos =>
@@ -181,7 +173,6 @@ class RemoteAdapter<T extends DataSupport<T>>
   // caching
 
   @protected
-  @visibleForTesting
   bool shouldLoadRemoteAll(
     bool remote,
     Map<String, dynamic> params,
@@ -190,7 +181,6 @@ class RemoteAdapter<T extends DataSupport<T>>
       remote;
 
   @protected
-  @visibleForTesting
   bool shouldLoadRemoteOne(
     dynamic id,
     bool remote,
@@ -202,6 +192,7 @@ class RemoteAdapter<T extends DataSupport<T>>
   // repository implementation
 
   @protected
+  @visibleForTesting
   Future<List<T>> findAll(
       {bool remote,
       Map<String, dynamic> params,
@@ -231,6 +222,7 @@ class RemoteAdapter<T extends DataSupport<T>>
   }
 
   @protected
+  @visibleForTesting
   Future<T> findOne(dynamic model,
       {bool remote,
       Map<String, dynamic> params,
@@ -269,6 +261,7 @@ class RemoteAdapter<T extends DataSupport<T>>
   }
 
   @protected
+  @visibleForTesting
   Future<T> save(T model,
       {bool remote,
       Map<String, dynamic> params,
@@ -308,6 +301,7 @@ class RemoteAdapter<T extends DataSupport<T>>
   }
 
   @protected
+  @visibleForTesting
   Future<void> delete(dynamic model,
       {bool remote,
       Map<String, dynamic> params,
@@ -348,6 +342,7 @@ class RemoteAdapter<T extends DataSupport<T>>
   // utils
 
   @protected
+  @visibleForTesting
   Map<String, String> parseQueryParameters(Map<String, dynamic> params) {
     params ??= const {};
 
@@ -364,6 +359,7 @@ class RemoteAdapter<T extends DataSupport<T>>
   }
 
   @protected
+  @visibleForTesting
   Future<R> withHttpClient<R>(OnRequest<R> onRequest) async {
     final client = http.Client();
     try {
@@ -374,6 +370,7 @@ class RemoteAdapter<T extends DataSupport<T>>
   }
 
   @protected
+  @visibleForTesting
   FutureOr<R> withResponse<R>(
       http.Response response, OnResponseSuccess<R> onSuccess) {
     dynamic data;
@@ -456,6 +453,8 @@ class RemoteAdapter<T extends DataSupport<T>>
       Duration(milliseconds: 16); // 1 frame at 60fps
 
   /// Sort-of-exponential backoff for reads
+  @protected
+  @visibleForTesting
   Duration readRetryAfter(int i) {
     final list = [0, 1, 2, 2, 2, 2, 2, 4, 4, 4, 8, 8, 16, 16, 24, 36, 72];
     final index = i < list.length ? i : list.length - 1;
@@ -463,6 +462,8 @@ class RemoteAdapter<T extends DataSupport<T>>
   }
 
   /// Sort-of-exponential backoff for writes
+  @protected
+  @visibleForTesting
   Duration writeRetryAfter(int i) => readRetryAfter(i);
 
   @protected
@@ -480,7 +481,9 @@ class RemoteAdapter<T extends DataSupport<T>>
   @override
   @mustCallSuper
   Future<RemoteAdapter<T>> initialize(
-      {bool remote, bool verbose, Map<String, RemoteAdapter> adapters}) async {
+      {final bool remote,
+      final bool verbose,
+      final Map<String, RemoteAdapter> adapters}) async {
     if (isInitialized) return this;
     _remote = remote ?? true;
     _verbose = verbose ?? true;
@@ -544,7 +547,9 @@ class RemoteAdapter<T extends DataSupport<T>>
   var _readCounter = 0;
 
   DataStateNotifier<List<T>> watchAll(
-      {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+      {final bool remote,
+      final Map<String, dynamic> params,
+      final Map<String, String> headers}) {
     _assertInit();
     final _notifier = DataStateNotifier<List<T>>(
       DataState(_localAdapter.findAll()),
@@ -611,11 +616,11 @@ class RemoteAdapter<T extends DataSupport<T>>
     return _notifier;
   }
 
-  DataStateNotifier<T> watchOne(dynamic model,
-      {bool remote,
-      Map<String, dynamic> params,
-      Map<String, String> headers,
-      AlsoWatch<T> alsoWatch}) {
+  DataStateNotifier<T> watchOne(final dynamic model,
+      {final bool remote,
+      final Map<String, dynamic> params,
+      final Map<String, String> headers,
+      final AlsoWatch<T> alsoWatch}) {
     _assertInit();
     assert(model != null);
 
@@ -765,8 +770,4 @@ typedef AlsoWatch<T> = List<Relationship> Function(T);
 
 extension _ToStringX on DataRequestMethod {
   String toShortString() => toString().split('.').last;
-}
-
-extension _MapX<K, V> on Map<K, V> {
-  Map<K, V> operator &(Map<K, V> more) => {...this, ...?more};
 }

@@ -72,6 +72,8 @@ abstract class _Lifecycle<T> {
   Future<void> dispose() async {}
 }
 
+// misc extensions
+
 extension _IterableX<T> on Iterable<T> {
   bool containsFirst(T model) => isNotEmpty ? first == model : false;
   Iterable<T> get filterNulls => where((elem) => elem != null);
@@ -85,15 +87,14 @@ extension StringUtilsX on String {
   String singularize() => inflection.singularize(this);
 }
 
+extension _MapX<K, V> on Map<K, V> {
+  Map<K, V> operator &(Map<K, V> more) => {...this, ...?more};
+}
+
 // state notifier utils
 
 class ValueStateNotifier<E> extends StateNotifier<E> {
   ValueStateNotifier([E state]) : super(state);
   E get value => state;
   set value(E value) => state = value;
-}
-
-class RepositoryInitializerNotifier extends ValueStateNotifier<bool> {
-  RepositoryInitializerNotifier(bool value) : super(value);
-  bool get isLoading => !value;
 }

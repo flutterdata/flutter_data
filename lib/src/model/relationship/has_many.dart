@@ -6,7 +6,7 @@ class HasMany<E extends DataSupport<E>> extends Relationship<E, Set<E>> {
   HasMany._(Iterable<String> keys, bool _wasOmitted)
       : super._(keys, _wasOmitted);
 
-  factory HasMany.fromJson(Map<String, dynamic> map) {
+  factory HasMany.fromJson(final Map<String, dynamic> map) {
     if (map['_'][0] == null) {
       final wasOmitted = map['_'][1] as bool;
       return HasMany._({}, wasOmitted);

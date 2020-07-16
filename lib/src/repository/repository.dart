@@ -46,7 +46,7 @@ class Repository<T extends DataSupport<T>> with _Lifecycle<Repository<T>> {
       Map<String, String> headers}) async {
     final result = await adapter.findOne(model,
         remote: remote, params: params, headers: headers);
-    return result?._initModel(_adapters, save: true);
+    return result?._initialize(_adapters, save: true);
   }
 
   Future<T> save(T model,
@@ -54,11 +54,11 @@ class Repository<T extends DataSupport<T>> with _Lifecycle<Repository<T>> {
       Map<String, dynamic> params,
       Map<String, String> headers}) async {
     assert(model != null);
-    model._initModel(_adapters);
+    model._initialize(_adapters);
 
     final result = await adapter.save(model,
         remote: remote, params: params, headers: headers);
-    result._initModel(_adapters, key: model._key);
+    result._initialize(_adapters, key: model._key);
 
     // in the unlikely case where supplied key couldn't be used
     // ensure "old" copy of model carries the updated key
@@ -73,7 +73,7 @@ class Repository<T extends DataSupport<T>> with _Lifecycle<Repository<T>> {
       {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
     assert(model != null);
     if (model is T) {
-      model._initModel(_adapters);
+      model._initialize(_adapters);
     }
     return adapter.delete(model,
         remote: remote, params: params, headers: headers);
