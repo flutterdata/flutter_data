@@ -30,6 +30,10 @@ abstract class DataSupport<T extends DataSupport<T>> {
     _this._key = _adapter._graph.getKeyForId(_this._adapter.type, _this.id,
         keyIfAbsent: key ?? DataHelpers.generateKey<T>());
 
+    if (save) {
+      _adapter._localAdapter.save(_this._key, _this);
+    }
+
     // initialize relationships
     for (final metadata
         in _adapter._localAdapter.relationshipsFor(_this).entries) {
@@ -41,10 +45,6 @@ abstract class DataSupport<T extends DataSupport<T>> {
         name: metadata.key,
         inverseName: metadata.value['inverse'] as String,
       );
-    }
-
-    if (save) {
-      _adapter._localAdapter.save(_this._key, _this);
     }
 
     return _this;
@@ -67,7 +67,7 @@ extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
       Map<String, dynamic> params,
       Map<String, String> headers}) async {
     return await _adapter.save(_this,
-        remote: remote, params: params, headers: headers);
+        remote: remote, params: params, headers: headers, init: true);
   }
 
   Future<void> delete(
@@ -83,7 +83,7 @@ extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
       Map<String, dynamic> params,
       Map<String, String> headers}) async {
     return await _adapter.findOne(_this,
-        remote: remote, params: params, headers: headers);
+        remote: remote, params: params, headers: headers, init: true);
   }
 
   DataStateNotifier<T> watch(
@@ -97,13 +97,8 @@ extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
 }
 
 extension IterableDataSupportX<T extends DataSupport<T>> on Iterable<T> {
-  List<T> _initModels(Map<String, RemoteAdapter> adapters,
+  List<T> _initialize(Map<String, RemoteAdapter> adapters,
       {String key, bool save = false}) {
-    if (length == 1) {
-      // key argument only makes sense when dealing with one model
-      return [first._initialize(adapters, key: key, save: save)]
-          .toImmutableList();
-    }
     return map((m) => m._initialize(adapters, save: save)).toImmutableList();
   }
 }

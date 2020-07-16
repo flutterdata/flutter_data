@@ -1,5 +1,6 @@
 part of flutter_data;
 
+/// Thin wrapper on the [RemoteAdapter] API
 class Repository<T extends DataSupport<T>> with _Lifecycle<Repository<T>> {
   @override
   @mustCallSuper
@@ -32,49 +33,25 @@ class Repository<T extends DataSupport<T>> with _Lifecycle<Repository<T>> {
   // repo public API
 
   Future<List<T>> findAll(
-      {bool remote,
-      Map<String, dynamic> params,
-      Map<String, String> headers}) async {
-    return (await adapter.findAll(
-            remote: remote, params: params, headers: headers))
-        ._initModels(_adapters, save: true);
+      {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+    return adapter.findAll(
+        remote: remote, params: params, headers: headers, init: true);
   }
 
   Future<T> findOne(final dynamic model,
-      {bool remote,
-      Map<String, dynamic> params,
-      Map<String, String> headers}) async {
-    final result = await adapter.findOne(model,
-        remote: remote, params: params, headers: headers);
-    return result?._initialize(_adapters, save: true);
+      {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+    return adapter.findOne(model,
+        remote: remote, params: params, headers: headers, init: true);
   }
 
   Future<T> save(T model,
-      {bool remote,
-      Map<String, dynamic> params,
-      Map<String, String> headers}) async {
-    assert(model != null);
-    model._initialize(_adapters);
-
-    final result = await adapter.save(model,
-        remote: remote, params: params, headers: headers);
-    result._initialize(_adapters, key: model._key);
-
-    // in the unlikely case where supplied key couldn't be used
-    // ensure "old" copy of model carries the updated key
-    if (model._key != null && model._key != result._key) {
-      adapter._graph.removeKey(model._key);
-      model._key = result._key;
-    }
-    return result;
+      {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+    return adapter.save(model,
+        remote: remote, params: params, headers: headers, init: true);
   }
 
   Future<void> delete(dynamic model,
       {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
-    assert(model != null);
-    if (model is T) {
-      model._initialize(_adapters);
-    }
     return adapter.delete(model,
         remote: remote, params: params, headers: headers);
   }

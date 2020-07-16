@@ -83,15 +83,21 @@ class RemoteAdapter<T extends DataSupport<T>>
 
   @protected
   @visibleForTesting
-  DeserializedData<T, DataSupport<dynamic>> deserialize(dynamic data) {
+  DeserializedData<T, DataSupport<dynamic>> deserialize(dynamic data,
+      {bool init}) {
     final result = DeserializedData<T, DataSupport<dynamic>>([], included: []);
+    init ??= false;
 
     Object addIncluded(id, RemoteAdapter adapter) {
       if (id is Map) {
-        final data = adapter.deserialize(id as Map<String, dynamic>);
+        final data =
+            adapter.deserialize(id as Map<String, dynamic>, init: init);
         result.included
           ..add(data.model)
           ..addAll(data.included);
+        if (init) {
+          data.model._initialize(_adapters, save: true);
+        }
         return data.model.id;
       }
       return id;
@@ -134,6 +140,9 @@ class RemoteAdapter<T extends DataSupport<T>>
       }
 
       final model = _localAdapter.deserialize(mapOut);
+      if (init) {
+        model._initialize(_adapters, save: true);
+      }
       result.models.add(model);
     }
 
@@ -196,14 +205,20 @@ class RemoteAdapter<T extends DataSupport<T>>
   Future<List<T>> findAll(
       {bool remote,
       Map<String, dynamic> params,
-      Map<String, String> headers}) async {
+      Map<String, String> headers,
+      bool init}) async {
     _assertInit();
     remote ??= _remote;
     params = this.params & params;
     headers = this.headers & headers;
+    init ??= false;
 
     if (!shouldLoadRemoteAll(remote, params, headers)) {
-      return _localAdapter.findAll();
+      final models = _localAdapter.findAll();
+      if (init) {
+        models._initialize(_adapters, save: true);
+      }
+      return models;
     }
 
     final response = await withHttpClient(
@@ -217,21 +232,24 @@ class RemoteAdapter<T extends DataSupport<T>>
     );
 
     return withResponse<List<T>>(response, (data) {
-      return deserialize(data).models;
+      final models = deserialize(data, init: init).models;
+      return models;
     });
   }
 
   @protected
   @visibleForTesting
-  Future<T> findOne(dynamic model,
+  Future<T> findOne(final dynamic model,
       {bool remote,
       Map<String, dynamic> params,
-      Map<String, String> headers}) async {
+      Map<String, String> headers,
+      bool init}) async {
     _assertInit();
     assert(model != null);
     remote ??= _remote;
     params = this.params & params;
     headers = this.headers & headers;
+    init ??= false;
 
     final id = model is T ? model.id : model;
 
@@ -241,7 +259,11 @@ class RemoteAdapter<T extends DataSupport<T>>
       if (key == null) {
         return null;
       }
-      return _localAdapter.findOne(key);
+      final newModel = _localAdapter.findOne(key);
+      if (init) {
+        newModel._initialize(_adapters, save: true);
+      }
+      return newModel;
     }
 
     assert(id != null);
@@ -256,24 +278,26 @@ class RemoteAdapter<T extends DataSupport<T>>
     );
 
     return withResponse<T>(response, (data) {
-      return deserialize(data as Map<String, dynamic>).model;
+      return deserialize(data as Map<String, dynamic>, init: init).model;
     });
   }
 
   @protected
   @visibleForTesting
-  Future<T> save(T model,
+  Future<T> save(final T model,
       {bool remote,
       Map<String, dynamic> params,
-      Map<String, String> headers}) async {
+      Map<String, String> headers,
+      bool init}) async {
     _assertInit();
     remote ??= _remote;
     params = this.params & params;
     headers = this.headers & headers;
+    init ??= false;
 
     if (remote == false) {
-      _localAdapter.save(model._key, model);
-      return model;
+      // we ignore `init` as saving locally requires initializing
+      return model._initialize(_adapters, save: true);
     }
 
     final body = json.encode(serialize(model));
@@ -292,11 +316,24 @@ class RemoteAdapter<T extends DataSupport<T>>
     return withResponse<T>(response, (data) {
       if (data == null) {
         // return "old" model if response was empty
+        if (init) {
+          model._initialize(_adapters, save: true);
+        }
         return model;
       }
       // deserialize already inits models
       // if model had a key already, reuse it
-      return deserialize(data as Map<String, dynamic>).model;
+      final newModel =
+          deserialize(data as Map<String, dynamic>, init: init).model;
+
+      // TODO ensure this is covered y tests
+      // in the unlikely case where supplied key couldn't be used
+      // ensure "old" copy of model carries the updated key
+      if (init && model._key != null && model._key != newModel._key) {
+        _graph.removeKey(model._key);
+        model._key = newModel._key;
+      }
+      return newModel;
     });
   }
 
@@ -556,7 +593,7 @@ class RemoteAdapter<T extends DataSupport<T>>
       reload: (notifier) async {
         try {
           // ignore: unawaited_futures
-          findAll(params: params, headers: headers, remote: remote);
+          findAll(params: params, headers: headers, remote: remote, init: true);
           _readCounter = 0; // reset counter
           notifier.data = notifier.data.copyWith(isLoading: true);
         } catch (error, stackTrace) {
@@ -640,7 +677,8 @@ class RemoteAdapter<T extends DataSupport<T>>
         if (id == null) return;
         try {
           // ignore: unawaited_futures
-          findOne(id, params: params, headers: headers, remote: remote);
+          findOne(id,
+              params: params, headers: headers, remote: remote, init: true);
           _readCounter = 0; // reset counter
           notifier.data = notifier.data.copyWith(isLoading: true);
         } catch (error, stackTrace) {
