@@ -108,7 +108,7 @@ abstract class HiveLocalAdapter<T extends DataSupport<T>>
     for (final entry in relationshipsFor().entries) {
       // entry keys are the name of relationships => metadata
       final name = entry.key;
-      final relKeys = graph.getEdge(key, metadata: name);
+      final relKeys = graph._getEdge(key, metadata: name);
       map[name] =
           entry.value['kind'] == 'BelongsTo' ? relKeys.safeFirst : relKeys;
     }
