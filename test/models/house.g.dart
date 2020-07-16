@@ -66,8 +66,9 @@ class $HouseRemoteAdapter = RemoteAdapter<House> with NothingMixin;
 
 //
 
-final housesLocalAdapterProvider = Provider<LocalAdapter<House>>(
-    (ref) => $HouseHiveLocalAdapter(ref.read(graphProvider)));
+final housesLocalAdapterProvider = Provider<LocalAdapter<House>>((ref) =>
+    $HouseHiveLocalAdapter(
+        ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
 final housesRemoteAdapterProvider = Provider<RemoteAdapter<House>>(
     (ref) => $HouseRemoteAdapter(ref.read(housesLocalAdapterProvider)));

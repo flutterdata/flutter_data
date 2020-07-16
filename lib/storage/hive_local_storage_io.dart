@@ -3,30 +3,38 @@ import 'dart:io';
 
 import 'package:hive/hive.dart';
 import 'package:path/path.dart' as path_helper;
-import 'package:riverpod/riverpod.dart';
 
 import 'hive_local_storage.dart';
 
 class IoHiveLocalStorage implements HiveLocalStorage {
-  IoHiveLocalStorage(this._ref, this.hive, List<int> encryptionKey,
-      {this.clear})
+  IoHiveLocalStorage({this.baseDirFn, List<int> encryptionKey, this.clear})
       : encryptionCipher =
             encryptionKey != null ? HiveAesCipher(encryptionKey) : null;
 
   @override
-  final HiveInterface hive;
+  HiveInterface get hive => Hive;
   @override
   final HiveAesCipher encryptionCipher;
-  final ProviderReference _ref;
+  final BaseDirFn baseDirFn;
   final bool clear;
 
   bool _isInitialized = false;
 
   @override
   Future<void> initialize() async {
-    if (_isInitialized || _ref == null) return this;
+    if (_isInitialized) return this;
 
-    final dir = Directory(await _ref.read(hiveDirectoryProvider));
+    if (baseDirFn == null) {
+      throw UnsupportedError('''
+A base directory path MUST be supplied to
+the hiveLocalStorageProvider.
+
+In Flutter, this will be done automatically if
+the `path_provider` package is in `pubspec.yaml`.
+''');
+    }
+
+    final dir = Directory(await baseDirFn());
     final exists = await dir.exists();
     if ((clear ?? true) && exists) {
       await dir.delete(recursive: true);
@@ -40,7 +48,8 @@ class IoHiveLocalStorage implements HiveLocalStorage {
   }
 }
 
-HiveLocalStorage getHiveLocalStorage(ProviderReference ref,
-    {HiveInterface hive, List<int> encryptionKey, bool clear}) {
-  return IoHiveLocalStorage(ref, hive, encryptionKey, clear: clear);
+HiveLocalStorage getHiveLocalStorage(
+    {BaseDirFn baseDirFn, List<int> encryptionKey, bool clear}) {
+  return IoHiveLocalStorage(
+      baseDirFn: baseDirFn, encryptionKey: encryptionKey, clear: clear);
 }

@@ -176,8 +176,15 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.10.11"
+  freezed:
+    dependency: "direct dev"
+    description:
+      name: freezed
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.11.4"
   freezed_annotation:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: freezed_annotation
       url: "https://pub.dartlang.org"
@@ -471,7 +478,7 @@ packages:
     source: hosted
     version: "1.9.3"
   state_notifier:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: state_notifier
       url: "https://pub.dartlang.org"

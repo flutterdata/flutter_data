@@ -1,9 +1,5 @@
 part of flutter_data;
 
-/// For exclusive internal use of global service locator
-/// integration such as `get_it`'s
-dynamic debugGlobalServiceLocatorInstance;
-
 class DataHelpers {
   static final uuid = Uuid();
 
@@ -21,6 +17,38 @@ class DataHelpers {
     }
     return '${getType<T>(type)}#${uuid.v1().substring(0, 8)}';
   }
+}
+
+// initialization helpers
+
+/// For exclusive internal use of global service locator
+/// integration such as `get_it`'s
+dynamic debugGlobalServiceLocatorInstance;
+
+class RepositoryInitializer {}
+
+class RepositoryInitializerArgs {
+  RepositoryInitializerArgs(this.remote, this.verbose, this.alsoInitialize);
+
+  final bool remote;
+  final bool verbose;
+  final FutureProvider alsoInitialize;
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other is RepositoryInitializerArgs &&
+            other.remote == remote &&
+            other.verbose == verbose &&
+            other.alsoInitialize == alsoInitialize);
+  }
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^
+      remote.hashCode ^
+      verbose.hashCode ^
+      alsoInitialize.hashCode;
 }
 
 @protected

@@ -14,75 +14,71 @@ import 'package:jsonplaceholder_example/models/post.dart';
 import 'package:jsonplaceholder_example/models/user.dart';
 import 'package:jsonplaceholder_example/models/comment.dart';
 
-Future<void> initializeRepositories(ProviderReference ref,
-    {bool remote, bool verbose, FutureProvider<void> alsoInitialize}) async {
+Override configureRepositoryLocalStorage({BaseDirFn baseDirFn, List<int> encryptionKey, bool clear}) {
+  // ignore: unnecessary_statements
+  baseDirFn;
+  return hiveLocalStorageProvider.overrideAs(Provider(
+        (_) => HiveLocalStorage(baseDirFn: baseDirFn, encryptionKey: encryptionKey, clear: clear)));
+}
+
+FutureProvider<RepositoryInitializer> repositoryInitializerProvider(
+        {bool remote, bool verbose, FutureProvider<void> alsoInitialize}) =>
+    _repositoryInitializerProviderFamily(
+        RepositoryInitializerArgs(remote, verbose, alsoInitialize));
+
+final _repositoryInitializerProviderFamily =
+  FutureProvider.family<RepositoryInitializer, RepositoryInitializerArgs>((ref, args) async {
     final graphs = <String, Map<String, RemoteAdapter>>{'comments,posts,users': {'comments': ref.read(commentsRemoteAdapterProvider), 'posts': ref.read(postsRemoteAdapterProvider), 'users': ref.read(usersRemoteAdapterProvider)}, 'users': {'users': ref.read(usersRemoteAdapterProvider)}};
                 await ref.read(postsRepositoryProvider).initialize(
-              remote: remote,
-              verbose: verbose,
+              remote: args?.remote,
+              verbose: args?.verbose,
               adapters: graphs['comments,posts,users'],
             );            await ref.read(usersRepositoryProvider).initialize(
-              remote: remote,
-              verbose: verbose,
+              remote: args?.remote,
+              verbose: args?.verbose,
               adapters: graphs['users'],
             );            await ref.read(commentsRepositoryProvider).initialize(
-              remote: remote,
-              verbose: verbose,
+              remote: args?.remote,
+              verbose: args?.verbose,
               adapters: graphs['comments,posts,users'],
             );
-    if (alsoInitialize != null) {
-      await ref.read(alsoInitialize);
+    if (args?.alsoInitialize != null) {
+      await ref.read(args.alsoInitialize);
     }
-}
-
-StateNotifierProvider<RepositoryInitializerNotifier>
-    repositoryInitializerProvider(
-        {bool remote, bool verbose, FutureProvider<void> alsoInitialize}) {
-  return StateNotifierProvider<RepositoryInitializerNotifier>((ref) {
-    final notifier = RepositoryInitializerNotifier(false);
-    initializeRepositories(ref,
-            remote: remote, verbose: verbose, alsoInitialize: alsoInitialize)
-        .then((_) => notifier.value = true);
-    return notifier;
-  });
-}
+    return RepositoryInitializer();
+});
 
 
-
-class _RepositoryInitializer {}
 
 extension GetItFlutterDataX on GetIt {
-  void registerRepositories({FutureOr<String> Function() baseDirFn,
-    bool clear, bool remote, bool verbose, List<int> encryptionKey}) {
+  void registerRepositories({BaseDirFn baseDirFn, List<int> encryptionKey,
+    bool clear, bool remote, bool verbose}) {
 final i = debugGlobalServiceLocatorInstance = GetIt.instance;
 
-final _owner = ProviderStateOwner(overrides: [
-    hiveDirectoryProvider.overrideAs(FutureProvider((ref) async {
-      final dir = baseDirFn?.call();
-      return dir;
-    })),
-    hiveLocalStorageProvider.overrideAs(Provider(
-        (ref) => HiveLocalStorage(ref, encryptionKey: encryptionKey, clear: true)))
-  ]);
+final _owner = ProviderStateOwner(
+  overrides: [
+    configureRepositoryLocalStorage(baseDirFn: baseDirFn, encryptionKey: encryptionKey, clear: clear),
+  ],
+);
 
-i.registerSingletonAsync<_RepositoryInitializer>(() async {
-    await initializeRepositories(_owner.ref, remote: remote, verbose: verbose);
-    return _RepositoryInitializer();
+i.registerSingletonAsync<RepositoryInitializer>(() async {
+    return _owner.ref.read(repositoryInitializerProvider(
+          remote: remote, verbose: verbose));
   });  
 i.registerSingletonWithDependencies<Repository<Post>>(
       () => _owner.ref.read(postsRepositoryProvider),
-      dependsOn: [_RepositoryInitializer]);
+      dependsOn: [RepositoryInitializer]);
 
       
   
 i.registerSingletonWithDependencies<Repository<User>>(
       () => _owner.ref.read(usersRepositoryProvider),
-      dependsOn: [_RepositoryInitializer]);
+      dependsOn: [RepositoryInitializer]);
 
       
   
 i.registerSingletonWithDependencies<Repository<Comment>>(
       () => _owner.ref.read(commentsRepositoryProvider),
-      dependsOn: [_RepositoryInitializer]);
+      dependsOn: [RepositoryInitializer]);
 
       } }

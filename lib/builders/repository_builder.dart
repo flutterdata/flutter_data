@@ -190,7 +190,7 @@ class \$${type}RemoteAdapter = RemoteAdapter<$type> with ${mixins.join(', ')};
 //
 
 final ${typeInPlural}LocalAdapterProvider = Provider<LocalAdapter<$type>>(
-    (ref) => \$${type}HiveLocalAdapter(ref.read(graphProvider)));
+    (ref) => \$${type}HiveLocalAdapter(ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
 final ${typeInPlural}RemoteAdapterProvider =
     Provider<RemoteAdapter<$type>>(

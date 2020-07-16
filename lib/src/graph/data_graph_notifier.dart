@@ -178,7 +178,7 @@ class DataGraphNotifier extends StateNotifier<DataGraphEvent>
 
   // debug utilities
 
-  Map<String, Object> dumpGraph() => _toMap();
+  Map<String, Map> dumpGraph() => _toMap();
 
   @visibleForTesting
   @protected
@@ -403,7 +403,7 @@ class DataGraphNotifier extends StateNotifier<DataGraphEvent>
     box.clear();
   }
 
-  Map<String, Map<String, List<String>>> _toMap() => box.toMap().cast();
+  Map<String, Map> _toMap() => box.toMap().cast();
 }
 
 enum DataGraphEventType {

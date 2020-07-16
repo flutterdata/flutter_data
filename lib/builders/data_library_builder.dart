@@ -106,35 +106,24 @@ class DataExtensionBuilder implements Builder {
 
     if (importProvider) {
       providerRegistration = '''\n
-class RepositoryInitializer extends ValueNotifier<bool> {
-  RepositoryInitializer(bool value) : super(value);
-  bool get isLoading => !value;
-}
+List<SingleChildWidget> repositoryProviders({BaseDirFn baseDirFn, List<int> encryptionKey,
+    bool clear, bool remote, bool verbose, FutureProvider<void> alsoInitialize}) {
+  final _owner = ProviderStateOwner(
+    overrides: [
+      configureRepositoryLocalStorage(baseDirFn: baseDirFn, encryptionKey: encryptionKey, clear: clear),
+    ],
+  );
 
-List<SingleChildWidget> repositoryProviders({FutureOr<String> Function() baseDirFn,
-    bool clear, bool remote, bool verbose, List<int> encryptionKey, FutureProvider<void> alsoInitialize}) {
-  final _owner = ProviderStateOwner(overrides: [
-    hiveDirectoryProvider.overrideAs(FutureProvider((ref) {
-      final dir = baseDirFn?.call();
-      return dir${importPathProvider ? ' ?? getApplicationDocumentsDirectory().then((dir) => dir.path)' : ''};
-    })),
-    hiveLocalStorageProvider.overrideAs(Provider(
-        (ref) => HiveLocalStorage(ref, encryptionKey: encryptionKey, clear: true)))
-  ]);
   return [
-    p.ChangeNotifierProvider<RepositoryInitializer>(
-      create: (_) {
-        final notifier = RepositoryInitializer(false);
-        initializeRepositories(_owner.ref,
-                remote: remote, verbose: verbose, alsoInitialize: alsoInitialize)
-            .then((_) => notifier.value = true);
-        return notifier;
+    p.FutureProvider<RepositoryInitializer>(
+      create: (_) async {
+        return await _owner.ref(repositoryInitializerProvider(remote: remote, verbose: verbose, alsoInitialize: alsoInitialize));
       },
     ),''' +
           classes.map((c) => '''
     p.ProxyProvider<RepositoryInitializer, Repository<${(c['name']).singularize().capitalize()}>>(
       lazy: false,
-      update: (_, i, __) => i.isLoading ? null : _owner.ref.read(${c['name']}RepositoryProvider),
+      update: (_, i, __) => i == null ? null : _owner.ref.read(${c['name']}RepositoryProvider),
       dispose: (_, r) => r?.dispose(),
     ),''').join('\n') +
           ']; }';
@@ -142,31 +131,26 @@ List<SingleChildWidget> repositoryProviders({FutureOr<String> Function() baseDir
 
     if (importGetIt) {
       getItRegistration = '''
-class _RepositoryInitializer {}
-
 extension GetItFlutterDataX on GetIt {
-  void registerRepositories({FutureOr<String> Function() baseDirFn,
-    bool clear, bool remote, bool verbose, List<int> encryptionKey}) {
+  void registerRepositories({BaseDirFn baseDirFn, List<int> encryptionKey,
+    bool clear, bool remote, bool verbose}) {
 final i = debugGlobalServiceLocatorInstance = GetIt.instance;
 
-final _owner = ProviderStateOwner(overrides: [
-    hiveDirectoryProvider.overrideAs(FutureProvider((ref) async {
-      final dir = baseDirFn?.call();
-      return dir${importPathProvider ? ' ?? getApplicationDocumentsDirectory().then((dir) => dir.path)' : ''};
-    })),
-    hiveLocalStorageProvider.overrideAs(Provider(
-        (ref) => HiveLocalStorage(ref, encryptionKey: encryptionKey, clear: true)))
-  ]);
+final _owner = ProviderStateOwner(
+  overrides: [
+    configureRepositoryLocalStorage(baseDirFn: baseDirFn, encryptionKey: encryptionKey, clear: clear),
+  ],
+);
 
-i.registerSingletonAsync<_RepositoryInitializer>(() async {
-    await initializeRepositories(_owner.ref, remote: remote, verbose: verbose);
-    return _RepositoryInitializer();
+i.registerSingletonAsync<RepositoryInitializer>(() async {
+    return _owner.ref.read(repositoryInitializerProvider(
+          remote: remote, verbose: verbose));
   });''' +
           classes.map((c) => '''
   
 i.registerSingletonWithDependencies<Repository<${(c['name']).singularize().capitalize()}>>(
       () => _owner.ref.read(${c['name']}RepositoryProvider),
-      dependsOn: [_RepositoryInitializer]);
+      dependsOn: [RepositoryInitializer]);
 
       ''').join('\n') +
           '} }';
@@ -191,8 +175,8 @@ i.registerSingletonWithDependencies<Repository<${(c['name']).singularize().capit
 
     final repoEntries = classes.map((c) => '''
             await ref.read(${c['name']}RepositoryProvider).initialize(
-              remote: remote,
-              verbose: verbose,
+              remote: args?.remote,
+              verbose: args?.verbose,
               adapters: graphs['${c['related']}'],
             );''').join('');
 
@@ -200,7 +184,6 @@ i.registerSingletonWithDependencies<Repository<${(c['name']).singularize().capit
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: directives_ordering, top_level_function_literal_block
 
-import 'dart:async';
 import 'package:flutter_data/flutter_data.dart';
 
 $pathProviderImport
@@ -209,26 +192,27 @@ $getItImport
 
 $modelImports
 
-Future<void> initializeRepositories(ProviderReference ref,
-    {bool remote, bool verbose, FutureProvider<void> alsoInitialize}) async {
-    final graphs = <String, Map<String, RemoteAdapter>>$graphs;
-    $repoEntries
-    if (alsoInitialize != null) {
-      await ref.read(alsoInitialize);
-    }
+Override configureRepositoryLocalStorage({BaseDirFn baseDirFn, List<int> encryptionKey, bool clear}) {
+  // ignore: unnecessary_statements
+  baseDirFn${importPathProvider ? ' ??= () => getApplicationDocumentsDirectory().then((dir) => dir.path)' : ''};
+  return hiveLocalStorageProvider.overrideAs(Provider(
+        (_) => HiveLocalStorage(baseDirFn: baseDirFn, encryptionKey: encryptionKey, clear: clear)));
 }
 
-StateNotifierProvider<RepositoryInitializerNotifier>
-    repositoryInitializerProvider(
-        {bool remote, bool verbose, FutureProvider<void> alsoInitialize}) {
-  return StateNotifierProvider<RepositoryInitializerNotifier>((ref) {
-    final notifier = RepositoryInitializerNotifier(false);
-    initializeRepositories(ref,
-            remote: remote, verbose: verbose, alsoInitialize: alsoInitialize)
-        .then((_) => notifier.value = true);
-    return notifier;
-  });
-}
+FutureProvider<RepositoryInitializer> repositoryInitializerProvider(
+        {bool remote, bool verbose, FutureProvider<void> alsoInitialize}) =>
+    _repositoryInitializerProviderFamily(
+        RepositoryInitializerArgs(remote, verbose, alsoInitialize));
+
+final _repositoryInitializerProviderFamily =
+  FutureProvider.family<RepositoryInitializer, RepositoryInitializerArgs>((ref, args) async {
+    final graphs = <String, Map<String, RemoteAdapter>>$graphs;
+    $repoEntries
+    if (args?.alsoInitialize != null) {
+      await ref.read(args.alsoInitialize);
+    }
+    return RepositoryInitializer();
+});
 
 $providerRegistration
 

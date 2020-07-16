@@ -11,12 +11,23 @@ import 'mocks.dart';
 
 // adapters
 
+class TestHiveLocalStorage implements HiveLocalStorage {
+  @override
+  HiveInterface get hive => HiveMock();
+
+  @override
+  HiveAesCipher get encryptionCipher => null;
+
+  @override
+  Future<void> initialize() async {}
+}
+
 mixin TestMetaBox on DataGraphNotifier {
   @override
   // ignore: must_call_super
   Future<DataGraphNotifier> initialize() async {
     await super.initialize();
-    box = FakeBox<Map<String, List<String>>>();
+    box = FakeBox<Map>();
     return this;
   }
 }
@@ -62,7 +73,7 @@ class DogLocalAdapter = $DogHiveLocalAdapter with TestHiveLocalAdapter<Dog>;
 //
 
 ProviderStateOwner owner;
-Box<Map<String, List<String>>> metaBox;
+Box<Map> metaBox;
 DataGraphNotifier graph;
 
 LocalAdapter<House> houseLocalAdapter;
@@ -131,18 +142,20 @@ void setUpFn() async {
 ProviderStateOwner createOwner() {
   return ProviderStateOwner(
     overrides: [
-      hiveLocalStorageProvider.overrideAs(
-          Provider((_) => HiveLocalStorage(null, hive: HiveMock()))),
+      hiveLocalStorageProvider
+          .overrideAs(Provider((_) => TestHiveLocalStorage())),
       graphProvider.overrideAs(Provider(
           (ref) => TestDataGraphNotifier(ref.read(hiveLocalStorageProvider)))),
-      housesLocalAdapterProvider.overrideAs(
-          Provider((ref) => HouseLocalAdapter(ref.read(graphProvider)))),
-      familiesLocalAdapterProvider.overrideAs(
-          Provider((ref) => FamilyLocalAdapter(ref.read(graphProvider)))),
-      peopleLocalAdapterProvider.overrideAs(
-          Provider((ref) => PersonLocalAdapter(ref.read(graphProvider)))),
-      dogsLocalAdapterProvider.overrideAs(
-          Provider((ref) => DogLocalAdapter(ref.read(graphProvider)))),
+      housesLocalAdapterProvider.overrideAs(Provider((ref) => HouseLocalAdapter(
+          ref.read(hiveLocalStorageProvider), ref.read(graphProvider)))),
+      familiesLocalAdapterProvider.overrideAs(Provider((ref) =>
+          FamilyLocalAdapter(
+              ref.read(hiveLocalStorageProvider), ref.read(graphProvider)))),
+      peopleLocalAdapterProvider.overrideAs(Provider((ref) =>
+          PersonLocalAdapter(
+              ref.read(hiveLocalStorageProvider), ref.read(graphProvider)))),
+      dogsLocalAdapterProvider.overrideAs(Provider((ref) => DogLocalAdapter(
+          ref.read(hiveLocalStorageProvider), ref.read(graphProvider)))),
       housesRemoteAdapterProvider.overrideAs(Provider(
           (ref) => HouseRemoteAdapter(ref.read(housesLocalAdapterProvider)))),
       familiesRemoteAdapterProvider.overrideAs(Provider((ref) =>

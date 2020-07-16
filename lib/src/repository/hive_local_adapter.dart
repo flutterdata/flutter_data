@@ -3,8 +3,10 @@ part of flutter_data;
 // ignore: must_be_immutable
 abstract class HiveLocalAdapter<T extends DataSupport<T>>
     extends LocalAdapter<T> with TypeAdapter<T> {
-  HiveLocalAdapter(DataGraphNotifier graph) : super(graph);
+  HiveLocalAdapter(this._hiveLocalStorage, DataGraphNotifier graph)
+      : super(graph);
 
+  final HiveLocalStorage _hiveLocalStorage;
   final _type = DataHelpers.getType<T>();
 
   // late final field, remove ignore on class
@@ -18,13 +20,11 @@ abstract class HiveLocalAdapter<T extends DataSupport<T>>
     // IMPORTANT: initialize graph before registering
     await super.initialize();
 
-    final storage = graph._hiveLocalStorage;
-
-    if (!storage.hive.isBoxOpen(_type)) {
-      storage.hive.registerAdapter(this);
+    if (!_hiveLocalStorage.hive.isBoxOpen(_type)) {
+      _hiveLocalStorage.hive.registerAdapter(this);
     }
-    box = await storage.hive
-        .openBox<T>(_type, encryptionCipher: storage.encryptionCipher);
+    box = await _hiveLocalStorage.hive.openBox<T>(_type,
+        encryptionCipher: _hiveLocalStorage.encryptionCipher);
 
     return this;
   }
