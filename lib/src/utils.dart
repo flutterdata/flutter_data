@@ -28,11 +28,11 @@ dynamic debugGlobalServiceLocatorInstance;
 class RepositoryInitializer {}
 
 class RepositoryInitializerArgs {
-  RepositoryInitializerArgs(this.remote, this.verbose, this.alsoInitialize);
+  RepositoryInitializerArgs(this.remote, this.verbose, this.alsoAwait);
 
   final bool remote;
   final bool verbose;
-  final FutureProvider alsoInitialize;
+  final FutureFn alsoAwait;
 
   @override
   bool operator ==(dynamic other) {
@@ -40,7 +40,7 @@ class RepositoryInitializerArgs {
         (other is RepositoryInitializerArgs &&
             other.remote == remote &&
             other.verbose == verbose &&
-            other.alsoInitialize == alsoInitialize);
+            other.alsoAwait == alsoAwait);
   }
 
   @override
@@ -48,11 +48,13 @@ class RepositoryInitializerArgs {
       runtimeType.hashCode ^
       remote.hashCode ^
       verbose.hashCode ^
-      alsoInitialize.hashCode;
+      alsoAwait.hashCode;
 }
 
 @protected
 mixin NothingMixin {}
+
+typedef FutureFn<T> = FutureOr<T> Function();
 
 // private utilities
 

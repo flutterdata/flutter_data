@@ -72,11 +72,12 @@ mixin PersonLoginAdapter on RemoteAdapter<Person> {
   String get baseUrl => '';
 
   Future<String> login(String email, String password) async {
+    final _headers = await headers;
     final response = await withHttpClient(
       (client) => client.post(
         '$baseUrl/token',
         body: '',
-        headers: headers,
+        headers: _headers,
       ),
     );
 

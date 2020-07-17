@@ -7,11 +7,11 @@ import 'package:riverpod/riverpod.dart';
 import 'hive_local_storage_web.dart'
     if (dart.library.io) 'hive_local_storage_io.dart';
 
-typedef BaseDirFn = FutureOr<String> Function();
-
 abstract class HiveLocalStorage {
   factory HiveLocalStorage(
-      {BaseDirFn baseDirFn, List<int> encryptionKey, bool clear}) {
+      {FutureOr<String> Function() baseDirFn,
+      List<int> encryptionKey,
+      bool clear}) {
     return getHiveLocalStorage(
         baseDirFn: baseDirFn, encryptionKey: encryptionKey, clear: clear);
   }

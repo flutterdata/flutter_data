@@ -47,6 +47,25 @@ mixin NoThrottleAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
   Duration get throttleDuration => Duration.zero;
 }
 
+// sample token future provider
+final tokenFutureProvider = FutureProvider((_) => Future.value('s3cr4t'));
+
+mixin TokenAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
+  @override
+  FutureOr<Map<String, String>> get headers async {
+    final token = await ref.read(tokenFutureProvider);
+    return await super.headers
+      ..addAll({'Authorization': token});
+  }
+
+  @override
+  FutureOr<Map<String, dynamic>> get params async {
+    final token = await ref.read(tokenFutureProvider);
+    return await super.params
+      ..addAll({'Authorization': token});
+  }
+}
+
 //
 
 class TestDataGraphNotifier = DataGraphNotifier with TestMetaBox;
@@ -54,7 +73,8 @@ class TestDataGraphNotifier = DataGraphNotifier with TestMetaBox;
 // ignore: must_be_immutable
 class HouseLocalAdapter = $HouseHiveLocalAdapter
     with TestHiveLocalAdapter<House>;
-class HouseRemoteAdapter = $HouseRemoteAdapter with NoThrottleAdapter;
+class HouseRemoteAdapter = $HouseRemoteAdapter
+    with NoThrottleAdapter, TokenAdapter;
 
 // ignore: must_be_immutable
 class FamilyLocalAdapter = $FamilyHiveLocalAdapter
@@ -117,6 +137,7 @@ void setUpFn() async {
         remote: false,
         verbose: true,
         adapters: adapterGraph,
+        ref: owner.ref,
       );
 
   familyRepository =
@@ -124,18 +145,21 @@ void setUpFn() async {
             remote: false,
             verbose: true,
             adapters: adapterGraph,
+            ref: owner.ref,
           );
 
   personRepository = await peopleRepositoryProvider.readOwner(owner).initialize(
         remote: false,
         verbose: true,
         adapters: adapterGraph,
+        ref: owner.ref,
       );
 
   dogRepository = await dogsRepositoryProvider.readOwner(owner).initialize(
         remote: false,
         verbose: true,
         adapters: adapterGraph,
+        ref: owner.ref,
       );
 }
 

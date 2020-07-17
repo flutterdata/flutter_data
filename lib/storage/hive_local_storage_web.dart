@@ -1,5 +1,8 @@
-import 'package:flutter_data/flutter_data.dart';
+import 'dart:async';
+
 import 'package:hive/hive.dart';
+
+import 'hive_local_storage.dart';
 
 class WebHiveLocalStorage implements HiveLocalStorage {
   WebHiveLocalStorage({List<int> encryptionKey, this.clear})
@@ -28,6 +31,8 @@ class WebHiveLocalStorage implements HiveLocalStorage {
 }
 
 HiveLocalStorage getHiveLocalStorage(
-    {BaseDirFn baseDirFn, List<int> encryptionKey, bool clear}) {
+    {FutureOr<String> Function() baseDirFn,
+    List<int> encryptionKey,
+    bool clear}) {
   return WebHiveLocalStorage(encryptionKey: encryptionKey, clear: clear);
 }

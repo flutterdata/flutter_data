@@ -106,8 +106,8 @@ class DataExtensionBuilder implements Builder {
 
     if (importProvider) {
       providerRegistration = '''\n
-List<SingleChildWidget> repositoryProviders({BaseDirFn baseDirFn, List<int> encryptionKey,
-    bool clear, bool remote, bool verbose, FutureProvider<void> alsoInitialize}) {
+List<SingleChildWidget> repositoryProviders({FutureFn<String> baseDirFn, List<int> encryptionKey,
+    bool clear, bool remote, bool verbose, FutureFn alsoAwait}) {
   final _owner = ProviderStateOwner(
     overrides: [
       configureRepositoryLocalStorage(baseDirFn: baseDirFn, encryptionKey: encryptionKey, clear: clear),
@@ -117,7 +117,7 @@ List<SingleChildWidget> repositoryProviders({BaseDirFn baseDirFn, List<int> encr
   return [
     p.FutureProvider<RepositoryInitializer>(
       create: (_) async {
-        return await _owner.ref(repositoryInitializerProvider(remote: remote, verbose: verbose, alsoInitialize: alsoInitialize));
+        return await _owner.ref(repositoryInitializerProvider(remote: remote, verbose: verbose, alsoAwait: alsoAwait));
       },
     ),''' +
           classes.map((c) => '''
@@ -132,7 +132,7 @@ List<SingleChildWidget> repositoryProviders({BaseDirFn baseDirFn, List<int> encr
     if (importGetIt) {
       getItRegistration = '''
 extension GetItFlutterDataX on GetIt {
-  void registerRepositories({BaseDirFn baseDirFn, List<int> encryptionKey,
+  void registerRepositories({FutureFn<String> baseDirFn, List<int> encryptionKey,
     bool clear, bool remote, bool verbose}) {
 final i = debugGlobalServiceLocatorInstance = GetIt.instance;
 
@@ -178,6 +178,7 @@ i.registerSingletonWithDependencies<Repository<${(c['name']).singularize().capit
               remote: args?.remote,
               verbose: args?.verbose,
               adapters: graphs['${c['related']}'],
+              ref: ref,
             );''').join('');
 
     await b.writeAsString(finalAssetId, '''\n
@@ -192,7 +193,7 @@ $getItImport
 
 $modelImports
 
-Override configureRepositoryLocalStorage({BaseDirFn baseDirFn, List<int> encryptionKey, bool clear}) {
+Override configureRepositoryLocalStorage({FutureFn<String> baseDirFn, List<int> encryptionKey, bool clear}) {
   // ignore: unnecessary_statements
   baseDirFn${importPathProvider ? ' ??= () => getApplicationDocumentsDirectory().then((dir) => dir.path)' : ''};
   return hiveLocalStorageProvider.overrideAs(Provider(
@@ -200,16 +201,16 @@ Override configureRepositoryLocalStorage({BaseDirFn baseDirFn, List<int> encrypt
 }
 
 FutureProvider<RepositoryInitializer> repositoryInitializerProvider(
-        {bool remote, bool verbose, FutureProvider<void> alsoInitialize}) =>
+        {bool remote, bool verbose, FutureFn alsoAwait}) =>
     _repositoryInitializerProviderFamily(
-        RepositoryInitializerArgs(remote, verbose, alsoInitialize));
+        RepositoryInitializerArgs(remote, verbose, alsoAwait));
 
 final _repositoryInitializerProviderFamily =
   FutureProvider.family<RepositoryInitializer, RepositoryInitializerArgs>((ref, args) async {
     final graphs = <String, Map<String, RemoteAdapter>>$graphs;
     $repoEntries
-    if (args?.alsoInitialize != null) {
-      await ref.read(args.alsoInitialize);
+    if (args?.alsoAwait != null) {
+      await args.alsoAwait();
     }
     return RepositoryInitializer();
 });

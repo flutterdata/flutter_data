@@ -15,7 +15,7 @@ class IoHiveLocalStorage implements HiveLocalStorage {
   HiveInterface get hive => Hive;
   @override
   final HiveAesCipher encryptionCipher;
-  final BaseDirFn baseDirFn;
+  final FutureOr<String> Function() baseDirFn;
   final bool clear;
 
   bool _isInitialized = false;
@@ -49,7 +49,9 @@ the `path_provider` package is in `pubspec.yaml`.
 }
 
 HiveLocalStorage getHiveLocalStorage(
-    {BaseDirFn baseDirFn, List<int> encryptionKey, bool clear}) {
+    {FutureOr<String> Function() baseDirFn,
+    List<int> encryptionKey,
+    bool clear}) {
   return IoHiveLocalStorage(
       baseDirFn: baseDirFn, encryptionKey: encryptionKey, clear: clear);
 }

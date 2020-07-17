@@ -5,11 +5,14 @@ class Repository<T extends DataSupport<T>> with _Lifecycle<Repository<T>> {
   @override
   @mustCallSuper
   FutureOr<Repository<T>> initialize(
-      {bool remote, bool verbose, Map<String, RemoteAdapter> adapters}) async {
+      {bool remote,
+      bool verbose,
+      Map<String, RemoteAdapter> adapters,
+      ProviderReference ref}) async {
     if (isInitialized) return this;
     for (final e in adapters.entries) {
-      _adapters[e.key] = await e.value
-          .initialize(remote: remote, verbose: verbose, adapters: adapters);
+      _adapters[e.key] = await e.value.initialize(
+          remote: remote, verbose: verbose, adapters: adapters, ref: ref);
     }
     await super.initialize();
     return this;

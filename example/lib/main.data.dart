@@ -13,7 +13,7 @@ import 'package:jsonplaceholder_example/models/post.dart';
 import 'package:jsonplaceholder_example/models/user.dart';
 import 'package:jsonplaceholder_example/models/comment.dart';
 
-Override configureRepositoryLocalStorage({BaseDirFn baseDirFn, List<int> encryptionKey, bool clear}) {
+Override configureRepositoryLocalStorage({FutureFn<String> baseDirFn, List<int> encryptionKey, bool clear}) {
   // ignore: unnecessary_statements
   baseDirFn;
   return hiveLocalStorageProvider.overrideAs(Provider(
@@ -21,9 +21,9 @@ Override configureRepositoryLocalStorage({BaseDirFn baseDirFn, List<int> encrypt
 }
 
 FutureProvider<RepositoryInitializer> repositoryInitializerProvider(
-        {bool remote, bool verbose, FutureProvider<void> alsoInitialize}) =>
+        {bool remote, bool verbose, FutureFn alsoAwait}) =>
     _repositoryInitializerProviderFamily(
-        RepositoryInitializerArgs(remote, verbose, alsoInitialize));
+        RepositoryInitializerArgs(remote, verbose, alsoAwait));
 
 final _repositoryInitializerProviderFamily =
   FutureProvider.family<RepositoryInitializer, RepositoryInitializerArgs>((ref, args) async {
@@ -41,8 +41,8 @@ final _repositoryInitializerProviderFamily =
               verbose: args?.verbose,
               adapters: graphs['comments,posts,users'],
             );
-    if (args?.alsoInitialize != null) {
-      await ref.read(args.alsoInitialize);
+    if (args?.alsoAwait != null) {
+      await args.alsoAwait();
     }
     return RepositoryInitializer();
 });
@@ -50,7 +50,7 @@ final _repositoryInitializerProviderFamily =
 
 
 extension GetItFlutterDataX on GetIt {
-  void registerRepositories({BaseDirFn baseDirFn, List<int> encryptionKey,
+  void registerRepositories({FutureFn<String> baseDirFn, List<int> encryptionKey,
     bool clear, bool remote, bool verbose}) {
 final i = debugGlobalServiceLocatorInstance = GetIt.instance;
 

@@ -14,6 +14,11 @@ class RemoteAdapter<T extends DataSupport<T>>
   bool _verbose;
   Map<String, RemoteAdapter> _adapters;
 
+  /// Give adapter subclasses access to the DI system
+  @nonVirtual
+  @protected
+  ProviderReference ref;
+
   //
 
   @nonVirtual
@@ -49,10 +54,38 @@ class RemoteAdapter<T extends DataSupport<T>>
   DataRequestMethod methodForDelete(id, params) => DataRequestMethod.DELETE;
 
   @protected
-  Map<String, dynamic> get params => {};
+  FutureOr<Map<String, dynamic>> get params => {};
 
   @protected
-  Map<String, String> get headers => {'Content-Type': 'application/json'};
+  FutureOr<Map<String, String>> get headers =>
+      {'Content-Type': 'application/json'};
+
+  // lifecycle methods
+
+  @override
+  @mustCallSuper
+  Future<RemoteAdapter<T>> initialize(
+      {final bool remote,
+      final bool verbose,
+      final Map<String, RemoteAdapter> adapters,
+      ProviderReference ref}) async {
+    if (isInitialized) return this;
+    _remote = remote ?? true;
+    _verbose = verbose ?? true;
+    _adapters = adapters;
+    this.ref = ref;
+
+    await _localAdapter.initialize();
+    // _save();
+    await super.initialize();
+    return this;
+  }
+
+  @override
+  Future<void> dispose() async {
+    await super.dispose();
+    await _localAdapter.dispose();
+  }
 
   // serialization
 
@@ -209,8 +242,8 @@ class RemoteAdapter<T extends DataSupport<T>>
       bool init}) async {
     _assertInit();
     remote ??= _remote;
-    params = this.params & params;
-    headers = this.headers & headers;
+    params = await this.params & params;
+    headers = await this.headers & headers;
     init ??= false;
 
     if (!shouldLoadRemoteAll(remote, params, headers)) {
@@ -232,8 +265,7 @@ class RemoteAdapter<T extends DataSupport<T>>
     );
 
     return withResponse<List<T>>(response, (data) {
-      final models = deserialize(data, init: init).models;
-      return models;
+      return deserialize(data, init: init).models;
     });
   }
 
@@ -247,8 +279,8 @@ class RemoteAdapter<T extends DataSupport<T>>
     _assertInit();
     assert(model != null);
     remote ??= _remote;
-    params = this.params & params;
-    headers = this.headers & headers;
+    params = await this.params & params;
+    headers = await this.headers & headers;
     init ??= false;
 
     final id = model is T ? model.id : model;
@@ -291,8 +323,8 @@ class RemoteAdapter<T extends DataSupport<T>>
       bool init}) async {
     _assertInit();
     remote ??= _remote;
-    params = this.params & params;
-    headers = this.headers & headers;
+    params = await this.params & params;
+    headers = await this.headers & headers;
     init ??= false;
 
     if (remote == false) {
@@ -345,8 +377,8 @@ class RemoteAdapter<T extends DataSupport<T>>
       Map<String, String> headers}) async {
     _assertInit();
     remote ??= _remote;
-    params = this.params & params;
-    headers = this.headers & headers;
+    params = await this.params & params;
+    headers = await this.headers & headers;
 
     final id = model is T ? model.id : model;
     final key =
@@ -514,28 +546,6 @@ class RemoteAdapter<T extends DataSupport<T>>
 
   // final _offlineAdapterKey = 'offline:adapter';
   // final _offlineSaveMetadata = 'offline:save';
-
-  @override
-  @mustCallSuper
-  Future<RemoteAdapter<T>> initialize(
-      {final bool remote,
-      final bool verbose,
-      final Map<String, RemoteAdapter> adapters}) async {
-    if (isInitialized) return this;
-    _remote = remote ?? true;
-    _verbose = verbose ?? true;
-    _adapters = adapters;
-    await _localAdapter.initialize();
-    // _save();
-    await super.initialize();
-    return this;
-  }
-
-  @override
-  Future<void> dispose() async {
-    await super.dispose();
-    await _localAdapter.dispose();
-  }
 
   void _assertInit() {
     assert(isInitialized, true);
