@@ -7,7 +7,7 @@ homepage: https://github.com/flutterdata/flutter_data
 documentation: https://flutterdata.dev/
 
 environment:
-  sdk: ">=2.7.1 <3.0.0"
+  sdk: ">=2.8.0 <3.0.0"
 
 dependencies:
   uuid: ^2.0.4
