@@ -52,13 +52,7 @@ mixin $CommentLocalAdapter on LocalAdapter<Comment> {
   }
 
   @override
-  serialize(model) {
-    final map = _$CommentToJson(model);
-    for (final e in relationshipsFor(model).entries) {
-      map[e.key] = (e.value['instance'] as Relationship)?.toJson();
-    }
-    return map;
-  }
+  serialize(model) => _$CommentToJson(model);
 }
 
 // ignore: must_be_immutable

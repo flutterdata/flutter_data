@@ -41,13 +41,7 @@ mixin $UserLocalAdapter on LocalAdapter<User> {
   }
 
   @override
-  serialize(model) {
-    final map = _$UserToJson(model);
-    for (final e in relationshipsFor(model).entries) {
-      map[e.key] = (e.value['instance'] as Relationship)?.toJson();
-    }
-    return map;
-  }
+  serialize(model) => _$UserToJson(model);
 }
 
 // ignore: must_be_immutable
