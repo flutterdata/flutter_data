@@ -8,8 +8,8 @@ abstract class DataSupport<T extends DataSupport<T>> {
   Map<String, RemoteAdapter> _adapters;
 
   // computed
-  RemoteAdapter<T> get _adapter =>
-      _adapters[DataHelpers.getType<T>()] as RemoteAdapter<T>;
+  String get _type => DataHelpers.getType<T>();
+  RemoteAdapter<T> get _adapter => _adapters[_type] as RemoteAdapter<T>;
   bool get _isInitialized => _key != null && _adapters != null;
 
   // initializers
@@ -25,6 +25,10 @@ abstract class DataSupport<T extends DataSupport<T>> {
     if (_isInitialized) return _this;
 
     _this._adapters = adapters;
+
+    assert(_adapter != null, '''\n
+Please ensure the type `$T` has been correctly initialized.\n
+''');
 
     // model.id could be null, that's okay
     _this._key = _adapter._graph.getKeyForId(_this._adapter.type, _this.id,
