@@ -54,7 +54,9 @@ class RepositoryInitializerArgs {
 @protected
 mixin NothingMixin {}
 
-typedef FutureFn<T> = FutureOr<T> Function();
+typedef FutureFn<R> = FutureOr<R> Function();
+
+typedef OnData<R> = FutureOr<R> Function(dynamic);
 
 // private utilities
 

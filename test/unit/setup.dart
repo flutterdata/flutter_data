@@ -141,7 +141,7 @@ void setUpFn() async {
 
   houseRepository = await housesRepositoryProvider.readOwner(owner).initialize(
         remote: false,
-        verbose: true,
+        verbose: false,
         adapters: adapterGraph,
         ref: owner.ref,
       );
@@ -149,28 +149,28 @@ void setUpFn() async {
   familyRepository =
       await familiesRepositoryProvider.readOwner(owner).initialize(
             remote: false,
-            verbose: true,
+            verbose: false,
             adapters: adapterGraph,
             ref: owner.ref,
           );
 
   personRepository = await peopleRepositoryProvider.readOwner(owner).initialize(
         remote: false,
-        verbose: true,
+        verbose: false,
         adapters: adapterGraph,
         ref: owner.ref,
       );
 
   dogRepository = await dogsRepositoryProvider.readOwner(owner).initialize(
         remote: false,
-        verbose: true,
+        verbose: false,
         adapters: adapterGraph,
         ref: owner.ref,
       );
 
   nodeRepository = await nodesRepositoryProvider.readOwner(owner).initialize(
         remote: false,
-        verbose: true,
+        verbose: false,
         adapters: {
           'nodes': nodesRemoteAdapterProvider.readOwner(owner),
         },

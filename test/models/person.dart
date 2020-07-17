@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:http/testing.dart';
@@ -65,32 +64,27 @@ class Person with DataSupport<Person> {
   }
 }
 
-// note: keep this adapter without type arguments
+// NOTE: keep this adapter without type arguments
 // as part of testing the type-parameter-less adapter feature
 mixin PersonLoginAdapter on RemoteAdapter<Person> {
   @override
   String get baseUrl => '';
 
   Future<String> login(String email, String password) async {
-    final _headers = await headers;
-    final response = await withHttpClient(
-      (client) => client.post(
-        '$baseUrl/token',
-        body: '',
-        headers: _headers,
-      ),
+    return await withRequest<String>(
+      '/token',
+      body: '',
+      headers: await headers,
+      onSuccess: (data) => data['token'] as String,
     );
-
-    final map = json.decode(response.body);
-    return map['token'] as String;
   }
 }
 
 mixin TestLoginAdapter on PersonLoginAdapter {
   @override
-  Future<R> withHttpClient<R>(onRequest) {
-    return onRequest(MockClient((req) {
-      return Future(() => http.Response('{ "token": "zzz1" }', 200));
-    }));
+  http.Client get httpClient {
+    return MockClient((req) {
+      return Future.value(http.Response('{ "token": "zzz1" }', 200));
+    });
   }
 }

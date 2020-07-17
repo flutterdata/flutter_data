@@ -3,7 +3,6 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../../models/family.dart';
-import '../../models/node.dart';
 import '../../models/person.dart';
 import '../../models/pet.dart';
 import '../mocks.dart';
@@ -116,9 +115,9 @@ void main() async {
   });
 
   test('data exception equality', () {
-    expect(DataException(Exception('whatever'), 410),
-        DataException(Exception('whatever'), 410));
-    expect(DataException([Exception('whatever')], 410),
-        isNot(DataException(Exception('whatever'), 410)));
+    expect(DataException(Exception('whatever'), status: 410),
+        DataException(Exception('whatever'), status: 410));
+    expect(DataException([Exception('whatever')], status: 410),
+        isNot(DataException(Exception('whatever'), status: 410)));
   });
 }

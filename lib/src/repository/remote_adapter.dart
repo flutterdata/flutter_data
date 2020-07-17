@@ -254,19 +254,15 @@ class RemoteAdapter<T extends DataSupport<T>>
       return models;
     }
 
-    final response = await withHttpClient(
-      (client) => _executeRequest(
-        client,
-        urlForFindAll(params),
-        methodForFindAll(params),
-        params: params,
-        headers: headers,
-      ),
+    return await withRequest<List<T>>(
+      urlForFindAll(params),
+      method: methodForFindAll(params),
+      params: params,
+      headers: headers,
+      onSuccess: (data) {
+        return deserialize(data, init: init).models;
+      },
     );
-
-    return withResponse<List<T>>(response, (data) {
-      return deserialize(data, init: init).models;
-    });
   }
 
   @protected
@@ -299,19 +295,15 @@ class RemoteAdapter<T extends DataSupport<T>>
     }
 
     assert(id != null);
-    final response = await withHttpClient(
-      (client) => _executeRequest(
-        client,
-        urlForFindOne(id, params),
-        methodForFindOne(id, params),
-        params: params,
-        headers: headers,
-      ),
+    return await withRequest<T>(
+      urlForFindOne(id, params),
+      method: methodForFindOne(id, params),
+      params: params,
+      headers: headers,
+      onSuccess: (data) {
+        return deserialize(data as Map<String, dynamic>, init: init).model;
+      },
     );
-
-    return withResponse<T>(response, (data) {
-      return deserialize(data as Map<String, dynamic>, init: init).model;
-    });
   }
 
   @protected
@@ -334,39 +326,35 @@ class RemoteAdapter<T extends DataSupport<T>>
 
     final body = json.encode(serialize(model));
 
-    final response = await withHttpClient(
-      (client) => _executeRequest(
-        client,
-        urlForSave(model.id, params),
-        methodForSave(model.id, params),
-        params: params,
-        headers: headers,
-        body: body,
-      ),
-    );
-
-    return withResponse<T>(response, (data) {
-      if (data == null) {
-        // return "old" model if response was empty
-        if (init) {
-          model._initialize(_adapters, save: true);
+    return await withRequest<T>(
+      urlForSave(model.id, params),
+      method: methodForSave(model.id, params),
+      params: params,
+      headers: headers,
+      body: body,
+      onSuccess: (data) {
+        if (data == null) {
+          // return "old" model if response was empty
+          if (init) {
+            model._initialize(_adapters, save: true);
+          }
+          return model;
         }
-        return model;
-      }
-      // deserialize already inits models
-      // if model had a key already, reuse it
-      final newModel =
-          deserialize(data as Map<String, dynamic>, init: init).model;
+        // deserialize already inits models
+        // if model had a key already, reuse it
+        final newModel =
+            deserialize(data as Map<String, dynamic>, init: init).model;
 
-      // TODO ensure this is covered y tests
-      // in the unlikely case where supplied key couldn't be used
-      // ensure "old" copy of model carries the updated key
-      if (init && model._key != null && model._key != newModel._key) {
-        _graph.removeKey(model._key);
-        model._key = newModel._key;
-      }
-      return newModel;
-    });
+        // TODO test this
+        // in the unlikely case where supplied key couldn't be used
+        // ensure "old" copy of model carries the updated key
+        if (init && model._key != null && model._key != newModel._key) {
+          _graph.removeKey(model._key);
+          model._key = newModel._key;
+        }
+        return newModel;
+      },
+    );
   }
 
   @protected
@@ -392,23 +380,117 @@ class RemoteAdapter<T extends DataSupport<T>>
 
     if (remote && id != null) {
       _graph.removeId(type, id);
-      final response = await withHttpClient(
-        (client) => _executeRequest(
-          client,
-          urlForDelete(id, params),
-          methodForDelete(id, params),
-          params: params,
-          headers: headers,
-        ),
+      return await withRequest<void>(
+        urlForDelete(id, params),
+        method: methodForDelete(id, params),
+        params: params,
+        headers: headers,
+        onSuccess: (_) {},
       );
-
-      return withResponse<void>(response, (_) {
-        return;
-      });
     }
   }
 
-  // utils
+  // http
+
+  @protected
+  @visibleForTesting
+  final http.Client httpClient = http.Client();
+
+  @protected
+  @visibleForTesting
+  FutureOr<R> withRequest<R>(
+    String url, {
+    DataRequestMethod method = DataRequestMethod.GET,
+    Map<String, dynamic> params,
+    Map<String, String> headers,
+    String body,
+    @required OnData<R> onSuccess,
+    OnData<R> onError,
+  }) async {
+    final _baseUrl = baseUrl.endsWith('/') ? baseUrl : '$baseUrl/';
+    var uri = Uri.parse('$_baseUrl$url');
+
+    if (params != null && params.isNotEmpty) {
+      uri = uri.replace(queryParameters: parseQueryParameters(params));
+    }
+
+    // callbacks
+    assert(onSuccess != null);
+    onError ??= (e) async => this.onError(e) as R;
+
+    http.Response response;
+    dynamic data;
+    dynamic error;
+    StackTrace stackTrace;
+
+    try {
+      switch (method) {
+        case DataRequestMethod.HEAD:
+          response = await httpClient.head(uri, headers: headers);
+          break;
+        case DataRequestMethod.GET:
+          response = await httpClient.get(uri, headers: headers);
+          break;
+        case DataRequestMethod.PUT:
+          response = await httpClient.put(uri, headers: headers, body: body);
+          break;
+        case DataRequestMethod.POST:
+          response = await httpClient.post(uri, headers: headers, body: body);
+          break;
+        case DataRequestMethod.PATCH:
+          response = await httpClient.patch(uri, headers: headers, body: body);
+          break;
+        case DataRequestMethod.DELETE:
+          response = await httpClient.delete(uri, headers: headers);
+          break;
+        default:
+          throw UnsupportedError('No known HTTP method: $method');
+          break;
+      }
+    } catch (err, stack) {
+      error = err;
+      stackTrace = stack;
+    } finally {
+      httpClient.close();
+    }
+
+    if (_verbose && response != null) {
+      print(
+          '[flutter_data] $T: ${method.toShortString()} $uri [HTTP ${response.statusCode}]');
+    }
+
+    // response handling
+
+    if (response.body.isNotEmpty) {
+      try {
+        data = json.decode(response.body);
+      } on FormatException catch (e) {
+        error = e;
+      }
+    }
+
+    final code = response.statusCode;
+
+    if (code >= 200 && code < 300) {
+      if (error != null) {
+        error = DataException(error, stackTrace: stackTrace, status: code);
+      }
+      return await onSuccess(data);
+    } else if (code >= 400 && code < 600) {
+      error =
+          DataException(error ?? data, stackTrace: stackTrace, status: code);
+    } else {
+      error = DataException('Failed request for type $R', status: code);
+    }
+
+    return await onError(error);
+  }
+
+  @protected
+  @visibleForTesting
+  OnData<R> onError<R>(e) => throw e;
+
+  // helpers
 
   @protected
   @visibleForTesting
@@ -427,92 +509,7 @@ class RemoteAdapter<T extends DataSupport<T>>
     });
   }
 
-  @protected
-  @visibleForTesting
-  Future<R> withHttpClient<R>(OnRequest<R> onRequest) async {
-    final client = http.Client();
-    try {
-      return await onRequest(client);
-    } finally {
-      client.close();
-    }
-  }
-
-  @protected
-  @visibleForTesting
-  FutureOr<R> withResponse<R>(
-      http.Response response, OnResponseSuccess<R> onSuccess) {
-    dynamic data;
-    dynamic error;
-
-    if (response.body.isNotEmpty) {
-      try {
-        data = json.decode(response.body);
-      } on FormatException catch (e) {
-        error = e;
-      }
-    }
-
-    final code = response.statusCode;
-
-    if (code >= 200 && code < 300) {
-      if (error != null) {
-        throw DataException(error, response.statusCode);
-      }
-      return onSuccess(data);
-    } else if (code >= 400 && code < 600) {
-      throw DataException(error ?? data, response.statusCode);
-    } else {
-      throw UnsupportedError('Failed request for type $R');
-    }
-  }
-
-  // helpers
-
-  Future<http.Response> _executeRequest(
-      http.Client client, String url, DataRequestMethod method,
-      {Map<String, dynamic> params,
-      Map<String, String> headers,
-      String body}) async {
-    final _baseUrl = baseUrl.endsWith('/') ? baseUrl : '$baseUrl/';
-    var uri = Uri.parse('$_baseUrl$url');
-
-    if (params.isNotEmpty) {
-      uri = uri.replace(queryParameters: parseQueryParameters(params));
-    }
-
-    http.Response response;
-    switch (method) {
-      case DataRequestMethod.HEAD:
-        response = await client.head(uri, headers: headers);
-        break;
-      case DataRequestMethod.GET:
-        response = await client.get(uri, headers: headers);
-        break;
-      case DataRequestMethod.PUT:
-        response = await client.put(uri, headers: headers, body: body);
-        break;
-      case DataRequestMethod.POST:
-        response = await client.post(uri, headers: headers, body: body);
-        break;
-      case DataRequestMethod.PATCH:
-        response = await client.patch(uri, headers: headers, body: body);
-        break;
-      case DataRequestMethod.DELETE:
-        response = await client.delete(uri, headers: headers);
-        break;
-      default:
-        response = null;
-        break;
-    }
-
-    if (_verbose && response != null) {
-      print(
-          '[flutter_data] $T: ${method.toShortString()} $uri [HTTP ${response.statusCode}]');
-    }
-
-    return response;
-  }
+  // ***
 
   // WATCH
 
@@ -784,23 +781,11 @@ class RemoteAdapter<T extends DataSupport<T>>
   }
 }
 
-class DataException implements Exception {
-  final Object errors;
-  final int status;
-  const DataException([this.errors = const [], this.status]);
+//
 
-  @override
-  bool operator ==(dynamic other) =>
-      identical(this, other) || toString() == other.toString();
+typedef AlsoWatch<T> = List<Relationship> Function(T);
 
-  @override
-  int get hashCode => runtimeType.hashCode ^ status.hashCode ^ errors.hashCode;
-
-  @override
-  String toString() {
-    return 'DataException: ${status != null ? "[HTTP $status] " : ""}$errors';
-  }
-}
+//
 
 class DeserializedData<T, I> {
   const DeserializedData(this.models, {this.included});
@@ -809,14 +794,31 @@ class DeserializedData<T, I> {
   T get model => models.single;
 }
 
+class DataException implements Exception {
+  final Object error;
+  final int status;
+  final StackTrace stackTrace;
+  const DataException(this.error, {this.stackTrace, this.status});
+
+  @override
+  bool operator ==(dynamic other) =>
+      identical(this, other) || toString() == other.toString();
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^
+      status.hashCode ^
+      error.hashCode ^
+      stackTrace.hashCode;
+
+  @override
+  String toString() {
+    return 'DataException: $error ${status != null ? " [HTTP $status]" : ""}\n$stackTrace';
+  }
+}
+
 // ignore: constant_identifier_names
 enum DataRequestMethod { GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS, TRACE }
-
-typedef OnResponseSuccess<R> = R Function(dynamic);
-
-typedef OnRequest<R> = Future<R> Function(http.Client);
-
-typedef AlsoWatch<T> = List<Relationship> Function(T);
 
 extension _ToStringX on DataRequestMethod {
   String toShortString() => toString().split('.').last;
