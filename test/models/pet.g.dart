@@ -51,13 +51,7 @@ mixin $DogLocalAdapter on LocalAdapter<Dog> {
   }
 
   @override
-  serialize(model) {
-    final map = model.toJson();
-    for (final e in relationshipsFor(model).entries) {
-      map[e.key] = (e.value['instance'] as Relationship)?.toJson();
-    }
-    return map;
-  }
+  serialize(model) => model.toJson();
 }
 
 // ignore: must_be_immutable
@@ -106,13 +100,7 @@ mixin $CatLocalAdapter on LocalAdapter<Cat> {
   }
 
   @override
-  serialize(model) {
-    final map = model.toJson();
-    for (final e in relationshipsFor(model).entries) {
-      map[e.key] = (e.value['instance'] as Relationship)?.toJson();
-    }
-    return map;
-  }
+  serialize(model) => model.toJson();
 }
 
 // ignore: must_be_immutable

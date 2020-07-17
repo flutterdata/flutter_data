@@ -40,7 +40,7 @@ class Person with DataSupport<Person> {
         '_id': id,
         'name': name,
         'age': age,
-        'family': family,
+        'family': family.toJson(),
       };
 
   @override

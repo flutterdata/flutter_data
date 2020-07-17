@@ -50,13 +50,7 @@ mixin $HouseLocalAdapter on LocalAdapter<House> {
   }
 
   @override
-  serialize(model) {
-    final map = _$HouseToJson(model);
-    for (final e in relationshipsFor(model).entries) {
-      map[e.key] = (e.value['instance'] as Relationship)?.toJson();
-    }
-    return map;
-  }
+  serialize(model) => _$HouseToJson(model);
 }
 
 // ignore: must_be_immutable

@@ -75,13 +75,7 @@ mixin $FamilyLocalAdapter on LocalAdapter<Family> {
   }
 
   @override
-  serialize(model) {
-    final map = _$FamilyToJson(model);
-    for (final e in relationshipsFor(model).entries) {
-      map[e.key] = (e.value['instance'] as Relationship)?.toJson();
-    }
-    return map;
-  }
+  serialize(model) => _$FamilyToJson(model);
 }
 
 // ignore: must_be_immutable
