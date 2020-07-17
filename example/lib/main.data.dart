@@ -32,14 +32,17 @@ final _repositoryInitializerProviderFamily =
               remote: args?.remote,
               verbose: args?.verbose,
               adapters: graphs['comments,posts,users'],
+              ref: ref,
             );            await ref.read(usersRepositoryProvider).initialize(
               remote: args?.remote,
               verbose: args?.verbose,
               adapters: graphs['users'],
+              ref: ref,
             );            await ref.read(commentsRepositoryProvider).initialize(
               remote: args?.remote,
               verbose: args?.verbose,
               adapters: graphs['comments,posts,users'],
+              ref: ref,
             );
     if (args?.alsoAwait != null) {
       await args.alsoAwait();

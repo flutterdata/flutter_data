@@ -5,6 +5,7 @@ import 'package:riverpod/riverpod.dart' hide Family;
 
 import '../models/family.dart';
 import '../models/house.dart';
+import '../models/node.dart';
 import '../models/person.dart';
 import '../models/pet.dart';
 import 'mocks.dart';
@@ -90,6 +91,10 @@ class PersonRemoteAdapter = $PersonRemoteAdapter
 // ignore: must_be_immutable
 class DogLocalAdapter = $DogHiveLocalAdapter with TestHiveLocalAdapter<Dog>;
 
+// ignore: must_be_immutable
+class NodeLocalAdapter = $NodeHiveLocalAdapter with TestHiveLocalAdapter<Node>;
+class NodeRemoteAdapter = $NodeRemoteAdapter with NoThrottleAdapter;
+
 //
 
 ProviderStateOwner owner;
@@ -109,6 +114,7 @@ Repository<Family> familyRepository;
 Repository<House> houseRepository;
 Repository<Person> personRepository;
 Repository<Dog> dogRepository;
+Repository<Node> nodeRepository;
 
 void setUpFn() async {
   owner = createOwner();
@@ -161,6 +167,15 @@ void setUpFn() async {
         adapters: adapterGraph,
         ref: owner.ref,
       );
+
+  nodeRepository = await nodesRepositoryProvider.readOwner(owner).initialize(
+        remote: false,
+        verbose: true,
+        adapters: {
+          'nodes': nodesRemoteAdapterProvider.readOwner(owner),
+        },
+        ref: owner.ref,
+      );
 }
 
 ProviderStateOwner createOwner() {
@@ -170,6 +185,7 @@ ProviderStateOwner createOwner() {
           .overrideAs(Provider((_) => TestHiveLocalStorage())),
       graphProvider.overrideAs(Provider(
           (ref) => TestDataGraphNotifier(ref.read(hiveLocalStorageProvider)))),
+      //
       housesLocalAdapterProvider.overrideAs(Provider((ref) => HouseLocalAdapter(
           ref.read(hiveLocalStorageProvider), ref.read(graphProvider)))),
       familiesLocalAdapterProvider.overrideAs(Provider((ref) =>
@@ -180,12 +196,17 @@ ProviderStateOwner createOwner() {
               ref.read(hiveLocalStorageProvider), ref.read(graphProvider)))),
       dogsLocalAdapterProvider.overrideAs(Provider((ref) => DogLocalAdapter(
           ref.read(hiveLocalStorageProvider), ref.read(graphProvider)))),
+      nodesLocalAdapterProvider.overrideAs(Provider((ref) => NodeLocalAdapter(
+          ref.read(hiveLocalStorageProvider), ref.read(graphProvider)))),
+      //
       housesRemoteAdapterProvider.overrideAs(Provider(
           (ref) => HouseRemoteAdapter(ref.read(housesLocalAdapterProvider)))),
       familiesRemoteAdapterProvider.overrideAs(Provider((ref) =>
           FamilyRemoteAdapter(ref.read(familiesLocalAdapterProvider)))),
       peopleRemoteAdapterProvider.overrideAs(Provider(
           (ref) => PersonRemoteAdapter(ref.read(peopleLocalAdapterProvider)))),
+      nodesRemoteAdapterProvider.overrideAs(Provider(
+          (ref) => NodeRemoteAdapter(ref.read(nodesLocalAdapterProvider)))),
     ],
   );
 }

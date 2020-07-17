@@ -3,6 +3,7 @@ import 'package:test/test.dart';
 
 import '../../../models/family.dart';
 import '../../../models/house.dart';
+import '../../../models/node.dart';
 import '../../../models/person.dart';
 import '../../../models/pet.dart';
 import '../../setup.dart';
@@ -237,5 +238,21 @@ void main() async {
     final f1 =
         Family(surname: 'Carlson', dogs: {jerry, zoe}.asHasMany).init(owner);
     expect(f1.dogs, {jerry, zoe});
+  });
+
+  test('self-ref (on a @freezed data class)', () {
+    final parent = Node(name: 'parent', children: HasMany()).init(owner);
+    final child =
+        Node(name: 'child', parent: parent.asBelongsTo, children: HasMany())
+            .init(owner);
+
+    // since child has children defined, the rel is empty
+    expect(child.children, isEmpty);
+    // since parent does not have a parent defined, the rel is null
+    expect(parent.parent, isNull);
+
+    // child & parent are infinitely related!
+    expect(child.parent.value, parent);
+    expect(child.parent.value.children.first, child);
   });
 }

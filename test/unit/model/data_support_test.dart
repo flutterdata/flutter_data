@@ -3,6 +3,7 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../../models/family.dart';
+import '../../models/node.dart';
 import '../../models/person.dart';
 import '../../models/pet.dart';
 import '../mocks.dart';
