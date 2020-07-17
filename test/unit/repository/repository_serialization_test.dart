@@ -147,11 +147,12 @@ void main() async {
 
     // simulate "save"
     graph.getKeyForId('families', '1098', keyIfAbsent: keyFor(family));
-    final family2 = familyLocalAdapter
+    final family2 = familyRemoteAdapter.localAdapter
         .deserialize({'id': '1098', 'surname': 'Moletto'}).init(owner);
 
     expect(family2, Family(id: '1098', surname: 'Moletto'));
-    expect((familyLocalAdapter as HiveLocalAdapter<Family>).box.keys,
+    expect(
+        (familyRemoteAdapter.localAdapter as HiveLocalAdapter<Family>).box.keys,
         [keyFor(family2)]);
   });
 
@@ -161,14 +162,14 @@ void main() async {
 
     // simulate "save" for family
     graph.getKeyForId('families', '1298', keyIfAbsent: keyFor(family));
-    final family1b = familyLocalAdapter.deserialize({
+    final family1b = familyRemoteAdapter.localAdapter.deserialize({
       'id': '1298',
       'surname': 'Helsinki',
     }).init(owner);
 
     // simulate "save" for family2
     graph.getKeyForId('families', '1298', keyIfAbsent: keyFor(family2));
-    final family2b = familyLocalAdapter.deserialize({
+    final family2b = familyRemoteAdapter.localAdapter.deserialize({
       'id': '1298',
       'surname': 'Oslo',
     }).init(owner);
@@ -187,7 +188,7 @@ void main() async {
         Family(id: '1', surname: 'Smith', residence: h1r, persons: p1r)
             .init(owner);
 
-    final map = familyLocalAdapter.serialize(family);
+    final map = familyRemoteAdapter.localAdapter.serialize(family);
     expect(map, {
       'id': '1',
       'surname': 'Smith',
@@ -209,7 +210,7 @@ void main() async {
       'persons': p1r.keys,
     };
 
-    final family = familyLocalAdapter.deserialize(map);
+    final family = familyRemoteAdapter.localAdapter.deserialize(map);
     expect(
         family,
         Family(
@@ -231,7 +232,8 @@ void main() async {
       'persons': [keyFor(person)]
     };
 
-    final family = familyLocalAdapter.deserialize(obj).init(owner);
+    final family =
+        familyRemoteAdapter.localAdapter.deserialize(obj).init(owner);
 
     expect(family, Family(id: '1', surname: 'Smith'));
     expect(family.residence.value.address, '123 Main St');

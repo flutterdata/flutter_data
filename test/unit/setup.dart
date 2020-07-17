@@ -101,11 +101,6 @@ ProviderStateOwner owner;
 Box<Map> metaBox;
 DataGraphNotifier graph;
 
-LocalAdapter<House> houseLocalAdapter;
-LocalAdapter<Family> familyLocalAdapter;
-LocalAdapter<Person> personLocalAdapter;
-LocalAdapter<Dog> dogLocalAdapter;
-
 RemoteAdapter<House> houseRemoteAdapter;
 RemoteAdapter<Family> familyRemoteAdapter;
 RemoteAdapter<Person> personRemoteAdapter;
@@ -129,11 +124,6 @@ void setUpFn() async {
     'people': peopleRemoteAdapterProvider.readOwner(owner),
     'dogs': dogsRemoteAdapterProvider.readOwner(owner),
   };
-
-  houseLocalAdapter = housesLocalAdapterProvider.readOwner(owner);
-  familyLocalAdapter = familiesLocalAdapterProvider.readOwner(owner);
-  personLocalAdapter = peopleLocalAdapterProvider.readOwner(owner);
-  dogLocalAdapter = dogsLocalAdapterProvider.readOwner(owner);
 
   houseRemoteAdapter = housesRemoteAdapterProvider.readOwner(owner);
   familyRemoteAdapter = familiesRemoteAdapterProvider.readOwner(owner);

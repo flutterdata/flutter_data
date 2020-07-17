@@ -42,7 +42,10 @@ void main() async {
           // so instead of expecting i+1, we expect i-1
           expect(state.model, hasLength(i - 1));
           expect(
-              (personLocalAdapter as HiveLocalAdapter<Person>).box.keys.length,
+              (personRemoteAdapter.localAdapter as HiveLocalAdapter<Person>)
+                  .box
+                  .keys
+                  .length,
               i - 1);
           expect(state.isLoading, false); // since it's not hitting any API
         }

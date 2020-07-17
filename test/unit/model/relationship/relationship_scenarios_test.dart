@@ -18,7 +18,7 @@ void main() async {
 
     // since we're passing a key (not an ID)
     // we MUST use the local adapter serializer
-    final f1 = familyLocalAdapter.deserialize(
+    final f1 = familyRemoteAdapter.localAdapter.deserialize(
         {'id': '1', 'surname': 'Rose', 'residence': residenceKey}).init(owner);
     expect(f1.residence.value, isNull);
     expect(keyFor(f1), isNotNull);
@@ -33,7 +33,7 @@ void main() async {
     // residence is omitted, but persons is included (no people exist yet)
     final personKey =
         graph.getKeyForId('people', '1', keyIfAbsent: 'people#a1a1a1');
-    final f1b = familyLocalAdapter.deserialize({
+    final f1b = familyRemoteAdapter.localAdapter.deserialize({
       'id': '1',
       'surname': 'Rose',
       'persons': [personKey],
@@ -50,7 +50,7 @@ void main() async {
     expect(f1b.persons, {p1});
 
     // relationships are omitted - so they remain unchanged
-    final f1c = familyLocalAdapter
+    final f1c = familyRemoteAdapter.localAdapter
         .deserialize({'id': '1', 'surname': 'Rose'}).init(owner);
     expect(f1c.persons, {p1});
     expect(f1c.residence.value, isNotNull);
@@ -58,7 +58,7 @@ void main() async {
     final p2 = Person(id: '2', name: 'Brian', age: 55).init(owner);
 
     // persons has changed from [1] to [2]
-    final f1d = familyLocalAdapter.deserialize({
+    final f1d = familyRemoteAdapter.localAdapter.deserialize({
       'id': '1',
       'surname': 'Rose',
       'persons': [keyFor(p2)]
@@ -71,7 +71,7 @@ void main() async {
     expect(p1.family.value, isNull);
 
     // relationships are explicitly set to null
-    final f1e = familyLocalAdapter.deserialize({
+    final f1e = familyRemoteAdapter.localAdapter.deserialize({
       'id': '1',
       'surname': 'Rose',
       'persons': null,
@@ -87,7 +87,7 @@ void main() async {
     // deserialize house, owner does not exist
     // since we're passing a key (not an ID)
     // we MUST use the local adapter serializer
-    final h1 = houseLocalAdapter.deserialize({
+    final h1 = houseRemoteAdapter.localAdapter.deserialize({
       'id': '1',
       'address': '123 Main St',
       'owner': 'families#a1a1a1'
@@ -220,7 +220,7 @@ void main() async {
 
     // since we're passing a key (not an ID)
     // we MUST use the local adapter serializer
-    final family5 = familyLocalAdapter.deserialize({
+    final family5 = familyRemoteAdapter.localAdapter.deserialize({
       'id': '229',
       'surname': 'Rose',
       'persons': ['people#231aaa']

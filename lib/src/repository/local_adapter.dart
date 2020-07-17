@@ -41,16 +41,11 @@ abstract class LocalAdapter<T extends DataSupport<T>>
   @visibleForTesting
   void delete(String key);
 
-  // abstract
+  // public abstract methods
 
-  @protected
-  @visibleForTesting
   Map<String, dynamic> serialize(T model);
 
-  @protected
-  @visibleForTesting
   T deserialize(Map<String, dynamic> map);
 
-  @protected
   Map<String, Map<String, Object>> relationshipsFor([T model]);
 }

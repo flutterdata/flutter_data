@@ -3,11 +3,17 @@ part of flutter_data;
 class RemoteAdapter<T extends DataSupport<T>>
     with _Lifecycle<RemoteAdapter<T>> {
   @protected
-  RemoteAdapter(this._localAdapter);
+  RemoteAdapter(this.localAdapter);
 
-  final LocalAdapter<T> _localAdapter;
+  @protected
+  @visibleForTesting
+  final LocalAdapter<T> localAdapter;
 
-  DataGraphNotifier get _graph => _localAdapter.graph;
+  @protected
+  DataGraphNotifier get graph => localAdapter.graph;
+
+  @protected
+  Map<String, RemoteAdapter> get adapters => _adapters;
 
   // late finals
   bool _remote;
@@ -75,7 +81,7 @@ class RemoteAdapter<T extends DataSupport<T>>
     _adapters = adapters;
     this.ref = ref;
 
-    await _localAdapter.initialize();
+    await localAdapter.initialize();
     // _save();
     await super.initialize();
     return this;
@@ -84,7 +90,7 @@ class RemoteAdapter<T extends DataSupport<T>>
   @override
   Future<void> dispose() async {
     await super.dispose();
-    await _localAdapter.dispose();
+    await localAdapter.dispose();
   }
 
   // serialization
@@ -92,20 +98,20 @@ class RemoteAdapter<T extends DataSupport<T>>
   @protected
   @visibleForTesting
   Map<String, dynamic> serialize(T model) {
-    final map = _localAdapter.serialize(model);
+    final map = localAdapter.serialize(model);
 
     final relationships = <String, dynamic>{};
 
-    for (final relEntry in _localAdapter.relationshipsFor().entries) {
+    for (final relEntry in localAdapter.relationshipsFor().entries) {
       final field = relEntry.key;
       final key = keyForField(field);
       if (map[field] != null) {
         if (relEntry.value['kind'] == 'HasMany') {
           final dataIdKeys = List<String>.from(map[field] as Iterable);
-          relationships[key] = dataIdKeys.map(_graph.getId).toList();
+          relationships[key] = dataIdKeys.map(graph.getId).toList();
         } else if (relEntry.value['kind'] == 'BelongsTo') {
           final dataIdKey = map[field].toString();
-          relationships[key] = _graph.getId(dataIdKey);
+          relationships[key] = graph.getId(dataIdKey);
         }
       }
       map.remove(field);
@@ -117,7 +123,7 @@ class RemoteAdapter<T extends DataSupport<T>>
   @protected
   @visibleForTesting
   DeserializedData<T, DataSupport<dynamic>> deserialize(dynamic data,
-      {bool init}) {
+      {String key, bool init}) {
     final result = DeserializedData<T, DataSupport<dynamic>>([], included: []);
     init ??= false;
 
@@ -128,9 +134,6 @@ class RemoteAdapter<T extends DataSupport<T>>
         result.included
           ..add(data.model)
           ..addAll(data.included);
-        if (init) {
-          data.model._initialize(_adapters, save: true);
-        }
         return data.model.id;
       }
       return id;
@@ -143,26 +146,26 @@ class RemoteAdapter<T extends DataSupport<T>>
     for (final mapIn in (data as Iterable)) {
       final mapOut = <String, dynamic>{};
 
-      final relationshipKeys = _localAdapter.relationshipsFor().keys;
+      final relationshipKeys = localAdapter.relationshipsFor().keys;
 
       for (final mapInKey in mapIn.keys) {
         final mapOutKey = fieldForKey(mapInKey.toString());
 
         if (relationshipKeys.contains(mapOutKey)) {
-          final metadata = _localAdapter.relationshipsFor()[mapOutKey];
+          final metadata = localAdapter.relationshipsFor()[mapOutKey];
           final _type = metadata['type'] as String;
 
           if (metadata['kind'] == 'BelongsTo') {
             final id = addIncluded(mapIn[mapInKey], _adapters[_type]);
             // transform ids into keys
-            mapOut[mapOutKey] = _graph.getKeyForId(_type, id,
+            mapOut[mapOutKey] = graph.getKeyForId(_type, id,
                 keyIfAbsent: DataHelpers.generateKey(_type));
           }
 
           if (metadata['kind'] == 'HasMany') {
             mapOut[mapOutKey] = (mapIn[mapInKey] as Iterable)?.map((id) {
               id = addIncluded(id, _adapters[_type]);
-              return _graph.getKeyForId(_type, id,
+              return graph.getKeyForId(_type, id,
                   keyIfAbsent: DataHelpers.generateKey(_type));
             })?.toImmutableList();
           }
@@ -172,9 +175,9 @@ class RemoteAdapter<T extends DataSupport<T>>
         }
       }
 
-      final model = _localAdapter.deserialize(mapOut);
+      final model = localAdapter.deserialize(mapOut);
       if (init) {
-        model._initialize(_adapters, save: true);
+        model._initialize(_adapters, key: key, save: true);
       }
       result.models.add(model);
     }
@@ -186,7 +189,7 @@ class RemoteAdapter<T extends DataSupport<T>>
   String get identifierSuffix => '_id';
 
   Map<String, Map<String, Object>> get _belongsTos =>
-      Map.fromEntries(_localAdapter
+      Map.fromEntries(localAdapter
           .relationshipsFor()
           .entries
           .where((e) => e.value['kind'] == 'BelongsTo'));
@@ -247,7 +250,7 @@ class RemoteAdapter<T extends DataSupport<T>>
     init ??= false;
 
     if (!shouldLoadRemoteAll(remote, params, headers)) {
-      final models = _localAdapter.findAll();
+      final models = localAdapter.findAll();
       if (init) {
         models._initialize(_adapters, save: true);
       }
@@ -283,11 +286,11 @@ class RemoteAdapter<T extends DataSupport<T>>
 
     if (!shouldLoadRemoteOne(id, remote, params, headers)) {
       final key =
-          _graph.getKeyForId(type, id) ?? (model is T ? model._key : null);
+          graph.getKeyForId(type, id) ?? (model is T ? model._key : null);
       if (key == null) {
         return null;
       }
-      final newModel = _localAdapter.findOne(key);
+      final newModel = localAdapter.findOne(key);
       if (init) {
         newModel._initialize(_adapters, save: true);
       }
@@ -342,14 +345,14 @@ class RemoteAdapter<T extends DataSupport<T>>
         }
         // deserialize already inits models
         // if model had a key already, reuse it
-        final newModel =
-            deserialize(data as Map<String, dynamic>, init: init).model;
+        final newModel = deserialize(data as Map<String, dynamic>,
+                key: model._key, init: init)
+            .model;
 
-        // TODO test this
         // in the unlikely case where supplied key couldn't be used
         // ensure "old" copy of model carries the updated key
         if (init && model._key != null && model._key != newModel._key) {
-          _graph.removeKey(model._key);
+          graph.removeKey(model._key);
           model._key = newModel._key;
         }
         return newModel;
@@ -359,7 +362,7 @@ class RemoteAdapter<T extends DataSupport<T>>
 
   @protected
   @visibleForTesting
-  Future<void> delete(dynamic model,
+  Future<void> delete(final dynamic model,
       {bool remote,
       Map<String, dynamic> params,
       Map<String, String> headers}) async {
@@ -369,17 +372,16 @@ class RemoteAdapter<T extends DataSupport<T>>
     headers = await this.headers & headers;
 
     final id = model is T ? model.id : model;
-    final key =
-        _graph.getKeyForId(type, id) ?? (model is T ? model._key : null);
+    final key = graph.getKeyForId(type, id) ?? (model is T ? model._key : null);
 
     if (key == null) {
       return;
     }
 
-    _localAdapter.delete(key);
+    localAdapter.delete(key);
 
     if (remote && id != null) {
-      _graph.removeId(type, id);
+      graph.removeId(type, id);
       return await withRequest<void>(
         urlForDelete(id, params),
         method: methodForDelete(id, params),
@@ -535,7 +537,7 @@ class RemoteAdapter<T extends DataSupport<T>>
   @protected
   @visibleForTesting
   StateNotifier<List<DataGraphEvent>> get throttledGraph =>
-      _graph.throttle(throttleDuration);
+      graph.throttle(throttleDuration);
 
   // initialize & save
 
@@ -596,7 +598,7 @@ class RemoteAdapter<T extends DataSupport<T>>
       final Map<String, String> headers}) {
     _assertInit();
     final _notifier = DataStateNotifier<List<T>>(
-      DataState(_localAdapter.findAll()),
+      DataState(localAdapter.findAll()),
       reload: (notifier) async {
         try {
           // ignore: unawaited_futures
@@ -641,11 +643,11 @@ class RemoteAdapter<T extends DataSupport<T>>
         assert(key != null);
         switch (event.type) {
           case DataGraphEventType.addNode:
-            list.add(_localAdapter.findOne(key));
+            list.add(localAdapter.findOne(key));
             break;
           case DataGraphEventType.updateNode:
             final idx = list.indexWhere((model) => model?._key == key);
-            list[idx] = _localAdapter.findOne(key);
+            list[idx] = localAdapter.findOne(key);
             break;
           case DataGraphEventType.removeNode:
             list..removeWhere((model) => model?._key == key);
@@ -673,13 +675,13 @@ class RemoteAdapter<T extends DataSupport<T>>
     // lazy key access
     String _key;
     String key() => _key ??=
-        _graph.getKeyForId(type, id) ?? (model is T ? model._key : null);
+        graph.getKeyForId(type, id) ?? (model is T ? model._key : null);
 
     final _alsoWatchFilters = <String>{};
     var _relatedKeys = <String>{};
 
     final _notifier = DataStateNotifier<T>(
-      DataState(_localAdapter.findOne(key())),
+      DataState(localAdapter.findOne(key())),
       reload: (notifier) async {
         if (id == null) return;
         try {
@@ -732,7 +734,7 @@ class RemoteAdapter<T extends DataSupport<T>>
           // add/update
           if (event.type == DataGraphEventType.addNode ||
               event.type == DataGraphEventType.updateNode) {
-            final model = _localAdapter.findOne(key());
+            final model = localAdapter.findOne(key());
             if (model != null) {
               _initializeRelationshipsToWatch(model);
               modelBuffer = model;
@@ -750,7 +752,7 @@ class RemoteAdapter<T extends DataSupport<T>>
               event.type.isEdge &&
               _alsoWatchFilters.contains(event.metadata)) {
             // calculate current related models
-            _relatedKeys = _localAdapter
+            _relatedKeys = localAdapter
                 .relationshipsFor(_notifier.data.model)
                 .values
                 .map((meta) => (meta['instance'] as Relationship)?.keys)

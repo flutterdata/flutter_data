@@ -85,7 +85,8 @@ void main() async {
       'id': '2908', // that returns a different ID (already in the system)
       'surname': 'Oslo',
     };
-    final family2 = familyLocalAdapter.deserialize(obj2).init(owner);
+    final family2 =
+        familyRemoteAdapter.localAdapter.deserialize(obj2).init(owner);
 
     // even though we supplied family.key, it will be different (family0's)
     expect(keyFor(family2), isNot(keyFor(family)));

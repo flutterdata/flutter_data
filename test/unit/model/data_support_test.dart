@@ -34,27 +34,29 @@ void main() async {
   });
 
   test('delete model with and without ID', () async {
+    final adapter = personRemoteAdapter.localAdapter;
     // create a person WITH ID and assert it's there
     final person = Person(id: '21103', name: 'John', age: 54).init(owner);
-    expect(personLocalAdapter.findAll(), hasLength(1));
+    expect(adapter.findAll(), hasLength(1));
 
     // delete that person and assert it's not there
     await person.delete();
-    expect(personLocalAdapter.findAll(), hasLength(0));
+    expect(adapter.findAll(), hasLength(0));
 
     // create a person WITHOUT ID and assert it's there
     final person2 = Person(name: 'Peter', age: 101).init(owner);
-    expect(personLocalAdapter.findAll(), hasLength(1));
+    expect(adapter.findAll(), hasLength(1));
 
     // delete that person and assert it's not there
     await person2.delete();
-    expect(personLocalAdapter.findAll(), hasLength(0));
+    expect(adapter.findAll(), hasLength(0));
   });
 
   test('should reuse key', () {
     // id-less person
     final p1 = Person(name: 'Frank', age: 20).init(owner);
-    expect((personLocalAdapter as HiveLocalAdapter<Person>).box.keys,
+    expect(
+        (personRemoteAdapter.localAdapter as HiveLocalAdapter<Person>).box.keys,
         contains(keyFor(p1)));
 
     // person with new id, reusing existing key
@@ -62,7 +64,8 @@ void main() async {
     final p2 = Person(id: '221', name: 'Frank2', age: 32).init(owner);
     expect(keyFor(p1), keyFor(p2));
 
-    expect((personLocalAdapter as HiveLocalAdapter<Person>).box.keys,
+    expect(
+        (personRemoteAdapter.localAdapter as HiveLocalAdapter<Person>).box.keys,
         contains(keyFor(p2)));
   });
 

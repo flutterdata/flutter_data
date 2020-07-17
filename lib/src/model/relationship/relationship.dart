@@ -19,7 +19,7 @@ abstract class Relationship<E extends DataSupport<E>, N>
   String _inverseName;
   Map<String, RemoteAdapter> _adapters;
   RemoteAdapter<E> _adapter;
-  DataGraphNotifier get _graph => _adapter._localAdapter.graph;
+  DataGraphNotifier get _graph => _adapter.localAdapter.graph;
 
   final Set<String> _uninitializedKeys;
   final Set<E> _uninitializedModels;
@@ -140,7 +140,7 @@ abstract class Relationship<E extends DataSupport<E>, N>
 
   Iterable<E> get _iterable => keys
       .map((key) =>
-          _adapter._localAdapter.findOne(key)?._initialize(_adapters, key: key))
+          _adapter.localAdapter.findOne(key)?._initialize(_adapters, key: key))
       .filterNulls;
 
   @protected

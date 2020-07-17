@@ -31,16 +31,16 @@ Please ensure the type `$T` has been correctly initialized.\n
 ''');
 
     // model.id could be null, that's okay
-    _this._key = _adapter._graph.getKeyForId(_this._adapter.type, _this.id,
+    _this._key = _adapter.graph.getKeyForId(_this._adapter.type, _this.id,
         keyIfAbsent: key ?? DataHelpers.generateKey<T>());
 
     if (save) {
-      _adapter._localAdapter.save(_this._key, _this);
+      _adapter.localAdapter.save(_this._key, _this);
     }
 
     // initialize relationships
     for (final metadata
-        in _adapter._localAdapter.relationshipsFor(_this).entries) {
+        in _adapter.localAdapter.relationshipsFor(_this).entries) {
       final relationship = metadata.value['instance'] as Relationship;
 
       relationship?.initialize(
