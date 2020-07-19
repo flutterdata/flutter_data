@@ -45,7 +45,7 @@ void main() async {
     final notifier = family.residence.watch();
 
     var i = 0;
-    notifier.addListener(
+    final dispose = notifier.addListener(
       expectAsync1((house) {
         if (i == 0) expect(house.address, startsWith('456'));
         if (i == 1) expect(house.address, startsWith('123'));
@@ -60,5 +60,7 @@ void main() async {
     await runAndWait(() => family.residence.value =
         House(id: '1', address: '123 Main St').init(owner));
     await runAndWait(() => family.residence.value = null);
+
+    dispose();
   });
 }

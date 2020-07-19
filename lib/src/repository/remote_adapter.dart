@@ -621,7 +621,7 @@ class RemoteAdapter<T extends DataSupport<T>>
     // kick off
     _notifier.reload();
 
-    throttledGraph.forEach((events) {
+    final _graphNotifier = throttledGraph.forEach((events) {
       if (!_notifier.mounted) {
         return;
       }
@@ -659,6 +659,7 @@ class RemoteAdapter<T extends DataSupport<T>>
       _notifier.data = _notifier.data.copyWith(model: list, isLoading: false);
     });
 
+    _notifier.onDispose = _graphNotifier.dispose;
     return _notifier;
   }
 
@@ -720,7 +721,7 @@ class RemoteAdapter<T extends DataSupport<T>>
     _notifier.reload();
 
     // start listening to graph for further changes
-    throttledGraph.forEach((events) {
+    final _graphNotifier = throttledGraph.forEach((events) {
       if (!_notifier.mounted) {
         return;
       }
@@ -779,6 +780,7 @@ class RemoteAdapter<T extends DataSupport<T>>
       }
     });
 
+    _notifier.onDispose = _graphNotifier.dispose;
     return _notifier;
   }
 }

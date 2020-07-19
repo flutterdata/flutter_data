@@ -15,7 +15,7 @@ void main() async {
 
   Function dispose;
   tearDown(() {
-    dispose();
+    dispose?.call();
   });
 
   test('watchAll', () async {

@@ -17,17 +17,9 @@ class HasMany<E extends DataSupport<E>> extends Relationship<E, Set<E>> {
 
   // notifier
 
-  ValueStateNotifier<Set<E>> _notifier;
-
   @override
-  ValueStateNotifier<Set<E>> watch() {
-    _notifier ??= ValueStateNotifier();
-    _graphEvents.forEach((events) {
-      if (events.isNotEmpty) {
-        _notifier.value = this;
-      }
-    });
-    return _notifier;
+  StateNotifier<Set<E>> watch() {
+    return _graphEvents.where((e) => e.isNotEmpty).map((e) => this);
   }
 
   // misc

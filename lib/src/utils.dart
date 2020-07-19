@@ -95,11 +95,3 @@ extension StringUtilsX on String {
 extension _MapX<K, V> on Map<K, V> {
   Map<K, V> operator &(Map<K, V> more) => {...this, ...?more};
 }
-
-// state notifier utils
-
-class ValueStateNotifier<E> extends StateNotifier<E> {
-  ValueStateNotifier([E state]) : super(state);
-  E get value => state;
-  set value(E value) => state = value;
-}

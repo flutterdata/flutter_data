@@ -6,13 +6,13 @@ import 'package:state_notifier/state_notifier.dart';
 
 class _FunctionalStateNotifier<S, T> extends StateNotifier<T> {
   final StateNotifier<S> _source;
-  _FunctionalStateNotifier(this._source) : super(null);
-  RemoveListener _disposeFn;
+  final String name;
+  _FunctionalStateNotifier(this._source, {this.name}) : super(null);
+  RemoveListener _sourceDisposeFn;
   Timer _timer;
-  StreamController<T> _controller;
 
   StateNotifier<T> where(bool Function(S) test) {
-    _disposeFn = _source.addListener((_state) {
+    _sourceDisposeFn = _source.addListener((_state) {
       if (test(_state)) {
         state = _state as T;
       }
@@ -20,12 +20,13 @@ class _FunctionalStateNotifier<S, T> extends StateNotifier<T> {
     return this;
   }
 
-  void forEach(void Function(S) action) {
-    _disposeFn = _source.addListener(action, fireImmediately: false);
+  StateNotifier<T> forEach(void Function(S) action) {
+    _sourceDisposeFn = _source.addListener(action, fireImmediately: false);
+    return this;
   }
 
   StateNotifier<T> map(T Function(S) convert) {
-    _disposeFn = _source.addListener((state) {
+    _sourceDisposeFn = _source.addListener((state) {
       super.state = convert(state);
     }, fireImmediately: false);
     return this;
@@ -35,7 +36,7 @@ class _FunctionalStateNotifier<S, T> extends StateNotifier<T> {
 
   StateNotifier<T> throttle(Duration duration) {
     _timer = _makeTimer(duration);
-    _disposeFn = _source.addListener((model) {
+    _sourceDisposeFn = _source.addListener((model) {
       _bufferedState.add(model);
     }, fireImmediately: false);
     return this;
@@ -53,51 +54,48 @@ class _FunctionalStateNotifier<S, T> extends StateNotifier<T> {
     });
   }
 
-  // stream support
-
-  Stream<T> get stream {
-    // lazy init
-    return (_controller ??= StreamController<T>(onCancel: dispose)).stream;
-  }
-
   @override
-  set state(T value) {
-    super.state = value;
-    _controller?.add(state);
+  RemoveListener addListener(
+    Listener<T> listener, {
+    bool fireImmediately = true,
+  }) {
+    final dispose =
+        super.addListener(listener, fireImmediately: fireImmediately);
+    return () {
+      dispose.call();
+      _timer?.cancel();
+      _sourceDisposeFn?.call();
+    };
   }
-
-  // @override
-  // void Function(dynamic, StackTrace) get onError =>
-  //     (error, trace) => _controller?.addError(error, trace);
 
   @override
   void dispose() {
+    if (mounted) {
+      super.dispose();
+    }
+    _source.dispose();
     _timer?.cancel();
-    _disposeFn?.call();
-    super.dispose();
   }
 }
 
 extension StateNotifierX<T> on StateNotifier<T> {
   StateNotifier<T> where(bool Function(T) test) {
-    return _FunctionalStateNotifier<T, T>(this).where(test);
+    return _FunctionalStateNotifier<T, T>(this, name: 'where').where(test);
   }
 
-  StateNotifier<T> map(T Function(T) convert) {
-    return _FunctionalStateNotifier<T, T>(this).map(convert);
+  StateNotifier<S> map<S>(S Function(T) convert) {
+    return _FunctionalStateNotifier<T, S>(this, name: 'map').map(convert);
   }
 
-  void forEach(void Function(T) action) {
-    _FunctionalStateNotifier<T, void>(this).forEach(action);
+  StateNotifier<void> forEach(void Function(T) action) {
+    return _FunctionalStateNotifier<T, void>(this, name: 'forEach')
+        .forEach(action);
   }
 
   /// Updates state maximum once per [duration]
   StateNotifier<List<T>> throttle(Duration duration) {
-    return _FunctionalStateNotifier<T, List<T>>(this).throttle(duration);
-  }
-
-  Stream<T> get stream {
-    return _FunctionalStateNotifier<T, T>(this).stream;
+    return _FunctionalStateNotifier<T, List<T>>(this, name: 'throttle')
+        .throttle(duration);
   }
 }
 

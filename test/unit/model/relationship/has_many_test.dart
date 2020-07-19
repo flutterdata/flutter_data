@@ -42,7 +42,7 @@ void main() async {
     final notifier = family.persons.watch();
 
     var i = 0;
-    notifier.addListener(
+    final dispose = notifier.addListener(
       expectAsync1((persons) {
         if (i == 0) expect(persons, {p1});
         if (i == 1) expect(persons, {p1, p2});
@@ -59,5 +59,7 @@ void main() async {
     await runAndWait(() => family.persons.add(p2));
     await runAndWait(() => family.persons.remove(p1));
     await runAndWait(() => family.persons.add(p1));
+
+    dispose();
   });
 }

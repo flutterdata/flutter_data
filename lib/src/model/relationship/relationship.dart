@@ -169,7 +169,7 @@ abstract class Relationship<E extends DataSupport<E>, N>
 
   // abstract methods
 
-  ValueStateNotifier<N> watch();
+  StateNotifier<N> watch();
 
   dynamic toJson();
 

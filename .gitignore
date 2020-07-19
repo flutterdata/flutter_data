@@ -1,6 +1,10 @@
 example/tmp
+.vscode/
 TO-DO.md
+
 test/.test_coverage.dart
+coverage/
+coverage_badge.svg
 
 # Miscellaneous
 *.class

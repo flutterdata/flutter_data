@@ -168,7 +168,7 @@ packages:
       name: data_state
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.3"
+    version: "0.3.4-dev.1"
   fixnum:
     dependency: transitive
     description:
@@ -543,10 +543,12 @@ packages:
   test_coverage:
     dependency: "direct dev"
     description:
-      name: test_coverage
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.4.3"
+      path: "."
+      ref: HEAD
+      resolved-ref: d51c9577f78893e1654de8b7c1e92d2f8097838a
+      url: "https://github.com/shyndman/test-coverage.git"
+    source: git
+    version: "0.4.0"
   timing:
     dependency: transitive
     description:
