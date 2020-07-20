@@ -94,18 +94,17 @@ void main() async {
     final dispose = notifier.addListener(listener, fireImmediately: true);
 
     verify(listener(argThat(
-      isA<DataState<Dog>>().having((s) => s.model.name, 'dog', 'Mandarin'),
+      withState<Dog>((s) => s.model.name, 'Mandarin'),
     ))).called(1);
     verifyNoMoreInteractions(listener);
 
-    final dog3 = Dog(id: '2', name: 'Tango');
-    await runAndWait(() => dog3.init(owner));
+    Dog(id: '2', name: 'Tango').init(owner);
+    await oneMs();
 
     // we DO NOT see "Tango" show up in the listener because
     // `Dog` uses key equality (and it was already present as "Mandarin")
-    verifyNever(listener(argThat(
-      isA<DataState<Dog>>().having((s) => s.model.name, 'dog', 'Tango'),
-    )));
+    verifyNever(
+        listener(argThat(withState<Dog>((s) => s.model.name, 'Tango'))));
     verifyNoMoreInteractions(listener);
 
     dispose();

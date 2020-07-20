@@ -1,8 +1,10 @@
 import 'package:flutter_data/flutter_data.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../../_support/family.dart';
 import '../../_support/house.dart';
+import '../../_support/mocks.dart';
 import '../../_support/person.dart';
 import '../../_support/setup.dart';
 
@@ -43,23 +45,27 @@ void main() async {
     ).init(owner);
 
     final notifier = family.residence.watch();
+    final listener = Listener<House>();
+    final dispose = notifier.addListener(listener, fireImmediately: false);
 
-    var i = 0;
-    final dispose = notifier.addListener(
-      expectAsync1((house) {
-        if (i == 0) expect(house.address, startsWith('456'));
-        if (i == 1) expect(house.address, startsWith('123'));
-        if (i == 2) expect(house, isNull);
-        i++;
-      }, count: 3),
-      fireImmediately: false,
-    );
+    family.residence.value = House(id: '2', address: '456 Main St').init(owner);
+    await oneMs();
 
-    await runAndWait(() => family.residence.value =
-        House(id: '2', address: '456 Main St').init(owner));
-    await runAndWait(() => family.residence.value =
-        House(id: '1', address: '123 Main St').init(owner));
-    await runAndWait(() => family.residence.value = null);
+    verify(listener(argThat(
+      isA<House>().having((h) => h.address, 'address', startsWith('456')),
+    ))).called(1);
+
+    family.residence.value = House(id: '1', address: '123 Main St').init(owner);
+    await oneMs();
+
+    verify(listener(argThat(
+      isA<House>().having((h) => h.address, 'address', startsWith('123')),
+    ))).called(1);
+
+    family.residence.value = null;
+    await oneMs();
+
+    verify(listener(argThat(isNull))).called(1);
 
     dispose();
   });

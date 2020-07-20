@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:hive/hive.dart';
+import 'package:matcher/matcher.dart';
 import 'package:riverpod/riverpod.dart' hide Family;
 
 import 'family.dart';
@@ -203,9 +204,11 @@ ProviderStateOwner createOwner() {
 
 // utils
 
-/// Runs `fn` and waits by default 1 millisecond (tests have a throttle of Duration.zero)
-Future<void> runAndWait(Function fn,
-    [Duration duration = const Duration(milliseconds: 1)]) async {
-  await fn.call();
-  await Future.delayed(duration);
+/// Waits 1 millisecond (tests have a throttle of Duration.zero)
+Future<void> oneMs() async {
+  await Future.delayed(const Duration(milliseconds: 1));
 }
+
+TypeMatcher<DataState<T>> withState<T extends DataSupport<T>>(
+        Object Function(DataState<T>) feature, matcher) =>
+    isA<DataState<T>>().having(feature, null, matcher);

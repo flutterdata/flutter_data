@@ -57,7 +57,7 @@ void main() async {
     // this whole thing below emits count + 1 (watchAll-relevant) states
     Person person;
     for (var j = 0; j < count; j++) {
-      await runAndWait(() async {
+      await (() async {
         final id =
             Random().nextBool() ? Random().nextInt(999999999).toString() : null;
         person = Person.generate(owner, withId: id);
@@ -69,62 +69,71 @@ void main() async {
         if (j == count - 1) {
           await person.delete();
         }
-      });
+        await oneMs();
+      })();
     }
   });
 
   test('watchAll updates', () async {
-    final listener1 = Listener<DataState<List<Person>>>();
+    final listener = Listener<DataState<List<Person>>>();
 
     final p1 = Person(id: '1', name: 'Zof', age: 23).init(owner);
     final notifier = personRepository.watchAll();
 
-    dispose = notifier.addListener(listener1, fireImmediately: true);
+    dispose = notifier.addListener(listener, fireImmediately: true);
 
-    verify(listener1(DataState([p1], isLoading: true))).called(1);
-    verifyNoMoreInteractions(listener1);
+    verify(listener(DataState([p1], isLoading: true))).called(1);
+    verifyNoMoreInteractions(listener);
 
-    final p2 = Person(id: '1', name: 'Zofie', age: 23);
-    await runAndWait(() => p2.init(owner));
+    final p2 = Person(id: '1', name: 'Zofie', age: 23).init(owner);
+    await oneMs();
 
-    verify(listener1(DataState([p2], isLoading: false))).called(1);
-    verifyNoMoreInteractions(listener1);
+    verify(listener(DataState([p2], isLoading: false))).called(1);
+    verifyNoMoreInteractions(listener);
 
     // since p3 is not init() it won't show up thru watchAll
     final p3 = Person(id: '1', name: 'Zofien', age: 23);
-    await runAndWait(() => p3);
+    await oneMs();
 
-    verifyNever(listener1(DataState([p3], isLoading: false)));
-    verifyNoMoreInteractions(listener1);
+    verifyNever(listener(DataState([p3], isLoading: false)));
+    verifyNoMoreInteractions(listener);
   });
 
   test('watchOne', () async {
+    final listener = Listener<DataState<Person>>();
+
     final notifier = personRepository.watchOne('1');
 
-    final matcher = (name) => isA<Person>()
-        .having((p) => p.id, 'id', '1')
-        .having((p) => p.name, 'name', name);
+    final matcher = (name) => isA<DataState<Person>>()
+        .having((s) => s.model.id, 'id', '1')
+        .having((s) => s.model.name, 'name', name);
 
-    var i = 0;
-    dispose = notifier.addListener(
-      expectAsync1((state) {
-        if (i == 0) expect(state.model, matcher('Frank'));
-        if (i == 1) expect(state.model, matcher('Steve-O'));
-        if (i == 2) expect(state.model, matcher('Liam'));
-        i++;
-      }, count: 3),
-      fireImmediately: false,
-    );
+    dispose = notifier.addListener(listener, fireImmediately: false);
 
-    await runAndWait(() => Person(id: '1', name: 'Frank', age: 30).init(owner));
-    await runAndWait(
-        () => personRepository.save(Person(id: '1', name: 'Steve-O', age: 34)));
-    await runAndWait(
-        () => personRepository.save(Person(id: '1', name: 'Liam', age: 36)));
+    Person(id: '1', name: 'Frank', age: 30).init(owner);
+    await oneMs();
+
+    verify(listener(argThat(matcher('Frank')))).called(1);
+    verifyNoMoreInteractions(listener);
+
+    await personRepository.save(Person(id: '1', name: 'Steve-O', age: 34));
+    await oneMs();
+
+    verify(listener(argThat(matcher('Steve-O')))).called(1);
+    verifyNoMoreInteractions(listener);
+
+    await personRepository.save(Person(id: '1', name: 'Liam', age: 36));
+    await oneMs();
+
+    verify(listener(argThat(matcher('Liam')))).called(1);
+    verifyNoMoreInteractions(listener);
 
     // a different ID doesn't trigger an extra call to expectAsync1(count=3)
-    await runAndWait(
-        () => personRepository.save(Person(id: '2', name: 'Jupiter', age: 3)));
+    await personRepository.save(Person(id: '2', name: 'Jupiter', age: 3));
+    await oneMs();
+
+    verifyNever(listener(argThat(matcher('Jupiter'))));
+    verifyNoMoreInteractions(listener);
   });
 
   test('watchOne reads latest version', () async {
@@ -152,67 +161,96 @@ void main() async {
     final notifier = familyRepository.watchOne('22',
         alsoWatch: (family) => [family.persons, family.residence]);
 
-    var i = 0;
-    dispose = notifier.addListener(
-      expectAsync1((state) {
-        if (i == 0) expect(state.model, isA<Family>());
-        if (i == 1) expect(state.model.persons, hasLength(1));
-        if (i == 2) expect(state.model.persons, hasLength(2));
-        if (i == 3) expect(state.model.residence.value.address, '123 Main St');
-        if (i == 4) expect(state.model.persons, hasLength(1));
-        if (i == 5) expect(state.model, isNull);
-        i++;
-      }, count: 6),
-    );
+    final listener = Listener<DataState<Family>>();
 
-    Person p1;
-    await runAndWait(() {
-      p1 = Person(id: '1', name: 'Frank', age: 16).init(owner);
-      p1.family.value = f1;
-    });
+    dispose = notifier.addListener(listener);
 
-    await runAndWait(() {
-      f1.persons.add(Person(name: 'Martin', age: 44).init(owner));
-    });
+    verify(listener(argThat(isA<DataState<Family>>()))).called(1);
+    verifyNoMoreInteractions(listener);
 
-    await runAndWait(
-        () => f1.residence.value = House(address: '123 Main St').init(owner));
+    final p1 = Person(id: '1', name: 'Frank', age: 16).init(owner);
+    p1.family.value = f1;
+    await oneMs();
 
-    await runAndWait(() => f1.persons.remove(p1));
+    verify(listener(argThat(
+      withState<Family>((s) => s.model.persons, hasLength(1)),
+    ))).called(1);
+    verifyNoMoreInteractions(listener);
+
+    f1.persons.add(Person(name: 'Martin', age: 44).init(owner));
+    await oneMs();
+
+    verify(listener(argThat(
+      withState<Family>((s) => s.model.persons, hasLength(2)),
+    ))).called(1);
+    verifyNoMoreInteractions(listener);
+
+    f1.residence.value = House(address: '123 Main St').init(owner);
+    await oneMs();
+
+    verify(listener(argThat(
+      withState<Family>((s) => s.model.residence.value.address, '123 Main St'),
+    ))).called(1);
+    verifyNoMoreInteractions(listener);
+
+    f1.persons.remove(p1);
+    await oneMs();
+
+    verify(listener(argThat(
+      withState<Family>((s) => s.model.persons, hasLength(1)),
+    ))).called(1);
+    verifyNoMoreInteractions(listener);
 
     // a non-watched relationship does not trigger
-    await runAndWait(() =>
-        f1.cottage.value = House(address: '7342 Mountain Rd').init(owner));
 
-    await runAndWait(() => f1.delete());
+    f1.cottage.value = House(address: '7342 Mountain Rd').init(owner);
+    await oneMs();
+
+    verifyNever(listener(any));
+    verifyNoMoreInteractions(listener);
+
+    await f1.delete();
+    await oneMs();
+
+    verify(listener(argThat(
+      withState<Family>((s) => s.model, isNull),
+    ))).called(1);
+    verifyNoMoreInteractions(listener);
   });
 
   test('watchOne without ID and alsoWatch', () async {
     final frank = Person(name: 'Frank', age: 30).init(owner);
 
     final notifier = frank.watch(alsoWatch: (p) => [p.family]);
-    dispose = notifier.addListener(
-      // it will be hit three times
-      // (1) by Steve-O
-      // (2) by the Family relationship
-      // (3) by a change in the watched Family model
-      expectAsync1((state) {
-        expect(state.model.name, 'Steve-O');
-        expect(state.hasException, false);
-        expect(state.isLoading, false);
-      }, count: 3),
-      fireImmediately: false,
-    );
 
-    Person steve;
-    Family family;
-    await runAndWait(() => steve = Person(name: 'Steve-O', age: 30).was(frank));
+    final listener = Listener<DataState<Person>>();
+    dispose = notifier.addListener(listener, fireImmediately: false);
 
-    await runAndWait(() {
-      family = Family(surname: 'Marquez').init(owner);
-      steve.family.value = family;
-    });
+    final matcher = isA<DataState<Person>>()
+        .having((s) => s.model.name, 'name', 'Steve-O')
+        .having((s) => s.hasException, 'exception', isFalse)
+        .having((s) => s.isLoading, 'loading', isFalse);
 
-    await runAndWait(() => Family(surname: 'Thomson').was(family));
+    verifyNever(listener(argThat(matcher)));
+    verifyNoMoreInteractions(listener);
+
+    final steve = Person(name: 'Steve-O', age: 30).was(frank);
+    await oneMs();
+
+    verify(listener(argThat(matcher))).called(1);
+    verifyNoMoreInteractions(listener);
+
+    final family = Family(surname: 'Marquez').init(owner);
+    steve.family.value = family;
+    await oneMs();
+
+    verify(listener(argThat(matcher))).called(1);
+    verifyNoMoreInteractions(listener);
+
+    Family(surname: 'Thomson').was(family);
+    await oneMs();
+
+    verify(listener(argThat(matcher))).called(1);
+    verifyNoMoreInteractions(listener);
   });
 }

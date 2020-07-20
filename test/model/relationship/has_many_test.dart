@@ -1,7 +1,9 @@
 import 'package:flutter_data/flutter_data.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../../_support/family.dart';
+import '../../_support/mocks.dart';
 import '../../_support/person.dart';
 import '../../_support/setup.dart';
 
@@ -41,24 +43,33 @@ void main() async {
     final p2 = Person(name: 'b', age: 2).init(owner);
     final notifier = family.persons.watch();
 
-    var i = 0;
-    final dispose = notifier.addListener(
-      expectAsync1((persons) {
-        if (i == 0) expect(persons, {p1});
-        if (i == 1) expect(persons, {p1, p2});
-        if (i == 2) expect(persons, {p1, p2});
-        if (i == 3) expect(persons, {p2});
-        if (i == 4) expect(persons, {p2, p1});
-        i++;
-      }, count: 5),
-      fireImmediately: false,
-    );
+    final listener = Listener<Set<Person>>();
+    final dispose = notifier.addListener(listener, fireImmediately: false);
 
-    await runAndWait(() => family.persons.add(p1));
-    await runAndWait(() => family.persons.add(p2));
-    await runAndWait(() => family.persons.add(p2));
-    await runAndWait(() => family.persons.remove(p1));
-    await runAndWait(() => family.persons.add(p1));
+    family.persons.add(p1);
+    await oneMs();
+
+    verify(listener({p1})).called(1);
+
+    family.persons.add(p2);
+    await oneMs();
+
+    verify(listener({p1, p2})).called(1);
+
+    family.persons.add(p2);
+    await oneMs();
+
+    verify(listener({p1, p2})).called(1);
+
+    family.persons.remove(p1);
+    await oneMs();
+
+    verify(listener({p2})).called(1);
+
+    family.persons.add(p1);
+    await oneMs();
+
+    verify(listener({p1, p2})).called(1);
 
     dispose();
   });
