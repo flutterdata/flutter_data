@@ -46,25 +46,32 @@ abstract class HiveLocalAdapter<T extends DataSupport<T>>
   T findOne(String key) => key != null ? box.get(key) : null;
 
   @override
-  void save(String key, T model, {bool notify = true}) {
+  Future<void> save(String key, T model, {bool notify = true}) async {
     assert(key != null);
     final keyExisted = box.containsKey(key);
-    box.put(key, model); // save in bg
+    final save = box.put(key, model);
     if (notify) {
       graph._notify(
         [key],
         keyExisted ? DataGraphEventType.updateNode : DataGraphEventType.addNode,
       );
     }
+    await save;
   }
 
   @override
-  void delete(String key) {
+  Future<void> delete(String key) async {
     if (key != null) {
-      box.delete(key); // delete in bg
+      final delete = box.delete(key); // delete in bg
       // id will become orphan & purged
       graph.removeKey(key);
+      await delete;
     }
+  }
+
+  @override
+  Future<void> clear() async {
+    await box.clear();
   }
 
   // hive adapter

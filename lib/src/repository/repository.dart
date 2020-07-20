@@ -59,6 +59,8 @@ class Repository<T extends DataSupport<T>> with _Lifecycle<Repository<T>> {
         remote: remote, params: params, headers: headers);
   }
 
+  Future<void> clear() => adapter.clear();
+
   DataStateNotifier<T> watchOne(dynamic model,
       {bool remote,
       Map<String, dynamic> params,

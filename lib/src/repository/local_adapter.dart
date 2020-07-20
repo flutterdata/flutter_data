@@ -35,11 +35,15 @@ abstract class LocalAdapter<T extends DataSupport<T>>
 
   @protected
   @visibleForTesting
-  void save(String key, T model, {bool notify = true});
+  Future<void> save(String key, T model, {bool notify = true});
 
   @protected
   @visibleForTesting
-  void delete(String key);
+  Future<void> delete(String key);
+
+  @protected
+  @visibleForTesting
+  Future<void> clear();
 
   // public abstract methods
 

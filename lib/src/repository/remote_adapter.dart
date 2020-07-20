@@ -378,7 +378,7 @@ class RemoteAdapter<T extends DataSupport<T>>
       return;
     }
 
-    localAdapter.delete(key);
+    await localAdapter.delete(key);
 
     if (remote && id != null) {
       graph.removeId(type, id);
@@ -391,6 +391,10 @@ class RemoteAdapter<T extends DataSupport<T>>
       );
     }
   }
+
+  @protected
+  @visibleForTesting
+  Future<void> clear() => localAdapter.clear();
 
   // http
 
