@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:http/testing.dart';
 import 'package:meta/meta.dart';
 import 'package:flutter_data/flutter_data.dart';
-import 'package:http/http.dart' as http;
 import 'family.dart';
 
 part 'person.g.dart';
@@ -67,24 +65,17 @@ class Person with DataSupport<Person> {
 // NOTE: keep this adapter without type arguments
 // as part of testing the type-parameter-less adapter feature
 mixin PersonLoginAdapter on RemoteAdapter<Person> {
-  @override
-  String get baseUrl => '';
-
   Future<String> login(String email, String password) async {
     return await withRequest<String>(
       '/token',
       body: '',
-      headers: await headers,
+      headers: (await headers)
+        ..addAll({
+          'response':
+              '{ "token": "$password" ${email == null ? '&*@%%*#@!' : ''} }'
+        }),
       onSuccess: (data) => data['token'] as String,
+      onError: (e) => throw UnsupportedError('custom error: $e'),
     );
-  }
-}
-
-mixin TestLoginAdapter on PersonLoginAdapter {
-  @override
-  http.Client get httpClient {
-    return MockClient((req) {
-      return Future.value(http.Response('{ "token": "zzz1" }', 200));
-    });
   }
 }

@@ -3,7 +3,7 @@ targets:
     builders:
       flutter_data|data_repository_builder:
         generate_for:
-        - test/models/*.dart
+        - test/_support/*.dart
 
 builders:
   data_repository_builder:

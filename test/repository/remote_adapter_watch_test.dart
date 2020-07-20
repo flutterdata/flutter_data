@@ -12,14 +12,10 @@ import '../_support/setup.dart';
 
 void main() async {
   setUp(setUpFn);
-
-  Function dispose;
-  tearDown(() {
-    dispose?.call();
-  });
+  tearDown(tearDownFn);
 
   test('watchAll', () async {
-    final notifier = personRepository.watchAll();
+    final notifier = personRemoteAdapter.watchAll();
 
     final matcher = predicate((p) {
       return p is Person && p.name.startsWith('Person Number') && p.age < 19;
@@ -78,7 +74,7 @@ void main() async {
     final listener = Listener<DataState<List<Person>>>();
 
     final p1 = Person(id: '1', name: 'Zof', age: 23).init(owner);
-    final notifier = personRepository.watchAll();
+    final notifier = personRemoteAdapter.watchAll();
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -102,7 +98,7 @@ void main() async {
   test('watchOne', () async {
     final listener = Listener<DataState<Person>>();
 
-    final notifier = personRepository.watchOne('1');
+    final notifier = personRemoteAdapter.watchOne('1');
 
     final matcher = (name) => isA<DataState<Person>>()
         .having((s) => s.model.id, 'id', '1')
@@ -116,20 +112,20 @@ void main() async {
     verify(listener(argThat(matcher('Frank')))).called(1);
     verifyNoMoreInteractions(listener);
 
-    await personRepository.save(Person(id: '1', name: 'Steve-O', age: 34));
+    await personRemoteAdapter.save(Person(id: '1', name: 'Steve-O', age: 34));
     await oneMs();
 
     verify(listener(argThat(matcher('Steve-O')))).called(1);
     verifyNoMoreInteractions(listener);
 
-    await personRepository.save(Person(id: '1', name: 'Liam', age: 36));
+    await personRemoteAdapter.save(Person(id: '1', name: 'Liam', age: 36));
     await oneMs();
 
     verify(listener(argThat(matcher('Liam')))).called(1);
     verifyNoMoreInteractions(listener);
 
     // a different ID doesn't trigger an extra call to expectAsync1(count=3)
-    await personRepository.save(Person(id: '2', name: 'Jupiter', age: 3));
+    await personRemoteAdapter.save(Person(id: '2', name: 'Jupiter', age: 3));
     await oneMs();
 
     verifyNever(listener(argThat(matcher('Jupiter'))));
@@ -140,7 +136,7 @@ void main() async {
     Person(id: '345', name: 'Frank', age: 30).init(owner);
     Person(id: '345', name: 'Steve-O', age: 34).init(owner);
 
-    final notifier = personRepository.watchOne('345');
+    final notifier = personRemoteAdapter.watchOne('345');
 
     dispose = notifier.addListener(
       expectAsync1((state) {
@@ -158,7 +154,7 @@ void main() async {
       cottage: BelongsTo(),
     ).init(owner);
 
-    final notifier = familyRepository.watchOne('22',
+    final notifier = familyRemoteAdapter.watchOne('22',
         alsoWatch: (family) => [family.persons, family.residence]);
 
     final listener = Listener<DataState<Family>>();

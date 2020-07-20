@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:hive/hive.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:matcher/matcher.dart';
 import 'package:riverpod/riverpod.dart' hide Family;
 
@@ -44,9 +46,18 @@ mixin TestHiveLocalAdapter<T extends DataSupport<T>> on HiveLocalAdapter<T> {
   }
 }
 
-mixin NoThrottleAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
+mixin TestRemoteAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
   @override
   Duration get throttleDuration => Duration.zero;
+
+  @override
+  String get baseUrl => '';
+
+  @override
+  http.Client get httpClient => MockClient((req) async {
+        return http.Response(
+            req.headers['response'], int.parse(req.headers['status'] ?? '200'));
+      });
 }
 
 // sample token future provider
@@ -76,25 +87,24 @@ class TestDataGraphNotifier = GraphNotifier with TestMetaBox;
 class HouseLocalAdapter = $HouseHiveLocalAdapter
     with TestHiveLocalAdapter<House>;
 class HouseRemoteAdapter = $HouseRemoteAdapter
-    with NoThrottleAdapter, TokenAdapter;
+    with TestRemoteAdapter, TokenAdapter;
 
 // ignore: must_be_immutable
 class FamilyLocalAdapter = $FamilyHiveLocalAdapter
     with TestHiveLocalAdapter<Family>;
-class FamilyRemoteAdapter = $FamilyRemoteAdapter with NoThrottleAdapter;
+class FamilyRemoteAdapter = $FamilyRemoteAdapter with TestRemoteAdapter;
 
 // ignore: must_be_immutable
 class PersonLocalAdapter = $PersonHiveLocalAdapter
     with TestHiveLocalAdapter<Person>;
-class PersonRemoteAdapter = $PersonRemoteAdapter
-    with TestLoginAdapter, NoThrottleAdapter;
+class PersonRemoteAdapter = $PersonRemoteAdapter with TestRemoteAdapter;
 
 // ignore: must_be_immutable
 class DogLocalAdapter = $DogHiveLocalAdapter with TestHiveLocalAdapter<Dog>;
+class DogRemoteAdapter = $DogRemoteAdapter with TestRemoteAdapter;
 
 // ignore: must_be_immutable
 class NodeLocalAdapter = $NodeHiveLocalAdapter with TestHiveLocalAdapter<Node>;
-class NodeRemoteAdapter = $NodeRemoteAdapter with NoThrottleAdapter;
 
 //
 
@@ -154,7 +164,7 @@ void setUpFn() async {
 
   dogRepository = await dogsRepositoryProvider.readOwner(owner).initialize(
         remote: false,
-        verbose: false,
+        verbose: true,
         adapters: adapterGraph,
         ref: owner.ref,
       );
@@ -168,6 +178,19 @@ void setUpFn() async {
         ref: owner.ref,
       );
 }
+
+Function dispose;
+
+void tearDownFn() async {
+  dispose?.call();
+  await houseRepository?.dispose();
+  await familyRepository?.dispose();
+  await personRepository?.dispose();
+  await dogRepository?.dispose();
+  await nodeRepository?.dispose();
+}
+
+//
 
 ProviderStateOwner createOwner() {
   return ProviderStateOwner(
@@ -196,8 +219,10 @@ ProviderStateOwner createOwner() {
           FamilyRemoteAdapter(ref.read(familiesLocalAdapterProvider)))),
       peopleRemoteAdapterProvider.overrideAs(Provider(
           (ref) => PersonRemoteAdapter(ref.read(peopleLocalAdapterProvider)))),
+      dogsRemoteAdapterProvider.overrideAs(Provider(
+          (ref) => DogRemoteAdapter(ref.read(dogsLocalAdapterProvider)))),
       nodesRemoteAdapterProvider.overrideAs(Provider(
-          (ref) => NodeRemoteAdapter(ref.read(nodesLocalAdapterProvider)))),
+          (ref) => $NodeRemoteAdapter(ref.read(nodesLocalAdapterProvider)))),
     ],
   );
 }

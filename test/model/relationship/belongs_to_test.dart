@@ -10,6 +10,7 @@ import '../../_support/setup.dart';
 
 void main() async {
   setUp(setUpFn);
+  tearDown(tearDownFn);
 
   test('set owner in relationships', () {
     final person = Person(id: '1', name: 'John', age: 37).init(owner);
@@ -37,6 +38,41 @@ void main() async {
     expect(family.residence.keys, hasLength(1));
   });
 
+  test('assignment with both uninitialized', () {
+    final family =
+        Family(id: '1', surname: 'Smith', residence: BelongsTo<House>());
+    final house = House(id: '1', address: '456 Lemon Rd');
+
+    // since both are not initialized, house will be added to the queue
+    family.residence.value = house;
+    expect(family.residence.value, isNull);
+
+    // initialize, flush the queue and verify
+    family.init(owner);
+    expect(family.residence.value, house);
+  });
+
+  test('assignment only with owner initialized', () {
+    final family =
+        Family(id: '1', surname: 'Smith', residence: BelongsTo<House>())
+            .init(owner);
+    final house = House(id: '1', address: '456 Lemon Rd');
+
+    family.residence.value = house;
+    expect(family.residence.value, house);
+  });
+
+  test('assignment only with value initialized', () {
+    final family =
+        Family(id: '1', surname: 'Smith', residence: BelongsTo<House>());
+    final house = House(id: '1', address: '456 Lemon Rd').init(owner);
+
+    family.residence.value = house;
+    expect(family.residence.value, isNull);
+    family.init(owner);
+    expect(family.residence.value, house);
+  });
+
   test('watch', () async {
     final family = Family(
       id: '22',
@@ -46,7 +82,7 @@ void main() async {
 
     final notifier = family.residence.watch();
     final listener = Listener<House>();
-    final dispose = notifier.addListener(listener, fireImmediately: false);
+    dispose = notifier.addListener(listener, fireImmediately: false);
 
     family.residence.value = House(id: '2', address: '456 Main St').init(owner);
     await oneMs();
@@ -66,7 +102,5 @@ void main() async {
     await oneMs();
 
     verify(listener(argThat(isNull))).called(1);
-
-    dispose();
   });
 }

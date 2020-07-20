@@ -2,6 +2,13 @@ part of flutter_data;
 
 /// Thin wrapper on the [RemoteAdapter] API
 class Repository<T extends DataSupport<T>> with _Lifecycle<Repository<T>> {
+  String get type => DataHelpers.getType<T>();
+
+  @protected
+  RemoteAdapter<T> get adapter => _adapters[type] as RemoteAdapter<T>;
+
+  final _adapters = <String, RemoteAdapter>{};
+
   @override
   @mustCallSuper
   FutureOr<Repository<T>> initialize(
@@ -11,9 +18,10 @@ class Repository<T extends DataSupport<T>> with _Lifecycle<Repository<T>> {
       ProviderReference ref}) async {
     if (isInitialized) return this;
     for (final e in adapters.entries) {
-      _adapters[e.key] = await e.value.initialize(
-          remote: remote, verbose: verbose, adapters: adapters, ref: ref);
+      _adapters[e.key] = e.value;
     }
+    await adapter.initialize(
+        remote: remote, verbose: verbose, adapters: adapters, ref: ref);
     await super.initialize();
     return this;
   }
@@ -24,14 +32,6 @@ class Repository<T extends DataSupport<T>> with _Lifecycle<Repository<T>> {
     await super.dispose();
     await adapter?.dispose();
   }
-
-  // adapters
-
-  @protected
-  RemoteAdapter<T> get adapter =>
-      _adapters[DataHelpers.getType<T>()] as RemoteAdapter<T>;
-
-  final _adapters = <String, RemoteAdapter>{};
 
   // repo public API
 

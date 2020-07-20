@@ -25,53 +25,6 @@ mixin _RemoteAdapterWatch<T extends DataSupport<T>> on _RemoteAdapter<T> {
   StateNotifier<List<DataGraphEvent>> get throttledGraph =>
       graph.throttle(throttleDuration);
 
-  // var _writeCounter = 0;
-
-  // final _offlineAdapterKey = 'offline:adapter';
-  // final _offlineSaveMetadata = 'offline:save';
-
-  // void _save() async {
-  //   final keys =
-  //       manager.getEdge(_offlineAdapterKey, metadata: _offlineSaveMetadata);
-  //   for (final key in keys) {
-  //     final model = localFindOne(key);
-  //     if (model != null) {
-  //       await model.save(); // might throw here
-  //       manager.removeEdge(_offlineAdapterKey, key,
-  //           metadata: _offlineSaveMetadata);
-  //       _writeCounter = 0; // reset write counter
-  //     }
-  //   }
-  // }
-
-  // @override
-  // Future<T> save(T model,
-  //     {bool remote,
-  //     Map<String, dynamic> params,
-  //     Map<String, String> headers}) async {
-  //   try {
-  //     return await super
-  //         .save(model, remote: remote, params: params, headers: headers);
-  //   } on SocketException {
-  //     // ensure offline node exists
-  //     if (!manager.hasNode(_offlineAdapterKey)) {
-  //       manager.addNode(_offlineAdapterKey);
-  //     }
-
-  //     // add model's key with offline meta
-  //     manager.addEdge(_offlineAdapterKey, keyFor(model),
-  //         metadata: _offlineSaveMetadata);
-
-  //     // there was a failure, so call _trySave again
-  //     Future.delayed(writeRetryAfter(_writeCounter++), _save);
-  //     rethrow;
-  //   }
-  // }
-
-  // watchers
-
-  var _readCounter = 0;
-
   DataStateNotifier<List<T>> watchAll(
       {final bool remote,
       final Map<String, dynamic> params,
@@ -81,19 +34,19 @@ mixin _RemoteAdapterWatch<T extends DataSupport<T>> on _RemoteAdapter<T> {
       DataState(localAdapter.findAll()),
       reload: (notifier) async {
         try {
-          // ignore: unawaited_futures
-          findAll(params: params, headers: headers, remote: remote, init: true);
-          _readCounter = 0; // reset counter
+          final _future = findAll(
+              params: params, headers: headers, remote: remote, init: true);
           notifier.data = notifier.data.copyWith(isLoading: true);
+          await _future;
         } catch (error, stackTrace) {
-          if (error is Exception) {
-            // TODO find non-dart:io SocketException alternative!
-            Future.delayed(readRetryAfter(_readCounter++), notifier.reload);
-          }
           // we're only interested in notifying errors
-          // as models will pop up via box events
+          // as models will pop up via the graph notifier
           notifier.data = notifier.data.copyWith(
-              exception: DataException(error), stackTrace: stackTrace);
+              isLoading: false,
+              exception: error is! DataException
+                  ? DataException(error, stackTrace: stackTrace)
+                  : error,
+              stackTrace: stackTrace);
         }
       },
     );
@@ -166,20 +119,19 @@ mixin _RemoteAdapterWatch<T extends DataSupport<T>> on _RemoteAdapter<T> {
       reload: (notifier) async {
         if (id == null) return;
         try {
-          // ignore: unawaited_futures
-          findOne(id,
+          final _future = findOne(id,
               params: params, headers: headers, remote: remote, init: true);
-          _readCounter = 0; // reset counter
           notifier.data = notifier.data.copyWith(isLoading: true);
+          await _future;
         } catch (error, stackTrace) {
-          if (error is Exception) {
-            // TODO find non-dart:io SocketException alternative!
-            Future.delayed(readRetryAfter(_readCounter++), notifier.reload);
-          }
           // we're only interested in notifying errors
-          // as models will pop up via box events
+          // as models will pop up via the graph notifier
           notifier.data = notifier.data.copyWith(
-              exception: DataException(error), stackTrace: stackTrace);
+              isLoading: false,
+              exception: error is! DataException
+                  ? DataException(error, stackTrace: stackTrace)
+                  : error,
+              stackTrace: stackTrace);
         }
       },
     );
@@ -264,7 +216,5 @@ mixin _RemoteAdapterWatch<T extends DataSupport<T>> on _RemoteAdapter<T> {
     return _notifier;
   }
 }
-
-//
 
 typedef AlsoWatch<T> = List<Relationship> Function(T);

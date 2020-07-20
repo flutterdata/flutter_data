@@ -23,7 +23,7 @@ abstract class Relationship<E extends DataSupport<E>, N>
 
   final Set<String> _uninitializedKeys;
   final Set<E> _uninitializedModels;
-  final bool _wasOmitted;
+  bool _wasOmitted;
 
   @protected
   String get type => DataHelpers.getType<E>();
@@ -80,17 +80,21 @@ abstract class Relationship<E extends DataSupport<E>, N>
       return false;
     }
 
-    if (_adapters != null) {
+    // try to ensure value is initialized
+    if (!value._isInitialized && _adapters != null) {
       value._initialize(_adapters, save: true);
+    }
+
+    if (value._isInitialized && _adapters != null) {
       _graph._addEdge(_ownerKey, value._key,
           metadata: _name, inverseMetadata: _inverseName);
-      return true;
-    } else if (value._key != null) {
-      _uninitializedKeys.add(value._key);
-      return true;
     } else {
-      return false;
+      // if it can't be initialized, add to the models queue
+      _uninitializedModels.add(value);
+      // set wasOmitted to false so that it's processed
+      _wasOmitted = false;
     }
+    return true;
   }
 
   @override

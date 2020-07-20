@@ -9,6 +9,7 @@ import '../../_support/setup.dart';
 
 void main() async {
   setUp(setUpFn);
+  tearDown(tearDownFn);
 
   test('HasMany is a Set', () {
     final anne = Person(name: 'Anne', age: 59).init(owner);
@@ -44,7 +45,7 @@ void main() async {
     final notifier = family.persons.watch();
 
     final listener = Listener<Set<Person>>();
-    final dispose = notifier.addListener(listener, fireImmediately: false);
+    dispose = notifier.addListener(listener, fireImmediately: false);
 
     family.persons.add(p1);
     await oneMs();
@@ -70,7 +71,5 @@ void main() async {
     await oneMs();
 
     verify(listener({p1, p2})).called(1);
-
-    dispose();
   });
 }

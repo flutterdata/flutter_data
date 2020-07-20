@@ -84,7 +84,7 @@ abstract class _RemoteAdapter<T extends DataSupport<T>>
     this.ref = ref;
 
     await localAdapter.initialize();
-    // _save();
+
     await super.initialize();
     return this as RemoteAdapter<T>;
   }
@@ -312,7 +312,7 @@ abstract class _RemoteAdapter<T extends DataSupport<T>>
     var uri = Uri.parse('$_baseUrl$url');
 
     if (params != null && params.isNotEmpty) {
-      uri = uri.replace(queryParameters: parseQueryParameters(params));
+      uri = uri.replace(queryParameters: flattenQueryParameters(params));
     }
 
     // callbacks
@@ -345,7 +345,6 @@ abstract class _RemoteAdapter<T extends DataSupport<T>>
           response = await httpClient.delete(uri, headers: headers);
           break;
         default:
-          throw UnsupportedError('No known HTTP method: $method');
           break;
       }
     } catch (err, stack) {
@@ -374,14 +373,15 @@ abstract class _RemoteAdapter<T extends DataSupport<T>>
 
     if (code >= 200 && code < 300) {
       if (error != null) {
-        error = DataException(error, stackTrace: stackTrace, status: code);
+        error = DataException(error, stackTrace: stackTrace, statusCode: code);
+      } else {
+        return await onSuccess(data);
       }
-      return await onSuccess(data);
     } else if (code >= 400 && code < 600) {
-      error =
-          DataException(error ?? data, stackTrace: stackTrace, status: code);
+      error = DataException(error ?? data,
+          stackTrace: stackTrace, statusCode: code);
     } else {
-      error = DataException('Failed request for type $R', status: code);
+      error = DataException('Failed request for type $R', statusCode: code);
     }
 
     return await onError(error);
@@ -395,7 +395,7 @@ abstract class _RemoteAdapter<T extends DataSupport<T>>
 
   @protected
   @visibleForTesting
-  Map<String, String> parseQueryParameters(Map<String, dynamic> params) {
+  Map<String, String> flattenQueryParameters(Map<String, dynamic> params) {
     params ??= const {};
 
     return params.entries.fold<Map<String, String>>({}, (acc, e) {
@@ -411,8 +411,6 @@ abstract class _RemoteAdapter<T extends DataSupport<T>>
   }
 }
 
-//
-
 class DeserializedData<T, I> {
   const DeserializedData(this.models, {this.included});
   final List<T> models;
@@ -422,9 +420,9 @@ class DeserializedData<T, I> {
 
 class DataException implements Exception {
   final Object error;
-  final int status;
+  final int statusCode;
   final StackTrace stackTrace;
-  const DataException(this.error, {this.stackTrace, this.status});
+  const DataException(this.error, {this.stackTrace, this.statusCode});
 
   @override
   bool operator ==(dynamic other) =>
@@ -433,13 +431,13 @@ class DataException implements Exception {
   @override
   int get hashCode =>
       runtimeType.hashCode ^
-      status.hashCode ^
+      statusCode.hashCode ^
       error.hashCode ^
       stackTrace.hashCode;
 
   @override
   String toString() {
-    return 'DataException: $error ${status != null ? " [HTTP $status]" : ""}\n$stackTrace';
+    return 'DataException: $error ${statusCode != null ? " [HTTP $statusCode]" : ""}\n$stackTrace';
   }
 }
 

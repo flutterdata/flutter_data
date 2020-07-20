@@ -8,6 +8,7 @@ import '../_support/setup.dart';
 
 void main() async {
   setUp(setUpFn);
+  tearDown(tearDownFn);
 
   test('deserialize existing (with save)', () {
     final family = Family(surname: 'Moletto').init(owner);
@@ -44,8 +45,6 @@ void main() async {
     // since obj returned with same ID
     expect(keyFor(family1b), keyFor(family2b));
   });
-
-  // local/internal serialization
 
   test('local serialize', () {
     final p1r = {Person(id: '1', name: 'Franco', age: 28)}.asHasMany;
@@ -105,5 +104,14 @@ void main() async {
     expect(family, Family(id: '1', surname: 'Smith'));
     expect(family.residence.value.address, '123 Main St');
     expect(family.persons.first.age, 21);
+  });
+
+  test('hive adapter typeId', () {
+    final a1 = familyRemoteAdapter.localAdapter as HiveLocalAdapter<Family>;
+    final a1b = familyRemoteAdapter.localAdapter as HiveLocalAdapter<Family>;
+    final a2 = houseRemoteAdapter.localAdapter as HiveLocalAdapter<House>;
+    final a3 = personRemoteAdapter.localAdapter as HiveLocalAdapter<Person>;
+    expect(
+        [a1, a1b, a2, a3].map((a) => a.typeId), unorderedEquals([1, 1, 2, 3]));
   });
 }

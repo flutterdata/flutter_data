@@ -10,6 +10,7 @@ import '../_support/setup.dart';
 
 void main() async {
   setUp(setUpFn);
+  tearDown(tearDownFn);
 
   test('init', () async {
     final family = Family(id: '55', surname: 'Kelley').init(owner);
@@ -91,7 +92,7 @@ void main() async {
 
     final notifier = dogRepository.watchOne('2');
 
-    final dispose = notifier.addListener(listener, fireImmediately: true);
+    dispose = notifier.addListener(listener, fireImmediately: true);
 
     verify(listener(argThat(
       withState<Dog>((s) => s.model.name, 'Mandarin'),
@@ -106,8 +107,6 @@ void main() async {
     verifyNever(
         listener(argThat(withState<Dog>((s) => s.model.name, 'Tango'))));
     verifyNoMoreInteractions(listener);
-
-    dispose();
   });
 
   test('should work with subclasses', () {
@@ -117,9 +116,9 @@ void main() async {
   });
 
   test('data exception equality', () {
-    expect(DataException(Exception('whatever'), status: 410),
-        DataException(Exception('whatever'), status: 410));
-    expect(DataException([Exception('whatever')], status: 410),
-        isNot(DataException(Exception('whatever'), status: 410)));
+    expect(DataException(Exception('whatever'), statusCode: 410),
+        DataException(Exception('whatever'), statusCode: 410));
+    expect(DataException([Exception('whatever')], statusCode: 410),
+        isNot(DataException(Exception('whatever'), statusCode: 410)));
   });
 }

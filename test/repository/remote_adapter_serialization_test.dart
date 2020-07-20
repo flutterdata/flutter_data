@@ -11,6 +11,7 @@ import '../_support/setup.dart';
 
 void main() async {
   setUp(setUpFn);
+  tearDown(tearDownFn);
 
   test('serialize', () {
     final person = Person(id: '23', name: 'Ko', age: 24);

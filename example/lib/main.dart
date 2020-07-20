@@ -40,7 +40,7 @@ void main() async {
     try {
       await usersRepo.findOne('2314444');
     } on DataException catch (e) {
-      if (e.status == HttpStatus.notFound) {
+      if (e.statusCode == HttpStatus.notFound) {
         print('not found');
       }
     }
