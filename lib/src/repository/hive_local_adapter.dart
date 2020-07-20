@@ -3,8 +3,7 @@ part of flutter_data;
 // ignore: must_be_immutable
 abstract class HiveLocalAdapter<T extends DataSupport<T>>
     extends LocalAdapter<T> with TypeAdapter<T> {
-  HiveLocalAdapter(this._hiveLocalStorage, DataGraphNotifier graph)
-      : super(graph);
+  HiveLocalAdapter(this._hiveLocalStorage, GraphNotifier graph) : super(graph);
 
   final HiveLocalStorage _hiveLocalStorage;
   final _type = DataHelpers.getType<T>();

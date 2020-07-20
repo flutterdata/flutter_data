@@ -3,12 +3,12 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:hive/hive.dart';
 import 'package:riverpod/riverpod.dart' hide Family;
 
-import '../models/family.dart';
-import '../models/house.dart';
-import '../models/node.dart';
-import '../models/person.dart';
-import '../models/pet.dart';
+import 'family.dart';
+import 'house.dart';
 import 'mocks.dart';
+import 'node.dart';
+import 'person.dart';
+import 'pet.dart';
 
 // adapters
 
@@ -23,10 +23,10 @@ class TestHiveLocalStorage implements HiveLocalStorage {
   Future<void> initialize() async {}
 }
 
-mixin TestMetaBox on DataGraphNotifier {
+mixin TestMetaBox on GraphNotifier {
   @override
   // ignore: must_call_super
-  Future<DataGraphNotifier> initialize() async {
+  Future<GraphNotifier> initialize() async {
     await super.initialize();
     box = FakeBox<Map>();
     return this;
@@ -69,7 +69,7 @@ mixin TokenAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
 
 //
 
-class TestDataGraphNotifier = DataGraphNotifier with TestMetaBox;
+class TestDataGraphNotifier = GraphNotifier with TestMetaBox;
 
 // ignore: must_be_immutable
 class HouseLocalAdapter = $HouseHiveLocalAdapter
@@ -99,7 +99,7 @@ class NodeRemoteAdapter = $NodeRemoteAdapter with NoThrottleAdapter;
 
 ProviderStateOwner owner;
 Box<Map> metaBox;
-DataGraphNotifier graph;
+GraphNotifier graph;
 
 RemoteAdapter<House> houseRemoteAdapter;
 RemoteAdapter<Family> familyRemoteAdapter;

@@ -2,11 +2,11 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../../models/family.dart';
-import '../../models/person.dart';
-import '../../models/pet.dart';
-import '../mocks.dart';
-import '../setup.dart';
+import '../_support/family.dart';
+import '../_support/mocks.dart';
+import '../_support/person.dart';
+import '../_support/pet.dart';
+import '../_support/setup.dart';
 
 void main() async {
   setUp(setUpFn);

@@ -26,9 +26,11 @@ part 'src/model/relationship/has_many.dart';
 part 'src/model/relationship/belongs_to.dart';
 
 part 'src/repository/remote_adapter.dart';
+part 'src/repository/remote_adapter_serialization.dart';
+part 'src/repository/remote_adapter_watch.dart';
 part 'src/repository/repository.dart';
 part 'src/repository/hive_local_adapter.dart';
 part 'src/repository/local_adapter.dart';
 
 part 'src/utils.dart';
-part 'src/graph/data_graph_notifier.dart';
+part 'src/graph/graph_notifier.dart';

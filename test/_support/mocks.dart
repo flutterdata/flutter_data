@@ -4,7 +4,7 @@ import 'package:hive/hive.dart';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:mockito/mockito.dart';
 
-import '../models/family.dart';
+import 'family.dart';
 
 // fakes
 

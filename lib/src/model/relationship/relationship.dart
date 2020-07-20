@@ -19,7 +19,7 @@ abstract class Relationship<E extends DataSupport<E>, N>
   String _inverseName;
   Map<String, RemoteAdapter> _adapters;
   RemoteAdapter<E> _adapter;
-  DataGraphNotifier get _graph => _adapter.localAdapter.graph;
+  GraphNotifier get _graph => _adapter.localAdapter.graph;
 
   final Set<String> _uninitializedKeys;
   final Set<E> _uninitializedModels;

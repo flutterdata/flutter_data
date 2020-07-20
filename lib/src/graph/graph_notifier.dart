@@ -1,9 +1,9 @@
 part of flutter_data;
 
-class DataGraphNotifier extends StateNotifier<DataGraphEvent>
-    with _Lifecycle<DataGraphNotifier> {
+class GraphNotifier extends StateNotifier<DataGraphEvent>
+    with _Lifecycle<GraphNotifier> {
   @protected
-  DataGraphNotifier(this._hiveLocalStorage) : super(null);
+  GraphNotifier(this._hiveLocalStorage) : super(null);
 
   final HiveLocalStorage _hiveLocalStorage;
 
@@ -12,7 +12,7 @@ class DataGraphNotifier extends StateNotifier<DataGraphEvent>
   bool _doAssert = true;
 
   @override
-  Future<DataGraphNotifier> initialize() async {
+  Future<GraphNotifier> initialize() async {
     if (isInitialized) return this;
     await _hiveLocalStorage.initialize();
     box = await _hiveLocalStorage.hive.openBox('_graph');
@@ -430,7 +430,7 @@ class DataGraphEvent {
   final List<String> keys;
   final String metadata;
   final DataGraphEventType type;
-  final DataGraphNotifier graph;
+  final GraphNotifier graph;
 
   @override
   String toString() {
@@ -438,6 +438,6 @@ class DataGraphEvent {
   }
 }
 
-final graphProvider = Provider<DataGraphNotifier>((ref) {
-  return DataGraphNotifier(ref.read(hiveLocalStorageProvider));
+final graphProvider = Provider<GraphNotifier>((ref) {
+  return GraphNotifier(ref.read(hiveLocalStorageProvider));
 });

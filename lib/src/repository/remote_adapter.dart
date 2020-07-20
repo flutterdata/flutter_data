@@ -1,24 +1,26 @@
 part of flutter_data;
 
-class RemoteAdapter<T extends DataSupport<T>>
-    with _Lifecycle<RemoteAdapter<T>> {
+class RemoteAdapter<T extends DataSupport<T>> = _RemoteAdapter<T>
+    with _RemoteAdapterSerialization<T>, _RemoteAdapterWatch<T>;
+
+abstract class _RemoteAdapter<T extends DataSupport<T>>
+    with _Lifecycle<_RemoteAdapter<T>> {
   @protected
-  RemoteAdapter(this.localAdapter);
+  _RemoteAdapter(this.localAdapter);
 
   @protected
   @visibleForTesting
   final LocalAdapter<T> localAdapter;
 
   @protected
-  DataGraphNotifier get graph => localAdapter.graph;
+  GraphNotifier get graph => localAdapter.graph;
 
   @protected
-  Map<String, RemoteAdapter> get adapters => _adapters;
+  Map<String, RemoteAdapter> adapters;
 
   // late finals
   bool _remote;
   bool _verbose;
-  Map<String, RemoteAdapter> _adapters;
 
   /// Give adapter subclasses access to the DI system
   @nonVirtual
@@ -75,16 +77,16 @@ class RemoteAdapter<T extends DataSupport<T>>
       final bool verbose,
       final Map<String, RemoteAdapter> adapters,
       ProviderReference ref}) async {
-    if (isInitialized) return this;
+    if (isInitialized) return this as RemoteAdapter<T>;
     _remote = remote ?? true;
     _verbose = verbose ?? true;
-    _adapters = adapters;
+    this.adapters = adapters;
     this.ref = ref;
 
     await localAdapter.initialize();
     // _save();
     await super.initialize();
-    return this;
+    return this as RemoteAdapter<T>;
   }
 
   @override
@@ -93,127 +95,20 @@ class RemoteAdapter<T extends DataSupport<T>>
     await localAdapter.dispose();
   }
 
-  // serialization
-
-  @protected
-  @visibleForTesting
-  Map<String, dynamic> serialize(T model) {
-    final map = localAdapter.serialize(model);
-
-    final relationships = <String, dynamic>{};
-
-    for (final relEntry in localAdapter.relationshipsFor().entries) {
-      final field = relEntry.key;
-      final key = keyForField(field);
-      if (map[field] != null) {
-        if (relEntry.value['kind'] == 'HasMany') {
-          final dataIdKeys = List<String>.from(map[field] as Iterable);
-          relationships[key] = dataIdKeys.map(graph.getId).toList();
-        } else if (relEntry.value['kind'] == 'BelongsTo') {
-          final dataIdKey = map[field].toString();
-          relationships[key] = graph.getId(dataIdKey);
-        }
-      }
-      map.remove(field);
-    }
-
-    return map..addAll(relationships);
+  void _assertInit() {
+    assert(isInitialized, true);
   }
+
+  // mixins
 
   @protected
   @visibleForTesting
   DeserializedData<T, DataSupport<dynamic>> deserialize(dynamic data,
-      {String key, bool init}) {
-    final result = DeserializedData<T, DataSupport<dynamic>>([], included: []);
-    init ??= false;
-
-    Object addIncluded(id, RemoteAdapter adapter) {
-      if (id is Map) {
-        final data =
-            adapter.deserialize(id as Map<String, dynamic>, init: init);
-        result.included
-          ..add(data.model)
-          ..addAll(data.included);
-        return data.model.id;
-      }
-      return id;
-    }
-
-    if (data is Map) {
-      data = [data];
-    }
-
-    for (final mapIn in (data as Iterable)) {
-      final mapOut = <String, dynamic>{};
-
-      final relationshipKeys = localAdapter.relationshipsFor().keys;
-
-      for (final mapInKey in mapIn.keys) {
-        final mapOutKey = fieldForKey(mapInKey.toString());
-
-        if (relationshipKeys.contains(mapOutKey)) {
-          final metadata = localAdapter.relationshipsFor()[mapOutKey];
-          final _type = metadata['type'] as String;
-
-          if (metadata['kind'] == 'BelongsTo') {
-            final id = addIncluded(mapIn[mapInKey], _adapters[_type]);
-            // transform ids into keys
-            mapOut[mapOutKey] = graph.getKeyForId(_type, id,
-                keyIfAbsent: DataHelpers.generateKey(_type));
-          }
-
-          if (metadata['kind'] == 'HasMany') {
-            mapOut[mapOutKey] = (mapIn[mapInKey] as Iterable)?.map((id) {
-              id = addIncluded(id, _adapters[_type]);
-              return graph.getKeyForId(_type, id,
-                  keyIfAbsent: DataHelpers.generateKey(_type));
-            })?.toImmutableList();
-          }
-        } else {
-          // regular field mapping
-          mapOut[mapOutKey] = mapIn[mapInKey];
-        }
-      }
-
-      final model = localAdapter.deserialize(mapOut);
-      if (init) {
-        model._initialize(_adapters, key: key, save: true);
-      }
-      result.models.add(model);
-    }
-
-    return result;
-  }
-
-  @protected
-  String get identifierSuffix => '_id';
-
-  Map<String, Map<String, Object>> get _belongsTos =>
-      Map.fromEntries(localAdapter
-          .relationshipsFor()
-          .entries
-          .where((e) => e.value['kind'] == 'BelongsTo'));
+      {String key, bool init});
 
   @protected
   @visibleForTesting
-  String fieldForKey(String key) {
-    if (key.endsWith(identifierSuffix)) {
-      final keyWithoutId = key.substring(0, key.length - 3);
-      if (_belongsTos.keys.contains(keyWithoutId)) {
-        return keyWithoutId;
-      }
-    }
-    return key;
-  }
-
-  @protected
-  @visibleForTesting
-  String keyForField(String field) {
-    if (_belongsTos.keys.contains(field)) {
-      return '$field$identifierSuffix';
-    }
-    return field;
-  }
+  Map<String, dynamic> serialize(T model);
 
   // caching
 
@@ -252,7 +147,7 @@ class RemoteAdapter<T extends DataSupport<T>>
     if (!shouldLoadRemoteAll(remote, params, headers)) {
       final models = localAdapter.findAll();
       if (init) {
-        models._initialize(_adapters, save: true);
+        models._initialize(adapters, save: true);
       }
       return models;
     }
@@ -292,7 +187,7 @@ class RemoteAdapter<T extends DataSupport<T>>
       }
       final newModel = localAdapter.findOne(key);
       if (init) {
-        newModel._initialize(_adapters, save: true);
+        newModel._initialize(adapters, save: true);
       }
       return newModel;
     }
@@ -324,7 +219,7 @@ class RemoteAdapter<T extends DataSupport<T>>
 
     if (remote == false) {
       // we ignore `init` as saving locally requires initializing
-      return model._initialize(_adapters, save: true);
+      return model._initialize(adapters, save: true);
     }
 
     final body = json.encode(serialize(model));
@@ -339,7 +234,7 @@ class RemoteAdapter<T extends DataSupport<T>>
         if (data == null) {
           // return "old" model if response was empty
           if (init) {
-            model._initialize(_adapters, save: true);
+            model._initialize(adapters, save: true);
           }
           return model;
         }
@@ -514,284 +409,7 @@ class RemoteAdapter<T extends DataSupport<T>>
       return acc;
     });
   }
-
-  // ***
-
-  // WATCH
-
-  @protected
-  @visibleForTesting
-  Duration get throttleDuration =>
-      Duration(milliseconds: 16); // 1 frame at 60fps
-
-  /// Sort-of-exponential backoff for reads
-  @protected
-  @visibleForTesting
-  Duration readRetryAfter(int i) {
-    final list = [0, 1, 2, 2, 2, 2, 2, 4, 4, 4, 8, 8, 16, 16, 24, 36, 72];
-    final index = i < list.length ? i : list.length - 1;
-    return Duration(seconds: list[index]);
-  }
-
-  /// Sort-of-exponential backoff for writes
-  @protected
-  @visibleForTesting
-  Duration writeRetryAfter(int i) => readRetryAfter(i);
-
-  @protected
-  @visibleForTesting
-  StateNotifier<List<DataGraphEvent>> get throttledGraph =>
-      graph.throttle(throttleDuration);
-
-  // initialize & save
-
-  // var _writeCounter = 0;
-
-  // final _offlineAdapterKey = 'offline:adapter';
-  // final _offlineSaveMetadata = 'offline:save';
-
-  void _assertInit() {
-    assert(isInitialized, true);
-  }
-
-  // void _save() async {
-  //   final keys =
-  //       manager.getEdge(_offlineAdapterKey, metadata: _offlineSaveMetadata);
-  //   for (final key in keys) {
-  //     final model = localFindOne(key);
-  //     if (model != null) {
-  //       await model.save(); // might throw here
-  //       manager.removeEdge(_offlineAdapterKey, key,
-  //           metadata: _offlineSaveMetadata);
-  //       _writeCounter = 0; // reset write counter
-  //     }
-  //   }
-  // }
-
-  // @override
-  // Future<T> save(T model,
-  //     {bool remote,
-  //     Map<String, dynamic> params,
-  //     Map<String, String> headers}) async {
-  //   try {
-  //     return await super
-  //         .save(model, remote: remote, params: params, headers: headers);
-  //   } on SocketException {
-  //     // ensure offline node exists
-  //     if (!manager.hasNode(_offlineAdapterKey)) {
-  //       manager.addNode(_offlineAdapterKey);
-  //     }
-
-  //     // add model's key with offline meta
-  //     manager.addEdge(_offlineAdapterKey, keyFor(model),
-  //         metadata: _offlineSaveMetadata);
-
-  //     // there was a failure, so call _trySave again
-  //     Future.delayed(writeRetryAfter(_writeCounter++), _save);
-  //     rethrow;
-  //   }
-  // }
-
-  // watchers
-
-  var _readCounter = 0;
-
-  DataStateNotifier<List<T>> watchAll(
-      {final bool remote,
-      final Map<String, dynamic> params,
-      final Map<String, String> headers}) {
-    _assertInit();
-    final _notifier = DataStateNotifier<List<T>>(
-      DataState(localAdapter.findAll()),
-      reload: (notifier) async {
-        try {
-          // ignore: unawaited_futures
-          findAll(params: params, headers: headers, remote: remote, init: true);
-          _readCounter = 0; // reset counter
-          notifier.data = notifier.data.copyWith(isLoading: true);
-        } catch (error, stackTrace) {
-          if (error is Exception) {
-            // TODO find non-dart:io SocketException alternative!
-            Future.delayed(readRetryAfter(_readCounter++), notifier.reload);
-          }
-          // we're only interested in notifying errors
-          // as models will pop up via box events
-          notifier.data = notifier.data.copyWith(
-              exception: DataException(error), stackTrace: stackTrace);
-        }
-      },
-    );
-
-    // kick off
-    _notifier.reload();
-
-    final _graphNotifier = throttledGraph.forEach((events) {
-      if (!_notifier.mounted) {
-        return;
-      }
-
-      // filter by keys (that are not IDs)
-      final filteredEvents = events.where((event) =>
-          event.type.isNode &&
-          event.keys.first.startsWith(type) &&
-          !event.graph._hasEdge(event.keys.first, metadata: 'key'));
-
-      if (filteredEvents.isEmpty) {
-        return;
-      }
-
-      final list = _notifier.data.model.toList();
-
-      for (final event in filteredEvents) {
-        final key = event.keys.first;
-        assert(key != null);
-        switch (event.type) {
-          case DataGraphEventType.addNode:
-            list.add(localAdapter.findOne(key));
-            break;
-          case DataGraphEventType.updateNode:
-            final idx = list.indexWhere((model) => model?._key == key);
-            list[idx] = localAdapter.findOne(key);
-            break;
-          case DataGraphEventType.removeNode:
-            list..removeWhere((model) => model?._key == key);
-            break;
-          default:
-        }
-      }
-
-      _notifier.data = _notifier.data.copyWith(model: list, isLoading: false);
-    });
-
-    _notifier.onDispose = _graphNotifier.dispose;
-    return _notifier;
-  }
-
-  DataStateNotifier<T> watchOne(final dynamic model,
-      {final bool remote,
-      final Map<String, dynamic> params,
-      final Map<String, String> headers,
-      final AlsoWatch<T> alsoWatch}) {
-    _assertInit();
-    assert(model != null);
-
-    final id = model is T ? model.id : model;
-
-    // lazy key access
-    String _key;
-    String key() => _key ??=
-        graph.getKeyForId(type, id) ?? (model is T ? model._key : null);
-
-    final _alsoWatchFilters = <String>{};
-    var _relatedKeys = <String>{};
-
-    final _notifier = DataStateNotifier<T>(
-      DataState(localAdapter.findOne(key())),
-      reload: (notifier) async {
-        if (id == null) return;
-        try {
-          // ignore: unawaited_futures
-          findOne(id,
-              params: params, headers: headers, remote: remote, init: true);
-          _readCounter = 0; // reset counter
-          notifier.data = notifier.data.copyWith(isLoading: true);
-        } catch (error, stackTrace) {
-          if (error is Exception) {
-            // TODO find non-dart:io SocketException alternative!
-            Future.delayed(readRetryAfter(_readCounter++), notifier.reload);
-          }
-          // we're only interested in notifying errors
-          // as models will pop up via box events
-          notifier.data = notifier.data.copyWith(
-              exception: DataException(error), stackTrace: stackTrace);
-        }
-      },
-    );
-
-    void _initializeRelationshipsToWatch(T model) {
-      if (alsoWatch != null && _alsoWatchFilters.isEmpty) {
-        _alsoWatchFilters.addAll(alsoWatch(model).map((rel) => rel._name));
-      }
-    }
-
-    // kick off
-
-    // try to find relationships to watch
-    if (_notifier.data.model != null) {
-      _initializeRelationshipsToWatch(_notifier.data.model);
-    }
-
-    // trigger local + async loading
-    _notifier.reload();
-
-    // start listening to graph for further changes
-    final _graphNotifier = throttledGraph.forEach((events) {
-      if (!_notifier.mounted) {
-        return;
-      }
-
-      // buffers
-      var modelBuffer = _notifier.data.model;
-      var refresh = false;
-
-      for (final event in events) {
-        if (event.keys.containsFirst(key())) {
-          // add/update
-          if (event.type == DataGraphEventType.addNode ||
-              event.type == DataGraphEventType.updateNode) {
-            final model = localAdapter.findOne(key());
-            if (model != null) {
-              _initializeRelationshipsToWatch(model);
-              modelBuffer = model;
-            }
-          }
-
-          // remove
-          if (event.type == DataGraphEventType.removeNode &&
-              _notifier.data.model != null) {
-            modelBuffer = null;
-          }
-
-          // changes on specific relationships of this model
-          if (_notifier.data.model != null &&
-              event.type.isEdge &&
-              _alsoWatchFilters.contains(event.metadata)) {
-            // calculate current related models
-            _relatedKeys = localAdapter
-                .relationshipsFor(_notifier.data.model)
-                .values
-                .map((meta) => (meta['instance'] as Relationship)?.keys)
-                .where((keys) => keys != null)
-                .expand((key) => key)
-                .toSet();
-
-            refresh = true;
-          }
-        }
-
-        // updates on all models of specific relationships of this model
-        if (event.type == DataGraphEventType.updateNode &&
-            _relatedKeys.any(event.keys.contains)) {
-          refresh = true;
-        }
-      }
-
-      // NOTE: because of this comparison, use field equality
-      // rather than key equality (which wouldn't update)
-      if (modelBuffer != _notifier.data.model || refresh) {
-        _notifier.data = _notifier.data
-            .copyWith(model: modelBuffer, isLoading: false, exception: null);
-      }
-    });
-
-    _notifier.onDispose = _graphNotifier.dispose;
-    return _notifier;
-  }
 }
-
-//
-
-typedef AlsoWatch<T> = List<Relationship> Function(T);
 
 //
 

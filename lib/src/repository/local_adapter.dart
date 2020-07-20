@@ -6,7 +6,7 @@ abstract class LocalAdapter<T extends DataSupport<T>>
   LocalAdapter(this.graph);
 
   @protected
-  final DataGraphNotifier graph;
+  final GraphNotifier graph;
 
   @override
   @mustCallSuper
