@@ -33,6 +33,32 @@ void main() async {
     expect(f1.persons.length, 0);
   });
 
+  test('assignment with relationship initialized & uninitialized', () {
+    final family = Family(id: '1', surname: 'Smith', persons: HasMany());
+    final person = Person(id: '1', name: 'Flavio', age: 12);
+
+    family.persons.add(person);
+    expect(family.persons.contains(person), isTrue);
+
+    family.init(owner);
+
+    family.persons.add(person);
+    expect(family.persons.contains(person), isTrue);
+  });
+
+  test('use relationship without initialization', () {
+    final family = Family(id: '1', surname: 'Smith', persons: HasMany());
+    final person = Person(id: '1', name: 'Flavio', age: 12);
+
+    family.persons.add(person);
+    expect(family.persons.contains(person), isTrue);
+    expect(family.persons.lookup(person), person);
+    expect(family.persons.toSet(), {person});
+
+    family.persons.remove(person);
+    expect(family.persons, isEmpty);
+  });
+
   test('watch', () async {
     final family = Family(
       id: '1',
@@ -60,7 +86,8 @@ void main() async {
     family.persons.add(p2);
     await oneMs();
 
-    verify(listener({p1, p2})).called(1);
+    // doesn't show up as p2 was already present!
+    verifyNever(listener({p1, p2}));
 
     family.persons.remove(p1);
     await oneMs();

@@ -90,6 +90,18 @@ mixin _RemoteAdapterSerialization<T extends DataSupport<T>>
     return result;
   }
 
+  /// A suffix appended to all [BelongsTo] relationships in serialized form.
+  ///
+  /// Example:
+  ///
+  /// ```
+  /// {
+  ///  "user_id": 1,
+  ///  "id": 1,
+  ///  "title": "delectus aut autem",
+  ///  "completed": false
+  ///}
+  ///```
   @protected
   String get identifierSuffix => '_id';
 
@@ -99,6 +111,9 @@ mixin _RemoteAdapterSerialization<T extends DataSupport<T>>
           .entries
           .where((e) => e.value['kind'] == 'BelongsTo'));
 
+  /// Transforms a [key] into a model's field.
+  ///
+  /// This mapping can also be done via `json_serializable`'s `@JsonKey`.
   @protected
   @visibleForTesting
   String fieldForKey(String key) {
@@ -111,6 +126,9 @@ mixin _RemoteAdapterSerialization<T extends DataSupport<T>>
     return key;
   }
 
+  /// Transforms a model's [field] into a key.
+  ///
+  /// This mapping can also be done via `json_serializable`'s `@JsonKey`.
   @protected
   @visibleForTesting
   String keyForField(String field) {

@@ -1,11 +1,34 @@
 part of flutter_data;
 
+/// A [Relationship] that models a to-one ownership.
+///
+/// Example: A book that belongs to an author
+/// ```
+/// class Book with DataSupport<Book> {
+///  @override
+///  final int id;
+///  final String title;
+///  final BelongsTo<Author> author;
+///
+///  Todo({this.id, this.title, this.author});
+/// }
+///```
 class BelongsTo<E extends DataSupport<E>> extends Relationship<E, E> {
+  /// Creates a [BelongsTo] relationship, with an optional initial [E] model.
+  ///
+  /// Example:
+  /// ```
+  /// final author = Author(name: 'JK Rowling');
+  /// final book = Book(id: 1, author: BelongsTo(author));
+  /// ```
+  ///
+  /// See also: [DataSupportRelationshipExtension<E>.asBelongsTo]
   BelongsTo([final E model]) : super(model != null ? {model} : null);
 
   BelongsTo._(String key, bool _wasOmitted)
       : super._(key != null ? {key} : {}, _wasOmitted);
 
+  /// For use with `json_serializable`.
   factory BelongsTo.fromJson(final Map<String, dynamic> map) {
     final key = map['_'][0] as String;
     if (key == null) {
@@ -15,10 +38,12 @@ class BelongsTo<E extends DataSupport<E>> extends Relationship<E, E> {
     return BelongsTo._(key, false);
   }
 
-  /// Specific methods for [BelongsTo]
-
+  /// Obtains the single [E] value of this relationship (`null` if not present).
   E get value => safeFirst;
 
+  /// Sets the single [E] value of this relationship, replacing any previous [value].
+  ///
+  /// Passing in `null` will remove the existing value from the relationship.
   set value(E value) {
     if (value != null) {
       if (super.isNotEmpty) {
@@ -31,12 +56,13 @@ class BelongsTo<E extends DataSupport<E>> extends Relationship<E, E> {
     assert(length <= 1);
   }
 
+  /// Returns the [value]'s `key`
   @protected
   @visibleForTesting
   String get key => super.keys.safeFirst;
 
-  // notifier
-
+  /// Returns a [StateNotifier] which emits the latest [value] of
+  /// this [BelongsTo] relationship.
   @override
   StateNotifier<E> watch() {
     return _graphEvents.where((e) => e.isNotEmpty).map((e) {
@@ -44,11 +70,18 @@ class BelongsTo<E extends DataSupport<E>> extends Relationship<E, E> {
     });
   }
 
-  // misc
-
+  /// For use with `json_serializable`. Does not return valid JSON.
   @override
   dynamic toJson() => key;
 
   @override
   String toString() => 'BelongsTo<$E>(${key ?? ''})';
+}
+
+extension DataSupportRelationshipExtension<T extends DataSupport<T>>
+    on DataSupport<T> {
+  /// Converts a [DataSupport<T>] into a [BelongsTo<T>].
+  ///
+  /// Equivalent to using the constructor as `BelongsTo(model)`.
+  BelongsTo<T> get asBelongsTo => BelongsTo<T>(this as T);
 }

@@ -1,5 +1,8 @@
 part of flutter_data;
 
+/// An adapter interface to access local storage
+///
+/// See also: [HiveLocalAdapter]
 abstract class LocalAdapter<T extends DataSupport<T>>
     with _Lifecycle<LocalAdapter<T>> {
   @protected
@@ -25,22 +28,31 @@ abstract class LocalAdapter<T extends DataSupport<T>>
 
   // protected API
 
+  /// Returns all models of type [T] in local storage.
   @protected
   @visibleForTesting
   List<T> findAll();
 
+  /// Finds model of type [T] by [key] in local storage.
   @protected
   @visibleForTesting
   T findOne(String key);
 
+  /// Saves model of type [T] with [key] in local storage.
+  ///
+  /// By default notifies this modification to the associated [GraphNotifier].
   @protected
   @visibleForTesting
   Future<void> save(String key, T model, {bool notify = true});
 
+  /// Deletes model of type [T] with [key] from local storage.
+  ///
+  /// By default notifies this modification to the associated [GraphNotifier].
   @protected
   @visibleForTesting
   Future<void> delete(String key);
 
+  /// Deletes all models of type [T] in local storage.
   @protected
   @visibleForTesting
   Future<void> clear();

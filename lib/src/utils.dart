@@ -11,17 +11,17 @@ class DataHelpers {
   }
 
   static String generateKey<T>([String type]) {
-    final ts = getType<T>(type);
-    if (ts == null) {
-      return null;
+    type = getType<T>(type);
+    if (type != null) {
+      return '$type#${uuid.v1().substring(0, 8)}';
     }
-    return '${getType<T>(type)}#${uuid.v1().substring(0, 8)}';
+    return null;
   }
 }
 
 // initialization helpers
 
-/// For exclusive internal use of global service locator
+/// DO NOT USE: For exclusive internal use of global service locator
 /// integration such as `get_it`'s
 dynamic debugGlobalServiceLocatorInstance;
 

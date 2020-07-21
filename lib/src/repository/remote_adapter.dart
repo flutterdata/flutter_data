@@ -1,5 +1,30 @@
 part of flutter_data;
 
+/// An adapter base class for all remote operations for type [T].
+///
+/// Includes:
+///
+///  - Remote methods such as [_RemoteAdapter.findAll] or [_RemoteAdapter.save]
+///  - Configuration methods and getters like [_RemoteAdapter.baseUrl] or [_RemoteAdapter.urlForFindAll]
+///  - Serialization methods like [_RemoteAdapterSerialization.serialize]
+///  - Watch methods such as [_RemoteAdapterWatch.watchOne]
+///  - Access to the [_RemoteAdapter.graph] for subclasses or mixins
+///
+/// This class is meant to be extended via mixing in new adapters.
+/// This can be done with the [DataRepository] annotation on a [DataSupport] model:
+///
+/// ```
+/// @JsonSerializable()
+/// @DataRepository([MyAppAdapter])
+/// class Todo with DataSupport<Todo> {
+///   @override
+///   final int id;
+///   final String title;
+///   final bool completed;
+///
+///   Todo({this.id, this.title, this.completed = false});
+/// }
+/// ```
 class RemoteAdapter<T extends DataSupport<T>> = _RemoteAdapter<T>
     with _RemoteAdapterSerialization<T>, _RemoteAdapterWatch<T>;
 
@@ -12,9 +37,13 @@ abstract class _RemoteAdapter<T extends DataSupport<T>>
   @visibleForTesting
   final LocalAdapter<T> localAdapter;
 
+  /// A [GraphNotifier] instance also available to adapters
   @protected
   GraphNotifier get graph => localAdapter.graph;
 
+  /// All adapters for the relationship subgraph of [T] and their relationships.
+  ///
+  /// This [Map] is typically required when initializing new models, and passed as-is.
   @protected
   Map<String, RemoteAdapter> adapters;
 
@@ -22,48 +51,92 @@ abstract class _RemoteAdapter<T extends DataSupport<T>>
   bool _remote;
   bool _verbose;
 
-  /// Give adapter subclasses access to the DI system
+  /// Give adapter subclasses access to the dependency injection system
   @nonVirtual
   @protected
   ProviderReference ref;
 
-  //
-
+  /// The pluralized and downcased [DataHelpers.getType<T>] version of type [T]
+  ///
+  /// Example: [T] as `Post` has a [type] of `posts`.
   @nonVirtual
   @protected
   final type = DataHelpers.getType<T>();
 
+  /// Returns the base URL for this type [T].
+  ///
+  /// Typically used in a generic adapter (i.e. one shared by all types)
+  /// so it should be e.g. `http://jsonplaceholder.typicode.com/`
+  ///
+  /// For specific paths to this type [T], see [urlForFindAll], [urlForFindOne], etc
   @protected
   String get baseUrl => throw UnsupportedError('Please override baseUrl');
 
+  /// Returns URL for [findAll]. Defaults to [type].
   @protected
   String urlForFindAll(params) => '$type';
 
+  /// Returns HTTP method for [findAll]. Defaults to `GET`.
   @protected
   DataRequestMethod methodForFindAll(params) => DataRequestMethod.GET;
 
+  /// Returns URL for [findOne]. Defaults to [type]/[id].
   @protected
   String urlForFindOne(id, params) => '$type/$id';
 
+  /// Returns HTTP method for [findOne]. Defaults to `GET`.
   @protected
   DataRequestMethod methodForFindOne(id, params) => DataRequestMethod.GET;
 
+  /// Returns URL for [save]. Defaults to [type]/[id] (if [id] is present).
   @protected
   String urlForSave(id, params) => id != null ? '$type/$id' : type;
 
+  /// Returns HTTP method for [save]. Defaults to `PATCH` if [id] is present,
+  /// or `POST` otherwise.
   @protected
   DataRequestMethod methodForSave(id, params) =>
       id != null ? DataRequestMethod.PATCH : DataRequestMethod.POST;
 
+  /// Returns URL for [delete]. Defaults to [type]/[id].
   @protected
   String urlForDelete(id, params) => '$type/$id';
 
+  /// Returns HTTP method for [delete]. Defaults to `DELETE`.
   @protected
   DataRequestMethod methodForDelete(id, params) => DataRequestMethod.DELETE;
 
+  /// A [Map] representing HTTP query parameters. Defaults to empty.
+  ///
+  /// It can return a [Future], so that adapters overriding this method
+  /// have a chance to call async methods.
+  ///
+  /// Example:
+  /// ```
+  /// @override
+  /// FutureOr<Map<String, dynamic>> get params async {
+  ///   final token = await _localStorage.get('token');
+  ///   return await super.params..addAll({'token': token});
+  /// }
+  /// ```
+  ///
   @protected
   FutureOr<Map<String, dynamic>> get params => {};
 
+  /// A [Map] representing HTTP headers. Defaults to `{'Content-Type': 'application/json'}`.
+  ///
+  /// It can return a [Future], so that adapters overriding this method
+  /// have a chance to call async methods.
+  ///
+  /// Example:
+  /// ```
+  /// @override
+  /// FutureOr<Map<String, String>> get headers async {
+  ///   final token = await _localStorage.get('token');
+  ///   return await super.headers..addAll({'Authorization': token});
+  /// }
+  /// ```
+  ///
   @protected
   FutureOr<Map<String, String>> get headers =>
       {'Content-Type': 'application/json'};
@@ -99,19 +172,30 @@ abstract class _RemoteAdapter<T extends DataSupport<T>>
     assert(isInitialized, true);
   }
 
-  // mixins
+  // serialization interface
 
+  /// Returns a [DeserializedData] object when deserializing a given [data].
+  ///
+  /// If [init] is `true`, ALL models in deserialization (including `included`)
+  /// will be initialized.
+  ///
+  /// [key] can be used to supply a specific `key` when deserializing ONE model.
   @protected
   @visibleForTesting
   DeserializedData<T, DataSupport<dynamic>> deserialize(dynamic data,
       {String key, bool init});
 
+  /// Returns a serialized version of a model of [T],
+  /// as a [Map<String, dynamic>] ready to be JSON-encoded.
   @protected
   @visibleForTesting
   Map<String, dynamic> serialize(T model);
 
   // caching
 
+  /// Returns whether calling [findAll] should trigger a remote call.
+  ///
+  /// Meant to be overriden. Defaults to [remote].
   @protected
   bool shouldLoadRemoteAll(
     bool remote,
@@ -120,6 +204,9 @@ abstract class _RemoteAdapter<T extends DataSupport<T>>
   ) =>
       remote;
 
+  /// Returns whether calling [findOne] should initiate an HTTP call.
+  ///
+  /// Meant to be overriden. Defaults to [remote].
   @protected
   bool shouldLoadRemoteOne(
     dynamic id,
@@ -129,7 +216,7 @@ abstract class _RemoteAdapter<T extends DataSupport<T>>
   ) =>
       remote;
 
-  // repository implementation
+  // remote implementation
 
   @protected
   @visibleForTesting
@@ -147,7 +234,7 @@ abstract class _RemoteAdapter<T extends DataSupport<T>>
     if (!shouldLoadRemoteAll(remote, params, headers)) {
       final models = localAdapter.findAll();
       if (init) {
-        models._initialize(adapters, save: true);
+        models.map((m) => m._initialize(adapters, save: true));
       }
       return models;
     }
@@ -293,10 +380,20 @@ abstract class _RemoteAdapter<T extends DataSupport<T>>
 
   // http
 
+  /// The [http.Client] used to make all HTTP requests.
   @protected
   @visibleForTesting
   final http.Client httpClient = http.Client();
 
+  /// The function used to perform an HTTP request and return an [R].
+  ///
+  /// Takes expected arguments [url], [method], [params], [headers].
+  ///
+  /// In addition, [onSuccess] MUST be supplied to post-process the
+  /// data in JSON format. Typically, deserialization and initialization
+  /// happen in there.
+  ///
+  /// [onError] can also be supplied to override [_RemoteAdapter.onError].
   @protected
   @visibleForTesting
   FutureOr<R> withRequest<R>(
@@ -387,6 +484,10 @@ abstract class _RemoteAdapter<T extends DataSupport<T>>
     return await onError(error);
   }
 
+  /// Describes how to handle errors arising in [withRequest].
+  ///
+  /// NOTE: [withRequest] has an `onError` argument used to override
+  /// this default behavior.
   @protected
   @visibleForTesting
   OnData<R> onError<R>(e) => throw e;
@@ -411,6 +512,7 @@ abstract class _RemoteAdapter<T extends DataSupport<T>>
   }
 }
 
+/// A utility class used to return deserialized main [models] AND [included] models.
 class DeserializedData<T, I> {
   const DeserializedData(this.models, {this.included});
   final List<T> models;
@@ -418,6 +520,9 @@ class DeserializedData<T, I> {
   T get model => models.single;
 }
 
+/// A standard [Exception] used throughout Flutter Data.
+///
+/// Usually thrown from [_RemoteAdapter.onError] in [_RemoteAdapter.withRequest].
 class DataException implements Exception {
   final Object error;
   final int statusCode;

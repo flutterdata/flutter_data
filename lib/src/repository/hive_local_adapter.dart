@@ -1,5 +1,6 @@
 part of flutter_data;
 
+/// Hive implementation of [LocalAdapter] and Hive's [TypeAdapter].
 // ignore: must_be_immutable
 abstract class HiveLocalAdapter<T extends DataSupport<T>>
     extends LocalAdapter<T> with TypeAdapter<T> {
@@ -8,7 +9,7 @@ abstract class HiveLocalAdapter<T extends DataSupport<T>>
   final HiveLocalStorage _hiveLocalStorage;
   final _type = DataHelpers.getType<T>();
 
-  // late final field, remove ignore on class
+  // once late final field, remove ignore on class
   @protected
   @visibleForTesting
   Box<T> box;

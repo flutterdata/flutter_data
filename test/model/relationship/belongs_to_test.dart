@@ -12,7 +12,7 @@ void main() async {
   setUp(setUpFn);
   tearDown(tearDownFn);
 
-  test('set owner in relationships', () {
+  test('set owner in relationships (before & after init)', () {
     final person = Person(id: '1', name: 'John', age: 37).init(owner);
     final house = House(id: '31', address: '123 Main St').init(owner);
     final house2 = House(id: '2', address: '456 Main St').init(owner);
@@ -23,11 +23,17 @@ void main() async {
         residence: BelongsTo<House>(house),
         persons: HasMany<Person>({person}));
 
-    // no dataId associated to family or relationships
-    expect(family.residence.key, isNull);
-    expect(family.persons.keys, isEmpty);
+    // values are there even if family (and its relationships) are not init'd
+    expect(family.residence.value, house);
+    expect(family.persons, {person});
+    expect(family.persons, equals(family.persons));
 
     family.init(owner);
+
+    // after init, values remain the same
+    expect(family.residence.value, house);
+    expect(family.persons, {person});
+    expect(family.persons, equals(family.persons));
 
     // relationships are now associated to a key
     expect(family.residence.key, graph.getKeyForId('houses', '31'));
@@ -38,38 +44,16 @@ void main() async {
     expect(family.residence.keys, hasLength(1));
   });
 
-  test('assignment with both uninitialized', () {
+  test('assignment with relationship initialized & uninitialized', () {
     final family =
         Family(id: '1', surname: 'Smith', residence: BelongsTo<House>());
     final house = House(id: '1', address: '456 Lemon Rd');
 
-    // since both are not initialized, house will be added to the queue
-    family.residence.value = house;
-    expect(family.residence.value, isNull);
-
-    // initialize, flush the queue and verify
-    family.init(owner);
-    expect(family.residence.value, house);
-  });
-
-  test('assignment only with owner initialized', () {
-    final family =
-        Family(id: '1', surname: 'Smith', residence: BelongsTo<House>())
-            .init(owner);
-    final house = House(id: '1', address: '456 Lemon Rd');
-
     family.residence.value = house;
     expect(family.residence.value, house);
-  });
 
-  test('assignment only with value initialized', () {
-    final family =
-        Family(id: '1', surname: 'Smith', residence: BelongsTo<House>());
-    final house = House(id: '1', address: '456 Lemon Rd').init(owner);
-
-    family.residence.value = house;
-    expect(family.residence.value, isNull);
     family.init(owner);
+    family.residence.value = house; // assigning again shouldn't affect
     expect(family.residence.value, house);
   });
 

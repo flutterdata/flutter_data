@@ -20,7 +20,7 @@ class _FunctionalStateNotifier<S, T> extends StateNotifier<T> {
     return this;
   }
 
-  StateNotifier<T> forEach(void Function(S) action) {
+  StateNotifier<void> forEach(void Function(S) action) {
     _sourceDisposeFn = _source.addListener(action, fireImmediately: false);
     return this;
   }
@@ -78,21 +78,26 @@ class _FunctionalStateNotifier<S, T> extends StateNotifier<T> {
   }
 }
 
+/// Functional utilities for [StateNotifier]
 extension StateNotifierX<T> on StateNotifier<T> {
+  /// Filters incoming events by [test]
   StateNotifier<T> where(bool Function(T) test) {
     return _FunctionalStateNotifier<T, T>(this, name: 'where').where(test);
   }
 
-  StateNotifier<S> map<S>(S Function(T) convert) {
-    return _FunctionalStateNotifier<T, S>(this, name: 'map').map(convert);
+  /// Maps events of type [T] onto events of type [R] via [convert]
+  StateNotifier<R> map<R>(R Function(T) convert) {
+    return _FunctionalStateNotifier<T, R>(this, name: 'map').map(convert);
   }
 
+  /// Applies a function [action] to every incoming event of type [T]
   StateNotifier<void> forEach(void Function(T) action) {
     return _FunctionalStateNotifier<T, void>(this, name: 'forEach')
         .forEach(action);
   }
 
-  /// Updates state maximum once per [duration]
+  /// Buffers all incoming [T] events during [duration] and emits
+  /// them as a [List<T>] (unless there were none)
   StateNotifier<List<T>> throttle(Duration duration) {
     return _FunctionalStateNotifier<T, List<T>>(this, name: 'throttle')
         .throttle(duration);

@@ -1,13 +1,13 @@
 part of flutter_data;
 
+/// A `Set` that models a relationship between one or more [DataSupport] objects
+/// and their a [DataSupport] owner. Backed by a [GraphNotifier].
 abstract class Relationship<E extends DataSupport<E>, N>
     with SetMixin<E>, _Lifecycle<Relationship<E, N>> {
   @protected
   Relationship([Set<E> models])
-      : _uninitializedKeys =
-            models?.map((model) => model._key)?.filterNulls?.toSet() ?? {},
-        _uninitializedModels =
-            models?.where((model) => model._key == null)?.toSet() ?? {},
+      : _uninitializedKeys = {},
+        _uninitializedModels = models ?? {},
         _wasOmitted = models == null;
 
   Relationship._(Iterable<String> keys, this._wasOmitted)
@@ -19,22 +19,25 @@ abstract class Relationship<E extends DataSupport<E>, N>
   String _inverseName;
   Map<String, RemoteAdapter> _adapters;
   RemoteAdapter<E> _adapter;
-  GraphNotifier get _graph => _adapter.localAdapter.graph;
+  GraphNotifier get _graph =>
+      isInitialized ? _adapter.localAdapter.graph : null;
 
   final Set<String> _uninitializedKeys;
   final Set<E> _uninitializedModels;
-  bool _wasOmitted;
+  final bool _wasOmitted;
 
   @protected
   String get type => DataHelpers.getType<E>();
 
+  /// Initializes this relationship (typically when initializing the owner
+  /// in [DataSupport]) by supplying the owner, and related [adapters] and metadata.
   @override
   @mustCallSuper
   Future<Relationship<E, N>> initialize(
-      {final Map<String, RemoteAdapter> adapters,
-      final DataSupport owner,
-      final String name,
-      final String inverseName}) async {
+      {@required final Map<String, RemoteAdapter> adapters,
+      @required final DataSupport owner,
+      @required final String name,
+      @required final String inverseName}) async {
     if (isInitialized) return this;
 
     _adapters = adapters;
@@ -50,6 +53,7 @@ abstract class Relationship<E extends DataSupport<E>, N>
       return model._initialize(_adapters, save: true)._key;
     });
     _uninitializedKeys..addAll(newKeys);
+    _uninitializedModels.clear();
 
     // initialize keys
     if (!_wasOmitted) {
@@ -65,44 +69,43 @@ abstract class Relationship<E extends DataSupport<E>, N>
       _uninitializedKeys.clear();
     }
 
-    await super.initialize();
+    super.initialize();
     return this;
   }
 
   @override
-  bool get isInitialized => _ownerKey != null;
+  bool get isInitialized => _ownerKey != null && _adapters != null;
 
-  /// Implement [Set]
+  // implement the `Set`
 
+  /// Add a [value] to this [Relationship]
+  ///
+  /// Attempting to add an existing [value] has no effect as this is a [Set]
   @override
   bool add(E value, {bool notify = true}) {
     if (value == null) {
       return false;
     }
-
-    // try to ensure value is initialized
-    if (!value._isInitialized && _adapters != null) {
-      value._initialize(_adapters, save: true);
+    if (contains(value)) {
+      return false;
     }
 
-    if (value._isInitialized && _adapters != null) {
+    // try to ensure value is initialized
+    _ensureModelIsInitialized(value);
+
+    if (value._isInitialized && isInitialized) {
       _graph._addEdge(_ownerKey, value._key,
           metadata: _name, inverseMetadata: _inverseName);
     } else {
       // if it can't be initialized, add to the models queue
       _uninitializedModels.add(value);
-      // set wasOmitted to false so that it's processed
-      _wasOmitted = false;
     }
     return true;
   }
 
   @override
   bool contains(Object element) {
-    if (element is E && _graph != null) {
-      return _graph._getEdge(_ownerKey, metadata: _name).contains(element._key);
-    }
-    return false;
+    return _iterable.contains(element);
   }
 
   @override
@@ -110,26 +113,26 @@ abstract class Relationship<E extends DataSupport<E>, N>
 
   @override
   E lookup(Object element) {
-    if (element is E && contains(element)) {
-      return element;
-    }
-    return null;
+    return toSet().lookup(element);
   }
 
+  /// Removes a [value] from this [Relationship]
   @override
   bool remove(Object value, {bool notify = true}) {
-    if (value is E && _graph != null) {
-      assert(value._key != null);
+    assert(value is E);
+    final model = value as E;
+    if (isInitialized) {
+      _ensureModelIsInitialized(model);
       _graph._removeEdge(
         _ownerKey,
-        value._key,
+        model._key,
         metadata: _name,
         inverseMetadata: _inverseName,
         notify: notify,
       );
       return true;
     }
-    return false;
+    return _uninitializedModels.remove(model);
   }
 
   @override
@@ -142,22 +145,33 @@ abstract class Relationship<E extends DataSupport<E>, N>
 
   // support methods
 
-  Iterable<E> get _iterable => keys
-      .map((key) =>
-          _adapter.localAdapter.findOne(key)?._initialize(_adapters, key: key))
-      .filterNulls;
+  Iterable<E> get _iterable {
+    if (isInitialized) {
+      return keys
+          .map((key) => _adapter.localAdapter
+              .findOne(key)
+              ?._initialize(_adapters, key: key))
+          .filterNulls;
+    }
+    return _uninitializedModels;
+  }
 
+  /// Returns keys as [Set] in relationship if initialized, otherwise an empty set
   @protected
   @visibleForTesting
   Set<String> get keys {
-    // if not null return, else return empty set
-    if (_ownerKey != null) {
+    if (isInitialized) {
       return _graph?._getEdge(_ownerKey, metadata: _name)?.toSet() ?? {};
     }
     return {};
   }
 
-  // notifier
+  E _ensureModelIsInitialized(E model) {
+    if (!model._isInitialized && isInitialized) {
+      model._initialize(_adapters, save: true);
+    }
+    return model;
+  }
 
   StateNotifier<List<DataGraphEvent>> get _graphEvents {
     assert(_adapter != null);
@@ -184,19 +198,11 @@ abstract class Relationship<E extends DataSupport<E>, N>
 
   @override
   bool operator ==(dynamic other) =>
-      identical(this, other) || other is Relationship && keys == other.keys;
+      identical(this, other) ||
+      other is Relationship && toSet() == other.toSet();
 
   @override
-  int get hashCode => runtimeType.hashCode ^ keys.hashCode;
-}
-
-extension IterableRelationshipExtension<T extends DataSupport<T>> on Set<T> {
-  HasMany<T> get asHasMany => HasMany<T>(this);
-}
-
-extension DataSupportRelationshipExtension<T extends DataSupport<T>>
-    on DataSupport<T> {
-  BelongsTo<T> get asBelongsTo => BelongsTo<T>(this as T);
+  int get hashCode => runtimeType.hashCode ^ toSet().hashCode;
 }
 
 // annotation

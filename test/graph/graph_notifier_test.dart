@@ -28,7 +28,7 @@ void main() async {
 
     graph.removeEdge('h1', 'b2', metadata: 'blogs', inverseMetadata: 'host');
 
-    expect(graph.dumpGraph(), {
+    expect(graph.toMap(), {
       'h1': {
         'blogs': {'b1'}
       },
@@ -114,7 +114,7 @@ void main() async {
     graph.getKeyForId('people', '1', keyIfAbsent: 'people#a1a1a1');
     graph.getKeyForId('people', 'a1a1a1', keyIfAbsent: 'people#a2a2a2');
     expect(graph.getKeyForId('people', 'a1a1a1'), 'people#a2a2a2');
-    expect(graph.dumpGraph().keys.toSet(),
+    expect(graph.toMap().keys.toSet(),
         {'people#a2a2a2', 'people#a1a1a1', 'id:people#a1a1a1', 'id:people#1'});
     expect(graph.getKeyForId('people', '1'), 'people#a1a1a1');
     graph.removeKey('people#a1a1a1');
@@ -145,7 +145,7 @@ void main() async {
       await family.save();
     }
 
-    expect(graph.dumpGraph().keys.where((k) => k.startsWith('families')),
+    expect(graph.toMap().keys.where((k) => k.startsWith('families')),
         hasLength(518));
   });
 

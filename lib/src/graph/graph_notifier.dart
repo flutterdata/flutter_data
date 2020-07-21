@@ -1,5 +1,16 @@
 part of flutter_data;
 
+/// A bidirected graph data structure that notifies
+/// modification events through a [StateNotifier].
+///
+/// It's a core framework component as it holds all
+/// relationship information.
+///
+/// Watchers like [Repository.watchAll] or [BelongsTo.watch]
+/// make use of it.
+///
+/// Its public API requires all keys and metadata to be namespaced
+/// i.e. `manager:key`
 class GraphNotifier extends StateNotifier<DataGraphEvent>
     with _Lifecycle<GraphNotifier> {
   @protected
@@ -11,6 +22,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
   Box<Map> box;
   bool _doAssert = true;
 
+  /// Initializes Hive local storage and box it depends on
   @override
   Future<GraphNotifier> initialize() async {
     if (isInitialized) return this;
@@ -31,6 +43,13 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
 
   // key-related methods
 
+  /// Finds a key in the graph
+  ///
+  ///  - Attempts a lookup by [type]/[id]
+  ///  - If the key was not found, it returns a default [keyIfAbsent]
+  ///    (if provided)
+  ///  - It associates [keyIfAbsent] with the supplied [type]/[id]
+  ///    (if both [keyIfAbsent] & [type]/[id] were provided)
   String getKeyForId(String type, dynamic id, {String keyIfAbsent}) {
     type = DataHelpers.getType(type);
     if (id != null) {
@@ -70,10 +89,12 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
     return null;
   }
 
+  /// Removes key (and its edges) from graph
   void removeKey(String key) => _removeNode(key);
 
   // id-related methods
 
+  /// Finds an ID in the graph, given a [key]
   String getId(String key) {
     final tos = _getEdge(key, metadata: 'id');
     return tos == null || tos.isEmpty
@@ -81,6 +102,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
         : (denamespace(tos.first).split('#')..removeAt(0)).join('#');
   }
 
+  /// Removes [type]/[id] (and its edges) from graph
   void removeId(String type, dynamic id) => _removeNode('id:$type#$id');
 
   // nodes
@@ -91,11 +113,13 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
     }
   }
 
+  /// Adds a node, [key] MUST be namespaced (e.g. `manager:key`)
   void addNode(String key, {bool notify = true}) {
     _assertKey(key);
     _addNode(key, notify: notify);
   }
 
+  /// Adds nodes, all [keys] MUST be namespaced (e.g. `manager:key`)
   void addNodes(Iterable<String> keys, {bool notify = true}) {
     for (final key in keys) {
       _assertKey(key);
@@ -103,16 +127,21 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
     _addNodes(keys, notify: notify);
   }
 
+  /// Obtains a node, [key] MUST be namespaced (e.g. `manager:key`)
   Map<String, List<String>> getNode(String key) {
     _assertKey(key);
     return _getNode(key);
   }
 
+  /// Returns whether [key] is present in this graph.
+  ///
+  /// [key] MUST be namespaced (e.g. `manager:key`)
   bool hasNode(String key) {
     _assertKey(key);
     return _hasNode(key);
   }
 
+  /// Removes a node, [key] MUST be namespaced (e.g. `manager:key`)
   void removeNode(String key) {
     _assertKey(key);
     return _removeNode(key);
@@ -120,6 +149,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
 
   // edges
 
+  /// See [addEdge]
   void addEdges(String from,
       {@required String metadata,
       @required Iterable<String> tos,
@@ -132,12 +162,21 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
         metadata: metadata, tos: tos, inverseMetadata: inverseMetadata);
   }
 
+  /// Returns edge by [metadata]
+  ///
+  /// [key] and [metadata] MUST be namespaced (e.g. `manager:key`)
   List<String> getEdge(String key, {@required String metadata}) {
     _assertKey(key);
     _assertKey(metadata);
     return _getEdge(key, metadata: metadata);
   }
 
+  /// Adds a bidirectional edge:
+  ///
+  ///  - [from]->[to] with [metadata]
+  ///  - [to]->[from] with [inverseMetadata]
+  ///
+  /// [from], [metadata] & [inverseMetadata] MUST be namespaced (e.g. `manager:key`)
   void addEdge(String from, String to,
       {@required String metadata, String inverseMetadata, bool notify = true}) {
     _assertKey(from);
@@ -147,6 +186,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
         metadata: metadata, inverseMetadata: inverseMetadata, notify: notify);
   }
 
+  /// See [removeEdge]
   void removeEdges(String from,
       {@required String metadata,
       Iterable<String> tos,
@@ -159,6 +199,12 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
         metadata: metadata, inverseMetadata: inverseMetadata, notify: notify);
   }
 
+  /// Removes a bidirectional edge:
+  ///
+  ///  - [from]->[to] with [metadata]
+  ///  - [to]->[from] with [inverseMetadata]
+  ///
+  /// [from], [metadata] & [inverseMetadata] MUST be namespaced (e.g. `manager:key`)
   void removeEdge(String from, String to,
       {@required String metadata, String inverseMetadata, bool notify = true}) {
     _assertKey(from);
@@ -168,17 +214,20 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
         metadata: metadata, inverseMetadata: inverseMetadata, notify: notify);
   }
 
+  /// Returns whether the requested edge is present in this graph.
+  ///
+  /// [key] and [metadata] MUST be namespaced (e.g. `manager:key`)
   bool hasEdge(String key, {@required String metadata}) {
     _assertKey(key);
     _assertKey(metadata);
     return _hasEdge(key, metadata: metadata);
   }
 
+  /// Returns key without namespace, e.g. `key` from `manager:key`
   String denamespace(String namespacedKey) => namespacedKey.split(':').last;
 
-  // debug utilities
-
-  Map<String, Map> dumpGraph() => _toMap();
+  /// Returns a [Map] representation of this graph, the underlying Hive [box].
+  Map<String, Map> toMap() => _toMap();
 
   @protected
   @visibleForTesting

@@ -1,5 +1,9 @@
 part of flutter_data;
 
+/// A mixin to "tag" and ensure the implementation of an [id] getter
+/// in data classes managed through Flutter Data.
+///
+/// It contains private state and methods to track the data objects identity.
 abstract class DataSupport<T extends DataSupport<T>> {
   Object get id;
 
@@ -55,17 +59,31 @@ Please ensure the type `$T` has been correctly initialized.\n
   }
 }
 
-// ignore_for_file: unused_element
+/// Extension that adds syntax-sugar to data classes,
+/// linking them to common [Repository] methods such as
+/// [save] and [delete].
 extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
   T get _this => this as T;
 
+  /// Initializes a model copying the identity of supplied [model]
+  ///
+  /// Usage:
+  /// ```
+  /// final post = await repository.findOne('1'); // returns initialized post
+  /// final newPost = Post(title: 'test'); // uninitialized post
+  /// newPost.was(post); // new is now initialized with same key as post
+  /// ```
   T was(T model) {
     assert(model != null && model._isInitialized,
         'Please initialize model before passing it to `was`');
-    // initialize this model with existing model's repo & key
     return _this._initialize(model._adapters, key: model._key, save: true);
   }
 
+  /// Saves this data object through a call equivalent to [Repository.save]
+  ///
+  /// Usage: `await post.save()`, `author.save(remote: false, params: {'a': 'x'})`
+  ///
+  /// This data object MUST be initialized.
   Future<T> save(
       {bool remote,
       Map<String, dynamic> params,
@@ -74,6 +92,11 @@ extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
         remote: remote, params: params, headers: headers, init: true);
   }
 
+  /// Deletes this data object through a call equivalent to [Repository.delete]
+  ///
+  /// Usage: `await post.delete()`
+  ///
+  /// This data object MUST be initialized.
   Future<void> delete(
       {bool remote,
       Map<String, dynamic> params,
@@ -82,6 +105,10 @@ extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
         remote: remote, params: params, headers: headers);
   }
 
+  /// Re-fetch this data object through a call equivalent to [Repository.findOne]
+  /// with the current object/[id]
+  ///
+  /// This data object MUST be initialized.
   Future<T> reload(
       {bool remote,
       Map<String, dynamic> params,
@@ -90,6 +117,10 @@ extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
         remote: remote, params: params, headers: headers, init: true);
   }
 
+  /// Watch this data object through a call equivalent to [Repository.watchOne]
+  /// with the current object/[id]
+  ///
+  /// This data object MUST be initialized.
   DataStateNotifier<T> watch(
       {bool remote,
       Map<String, dynamic> params,
@@ -100,12 +131,7 @@ extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
   }
 }
 
-extension IterableDataSupportX<T extends DataSupport<T>> on Iterable<T> {
-  List<T> _initialize(Map<String, RemoteAdapter> adapters,
-      {String key, bool save = false}) {
-    return map((m) => m._initialize(adapters, save: save)).toImmutableList();
-  }
-}
-
-@visibleForTesting
+/// Returns a data object's `_key` private attribute.
+///
+/// Useful for testing, debugging or usage in [RemoteAdapter] subclasses
 String keyFor<T extends DataSupport<T>>(T model) => model?._key;
