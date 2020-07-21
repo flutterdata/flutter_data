@@ -9,7 +9,7 @@ part 'post.g.dart';
 
 @JsonSerializable()
 @DataRepository([JSONServerAdapter])
-class Post with DataSupport<Post> {
+class Post with DataModel<Post> {
   @override
   final int id;
   final String title;

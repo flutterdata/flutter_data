@@ -4,7 +4,7 @@ part of flutter_data;
 ///
 /// Example: A book that belongs to an author
 /// ```
-/// class Book with DataSupport<Book> {
+/// class Book with DataModel<Book> {
 ///  @override
 ///  final int id;
 ///  final String title;
@@ -13,7 +13,7 @@ part of flutter_data;
 ///  Todo({this.id, this.title, this.author});
 /// }
 ///```
-class BelongsTo<E extends DataSupport<E>> extends Relationship<E, E> {
+class BelongsTo<E extends DataModel<E>> extends Relationship<E, E> {
   /// Creates a [BelongsTo] relationship, with an optional initial [E] model.
   ///
   /// Example:
@@ -22,7 +22,7 @@ class BelongsTo<E extends DataSupport<E>> extends Relationship<E, E> {
   /// final book = Book(id: 1, author: BelongsTo(author));
   /// ```
   ///
-  /// See also: [DataSupportRelationshipExtension<E>.asBelongsTo]
+  /// See also: [DataModelRelationshipExtension<E>.asBelongsTo]
   BelongsTo([final E model]) : super(model != null ? {model} : null);
 
   BelongsTo._(String key, bool _wasOmitted)
@@ -78,9 +78,9 @@ class BelongsTo<E extends DataSupport<E>> extends Relationship<E, E> {
   String toString() => 'BelongsTo<$E>(${key ?? ''})';
 }
 
-extension DataSupportRelationshipExtension<T extends DataSupport<T>>
-    on DataSupport<T> {
-  /// Converts a [DataSupport<T>] into a [BelongsTo<T>].
+extension DataModelRelationshipExtension<T extends DataModel<T>>
+    on DataModel<T> {
+  /// Converts a [DataModel<T>] into a [BelongsTo<T>].
   ///
   /// Equivalent to using the constructor as `BelongsTo(model)`.
   BelongsTo<T> get asBelongsTo => BelongsTo<T>(this as T);

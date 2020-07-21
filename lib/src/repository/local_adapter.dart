@@ -3,7 +3,7 @@ part of flutter_data;
 /// An adapter interface to access local storage
 ///
 /// See also: [HiveLocalAdapter]
-abstract class LocalAdapter<T extends DataSupport<T>>
+abstract class LocalAdapter<T extends DataModel<T>>
     with _Lifecycle<LocalAdapter<T>> {
   @protected
   LocalAdapter(this.graph);

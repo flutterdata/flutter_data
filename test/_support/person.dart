@@ -8,7 +8,7 @@ import 'family.dart';
 part 'person.g.dart';
 
 @DataRepository([PersonLoginAdapter])
-class Person with DataSupport<Person> {
+class Person with DataModel<Person> {
   @override
   final String id;
   final String name;

@@ -1,8 +1,8 @@
 part of flutter_data;
 
-/// A `Set` that models a relationship between one or more [DataSupport] objects
-/// and their a [DataSupport] owner. Backed by a [GraphNotifier].
-abstract class Relationship<E extends DataSupport<E>, N>
+/// A `Set` that models a relationship between one or more [DataModel] objects
+/// and their a [DataModel] owner. Backed by a [GraphNotifier].
+abstract class Relationship<E extends DataModel<E>, N>
     with SetMixin<E>, _Lifecycle<Relationship<E, N>> {
   @protected
   Relationship([Set<E> models])
@@ -30,12 +30,12 @@ abstract class Relationship<E extends DataSupport<E>, N>
   String get type => DataHelpers.getType<E>();
 
   /// Initializes this relationship (typically when initializing the owner
-  /// in [DataSupport]) by supplying the owner, and related [adapters] and metadata.
+  /// in [DataModel]) by supplying the owner, and related [adapters] and metadata.
   @override
   @mustCallSuper
   Future<Relationship<E, N>> initialize(
       {@required final Map<String, RemoteAdapter> adapters,
-      @required final DataSupport owner,
+      @required final DataModel owner,
       @required final String name,
       @required final String inverseName}) async {
     if (isInitialized) return this;

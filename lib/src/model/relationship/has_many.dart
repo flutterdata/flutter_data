@@ -4,7 +4,7 @@ part of flutter_data;
 ///
 /// Example: An author who has many books
 /// ```
-/// class Author with DataSupport<Author> {
+/// class Author with DataModel<Author> {
 ///  @override
 ///  final int id;
 ///  final String name;
@@ -13,7 +13,7 @@ part of flutter_data;
 ///  Todo({this.id, this.name, this.books});
 /// }
 ///```
-class HasMany<E extends DataSupport<E>> extends Relationship<E, Set<E>> {
+class HasMany<E extends DataModel<E>> extends Relationship<E, Set<E>> {
   /// Creates a [HasMany] relationship, with an optional initial [Set<E>].
   ///
   /// Example:
@@ -53,7 +53,7 @@ class HasMany<E extends DataSupport<E>> extends Relationship<E, Set<E>> {
   String toString() => 'HasMany<$E>($keys)';
 }
 
-extension IterableRelationshipExtension<T extends DataSupport<T>> on Set<T> {
+extension IterableRelationshipExtension<T extends DataModel<T>> on Set<T> {
   /// Converts a [Set<T>] into a [HasMany<T>].
   ///
   /// Equivalent to using the constructor as `HasMany(set)`.

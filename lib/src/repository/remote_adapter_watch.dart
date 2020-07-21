@@ -1,6 +1,6 @@
 part of flutter_data;
 
-mixin _RemoteAdapterWatch<T extends DataSupport<T>> on _RemoteAdapter<T> {
+mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
   @protected
   @visibleForTesting
   Duration get throttleDuration =>

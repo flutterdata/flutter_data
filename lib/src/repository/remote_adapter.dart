@@ -11,12 +11,12 @@ part of flutter_data;
 ///  - Access to the [_RemoteAdapter.graph] for subclasses or mixins
 ///
 /// This class is meant to be extended via mixing in new adapters.
-/// This can be done with the [DataRepository] annotation on a [DataSupport] model:
+/// This can be done with the [DataRepository] annotation on a [DataModel] model:
 ///
 /// ```
 /// @JsonSerializable()
 /// @DataRepository([MyAppAdapter])
-/// class Todo with DataSupport<Todo> {
+/// class Todo with DataModel<Todo> {
 ///   @override
 ///   final int id;
 ///   final String title;
@@ -25,10 +25,10 @@ part of flutter_data;
 ///   Todo({this.id, this.title, this.completed = false});
 /// }
 /// ```
-class RemoteAdapter<T extends DataSupport<T>> = _RemoteAdapter<T>
+class RemoteAdapter<T extends DataModel<T>> = _RemoteAdapter<T>
     with _RemoteAdapterSerialization<T>, _RemoteAdapterWatch<T>;
 
-abstract class _RemoteAdapter<T extends DataSupport<T>>
+abstract class _RemoteAdapter<T extends DataModel<T>>
     with _Lifecycle<_RemoteAdapter<T>> {
   @protected
   _RemoteAdapter(this.localAdapter);
@@ -182,7 +182,7 @@ abstract class _RemoteAdapter<T extends DataSupport<T>>
   /// [key] can be used to supply a specific `key` when deserializing ONE model.
   @protected
   @visibleForTesting
-  DeserializedData<T, DataSupport<dynamic>> deserialize(dynamic data,
+  DeserializedData<T, DataModel<dynamic>> deserialize(dynamic data,
       {String key, bool init});
 
   /// Returns a serialized version of a model of [T],

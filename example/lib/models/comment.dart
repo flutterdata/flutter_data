@@ -9,7 +9,7 @@ part 'comment.g.dart';
 
 @JsonSerializable()
 @DataRepository([JSONServerAdapter])
-class Comment with DataSupport<Comment> {
+class Comment with DataModel<Comment> {
   @override
   final int id;
   final String body;

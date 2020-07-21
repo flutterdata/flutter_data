@@ -1,7 +1,6 @@
 part of flutter_data;
 
-mixin _RemoteAdapterSerialization<T extends DataSupport<T>>
-    on _RemoteAdapter<T> {
+mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
   @override
   Map<String, dynamic> serialize(T model) {
     final map = localAdapter.serialize(model);
@@ -27,9 +26,9 @@ mixin _RemoteAdapterSerialization<T extends DataSupport<T>>
   }
 
   @override
-  DeserializedData<T, DataSupport<dynamic>> deserialize(dynamic data,
+  DeserializedData<T, DataModel<dynamic>> deserialize(dynamic data,
       {String key, bool init}) {
-    final result = DeserializedData<T, DataSupport<dynamic>>([], included: []);
+    final result = DeserializedData<T, DataModel<dynamic>>([], included: []);
     init ??= false;
 
     Object addIncluded(id, RemoteAdapter adapter) {

@@ -36,7 +36,7 @@ mixin TestMetaBox on GraphNotifier {
   }
 }
 
-mixin TestHiveLocalAdapter<T extends DataSupport<T>> on HiveLocalAdapter<T> {
+mixin TestHiveLocalAdapter<T extends DataModel<T>> on HiveLocalAdapter<T> {
   @override
   // ignore: must_call_super
   Future<TestHiveLocalAdapter<T>> initialize() async {
@@ -46,7 +46,7 @@ mixin TestHiveLocalAdapter<T extends DataSupport<T>> on HiveLocalAdapter<T> {
   }
 }
 
-mixin TestRemoteAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
+mixin TestRemoteAdapter<T extends DataModel<T>> on RemoteAdapter<T> {
   @override
   Duration get throttleDuration => Duration.zero;
 
@@ -63,7 +63,7 @@ mixin TestRemoteAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
 // sample token future provider
 final tokenFutureProvider = FutureProvider((_) => Future.value('s3cr4t'));
 
-mixin TokenAdapter<T extends DataSupport<T>> on RemoteAdapter<T> {
+mixin TokenAdapter<T extends DataModel<T>> on RemoteAdapter<T> {
   @override
   FutureOr<Map<String, String>> get headers async {
     final token = await ref.read(tokenFutureProvider);
@@ -128,7 +128,7 @@ void setUpFn() async {
   // in order to test un-namespaced (key, id)
   graph.debugAssert(false);
 
-  final adapterGraph = <String, RemoteAdapter<DataSupport>>{
+  final adapterGraph = <String, RemoteAdapter<DataModel>>{
     'houses': housesRemoteAdapterProvider.readOwner(owner),
     'families': familiesRemoteAdapterProvider.readOwner(owner),
     'people': peopleRemoteAdapterProvider.readOwner(owner),
@@ -233,6 +233,6 @@ Future<void> oneMs() async {
   await Future.delayed(const Duration(milliseconds: 1));
 }
 
-TypeMatcher<DataState<T>> withState<T extends DataSupport<T>>(
+TypeMatcher<DataState<T>> withState<T extends DataModel<T>>(
         Object Function(DataState<T>) feature, matcher) =>
     isA<DataState<T>>().having(feature, null, matcher);

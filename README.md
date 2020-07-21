@@ -41,7 +41,7 @@ For a given `User` model annotated with `@DataRepository`...
 ```dart
 @JsonSerializable()
 @DataRepository([JSONServerAdapter])
-class User with DataSupport<User> {
+class User with DataModel<User> {
   final int id;
   final String name;
   User({this.id, this.name});

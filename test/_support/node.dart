@@ -6,7 +6,7 @@ part 'node.g.dart';
 
 @freezed
 @DataRepository([])
-abstract class Node with DataSupport<Node>, _$Node {
+abstract class Node with DataModel<Node>, _$Node {
   Node._();
   factory Node(
       {int id,

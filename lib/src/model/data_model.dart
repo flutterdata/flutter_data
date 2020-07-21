@@ -4,7 +4,7 @@ part of flutter_data;
 /// in data classes managed through Flutter Data.
 ///
 /// It contains private state and methods to track the data objects identity.
-abstract class DataSupport<T extends DataSupport<T>> {
+abstract class DataModel<T extends DataModel<T>> {
   Object get id;
 
   // "late" finals
@@ -62,7 +62,7 @@ Please ensure the type `$T` has been correctly initialized.\n
 /// Extension that adds syntax-sugar to data classes,
 /// linking them to common [Repository] methods such as
 /// [save] and [delete].
-extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
+extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   T get _this => this as T;
 
   /// Initializes a model copying the identity of supplied [model]
@@ -134,4 +134,4 @@ extension DataSupportExtension<T extends DataSupport<T>> on DataSupport<T> {
 /// Returns a data object's `_key` private attribute.
 ///
 /// Useful for testing, debugging or usage in [RemoteAdapter] subclasses
-String keyFor<T extends DataSupport<T>>(T model) => model?._key;
+String keyFor<T extends DataModel<T>>(T model) => model?._key;

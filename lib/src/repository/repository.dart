@@ -1,7 +1,7 @@
 part of flutter_data;
 
 /// Thin wrapper on the [RemoteAdapter] API
-class Repository<T extends DataSupport<T>> with _Lifecycle<Repository<T>> {
+class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   String get type => DataHelpers.getType<T>();
 
   @protected
@@ -134,7 +134,7 @@ class Repository<T extends DataSupport<T>> with _Lifecycle<Repository<T>> {
   }
 }
 
-/// Annotation on a [DataSupport] model to request a [Repository] be generated for it.
+/// Annotation on a [DataModel] model to request a [Repository] be generated for it.
 ///
 /// Takes a list of [adapters] to be mixed into this [Repository].
 /// Public methods of these [adapters] mixins will be made available in the repository
@@ -145,7 +145,7 @@ class Repository<T extends DataSupport<T>> with _Lifecycle<Repository<T>> {
 /// ```
 /// @JsonSerializable()
 /// @DataRepository([JSONAPIAdapter])
-/// class Todo with DataSupport<Todo> {
+/// class Todo with DataModel<Todo> {
 ///   @override
 ///   final int id;
 ///   final String title;

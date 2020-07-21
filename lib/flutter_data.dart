@@ -20,7 +20,7 @@ export 'package:riverpod/riverpod.dart' hide Family;
 export 'src/graph/notifier_extension.dart';
 export 'storage/hive_local_storage.dart';
 
-part 'src/model/data_support.dart';
+part 'src/model/data_model.dart';
 part 'src/model/relationship/relationship.dart';
 part 'src/model/relationship/has_many.dart';
 part 'src/model/relationship/belongs_to.dart';
