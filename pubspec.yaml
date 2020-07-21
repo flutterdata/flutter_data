@@ -37,5 +37,4 @@ dev_dependencies:
   json_annotation: ^3.0.1
   freezed: ^0.11.4
   freezed_annotation: ^0.11.0
-  test_coverage:
-    git: https://github.com/shyndman/test-coverage.git
+  test_coverage: ^0.4.3
