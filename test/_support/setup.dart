@@ -109,7 +109,6 @@ class NodeLocalAdapter = $NodeHiveLocalAdapter with TestHiveLocalAdapter<Node>;
 //
 
 ProviderStateOwner owner;
-Box<Map> metaBox;
 GraphNotifier graph;
 
 RemoteAdapter<House> houseRemoteAdapter;
