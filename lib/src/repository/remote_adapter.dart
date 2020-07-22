@@ -11,7 +11,7 @@ part of flutter_data;
 ///  - Access to the [_RemoteAdapter.graph] for subclasses or mixins
 ///
 /// This class is meant to be extended via mixing in new adapters.
-/// This can be done with the [DataRepository] annotation on a [DataModel] model:
+/// This can be done with the [DataRepository] annotation on a [DataModel] class:
 ///
 /// ```
 /// @JsonSerializable()
@@ -491,6 +491,15 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   @protected
   @visibleForTesting
   OnData<R> onError<R>(e) => throw e;
+
+  /// Initializes [model] making it ready to use with [DataModel] extensions.
+  ///
+  /// Optionally provide [key]. Use [save] to persist in local storage.
+  @protected
+  @visibleForTesting
+  T initializeModel(T model, {String key, bool save}) {
+    return model._initialize(adapters, key: key, save: save);
+  }
 
   // helpers
 
