@@ -7,7 +7,8 @@ import 'family.dart';
 
 part 'person.g.dart';
 
-@DataRepository([PersonLoginAdapter])
+@DataRepository(
+    [PersonLoginAdapter, GenericDoesNothingAdapter, YetAnotherLoginAdapter])
 class Person with DataModel<Person> {
   @override
   final String id;
@@ -77,5 +78,18 @@ mixin PersonLoginAdapter on RemoteAdapter<Person> {
       onSuccess: (data) => data['token'] as String,
       onError: (e) => throw UnsupportedError('custom error: $e'),
     );
+  }
+}
+
+mixin GenericDoesNothingAdapter<T extends DataModel<T>> on RemoteAdapter<T> {
+  Future<T> doNothing(T model, int n) async {
+    return model;
+  }
+}
+
+mixin YetAnotherLoginAdapter on PersonLoginAdapter {
+  @override
+  Future<String> login(String email, String password) async {
+    return super.login(email, password);
   }
 }

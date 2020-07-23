@@ -1,6 +1,8 @@
+import 'package:build/build.dart';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:source_gen/source_gen.dart';
 
 final relationshipTypeChecker = TypeChecker.fromRuntime(Relationship);
@@ -33,4 +35,12 @@ Iterable<VariableElement> relationshipFields(ClassElement elem) {
 extension VariableElementX on VariableElement {
   ClassElement get typeElement =>
       (type as ParameterizedType).typeArguments.single.element as ClassElement;
+}
+
+Pubspec _pubspec;
+
+Future<bool> isDependency(String package, BuildStep buildStep) async {
+  _pubspec ??= Pubspec.parse(await buildStep
+      .readAsString(AssetId(buildStep.inputId.package, 'pubspec.yaml')));
+  return _pubspec.dependencies.keys.any((key) => key == package);
 }

@@ -34,14 +34,14 @@ Map<String, dynamic> _$CatToJson(Cat instance) => <String, dynamic>{
 // RepositoryGenerator
 // **************************************************************************
 
-// ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names, invalid_use_of_protected_member
+// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
 
 mixin $DogLocalAdapter on LocalAdapter<Dog> {
   @override
   Map<String, Map<String, Object>> relationshipsFor([Dog model]) => {};
 
   @override
-  deserialize(map) {
+  Dog deserialize(map) {
     for (final key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key)],
@@ -51,7 +51,7 @@ mixin $DogLocalAdapter on LocalAdapter<Dog> {
   }
 
   @override
-  serialize(model) => model.toJson();
+  Map<String, dynamic> serialize(model) => model.toJson();
 }
 
 // ignore: must_be_immutable
@@ -61,36 +61,32 @@ class $DogRemoteAdapter = RemoteAdapter<Dog> with NothingMixin;
 
 //
 
-final dogsLocalAdapterProvider = Provider<LocalAdapter<Dog>>((ref) =>
+final dogLocalAdapterProvider = Provider<LocalAdapter<Dog>>((ref) =>
     $DogHiveLocalAdapter(
         ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
-final dogsRemoteAdapterProvider = Provider<RemoteAdapter<Dog>>(
-    (ref) => $DogRemoteAdapter(ref.read(dogsLocalAdapterProvider)));
+final dogRemoteAdapterProvider = Provider<RemoteAdapter<Dog>>(
+    (ref) => $DogRemoteAdapter(ref.read(dogLocalAdapterProvider)));
 
-final dogsRepositoryProvider =
+final dogRepositoryProvider =
     Provider<Repository<Dog>>((_) => Repository<Dog>());
 
 extension DogX on Dog {
-  Dog init([owner]) {
-    if (owner == null && debugGlobalServiceLocatorInstance != null) {
-      return debugInit(
-          debugGlobalServiceLocatorInstance.get<Repository<Dog>>());
-    }
-    return debugInit(owner.ref.read(dogsRepositoryProvider));
+  Dog init(owner) {
+    return internalLocatorFn(dogRepositoryProvider, owner)
+        .internalAdapter
+        .initializeModel(this, save: true) as Dog;
   }
 }
 
-extension DogRepositoryX on Repository<Dog> {}
-
-// ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names, invalid_use_of_protected_member
+// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
 
 mixin $CatLocalAdapter on LocalAdapter<Cat> {
   @override
   Map<String, Map<String, Object>> relationshipsFor([Cat model]) => {};
 
   @override
-  deserialize(map) {
+  Cat deserialize(map) {
     for (final key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key)],
@@ -100,7 +96,7 @@ mixin $CatLocalAdapter on LocalAdapter<Cat> {
   }
 
   @override
-  serialize(model) => model.toJson();
+  Map<String, dynamic> serialize(model) => model.toJson();
 }
 
 // ignore: must_be_immutable
@@ -110,24 +106,20 @@ class $CatRemoteAdapter = RemoteAdapter<Cat> with NothingMixin;
 
 //
 
-final catsLocalAdapterProvider = Provider<LocalAdapter<Cat>>((ref) =>
+final catLocalAdapterProvider = Provider<LocalAdapter<Cat>>((ref) =>
     $CatHiveLocalAdapter(
         ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
-final catsRemoteAdapterProvider = Provider<RemoteAdapter<Cat>>(
-    (ref) => $CatRemoteAdapter(ref.read(catsLocalAdapterProvider)));
+final catRemoteAdapterProvider = Provider<RemoteAdapter<Cat>>(
+    (ref) => $CatRemoteAdapter(ref.read(catLocalAdapterProvider)));
 
-final catsRepositoryProvider =
+final catRepositoryProvider =
     Provider<Repository<Cat>>((_) => Repository<Cat>());
 
 extension CatX on Cat {
-  Cat init([owner]) {
-    if (owner == null && debugGlobalServiceLocatorInstance != null) {
-      return debugInit(
-          debugGlobalServiceLocatorInstance.get<Repository<Cat>>());
-    }
-    return debugInit(owner.ref.read(catsRepositoryProvider));
+  Cat init(owner) {
+    return internalLocatorFn(catRepositoryProvider, owner)
+        .internalAdapter
+        .initializeModel(this, save: true) as Cat;
   }
 }
-
-extension CatRepositoryX on Repository<Cat> {}

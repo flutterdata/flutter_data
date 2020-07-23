@@ -32,7 +32,7 @@ Map<String, dynamic> _$PostToJson(Post instance) => <String, dynamic>{
 // RepositoryGenerator
 // **************************************************************************
 
-// ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names, invalid_use_of_protected_member
+// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
 
 mixin $PostLocalAdapter on LocalAdapter<Post> {
   @override
@@ -47,7 +47,7 @@ mixin $PostLocalAdapter on LocalAdapter<Post> {
       };
 
   @override
-  deserialize(map) {
+  Post deserialize(map) {
     for (final key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key)],
@@ -57,7 +57,7 @@ mixin $PostLocalAdapter on LocalAdapter<Post> {
   }
 
   @override
-  serialize(model) => _$PostToJson(model);
+  Map<String, dynamic> serialize(model) => _$PostToJson(model);
 }
 
 // ignore: must_be_immutable
@@ -67,24 +67,20 @@ class $PostRemoteAdapter = RemoteAdapter<Post> with JSONServerAdapter<Post>;
 
 //
 
-final postsLocalAdapterProvider = Provider<LocalAdapter<Post>>((ref) =>
+final postLocalAdapterProvider = Provider<LocalAdapter<Post>>((ref) =>
     $PostHiveLocalAdapter(
         ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
-final postsRemoteAdapterProvider = Provider<RemoteAdapter<Post>>(
-    (ref) => $PostRemoteAdapter(ref.read(postsLocalAdapterProvider)));
+final postRemoteAdapterProvider = Provider<RemoteAdapter<Post>>(
+    (ref) => $PostRemoteAdapter(ref.read(postLocalAdapterProvider)));
 
-final postsRepositoryProvider =
+final postRepositoryProvider =
     Provider<Repository<Post>>((_) => Repository<Post>());
 
 extension PostX on Post {
   Post init([owner]) {
-    if (owner == null && debugGlobalServiceLocatorInstance != null) {
-      return debugInit(
-          debugGlobalServiceLocatorInstance.get<Repository<Post>>());
-    }
-    return debugInit(owner.ref.read(postsRepositoryProvider));
+    return internalLocatorFn(postRepositoryProvider, owner)
+        .internalAdapter
+        .initializeModel(this, save: true) as Post;
   }
 }
-
-extension PostRepositoryX on Repository<Post> {}

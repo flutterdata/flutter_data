@@ -38,7 +38,7 @@ Map<String, dynamic> _$FamilyToJson(Family instance) => <String, dynamic>{
 // RepositoryGenerator
 // **************************************************************************
 
-// ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names, invalid_use_of_protected_member
+// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
 
 mixin $FamilyLocalAdapter on LocalAdapter<Family> {
   @override
@@ -65,7 +65,7 @@ mixin $FamilyLocalAdapter on LocalAdapter<Family> {
       };
 
   @override
-  deserialize(map) {
+  Family deserialize(map) {
     for (final key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key)],
@@ -75,7 +75,7 @@ mixin $FamilyLocalAdapter on LocalAdapter<Family> {
   }
 
   @override
-  serialize(model) => _$FamilyToJson(model);
+  Map<String, dynamic> serialize(model) => _$FamilyToJson(model);
 }
 
 // ignore: must_be_immutable
@@ -86,24 +86,20 @@ class $FamilyRemoteAdapter = RemoteAdapter<Family> with NothingMixin;
 
 //
 
-final familiesLocalAdapterProvider = Provider<LocalAdapter<Family>>((ref) =>
+final familyLocalAdapterProvider = Provider<LocalAdapter<Family>>((ref) =>
     $FamilyHiveLocalAdapter(
         ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
-final familiesRemoteAdapterProvider = Provider<RemoteAdapter<Family>>(
-    (ref) => $FamilyRemoteAdapter(ref.read(familiesLocalAdapterProvider)));
+final familyRemoteAdapterProvider = Provider<RemoteAdapter<Family>>(
+    (ref) => $FamilyRemoteAdapter(ref.read(familyLocalAdapterProvider)));
 
-final familiesRepositoryProvider =
+final familyRepositoryProvider =
     Provider<Repository<Family>>((_) => Repository<Family>());
 
 extension FamilyX on Family {
-  Family init([owner]) {
-    if (owner == null && debugGlobalServiceLocatorInstance != null) {
-      return debugInit(
-          debugGlobalServiceLocatorInstance.get<Repository<Family>>());
-    }
-    return debugInit(owner.ref.read(familiesRepositoryProvider));
+  Family init(owner) {
+    return internalLocatorFn(familyRepositoryProvider, owner)
+        .internalAdapter
+        .initializeModel(this, save: true) as Family;
   }
 }
-
-extension FamilyRepositoryX on Repository<Family> {}

@@ -14,6 +14,10 @@ void main() async {
   setUp(setUpFn);
   tearDown(tearDownFn);
 
+  test('initialization', () {
+    expect(familyRepository.isInitialized, isTrue);
+  });
+
   test('findAll & clear', () async {
     final family1 = Family(id: '1', surname: 'Smith');
     final family2 = Family(id: '2', surname: 'Jones');
@@ -271,6 +275,8 @@ void main() async {
     expect(() async {
       await personRepository.login(null, null);
     }, throwsA(isA<UnsupportedError>()));
+
+    await personRepository.doNothing(null, 1);
   });
 
   test('mock repository', () async {

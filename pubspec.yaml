@@ -18,7 +18,7 @@ dependencies:
   meta: ^1.1.8
   http: ^0.12.0+4
   hive: ^1.4.1+1
-  analyzer: ^0.39.7
+  analyzer: 0.39.10
   source_gen: ^0.9.5
   pubspec_parse: ^0.1.5
   glob: ^1.2.0

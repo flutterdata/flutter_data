@@ -30,7 +30,7 @@ Map<String, dynamic> _$_$_NodeToJson(_$_Node instance) => <String, dynamic>{
 // RepositoryGenerator
 // **************************************************************************
 
-// ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names, invalid_use_of_protected_member
+// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
 
 mixin $NodeLocalAdapter on LocalAdapter<Node> {
   @override
@@ -50,7 +50,7 @@ mixin $NodeLocalAdapter on LocalAdapter<Node> {
       };
 
   @override
-  deserialize(map) {
+  Node deserialize(map) {
     for (final key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key)],
@@ -60,7 +60,7 @@ mixin $NodeLocalAdapter on LocalAdapter<Node> {
   }
 
   @override
-  serialize(model) => model.toJson();
+  Map<String, dynamic> serialize(model) => model.toJson();
 }
 
 // ignore: must_be_immutable
@@ -70,24 +70,20 @@ class $NodeRemoteAdapter = RemoteAdapter<Node> with NothingMixin;
 
 //
 
-final nodesLocalAdapterProvider = Provider<LocalAdapter<Node>>((ref) =>
+final nodeLocalAdapterProvider = Provider<LocalAdapter<Node>>((ref) =>
     $NodeHiveLocalAdapter(
         ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
-final nodesRemoteAdapterProvider = Provider<RemoteAdapter<Node>>(
-    (ref) => $NodeRemoteAdapter(ref.read(nodesLocalAdapterProvider)));
+final nodeRemoteAdapterProvider = Provider<RemoteAdapter<Node>>(
+    (ref) => $NodeRemoteAdapter(ref.read(nodeLocalAdapterProvider)));
 
-final nodesRepositoryProvider =
+final nodeRepositoryProvider =
     Provider<Repository<Node>>((_) => Repository<Node>());
 
 extension NodeX on Node {
-  Node init([owner]) {
-    if (owner == null && debugGlobalServiceLocatorInstance != null) {
-      return debugInit(
-          debugGlobalServiceLocatorInstance.get<Repository<Node>>());
-    }
-    return debugInit(owner.ref.read(nodesRepositoryProvider));
+  Node init(owner) {
+    return internalLocatorFn(nodeRepositoryProvider, owner)
+        .internalAdapter
+        .initializeModel(this, save: true) as Node;
   }
 }
-
-extension NodeRepositoryX on Repository<Node> {}

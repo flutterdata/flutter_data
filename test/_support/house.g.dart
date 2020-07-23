@@ -26,7 +26,7 @@ Map<String, dynamic> _$HouseToJson(House instance) => <String, dynamic>{
 // RepositoryGenerator
 // **************************************************************************
 
-// ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names, invalid_use_of_protected_member
+// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
 
 mixin $HouseLocalAdapter on LocalAdapter<House> {
   @override
@@ -40,7 +40,7 @@ mixin $HouseLocalAdapter on LocalAdapter<House> {
       };
 
   @override
-  deserialize(map) {
+  House deserialize(map) {
     for (final key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key)],
@@ -50,7 +50,7 @@ mixin $HouseLocalAdapter on LocalAdapter<House> {
   }
 
   @override
-  serialize(model) => _$HouseToJson(model);
+  Map<String, dynamic> serialize(model) => _$HouseToJson(model);
 }
 
 // ignore: must_be_immutable
@@ -60,24 +60,20 @@ class $HouseRemoteAdapter = RemoteAdapter<House> with NothingMixin;
 
 //
 
-final housesLocalAdapterProvider = Provider<LocalAdapter<House>>((ref) =>
+final houseLocalAdapterProvider = Provider<LocalAdapter<House>>((ref) =>
     $HouseHiveLocalAdapter(
         ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
-final housesRemoteAdapterProvider = Provider<RemoteAdapter<House>>(
-    (ref) => $HouseRemoteAdapter(ref.read(housesLocalAdapterProvider)));
+final houseRemoteAdapterProvider = Provider<RemoteAdapter<House>>(
+    (ref) => $HouseRemoteAdapter(ref.read(houseLocalAdapterProvider)));
 
-final housesRepositoryProvider =
+final houseRepositoryProvider =
     Provider<Repository<House>>((_) => Repository<House>());
 
 extension HouseX on House {
-  House init([owner]) {
-    if (owner == null && debugGlobalServiceLocatorInstance != null) {
-      return debugInit(
-          debugGlobalServiceLocatorInstance.get<Repository<House>>());
-    }
-    return debugInit(owner.ref.read(housesRepositoryProvider));
+  House init(owner) {
+    return internalLocatorFn(houseRepositoryProvider, owner)
+        .internalAdapter
+        .initializeModel(this, save: true) as House;
   }
 }
-
-extension HouseRepositoryX on Repository<House> {}

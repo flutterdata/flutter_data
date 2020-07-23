@@ -28,7 +28,7 @@ Map<String, dynamic> _$CommentToJson(Comment instance) => <String, dynamic>{
 // RepositoryGenerator
 // **************************************************************************
 
-// ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names, invalid_use_of_protected_member
+// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
 
 mixin $CommentLocalAdapter on LocalAdapter<Comment> {
   @override
@@ -42,7 +42,7 @@ mixin $CommentLocalAdapter on LocalAdapter<Comment> {
       };
 
   @override
-  deserialize(map) {
+  Comment deserialize(map) {
     for (final key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key)],
@@ -52,7 +52,7 @@ mixin $CommentLocalAdapter on LocalAdapter<Comment> {
   }
 
   @override
-  serialize(model) => _$CommentToJson(model);
+  Map<String, dynamic> serialize(model) => _$CommentToJson(model);
 }
 
 // ignore: must_be_immutable
@@ -64,24 +64,20 @@ class $CommentRemoteAdapter = RemoteAdapter<Comment>
 
 //
 
-final commentsLocalAdapterProvider = Provider<LocalAdapter<Comment>>((ref) =>
+final commentLocalAdapterProvider = Provider<LocalAdapter<Comment>>((ref) =>
     $CommentHiveLocalAdapter(
         ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
-final commentsRemoteAdapterProvider = Provider<RemoteAdapter<Comment>>(
-    (ref) => $CommentRemoteAdapter(ref.read(commentsLocalAdapterProvider)));
+final commentRemoteAdapterProvider = Provider<RemoteAdapter<Comment>>(
+    (ref) => $CommentRemoteAdapter(ref.read(commentLocalAdapterProvider)));
 
-final commentsRepositoryProvider =
+final commentRepositoryProvider =
     Provider<Repository<Comment>>((_) => Repository<Comment>());
 
 extension CommentX on Comment {
   Comment init([owner]) {
-    if (owner == null && debugGlobalServiceLocatorInstance != null) {
-      return debugInit(
-          debugGlobalServiceLocatorInstance.get<Repository<Comment>>());
-    }
-    return debugInit(owner.ref.read(commentsRepositoryProvider));
+    return internalLocatorFn(commentRepositoryProvider, owner)
+        .internalAdapter
+        .initializeModel(this, save: true) as Comment;
   }
 }
-
-extension CommentRepositoryX on Repository<Comment> {}

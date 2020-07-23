@@ -2,6 +2,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:build/build.dart';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:source_gen/source_gen.dart';
@@ -18,7 +19,7 @@ class RepositoryGenerator extends GeneratorForAnnotation<DataRepository> {
   Future<String> generateForAnnotatedElement(
       Element element, ConstantReader annotation, BuildStep buildStep) async {
     final type = element.name;
-    final typeInPlural = DataHelpers.getType(type);
+    final typeLowerCased = DataHelpers.getType(type).singularize();
     ClassElement classElement;
 
     // validations
@@ -128,33 +129,83 @@ and execute a code generation build again.
 
     final additionalMixinExtensionMethods = {};
 
+    final remoteAdapterTypeChecker = TypeChecker.fromRuntime(RemoteAdapter);
+
     final mixins = annotation.read('adapters').listValue.map((obj) {
-      var hasTypeArgument = false;
       final mixinType = obj.toTypeValue();
+      final mixinMethods = <MethodElement>[];
+      String displayName;
+      var hasOnRemoteAdapter = false;
+
       if (mixinType is ParameterizedType) {
         final args = mixinType.typeArguments;
-        assert(args.length > 1,
-            'At most one type argument is supported for $mixinType');
-        hasTypeArgument = args.length == 1;
+
+        if (args.length > 1) {
+          throw UnsupportedError(
+              'Adapter `$mixinType` MUST have at most one type argument (T extends DataModel<T>) is supported for $mixinType');
+        }
+
+        if (!remoteAdapterTypeChecker.isAssignableFromType(mixinType)) {
+          throw UnsupportedError(
+              'Adapter `$mixinType` MUST have a constraint `on` RemoteAdapter<$type>');
+        }
+
+        final instantiatedMixinType = (mixinType.element as ClassElement)
+            .instantiate(
+                typeArguments: [if (args.isNotEmpty) classElement.thisType],
+                nullabilitySuffix: NullabilitySuffix.none);
+        mixinMethods.addAll(instantiatedMixinType.methods);
+        displayName = instantiatedMixinType.getDisplayString();
+
+        hasOnRemoteAdapter = instantiatedMixinType.superclassConstraints
+            .any((type) => remoteAdapterTypeChecker.isExactlyType(type));
       }
 
-      for (final m in (mixinType.element as ClassElement)
-          .methods
-          .where((m) => m.isPublic)) {
-        additionalMixinExtensionMethods[m.name] =
-            '$m => (adapter as $mixinType).${m.name}(${m.parameters.map((p) => p.name).join(', ')});';
+      for (final m in mixinMethods.where((m) => m.isPublic)) {
+        // if method directly @overrides a method of RemoteAdapter, do not include
+        if (!(m.hasOverride && hasOnRemoteAdapter)) {
+          final params = m.parameters.map((p) {
+            return p.isPositional ? p.name : '${p.name}: ${p.name}';
+          }).join(', ');
+
+          additionalMixinExtensionMethods[m.name] =
+              '$m => (internalAdapter as $displayName).${m.name}($params);';
+        }
       }
-      return '${mixinType.element.name}${hasTypeArgument ? "<$type>" : ""}';
+
+      return displayName;
     }).toSet();
 
     if (mixins.isEmpty) {
       mixins.add('NothingMixin');
     }
 
+    final additionalMixinExtension = additionalMixinExtensionMethods.isNotEmpty
+        ? '''
+    extension ${type}RepositoryX on Repository<$type> {
+      ${additionalMixinExtensionMethods.values.join('\n')}
+    }'''
+        : '';
+
+    // imports
+
+    // this library's imports (typically flutter_data, json_annotation, etc - NOT provider)
+    // print((element.library?.imports ?? []).map((e) => '${e.declaration}'));
+
+    final importProvider = await isDependency('provider', buildStep);
+    final importGetIt = await isDependency('get_it', buildStep);
+    final importFlutterRiverpod =
+        await isDependency('flutter_riverpod', buildStep) ||
+            await isDependency('hooks_riverpod', buildStep);
+
+    final initArg =
+        (importProvider || importFlutterRiverpod) ? 'context' : 'owner';
+    final initArgOptional = importGetIt ? '[$initArg]' : initArg;
+
     // template
 
     return '''
-// ignore_for_file: unused_local_variable, always_declare_return_types, non_constant_identifier_names, invalid_use_of_protected_member
+// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
 
 mixin \$${type}LocalAdapter on LocalAdapter<$type> {
   @override
@@ -162,7 +213,7 @@ mixin \$${type}LocalAdapter on LocalAdapter<$type> {
     $relationshipsFor;
 
   @override
-  deserialize(map) {
+  $type deserialize(map) {
     for (final key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key)],
@@ -172,7 +223,7 @@ mixin \$${type}LocalAdapter on LocalAdapter<$type> {
   }
 
   @override
-  serialize(model) => $toJson;
+  Map<String, dynamic> serialize(model) => $toJson;
 }
 
 // ignore: must_be_immutable
@@ -182,30 +233,25 @@ class \$${type}RemoteAdapter = RemoteAdapter<$type> with ${mixins.join(', ')};
 
 //
 
-final ${typeInPlural}LocalAdapterProvider = Provider<LocalAdapter<$type>>(
+final ${typeLowerCased}LocalAdapterProvider = Provider<LocalAdapter<$type>>(
     (ref) => \$${type}HiveLocalAdapter(ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
-final ${typeInPlural}RemoteAdapterProvider =
+final ${typeLowerCased}RemoteAdapterProvider =
     Provider<RemoteAdapter<$type>>(
-        (ref) => \$${type}RemoteAdapter(ref.read(${typeInPlural}LocalAdapterProvider)));
+        (ref) => \$${type}RemoteAdapter(ref.read(${typeLowerCased}LocalAdapterProvider)));
 
-final ${typeInPlural}RepositoryProvider =
+final ${typeLowerCased}RepositoryProvider =
     Provider<Repository<$type>>((_) => Repository<$type>());
 
 
 extension ${type}X on $type {
-  $type init([owner]) {
-    if (owner == null && debugGlobalServiceLocatorInstance != null) {
-      return debugInit(
-          debugGlobalServiceLocatorInstance.get<Repository<$type>>());
-    }
-    return debugInit(owner.ref.read(${typeInPlural}RepositoryProvider));
+  $type init($initArgOptional) {
+    return internalLocatorFn(${typeLowerCased}RepositoryProvider, $initArg).internalAdapter.initializeModel(this, save: true) as $type;
   }
 }
 
-extension ${type}RepositoryX on Repository<$type> {
-  ${additionalMixinExtensionMethods.values.join('\n')}
-}
+$additionalMixinExtension
+
 ''';
   }
 }

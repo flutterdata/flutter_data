@@ -4,7 +4,6 @@ import 'dart:async';
 
 import 'package:build/build.dart';
 import 'package:flutter_data/flutter_data.dart';
-import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:glob/glob.dart';
@@ -67,63 +66,70 @@ class DataExtensionBuilder implements Builder {
     final classes = _classes.fold<List<Map<String, String>>>([], (acc, line) {
       for (final e in line.split(';')) {
         var parts = e.split('#');
-        // print(parts);
-        acc.add({'name': parts[0], 'related': parts[1], 'path': parts[2]});
+        acc.add({
+          'name': parts[0].singularize(),
+          'related': parts[1],
+          'path': parts[2]
+        });
       }
       return acc;
     });
+
+    // if this is a library, do not generate
+    if (classes.any((c) => c['path'].startsWith('asset:'))) {
+      return null;
+    }
 
     final modelImports =
         classes.map((c) => 'import \'${c["path"]}\';').toSet().join('\n');
 
     var providerRegistration = '';
 
-    final yaml =
-        await b.readAsString(AssetId(b.inputId.package, 'pubspec.yaml'));
-
-    final pubspec = Pubspec.parse(yaml);
-
     final graphs = {
       for (final clazz in classes)
         if (clazz['related'].isNotEmpty)
           '\'${clazz['related']}\'': {
             for (final type in clazz['related'].split(','))
-              '\'$type\'': 'ref.read(${type}RemoteAdapterProvider)'
+              '\'$type\'':
+                  'ref.read(${type.singularize()}RemoteAdapterProvider)'
           }
     };
 
-    // check if `path_provider` is a dependency
-    final importPathProvider =
-        pubspec.dependencies.keys.any((key) => key == 'path_provider');
+    // check dependencies
 
-    // check if `provider` is a dependency
-    final importProvider =
-        pubspec.dependencies.keys.any((key) => key == 'provider');
+    final importPathProvider = await isDependency('path_provider', b);
+    final importProvider = await isDependency('provider', b);
+    final importGetIt = await isDependency('get_it', b);
 
-    // check if `get_it` is a dependency
-    final importGetIt = pubspec.dependencies.keys.any((key) => key == 'get_it');
+    //
     var getItRegistration = '';
 
     if (importProvider) {
       providerRegistration = '''\n
 List<SingleChildWidget> repositoryProviders({FutureFn<String> baseDirFn, List<int> encryptionKey,
     bool clear, bool remote, bool verbose, FutureFn alsoAwait}) {
-  final _owner = ProviderStateOwner(
-    overrides: [
-      configureRepositoryLocalStorage(baseDirFn: baseDirFn, encryptionKey: encryptionKey, clear: clear),
-    ],
-  );
 
   return [
+    p.Provider(
+        create: (_) => ProviderStateOwner(
+          overrides: [
+            configureRepositoryLocalStorage(
+                baseDirFn: baseDirFn, encryptionKey: encryptionKey, clear: clear),
+          ]
+      ),
+    ),
     p.FutureProvider<RepositoryInitializer>(
-      create: (_) async {
-        return await _owner.ref(repositoryInitializerProvider(remote: remote, verbose: verbose, alsoAwait: alsoAwait));
+      create: (context) async {
+        final init = await p.Provider.of<ProviderStateOwner>(context, listen: false).ref.read(repositoryInitializerProvider(remote: remote, verbose: verbose, alsoAwait: alsoAwait));
+        internalLocatorFn = (provider, context) => provider.readOwner(
+            p.Provider.of<ProviderStateOwner>(context, listen: false));
+        return init;
       },
     ),''' +
           classes.map((c) => '''
-    p.ProxyProvider<RepositoryInitializer, Repository<${(c['name']).singularize().capitalize()}>>(
+    p.ProxyProvider<RepositoryInitializer, Repository<${(c['name']).capitalize()}>>(
       lazy: false,
-      update: (_, i, __) => i == null ? null : _owner.ref.read(${c['name']}RepositoryProvider),
+      update: (context, i, __) => i == null ? null : p.Provider.of<ProviderStateOwner>(context, listen: false).ref.read(${c['name']}RepositoryProvider),
       dispose: (_, r) => r?.dispose(),
     ),''').join('\n') +
           ']; }';
@@ -134,7 +140,7 @@ List<SingleChildWidget> repositoryProviders({FutureFn<String> baseDirFn, List<in
 extension GetItFlutterDataX on GetIt {
   void registerRepositories({FutureFn<String> baseDirFn, List<int> encryptionKey,
     bool clear, bool remote, bool verbose}) {
-final i = debugGlobalServiceLocatorInstance = GetIt.instance;
+final i = GetIt.instance;
 
 final _owner = ProviderStateOwner(
   overrides: [
@@ -142,13 +148,19 @@ final _owner = ProviderStateOwner(
   ],
 );
 
+if (i.isRegistered<RepositoryInitializer>()) {
+  return;
+}
+
 i.registerSingletonAsync<RepositoryInitializer>(() async {
-    return _owner.ref.read(repositoryInitializerProvider(
+    final init = _owner.ref.read(repositoryInitializerProvider(
           remote: remote, verbose: verbose));
+    internalLocatorFn = (provider, _) => provider.readOwner(_owner);
+    return init;
   });''' +
           classes.map((c) => '''
   
-i.registerSingletonWithDependencies<Repository<${(c['name']).singularize().capitalize()}>>(
+i.registerSingletonWithDependencies<Repository<${(c['name']).capitalize()}>>(
       () => _owner.ref.read(${c['name']}RepositoryProvider),
       dependsOn: [RepositoryInitializer]);
 
@@ -164,12 +176,24 @@ i.registerSingletonWithDependencies<Repository<${(c['name']).singularize().capit
         ? [
             "import 'package:provider/provider.dart' as p;",
             "import 'package:provider/single_child_widget.dart';",
-            "import 'package:flutter/foundation.dart';"
           ].join('\n')
         : '';
 
     final getItImport =
         importGetIt ? "import 'package:get_it/get_it.dart';" : '';
+
+    final importFlutterRiverpod = await isDependency('flutter_riverpod', b) ||
+        await isDependency('hooks_riverpod', b);
+
+    final riverpodImport = importFlutterRiverpod
+        ? "import 'package:flutter_riverpod/flutter_riverpod.dart';"
+        : '';
+
+    final internalLocator = importFlutterRiverpod
+        ? '''
+    internalLocatorFn = (provider, context) => provider.read(context);
+    '''
+        : '';
 
     //
 
@@ -190,6 +214,7 @@ import 'package:flutter_data/flutter_data.dart';
 $pathProviderImport
 $providerImports
 $getItImport
+$riverpodImport
 
 $modelImports
 
@@ -201,9 +226,11 @@ Override configureRepositoryLocalStorage({FutureFn<String> baseDirFn, List<int> 
 }
 
 FutureProvider<RepositoryInitializer> repositoryInitializerProvider(
-        {bool remote, bool verbose, FutureFn alsoAwait}) =>
-    _repositoryInitializerProviderFamily(
-        RepositoryInitializerArgs(remote, verbose, alsoAwait));
+        {bool remote, bool verbose, FutureFn alsoAwait}) {
+  $internalLocator
+  return _repositoryInitializerProviderFamily(
+      RepositoryInitializerArgs(remote, verbose, alsoAwait));
+}
 
 final _repositoryInitializerProviderFamily =
   FutureProvider.family<RepositoryInitializer, RepositoryInitializerArgs>((ref, args) async {
