@@ -383,7 +383,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   /// The [http.Client] used to make all HTTP requests.
   @protected
   @visibleForTesting
-  final http.Client httpClient = http.Client();
+  http.Client get httpClient => http.Client();
 
   /// The function used to perform an HTTP request and return an [R].
   ///
