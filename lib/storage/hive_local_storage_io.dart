@@ -27,10 +27,30 @@ class IoHiveLocalStorage implements HiveLocalStorage {
     if (baseDirFn == null) {
       throw UnsupportedError('''
 A base directory path MUST be supplied to
-the hiveLocalStorageProvider.
+the hiveLocalStorageProvider via the `baseDirFn`
+callback.
 
-In Flutter, this will be done automatically if
-the `path_provider` package is in `pubspec.yaml`.
+In Flutter, `baseDirFn` will be supplied automatically if
+the `path_provider` package is in `pubspec.yaml` AND
+Flutter Data is properly configured:
+
+If using Riverpod, did you supply the override?
+
+Widget build(context) {
+  return ProviderScope(
+    overrides: [
+      configureRepositoryLocalStorage()
+    ],
+    child: MaterialApp(
+
+If using Provider, did you include the providers?
+
+Widget build(context) {
+  return MultiProvider(
+    providers: [
+      ...repositoryProviders(),
+    ],
+    child: MaterialApp(
 ''');
     }
 

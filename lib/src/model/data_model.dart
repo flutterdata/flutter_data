@@ -18,12 +18,6 @@ abstract class DataModel<T extends DataModel<T>> {
 
   // initializers
 
-  @protected
-  T debugInit(dynamic repository) {
-    assert(repository is Repository<T>);
-    return _initialize((repository as Repository<T>)._adapters, save: true);
-  }
-
   T _initialize(final Map<String, RemoteAdapter> adapters,
       {final String key, final bool save = false}) {
     if (_isInitialized) return _this;
@@ -34,7 +28,6 @@ abstract class DataModel<T extends DataModel<T>> {
 Please ensure the type `$T` has been correctly initialized.\n
 ''');
 
-    // model.id could be null, that's okay
     _this._key = _adapter.graph.getKeyForId(_this._adapter.type, _this.id,
         keyIfAbsent: key ?? DataHelpers.generateKey<T>());
 

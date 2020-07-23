@@ -4,10 +4,16 @@ part of flutter_data;
 class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   String get type => DataHelpers.getType<T>();
 
-  @protected
-  RemoteAdapter<T> get adapter => _adapters[type] as RemoteAdapter<T>;
-
   final _adapters = <String, RemoteAdapter>{};
+
+  RemoteAdapter<T> get _adapter => _adapters[type] as RemoteAdapter<T>;
+
+  /// ONLY FOR FLUTTER DATA INTERNAL USE
+  ///
+  /// It must remain non-private for the model extension to use.
+  @protected
+  @visibleForTesting
+  RemoteAdapter<T> get internalAdapter => _adapter;
 
   /// Initializes this [Repository]. Nothing will work without this.
   /// In standard scenarios this initialization is done by the framework.
@@ -19,10 +25,8 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
       Map<String, RemoteAdapter> adapters,
       ProviderReference ref}) async {
     if (isInitialized) return this;
-    for (final e in adapters.entries) {
-      _adapters[e.key] = e.value;
-    }
-    await adapter.initialize(
+    _adapters.addAll(adapters);
+    await _adapter.initialize(
         remote: remote, verbose: verbose, adapters: adapters, ref: ref);
     await super.initialize();
     return this;
@@ -33,7 +37,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   @mustCallSuper
   Future<void> dispose() async {
     await super.dispose();
-    await adapter?.dispose();
+    await _adapter?.dispose();
   }
 
   // public API
@@ -50,7 +54,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   /// See also: [_RemoteAdapter.urlForFindAll], [_RemoteAdapter.methodForFindAll].
   Future<List<T>> findAll(
       {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
-    return adapter.findAll(
+    return _adapter.findAll(
         remote: remote, params: params, headers: headers, init: true);
   }
 
@@ -66,7 +70,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   /// See also: [_RemoteAdapter.urlForFindOne], [_RemoteAdapter.methodForFindOne].
   Future<T> findOne(final dynamic id,
       {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
-    return adapter.findOne(id,
+    return _adapter.findOne(id,
         remote: remote, params: params, headers: headers, init: true);
   }
 
@@ -82,7 +86,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   /// See also: [_RemoteAdapter.urlForSave], [_RemoteAdapter.methodForSave].
   Future<T> save(T model,
       {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
-    return adapter.save(model,
+    return _adapter.save(model,
         remote: remote, params: params, headers: headers, init: true);
   }
 
@@ -98,19 +102,19 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   /// See also: [_RemoteAdapter.urlForDelete], [_RemoteAdapter.methodForDelete].
   Future<void> delete(dynamic model,
       {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
-    return adapter.delete(model,
+    return _adapter.delete(model,
         remote: remote, params: params, headers: headers);
   }
 
   /// Deletes all models of type [T]. This ONLY affects local storage.
-  Future<void> clear() => adapter.clear();
+  Future<void> clear() => _adapter.clear();
 
   /// Watches changes on all models of type [T] in local storage.
   ///
   /// When called, will in turn call [findAll] with [remote], [params], [headers].
   DataStateNotifier<List<T>> watchAll(
       {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
-    return adapter.watchAll(remote: remote, params: params, headers: headers);
+    return _adapter.watchAll(remote: remote, params: params, headers: headers);
   }
 
   /// Watches changes on model of type [T] by [id] in local storage.
@@ -129,7 +133,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
       Map<String, dynamic> params,
       Map<String, String> headers,
       AlsoWatch<T> alsoWatch}) {
-    return adapter.watchOne(id,
+    return _adapter.watchOne(id,
         remote: remote, params: params, headers: headers, alsoWatch: alsoWatch);
   }
 }

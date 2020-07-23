@@ -43,9 +43,9 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
 
   // key-related methods
 
-  /// Finds a key in the graph
+  /// Finds a model's key in the graph.
   ///
-  ///  - Attempts a lookup by [type]/[id]
+  ///  - Attempts a lookup by [type]/[id] (these are allowed to be `null`)
   ///  - If the key was not found, it returns a default [keyIfAbsent]
   ///    (if provided)
   ///  - It associates [keyIfAbsent] with the supplied [type]/[id]

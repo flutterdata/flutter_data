@@ -21,11 +21,18 @@ class DataHelpers {
 
 // initialization helpers
 
-/// DO NOT USE: For exclusive internal use of global service locator
-/// integration such as `get_it`'s
-dynamic debugGlobalServiceLocatorInstance;
+typedef InternalLocator<T extends DataModel<T>> = Repository<T> Function(
+    Provider<Repository<T>>, dynamic);
+
+/// ONLY FOR FLUTTER DATA INTERNAL USE
+InternalLocator internalLocatorFn =
+    (provider, owner) => provider.readOwner(owner as ProviderStateOwner);
 
 class RepositoryInitializer {}
+
+extension RepositoryInitializerX on RepositoryInitializer {
+  bool get isLoading => this == null;
+}
 
 class RepositoryInitializerArgs {
   RepositoryInitializerArgs(this.remote, this.verbose, this.alsoAwait);
@@ -70,6 +77,7 @@ abstract class _Lifecycle<T> {
   }
 
   @protected
+  @visibleForTesting
   bool get isInitialized => _isInit;
 
   @mustCallSuper
