@@ -5,6 +5,7 @@ import 'package:test/test.dart';
 
 import '../_support/family.dart';
 import '../_support/house.dart';
+import '../_support/node.dart';
 import '../_support/person.dart';
 import '../_support/pet.dart';
 import '../_support/setup.dart';
@@ -46,6 +47,22 @@ void main() async {
       'dogs': ['1', '2']
     });
     expect(json.encode(serialized), isA<String>());
+
+    // also test a class without @JsonSerializable(explicitToJson: true)
+    final n1 = Node(
+            id: 1,
+            name: 'a',
+            children:
+                {Node(id: 2, name: 'a1'), Node(id: 3, name: 'a2')}.asHasMany)
+        .init(owner);
+    final s2 = nodeRepository.internalAdapter.serialize(n1);
+    // FIXME should be 'children': [2, 3] ; preserve original ID type!
+    expect(s2, {
+      'id': 1,
+      'name': 'a',
+      'children': ['2', '3']
+    });
+    expect(json.encode(s2), isA<String>());
   });
 
   test('deserialize multiple', () {
@@ -60,7 +77,18 @@ void main() async {
     ]);
   });
 
-  test('deserialize relationship with id', () {
+  test('deserialize with BelongsTo id', () {
+    final p = personRemoteAdapter
+        .deserialize([
+          {'_id': '1', 'name': 'Na', 'age': 88, 'family_id': null}
+        ])
+        .model
+        .init(owner);
+
+    Family(id: '1', surname: 'Kong').init(owner);
+
+    expect(p.family.key, isNull);
+
     final p1 = personRemoteAdapter
         .deserialize([
           {'_id': '27', 'name': 'Ko', 'age': 24, 'family_id': '332'}
@@ -68,9 +96,9 @@ void main() async {
         .model
         .init(owner);
 
-    //
-
     Family(id: '332', surname: 'Tao').init(owner);
+
+    expect(p1.family.value.id, '332');
 
     final p2 = Person(
             id: '27',
@@ -83,6 +111,26 @@ void main() async {
 
     // this works because p2 was initialized!
     expect(p1.family.value, p2.family.value);
+  });
+
+  test('deserialize with HasMany ids (including nulls)', () {
+    final f = familyRemoteAdapter
+        .deserialize([
+          {
+            'id': '1',
+            'surname': 'Ko',
+            'persons': ['1', null, '2']
+          }
+        ])
+        .model
+        .init(owner);
+
+    expect(
+        f.persons.keys,
+        unorderedEquals([
+          graph.getKeyForId('people', '1'),
+          graph.getKeyForId('people', '2')
+        ]));
   });
 
   test('deserialize with embedded relationships', () {

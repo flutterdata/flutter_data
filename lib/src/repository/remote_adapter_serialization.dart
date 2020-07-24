@@ -7,16 +7,16 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
 
     final relationships = <String, dynamic>{};
 
-    for (final relEntry in localAdapter.relationshipsFor().entries) {
+    for (final relEntry in localAdapter.relationshipsFor(model).entries) {
       final field = relEntry.key;
       final key = keyForField(field);
       if (map[field] != null) {
         if (relEntry.value['kind'] == 'HasMany') {
-          final dataIdKeys = List<String>.from(map[field] as Iterable);
-          relationships[key] = dataIdKeys.map(graph.getId).toList();
+          final _keys = (relEntry.value['instance'] as HasMany).keys;
+          relationships[key] = _keys.map(graph.getId).toList();
         } else if (relEntry.value['kind'] == 'BelongsTo') {
-          final dataIdKey = map[field].toString();
-          relationships[key] = graph.getId(dataIdKey);
+          final _key = (relEntry.value['instance'] as BelongsTo).key;
+          relationships[key] = graph.getId(_key);
         }
       }
       map.remove(field);
@@ -61,17 +61,23 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
 
           if (metadata['kind'] == 'BelongsTo') {
             final id = addIncluded(mapIn[mapInKey], adapters[_type]);
-            // transform ids into keys
-            mapOut[mapOutKey] = graph.getKeyForId(_type, id,
-                keyIfAbsent: DataHelpers.generateKey(_type));
+            mapOut[mapOutKey] = id == null
+                ? null
+                : graph.getKeyForId(_type, id,
+                    keyIfAbsent: DataHelpers.generateKey(_type));
           }
 
           if (metadata['kind'] == 'HasMany') {
-            mapOut[mapOutKey] = (mapIn[mapInKey] as Iterable)?.map((id) {
-              id = addIncluded(id, adapters[_type]);
-              return graph.getKeyForId(_type, id,
-                  keyIfAbsent: DataHelpers.generateKey(_type));
-            })?.toImmutableList();
+            mapOut[mapOutKey] = (mapIn[mapInKey] as Iterable)
+                ?.map((id) {
+                  id = addIncluded(id, adapters[_type]);
+                  return id == null
+                      ? null
+                      : graph.getKeyForId(_type, id,
+                          keyIfAbsent: DataHelpers.generateKey(_type));
+                })
+                ?.filterNulls
+                ?.toImmutableList();
           }
         } else {
           // regular field mapping
