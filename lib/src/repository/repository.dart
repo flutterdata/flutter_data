@@ -1,207 +1,164 @@
 part of flutter_data;
 
-abstract class Repository<T extends DataSupport<T>> {
-  Repository(this.manager, {bool remote, bool verbose, Box<T> box})
-      : _box = box,
-        _remote = remote ?? true,
-        _verbose = verbose ?? true;
+/// Thin wrapper on the [RemoteAdapter] API
+class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
+  String get type => DataHelpers.getType<T>();
 
+  final _adapters = <String, RemoteAdapter>{};
+
+  RemoteAdapter<T> get _adapter => _adapters[type] as RemoteAdapter<T>;
+
+  /// ONLY FOR FLUTTER DATA INTERNAL USE
+  ///
+  /// It must remain non-private for the model extension to use.
   @protected
   @visibleForTesting
-  final DataManager manager;
+  RemoteAdapter<T> get internalAdapter => _adapter;
 
-  @protected
-  @visibleForTesting
-  Box<T> get box => _box ??= manager.locator<Box<T>>();
-  Box<T> _box; // waiting for `late` keyword
+  /// Initializes this [Repository]. Nothing will work without this.
+  /// In standard scenarios this initialization is done by the framework.
+  @override
+  @mustCallSuper
+  FutureOr<Repository<T>> initialize(
+      {bool remote,
+      bool verbose,
+      Map<String, RemoteAdapter> adapters,
+      ProviderReference ref}) async {
+    if (isInitialized) return this;
+    _adapters.addAll(adapters);
+    await _adapter.initialize(
+        remote: remote, verbose: verbose, adapters: adapters, ref: ref);
+    await super.initialize();
+    return this;
+  }
 
-  final bool _remote;
-  final bool _verbose;
+  /// Disposes this [Repository] and everything that depends on it.
+  @override
+  @mustCallSuper
+  Future<void> dispose() async {
+    await super.dispose();
+    await _adapter?.dispose();
+  }
 
-  @nonVirtual
-  @protected
-  @visibleForTesting
-  final type = getType<T>();
+  // public API
 
-  // repo public API
-
+  /// Returns all models of type [T].
+  ///
+  /// If [_RemoteAdapter.shouldLoadRemoteAll] (function of [remote]) is `true`,
+  /// it will initiate an HTTP call.
+  /// Otherwise returns all models of type [T] in local storage.
+  ///
+  /// Arguments [params] and [headers] will be merged with
+  /// [_RemoteAdapter.params] and [_RemoteAdapter.headers], respectively.
+  ///
+  /// See also: [_RemoteAdapter.urlForFindAll], [_RemoteAdapter.methodForFindAll].
   Future<List<T>> findAll(
-      {bool remote, Map<String, dynamic> params, Map<String, String> headers});
+      {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+    return _adapter.findAll(
+        remote: remote, params: params, headers: headers, init: true);
+  }
 
+  /// Returns model of type [T] by [id].
+  ///
+  /// If [_RemoteAdapter.shouldLoadRemoteOne] (function of [remote]) is `true`,
+  /// it will initiate an HTTP call.
+  /// Otherwise returns model of type [T] and [id] in local storage.
+  ///
+  /// Arguments [params] and [headers] will be merged with
+  /// [_RemoteAdapter.params] and [_RemoteAdapter.headers], respectively.
+  ///
+  /// See also: [_RemoteAdapter.urlForFindOne], [_RemoteAdapter.methodForFindOne].
+  Future<T> findOne(final dynamic id,
+      {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+    return _adapter.findOne(id,
+        remote: remote, params: params, headers: headers, init: true);
+  }
+
+  /// Saves [model] of type [T].
+  ///
+  /// If [remote] is `true`, it will initiate an HTTP call.
+  ///
+  /// Always persists to local storage.
+  ///
+  /// Arguments [params] and [headers] will be merged with
+  /// [_RemoteAdapter.params] and [_RemoteAdapter.headers], respectively.
+  ///
+  /// See also: [_RemoteAdapter.urlForSave], [_RemoteAdapter.methodForSave].
+  Future<T> save(T model,
+      {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+    return _adapter.save(model,
+        remote: remote, params: params, headers: headers, init: true);
+  }
+
+  /// Deletes [model] of type [T].
+  ///
+  /// If [remote] is `true`, it will initiate an HTTP call.
+  ///
+  /// Always deletes from local storage.
+  ///
+  /// Arguments [params] and [headers] will be merged with
+  /// [_RemoteAdapter.params] and [_RemoteAdapter.headers], respectively.
+  ///
+  /// See also: [_RemoteAdapter.urlForDelete], [_RemoteAdapter.methodForDelete].
+  Future<void> delete(dynamic model,
+      {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+    return _adapter.delete(model,
+        remote: remote, params: params, headers: headers);
+  }
+
+  /// Deletes all models of type [T]. This ONLY affects local storage.
+  Future<void> clear() => _adapter.clear();
+
+  /// Watches changes on all models of type [T] in local storage.
+  ///
+  /// When called, will in turn call [findAll] with [remote], [params], [headers].
   DataStateNotifier<List<T>> watchAll(
-      {bool remote, Map<String, dynamic> params, Map<String, String> headers});
+      {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+    return _adapter.watchAll(remote: remote, params: params, headers: headers);
+  }
 
-  Future<T> findOne(dynamic model,
-      {bool remote, Map<String, dynamic> params, Map<String, String> headers});
-
-  DataStateNotifier<T> watchOne(dynamic model,
+  /// Watches changes on model of type [T] by [id] in local storage.
+  ///
+  /// Optionally [alsoWatch]es selected relationships of this model.
+  ///
+  /// Example: Watch `Book` with `id=1` and its `Author` relationship.
+  ///
+  /// ```
+  /// bookRepository.watchOne('1', alsoWatch: (book) => [book.author]);
+  /// ```
+  ///
+  /// When called, will in turn call [findAll] with [remote], [params], [headers].
+  DataStateNotifier<T> watchOne(dynamic id,
       {bool remote,
       Map<String, dynamic> params,
       Map<String, String> headers,
-      AlsoWatch<T> alsoWatch});
-
-  Future<T> save(T model,
-      {bool remote, Map<String, dynamic> params, Map<String, String> headers});
-
-  Future<void> delete(dynamic model,
-      {bool remote, Map<String, dynamic> params, Map<String, String> headers});
-
-  Map<dynamic, T> dumpBox();
-
-  // lifecycle hooks
-
-  @mustCallSuper
-  FutureOr<void> initialize() {}
-
-  @mustCallSuper
-  Future<void> dispose() async {
-    await box?.close();
+      AlsoWatch<T> alsoWatch}) {
+    return _adapter.watchOne(id,
+        remote: remote, params: params, headers: headers, alsoWatch: alsoWatch);
   }
+}
 
-  // serialization
-
-  @protected
-  @visibleForTesting
-  Map<String, dynamic> serialize(T model);
-
-  @protected
-  @visibleForTesting
-  DeserializedData<T, DataSupport<dynamic>> deserialize(dynamic data,
-      {String key, bool save = true});
-
-  // generated model adapter API (metadata, relationships, serialization)
-
-  @protected
-  @visibleForTesting
-  Map<String, Repository> get relatedRepositories;
-
-  @protected
-  @visibleForTesting
-  Map<String, Map<String, Object>> relationshipsFor([T model]);
-
-  @protected
-  @visibleForTesting
-  Map<String, dynamic> localSerialize(T model);
-
-  @protected
-  @visibleForTesting
-  T localDeserialize(Map<String, dynamic> map);
-
-  // local
-
-  @protected
-  @visibleForTesting
-  List<T> localFindAll() {
-    return box.values.map(_initModel).toImmutableList();
-  }
-
-  @protected
-  @visibleForTesting
-  T localFindOne(String key) {
-    if (key != null) {
-      final model = box.get(key);
-      return _initModel(model);
-    }
-    return null;
-  }
-
-  @protected
-  @visibleForTesting
-  void localSave(String key, T model, {bool notify = true}) {
-    assert(key != null);
-    final keyExisted = box.containsKey(key);
-    box.put(key, model); // save in bg
-    if (notify) {
-      manager._graph.notify(
-        [key],
-        keyExisted ? DataGraphEventType.updateNode : DataGraphEventType.addNode,
-      );
-    }
-  }
-
-  @protected
-  @visibleForTesting
-  void localDelete(String key) {
-    if (key != null) {
-      box.delete(key); // delete in bg
-      // id will become orphan & purged
-      manager.removeKey(key);
-    }
-  }
-
-  // private
-
-  T _initModel(T model, {String key, bool save = false}) {
-    if (model == null) return null;
-    if (model._isInitialized) return model;
-
-    _assertManager();
-    model._repository = this;
-
-    // model.id could be null, that's okay
-    model._key = manager.getKeyForId(type, model.id,
-        keyIfAbsent: key ?? Repository.generateKey<T>());
-
-    // initialize relationships
-    for (final metadata in relationshipsFor(model).entries) {
-      final relationship = metadata.value['instance'] as Relationship;
-      relationship?.initialize(
-          manager,
-          model,
-          metadata.key,
-          metadata.value['inverse'] as String,
-          metadata.value['type'] as String);
-    }
-
-    if (save) {
-      localSave(model._key, model);
-    }
-
-    return model;
-  }
-
-  void _assertManager() {
-    final auto = _autoManager != null;
-    if (auto) {
-      assert(manager == _autoManager, '''\n
-Flutter Data has been configured with enableAutoManager: true
-at boot time. This means that the manager required for
-model initialization is provided by the framework.
-
-You supplied a DataManager which is NOT the internal manager.
-
-Please initialize your models with no manager at all. Example:
-
-model.init();
-''');
-    }
-  }
-
-  // static helper methods
-
-  static Future<Box<E>> getBox<E extends DataSupport<E>>(DataManager manager,
-      {List<int> encryptionKey}) async {
-    final boxName = getType<E>();
-    if (!manager._hive.isBoxOpen(boxName)) {
-      manager._hive.registerAdapter(_HiveTypeAdapter<E>(manager));
-    }
-    return await manager._hive.openBox(boxName,
-        encryptionCipher:
-            encryptionKey != null ? HiveAesCipher(encryptionKey) : null);
-  }
-
-  static String getType<T>([String type]) {
-    if (T == dynamic && type == null) {
-      return null;
-    }
-    return pluralize((type ?? T.toString()).toLowerCase());
-  }
-
-  static String generateKey<T>([String type]) {
-    final ts = getType<T>(type);
-    if (ts == null) {
-      return null;
-    }
-    return '${getType<T>(type)}#${DataManager._uuid.v1().substring(0, 8)}';
-  }
+/// Annotation on a [DataModel] model to request a [Repository] be generated for it.
+///
+/// Takes a list of [adapters] to be mixed into this [Repository].
+/// Public methods of these [adapters] mixins will be made available in the repository
+/// via extensions.
+///
+/// A classic example is:
+///
+/// ```
+/// @JsonSerializable()
+/// @DataRepository([JSONAPIAdapter])
+/// class Todo with DataModel<Todo> {
+///   @override
+///   final int id;
+///   final String title;
+///   final bool completed;
+///
+///   Todo({this.id, this.title, this.completed = false});
+/// }
+///```
+class DataRepository {
+  final List<Type> adapters;
+  const DataRepository(this.adapters);
 }

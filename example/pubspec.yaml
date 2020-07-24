@@ -9,6 +9,8 @@ dependencies:
   flutter_data:
     path: ../../flutter_data
   json_annotation: ^3.0.1
+  riverpod: ^0.5.1
+  get_it: ^4.0.2
 
 dev_dependencies:
   build_runner:

@@ -1,87 +1,66 @@
 part of flutter_data;
 
-abstract class Relationship<E extends DataSupport<E>, N> with SetMixin<E> {
-  // ignore: prefer_final_fields
+/// A `Set` that models a relationship between one or more [DataModel] objects
+/// and their a [DataModel] owner. Backed by a [GraphNotifier].
+abstract class Relationship<E extends DataModel<E>, N>
+    with SetMixin<E>, _Lifecycle<Relationship<E, N>> {
   @protected
-  @visibleForTesting
-  DataManager manager;
+  Relationship([Set<E> models])
+      : _uninitializedKeys = {},
+        _uninitializedModels = models ?? {},
+        _wasOmitted = models == null;
 
-  bool get _isInitialized => _ownerKey != null;
+  Relationship._(Iterable<String> keys, this._wasOmitted)
+      : _uninitializedKeys = keys.toSet(),
+        _uninitializedModels = {};
 
   String _ownerKey;
   String _name;
   String _inverseName;
+  Map<String, RemoteAdapter> _adapters;
+  RemoteAdapter<E> _adapter;
+  GraphNotifier get _graph =>
+      isInitialized ? _adapter.localAdapter.graph : null;
 
   final Set<String> _uninitializedKeys;
   final Set<E> _uninitializedModels;
   final bool _wasOmitted;
 
-  ValueStateNotifier<N> _notifier;
-
   @protected
-  String get type => Repository.getType<E>();
-  Repository<E> get _repository => manager?.locator<Repository<E>>();
+  String get type => DataHelpers.getType<E>();
 
-  Relationship([Set<E> models, this.manager])
-      : _uninitializedKeys =
-            models?.map((model) => model._key)?.filterNulls?.toSet() ?? {},
-        _uninitializedModels =
-            models?.where((model) => model._key == null)?.toSet() ?? {},
-        _wasOmitted = models == null;
+  /// Initializes this relationship (typically when initializing the owner
+  /// in [DataModel]) by supplying the owner, and related [adapters] and metadata.
+  @override
+  @mustCallSuper
+  Future<Relationship<E, N>> initialize(
+      {@required final Map<String, RemoteAdapter> adapters,
+      @required final DataModel owner,
+      @required final String name,
+      @required final String inverseName}) async {
+    if (isInitialized) return this;
 
-  Relationship._(Iterable<String> keys, this.manager, this._wasOmitted)
-      : _uninitializedKeys = keys.toSet(),
-        _uninitializedModels = {};
+    _adapters = adapters;
+    _adapter = adapters[type] as RemoteAdapter<E>;
 
-  //
-
-  void initialize(DataManager manager, DataSupport owner, String name,
-      String inverseName, String inverseType) {
-    if (_isInitialized) {
-      return;
-    }
-
-    assert(owner != null);
-    this.manager = manager;
+    assert(owner != null && _adapter != null);
     _ownerKey = owner._key;
     _name = name;
     _inverseName = inverseName;
 
-    final ownerType = owner._repository.type;
-
-    if (_inverseName == null &&
-        _repository.relatedRepositories[ownerType] != null) {
-      final entries = _repository
-          .relatedRepositories[ownerType].relatedRepositories[inverseType]
-          .relationshipsFor(null)
-          .entries
-          .where((e) => e.value['type'] == ownerType);
-      if (entries.length > 1) {
-        throw UnsupportedError('''
-Too many possible inverses for '$name': ${entries.map((e) => e.key)}
-
-Please specify the correct inverse in the ${singularize(ownerType)} class annotating '$name' with, for example:
-
-@DataRelationship(inverse: '${entries.first.key}')
-
-and trigger a code generation build again.
-''');
-      }
-      _inverseName = entries.isNotEmpty ? entries.first.key : null;
-    }
-
     // initialize uninitialized models and get keys
     final newKeys = _uninitializedModels.map((model) {
-      return _repository._initModel(model, save: true)._key;
+      return model._initialize(_adapters, save: true)._key;
     });
     _uninitializedKeys..addAll(newKeys);
+    _uninitializedModels.clear();
 
     // initialize keys
     if (!_wasOmitted) {
       // if it wasn't omitted, we overwrite
-      manager._graph.removeEdges(_ownerKey,
+      _graph._removeEdges(_ownerKey,
           metadata: _name, inverseMetadata: _inverseName);
-      manager._graph.addEdges(
+      _graph._addEdges(
         _ownerKey,
         tos: _uninitializedKeys,
         metadata: _name,
@@ -89,67 +68,71 @@ and trigger a code generation build again.
       );
       _uninitializedKeys.clear();
     }
+
+    super.initialize();
+    return this;
   }
 
-  // implement set
+  @override
+  bool get isInitialized => _ownerKey != null && _adapters != null;
 
+  // implement the `Set`
+
+  /// Add a [value] to this [Relationship]
+  ///
+  /// Attempting to add an existing [value] has no effect as this is a [Set]
   @override
   bool add(E value, {bool notify = true}) {
     if (value == null) {
       return false;
     }
-
-    if (_repository != null) {
-      _repository._initModel(value, save: true);
-      manager._graph.addEdge(_ownerKey, value._key,
-          metadata: _name, inverseMetadata: _inverseName);
-      return true;
-    } else if (value._key != null) {
-      _uninitializedKeys.add(value._key);
-      return true;
-    } else {
+    if (contains(value)) {
       return false;
     }
+
+    // try to ensure value is initialized
+    _ensureModelIsInitialized(value);
+
+    if (value._isInitialized && isInitialized) {
+      _graph._addEdge(_ownerKey, value._key,
+          metadata: _name, inverseMetadata: _inverseName);
+    } else {
+      // if it can't be initialized, add to the models queue
+      _uninitializedModels.add(value);
+    }
+    return true;
   }
 
   @override
   bool contains(Object element) {
-    if (element is E && manager?._graph != null) {
-      return manager._graph
-          .getEdge(_ownerKey, metadata: _name)
-          .contains(element._key);
-    }
-    return false;
+    return _iterable.contains(element);
   }
-
-  Iterable<E> get _iterable =>
-      keys.map((key) => _repository.localFindOne(key)).filterNulls;
 
   @override
   Iterator<E> get iterator => _iterable.iterator;
 
   @override
   E lookup(Object element) {
-    if (element is E && contains(element)) {
-      return element;
-    }
-    return null;
+    return toSet().lookup(element);
   }
 
+  /// Removes a [value] from this [Relationship]
   @override
   bool remove(Object value, {bool notify = true}) {
-    if (value is E) {
-      assert(value._key != null);
-      manager._graph.removeEdge(
+    assert(value is E);
+    final model = value as E;
+    if (isInitialized) {
+      _ensureModelIsInitialized(model);
+      _graph._removeEdge(
         _ownerKey,
-        value._key,
+        model._key,
         metadata: _name,
         inverseMetadata: _inverseName,
         notify: notify,
       );
       return true;
     }
-    return false;
+    return _uninitializedModels.remove(model);
   }
 
   @override
@@ -160,23 +143,39 @@ and trigger a code generation build again.
     return _iterable.toSet();
   }
 
+  // support methods
+
+  Iterable<E> get _iterable {
+    if (isInitialized) {
+      return keys
+          .map((key) => _adapter.localAdapter
+              .findOne(key)
+              ?._initialize(_adapters, key: key))
+          .filterNulls;
+    }
+    return _uninitializedModels;
+  }
+
+  /// Returns keys as [Set] in relationship if initialized, otherwise an empty set
   @protected
   @visibleForTesting
   Set<String> get keys {
-    // if not null return, else return empty set
-    final graph = manager?._graph;
-    if (graph != null && _ownerKey != null) {
-      return graph.getEdge(_ownerKey, metadata: _name)?.toSet() ?? {};
+    if (isInitialized) {
+      return _graph?._getEdge(_ownerKey, metadata: _name)?.toSet() ?? {};
     }
     return {};
   }
 
-  // notifier
+  E _ensureModelIsInitialized(E model) {
+    if (!model._isInitialized && isInitialized) {
+      model._initialize(_adapters, save: true);
+    }
+    return model;
+  }
 
   StateNotifier<List<DataGraphEvent>> get _graphEvents {
-    assert(_repository != null);
-    final graph = (_repository as WatchAdapter<E>).graphNotifier;
-    return graph.map((events) {
+    assert(_adapter != null);
+    return _adapter.throttledGraph.map((events) {
       final appliesToRelationship = (DataGraphEvent event) {
         return event.type.isEdge &&
             event.metadata == _name &&
@@ -186,9 +185,9 @@ and trigger a code generation build again.
     });
   }
 
-  // abstract
+  // abstract methods
 
-  ValueStateNotifier<N> watch();
+  StateNotifier<N> watch();
 
   dynamic toJson();
 
@@ -199,14 +198,16 @@ and trigger a code generation build again.
 
   @override
   bool operator ==(dynamic other) =>
-      identical(this, other) || other is Relationship && keys == other.keys;
+      identical(this, other) ||
+      other is Relationship && toSet() == other.toSet();
 
   @override
-  int get hashCode => runtimeType.hashCode ^ keys.hashCode;
+  int get hashCode => runtimeType.hashCode ^ toSet().hashCode;
 }
 
-class ValueStateNotifier<E> extends StateNotifier<E> {
-  ValueStateNotifier([E state]) : super(state);
-  E get value => state;
-  set value(E value) => state = value;
+// annotation
+
+class DataRelationship {
+  final String inverse;
+  const DataRelationship({@required this.inverse});
 }
