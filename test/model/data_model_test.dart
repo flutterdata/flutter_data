@@ -12,6 +12,14 @@ void main() async {
   setUp(setUpFn);
   tearDown(tearDownFn);
 
+  test('uninitialized throws an assertion error', () {
+    final family = Family(id: '1', surname: 'Johnson');
+    expect(() => family.save(), throwsA(isA<AssertionError>()));
+    expect(() => family.delete(), throwsA(isA<AssertionError>()));
+    expect(() => family.reload(), throwsA(isA<AssertionError>()));
+    expect(() => family.watch(), throwsA(isA<AssertionError>()));
+  });
+
   test('init', () async {
     final family = Family(id: '55', surname: 'Kelley').init(owner);
     final model =

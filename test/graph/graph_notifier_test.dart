@@ -58,6 +58,13 @@ void main() async {
     expect(key, startsWith('people#'));
   });
 
+  test('does not associate a key when id is null', () {
+    var key = graph.getKeyForId('people', null,
+        keyIfAbsent: DataHelpers.generateKey<Person>());
+    expect(key, isNotNull);
+    expect(graph.getId(key), isNull);
+  });
+
   test('reuses a provided key', () {
     final key = graph.getKeyForId('people', '29', keyIfAbsent: 'people#78a92b');
     expect(key, 'people#78a92b');
@@ -123,8 +130,10 @@ void main() async {
 
   test('saves key', () async {
     final residence = House(address: '123 Main St').init(owner);
+    final length = 518;
+    final div = 19;
 
-    for (var i = 0; i < 518; i++) {
+    for (var i = 0; i < length; i++) {
       final family = Family(
         id: '$i',
         surname: 'Smith',
@@ -133,7 +142,7 @@ void main() async {
       ).init(owner);
 
       // add some people
-      if (i % 19 == 0) {
+      if (i % div == 0) {
         family.persons.add(Person(name: 'new kid #$i', age: i).init(owner));
       }
 
@@ -146,7 +155,7 @@ void main() async {
     }
 
     expect(graph.toMap().keys.where((k) => k.startsWith('families')),
-        hasLength(518));
+        hasLength(length));
   });
 
   test('namespaced keys crud', () {

@@ -86,11 +86,20 @@ abstract class _Lifecycle<T> {
 
 // misc extensions
 
-extension _IterableX<T> on Iterable<T> {
-  T get safeFirst => isNotEmpty ? first : null;
-  bool containsFirst(T model) => isNotEmpty ? first == model : false;
-  Iterable<T> get filterNulls => where((elem) => elem != null);
-  List<T> toImmutableList() => List.unmodifiable(this);
+extension IterableX<T> on Iterable<T> {
+  @protected
+  @visibleForTesting
+  T get safeFirst => (this != null && isNotEmpty) ? first : null;
+  @protected
+  @visibleForTesting
+  bool containsFirst(T model) => safeFirst == model;
+  @protected
+  @visibleForTesting
+  Iterable<T> get filterNulls =>
+      this == null ? null : where((elem) => elem != null);
+  @protected
+  @visibleForTesting
+  List<T> toImmutableList() => this == null ? null : List.unmodifiable(this);
 }
 
 extension StringUtilsX on String {

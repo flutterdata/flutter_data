@@ -92,9 +92,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
   /// Removes key (and its edges) from graph
   void removeKey(String key) => _removeNode(key);
 
-  // id-related methods
-
-  /// Finds an ID in the graph, given a [key]
+  /// Finds an ID in the graph, given a [key].
   String getId(String key) {
     final tos = _getEdge(key, metadata: 'id');
     return tos == null || tos.isEmpty

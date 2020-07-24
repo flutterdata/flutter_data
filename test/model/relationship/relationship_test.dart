@@ -234,8 +234,8 @@ void main() async {
 
   test('scenario #5: one-way relationships', () {
     // relationships that don't have an inverse
-    final jerry = Dog(name: 'Jerry').init(owner);
-    final zoe = Dog(name: 'Zoe').init(owner);
+    final jerry = Dog(name: 'Jerry');
+    final zoe = Dog(name: 'Zoe');
     final f1 =
         Family(surname: 'Carlson', dogs: {jerry, zoe}.asHasMany).init(owner);
     expect(f1.dogs, {jerry, zoe});

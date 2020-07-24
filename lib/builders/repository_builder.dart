@@ -205,7 +205,7 @@ and execute a code generation build again.
     // template
 
     return '''
-// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member, non_constant_identifier_names
 
 mixin \$${type}LocalAdapter on LocalAdapter<$type> {
   @override

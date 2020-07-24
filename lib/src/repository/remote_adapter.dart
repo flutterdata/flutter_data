@@ -498,7 +498,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   @protected
   @visibleForTesting
   T initializeModel(T model, {String key, bool save}) {
-    return model._initialize(adapters, key: key, save: save);
+    return model?._initialize(adapters, key: key, save: save);
   }
 
   // helpers
