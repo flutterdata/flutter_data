@@ -38,7 +38,7 @@ Map<String, dynamic> _$FamilyToJson(Family instance) => <String, dynamic>{
 // RepositoryGenerator
 // **************************************************************************
 
-// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member, non_constant_identifier_names
 
 mixin $FamilyLocalAdapter on LocalAdapter<Family> {
   @override

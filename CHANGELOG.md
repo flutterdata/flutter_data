@@ -1,5 +1,6 @@
-## [0.4.2-dev.3] - 2020-07-06
+## [0.5.0-dev.1] - 2020-07-06
 
+ - WIP
  - Fix serialization tests
  - Move `JSONAPIAdapter` to separate package
  - Graph API for external adapters

@@ -19,7 +19,7 @@ Inspired by [Ember Data](https://github.com/emberjs/data) and [ActiveRecord](htt
    - uses Hive at its core for caching & local storage
    - included read/write retry offline adapter
  - **Effortless setup** ⏰
-   - Automatically configured Providers
+   - Automatically pre-configured for `provider`, `riverpod` and `get_it`
    - Convention over configuration powered by Dart mixins
  - **Exceptional relationship support** ⚡️
    - Automatically synchronized, traversable relationship graph
@@ -55,7 +55,7 @@ mixin JSONServerAdapter on RemoteAdapter<User> {
 
 (`User.fromJson` and `toJson` are not required! `id` can be of any type.)
 
-Flutter Data will generate a `Repository<User>` (after a source gen build):
+After a code-gen build, Flutter Data will generate a `Repository<User>`:
 
 ```dart
 // obtain it via Provider
@@ -84,7 +84,7 @@ return DataStateBuilder<List<User>>(
 In addition to the reactivity, a `User` now gets extensions and automatic relationships, ActiveRecord-style:
 
 ```dart
-final todo = await Todo(title: 'Finish docs').save();
+final todo = await Todo(title: 'Finish docs').init(context).save();
 // POST https://my-json-server.typicode.com/flutterdata/demo/todos/
 print(todo.id); // 201
 
@@ -103,22 +103,22 @@ Fully functional app built with Flutter Data? See the code for the finished **[F
 
 Fully compatible with the tools we know and love:
 
-|                   | Compatible |                                                                  |
-| ----------------- | ---------- | ---------------------------------------------------------------- |
-| Flutter           | ✅          | It can also be used with pure Dart                               |
-| json_serializable | ✅          | Not required! Other `fromJson`/`toJson` can be supplied          |
-| JSON REST API     | ✅          | Great support                                                    |
-| JSON:API          | ✅          | Great support                                                    |
-| Firebase          | ✅          | Adapter coming soon 🎉 as well as Firebase Auth                   |
-| Provider          | ✅          | Not required! It can be automatically wired up                   |
-| get_it            | ✅          | Not required! Very easy to integrate                             |
-| Streams / BLoC    | ✅          | Great support                                                    |
-| Freezed           | ✅          | Good support                                                     |
-| Flutter Web       | ✅          | Full support coming soon!                                        |
-| Hive              | ✅          | Flutter Data uses Hive internally for local storage              |
-| Chopper/Retrofit  |            | Not needed: Flutter Data **generates its own REST clients** (**) |
+|                   | Compatible |                                                               |
+| ----------------- | ---------- | ------------------------------------------------------------- |
+| Flutter           | ✅          | It can also be used with pure Dart                            |
+| json_serializable | ✅          | Not required! Other `fromJson`/`toJson` can be supplied       |
+| JSON REST API     | ✅          | Great support                                                 |
+| JSON:API          | ✅          | Great support                                                 |
+| Firebase          | ✅          | Adapter coming soon 🎉 as well as Firebase Auth                |
+| Provider          | ✅          | Not required! Configure in a few lines of code                |
+| Riverpod          | ✅          | Not required! Configure in a few lines of code                |
+| get_it            | ✅          | Not required! Configure in a few lines of code                |
+| BLoC              | ✅          | Great support                                                 |
+| Freezed           | ✅          | Good support                                                  |
+| Flutter Web       | ✅          | Great support                                                 |
+| Hive              | ✅          | Flutter Data uses Hive internally for local storage           |
+| Chopper/Retrofit  |            | Not required: Flutter Data **generates its own REST clients** |
 
-(**) That said, adapters are being considered!
 
 ## 📲 Apps using Flutter Data
 
