@@ -56,11 +56,10 @@ void main() async {
                 {Node(id: 2, name: 'a1'), Node(id: 3, name: 'a2')}.asHasMany)
         .init(owner);
     final s2 = nodeRepository.internalAdapter.serialize(n1);
-    // FIXME should be 'children': [2, 3] ; preserve original ID type!
     expect(s2, {
       'id': 1,
       'name': 'a',
-      'children': ['2', '3']
+      'children': [2, 3]
     });
     expect(json.encode(s2), isA<String>());
   });

@@ -58,8 +58,8 @@ void main() async {
     expect(map, {
       'id': '1',
       'surname': 'Smith',
-      'residence': h1r.key,
-      'persons': p1r.keys,
+      'residence': h1r,
+      'persons': p1r,
       'cottage': null,
       'dogs': null,
     });

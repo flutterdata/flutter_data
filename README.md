@@ -42,6 +42,7 @@ For a given `User` model annotated with `@DataRepository`...
 @JsonSerializable()
 @DataRepository([JSONServerAdapter])
 class User with DataModel<User> {
+  @override
   final int id;
   final String name;
   User({this.id, this.name});

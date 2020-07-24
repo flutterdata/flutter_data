@@ -45,12 +45,8 @@ class HasMany<E extends DataModel<E>> extends Relationship<E, Set<E>> {
     return _graphEvents.where((e) => e.isNotEmpty).map((e) => this);
   }
 
-  /// For use with `json_serializable`. Does not return valid JSON.
   @override
-  dynamic toJson() => keys.toImmutableList();
-
-  @override
-  String toString() => 'HasMany<$E>($keys)';
+  String toString() => 'HasMany<$E>(${toSet()})';
 }
 
 extension IterableRelationshipExtension<T extends DataModel<T>> on Set<T> {

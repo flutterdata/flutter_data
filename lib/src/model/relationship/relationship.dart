@@ -185,11 +185,12 @@ abstract class Relationship<E extends DataModel<E>, N>
     });
   }
 
-  // abstract methods
-
   StateNotifier<N> watch();
 
-  dynamic toJson();
+  /// This is used to make `json_serializable`'s `explicitToJson` transparent.
+  ///
+  /// For internal use. Does not return valid JSON.
+  dynamic toJson() => this;
 
   @override
   String toString();

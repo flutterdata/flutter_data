@@ -7,23 +7,21 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
 
     final relationships = <String, dynamic>{};
 
-    for (final relEntry in localAdapter.relationshipsFor(model).entries) {
-      final field = relEntry.key;
+    for (final field in localAdapter.relationshipsFor(model).keys) {
       final key = keyForField(field);
+
       if (map[field] != null) {
-        if (relEntry.value['kind'] == 'HasMany') {
-          final _keys = (relEntry.value['instance'] as HasMany).keys;
-          relationships[key] = _keys.map(graph.getId).toList();
+        if (map[field] is HasMany) {
+          relationships[key] = map[field].map((e) => e?.id).toList();
         }
-        if (relEntry.value['kind'] == 'BelongsTo') {
-          final _key = (relEntry.value['instance'] as BelongsTo).key;
-          relationships[key] = graph.getId(_key);
+        if (map[field] is BelongsTo) {
+          relationships[key] = map[field].value?.id;
         }
       }
       map.remove(field);
     }
 
-    return map..addAll(relationships);
+    return map..addAll(relationships.filterNulls);
   }
 
   @override

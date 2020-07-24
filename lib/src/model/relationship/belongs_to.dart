@@ -70,12 +70,8 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E> {
     });
   }
 
-  /// For use with `json_serializable`. Does not return valid JSON.
   @override
-  dynamic toJson() => key;
-
-  @override
-  String toString() => 'BelongsTo<$E>(${key ?? ''})';
+  String toString() => 'BelongsTo<$E>($value)';
 }
 
 extension DataModelRelationshipExtension<T extends DataModel<T>>
