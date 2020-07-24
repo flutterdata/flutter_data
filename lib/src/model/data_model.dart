@@ -19,7 +19,7 @@ abstract class DataModel<T extends DataModel<T>> {
   // initializers
 
   T _initialize(final Map<String, RemoteAdapter> adapters,
-      {final String key, final bool save = false}) {
+      {final String key, final bool save}) {
     if (_isInitialized) return _this;
 
     _this._adapters = adapters;
@@ -31,7 +31,7 @@ Please ensure `Repository<$T>` has been correctly initialized.\n
     _this._key = _adapter.graph.getKeyForId(_this._adapter.type, _this.id,
         keyIfAbsent: key ?? DataHelpers.generateKey<T>());
 
-    if (save) {
+    if (save ?? false) {
       _adapter.localAdapter.save(_this._key, _this);
     }
 
