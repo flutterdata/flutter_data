@@ -109,6 +109,13 @@ extension StringUtilsX on String {
   String singularize() => inflection.singularize(this);
 }
 
-extension _MapX<K, V> on Map<K, V> {
+extension MapX<K, V> on Map<K, V> {
+  @protected
+  @visibleForTesting
   Map<K, V> operator &(Map<K, V> more) => {...this, ...?more};
+
+  @protected
+  @visibleForTesting
+  Map<K, V> get filterNulls =>
+      {for (final e in entries) if (e.value != null) e.key: e.value};
 }

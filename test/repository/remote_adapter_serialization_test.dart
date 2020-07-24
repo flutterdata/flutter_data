@@ -20,14 +20,14 @@ void main() async {
         {'_id': '23', 'name': 'Ko', 'age': 24});
   });
 
-  test('serialize with relationship', () {
+  test('serialize with relationship and null attribute', () {
+    // missing params `_id` & `age` should NOT serialize as attribute: null
+    // ignore: missing_required_param
     final p2 = Person(
-            name: 'Ko',
-            age: 24,
-            family: Family(id: '332', surname: 'Tao').asBelongsTo)
+            name: 'Ko', family: Family(id: '332', surname: 'Tao').asBelongsTo)
         .init(owner);
-    expect(personRemoteAdapter.serialize(p2),
-        {'_id': null, 'name': 'Ko', 'age': 24, 'family_id': '332'});
+    expect(
+        personRemoteAdapter.serialize(p2), {'name': 'Ko', 'family_id': '332'});
   });
 
   test('serialize embedded relationships', () {

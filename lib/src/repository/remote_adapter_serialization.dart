@@ -3,7 +3,7 @@ part of flutter_data;
 mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
   @override
   Map<String, dynamic> serialize(T model) {
-    final map = localAdapter.serialize(model);
+    final map = localAdapter.serialize(model).filterNulls;
 
     final relationships = <String, dynamic>{};
 
@@ -14,7 +14,8 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
         if (relEntry.value['kind'] == 'HasMany') {
           final _keys = (relEntry.value['instance'] as HasMany).keys;
           relationships[key] = _keys.map(graph.getId).toList();
-        } else if (relEntry.value['kind'] == 'BelongsTo') {
+        }
+        if (relEntry.value['kind'] == 'BelongsTo') {
           final _key = (relEntry.value['instance'] as BelongsTo).key;
           relationships[key] = graph.getId(_key);
         }

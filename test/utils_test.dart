@@ -44,8 +44,16 @@ void main() async {
 
     expect([1, null, 3, null].filterNulls, [1, 3]);
     expect([1, 2, 3].filterNulls, [1, 2, 3]);
-    expect(null.filterNulls, isNull);
+    // ignore: unnecessary_cast
+    expect((null as Iterable).filterNulls, isNull);
 
     expect(null.toImmutableList(), isNull);
+  });
+
+  test('map utils', () {
+    expect({'a': 1, 'b': 2} & {'b': 3}, {'a': 1, 'b': 3});
+    expect({'a': 1} & {'b': 2}, {'a': 1, 'b': 2});
+
+    expect({'a': null, 'b': 3, 'c': null}.filterNulls, {'b': 3});
   });
 }
