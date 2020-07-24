@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter_data/flutter_data.dart';
 import 'package:mockito/mockito.dart';
@@ -100,6 +101,18 @@ void main() async {
 
     // no record locally
     expect(await familyRepository.findOne('1'), isNull);
+  });
+
+  test('socket exception', () async {
+    try {
+      await familyRepository
+          .findOne('error', remote: true, headers: {'response': null});
+    } catch (e) {
+      expect(
+          e,
+          isA<DataException>()
+              .having((e) => e.error, 'error', isA<SocketException>()));
+    }
   });
 
   test('save', () async {

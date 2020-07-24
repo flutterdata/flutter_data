@@ -451,37 +451,30 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       httpClient.close();
     }
 
-    if (_verbose && response != null) {
-      print(
-          '[flutter_data] $T: ${method.toShortString()} $uri [HTTP ${response.statusCode}]');
-    }
-
     // response handling
 
-    if (response.body.isNotEmpty) {
-      try {
-        data = json.decode(response.body);
-      } on FormatException catch (e) {
-        error = e;
-      }
+    if (response == null) {
+      return await onError(DataException(error, stackTrace: stackTrace));
+    }
+
+    try {
+      data = response.body.isEmpty ? null : json.decode(response.body);
+    } on FormatException catch (e) {
+      error = e;
     }
 
     final code = response.statusCode;
 
-    if (code >= 200 && code < 300) {
-      if (error != null) {
-        error = DataException(error, stackTrace: stackTrace, statusCode: code);
-      } else {
-        return await onSuccess(data);
+    if (error == null && code >= 200 && code < 300) {
+      if (_verbose) {
+        print(
+            '[flutter_data] $T: ${method.toShortString()} $uri [HTTP ${response.statusCode}]');
       }
-    } else if (code >= 400 && code < 600) {
-      error = DataException(error ?? data,
-          stackTrace: stackTrace, statusCode: code);
+      return await onSuccess(data);
     } else {
-      error = DataException('Failed request for type $R', statusCode: code);
+      return await onError(DataException(error ?? data,
+          stackTrace: stackTrace, statusCode: code));
     }
-
-    return await onError(error);
   }
 
   /// Describes how to handle errors arising in [withRequest].

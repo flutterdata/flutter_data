@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
@@ -55,6 +56,9 @@ mixin TestRemoteAdapter<T extends DataModel<T>> on RemoteAdapter<T> {
 
   @override
   http.Client get httpClient => MockClient((req) async {
+        if (req.url.toString().endsWith('error')) {
+          throw SocketException('unreachable');
+        }
         return http.Response(
             req.headers['response'], int.parse(req.headers['status'] ?? '200'));
       });
