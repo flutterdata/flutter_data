@@ -31,7 +31,10 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       final Map<String, String> headers}) {
     _assertInit();
     final _notifier = DataStateNotifier<List<T>>(
-      DataState(localAdapter.findAll()),
+      DataState(localAdapter
+          .findAll()
+          .map((m) => initializeModel(m, save: true))
+          .toList()),
       reload: (notifier) async {
         try {
           final _future = findAll(
@@ -115,7 +118,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     var _relatedKeys = <String>{};
 
     final _notifier = DataStateNotifier<T>(
-      DataState(localAdapter.findOne(key())),
+      DataState(initializeModel(localAdapter.findOne(key()), save: true)),
       reload: (notifier) async {
         if (id == null) return;
         try {
@@ -137,17 +140,20 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     );
 
     void _initializeRelationshipsToWatch(T model) {
-      if (alsoWatch != null && _alsoWatchFilters.isEmpty) {
-        _alsoWatchFilters.addAll(alsoWatch(model).map((rel) => rel._name));
+      if (alsoWatch != null &&
+          _alsoWatchFilters.isEmpty &&
+          model != null &&
+          model._isInitialized) {
+        _alsoWatchFilters.addAll(alsoWatch(model).map((rel) {
+          return rel?._name;
+        }));
       }
     }
 
     // kick off
 
     // try to find relationships to watch
-    if (_notifier.data.model != null) {
-      _initializeRelationshipsToWatch(_notifier.data.model);
-    }
+    _initializeRelationshipsToWatch(_notifier.data.model);
 
     // trigger local + async loading
     _notifier.reload();
@@ -169,6 +175,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
               event.type == DataGraphEventType.updateNode) {
             final model = localAdapter.findOne(key());
             if (model != null) {
+              initializeModel(model, save: true);
               _initializeRelationshipsToWatch(model);
               modelBuffer = model;
             }
@@ -184,7 +191,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           if (_notifier.data.model != null &&
               event.type.isEdge &&
               _alsoWatchFilters.contains(event.metadata)) {
-            // calculate current related models
+            // calculate currently related models
             _relatedKeys = localAdapter
                 .relationshipsFor(_notifier.data.model)
                 .values

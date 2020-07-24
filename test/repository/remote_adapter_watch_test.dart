@@ -173,7 +173,7 @@ void main() async {
     ))).called(1);
     verifyNoMoreInteractions(listener);
 
-    f1.persons.add(Person(name: 'Martin', age: 44).init(owner));
+    f1.persons.add(Person(name: 'Martin', age: 44)); // this time without init
     await oneMs();
 
     verify(listener(argThat(

@@ -221,7 +221,44 @@ void main() async {
     verifyNoMoreInteractions(listener);
   });
 
-  //
+  test('watchOne with alsoWatch relationships', () async {
+    // simulate Family that exists in local storage
+    // important to keep to test `alsoWatch` assignment order
+    graph.getKeyForId('families', '22', keyIfAbsent: 'families#a1a1a1');
+    await (familyRepository.internalAdapter.localAdapter as HiveLocalAdapter)
+        .box
+        .put('families#a1a1a1',
+            Family(id: '22', surname: 'Paez', persons: HasMany()));
+
+    final listener = Listener<DataState<Family>>();
+
+    final notifier = familyRepository.watchOne(
+      '22',
+      remote: true,
+      headers: {
+        'response': '''{ "id": "22", "surname": "Paez" }''',
+      },
+      alsoWatch: (family) => [family.persons],
+    );
+
+    dispose = notifier.addListener(listener, fireImmediately: false);
+
+    await oneMs(); // wait for response
+
+    // not called as incoming model (watchOne) is identical
+    // to the one in local storage
+    verifyNever(listener(argThat(isA<DataState<Family>>())));
+    verifyNoMoreInteractions(listener);
+
+    final f1 = await familyRepository.findOne('22', remote: false);
+    f1.persons.add(Person(name: 'Martin', age: 44)); // this time without init
+    await oneMs();
+
+    verify(listener(argThat(
+      withState<Family>((s) => s.model.persons, hasLength(1)),
+    ))).called(1);
+    verifyNoMoreInteractions(listener);
+  });
 
   test('remote can return a different ID', () async {
     Family(id: '1', surname: 'Corleone').init(owner);
