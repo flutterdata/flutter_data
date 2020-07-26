@@ -24,20 +24,18 @@ void main() async {
     // missing params `_id` & `age` should NOT serialize as attribute: null
     // ignore: missing_required_param
     final p2 = Person(
-            name: 'Ko', family: Family(id: '332', surname: 'Tao').asBelongsTo)
-        .init(owner);
+        name: 'Ko', family: Family(id: '332', surname: 'Tao').asBelongsTo);
     expect(
         personRemoteAdapter.serialize(p2), {'name': 'Ko', 'family_id': '332'});
   });
 
   test('serialize embedded relationships', () {
     final f1 = Family(
-            id: '334',
-            surname: 'Zhan',
-            residence: House(id: '1', address: 'Zhiwan 2').asBelongsTo,
-            dogs: {Dog(id: '1', name: 'Pluto'), Dog(id: '2', name: 'Ricky')}
-                .asHasMany)
-        .init(owner);
+        id: '334',
+        surname: 'Zhan',
+        residence: House(id: '1', address: 'Zhiwan 2').asBelongsTo,
+        dogs: {Dog(id: '1', name: 'Pluto'), Dog(id: '2', name: 'Ricky')}
+            .asHasMany);
 
     final serialized = familyRemoteAdapter.serialize(f1);
     expect(serialized, {
@@ -50,11 +48,9 @@ void main() async {
 
     // also test a class without @JsonSerializable(explicitToJson: true)
     final n1 = Node(
-            id: 1,
-            name: 'a',
-            children:
-                {Node(id: 2, name: 'a1'), Node(id: 3, name: 'a2')}.asHasMany)
-        .init(owner);
+        id: 1,
+        name: 'a',
+        children: {Node(id: 2, name: 'a1'), Node(id: 3, name: 'a2')}.asHasMany);
     final s2 = nodeRepository.internalAdapter.serialize(n1);
     expect(s2, {
       'id': 1,
@@ -77,52 +73,41 @@ void main() async {
   });
 
   test('deserialize with BelongsTo id', () {
-    final p = personRemoteAdapter
-        .deserialize([
-          {'_id': '1', 'name': 'Na', 'age': 88, 'family_id': null}
-        ])
-        .model
-        .init(owner);
+    final p = personRemoteAdapter.deserialize([
+      {'_id': '1', 'name': 'Na', 'age': 88, 'family_id': null}
+    ], init: true).model;
 
     Family(id: '1', surname: 'Kong').init(owner);
 
     expect(p.family.key, isNull);
 
-    final p1 = personRemoteAdapter
-        .deserialize([
-          {'_id': '27', 'name': 'Ko', 'age': 24, 'family_id': '332'}
-        ])
-        .model
-        .init(owner);
+    final p1 = personRemoteAdapter.deserialize([
+      {'_id': '27', 'name': 'Ko', 'age': 24, 'family_id': '332'}
+    ], init: true).model;
 
     Family(id: '332', surname: 'Tao').init(owner);
 
     expect(p1.family.value.id, '332');
 
     final p2 = Person(
-            id: '27',
-            name: 'Ko',
-            age: 24,
-            family: Family(id: '332', surname: 'Tao').asBelongsTo)
-        .init(owner);
+        id: '27',
+        name: 'Ko',
+        age: 24,
+        family: Family(id: '332', surname: 'Tao').asBelongsTo);
 
     expect(p1, p2);
 
-    // this works because p2 was initialized!
     expect(p1.family.value, p2.family.value);
   });
 
   test('deserialize with HasMany ids (including nulls)', () {
-    final f = familyRemoteAdapter
-        .deserialize([
-          {
-            'id': '1',
-            'surname': 'Ko',
-            'persons': ['1', null, '2']
-          }
-        ])
-        .model
-        .init(owner);
+    final f = familyRemoteAdapter.deserialize([
+      {
+        'id': '1',
+        'surname': 'Ko',
+        'persons': ['1', null, '2']
+      }
+    ], init: true).model;
 
     expect(
         f.persons.keys,

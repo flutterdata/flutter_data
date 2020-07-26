@@ -57,11 +57,8 @@ void main() async {
         final id =
             Random().nextBool() ? Random().nextInt(999999999).toString() : null;
         person = Person.generate(owner, withId: id);
-        if (Random().nextBool()) {
-          Family(surname: 'Snowden ${Random().nextDouble()}').init(owner);
-        }
 
-        // in addition, delete last Person
+        // just before finishing, delete last Person
         if (j == count - 1) {
           await person.delete();
         }
@@ -152,7 +149,7 @@ void main() async {
       persons: HasMany(),
       residence: BelongsTo(),
       cottage: BelongsTo(),
-    ).init(owner);
+    );
 
     final notifier = familyRemoteAdapter.watchOne('22',
         alsoWatch: (family) => [family.persons, family.residence]);
@@ -181,7 +178,7 @@ void main() async {
     ))).called(1);
     verifyNoMoreInteractions(listener);
 
-    f1.residence.value = House(address: '123 Main St').init(owner);
+    f1.residence.value = House(address: '123 Main St'); // no init
     await oneMs();
 
     verify(listener(argThat(
@@ -199,7 +196,7 @@ void main() async {
 
     // a non-watched relationship does not trigger
 
-    f1.cottage.value = House(address: '7342 Mountain Rd').init(owner);
+    f1.cottage.value = House(address: '7342 Mountain Rd');
     await oneMs();
 
     verifyNever(listener(any));
@@ -236,7 +233,7 @@ void main() async {
     verify(listener(argThat(matcher))).called(1);
     verifyNoMoreInteractions(listener);
 
-    final family = Family(surname: 'Marquez').init(owner);
+    final family = Family(surname: 'Marquez');
     steve.family.value = family;
     await oneMs();
 

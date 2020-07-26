@@ -49,13 +49,13 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
     for (final mapIn in (data as Iterable)) {
       final mapOut = <String, dynamic>{};
 
-      final relationshipKeys = localAdapter.relationshipsFor().keys;
+      final relationships = localAdapter.relationshipsFor();
 
       for (final mapInKey in mapIn.keys) {
         final mapOutKey = fieldForKey(mapInKey.toString());
+        final metadata = relationships[mapOutKey];
 
-        if (relationshipKeys.contains(mapOutKey)) {
-          final metadata = localAdapter.relationshipsFor()[mapOutKey];
+        if (metadata != null) {
           final _type = metadata['type'] as String;
 
           if (metadata['kind'] == 'BelongsTo') {

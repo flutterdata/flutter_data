@@ -51,8 +51,7 @@ void main() async {
     final h1r = House(id: '1', address: '123 Main St').asBelongsTo;
 
     final family =
-        Family(id: '1', surname: 'Smith', residence: h1r, persons: p1r)
-            .init(owner);
+        Family(id: '1', surname: 'Smith', residence: h1r, persons: p1r);
 
     final map = familyRemoteAdapter.localAdapter.serialize(family);
     expect(map, {

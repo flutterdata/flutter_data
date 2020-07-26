@@ -11,16 +11,16 @@ void main() async {
   setUp(setUpFn);
   tearDown(tearDownFn);
 
-  test('HasMany is a Set', () {
-    final anne = Person(name: 'Anne', age: 59).init(owner);
-    final f1 = Family(surname: 'Mayer', persons: {anne}.asHasMany).init(owner);
+  test('HasMany is a Set (without init)', () {
+    final anne = Person(name: 'Anne', age: 59);
+    final f1 = Family(surname: 'Mayer', persons: {anne}.asHasMany);
 
     f1.persons.add(anne);
     f1.persons.add(anne);
     expect(f1.persons.length, 1);
     expect(f1.persons.lookup(anne), anne);
 
-    final agnes = Person(name: 'Agnes', age: 29).init(owner);
+    final agnes = Person(name: 'Agnes', age: 29);
     f1.persons.add(agnes);
     expect(f1.persons.length, 2);
 
@@ -31,6 +31,29 @@ void main() async {
 
     f1.persons.clear();
     expect(f1.persons.length, 0);
+  });
+
+  test('HasMany is a Set (with init)', () {
+    final pete = Person(name: 'Pete', age: 29);
+    final anne = Person(name: 'Anne', age: 59);
+    final f2 =
+        Family(surname: 'Sumberg', persons: {pete}.asHasMany).init(owner);
+
+    f2.persons.add(pete);
+    f2.persons.add(pete);
+    expect(f2.persons.length, 1);
+    expect(f2.persons.lookup(pete), pete);
+
+    f2.persons.add(anne);
+    expect(f2.persons.length, 2);
+
+    f2.persons.remove(anne);
+    expect(f2.persons, {pete});
+    f2.persons.add(null);
+    expect(f2.persons, {pete});
+
+    f2.persons.clear();
+    expect(f2.persons.length, 0);
   });
 
   test('assignment with relationship initialized & uninitialized', () {
@@ -66,8 +89,8 @@ void main() async {
       persons: HasMany<Person>(),
     ).init(owner);
 
-    final p1 = Person(name: 'a', age: 1).init(owner);
-    final p2 = Person(name: 'b', age: 2).init(owner);
+    final p1 = Person(name: 'a', age: 1);
+    final p2 = Person(name: 'b', age: 2);
     final notifier = family.persons.watch();
 
     final listener = Listener<Set<Person>>();

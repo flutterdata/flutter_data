@@ -298,6 +298,7 @@ void main() async {
     final family2 = Family(surname: 'Moletto').init(owner);
 
     // therefore these objects have different keys
+    expect(keyFor(family2), isNotNull);
     expect(keyFor(family1), isNot(keyFor(family2)));
 
     // it's saved to the server

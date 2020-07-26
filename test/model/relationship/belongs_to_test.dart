@@ -13,9 +13,9 @@ void main() async {
   tearDown(tearDownFn);
 
   test('set owner in relationships (before & after init)', () {
-    final person = Person(id: '1', name: 'John', age: 37).init(owner);
-    final house = House(id: '31', address: '123 Main St').init(owner);
-    final house2 = House(id: '2', address: '456 Main St').init(owner);
+    final person = Person(id: '1', name: 'John', age: 37);
+    final house = House(id: '31', address: '123 Main St');
+    final house2 = House(id: '2', address: '456 Main St');
 
     final family = Family(
         id: '1',
@@ -36,7 +36,9 @@ void main() async {
     expect(family.persons, equals(family.persons));
 
     // relationships are now associated to a key
+    expect(family.residence.key, isNotNull);
     expect(family.residence.key, graph.getKeyForId('houses', '31'));
+    expect(family.persons.keys.first, isNotNull);
     expect(family.persons.keys.first, graph.getKeyForId('people', '1'));
 
     // ensure there are not more than 1 key
@@ -68,14 +70,14 @@ void main() async {
     final listener = Listener<House>();
     dispose = notifier.addListener(listener, fireImmediately: false);
 
-    family.residence.value = House(id: '2', address: '456 Main St').init(owner);
+    family.residence.value = House(id: '2', address: '456 Main St');
     await oneMs();
 
     verify(listener(argThat(
       isA<House>().having((h) => h.address, 'address', startsWith('456')),
     ))).called(1);
 
-    family.residence.value = House(id: '1', address: '123 Main St').init(owner);
+    family.residence.value = House(id: '1', address: '123 Main St');
     await oneMs();
 
     verify(listener(argThat(
