@@ -1,4 +1,4 @@
-## [0.5.0-dev.1] - 2020-07-06
+## [0.5.0-dev.2] - 2020-07-26
 
  - WIP
  - Fix serialization tests
