@@ -49,7 +49,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   /// Otherwise returns all models of type [T] in local storage.
   ///
   /// Arguments [params] and [headers] will be merged with
-  /// [_RemoteAdapter.params] and [_RemoteAdapter.headers], respectively.
+  /// [_RemoteAdapter.defaultParams] and [_RemoteAdapter.defaultHeaders], respectively.
   ///
   /// See also: [_RemoteAdapter.urlForFindAll], [_RemoteAdapter.methodForFindAll].
   Future<List<T>> findAll(
@@ -65,7 +65,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   /// Otherwise returns model of type [T] and [id] in local storage.
   ///
   /// Arguments [params] and [headers] will be merged with
-  /// [_RemoteAdapter.params] and [_RemoteAdapter.headers], respectively.
+  /// [_RemoteAdapter.defaultParams] and [_RemoteAdapter.defaultHeaders], respectively.
   ///
   /// See also: [_RemoteAdapter.urlForFindOne], [_RemoteAdapter.methodForFindOne].
   Future<T> findOne(final dynamic id,
@@ -81,7 +81,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   /// Always persists to local storage.
   ///
   /// Arguments [params] and [headers] will be merged with
-  /// [_RemoteAdapter.params] and [_RemoteAdapter.headers], respectively.
+  /// [_RemoteAdapter.defaultParams] and [_RemoteAdapter.defaultHeaders], respectively.
   ///
   /// See also: [_RemoteAdapter.urlForSave], [_RemoteAdapter.methodForSave].
   Future<T> save(T model,
@@ -97,7 +97,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   /// Always deletes from local storage.
   ///
   /// Arguments [params] and [headers] will be merged with
-  /// [_RemoteAdapter.params] and [_RemoteAdapter.headers], respectively.
+  /// [_RemoteAdapter.defaultParams] and [_RemoteAdapter.defaultHeaders], respectively.
   ///
   /// See also: [_RemoteAdapter.urlForDelete], [_RemoteAdapter.methodForDelete].
   Future<void> delete(dynamic model,

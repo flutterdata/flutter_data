@@ -347,7 +347,7 @@ void main() async {
       remote: true,
       headers: {'response': ''},
     );
-    expect(verbose, ['[flutter_data] Dog: DELETE /dogs/3?a=1 [HTTP 200]']);
+    expect(verbose, ['[flutter_data] Dog: DELETE dogs/3?a=1 [HTTP 200]']);
   }));
 
   test('override baseUrl', () {

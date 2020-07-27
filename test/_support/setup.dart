@@ -69,16 +69,16 @@ final tokenFutureProvider = FutureProvider((_) => Future.value('s3cr4t'));
 
 mixin TokenAdapter<T extends DataModel<T>> on RemoteAdapter<T> {
   @override
-  FutureOr<Map<String, String>> get headers async {
+  FutureOr<Map<String, String>> get defaultHeaders async {
     final token = await ref.read(tokenFutureProvider);
-    return await super.headers
+    return await super.defaultHeaders
       ..addAll({'Authorization': token});
   }
 
   @override
-  FutureOr<Map<String, dynamic>> get params async {
+  FutureOr<Map<String, dynamic>> get defaultParams async {
     final token = await ref.read(tokenFutureProvider);
-    return await super.params
+    return await super.defaultParams
       ..addAll({'Authorization': token});
   }
 }

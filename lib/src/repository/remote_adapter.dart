@@ -74,39 +74,43 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
 
   /// Returns URL for [findAll]. Defaults to [type].
   @protected
-  String urlForFindAll(params) => '$type';
+  String urlForFindAll(Map<String, dynamic> params) => '$type';
 
   /// Returns HTTP method for [findAll]. Defaults to `GET`.
   @protected
-  DataRequestMethod methodForFindAll(params) => DataRequestMethod.GET;
+  DataRequestMethod methodForFindAll(Map<String, dynamic> params) =>
+      DataRequestMethod.GET;
 
   /// Returns URL for [findOne]. Defaults to [type]/[id].
   @protected
-  String urlForFindOne(id, params) => '$type/$id';
+  String urlForFindOne(id, Map<String, dynamic> params) => '$type/$id';
 
   /// Returns HTTP method for [findOne]. Defaults to `GET`.
   @protected
-  DataRequestMethod methodForFindOne(id, params) => DataRequestMethod.GET;
+  DataRequestMethod methodForFindOne(id, Map<String, dynamic> params) =>
+      DataRequestMethod.GET;
 
   /// Returns URL for [save]. Defaults to [type]/[id] (if [id] is present).
   @protected
-  String urlForSave(id, params) => id != null ? '$type/$id' : type;
+  String urlForSave(id, Map<String, dynamic> params) =>
+      id != null ? '$type/$id' : type;
 
   /// Returns HTTP method for [save]. Defaults to `PATCH` if [id] is present,
   /// or `POST` otherwise.
   @protected
-  DataRequestMethod methodForSave(id, params) =>
+  DataRequestMethod methodForSave(id, Map<String, dynamic> params) =>
       id != null ? DataRequestMethod.PATCH : DataRequestMethod.POST;
 
   /// Returns URL for [delete]. Defaults to [type]/[id].
   @protected
-  String urlForDelete(id, params) => '$type/$id';
+  String urlForDelete(id, Map<String, dynamic> params) => '$type/$id';
 
   /// Returns HTTP method for [delete]. Defaults to `DELETE`.
   @protected
-  DataRequestMethod methodForDelete(id, params) => DataRequestMethod.DELETE;
+  DataRequestMethod methodForDelete(id, Map<String, dynamic> params) =>
+      DataRequestMethod.DELETE;
 
-  /// A [Map] representing HTTP query parameters. Defaults to empty.
+  /// A [Map] representing default HTTP query parameters. Defaults to empty.
   ///
   /// It can return a [Future], so that adapters overriding this method
   /// have a chance to call async methods.
@@ -114,16 +118,17 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   /// Example:
   /// ```
   /// @override
-  /// FutureOr<Map<String, dynamic>> get params async {
+  /// FutureOr<Map<String, dynamic>> get defaultParams async {
   ///   final token = await _localStorage.get('token');
-  ///   return await super.params..addAll({'token': token});
+  ///   return await super.defaultParams..addAll({'token': token});
   /// }
   /// ```
-  ///
   @protected
-  FutureOr<Map<String, dynamic>> get params => {};
+  FutureOr<Map<String, dynamic>> get defaultParams => {};
 
-  /// A [Map] representing HTTP headers. Defaults to `{'Content-Type': 'application/json'}`.
+  /// A [Map] representing default HTTP headers.
+  ///
+  /// Initial default is: `{'Content-Type': 'application/json'}`.
   ///
   /// It can return a [Future], so that adapters overriding this method
   /// have a chance to call async methods.
@@ -131,14 +136,13 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   /// Example:
   /// ```
   /// @override
-  /// FutureOr<Map<String, String>> get headers async {
+  /// FutureOr<Map<String, String>> get defaultHeaders async {
   ///   final token = await _localStorage.get('token');
-  ///   return await super.headers..addAll({'Authorization': token});
+  ///   return await super.defaultHeaders..addAll({'Authorization': token});
   /// }
   /// ```
-  ///
   @protected
-  FutureOr<Map<String, String>> get headers =>
+  FutureOr<Map<String, String>> get defaultHeaders =>
       {'Content-Type': 'application/json'};
 
   // lifecycle methods
@@ -227,8 +231,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       bool init}) async {
     _assertInit();
     remote ??= _remote;
-    params = await this.params & params;
-    headers = await this.headers & headers;
+    params = await defaultParams & params;
+    headers = await defaultHeaders & headers;
     init ??= false;
 
     if (!shouldLoadRemoteAll(remote, params, headers)) {
@@ -239,7 +243,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       return models;
     }
 
-    return await withRequest<List<T>>(
+    return await sendRequest<List<T>>(
       urlForFindAll(params),
       method: methodForFindAll(params),
       params: params,
@@ -260,8 +264,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     _assertInit();
     assert(model != null);
     remote ??= _remote;
-    params = await this.params & params;
-    headers = await this.headers & headers;
+    params = await defaultParams & params;
+    headers = await defaultHeaders & headers;
     init ??= false;
 
     final id = model is T ? model.id : model;
@@ -280,7 +284,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     }
 
     assert(id != null);
-    return await withRequest<T>(
+    return await sendRequest<T>(
       urlForFindOne(id, params),
       method: methodForFindOne(id, params),
       params: params,
@@ -300,8 +304,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       bool init}) async {
     _assertInit();
     remote ??= _remote;
-    params = await this.params & params;
-    headers = await this.headers & headers;
+    params = await defaultParams & params;
+    headers = await defaultHeaders & headers;
     init ??= false;
 
     if (remote == false) {
@@ -311,7 +315,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
 
     final body = json.encode(serialize(model));
 
-    return await withRequest<T>(
+    return await sendRequest<T>(
       urlForSave(model.id, params),
       method: methodForSave(model.id, params),
       params: params,
@@ -350,8 +354,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       Map<String, String> headers}) async {
     _assertInit();
     remote ??= _remote;
-    params = await this.params & params;
-    headers = await this.headers & headers;
+    params = await defaultParams & params;
+    headers = await defaultHeaders & headers;
 
     final id = model is T ? model.id : model;
     final key = graph.getKeyForId(type, id) ?? (model is T ? model._key : null);
@@ -364,7 +368,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
 
     if (remote && id != null) {
       graph.removeId(type, id);
-      return await withRequest<void>(
+      return await sendRequest<void>(
         urlForDelete(id, params),
         method: methodForDelete(id, params),
         params: params,
@@ -387,33 +391,33 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
 
   /// The function used to perform an HTTP request and return an [R].
   ///
-  /// Takes expected arguments [url], [method], [params], [headers].
+  /// Takes expected arguments [path], [method], [params], [headers].
   ///
-  /// In addition, [onSuccess] MUST be supplied to post-process the
-  /// data in JSON format. Typically, deserialization and initialization
-  /// happen in there.
+  /// In addition, [onSuccess] is supplied to post-process the
+  /// data in JSON format. Deserialization and initialization
+  /// typically occur in this function.
   ///
   /// [onError] can also be supplied to override [_RemoteAdapter.onError].
   @protected
   @visibleForTesting
-  FutureOr<R> withRequest<R>(
-    String url, {
+  FutureOr<R> sendRequest<R>(
+    String path, {
     DataRequestMethod method = DataRequestMethod.GET,
     Map<String, dynamic> params,
     Map<String, String> headers,
     String body,
-    @required OnData<R> onSuccess,
+    OnData<R> onSuccess,
     OnData<R> onError,
   }) async {
     final _baseUrl = baseUrl.endsWith('/') ? baseUrl : '$baseUrl/';
-    var uri = Uri.parse('$_baseUrl$url');
+    var uri = '$_baseUrl'.asUri + path;
 
     if (params != null && params.isNotEmpty) {
       uri = uri.replace(queryParameters: flattenQueryParameters(params));
     }
 
     // callbacks
-    assert(onSuccess != null);
+    onSuccess ??= (_) async => null;
     onError ??= (e) async => this.onError(e) as R;
 
     http.Response response;
@@ -477,9 +481,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     }
   }
 
-  /// Describes how to handle errors arising in [withRequest].
+  /// Describes how to handle errors arising in [sendRequest].
   ///
-  /// NOTE: [withRequest] has an `onError` argument used to override
+  /// NOTE: [sendRequest] has an `onError` argument used to override
   /// this default behavior.
   @protected
   @visibleForTesting
@@ -524,7 +528,7 @@ class DeserializedData<T, I> {
 
 /// A standard [Exception] used throughout Flutter Data.
 ///
-/// Usually thrown from [_RemoteAdapter.onError] in [_RemoteAdapter.withRequest].
+/// Usually thrown from [_RemoteAdapter.onError] in [_RemoteAdapter.sendRequest].
 class DataException implements Exception {
   final Object error;
   final int statusCode;
