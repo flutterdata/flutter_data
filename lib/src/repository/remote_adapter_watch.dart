@@ -4,21 +4,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
   @protected
   @visibleForTesting
   Duration get throttleDuration =>
-      Duration(milliseconds: 16); // 1 frame at 60fps
-
-  /// Sort-of-exponential backoff for reads
-  @protected
-  @visibleForTesting
-  Duration readRetryAfter(int i) {
-    final list = [0, 1, 2, 2, 2, 2, 2, 4, 4, 4, 8, 8, 16, 16, 24, 36, 72];
-    final index = i < list.length ? i : list.length - 1;
-    return Duration(seconds: list[index]);
-  }
-
-  /// Sort-of-exponential backoff for writes
-  @protected
-  @visibleForTesting
-  Duration writeRetryAfter(int i) => readRetryAfter(i);
+      const Duration(milliseconds: 16); // 1 frame at 60fps
 
   @protected
   @visibleForTesting
@@ -45,11 +31,10 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           // we're only interested in notifying errors
           // as models will pop up via the graph notifier
           notifier.data = notifier.data.copyWith(
-              isLoading: false,
-              exception: error is! DataException
-                  ? DataException(error, stackTrace: stackTrace)
-                  : error,
-              stackTrace: stackTrace);
+            isLoading: false,
+            exception: error,
+            stackTrace: stackTrace,
+          );
         }
       },
     );
@@ -130,11 +115,10 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           // we're only interested in notifying errors
           // as models will pop up via the graph notifier
           notifier.data = notifier.data.copyWith(
-              isLoading: false,
-              exception: error is! DataException
-                  ? DataException(error, stackTrace: stackTrace)
-                  : error,
-              stackTrace: stackTrace);
+            isLoading: false,
+            exception: error,
+            stackTrace: stackTrace,
+          );
         }
       },
     );
