@@ -70,15 +70,15 @@ class $NodeRemoteAdapter = RemoteAdapter<Node> with NothingMixin;
 
 //
 
-final nodeLocalAdapterProvider = Provider<LocalAdapter<Node>>((ref) =>
-    $NodeHiveLocalAdapter(
+final nodeLocalAdapterProvider = RiverpodAlias.provider<LocalAdapter<Node>>(
+    (ref) => $NodeHiveLocalAdapter(
         ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
-final nodeRemoteAdapterProvider = Provider<RemoteAdapter<Node>>(
+final nodeRemoteAdapterProvider = RiverpodAlias.provider<RemoteAdapter<Node>>(
     (ref) => $NodeRemoteAdapter(ref.read(nodeLocalAdapterProvider)));
 
 final nodeRepositoryProvider =
-    Provider<Repository<Node>>((_) => Repository<Node>());
+    RiverpodAlias.provider<Repository<Node>>((_) => Repository<Node>());
 
 extension NodeX on Node {
   Node init(owner) {

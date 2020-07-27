@@ -233,15 +233,15 @@ class \$${type}RemoteAdapter = RemoteAdapter<$type> with ${mixins.join(', ')};
 
 //
 
-final ${typeLowerCased}LocalAdapterProvider = Provider<LocalAdapter<$type>>(
+final ${typeLowerCased}LocalAdapterProvider = RiverpodAlias.provider<LocalAdapter<$type>>(
     (ref) => \$${type}HiveLocalAdapter(ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
 final ${typeLowerCased}RemoteAdapterProvider =
-    Provider<RemoteAdapter<$type>>(
+    RiverpodAlias.provider<RemoteAdapter<$type>>(
         (ref) => \$${type}RemoteAdapter(ref.read(${typeLowerCased}LocalAdapterProvider)));
 
 final ${typeLowerCased}RepositoryProvider =
-    Provider<Repository<$type>>((_) => Repository<$type>());
+    RiverpodAlias.provider<Repository<$type>>((_) => Repository<$type>());
 
 
 extension ${type}X on $type {

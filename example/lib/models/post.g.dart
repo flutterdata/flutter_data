@@ -32,7 +32,7 @@ Map<String, dynamic> _$PostToJson(Post instance) => <String, dynamic>{
 // RepositoryGenerator
 // **************************************************************************
 
-// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member, non_constant_identifier_names
 
 mixin $PostLocalAdapter on LocalAdapter<Post> {
   @override
@@ -67,15 +67,15 @@ class $PostRemoteAdapter = RemoteAdapter<Post> with JSONServerAdapter<Post>;
 
 //
 
-final postLocalAdapterProvider = Provider<LocalAdapter<Post>>((ref) =>
-    $PostHiveLocalAdapter(
+final postLocalAdapterProvider = RiverpodAlias.provider<LocalAdapter<Post>>(
+    (ref) => $PostHiveLocalAdapter(
         ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
-final postRemoteAdapterProvider = Provider<RemoteAdapter<Post>>(
+final postRemoteAdapterProvider = RiverpodAlias.provider<RemoteAdapter<Post>>(
     (ref) => $PostRemoteAdapter(ref.read(postLocalAdapterProvider)));
 
 final postRepositoryProvider =
-    Provider<Repository<Post>>((_) => Repository<Post>());
+    RiverpodAlias.provider<Repository<Post>>((_) => Repository<Post>());
 
 extension PostX on Post {
   Post init([owner]) {

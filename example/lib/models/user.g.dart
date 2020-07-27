@@ -24,7 +24,7 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
 // RepositoryGenerator
 // **************************************************************************
 
-// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member, non_constant_identifier_names
 
 mixin $UserLocalAdapter on LocalAdapter<User> {
   @override
@@ -51,15 +51,15 @@ class $UserRemoteAdapter = RemoteAdapter<User> with JSONServerAdapter<User>;
 
 //
 
-final userLocalAdapterProvider = Provider<LocalAdapter<User>>((ref) =>
-    $UserHiveLocalAdapter(
+final userLocalAdapterProvider = RiverpodAlias.provider<LocalAdapter<User>>(
+    (ref) => $UserHiveLocalAdapter(
         ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
-final userRemoteAdapterProvider = Provider<RemoteAdapter<User>>(
+final userRemoteAdapterProvider = RiverpodAlias.provider<RemoteAdapter<User>>(
     (ref) => $UserRemoteAdapter(ref.read(userLocalAdapterProvider)));
 
 final userRepositoryProvider =
-    Provider<Repository<User>>((_) => Repository<User>());
+    RiverpodAlias.provider<Repository<User>>((_) => Repository<User>());
 
 extension UserX on User {
   User init([owner]) {

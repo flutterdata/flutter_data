@@ -14,22 +14,22 @@ import 'package:jsonplaceholder_example/models/post.dart';
 import 'package:jsonplaceholder_example/models/user.dart';
 import 'package:jsonplaceholder_example/models/comment.dart';
 
-Override configureRepositoryLocalStorage({FutureFn<String> baseDirFn, List<int> encryptionKey, bool clear}) {
+ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<String> baseDirFn, List<int> encryptionKey, bool clear}) {
   // ignore: unnecessary_statements
   baseDirFn;
-  return hiveLocalStorageProvider.overrideAs(Provider(
+  return hiveLocalStorageProvider.overrideAs(RiverpodAlias.provider(
         (_) => HiveLocalStorage(baseDirFn: baseDirFn, encryptionKey: encryptionKey, clear: clear)));
-}
+};
 
-FutureProvider<RepositoryInitializer> repositoryInitializerProvider(
+RepositoryInitializerProvider repositoryInitializerProvider = (
         {bool remote, bool verbose, FutureFn alsoAwait}) {
   
   return _repositoryInitializerProviderFamily(
       RepositoryInitializerArgs(remote, verbose, alsoAwait));
-}
+};
 
 final _repositoryInitializerProviderFamily =
-  FutureProvider.family<RepositoryInitializer, RepositoryInitializerArgs>((ref, args) async {
+  RiverpodAlias.futureProviderFamily<RepositoryInitializer, RepositoryInitializerArgs>((ref, args) async {
     final graphs = <String, Map<String, RemoteAdapter>>{'comments,posts,users': {'comments': ref.read(commentRemoteAdapterProvider), 'posts': ref.read(postRemoteAdapterProvider), 'users': ref.read(userRemoteAdapterProvider)}, 'users': {'users': ref.read(userRemoteAdapterProvider)}};
                 await ref.read(postRepositoryProvider).initialize(
               remote: args?.remote,

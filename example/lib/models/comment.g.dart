@@ -28,7 +28,7 @@ Map<String, dynamic> _$CommentToJson(Comment instance) => <String, dynamic>{
 // RepositoryGenerator
 // **************************************************************************
 
-// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member, non_constant_identifier_names
 
 mixin $CommentLocalAdapter on LocalAdapter<Comment> {
   @override
@@ -64,15 +64,17 @@ class $CommentRemoteAdapter = RemoteAdapter<Comment>
 
 //
 
-final commentLocalAdapterProvider = Provider<LocalAdapter<Comment>>((ref) =>
-    $CommentHiveLocalAdapter(
-        ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
+final commentLocalAdapterProvider =
+    RiverpodAlias.provider<LocalAdapter<Comment>>((ref) =>
+        $CommentHiveLocalAdapter(
+            ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
-final commentRemoteAdapterProvider = Provider<RemoteAdapter<Comment>>(
-    (ref) => $CommentRemoteAdapter(ref.read(commentLocalAdapterProvider)));
+final commentRemoteAdapterProvider =
+    RiverpodAlias.provider<RemoteAdapter<Comment>>(
+        (ref) => $CommentRemoteAdapter(ref.read(commentLocalAdapterProvider)));
 
 final commentRepositoryProvider =
-    Provider<Repository<Comment>>((_) => Repository<Comment>());
+    RiverpodAlias.provider<Repository<Comment>>((_) => Repository<Comment>());
 
 extension CommentX on Comment {
   Comment init([owner]) {

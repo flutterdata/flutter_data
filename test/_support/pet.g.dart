@@ -61,15 +61,15 @@ class $DogRemoteAdapter = RemoteAdapter<Dog> with NothingMixin;
 
 //
 
-final dogLocalAdapterProvider = Provider<LocalAdapter<Dog>>((ref) =>
-    $DogHiveLocalAdapter(
+final dogLocalAdapterProvider = RiverpodAlias.provider<LocalAdapter<Dog>>(
+    (ref) => $DogHiveLocalAdapter(
         ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
-final dogRemoteAdapterProvider = Provider<RemoteAdapter<Dog>>(
+final dogRemoteAdapterProvider = RiverpodAlias.provider<RemoteAdapter<Dog>>(
     (ref) => $DogRemoteAdapter(ref.read(dogLocalAdapterProvider)));
 
 final dogRepositoryProvider =
-    Provider<Repository<Dog>>((_) => Repository<Dog>());
+    RiverpodAlias.provider<Repository<Dog>>((_) => Repository<Dog>());
 
 extension DogX on Dog {
   Dog init(owner) {
@@ -106,15 +106,15 @@ class $CatRemoteAdapter = RemoteAdapter<Cat> with NothingMixin;
 
 //
 
-final catLocalAdapterProvider = Provider<LocalAdapter<Cat>>((ref) =>
-    $CatHiveLocalAdapter(
+final catLocalAdapterProvider = RiverpodAlias.provider<LocalAdapter<Cat>>(
+    (ref) => $CatHiveLocalAdapter(
         ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
-final catRemoteAdapterProvider = Provider<RemoteAdapter<Cat>>(
+final catRemoteAdapterProvider = RiverpodAlias.provider<RemoteAdapter<Cat>>(
     (ref) => $CatRemoteAdapter(ref.read(catLocalAdapterProvider)));
 
 final catRepositoryProvider =
-    Provider<Repository<Cat>>((_) => Repository<Cat>());
+    RiverpodAlias.provider<Repository<Cat>>((_) => Repository<Cat>());
 
 extension CatX on Cat {
   Cat init(owner) {

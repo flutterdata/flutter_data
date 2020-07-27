@@ -107,6 +107,7 @@ extension StringUtilsX on String {
       isEmpty ? '' : '${this[0].toUpperCase()}${substring(1)}';
   String pluralize() => inflection.pluralize(this);
   String singularize() => inflection.singularize(this);
+  Uri get asUri => Uri.parse(this);
 }
 
 extension MapX<K, V> on Map<K, V> {
@@ -118,4 +119,25 @@ extension MapX<K, V> on Map<K, V> {
   @visibleForTesting
   Map<K, V> get filterNulls =>
       {for (final e in entries) if (e.value != null) e.key: e.value};
+}
+
+extension UriX on Uri {
+  Uri operator +(String path) => path != null ? replace(path: path) : this;
+}
+
+// riverpod type aliases, so we don't have to export it
+// (except ProviderStateOwner for now)
+
+typedef ConfigureRepositoryLocalStorage = Override Function(
+    {FutureFn<String> baseDirFn, List<int> encryptionKey, bool clear});
+
+typedef RepositoryInitializerProvider = FutureProvider<RepositoryInitializer>
+    Function({bool remote, bool verbose, FutureFn alsoAwait});
+
+class RiverpodAlias {
+  static Provider<T> provider<T>(T Function(ProviderReference) create) =>
+      Provider<T>(create);
+  static FutureProviderFamily<T, A> futureProviderFamily<T, A>(
+          Future<T> Function(ProviderReference, A) create) =>
+      FutureProvider.family<T, A>(create);
 }

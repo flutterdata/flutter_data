@@ -12,30 +12,30 @@ import 'models/user.dart';
 
 void main() async {
   Directory _dir;
-  // final owner = ProviderStateOwner(
-  //   overrides: [
-  //     configureRepositoryLocalStorage(
-  //         baseDirFn: () => _dir.path, encryptionKey: _encryptionKey),
-  //   ],
-  // );
+  final owner = ProviderStateOwner(
+    overrides: [
+      configureRepositoryLocalStorage(
+          baseDirFn: () => _dir.path, encryptionKey: _encryptionKey),
+    ],
+  );
 
   try {
     _dir = await Directory('tmp').create();
     await _dir.delete(recursive: true);
 
-    GetIt.instance.registerRepositories(
-        baseDirFn: () => _dir.path, encryptionKey: _encryptionKey);
-    await GetIt.instance.allReady();
+    // GetIt.instance.registerRepositories(
+    //     baseDirFn: () => _dir.path, encryptionKey: _encryptionKey);
+    // await GetIt.instance.allReady();
 
-    final usersRepo = GetIt.instance.get<Repository<User>>();
-    final postsRepo = GetIt.instance.get<Repository<Post>>();
-    final commentsRepo = GetIt.instance.get<Repository<Comment>>();
+    // final usersRepo = GetIt.instance.get<Repository<User>>();
+    // final postsRepo = GetIt.instance.get<Repository<Post>>();
+    // final commentsRepo = GetIt.instance.get<Repository<Comment>>();
 
-    // await owner.ref.read(repositoryInitializerProvider());
+    await owner.ref.read(repositoryInitializerProvider());
 
-    // final usersRepo = userRepositoryProvider.readOwner(owner);
-    // final postsRepo = postRepositoryProvider.readOwner(owner);
-    // final commentsRepo = commentRepositoryProvider.readOwner(owner);
+    final usersRepo = userRepositoryProvider.readOwner(owner);
+    final postsRepo = postRepositoryProvider.readOwner(owner);
+    final commentsRepo = commentRepositoryProvider.readOwner(owner);
 
     try {
       await usersRepo.findOne('2314444');
@@ -45,8 +45,9 @@ void main() async {
       }
     }
 
-    final user2 = User(id: 1, name: 'new name', email: 'new@fasd.io').init();
-    // .init(owner);
+    final user2 = User(id: 1, name: 'new name', email: 'new@fasd.io')
+        // .init();
+        .init(owner);
     await user2.save();
 
     var p3 = Post(
@@ -55,8 +56,8 @@ void main() async {
             body: '3@fasd.io',
             user: user2.asBelongsTo,
             comments: {Comment(id: 1, body: 'bla')}.asHasMany)
-        .init();
-    // .init(owner);
+        // .init();
+        .init(owner);
 
     assert(p3.body == '3@fasd.io');
     assert(p3.user.value.email == user2.email);

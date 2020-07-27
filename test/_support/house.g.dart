@@ -60,15 +60,15 @@ class $HouseRemoteAdapter = RemoteAdapter<House> with NothingMixin;
 
 //
 
-final houseLocalAdapterProvider = Provider<LocalAdapter<House>>((ref) =>
-    $HouseHiveLocalAdapter(
+final houseLocalAdapterProvider = RiverpodAlias.provider<LocalAdapter<House>>(
+    (ref) => $HouseHiveLocalAdapter(
         ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
-final houseRemoteAdapterProvider = Provider<RemoteAdapter<House>>(
+final houseRemoteAdapterProvider = RiverpodAlias.provider<RemoteAdapter<House>>(
     (ref) => $HouseRemoteAdapter(ref.read(houseLocalAdapterProvider)));
 
 final houseRepositoryProvider =
-    Provider<Repository<House>>((_) => Repository<House>());
+    RiverpodAlias.provider<Repository<House>>((_) => Repository<House>());
 
 extension HouseX on House {
   House init(owner) {

@@ -110,7 +110,7 @@ List<SingleChildWidget> repositoryProviders({FutureFn<String> baseDirFn, List<in
     bool clear, bool remote, bool verbose, FutureFn alsoAwait}) {
 
   return [
-    p.Provider(
+    Provider(
         create: (_) => ProviderStateOwner(
           overrides: [
             configureRepositoryLocalStorage(
@@ -118,18 +118,18 @@ List<SingleChildWidget> repositoryProviders({FutureFn<String> baseDirFn, List<in
           ]
       ),
     ),
-    p.FutureProvider<RepositoryInitializer>(
+    FutureProvider<RepositoryInitializer>(
       create: (context) async {
-        final init = await p.Provider.of<ProviderStateOwner>(context, listen: false).ref.read(repositoryInitializerProvider(remote: remote, verbose: verbose, alsoAwait: alsoAwait));
+        final init = await Provider.of<ProviderStateOwner>(context, listen: false).ref.read(repositoryInitializerProvider(remote: remote, verbose: verbose, alsoAwait: alsoAwait));
         internalLocatorFn = (provider, context) => provider.readOwner(
-            p.Provider.of<ProviderStateOwner>(context, listen: false));
+            Provider.of<ProviderStateOwner>(context, listen: false));
         return init;
       },
     ),''' +
           classes.map((c) => '''
-    p.ProxyProvider<RepositoryInitializer, Repository<${(c['name']).capitalize()}>>(
+    ProxyProvider<RepositoryInitializer, Repository<${(c['name']).capitalize()}>>(
       lazy: false,
-      update: (context, i, __) => i == null ? null : p.Provider.of<ProviderStateOwner>(context, listen: false).ref.read(${c['name']}RepositoryProvider),
+      update: (context, i, __) => i == null ? null : Provider.of<ProviderStateOwner>(context, listen: false).ref.read(${c['name']}RepositoryProvider),
       dispose: (_, r) => r?.dispose(),
     ),''').join('\n') +
           ']; }';
@@ -174,7 +174,7 @@ i.registerSingletonWithDependencies<Repository<${(c['name']).capitalize()}>>(
 
     final providerImports = importProvider
         ? [
-            "import 'package:provider/provider.dart' as p;",
+            "import 'package:provider/provider.dart';",
             "import 'package:provider/single_child_widget.dart';",
           ].join('\n')
         : '';
@@ -218,22 +218,22 @@ $riverpodImport
 
 $modelImports
 
-Override configureRepositoryLocalStorage({FutureFn<String> baseDirFn, List<int> encryptionKey, bool clear}) {
+ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<String> baseDirFn, List<int> encryptionKey, bool clear}) {
   // ignore: unnecessary_statements
   baseDirFn${importPathProvider ? ' ??= () => getApplicationDocumentsDirectory().then((dir) => dir.path)' : ''};
-  return hiveLocalStorageProvider.overrideAs(Provider(
+  return hiveLocalStorageProvider.overrideAs(RiverpodAlias.provider(
         (_) => HiveLocalStorage(baseDirFn: baseDirFn, encryptionKey: encryptionKey, clear: clear)));
-}
+};
 
-FutureProvider<RepositoryInitializer> repositoryInitializerProvider(
+RepositoryInitializerProvider repositoryInitializerProvider = (
         {bool remote, bool verbose, FutureFn alsoAwait}) {
   $internalLocator
   return _repositoryInitializerProviderFamily(
       RepositoryInitializerArgs(remote, verbose, alsoAwait));
-}
+};
 
 final _repositoryInitializerProviderFamily =
-  FutureProvider.family<RepositoryInitializer, RepositoryInitializerArgs>((ref, args) async {
+  RiverpodAlias.futureProviderFamily<RepositoryInitializer, RepositoryInitializerArgs>((ref, args) async {
     final graphs = <String, Map<String, RemoteAdapter>>$graphs;
     $repoEntries
     if (args?.alsoAwait != null) {

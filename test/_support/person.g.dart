@@ -45,15 +45,16 @@ class $PersonRemoteAdapter = RemoteAdapter<Person>
 
 //
 
-final personLocalAdapterProvider = Provider<LocalAdapter<Person>>((ref) =>
-    $PersonHiveLocalAdapter(
+final personLocalAdapterProvider = RiverpodAlias.provider<LocalAdapter<Person>>(
+    (ref) => $PersonHiveLocalAdapter(
         ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
-final personRemoteAdapterProvider = Provider<RemoteAdapter<Person>>(
-    (ref) => $PersonRemoteAdapter(ref.read(personLocalAdapterProvider)));
+final personRemoteAdapterProvider =
+    RiverpodAlias.provider<RemoteAdapter<Person>>(
+        (ref) => $PersonRemoteAdapter(ref.read(personLocalAdapterProvider)));
 
 final personRepositoryProvider =
-    Provider<Repository<Person>>((_) => Repository<Person>());
+    RiverpodAlias.provider<Repository<Person>>((_) => Repository<Person>());
 
 extension PersonX on Person {
   Person init(owner) {

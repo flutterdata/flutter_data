@@ -86,15 +86,16 @@ class $FamilyRemoteAdapter = RemoteAdapter<Family> with NothingMixin;
 
 //
 
-final familyLocalAdapterProvider = Provider<LocalAdapter<Family>>((ref) =>
-    $FamilyHiveLocalAdapter(
+final familyLocalAdapterProvider = RiverpodAlias.provider<LocalAdapter<Family>>(
+    (ref) => $FamilyHiveLocalAdapter(
         ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
-final familyRemoteAdapterProvider = Provider<RemoteAdapter<Family>>(
-    (ref) => $FamilyRemoteAdapter(ref.read(familyLocalAdapterProvider)));
+final familyRemoteAdapterProvider =
+    RiverpodAlias.provider<RemoteAdapter<Family>>(
+        (ref) => $FamilyRemoteAdapter(ref.read(familyLocalAdapterProvider)));
 
 final familyRepositoryProvider =
-    Provider<Repository<Family>>((_) => Repository<Family>());
+    RiverpodAlias.provider<Repository<Family>>((_) => Repository<Family>());
 
 extension FamilyX on Family {
   Family init(owner) {

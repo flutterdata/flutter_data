@@ -154,7 +154,7 @@ packages:
       name: data_state
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.4-dev.1"
+    version: "0.3.4"
   fixnum:
     dependency: transitive
     description:
@@ -168,7 +168,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.5.0-dev.1"
+    version: "0.5.0-dev.2"
   freezed_annotation:
     dependency: transitive
     description:
@@ -365,13 +365,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.5.1"
-  rxdart:
-    dependency: transitive
-    description:
-      name: rxdart
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.24.1"
   shelf:
     dependency: transitive
     description:

@@ -67,10 +67,10 @@ class Person with DataModel<Person> {
 // as part of testing the type-parameter-less adapter feature
 mixin PersonLoginAdapter on RemoteAdapter<Person> {
   Future<String> login(String email, String password) async {
-    return await withRequest<String>(
+    return await sendRequest<String>(
       '/token',
       body: '',
-      headers: (await headers)
+      headers: (await defaultHeaders)
         ..addAll({
           'response':
               '{ "token": "$password" ${email == null ? '&*@%%*#@!' : ''} }'
