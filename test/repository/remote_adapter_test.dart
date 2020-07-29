@@ -31,6 +31,11 @@ void main() async {
     expect(family, family1);
   });
 
+  test('findOne with null', () {
+    expect(() async => await familyRemoteAdapter.findOne(null),
+        throwsA(isA<AssertionError>()));
+  });
+
   test('findOne with includes', () async {
     final data = familyRemoteAdapter.deserialize(json.decode('''
       { "id": "1", "surname": "Smith", "persons": [{"_id": "1", "name": "Stan", "age": 31}] }
@@ -75,13 +80,5 @@ void main() async {
     // and now key & id are both non-existent
     expect(graph.getNode(keyFor(person)), isNull);
     expect(graph.getKeyForId('people', person.id), isNull);
-  });
-
-  test('flatten query parameters', () {
-    final qp = personRemoteAdapter.flattenQueryParameters({
-      'a': 1,
-      'b': {'c': 3}
-    });
-    expect(qp, {'a': '1', 'b[c]': '3'});
   });
 }

@@ -244,9 +244,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     }
 
     return await sendRequest<List<T>>(
-      urlForFindAll(params),
+      baseUrl.asUri / urlForFindAll(params) & params,
       method: methodForFindAll(params),
-      params: params,
       headers: headers,
       onSuccess: (data) {
         return deserialize(data, init: init).models;
@@ -283,11 +282,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       return newModel;
     }
 
-    assert(id != null);
     return await sendRequest<T>(
-      urlForFindOne(id, params),
+      baseUrl.asUri / urlForFindOne(id, params) & params,
       method: methodForFindOne(id, params),
-      params: params,
       headers: headers,
       onSuccess: (data) {
         return deserialize(data as Map<String, dynamic>, init: init).model;
@@ -316,9 +313,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     final body = json.encode(serialize(model));
 
     return await sendRequest<T>(
-      urlForSave(model.id, params),
+      baseUrl.asUri / urlForSave(model.id, params) & params,
       method: methodForSave(model.id, params),
-      params: params,
       headers: headers,
       body: body,
       onSuccess: (data) {
@@ -369,11 +365,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     if (remote && id != null) {
       graph.removeId(type, id);
       return await sendRequest<void>(
-        urlForDelete(id, params),
+        baseUrl.asUri / urlForDelete(id, params) & params,
         method: methodForDelete(id, params),
-        params: params,
         headers: headers,
-        onSuccess: (_) {},
       );
     }
   }
@@ -391,7 +385,25 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
 
   /// The function used to perform an HTTP request and return an [R].
   ///
-  /// Takes expected arguments [path], [method], [params], [headers].
+  /// **IMPORTANT**:
+  ///  - [uri] takes the FULL `Uri` including query parameters
+  ///  - [headers] do NOT include ANY defaults such as [defaultHeaders]
+  ///
+  /// Example:
+  ///
+  /// ```
+  /// await sendRequest(
+  ///   baseUrl.asUri + 'token' & await defaultParams & {'a': 1},
+  ///   headers: await defaultHeaders & {'a': 'b'},
+  ///   onSuccess: (data) => data['token'] as String,
+  /// );
+  /// ```
+  ///
+  ///ignore: comment_references
+  /// To build the URI you can use [String.asUri], [Uri.+] and [Uri.&].
+  ///
+  /// To merge headers and params with their defaults you can use the helper
+  /// [Map<String, dynamic>.&].
   ///
   /// In addition, [onSuccess] is supplied to post-process the
   /// data in JSON format. Deserialization and initialization
@@ -401,21 +413,13 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   @protected
   @visibleForTesting
   FutureOr<R> sendRequest<R>(
-    String path, {
+    final Uri uri, {
     DataRequestMethod method = DataRequestMethod.GET,
-    Map<String, dynamic> params,
     Map<String, String> headers,
     String body,
     OnData<R> onSuccess,
     OnData<R> onError,
   }) async {
-    final _baseUrl = baseUrl.endsWith('/') ? baseUrl : '$baseUrl/';
-    var uri = '$_baseUrl'.asUri + path;
-
-    if (params != null && params.isNotEmpty) {
-      uri = uri.replace(queryParameters: flattenQueryParameters(params));
-    }
-
     // callbacks
     onSuccess ??= (_) async => null;
     onError ??= (e) async => this.onError(e) as R;
@@ -457,7 +461,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
 
     // response handling
 
-    if (response == null) {
+    if (response?.body == null) {
       return await onError(DataException(error, stackTrace: stackTrace));
     }
 
@@ -469,15 +473,20 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
 
     final code = response.statusCode;
 
+    if (_verbose) {
+      print(
+          '[flutter_data] $T: ${method.toShortString()} $uri [HTTP $code]${body != null ? '\n -> body: $body' : ''}');
+    }
+
     if (error == null && code >= 200 && code < 300) {
-      if (_verbose) {
-        print(
-            '[flutter_data] $T: ${method.toShortString()} $uri [HTTP ${response.statusCode}]');
-      }
       return await onSuccess(data);
     } else {
-      return await onError(DataException(error ?? data,
-          stackTrace: stackTrace, statusCode: code));
+      final e = DataException(error ?? data,
+          stackTrace: stackTrace, statusCode: code);
+      if (_verbose) {
+        print('[flutter_data] $T: $e');
+      }
+      return await onError(e);
     }
   }
 
@@ -496,25 +505,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   @visibleForTesting
   T initializeModel(T model, {String key, bool save}) {
     return model?._initialize(adapters, key: key, save: save);
-  }
-
-  // helpers
-
-  @protected
-  @visibleForTesting
-  Map<String, String> flattenQueryParameters(Map<String, dynamic> params) {
-    params ??= const {};
-
-    return params.entries.fold<Map<String, String>>({}, (acc, e) {
-      if (e.value is Map<String, dynamic>) {
-        for (final e2 in (e.value as Map<String, dynamic>).entries) {
-          acc['${e.key}[${e2.key}]'] = e2.value.toString();
-        }
-      } else {
-        acc[e.key] = e.value.toString();
-      }
-      return acc;
-    });
   }
 }
 

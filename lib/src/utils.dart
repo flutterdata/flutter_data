@@ -35,27 +35,21 @@ extension RepositoryInitializerX on RepositoryInitializer {
 }
 
 class RepositoryInitializerArgs {
-  RepositoryInitializerArgs(this.remote, this.verbose, this.alsoAwait);
+  RepositoryInitializerArgs(this.remote, this.verbose);
 
   final bool remote;
   final bool verbose;
-  final FutureFn alsoAwait;
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other is RepositoryInitializerArgs &&
             other.remote == remote &&
-            other.verbose == verbose &&
-            other.alsoAwait == alsoAwait);
+            other.verbose == verbose);
   }
 
   @override
-  int get hashCode =>
-      runtimeType.hashCode ^
-      remote.hashCode ^
-      verbose.hashCode ^
-      alsoAwait.hashCode;
+  int get hashCode => runtimeType.hashCode ^ remote.hashCode ^ verbose.hashCode;
 }
 
 @protected
@@ -110,7 +104,7 @@ extension StringUtilsX on String {
   Uri get asUri => Uri.parse(this);
 }
 
-extension MapX<K, V> on Map<K, V> {
+extension MapUtilsX<K, V> on Map<K, V> {
   @protected
   @visibleForTesting
   Map<K, V> operator &(Map<K, V> more) => {...this, ...?more};
@@ -121,18 +115,42 @@ extension MapX<K, V> on Map<K, V> {
       {for (final e in entries) if (e.value != null) e.key: e.value};
 }
 
-extension UriX on Uri {
-  Uri operator +(String path) => path != null ? replace(path: path) : this;
+extension UriUtilsX on Uri {
+  Uri operator /(String path) {
+    if (path == null) return this;
+    return replace(path: path_helper.canonicalize('/${this.path}/$path'));
+  }
+
+  Uri operator &(Map<String, dynamic> params) => params != null &&
+          params.isNotEmpty
+      ? replace(
+          queryParameters: queryParameters & _flattenQueryParameters(params))
+      : this;
 }
 
-// riverpod type aliases, so we don't have to export it
+Map<String, String> _flattenQueryParameters(Map<String, dynamic> params) {
+  params ??= const {};
+
+  return params.entries.fold<Map<String, String>>({}, (acc, e) {
+    if (e.value is Map<String, dynamic>) {
+      for (final e2 in (e.value as Map<String, dynamic>).entries) {
+        acc['${e.key}[${e2.key}]'] = e2.value.toString();
+      }
+    } else {
+      acc[e.key] = e.value.toString();
+    }
+    return acc;
+  });
+}
+
+// Riverpod type aliases, so we don't have to export it
 // (except ProviderStateOwner for now)
 
 typedef ConfigureRepositoryLocalStorage = Override Function(
     {FutureFn<String> baseDirFn, List<int> encryptionKey, bool clear});
 
 typedef RepositoryInitializerProvider = FutureProvider<RepositoryInitializer>
-    Function({bool remote, bool verbose, FutureFn alsoAwait});
+    Function({bool remote, bool verbose});
 
 class RiverpodAlias {
   static Provider<T> provider<T>(T Function(ProviderReference) create) =>

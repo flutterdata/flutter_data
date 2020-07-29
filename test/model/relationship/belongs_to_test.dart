@@ -59,6 +59,18 @@ void main() async {
     expect(family.residence.value, house);
   });
 
+  test('use fromJson constructor without initialization', () {
+    // internal format
+    final person = BelongsTo<Person>.fromJson({
+      '_': [
+        'k1',
+        false,
+      ]
+    });
+    expect(person.key, 'k1');
+    expect(person.value, isNull);
+  });
+
   test('watch', () async {
     final family = Family(
       id: '22',

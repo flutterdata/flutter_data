@@ -28,7 +28,7 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E> {
   BelongsTo._(String key, bool _wasOmitted)
       : super._(key != null ? {key} : {}, _wasOmitted);
 
-  /// For use with `json_serializable`.
+  /// For internal use with `json_serializable`.
   factory BelongsTo.fromJson(final Map<String, dynamic> map) {
     final key = map['_'][0] as String;
     if (key == null) {

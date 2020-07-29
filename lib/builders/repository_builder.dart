@@ -187,10 +187,7 @@ and execute a code generation build again.
     }'''
         : '';
 
-    // imports
-
-    // this library's imports (typically flutter_data, json_annotation, etc - NOT provider)
-    // print((element.library?.imports ?? []).map((e) => '${e.declaration}'));
+    // imports (we only want them on pubspec to make sure our lib/app can import them)
 
     final importProvider = await isDependency('provider', buildStep);
     final importGetIt = await isDependency('get_it', buildStep);

@@ -18,6 +18,18 @@ void main() async {
     expect(DataHelpers.generateKey(), isNull);
   });
 
+  test('uri helpers', () {
+    final uri = 'http://example.com/namespace/'.asUri / 'path/' / '/sub' &
+        {
+          'a': 1,
+          'b': {'c': 3}
+        };
+
+    expect(uri.host, 'example.com');
+    expect(uri.path, '/namespace/path/sub');
+    expect(uri.queryParameters, {'a': '1', 'b[c]': '3'});
+  });
+
   test('string utils', () {
     expect('family'.capitalize(), 'Family');
     expect('people'.singularize(), 'person');
@@ -25,12 +37,15 @@ void main() async {
   });
 
   test('repo init args', () {
-    final args = RepositoryInitializerArgs(false, true, () async {});
+    final args = RepositoryInitializerArgs(false, true);
     expect(args.remote, false);
     expect(args.verbose, true);
-    expect(args.alsoAwait, isNotNull);
-    expect(RepositoryInitializerArgs(false, true, null),
-        equals(RepositoryInitializerArgs(false, true, null)));
+    expect(RepositoryInitializerArgs(false, true),
+        equals(RepositoryInitializerArgs(false, true)));
+
+    // isLoading: this == null
+    RepositoryInitializer initializer;
+    expect(initializer.isLoading, true);
   });
 
   test('iterable utils', () {

@@ -19,8 +19,7 @@ abstract class Relationship<E extends DataModel<E>, N>
   String _inverseName;
   Map<String, RemoteAdapter> _adapters;
   RemoteAdapter<E> _adapter;
-  GraphNotifier get _graph =>
-      isInitialized ? _adapter.localAdapter.graph : null;
+  GraphNotifier get _graph => _adapter?.localAdapter?.graph;
 
   final Set<String> _uninitializedKeys;
   final Set<E> _uninitializedModels;
@@ -163,7 +162,7 @@ abstract class Relationship<E extends DataModel<E>, N>
     if (isInitialized) {
       return _graph?._getEdge(_ownerKey, metadata: _name)?.toSet() ?? {};
     }
-    return {};
+    return _uninitializedKeys;
   }
 
   E _ensureModelIsInitialized(E model) {

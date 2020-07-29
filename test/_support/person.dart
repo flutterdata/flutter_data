@@ -68,13 +68,13 @@ class Person with DataModel<Person> {
 mixin PersonLoginAdapter on RemoteAdapter<Person> {
   Future<String> login(String email, String password) async {
     return await sendRequest<String>(
-      '/token',
+      baseUrl.asUri / 'token' & await defaultParams & {'a': 1},
       body: '',
-      headers: (await defaultHeaders)
-        ..addAll({
-          'response':
-              '{ "token": "$password" ${email == null ? '&*@%%*#@!' : ''} }'
-        }),
+      headers: await defaultHeaders &
+          {
+            'response':
+                '{ "token": "$password" ${email == null ? '&*@%%*#@!' : ''} }'
+          },
       onSuccess: (data) => data['token'] as String,
       onError: (e) => throw UnsupportedError('custom error: $e'),
     );

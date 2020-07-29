@@ -113,7 +113,7 @@ void main() async {
         f.persons.keys,
         unorderedEquals([
           graph.getKeyForId('people', '1'),
-          graph.getKeyForId('people', '2')
+          graph.getKeyForId('people', '2'),
         ]));
   });
 

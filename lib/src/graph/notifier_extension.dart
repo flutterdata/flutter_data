@@ -103,18 +103,3 @@ extension StateNotifierX<T> on StateNotifier<T> {
         .throttle(duration);
   }
 }
-
-// class TestStateNotifier extends DataStateNotifier<int> {
-//   TestStateNotifier() : super(DataState(0)) {
-//     Timer.periodic(
-//         Duration(seconds: 1), (i) => state = state.copyWith(model: i.tick));
-//   }
-// }
-
-// void main() {
-//   TestStateNotifier()
-//       .map((state) => state.copyWith(model: state.model * 3))
-//       .where((state) => state.model % 2 == 0)
-//       .throttle(Duration(seconds: 8))
-//       .forEach((numbers) => print(numbers.map((e) => e.model).join(', ')));
-// }

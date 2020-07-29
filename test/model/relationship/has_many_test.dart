@@ -11,7 +11,7 @@ void main() async {
   setUp(setUpFn);
   tearDown(tearDownFn);
 
-  test('HasMany is a Set (without init)', () {
+  test('HasMany is a Set (without init - models)', () {
     final anne = Person(name: 'Anne', age: 59);
     final f1 = Family(surname: 'Mayer', persons: {anne}.asHasMany);
 
@@ -69,17 +69,16 @@ void main() async {
     expect(family.persons.contains(person), isTrue);
   });
 
-  test('use relationship without initialization', () {
-    final family = Family(id: '1', surname: 'Smith', persons: HasMany());
-    final person = Person(id: '1', name: 'Flavio', age: 12);
-
-    family.persons.add(person);
-    expect(family.persons.contains(person), isTrue);
-    expect(family.persons.lookup(person), person);
-    expect(family.persons.toSet(), {person});
-
-    family.persons.remove(person);
-    expect(family.persons, isEmpty);
+  test('use fromJson constructor without initialization', () {
+    // internal format
+    final persons = HasMany<Person>.fromJson({
+      '_': [
+        ['k1', 'k2'],
+        false,
+      ]
+    });
+    expect(persons.keys, {'k1', 'k2'});
+    expect(persons, isEmpty);
   });
 
   test('watch', () async {

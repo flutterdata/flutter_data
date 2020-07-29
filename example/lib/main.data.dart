@@ -22,10 +22,10 @@ ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<Str
 };
 
 RepositoryInitializerProvider repositoryInitializerProvider = (
-        {bool remote, bool verbose, FutureFn alsoAwait}) {
+        {bool remote, bool verbose}) {
   
   return _repositoryInitializerProviderFamily(
-      RepositoryInitializerArgs(remote, verbose, alsoAwait));
+      RepositoryInitializerArgs(remote, verbose));
 };
 
 final _repositoryInitializerProviderFamily =
@@ -47,9 +47,6 @@ final _repositoryInitializerProviderFamily =
               adapters: graphs['comments,posts,users'],
               ref: ref,
             );
-    if (args?.alsoAwait != null) {
-      await args.alsoAwait();
-    }
     return RepositoryInitializer();
 });
 

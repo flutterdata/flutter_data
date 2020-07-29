@@ -347,7 +347,17 @@ void main() async {
       remote: true,
       headers: {'response': ''},
     );
-    expect(verbose, ['[flutter_data] Dog: DELETE dogs/3?a=1 [HTTP 200]']);
+    expect(verbose, ['[flutter_data] Dog: DELETE /dogs/3?a=1 [HTTP 200]']);
+
+    try {
+      await dogRepository.findOne(
+        '1',
+        remote: true,
+        headers: {'response': '^@!@#(#(@#)#@', 'status': '500'},
+      );
+    } catch (e) {
+      expect(verbose.last, contains('DataException'));
+    }
   }));
 
   test('override baseUrl', () {

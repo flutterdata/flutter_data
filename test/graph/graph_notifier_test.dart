@@ -18,6 +18,16 @@ void main() async {
     expect(graph.getNode('b1'), isNull);
   });
 
+  test('assertions', () {
+    expect(() => graph.addNode(null), throwsA(isA<AssertionError>()));
+    expect(() => graph.getNode(null), throwsA(isA<AssertionError>()));
+    expect(() => graph.removeNode(null), throwsA(isA<AssertionError>()));
+    expect(() => graph.addEdges('a:b', tos: null, metadata: 'c:d'),
+        throwsA(isA<AssertionError>()));
+    expect(() => graph.removeEdges(null, metadata: 'c:d'),
+        throwsA(isA<AssertionError>()));
+  });
+
   test('add/remove edges with metadata', () {
     graph.addNodes(['h1', 'b1', 'b2']);
     graph.addEdges('h1',
@@ -186,5 +196,11 @@ void main() async {
 
   test('denamespace', () {
     expect(graph.denamespace('superman:1'), '1');
+  });
+
+  test('event', () {
+    final event =
+        DataGraphEvent(keys: ['a', 'b'], type: DataGraphEventType.addEdge);
+    expect(event.toString(), '[GraphEvent] DataGraphEventType.addEdge: [a, b]');
   });
 }
