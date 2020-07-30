@@ -1,9 +1,19 @@
-## [0.5.0-dev.2] - 2020-07-26
+## [0.5.0] - 2020-07-29
 
- - WIP
- - Fix serialization tests
+ - Riverpod support
+ - `get_it` support
+ - Flutter Web support
+ - Self-reference relationship support
+ - `DataSupport` is now `DataModel` and it's a mixin
+ - Redesign and reorganization for more API stability
+ - New `httpClient` and `sendRequest` for custom endpoints
+ - Default params & headers now called `defaultParams` and `defaultHeaders`
+ - JSON serializer adapter is now included by default
  - Move `JSONAPIAdapter` to separate package
- - Graph API for external adapters
+ - Expose graph API to external adapters
+ - Tons of small issues fixed
+ - 90%+ test coverage
+ - Dart docs
 
 ## [0.4.2-dev.2] - 2020-06-29
 
