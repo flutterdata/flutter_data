@@ -378,7 +378,10 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
 
   // http
 
-  /// The [http.Client] used to make all HTTP requests.
+  /// An [http.Client] used to make an HTTP request.
+  ///
+  /// This getter returns a new client every time
+  /// as by default they are used once and then closed.
   @protected
   @visibleForTesting
   http.Client get httpClient => http.Client();
@@ -418,7 +421,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     Map<String, String> headers,
     String body,
     OnData<R> onSuccess,
-    OnData<R> onError,
+    OnDataError<R> onError,
   }) async {
     // callbacks
     onSuccess ??= (_) async => null;
@@ -430,28 +433,13 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     StackTrace stackTrace;
 
     try {
-      switch (method) {
-        case DataRequestMethod.HEAD:
-          response = await httpClient.head(uri, headers: headers);
-          break;
-        case DataRequestMethod.GET:
-          response = await httpClient.get(uri, headers: headers);
-          break;
-        case DataRequestMethod.PUT:
-          response = await httpClient.put(uri, headers: headers, body: body);
-          break;
-        case DataRequestMethod.POST:
-          response = await httpClient.post(uri, headers: headers, body: body);
-          break;
-        case DataRequestMethod.PATCH:
-          response = await httpClient.patch(uri, headers: headers, body: body);
-          break;
-        case DataRequestMethod.DELETE:
-          response = await httpClient.delete(uri, headers: headers);
-          break;
-        default:
-          break;
+      final request = http.Request(method.toShortString(), uri);
+      request.headers.addAll(headers);
+      if (body != null) {
+        request.body = body;
       }
+      final stream = await httpClient.send(request);
+      response = await http.Response.fromStream(stream);
     } catch (err, stack) {
       error = err;
       stackTrace = stack;
@@ -496,7 +484,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   /// this default behavior.
   @protected
   @visibleForTesting
-  OnData<R> onError<R>(e) => throw e;
+  OnDataError<R> onError<R>(DataException e) => throw e;
 
   /// Initializes [model] making it ready to use with [DataModel] extensions.
   ///

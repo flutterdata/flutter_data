@@ -59,6 +59,8 @@ typedef FutureFn<R> = FutureOr<R> Function();
 
 typedef OnData<R> = FutureOr<R> Function(dynamic);
 
+typedef OnDataError<R> = FutureOr<R> Function(DataException);
+
 // private utilities
 
 abstract class _Lifecycle<T> {
