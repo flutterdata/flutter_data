@@ -31,6 +31,8 @@ void main() async {
 
     // (2) it saves the model locally
     expect(model, await personRepository.findOne(model.id));
+
+    expect(model.internalAdapter, isNotNull);
   });
 
   test('findOne (reload) without ID', () async {
