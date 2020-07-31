@@ -78,9 +78,18 @@ final postRepositoryProvider =
     RiverpodAlias.provider<Repository<Post>>((_) => Repository<Post>());
 
 extension PostX on Post {
+  /// Initializes "fresh" models (i.e. manually instantiated) to use
+  /// [save], [delete] and so on.
+  ///
+  /// Pass:
+  ///  - A `BuildContext` if using Flutter with Riverpod or Provider
+  ///  - Nothing if using Flutter with GetIt
+  ///  - A `ProviderStateOwner` if using pure Dart
+  ///  - Its own [Repository<Post>]
   Post init([owner]) {
-    return internalLocatorFn(postRepositoryProvider, owner)
-        .internalAdapter
-        .initializeModel(this, save: true) as Post;
+    final repository = owner is Repository<Post>
+        ? owner
+        : internalLocatorFn(postRepositoryProvider, owner);
+    return repository.internalAdapter.initializeModel(this, save: true) as Post;
   }
 }

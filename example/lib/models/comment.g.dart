@@ -77,9 +77,19 @@ final commentRepositoryProvider =
     RiverpodAlias.provider<Repository<Comment>>((_) => Repository<Comment>());
 
 extension CommentX on Comment {
+  /// Initializes "fresh" models (i.e. manually instantiated) to use
+  /// [save], [delete] and so on.
+  ///
+  /// Pass:
+  ///  - A `BuildContext` if using Flutter with Riverpod or Provider
+  ///  - Nothing if using Flutter with GetIt
+  ///  - A `ProviderStateOwner` if using pure Dart
+  ///  - Its own [Repository<Comment>]
   Comment init([owner]) {
-    return internalLocatorFn(commentRepositoryProvider, owner)
-        .internalAdapter
-        .initializeModel(this, save: true) as Comment;
+    final repository = owner is Repository<Comment>
+        ? owner
+        : internalLocatorFn(commentRepositoryProvider, owner);
+    return repository.internalAdapter.initializeModel(this, save: true)
+        as Comment;
   }
 }

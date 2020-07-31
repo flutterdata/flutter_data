@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:hive/hive.dart';
 import 'package:flutter_data/flutter_data.dart';
@@ -64,7 +65,15 @@ class FakeBox<T> extends Fake implements Box<T> {
 
 // mocks
 
-class HiveMock extends Mock implements HiveInterface {}
+class HiveMock extends Mock implements HiveInterface {
+  @override
+  bool isBoxOpen(String name) => true;
+
+  @override
+  void init(String path) {
+    return;
+  }
+}
 
 class MockFamilyRepository extends Mock implements Repository<Family> {}
 

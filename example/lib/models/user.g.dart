@@ -62,9 +62,18 @@ final userRepositoryProvider =
     RiverpodAlias.provider<Repository<User>>((_) => Repository<User>());
 
 extension UserX on User {
+  /// Initializes "fresh" models (i.e. manually instantiated) to use
+  /// [save], [delete] and so on.
+  ///
+  /// Pass:
+  ///  - A `BuildContext` if using Flutter with Riverpod or Provider
+  ///  - Nothing if using Flutter with GetIt
+  ///  - A `ProviderStateOwner` if using pure Dart
+  ///  - Its own [Repository<User>]
   User init([owner]) {
-    return internalLocatorFn(userRepositoryProvider, owner)
-        .internalAdapter
-        .initializeModel(this, save: true) as User;
+    final repository = owner is Repository<User>
+        ? owner
+        : internalLocatorFn(userRepositoryProvider, owner);
+    return repository.internalAdapter.initializeModel(this, save: true) as User;
   }
 }

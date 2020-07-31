@@ -71,9 +71,19 @@ final houseRepositoryProvider =
     RiverpodAlias.provider<Repository<House>>((_) => Repository<House>());
 
 extension HouseX on House {
+  /// Initializes "fresh" models (i.e. manually instantiated) to use
+  /// [save], [delete] and so on.
+  ///
+  /// Pass:
+  ///  - A `BuildContext` if using Flutter with Riverpod or Provider
+  ///  - Nothing if using Flutter with GetIt
+  ///  - A `ProviderStateOwner` if using pure Dart
+  ///  - Its own [Repository<House>]
   House init(owner) {
-    return internalLocatorFn(houseRepositoryProvider, owner)
-        .internalAdapter
-        .initializeModel(this, save: true) as House;
+    final repository = owner is Repository<House>
+        ? owner
+        : internalLocatorFn(houseRepositoryProvider, owner);
+    return repository.internalAdapter.initializeModel(this, save: true)
+        as House;
   }
 }

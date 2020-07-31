@@ -98,9 +98,19 @@ final familyRepositoryProvider =
     RiverpodAlias.provider<Repository<Family>>((_) => Repository<Family>());
 
 extension FamilyX on Family {
+  /// Initializes "fresh" models (i.e. manually instantiated) to use
+  /// [save], [delete] and so on.
+  ///
+  /// Pass:
+  ///  - A `BuildContext` if using Flutter with Riverpod or Provider
+  ///  - Nothing if using Flutter with GetIt
+  ///  - A `ProviderStateOwner` if using pure Dart
+  ///  - Its own [Repository<Family>]
   Family init(owner) {
-    return internalLocatorFn(familyRepositoryProvider, owner)
-        .internalAdapter
-        .initializeModel(this, save: true) as Family;
+    final repository = owner is Repository<Family>
+        ? owner
+        : internalLocatorFn(familyRepositoryProvider, owner);
+    return repository.internalAdapter.initializeModel(this, save: true)
+        as Family;
   }
 }

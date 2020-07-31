@@ -240,10 +240,18 @@ final ${typeLowerCased}RemoteAdapterProvider =
 final ${typeLowerCased}RepositoryProvider =
     RiverpodAlias.provider<Repository<$type>>((_) => Repository<$type>());
 
-
 extension ${type}X on $type {
+  /// Initializes "fresh" models (i.e. manually instantiated) to use
+  /// [save], [delete] and so on.
+  /// 
+  /// Pass:
+  ///  - A `BuildContext` if using Flutter with Riverpod or Provider
+  ///  - Nothing if using Flutter with GetIt
+  ///  - A `ProviderStateOwner` if using pure Dart
+  ///  - Its own [Repository<$type>]
   $type init($initArgOptional) {
-    return internalLocatorFn(${typeLowerCased}RepositoryProvider, $initArg).internalAdapter.initializeModel(this, save: true) as $type;
+    final repository = $initArg is Repository<$type> ? $initArg : internalLocatorFn(${typeLowerCased}RepositoryProvider, $initArg);
+    return repository.internalAdapter.initializeModel(this, save: true) as $type;
   }
 }
 

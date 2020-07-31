@@ -81,9 +81,18 @@ final nodeRepositoryProvider =
     RiverpodAlias.provider<Repository<Node>>((_) => Repository<Node>());
 
 extension NodeX on Node {
+  /// Initializes "fresh" models (i.e. manually instantiated) to use
+  /// [save], [delete] and so on.
+  ///
+  /// Pass:
+  ///  - A `BuildContext` if using Flutter with Riverpod or Provider
+  ///  - Nothing if using Flutter with GetIt
+  ///  - A `ProviderStateOwner` if using pure Dart
+  ///  - Its own [Repository<Node>]
   Node init(owner) {
-    return internalLocatorFn(nodeRepositoryProvider, owner)
-        .internalAdapter
-        .initializeModel(this, save: true) as Node;
+    final repository = owner is Repository<Node>
+        ? owner
+        : internalLocatorFn(nodeRepositoryProvider, owner);
+    return repository.internalAdapter.initializeModel(this, save: true) as Node;
   }
 }

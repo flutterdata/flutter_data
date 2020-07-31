@@ -72,10 +72,19 @@ final dogRepositoryProvider =
     RiverpodAlias.provider<Repository<Dog>>((_) => Repository<Dog>());
 
 extension DogX on Dog {
+  /// Initializes "fresh" models (i.e. manually instantiated) to use
+  /// [save], [delete] and so on.
+  ///
+  /// Pass:
+  ///  - A `BuildContext` if using Flutter with Riverpod or Provider
+  ///  - Nothing if using Flutter with GetIt
+  ///  - A `ProviderStateOwner` if using pure Dart
+  ///  - Its own [Repository<Dog>]
   Dog init(owner) {
-    return internalLocatorFn(dogRepositoryProvider, owner)
-        .internalAdapter
-        .initializeModel(this, save: true) as Dog;
+    final repository = owner is Repository<Dog>
+        ? owner
+        : internalLocatorFn(dogRepositoryProvider, owner);
+    return repository.internalAdapter.initializeModel(this, save: true) as Dog;
   }
 }
 
@@ -117,9 +126,18 @@ final catRepositoryProvider =
     RiverpodAlias.provider<Repository<Cat>>((_) => Repository<Cat>());
 
 extension CatX on Cat {
+  /// Initializes "fresh" models (i.e. manually instantiated) to use
+  /// [save], [delete] and so on.
+  ///
+  /// Pass:
+  ///  - A `BuildContext` if using Flutter with Riverpod or Provider
+  ///  - Nothing if using Flutter with GetIt
+  ///  - A `ProviderStateOwner` if using pure Dart
+  ///  - Its own [Repository<Cat>]
   Cat init(owner) {
-    return internalLocatorFn(catRepositoryProvider, owner)
-        .internalAdapter
-        .initializeModel(this, save: true) as Cat;
+    final repository = owner is Repository<Cat>
+        ? owner
+        : internalLocatorFn(catRepositoryProvider, owner);
+    return repository.internalAdapter.initializeModel(this, save: true) as Cat;
   }
 }
