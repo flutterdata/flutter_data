@@ -1,26 +1,22 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:hive/hive.dart';
+import 'package:riverpod/riverpod.dart';
 import 'package:path/path.dart' as path_helper;
 
-import 'hive_local_storage.dart';
-
-class IoHiveLocalStorage implements HiveLocalStorage {
-  IoHiveLocalStorage({this.baseDirFn, List<int> encryptionKey, this.clear})
+class HiveLocalStorage {
+  HiveLocalStorage(
+      {this.baseDirFn, List<int> encryptionKey, this.clear = false})
       : encryptionCipher =
             encryptionKey != null ? HiveAesCipher(encryptionKey) : null;
 
-  @override
   HiveInterface get hive => Hive;
-  @override
   final HiveAesCipher encryptionCipher;
   final FutureOr<String> Function() baseDirFn;
   final bool clear;
 
   bool _isInitialized = false;
 
-  @override
   Future<void> initialize() async {
     if (_isInitialized) return this;
 
@@ -54,13 +50,7 @@ Widget build(context) {
 ''');
     }
 
-    final dir = Directory(await baseDirFn());
-    final exists = await dir.exists();
-    if ((clear ?? true) && exists) {
-      await dir.delete(recursive: true);
-    }
-
-    final path = path_helper.join(dir.path, 'flutter_data');
+    final path = path_helper.join(await baseDirFn(), 'flutter_data');
     hive..init(path);
 
     _isInitialized = true;
@@ -68,10 +58,5 @@ Widget build(context) {
   }
 }
 
-HiveLocalStorage getHiveLocalStorage(
-    {FutureOr<String> Function() baseDirFn,
-    List<int> encryptionKey,
-    bool clear}) {
-  return IoHiveLocalStorage(
-      baseDirFn: baseDirFn, encryptionKey: encryptionKey, clear: clear);
-}
+final hiveLocalStorageProvider =
+    Provider<HiveLocalStorage>((ref) => HiveLocalStorage());

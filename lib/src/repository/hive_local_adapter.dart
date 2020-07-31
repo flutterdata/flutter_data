@@ -23,8 +23,13 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
     if (!_hiveLocalStorage.hive.isBoxOpen(_type)) {
       _hiveLocalStorage.hive.registerAdapter(this);
     }
+
     box = await _hiveLocalStorage.hive.openBox<T>(_type,
         encryptionCipher: _hiveLocalStorage.encryptionCipher);
+
+    if (_hiveLocalStorage.clear ?? false) {
+      await box.clear();
+    }
 
     return this;
   }

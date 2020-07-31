@@ -16,7 +16,7 @@ import 'pet.dart';
 
 // adapters
 
-class TestHiveLocalStorage implements HiveLocalStorage {
+class TestHiveLocalStorage extends HiveLocalStorage {
   @override
   HiveInterface get hive => HiveMock();
 
@@ -24,7 +24,7 @@ class TestHiveLocalStorage implements HiveLocalStorage {
   HiveAesCipher get encryptionCipher => null;
 
   @override
-  Future<void> initialize() async {}
+  Future<String> Function() get baseDirFn => () async => '';
 }
 
 mixin TestMetaBox on GraphNotifier {
@@ -42,6 +42,7 @@ mixin TestHiveLocalAdapter<T extends DataModel<T>> on HiveLocalAdapter<T> {
   // ignore: must_call_super
   Future<TestHiveLocalAdapter<T>> initialize() async {
     await graph.initialize();
+    await super.initialize();
     box = FakeBox<T>();
     return this;
   }

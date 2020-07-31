@@ -1,16 +1,16 @@
 import 'dart:io';
 
-import 'package:flutter_data/storage/hive_local_storage_io.dart';
+import 'package:flutter_data/flutter_data.dart';
 import 'package:hive/hive.dart';
 import 'package:test/test.dart';
 
 void main() async {
-  test('hive local storage (io)', () async {
+  test('hive local storage', () async {
     Directory _dir;
 
     try {
       _dir = await Directory('tmp').create();
-      final storage = getHiveLocalStorage(
+      final storage = HiveLocalStorage(
           baseDirFn: () => _dir.path,
           encryptionKey: Hive.generateSecureKey(),
           clear: true);
@@ -18,7 +18,7 @@ void main() async {
       expect(storage.encryptionCipher, isA<HiveAesCipher>());
 
       expect(() {
-        return getHiveLocalStorage(
+        return HiveLocalStorage(
                 baseDirFn: null,
                 encryptionKey: Hive.generateSecureKey(),
                 clear: false)

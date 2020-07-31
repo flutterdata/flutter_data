@@ -25,8 +25,7 @@ abstract class DataModel<T extends DataModel<T>> {
     _this._adapters = adapters;
 
     assert(_adapter != null, '''\n
-Please ensure `Repository<$T>` has been correctly initialized.\n
-''');
+Please ensure `Repository<$T>` has been correctly initialized.''');
 
     _this._key = _adapter.graph.getKeyForId(_this._adapter.type, _this.id,
         keyIfAbsent: key ?? DataHelpers.generateKey<T>());
