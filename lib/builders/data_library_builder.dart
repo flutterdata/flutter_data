@@ -63,13 +63,31 @@ class DataExtensionBuilder implements Builder {
         await b.readAsString(file)
     ];
 
+    // find contiguous graphs, independent from each other, e.g
+    // IN: [{'b'}, {'a', 'b', 'c'}, {'b'}, {'a'}, {'d', 'e'}, {'f'}, {'d'}]
+    // OUT: {'a,b,c', 'd,e', 'f'}
+    final _gs = _classes.map((e) => e.split('#')[1].split(',').toSet());
+    for (final g in _gs) {
+      for (final g2 in _gs) {
+        if (g != g2 && g2 != null) {
+          if (g2.intersection(g).isNotEmpty) {
+            g.addAll(g2);
+          }
+        }
+      }
+    }
+    final graphs = _gs.map((e) => (e.toList()..sort()).join(',')).toSet();
+
     final classes = _classes.fold<List<Map<String, String>>>([], (acc, line) {
       for (final e in line.split(';')) {
         var parts = e.split('#');
+
+        final graph = graphs.firstWhere((e) => e.split(',').contains(parts[0]));
+
         acc.add({
           'name': parts[0].singularize(),
-          'related': parts[1],
-          'path': parts[2]
+          'related': graph,
+          'path': parts[2],
         });
       }
       return acc;
@@ -85,7 +103,7 @@ class DataExtensionBuilder implements Builder {
 
     var providerRegistration = '';
 
-    final graphs = {
+    final graphsMap = {
       for (final clazz in classes)
         if (clazz['related'].isNotEmpty)
           '\'${clazz['related']}\'': {
@@ -197,13 +215,13 @@ i.registerSingletonWithDependencies<Repository<${(c['name']).capitalize()}>>(
 
     //
 
-    final repoEntries = classes.map((c) => '''
-            await ref.read(${c['name']}RepositoryProvider).initialize(
-              remote: args?.remote,
-              verbose: args?.verbose,
-              adapters: graphs['${c['related']}'],
-              ref: ref,
-            );''').join('');
+    final repoEntries = classes.map((c) => '''\n
+      await ref.read(${c['name']}RepositoryProvider).initialize(
+        remote: args?.remote,
+        verbose: args?.verbose,
+        adapters: graphs['${c['related']}'],
+        ref: ref,
+      );''').join('');
 
     await b.writeAsString(finalAssetId, '''\n
 // GENERATED CODE - DO NOT MODIFY BY HAND
@@ -234,7 +252,7 @@ RepositoryInitializerProvider repositoryInitializerProvider = (
 
 final _repositoryInitializerProviderFamily =
   RiverpodAlias.futureProviderFamily<RepositoryInitializer, RepositoryInitializerArgs>((ref, args) async {
-    final graphs = <String, Map<String, RemoteAdapter>>$graphs;
+    final graphs = <String, Map<String, RemoteAdapter>>$graphsMap;
     $repoEntries
     return RepositoryInitializer();
 });
@@ -251,6 +269,7 @@ Set<String> findTypesInRelationshipGraph(ClassElement elem,
   return relationshipFields(elem)
       .fold<Set<String>>(result ?? {DataHelpers.getType(elem.name)}, (acc, f) {
     var type = DataHelpers.getType(f.typeElement.name);
+
     if (!acc.contains(type)) {
       acc.add(type);
       acc.addAll(findTypesInRelationshipGraph(f.typeElement, acc));

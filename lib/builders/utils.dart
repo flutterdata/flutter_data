@@ -6,6 +6,7 @@ import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:source_gen/source_gen.dart';
 
 final relationshipTypeChecker = TypeChecker.fromRuntime(Relationship);
+final dataModelTypeChecker = TypeChecker.fromRuntime(DataModel);
 
 // unique collection of constructor arguments and fields
 Iterable<VariableElement> relationshipFields(ClassElement elem) {
@@ -29,7 +30,15 @@ Iterable<VariableElement> relationshipFields(ClassElement elem) {
     };
   }
 
-  return map.values;
+  final out = map.values.toList();
+
+  // if parent mixes DataModel in, also include its relationships
+  if (elem.supertype != null &&
+      dataModelTypeChecker.isAssignableFrom(elem.supertype.element)) {
+    out.addAll(relationshipFields(elem.supertype.element));
+  }
+
+  return out;
 }
 
 extension VariableElementX on VariableElement {

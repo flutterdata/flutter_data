@@ -22,8 +22,6 @@ class RepositoryGenerator extends GeneratorForAnnotation<DataRepository> {
     final typeLowerCased = DataHelpers.getType(type).singularize();
     ClassElement classElement;
 
-    // validations
-
     try {
       classElement = element as ClassElement;
     } catch (e) {

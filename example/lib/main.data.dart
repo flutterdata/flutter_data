@@ -30,23 +30,29 @@ RepositoryInitializerProvider repositoryInitializerProvider = (
 
 final _repositoryInitializerProviderFamily =
   RiverpodAlias.futureProviderFamily<RepositoryInitializer, RepositoryInitializerArgs>((ref, args) async {
-    final graphs = <String, Map<String, RemoteAdapter>>{'comments,posts,users': {'comments': ref.read(commentRemoteAdapterProvider), 'posts': ref.read(postRemoteAdapterProvider), 'users': ref.read(userRemoteAdapterProvider)}, 'users': {'users': ref.read(userRemoteAdapterProvider)}};
-                await ref.read(postRepositoryProvider).initialize(
-              remote: args?.remote,
-              verbose: args?.verbose,
-              adapters: graphs['comments,posts,users'],
-              ref: ref,
-            );            await ref.read(userRepositoryProvider).initialize(
-              remote: args?.remote,
-              verbose: args?.verbose,
-              adapters: graphs['users'],
-              ref: ref,
-            );            await ref.read(commentRepositoryProvider).initialize(
-              remote: args?.remote,
-              verbose: args?.verbose,
-              adapters: graphs['comments,posts,users'],
-              ref: ref,
-            );
+    final graphs = <String, Map<String, RemoteAdapter>>{'comments,posts,users': {'comments': ref.read(commentRemoteAdapterProvider), 'posts': ref.read(postRemoteAdapterProvider), 'users': ref.read(userRemoteAdapterProvider)}};
+    
+
+      await ref.read(postRepositoryProvider).initialize(
+        remote: args?.remote,
+        verbose: args?.verbose,
+        adapters: graphs['comments,posts,users'],
+        ref: ref,
+      );
+
+      await ref.read(userRepositoryProvider).initialize(
+        remote: args?.remote,
+        verbose: args?.verbose,
+        adapters: graphs['comments,posts,users'],
+        ref: ref,
+      );
+
+      await ref.read(commentRepositoryProvider).initialize(
+        remote: args?.remote,
+        verbose: args?.verbose,
+        adapters: graphs['comments,posts,users'],
+        ref: ref,
+      );
     return RepositoryInitializer();
 });
 
