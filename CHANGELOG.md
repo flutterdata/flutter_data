@@ -1,3 +1,11 @@
+## [0.5.1] - 2020-08-19
+
+ - allow passing a repository to init() and generate dartdoc
+ - expose adapter in DataModel, useful for extensions
+ - [bugfix] adapter codegen related to models with a DataModel parent
+ - [bugfix] type to string camelCase issue
+ - [internals] simplify local storage
+
 ## [0.5.0] - 2020-07-29
 
  - Riverpod support
