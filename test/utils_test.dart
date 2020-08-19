@@ -7,6 +7,7 @@ void main() async {
   test('getType', () {
     expect(DataHelpers.getType(), isNull);
     expect(DataHelpers.getType<Person>(), 'people');
+    expect(DataHelpers.getType('CreditCard'), 'creditCards');
     expect(DataHelpers.getType('Family'), 'families');
     // `type` argument takes precedence
     expect(DataHelpers.getType<Person>('animal'), 'animals');

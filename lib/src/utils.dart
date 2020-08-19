@@ -7,7 +7,11 @@ class DataHelpers {
     if (T == dynamic && type == null) {
       return null;
     }
-    return (type ?? T.toString()).toLowerCase().pluralize();
+    type ??= T.toString();
+    if (type.isNotEmpty) {
+      type = type[0].toLowerCase() + type.substring(1);
+    }
+    return type.pluralize();
   }
 
   static String generateKey<T>([String type]) {

@@ -18,22 +18,22 @@ class RepositoryGenerator extends GeneratorForAnnotation<DataRepository> {
   @override
   Future<String> generateForAnnotatedElement(
       Element element, ConstantReader annotation, BuildStep buildStep) async {
-    final type = element.name;
-    final typeLowerCased = DataHelpers.getType(type).singularize();
+    final classType = element.name;
+    final typeLowerCased = DataHelpers.getType(classType).singularize();
     ClassElement classElement;
 
     try {
       classElement = element as ClassElement;
     } catch (e) {
       throw UnsupportedError(
-          "Can't generate repository for $type. Please use @DataRepository on a class.");
+          "Can't generate repository for $classType. Please use @DataRepository on a class.");
     }
 
     void _checkIsFinal(final ClassElement element, String name) {
       if (element != null) {
         if (element.getSetter(name) != null) {
           throw UnsupportedError(
-              "Can't generate repository for $type. The `$name` field MUST be final");
+              "Can't generate repository for $classType. The `$name` field MUST be final");
         }
         _checkIsFinal(element.supertype?.element, name);
       }
@@ -72,9 +72,9 @@ class RepositoryGenerator extends GeneratorForAnnotation<DataRepository> {
         if (possibleInverseElements.length > 1) {
           throw UnsupportedError('''
 Too many possible inverses for relationship `${field.name}`
-of type $type: ${possibleInverseElements.map((e) => e.name).join(', ')}
+of type $classType: ${possibleInverseElements.map((e) => e.name).join(', ')}
 
-Please specify the correct inverse in the $type class, for example:
+Please specify the correct inverse in the $classType class, for example:
 
 @DataRelationship(inverse: '${possibleInverseElements.first.name}')
 final BelongsTo<${relationshipClassElement.name}> ${field.name};
@@ -112,8 +112,9 @@ and execute a code generation build again.
 
     final hasFromJson =
         classElement.constructors.any((c) => c.name == 'fromJson');
-    final fromJson =
-        hasFromJson ? '$type.fromJson(map)' : '_\$${type}FromJson(map)';
+    final fromJson = hasFromJson
+        ? '$classType.fromJson(map)'
+        : '_\$${classType}FromJson(map)';
 
     final methods = [
       ...classElement.methods,
@@ -121,7 +122,8 @@ and execute a code generation build again.
       ...classElement.mixins.map((i) => i.methods).expand((i) => i)
     ];
     final hasToJson = methods.any((c) => c.name == 'toJson');
-    final toJson = hasToJson ? 'model.toJson()' : '_\$${type}ToJson(model)';
+    final toJson =
+        hasToJson ? 'model.toJson()' : '_\$${classType}ToJson(model)';
 
     // additional adapters
 
@@ -145,7 +147,7 @@ and execute a code generation build again.
 
         if (!remoteAdapterTypeChecker.isAssignableFromType(mixinType)) {
           throw UnsupportedError(
-              'Adapter `$mixinType` MUST have a constraint `on` RemoteAdapter<$type>');
+              'Adapter `$mixinType` MUST have a constraint `on` RemoteAdapter<$classType>');
         }
 
         final instantiatedMixinType = (mixinType.element as ClassElement)
@@ -180,7 +182,7 @@ and execute a code generation build again.
 
     final additionalMixinExtension = additionalMixinExtensionMethods.isNotEmpty
         ? '''
-    extension ${type}RepositoryX on Repository<$type> {
+    extension ${classType}RepositoryX on Repository<$classType> {
       ${additionalMixinExtensionMethods.values.join('\n')}
     }'''
         : '';
@@ -202,13 +204,13 @@ and execute a code generation build again.
     return '''
 // ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member, non_constant_identifier_names
 
-mixin \$${type}LocalAdapter on LocalAdapter<$type> {
+mixin \$${classType}LocalAdapter on LocalAdapter<$classType> {
   @override
-  Map<String, Map<String, Object>> relationshipsFor([$type model]) =>
+  Map<String, Map<String, Object>> relationshipsFor([$classType model]) =>
     $relationshipsFor;
 
   @override
-  $type deserialize(map) {
+  $classType deserialize(map) {
     for (final key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key)],
@@ -222,23 +224,23 @@ mixin \$${type}LocalAdapter on LocalAdapter<$type> {
 }
 
 // ignore: must_be_immutable
-class \$${type}HiveLocalAdapter = HiveLocalAdapter<$type> with \$${type}LocalAdapter;
+class \$${classType}HiveLocalAdapter = HiveLocalAdapter<$classType> with \$${classType}LocalAdapter;
 
-class \$${type}RemoteAdapter = RemoteAdapter<$type> with ${mixins.join(', ')};
+class \$${classType}RemoteAdapter = RemoteAdapter<$classType> with ${mixins.join(', ')};
 
 //
 
-final ${typeLowerCased}LocalAdapterProvider = RiverpodAlias.provider<LocalAdapter<$type>>(
-    (ref) => \$${type}HiveLocalAdapter(ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
+final ${typeLowerCased}LocalAdapterProvider = RiverpodAlias.provider<LocalAdapter<$classType>>(
+    (ref) => \$${classType}HiveLocalAdapter(ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
 final ${typeLowerCased}RemoteAdapterProvider =
-    RiverpodAlias.provider<RemoteAdapter<$type>>(
-        (ref) => \$${type}RemoteAdapter(ref.read(${typeLowerCased}LocalAdapterProvider)));
+    RiverpodAlias.provider<RemoteAdapter<$classType>>(
+        (ref) => \$${classType}RemoteAdapter(ref.read(${typeLowerCased}LocalAdapterProvider)));
 
 final ${typeLowerCased}RepositoryProvider =
-    RiverpodAlias.provider<Repository<$type>>((_) => Repository<$type>());
+    RiverpodAlias.provider<Repository<$classType>>((_) => Repository<$classType>());
 
-extension ${type}X on $type {
+extension ${classType}X on $classType {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   /// 
@@ -246,10 +248,10 @@ extension ${type}X on $type {
   ///  - A `BuildContext` if using Flutter with Riverpod or Provider
   ///  - Nothing if using Flutter with GetIt
   ///  - A `ProviderStateOwner` if using pure Dart
-  ///  - Its own [Repository<$type>]
-  $type init($initArgOptional) {
-    final repository = $initArg is Repository<$type> ? $initArg : internalLocatorFn(${typeLowerCased}RepositoryProvider, $initArg);
-    return repository.internalAdapter.initializeModel(this, save: true) as $type;
+  ///  - Its own [Repository<$classType>]
+  $classType init($initArgOptional) {
+    final repository = $initArg is Repository<$classType> ? $initArg : internalLocatorFn(${typeLowerCased}RepositoryProvider, $initArg);
+    return repository.internalAdapter.initializeModel(this, save: true) as $classType;
   }
 }
 
