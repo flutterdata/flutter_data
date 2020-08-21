@@ -71,14 +71,14 @@ final tokenFutureProvider = FutureProvider((_) => Future.value('s3cr4t'));
 mixin TokenAdapter<T extends DataModel<T>> on RemoteAdapter<T> {
   @override
   FutureOr<Map<String, String>> get defaultHeaders async {
-    final token = await ref.read(tokenFutureProvider);
+    final token = await ref.watch(tokenFutureProvider.future);
     return await super.defaultHeaders
       ..addAll({'Authorization': token});
   }
 
   @override
   FutureOr<Map<String, dynamic>> get defaultParams async {
-    final token = await ref.read(tokenFutureProvider);
+    final token = await ref.read(tokenFutureProvider.future);
     return await super.defaultParams
       ..addAll({'Authorization': token});
   }
@@ -113,7 +113,7 @@ class NodeLocalAdapter = $NodeHiveLocalAdapter with TestHiveLocalAdapter<Node>;
 
 //
 
-ProviderStateOwner owner;
+ProviderContainer container;
 GraphNotifier graph;
 
 RemoteAdapter<House> houseRemoteAdapter;
@@ -127,59 +127,54 @@ Repository<Dog> dogRepository;
 Repository<Node> nodeRepository;
 
 void setUpFn() async {
-  owner = createOwner();
-  graph = graphProvider.readOwner(owner);
+  container = createContainer();
+  graph = container.read(graphProvider);
   // IMPORTANT: disable namespace assertions
   // in order to test un-namespaced (key, id)
   graph.debugAssert(false);
 
   final adapterGraph = <String, RemoteAdapter<DataModel>>{
-    'houses': houseRemoteAdapterProvider.readOwner(owner),
-    'families': familyRemoteAdapterProvider.readOwner(owner),
-    'people': personRemoteAdapterProvider.readOwner(owner),
-    'dogs': dogRemoteAdapterProvider.readOwner(owner),
+    'houses': container.read(houseRemoteAdapterProvider),
+    'families': container.read(familyRemoteAdapterProvider),
+    'people': container.read(personRemoteAdapterProvider),
+    'dogs': container.read(dogRemoteAdapterProvider),
   };
 
-  houseRemoteAdapter = houseRemoteAdapterProvider.readOwner(owner);
-  familyRemoteAdapter = familyRemoteAdapterProvider.readOwner(owner);
-  personRemoteAdapter = personRemoteAdapterProvider.readOwner(owner);
+  houseRemoteAdapter = container.read(houseRemoteAdapterProvider);
+  familyRemoteAdapter = container.read(familyRemoteAdapterProvider);
+  personRemoteAdapter = container.read(personRemoteAdapterProvider);
 
-  houseRepository = await houseRepositoryProvider.readOwner(owner).initialize(
+  houseRepository = await container.read(houseRepositoryProvider).initialize(
         remote: false,
         verbose: false,
         adapters: adapterGraph,
-        ref: owner.ref,
       );
 
-  familyRepository = await familyRepositoryProvider.readOwner(owner).initialize(
+  familyRepository = await container.read(familyRepositoryProvider).initialize(
         remote: false,
         verbose: false,
         adapters: adapterGraph,
-        ref: owner.ref,
       );
 
-  personRepository = await personRepositoryProvider.readOwner(owner).initialize(
+  personRepository = await container.read(personRepositoryProvider).initialize(
         remote: false,
         verbose: false,
         adapters: adapterGraph,
-        ref: owner.ref,
       );
 
-  dogRepository = await dogRepositoryProvider.readOwner(owner).initialize(
+  dogRepository = await container.read(dogRepositoryProvider).initialize(
         remote: false,
         verbose: true,
         adapters: adapterGraph,
-        ref: owner.ref,
       );
 
-  nodeRepository = await nodeRepositoryProvider.readOwner(owner).initialize(
-        remote: false,
-        verbose: false,
-        adapters: {
-          'nodes': nodeRemoteAdapterProvider.readOwner(owner),
-        },
-        ref: owner.ref,
-      );
+  nodeRepository = await container.read(nodeRepositoryProvider).initialize(
+    remote: false,
+    verbose: false,
+    adapters: {
+      'nodes': container.read(nodeRemoteAdapterProvider),
+    },
+  );
 }
 
 Function dispose;
@@ -195,36 +190,39 @@ void tearDownFn() async {
 
 //
 
-ProviderStateOwner createOwner() {
-  return ProviderStateOwner(
+ProviderContainer createContainer() {
+  return ProviderContainer(
     overrides: [
       hiveLocalStorageProvider
-          .overrideAs(Provider((_) => TestHiveLocalStorage())),
-      graphProvider.overrideAs(Provider(
+          .overrideWithProvider(Provider((_) => TestHiveLocalStorage())),
+      graphProvider.overrideWithProvider(Provider(
           (ref) => TestDataGraphNotifier(ref.read(hiveLocalStorageProvider)))),
       //
-      houseLocalAdapterProvider.overrideAs(Provider((ref) => HouseLocalAdapter(
-          ref.read(hiveLocalStorageProvider), ref.read(graphProvider)))),
-      familyLocalAdapterProvider.overrideAs(Provider((ref) =>
+      houseLocalAdapterProvider.overrideWithProvider(Provider((ref) =>
+          HouseLocalAdapter(
+              ref.read(hiveLocalStorageProvider), ref.read(graphProvider)))),
+      familyLocalAdapterProvider.overrideWithProvider(Provider((ref) =>
           FamilyLocalAdapter(
               ref.read(hiveLocalStorageProvider), ref.read(graphProvider)))),
-      personLocalAdapterProvider.overrideAs(Provider((ref) =>
+      personLocalAdapterProvider.overrideWithProvider(Provider((ref) =>
           PersonLocalAdapter(
               ref.read(hiveLocalStorageProvider), ref.read(graphProvider)))),
-      dogLocalAdapterProvider.overrideAs(Provider((ref) => DogLocalAdapter(
-          ref.read(hiveLocalStorageProvider), ref.read(graphProvider)))),
-      nodeLocalAdapterProvider.overrideAs(Provider((ref) => NodeLocalAdapter(
-          ref.read(hiveLocalStorageProvider), ref.read(graphProvider)))),
+      dogLocalAdapterProvider.overrideWithProvider(Provider((ref) =>
+          DogLocalAdapter(
+              ref.read(hiveLocalStorageProvider), ref.read(graphProvider)))),
+      nodeLocalAdapterProvider.overrideWithProvider(Provider((ref) =>
+          NodeLocalAdapter(
+              ref.read(hiveLocalStorageProvider), ref.read(graphProvider)))),
       //
-      houseRemoteAdapterProvider.overrideAs(Provider(
+      houseRemoteAdapterProvider.overrideWithProvider(Provider(
           (ref) => HouseRemoteAdapter(ref.read(houseLocalAdapterProvider)))),
-      familyRemoteAdapterProvider.overrideAs(Provider(
+      familyRemoteAdapterProvider.overrideWithProvider(Provider(
           (ref) => FamilyRemoteAdapter(ref.read(familyLocalAdapterProvider)))),
-      personRemoteAdapterProvider.overrideAs(Provider(
+      personRemoteAdapterProvider.overrideWithProvider(Provider(
           (ref) => PersonRemoteAdapter(ref.read(personLocalAdapterProvider)))),
-      dogRemoteAdapterProvider.overrideAs(Provider(
+      dogRemoteAdapterProvider.overrideWithProvider(Provider(
           (ref) => DogRemoteAdapter(ref.read(dogLocalAdapterProvider)))),
-      nodeRemoteAdapterProvider.overrideAs(Provider(
+      nodeRemoteAdapterProvider.overrideWithProvider(Provider(
           (ref) => $NodeRemoteAdapter(ref.read(nodeLocalAdapterProvider)))),
     ],
   );

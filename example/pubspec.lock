@@ -168,7 +168,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.5.0"
+    version: "0.5.1"
   freezed_annotation:
     dependency: transitive
     description:
@@ -364,7 +364,7 @@ packages:
       name: riverpod
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.1"
+    version: "0.6.1"
   shelf:
     dependency: transitive
     description:

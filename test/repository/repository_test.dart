@@ -139,7 +139,7 @@ void main() async {
 
   test('delete', () async {
     // init a person
-    final person = Person(id: '1', name: 'John', age: 21).init(owner);
+    final person = Person(id: '1', name: 'John', age: 21).init(container);
     // it does have a key
     expect(keyFor(person), isNotNull);
 
@@ -274,8 +274,8 @@ void main() async {
   });
 
   test('remote can return a different ID', () async {
-    Family(id: '1', surname: 'Corleone').init(owner);
-    Family(id: '2', surname: 'Moletto').init(owner);
+    Family(id: '1', surname: 'Corleone').init(container);
+    Family(id: '2', surname: 'Moletto').init(container);
 
     await familyRepository.findOne('1', remote: true, headers: {
       // returns 2, not the requested 1
@@ -292,10 +292,10 @@ void main() async {
 
   test('reconcile keys under same ID', () async {
     // id=1 exists locally, has a key
-    final family1 = Family(id: '1', surname: 'Corleone').init(owner);
+    final family1 = Family(id: '1', surname: 'Corleone').init(container);
 
     // an id-less Family is created (obviously with new key)
-    final family2 = Family(surname: 'Moletto').init(owner);
+    final family2 = Family(surname: 'Moletto').init(container);
 
     // therefore these objects have different keys
     expect(keyFor(family2), isNotNull);
@@ -340,7 +340,7 @@ void main() async {
   });
 
   test('verbose', overridePrint(() async {
-    Dog(id: '3', name: 'Bowie').init(owner);
+    Dog(id: '3', name: 'Bowie').init(container);
     await dogRepository.delete(
       '3',
       params: {'a': 1},

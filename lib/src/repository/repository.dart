@@ -2,6 +2,9 @@ part of flutter_data;
 
 /// Thin wrapper on the [RemoteAdapter] API
 class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
+  final ProviderReference _ref;
+  Repository(this._ref);
+
   String get type => DataHelpers.getType<T>();
 
   final _adapters = <String, RemoteAdapter>{};
@@ -20,14 +23,11 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   @override
   @mustCallSuper
   FutureOr<Repository<T>> initialize(
-      {bool remote,
-      bool verbose,
-      Map<String, RemoteAdapter> adapters,
-      ProviderReference ref}) async {
+      {bool remote, bool verbose, Map<String, RemoteAdapter> adapters}) async {
     if (isInitialized) return this;
     _adapters.addAll(adapters);
     await _adapter.initialize(
-        remote: remote, verbose: verbose, adapters: adapters, ref: ref);
+        remote: remote, verbose: verbose, adapters: adapters, ref: _ref);
     await super.initialize();
     return this;
   }

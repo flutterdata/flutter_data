@@ -30,7 +30,7 @@ typedef InternalLocator<T extends DataModel<T>> = Repository<T> Function(
 
 /// ONLY FOR FLUTTER DATA INTERNAL USE
 InternalLocator internalLocatorFn =
-    (provider, owner) => provider.readOwner(owner as ProviderStateOwner);
+    (provider, container) => (container as ProviderContainer).read(provider);
 
 class RepositoryInitializer {}
 

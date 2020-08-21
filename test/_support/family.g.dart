@@ -94,8 +94,8 @@ final familyRemoteAdapterProvider =
     RiverpodAlias.provider<RemoteAdapter<Family>>(
         (ref) => $FamilyRemoteAdapter(ref.read(familyLocalAdapterProvider)));
 
-final familyRepositoryProvider =
-    RiverpodAlias.provider<Repository<Family>>((_) => Repository<Family>());
+final familyRepositoryProvider = RiverpodAlias.provider<Repository<Family>>(
+    (ref) => Repository<Family>(ref));
 
 extension FamilyX on Family {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
@@ -104,12 +104,12 @@ extension FamilyX on Family {
   /// Pass:
   ///  - A `BuildContext` if using Flutter with Riverpod or Provider
   ///  - Nothing if using Flutter with GetIt
-  ///  - A `ProviderStateOwner` if using pure Dart
+  ///  - A Riverpod `ProviderContainer` if using pure Dart
   ///  - Its own [Repository<Family>]
-  Family init(owner) {
-    final repository = owner is Repository<Family>
-        ? owner
-        : internalLocatorFn(familyRepositoryProvider, owner);
+  Family init(container) {
+    final repository = container is Repository<Family>
+        ? container
+        : internalLocatorFn(familyRepositoryProvider, container);
     return repository.internalAdapter.initializeModel(this, save: true)
         as Family;
   }

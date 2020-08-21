@@ -51,7 +51,7 @@ void main() async {
     expect(await houseRemoteAdapter.findOne(house.id), isNull);
 
     // now initialize
-    house.init(owner);
+    house.init(container);
 
     // repo.findOne works because the House repo is remote=false
     expect(await houseRemoteAdapter.findOne(house.id), house);
@@ -67,7 +67,7 @@ void main() async {
 
   test('delete', () async {
     // init a person
-    final person = Person(id: '1', name: 'John', age: 21).init(owner);
+    final person = Person(id: '1', name: 'John', age: 21).init(container);
     // it does have a key
     expect(graph.getKeyForId('people', person.id), isNotNull);
 

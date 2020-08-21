@@ -77,7 +77,7 @@ void main() async {
       {'_id': '1', 'name': 'Na', 'age': 88, 'family_id': null}
     ], init: true).model;
 
-    Family(id: '1', surname: 'Kong').init(owner);
+    Family(id: '1', surname: 'Kong').init(container);
 
     expect(p.family.key, isNull);
 
@@ -85,7 +85,7 @@ void main() async {
       {'_id': '27', 'name': 'Ko', 'age': 24, 'family_id': '332'}
     ], init: true).model;
 
-    Family(id: '332', surname: 'Tao').init(owner);
+    Family(id: '332', surname: 'Tao').init(container);
 
     expect(p1.family.value.id, '332');
 

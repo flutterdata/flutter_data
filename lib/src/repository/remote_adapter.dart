@@ -277,7 +277,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       }
       final newModel = localAdapter.findOne(key);
       if (init) {
-        newModel._initialize(adapters, save: true);
+        newModel?._initialize(adapters, save: true);
       }
       return newModel;
     }

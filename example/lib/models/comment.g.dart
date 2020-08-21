@@ -73,8 +73,8 @@ final commentRemoteAdapterProvider =
     RiverpodAlias.provider<RemoteAdapter<Comment>>(
         (ref) => $CommentRemoteAdapter(ref.read(commentLocalAdapterProvider)));
 
-final commentRepositoryProvider =
-    RiverpodAlias.provider<Repository<Comment>>((_) => Repository<Comment>());
+final commentRepositoryProvider = RiverpodAlias.provider<Repository<Comment>>(
+    (ref) => Repository<Comment>(ref));
 
 extension CommentX on Comment {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
@@ -83,12 +83,12 @@ extension CommentX on Comment {
   /// Pass:
   ///  - A `BuildContext` if using Flutter with Riverpod or Provider
   ///  - Nothing if using Flutter with GetIt
-  ///  - A `ProviderStateOwner` if using pure Dart
+  ///  - A Riverpod `ProviderContainer` if using pure Dart
   ///  - Its own [Repository<Comment>]
-  Comment init([owner]) {
-    final repository = owner is Repository<Comment>
-        ? owner
-        : internalLocatorFn(commentRepositoryProvider, owner);
+  Comment init([container]) {
+    final repository = container is Repository<Comment>
+        ? container
+        : internalLocatorFn(commentRepositoryProvider, container);
     return repository.internalAdapter.initializeModel(this, save: true)
         as Comment;
   }

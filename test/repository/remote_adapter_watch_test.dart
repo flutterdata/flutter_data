@@ -56,7 +56,7 @@ void main() async {
       await (() async {
         final id =
             Random().nextBool() ? Random().nextInt(999999999).toString() : null;
-        person = Person.generate(owner, withId: id);
+        person = Person.generate(container, withId: id);
 
         // just before finishing, delete last Person
         if (j == count - 1) {
@@ -70,7 +70,7 @@ void main() async {
   test('watchAll updates', () async {
     final listener = Listener<DataState<List<Person>>>();
 
-    final p1 = Person(id: '1', name: 'Zof', age: 23).init(owner);
+    final p1 = Person(id: '1', name: 'Zof', age: 23).init(container);
     final notifier = personRemoteAdapter.watchAll();
 
     dispose = notifier.addListener(listener, fireImmediately: true);
@@ -78,7 +78,7 @@ void main() async {
     verify(listener(DataState([p1], isLoading: true))).called(1);
     verifyNoMoreInteractions(listener);
 
-    final p2 = Person(id: '1', name: 'Zofie', age: 23).init(owner);
+    final p2 = Person(id: '1', name: 'Zofie', age: 23).init(container);
     await oneMs();
 
     verify(listener(DataState([p2], isLoading: false))).called(1);
@@ -103,7 +103,7 @@ void main() async {
 
     dispose = notifier.addListener(listener, fireImmediately: false);
 
-    Person(id: '1', name: 'Frank', age: 30).init(owner);
+    Person(id: '1', name: 'Frank', age: 30).init(container);
     await oneMs();
 
     verify(listener(argThat(matcher('Frank')))).called(1);
@@ -130,8 +130,8 @@ void main() async {
   });
 
   test('watchOne reads latest version', () async {
-    Person(id: '345', name: 'Frank', age: 30).init(owner);
-    Person(id: '345', name: 'Steve-O', age: 34).init(owner);
+    Person(id: '345', name: 'Frank', age: 30).init(container);
+    Person(id: '345', name: 'Steve-O', age: 34).init(container);
 
     final notifier = personRemoteAdapter.watchOne('345');
 
@@ -161,7 +161,7 @@ void main() async {
     verify(listener(argThat(isA<DataState<Family>>()))).called(1);
     verifyNoMoreInteractions(listener);
 
-    final p1 = Person(id: '1', name: 'Frank', age: 16).init(owner);
+    final p1 = Person(id: '1', name: 'Frank', age: 16).init(container);
     p1.family.value = f1;
     await oneMs();
 
@@ -212,7 +212,7 @@ void main() async {
   });
 
   test('watchOne without ID and alsoWatch', () async {
-    final frank = Person(name: 'Frank', age: 30).init(owner);
+    final frank = Person(name: 'Frank', age: 30).init(container);
 
     final notifier = frank.watch(alsoWatch: (p) => [p.family]);
 

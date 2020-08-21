@@ -68,7 +68,7 @@ final houseRemoteAdapterProvider = RiverpodAlias.provider<RemoteAdapter<House>>(
     (ref) => $HouseRemoteAdapter(ref.read(houseLocalAdapterProvider)));
 
 final houseRepositoryProvider =
-    RiverpodAlias.provider<Repository<House>>((_) => Repository<House>());
+    RiverpodAlias.provider<Repository<House>>((ref) => Repository<House>(ref));
 
 extension HouseX on House {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
@@ -77,12 +77,12 @@ extension HouseX on House {
   /// Pass:
   ///  - A `BuildContext` if using Flutter with Riverpod or Provider
   ///  - Nothing if using Flutter with GetIt
-  ///  - A `ProviderStateOwner` if using pure Dart
+  ///  - A Riverpod `ProviderContainer` if using pure Dart
   ///  - Its own [Repository<House>]
-  House init(owner) {
-    final repository = owner is Repository<House>
-        ? owner
-        : internalLocatorFn(houseRepositoryProvider, owner);
+  House init(container) {
+    final repository = container is Repository<House>
+        ? container
+        : internalLocatorFn(houseRepositoryProvider, container);
     return repository.internalAdapter.initializeModel(this, save: true)
         as House;
   }

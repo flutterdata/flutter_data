@@ -28,7 +28,7 @@ void main() async {
     expect(family.persons, {person});
     expect(family.persons, equals(family.persons));
 
-    family.init(owner);
+    family.init(container);
 
     // after init, values remain the same
     expect(family.residence.value, house);
@@ -54,7 +54,7 @@ void main() async {
     family.residence.value = house;
     expect(family.residence.value, house);
 
-    family.init(owner);
+    family.init(container);
     family.residence.value = house; // assigning again shouldn't affect
     expect(family.residence.value, house);
   });
@@ -76,7 +76,7 @@ void main() async {
       id: '22',
       surname: 'Besson',
       residence: BelongsTo<House>(),
-    ).init(owner);
+    ).init(container);
 
     final notifier = family.residence.watch();
     final listener = Listener<House>();

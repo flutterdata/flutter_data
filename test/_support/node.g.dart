@@ -78,7 +78,7 @@ final nodeRemoteAdapterProvider = RiverpodAlias.provider<RemoteAdapter<Node>>(
     (ref) => $NodeRemoteAdapter(ref.read(nodeLocalAdapterProvider)));
 
 final nodeRepositoryProvider =
-    RiverpodAlias.provider<Repository<Node>>((_) => Repository<Node>());
+    RiverpodAlias.provider<Repository<Node>>((ref) => Repository<Node>(ref));
 
 extension NodeX on Node {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
@@ -87,12 +87,12 @@ extension NodeX on Node {
   /// Pass:
   ///  - A `BuildContext` if using Flutter with Riverpod or Provider
   ///  - Nothing if using Flutter with GetIt
-  ///  - A `ProviderStateOwner` if using pure Dart
+  ///  - A Riverpod `ProviderContainer` if using pure Dart
   ///  - Its own [Repository<Node>]
-  Node init(owner) {
-    final repository = owner is Repository<Node>
-        ? owner
-        : internalLocatorFn(nodeRepositoryProvider, owner);
+  Node init(container) {
+    final repository = container is Repository<Node>
+        ? container
+        : internalLocatorFn(nodeRepositoryProvider, container);
     return repository.internalAdapter.initializeModel(this, save: true) as Node;
   }
 }

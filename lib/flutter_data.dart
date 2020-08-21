@@ -6,8 +6,7 @@ import 'dart:convert';
 import 'package:data_state/data_state.dart';
 import 'package:riverpod/riverpod.dart';
 // ignore: implementation_imports
-import 'package:riverpod/src/future_provider/future_provider.dart'
-    show FutureProviderFamily;
+import 'package:riverpod/src/future_provider.dart' show FutureProviderFamily;
 import 'package:state_notifier/state_notifier.dart';
 import 'package:meta/meta.dart';
 import 'package:http/http.dart' as http;
@@ -20,7 +19,7 @@ import 'src/graph/notifier_extension.dart';
 import 'src/repository/hive_local_storage.dart';
 
 export 'package:data_state/data_state.dart';
-export 'package:riverpod/riverpod.dart' show ProviderStateOwner;
+export 'package:riverpod/riverpod.dart' show ProviderContainer;
 export 'src/graph/notifier_extension.dart';
 export 'src/repository/hive_local_storage.dart';
 

@@ -196,7 +196,7 @@ and execute a code generation build again.
             await isDependency('hooks_riverpod', buildStep);
 
     final initArg =
-        (importProvider || importFlutterRiverpod) ? 'context' : 'owner';
+        (importProvider || importFlutterRiverpod) ? 'context' : 'container';
     final initArgOptional = importGetIt ? '[$initArg]' : initArg;
 
     // template
@@ -238,7 +238,7 @@ final ${typeLowerCased}RemoteAdapterProvider =
         (ref) => \$${classType}RemoteAdapter(ref.read(${typeLowerCased}LocalAdapterProvider)));
 
 final ${typeLowerCased}RepositoryProvider =
-    RiverpodAlias.provider<Repository<$classType>>((_) => Repository<$classType>());
+    RiverpodAlias.provider<Repository<$classType>>((ref) => Repository<$classType>(ref));
 
 extension ${classType}X on $classType {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
@@ -247,7 +247,7 @@ extension ${classType}X on $classType {
   /// Pass:
   ///  - A `BuildContext` if using Flutter with Riverpod or Provider
   ///  - Nothing if using Flutter with GetIt
-  ///  - A `ProviderStateOwner` if using pure Dart
+  ///  - A Riverpod `ProviderContainer` if using pure Dart
   ///  - Its own [Repository<$classType>]
   $classType init($initArgOptional) {
     final repository = $initArg is Repository<$classType> ? $initArg : internalLocatorFn(${typeLowerCased}RepositoryProvider, $initArg);

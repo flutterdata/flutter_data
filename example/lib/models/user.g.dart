@@ -59,7 +59,7 @@ final userRemoteAdapterProvider = RiverpodAlias.provider<RemoteAdapter<User>>(
     (ref) => $UserRemoteAdapter(ref.read(userLocalAdapterProvider)));
 
 final userRepositoryProvider =
-    RiverpodAlias.provider<Repository<User>>((_) => Repository<User>());
+    RiverpodAlias.provider<Repository<User>>((ref) => Repository<User>(ref));
 
 extension UserX on User {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
@@ -68,12 +68,12 @@ extension UserX on User {
   /// Pass:
   ///  - A `BuildContext` if using Flutter with Riverpod or Provider
   ///  - Nothing if using Flutter with GetIt
-  ///  - A `ProviderStateOwner` if using pure Dart
+  ///  - A Riverpod `ProviderContainer` if using pure Dart
   ///  - Its own [Repository<User>]
-  User init([owner]) {
-    final repository = owner is Repository<User>
-        ? owner
-        : internalLocatorFn(userRepositoryProvider, owner);
+  User init([container]) {
+    final repository = container is Repository<User>
+        ? container
+        : internalLocatorFn(userRepositoryProvider, container);
     return repository.internalAdapter.initializeModel(this, save: true) as User;
   }
 }

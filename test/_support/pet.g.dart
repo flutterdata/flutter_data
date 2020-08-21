@@ -69,7 +69,7 @@ final dogRemoteAdapterProvider = RiverpodAlias.provider<RemoteAdapter<Dog>>(
     (ref) => $DogRemoteAdapter(ref.read(dogLocalAdapterProvider)));
 
 final dogRepositoryProvider =
-    RiverpodAlias.provider<Repository<Dog>>((_) => Repository<Dog>());
+    RiverpodAlias.provider<Repository<Dog>>((ref) => Repository<Dog>(ref));
 
 extension DogX on Dog {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
@@ -78,12 +78,12 @@ extension DogX on Dog {
   /// Pass:
   ///  - A `BuildContext` if using Flutter with Riverpod or Provider
   ///  - Nothing if using Flutter with GetIt
-  ///  - A `ProviderStateOwner` if using pure Dart
+  ///  - A Riverpod `ProviderContainer` if using pure Dart
   ///  - Its own [Repository<Dog>]
-  Dog init(owner) {
-    final repository = owner is Repository<Dog>
-        ? owner
-        : internalLocatorFn(dogRepositoryProvider, owner);
+  Dog init(container) {
+    final repository = container is Repository<Dog>
+        ? container
+        : internalLocatorFn(dogRepositoryProvider, container);
     return repository.internalAdapter.initializeModel(this, save: true) as Dog;
   }
 }
@@ -123,7 +123,7 @@ final catRemoteAdapterProvider = RiverpodAlias.provider<RemoteAdapter<Cat>>(
     (ref) => $CatRemoteAdapter(ref.read(catLocalAdapterProvider)));
 
 final catRepositoryProvider =
-    RiverpodAlias.provider<Repository<Cat>>((_) => Repository<Cat>());
+    RiverpodAlias.provider<Repository<Cat>>((ref) => Repository<Cat>(ref));
 
 extension CatX on Cat {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
@@ -132,12 +132,12 @@ extension CatX on Cat {
   /// Pass:
   ///  - A `BuildContext` if using Flutter with Riverpod or Provider
   ///  - Nothing if using Flutter with GetIt
-  ///  - A `ProviderStateOwner` if using pure Dart
+  ///  - A Riverpod `ProviderContainer` if using pure Dart
   ///  - Its own [Repository<Cat>]
-  Cat init(owner) {
-    final repository = owner is Repository<Cat>
-        ? owner
-        : internalLocatorFn(catRepositoryProvider, owner);
+  Cat init(container) {
+    final repository = container is Repository<Cat>
+        ? container
+        : internalLocatorFn(catRepositoryProvider, container);
     return repository.internalAdapter.initializeModel(this, save: true) as Cat;
   }
 }

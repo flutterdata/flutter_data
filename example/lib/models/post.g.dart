@@ -75,7 +75,7 @@ final postRemoteAdapterProvider = RiverpodAlias.provider<RemoteAdapter<Post>>(
     (ref) => $PostRemoteAdapter(ref.read(postLocalAdapterProvider)));
 
 final postRepositoryProvider =
-    RiverpodAlias.provider<Repository<Post>>((_) => Repository<Post>());
+    RiverpodAlias.provider<Repository<Post>>((ref) => Repository<Post>(ref));
 
 extension PostX on Post {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
@@ -84,12 +84,12 @@ extension PostX on Post {
   /// Pass:
   ///  - A `BuildContext` if using Flutter with Riverpod or Provider
   ///  - Nothing if using Flutter with GetIt
-  ///  - A `ProviderStateOwner` if using pure Dart
+  ///  - A Riverpod `ProviderContainer` if using pure Dart
   ///  - Its own [Repository<Post>]
-  Post init([owner]) {
-    final repository = owner is Repository<Post>
-        ? owner
-        : internalLocatorFn(postRepositoryProvider, owner);
+  Post init([container]) {
+    final repository = container is Repository<Post>
+        ? container
+        : internalLocatorFn(postRepositoryProvider, container);
     return repository.internalAdapter.initializeModel(this, save: true) as Post;
   }
 }

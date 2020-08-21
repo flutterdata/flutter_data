@@ -17,7 +17,7 @@ import 'package:jsonplaceholder_example/models/comment.dart';
 ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<String> baseDirFn, List<int> encryptionKey, bool clear}) {
   // ignore: unnecessary_statements
   baseDirFn;
-  return hiveLocalStorageProvider.overrideAs(RiverpodAlias.provider(
+  return hiveLocalStorageProvider.overrideWithProvider(RiverpodAlias.provider(
         (_) => HiveLocalStorage(baseDirFn: baseDirFn, encryptionKey: encryptionKey, clear: clear)));
 };
 
@@ -37,21 +37,18 @@ final _repositoryInitializerProviderFamily =
         remote: args?.remote,
         verbose: args?.verbose,
         adapters: graphs['comments,posts,users'],
-        ref: ref,
       );
 
       await ref.read(userRepositoryProvider).initialize(
         remote: args?.remote,
         verbose: args?.verbose,
         adapters: graphs['comments,posts,users'],
-        ref: ref,
       );
 
       await ref.read(commentRepositoryProvider).initialize(
         remote: args?.remote,
         verbose: args?.verbose,
         adapters: graphs['comments,posts,users'],
-        ref: ref,
       );
     return RepositoryInitializer();
 });
@@ -63,7 +60,7 @@ extension GetItFlutterDataX on GetIt {
     bool clear, bool remote, bool verbose}) {
 final i = GetIt.instance;
 
-final _owner = ProviderStateOwner(
+final _container = ProviderContainer(
   overrides: [
     configureRepositoryLocalStorage(baseDirFn: baseDirFn, encryptionKey: encryptionKey, clear: clear),
   ],
@@ -74,25 +71,24 @@ if (i.isRegistered<RepositoryInitializer>()) {
 }
 
 i.registerSingletonAsync<RepositoryInitializer>(() async {
-    final init = _owner.ref.read(repositoryInitializerProvider(
-          remote: remote, verbose: verbose));
-    internalLocatorFn = (provider, _) => provider.readOwner(_owner);
+    final init = _container.read(repositoryInitializerProvider(remote: remote, verbose: verbose).future);
+    internalLocatorFn = (provider, _) => _container.read(provider);
     return init;
   });  
 i.registerSingletonWithDependencies<Repository<Post>>(
-      () => _owner.ref.read(postRepositoryProvider),
+      () => _container.read(postRepositoryProvider),
       dependsOn: [RepositoryInitializer]);
 
       
   
 i.registerSingletonWithDependencies<Repository<User>>(
-      () => _owner.ref.read(userRepositoryProvider),
+      () => _container.read(userRepositoryProvider),
       dependsOn: [RepositoryInitializer]);
 
       
   
 i.registerSingletonWithDependencies<Repository<Comment>>(
-      () => _owner.ref.read(commentRepositoryProvider),
+      () => _container.read(commentRepositoryProvider),
       dependsOn: [RepositoryInitializer]);
 
       } }
