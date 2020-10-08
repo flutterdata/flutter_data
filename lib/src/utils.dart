@@ -117,8 +117,10 @@ extension MapUtilsX<K, V> on Map<K, V> {
 
   @protected
   @visibleForTesting
-  Map<K, V> get filterNulls =>
-      {for (final e in entries) if (e.value != null) e.key: e.value};
+  Map<K, V> get filterNulls => {
+        for (final e in entries)
+          if (e.value != null) e.key: e.value
+      };
 }
 
 extension UriUtilsX on Uri {

@@ -12,6 +12,7 @@ Node _$NodeFromJson(Map<String, dynamic> json) {
   return _Node.fromJson(json);
 }
 
+/// @nodoc
 class _$NodeTearOff {
   const _$NodeTearOff();
 
@@ -28,11 +29,18 @@ class _$NodeTearOff {
       children: children,
     );
   }
+
+// ignore: unused_element
+  Node fromJson(Map<String, Object> json) {
+    return Node.fromJson(json);
+  }
 }
 
+/// @nodoc
 // ignore: unused_element
 const $Node = _$NodeTearOff();
 
+/// @nodoc
 mixin _$Node {
   int get id;
   String get name;
@@ -45,6 +53,7 @@ mixin _$Node {
   $NodeCopyWith<Node> get copyWith;
 }
 
+/// @nodoc
 abstract class $NodeCopyWith<$Res> {
   factory $NodeCopyWith(Node value, $Res Function(Node) then) =
       _$NodeCopyWithImpl<$Res>;
@@ -55,6 +64,7 @@ abstract class $NodeCopyWith<$Res> {
       @DataRelationship(inverse: 'parent') HasMany<Node> children});
 }
 
+/// @nodoc
 class _$NodeCopyWithImpl<$Res> implements $NodeCopyWith<$Res> {
   _$NodeCopyWithImpl(this._value, this._then);
 
@@ -79,6 +89,7 @@ class _$NodeCopyWithImpl<$Res> implements $NodeCopyWith<$Res> {
   }
 }
 
+/// @nodoc
 abstract class _$NodeCopyWith<$Res> implements $NodeCopyWith<$Res> {
   factory _$NodeCopyWith(_Node value, $Res Function(_Node) then) =
       __$NodeCopyWithImpl<$Res>;
@@ -90,6 +101,7 @@ abstract class _$NodeCopyWith<$Res> implements $NodeCopyWith<$Res> {
       @DataRelationship(inverse: 'parent') HasMany<Node> children});
 }
 
+/// @nodoc
 class __$NodeCopyWithImpl<$Res> extends _$NodeCopyWithImpl<$Res>
     implements _$NodeCopyWith<$Res> {
   __$NodeCopyWithImpl(_Node _value, $Res Function(_Node) _then)
@@ -116,6 +128,8 @@ class __$NodeCopyWithImpl<$Res> extends _$NodeCopyWithImpl<$Res>
 }
 
 @JsonSerializable()
+
+/// @nodoc
 class _$_Node extends _Node {
   _$_Node(
       {this.id,

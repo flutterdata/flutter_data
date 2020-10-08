@@ -19,17 +19,18 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
     if (isInitialized) return this;
     // IMPORTANT: initialize graph before registering
     await super.initialize();
+    final clear = _hiveLocalStorage.clear ?? false;
 
     if (!_hiveLocalStorage.hive.isBoxOpen(_type)) {
       _hiveLocalStorage.hive.registerAdapter(this);
+      if (clear) {
+        await _hiveLocalStorage.hive.deleteBoxFromDisk(_type);
+        await _hiveLocalStorage.hive.deleteBoxFromDisk('_graph');
+      }
     }
 
     box = await _hiveLocalStorage.hive.openBox<T>(_type,
         encryptionCipher: _hiveLocalStorage.encryptionCipher);
-
-    if (_hiveLocalStorage.clear ?? false) {
-      await box.clear();
-    }
 
     return this;
   }
