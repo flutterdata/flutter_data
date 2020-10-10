@@ -25,7 +25,9 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
       _hiveLocalStorage.hive.registerAdapter(this);
       if (clear) {
         await _hiveLocalStorage.hive.deleteBoxFromDisk(_type);
-        await _hiveLocalStorage.hive.deleteBoxFromDisk('_graph');
+        if (await _hiveLocalStorage.hive.boxExists('graph')) {
+          await _hiveLocalStorage.hive.deleteBoxFromDisk('_graph');
+        }
       }
     }
 
