@@ -24,17 +24,32 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
     if (!_hiveLocalStorage.hive.isBoxOpen(_type)) {
       _hiveLocalStorage.hive.registerAdapter(this);
       if (clear) {
-        await _hiveLocalStorage.hive.deleteBoxFromDisk(_type);
-        if (await _hiveLocalStorage.hive.boxExists('graph')) {
-          await _hiveLocalStorage.hive.deleteBoxFromDisk('_graph');
-        }
+        await _deleteBox(graph: true);
       }
     }
 
-    box = await _hiveLocalStorage.hive.openBox<T>(_type,
-        encryptionCipher: _hiveLocalStorage.encryptionCipher);
+    try {
+      box = await _openBox();
+    } catch (e) {
+      await _deleteBox();
+      box = await _openBox();
+    }
 
     return this;
+  }
+
+  Future<Box<T>> _openBox() async {
+    return await _hiveLocalStorage.hive.openBox<T>(_type,
+        encryptionCipher: _hiveLocalStorage.encryptionCipher);
+  }
+
+  Future<void> _deleteBox({bool graph = false}) async {
+    await _hiveLocalStorage.hive.deleteBoxFromDisk(_type);
+    if (graph) {
+      if (await _hiveLocalStorage.hive.boxExists('graph')) {
+        await _hiveLocalStorage.hive.deleteBoxFromDisk('_graph');
+      }
+    }
   }
 
   @override
