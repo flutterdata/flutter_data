@@ -12,6 +12,9 @@ class FakeBox<T> extends Fake implements Box<T> {
   final _map = <dynamic, T>{};
 
   @override
+  bool isOpen = false;
+
+  @override
   T get(key, {T defaultValue}) {
     return _map[key] ?? defaultValue;
   }

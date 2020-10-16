@@ -35,9 +35,9 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   /// Disposes this [Repository] and everything that depends on it.
   @override
   @mustCallSuper
-  Future<void> dispose() async {
-    await super.dispose();
-    await _adapter?.dispose();
+  void dispose() {
+    super.dispose();
+    _adapter?.dispose();
   }
 
   // public API
@@ -108,6 +108,9 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
 
   /// Deletes all models of type [T]. This ONLY affects local storage.
   Future<void> clear() => _adapter.clear();
+
+  /// Deletes all models of all types. This ONLY affects local storage.
+  Future<void> clearAll() => _adapter.clearAll();
 
   /// Watches changes on all models of type [T] in local storage.
   ///

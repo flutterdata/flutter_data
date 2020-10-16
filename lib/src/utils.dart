@@ -81,7 +81,9 @@ abstract class _Lifecycle<T> {
   bool get isInitialized => _isInit;
 
   @mustCallSuper
-  Future<void> dispose() async {}
+  void dispose() {
+    _isInit = false;
+  }
 }
 
 // misc extensions

@@ -213,12 +213,15 @@ i.registerSingletonWithDependencies<Repository<${(c['name']).capitalize()}>>(
 
     //
 
-    final repoEntries = classes.map((c) => '''\n
+    final repoInitializeEntries = classes.map((c) => '''\n
       await ref.read(${c['name']}RepositoryProvider).initialize(
         remote: args?.remote,
         verbose: args?.verbose,
         adapters: graphs['${c['related']}'],
       );''').join('');
+
+    final repoDisposeEntries = classes.map((c) => '''
+      ref.read(${c['name']}RepositoryProvider).dispose();\n''').join('');
 
     await b.writeAsString(finalAssetId, '''\n
 // GENERATED CODE - DO NOT MODIFY BY HAND
@@ -250,7 +253,12 @@ RepositoryInitializerProvider repositoryInitializerProvider = (
 final _repositoryInitializerProviderFamily =
   RiverpodAlias.futureProviderFamily<RepositoryInitializer, RepositoryInitializerArgs>((ref, args) async {
     final graphs = <String, Map<String, RemoteAdapter>>$graphsMap;
-    $repoEntries
+    $repoInitializeEntries
+
+    ref.onDispose(() {
+      $repoDisposeEntries
+    });
+
     return RepositoryInitializer();
 });
 

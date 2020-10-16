@@ -181,11 +181,11 @@ Function dispose;
 
 void tearDownFn() async {
   dispose?.call();
-  await houseRepository?.dispose();
-  await familyRepository?.dispose();
-  await personRepository?.dispose();
-  await dogRepository?.dispose();
-  await nodeRepository?.dispose();
+  houseRepository?.dispose();
+  familyRepository?.dispose();
+  personRepository?.dispose();
+  dogRepository?.dispose();
+  nodeRepository?.dispose();
 }
 
 //

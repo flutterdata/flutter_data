@@ -22,7 +22,9 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
     final clear = _hiveLocalStorage.clear ?? false;
 
     if (!_hiveLocalStorage.hive.isBoxOpen(_type)) {
-      _hiveLocalStorage.hive.registerAdapter(this);
+      if (!_hiveLocalStorage.hive.isAdapterRegistered(typeId)) {
+        _hiveLocalStorage.hive.registerAdapter(this);
+      }
       if (clear) {
         await _deleteBox(graph: true);
       }
@@ -53,9 +55,9 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
   }
 
   @override
-  Future<void> dispose() async {
-    await super.dispose();
-    await box?.close();
+  void dispose() {
+    super.dispose();
+    box?.close();
   }
 
   // protected API
@@ -95,6 +97,11 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
   @override
   Future<void> clear() async {
     await box.clear();
+  }
+
+  @override
+  Future<void> clearAll() async {
+    await _hiveLocalStorage.hive.deleteFromDisk();
   }
 
   // hive adapter

@@ -34,12 +34,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
   }
 
   @override
-  bool get isInitialized => box != null;
-
-  @override
-  Future<void> dispose() async {
-    await super.dispose();
-  }
+  bool get isInitialized => box != null && box.isOpen;
 
   // key-related methods
 

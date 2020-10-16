@@ -367,6 +367,11 @@ void main() async {
           .findOne('1', remote: true, headers: {'response': ''});
     }, throwsA(isA<UnsupportedError>()));
   });
+
+  test('dispose', () {
+    familyRepository.dispose();
+    expect(familyRepository.isInitialized, isFalse);
+  });
 }
 
 final verbose = [];

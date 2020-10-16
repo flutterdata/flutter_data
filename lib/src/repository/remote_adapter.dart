@@ -167,9 +167,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   }
 
   @override
-  Future<void> dispose() async {
-    await super.dispose();
-    await localAdapter.dispose();
+  void dispose() {
+    super.dispose();
+    localAdapter.dispose();
   }
 
   void _assertInit() {
@@ -375,6 +375,10 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   @protected
   @visibleForTesting
   Future<void> clear() => localAdapter.clear();
+
+  @protected
+  @visibleForTesting
+  Future<void> clearAll() => localAdapter.clearAll();
 
   // http
 

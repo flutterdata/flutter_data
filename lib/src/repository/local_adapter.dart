@@ -21,9 +21,9 @@ abstract class LocalAdapter<T extends DataModel<T>>
 
   @override
   @mustCallSuper
-  Future<void> dispose() async {
-    await super.dispose();
-    await graph.dispose();
+  void dispose() {
+    super.dispose();
+    graph.dispose();
   }
 
   // protected API
@@ -56,6 +56,11 @@ abstract class LocalAdapter<T extends DataModel<T>>
   @protected
   @visibleForTesting
   Future<void> clear();
+
+  /// Deletes all models of all types in local storage.
+  @protected
+  @visibleForTesting
+  Future<void> clearAll();
 
   // public abstract methods
 
