@@ -3,7 +3,7 @@ library flutter_data;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-import 'package:flutter_data/src/data_state.dart';
+import 'package:data_state/data_state.dart';
 import 'package:riverpod/riverpod.dart';
 // ignore: implementation_imports
 import 'package:riverpod/src/future_provider.dart' show FutureProviderFamily;
@@ -18,6 +18,7 @@ import 'package:path/path.dart' as path_helper;
 import 'src/graph/notifier_extension.dart';
 import 'src/repository/hive_local_storage.dart';
 
+export 'package:data_state/data_state.dart';
 export 'package:riverpod/riverpod.dart' show ProviderContainer;
 export 'src/graph/notifier_extension.dart';
 export 'src/repository/hive_local_storage.dart';

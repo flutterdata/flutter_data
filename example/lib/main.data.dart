@@ -50,14 +50,6 @@ final _repositoryInitializerProviderFamily =
         verbose: args?.verbose,
         adapters: graphs['comments,posts,users'],
       );
-
-    ref.onDispose(() {
-            ref.read(postRepositoryProvider).dispose();
-      ref.read(userRepositoryProvider).dispose();
-      ref.read(commentRepositoryProvider).dispose();
-
-    });
-
     return RepositoryInitializer();
 });
 
