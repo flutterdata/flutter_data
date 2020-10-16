@@ -1,4 +1,5 @@
 import 'package:flutter_data/flutter_data.dart';
+import 'package:flutter_data/src/data_state.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 

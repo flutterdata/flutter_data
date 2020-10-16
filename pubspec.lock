@@ -169,15 +169,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.3.6"
-  data_state:
-    dependency: "direct main"
-    description:
-      path: "packages/data_state"
-      ref: "0.3.6"
-      resolved-ref: b8bb01eebd95eeeeab6bc78671ee43f292d0c17b
-      url: "https://github.com/flutterdata/data_state.git"
-    source: git
-    version: "0.3.6"
   fixnum:
     dependency: transitive
     description:
@@ -193,7 +184,7 @@ packages:
     source: hosted
     version: "0.12.1"
   freezed_annotation:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: freezed_annotation
       url: "https://pub.dartlang.org"
