@@ -1,3 +1,9 @@
+# Changelog
+
+## [0.5.8] - 2020-10-22
+
+- fix clearAll
+
 ## [0.5.4] - 2020-09-28
 
 - Upgrade dependencies

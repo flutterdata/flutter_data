@@ -101,7 +101,12 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
 
   @override
   Future<void> clearAll() async {
-    await _hiveLocalStorage.hive.deleteFromDisk();
+    final _node = graph.getNode('hive:adapter');
+    final boxNames = _node.keys;
+    for (final boxName in boxNames) {
+      await _hiveLocalStorage.hive.deleteBoxFromDisk(boxName);
+    }
+    _node.clear();
   }
 
   // hive adapter
