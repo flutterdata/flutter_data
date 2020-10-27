@@ -207,7 +207,7 @@ i.registerSingletonWithDependencies<Repository<${(c['name']).capitalize()}>>(
 
     final internalLocator = importFlutterRiverpod
         ? '''
-    internalLocatorFn = (provider, context) => (context as BuildContext).read(provider);
+    internalLocatorFn = (provider, context) => context.read(provider);
     '''
         : '';
 
@@ -239,7 +239,7 @@ $modelImports
 ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<String> baseDirFn, List<int> encryptionKey, bool clear}) {
   // ignore: unnecessary_statements
   baseDirFn${importPathProvider ? ' ??= () => getApplicationDocumentsDirectory().then((dir) => dir.path)' : ''};
-  return hiveLocalStorageProvider.overrideWithProvider(RiverpodAlias.provider(
+  return hiveLocalStorageProvider.overrideWithProvider(Provider(
         (_) => HiveLocalStorage(baseDirFn: baseDirFn, encryptionKey: encryptionKey, clear: clear)));
 };
 
@@ -251,7 +251,7 @@ RepositoryInitializerProvider repositoryInitializerProvider = (
 };
 
 final _repositoryInitializerProviderFamily =
-  RiverpodAlias.futureProviderFamily<RepositoryInitializer, RepositoryInitializerArgs>((ref, args) async {
+  FutureProvider.family<RepositoryInitializer, RepositoryInitializerArgs>((ref, args) async {
     final graphs = <String, Map<String, RemoteAdapter>>$graphsMap;
     $repoInitializeEntries
 
