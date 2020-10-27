@@ -43,13 +43,12 @@ mixin NothingMixin {}
 /// This argument holder class is used internally with
 /// Riverpod `family`s.
 class WatchArgs<T> with EquatableMixin {
-  const WatchArgs({
-    this.id,
-    this.remote = true,
-    this.params = const {},
-    this.headers = const {},
-    this.alsoWatch,
-  });
+  WatchArgs(
+      {this.id,
+      this.remote = true,
+      this.params = const {},
+      this.headers = const {},
+      this.alsoWatch});
 
   final dynamic id;
   final bool remote;
@@ -57,8 +56,8 @@ class WatchArgs<T> with EquatableMixin {
   final Map<String, String> headers;
   final AlsoWatch<T> alsoWatch;
 
-  /// It deliberately has NO equality as caching will be
-  /// managed from within the Flutter Data framework.
+  // WatchArgs are deliberately not equal to each other
+  // as caching will occur in the Flutter Data layer, not Riverpod
   @override
-  List<Object> get props => [];
+  List<Object> get props => [Random().nextDouble()];
 }
