@@ -110,7 +110,9 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           final _future = findOne(id,
               params: params, headers: headers, remote: remote, init: true);
           notifier.data = notifier.data.copyWith(isLoading: true);
-          await _future;
+          final model = await _future;
+          notifier.data =
+              notifier.data.copyWith(isLoading: false, model: model);
         } catch (error, stackTrace) {
           // we're only interested in notifying errors
           // as models will pop up via the graph notifier

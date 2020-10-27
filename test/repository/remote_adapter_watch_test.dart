@@ -135,11 +135,9 @@ void main() async {
 
     final notifier = personRemoteAdapter.watchOne('345');
 
-    dispose = notifier.addListener(
-      expectAsync1((state) {
-        expect(state.model.name, 'Steve-O');
-      }),
-    );
+    dispose = notifier.addListener(expectAsync1((state) {
+      expect(state.model.name, 'Steve-O');
+    }), fireImmediately: false);
   });
 
   test('watchOne with alsoWatch relationships', () async {
@@ -156,9 +154,13 @@ void main() async {
 
     final listener = Listener<DataState<Family>>();
 
-    dispose = notifier.addListener(listener);
+    dispose = notifier.addListener(listener, fireImmediately: false);
 
-    verify(listener(argThat(isA<DataState<Family>>()))).called(1);
+    await oneMs();
+
+    verify(listener(argThat(
+      withState<Family>((s) => s.isLoading, false),
+    ))).called(1);
     verifyNoMoreInteractions(listener);
 
     final p1 = Person(id: '1', name: 'Frank', age: 16).init(container);

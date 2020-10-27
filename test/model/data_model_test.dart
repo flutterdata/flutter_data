@@ -105,6 +105,12 @@ void main() async {
     dispose = notifier.addListener(listener, fireImmediately: true);
 
     verify(listener(argThat(
+      withState<Dog>((s) => s.isLoading, true),
+    ))).called(1);
+
+    await oneMs();
+
+    verify(listener(argThat(
       withState<Dog>((s) => s.model.name, 'Mandarin'),
     ))).called(1);
     verifyNoMoreInteractions(listener);

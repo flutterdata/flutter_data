@@ -254,13 +254,21 @@ void main() async {
       alsoWatch: (family) => [family.persons],
     );
 
-    dispose = notifier.addListener(listener, fireImmediately: false);
+    dispose = notifier.addListener(listener, fireImmediately: true);
+
+    // verify loading
+    verify(listener(argThat(
+      withState<Family>((s) => s.isLoading, true),
+    ))).called(1);
+    verifyNoMoreInteractions(listener);
 
     await oneMs(); // wait for response
 
-    // not called as incoming model (watchOne) is identical
-    // to the one in local storage
-    verifyNever(listener(argThat(isA<DataState<Family>>())));
+    // verify no longer loading
+    verify(listener(argThat(
+      withState<Family>((s) => s.isLoading, false)
+          .having((s) => s.model.id, 'has a model', '22'),
+    ))).called(1);
     verifyNoMoreInteractions(listener);
 
     final f1 = await familyRepository.findOne('22', remote: false);
