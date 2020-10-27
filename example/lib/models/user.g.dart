@@ -51,15 +51,51 @@ class $UserRemoteAdapter = RemoteAdapter<User> with JSONServerAdapter<User>;
 
 //
 
-final userLocalAdapterProvider = RiverpodAlias.provider<LocalAdapter<User>>(
-    (ref) => $UserHiveLocalAdapter(
+final userLocalAdapterProvider = Provider<LocalAdapter<User>>((ref) =>
+    $UserHiveLocalAdapter(
         ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
-final userRemoteAdapterProvider = RiverpodAlias.provider<RemoteAdapter<User>>(
+final userRemoteAdapterProvider = Provider<RemoteAdapter<User>>(
     (ref) => $UserRemoteAdapter(ref.read(userLocalAdapterProvider)));
 
 final userRepositoryProvider =
-    RiverpodAlias.provider<Repository<User>>((ref) => Repository<User>(ref));
+    Provider<Repository<User>>((ref) => Repository<User>(ref));
+
+final _watchUser = StateNotifierProvider.autoDispose
+    .family<DataStateNotifier<User>, WatchArgs<User>>((ref, args) {
+  return ref.watch(userRepositoryProvider).watchOne(args.id,
+      remote: args.remote,
+      params: args.params,
+      headers: args.headers,
+      alsoWatch: args.alsoWatch);
+});
+
+AutoDisposeStateNotifierStateProvider<DataState<User>> watchUser(dynamic id,
+    {bool remote = true,
+    Map<String, dynamic> params = const {},
+    Map<String, String> headers = const {},
+    AlsoWatch<User> alsoWatch}) {
+  return _watchUser(WatchArgs(
+          id: id,
+          remote: remote,
+          params: params,
+          headers: headers,
+          alsoWatch: alsoWatch))
+      .state;
+}
+
+final _watchUsers = StateNotifierProvider.autoDispose
+    .family<DataStateNotifier<List<User>>, WatchArgs<User>>((ref, args) {
+  return ref.watch(userRepositoryProvider).watchAll(
+      remote: args.remote, params: args.params, headers: args.headers);
+});
+
+AutoDisposeStateNotifierStateProvider<DataState<List<User>>> watchUsers(
+    {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+  return _watchUsers(
+          WatchArgs(remote: remote, params: params, headers: headers))
+      .state;
+}
 
 extension UserX on User {
   /// Initializes "fresh" models (i.e. manually instantiated) to use

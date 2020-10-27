@@ -19,6 +19,7 @@ class RepositoryGenerator extends GeneratorForAnnotation<DataRepository> {
   Future<String> generateForAnnotatedElement(
       Element element, ConstantReader annotation, BuildStep buildStep) async {
     final classType = element.name;
+    final classTypePlural = element.name.pluralize();
     final typeLowerCased = DataHelpers.getType(classType).singularize();
     ClassElement classElement;
 
@@ -230,15 +231,37 @@ class \$${classType}RemoteAdapter = RemoteAdapter<$classType> with ${mixins.join
 
 //
 
-final ${typeLowerCased}LocalAdapterProvider = RiverpodAlias.provider<LocalAdapter<$classType>>(
+final ${typeLowerCased}LocalAdapterProvider = Provider<LocalAdapter<$classType>>(
     (ref) => \$${classType}HiveLocalAdapter(ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
 final ${typeLowerCased}RemoteAdapterProvider =
-    RiverpodAlias.provider<RemoteAdapter<$classType>>(
+    Provider<RemoteAdapter<$classType>>(
         (ref) => \$${classType}RemoteAdapter(ref.read(${typeLowerCased}LocalAdapterProvider)));
 
 final ${typeLowerCased}RepositoryProvider =
-    RiverpodAlias.provider<Repository<$classType>>((ref) => Repository<$classType>(ref));
+    Provider<Repository<$classType>>((ref) => Repository<$classType>(ref));
+
+final _watch$classType =
+    StateNotifierProvider.autoDispose.family<DataStateNotifier<$classType>, WatchArgs<$classType>>(
+        (ref, args) {
+  return ref.watch(${typeLowerCased}RepositoryProvider).watchOne(args.id, remote: args.remote, params: args.params, headers: args.headers, alsoWatch: args.alsoWatch);
+});
+
+AutoDisposeStateNotifierStateProvider<DataState<$classType>> watch$classType(dynamic id,
+    {bool remote = true, Map<String, dynamic> params = const {}, Map<String, String> headers = const {}, AlsoWatch<$classType> alsoWatch}) {
+  return _watch$classType(WatchArgs(id: id, remote: remote, params: params, headers: headers, alsoWatch: alsoWatch)).state;
+}
+
+final _watch$classTypePlural =
+    StateNotifierProvider.autoDispose.family<DataStateNotifier<List<$classType>>, WatchArgs<$classType>>(
+        (ref, args) {
+  return ref.watch(${typeLowerCased}RepositoryProvider).watchAll(remote: args.remote, params: args.params, headers: args.headers);
+});
+
+AutoDisposeStateNotifierStateProvider<DataState<List<$classType>>> watch$classTypePlural(
+    {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+  return _watch$classTypePlural(WatchArgs(remote: remote, params: params, headers: headers)).state;
+}
 
 extension ${classType}X on $classType {
   /// Initializes "fresh" models (i.e. manually instantiated) to use

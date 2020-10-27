@@ -45,16 +45,51 @@ class $PersonRemoteAdapter = RemoteAdapter<Person>
 
 //
 
-final personLocalAdapterProvider = RiverpodAlias.provider<LocalAdapter<Person>>(
-    (ref) => $PersonHiveLocalAdapter(
+final personLocalAdapterProvider = Provider<LocalAdapter<Person>>((ref) =>
+    $PersonHiveLocalAdapter(
         ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
-final personRemoteAdapterProvider =
-    RiverpodAlias.provider<RemoteAdapter<Person>>(
-        (ref) => $PersonRemoteAdapter(ref.read(personLocalAdapterProvider)));
+final personRemoteAdapterProvider = Provider<RemoteAdapter<Person>>(
+    (ref) => $PersonRemoteAdapter(ref.read(personLocalAdapterProvider)));
 
-final personRepositoryProvider = RiverpodAlias.provider<Repository<Person>>(
-    (ref) => Repository<Person>(ref));
+final personRepositoryProvider =
+    Provider<Repository<Person>>((ref) => Repository<Person>(ref));
+
+final _watchPerson = StateNotifierProvider.autoDispose
+    .family<DataStateNotifier<Person>, WatchArgs<Person>>((ref, args) {
+  return ref.watch(personRepositoryProvider).watchOne(args.id,
+      remote: args.remote,
+      params: args.params,
+      headers: args.headers,
+      alsoWatch: args.alsoWatch);
+});
+
+AutoDisposeStateNotifierStateProvider<DataState<Person>> watchPerson(dynamic id,
+    {bool remote = true,
+    Map<String, dynamic> params = const {},
+    Map<String, String> headers = const {},
+    AlsoWatch<Person> alsoWatch}) {
+  return _watchPerson(WatchArgs(
+          id: id,
+          remote: remote,
+          params: params,
+          headers: headers,
+          alsoWatch: alsoWatch))
+      .state;
+}
+
+final _watchPeople = StateNotifierProvider.autoDispose
+    .family<DataStateNotifier<List<Person>>, WatchArgs<Person>>((ref, args) {
+  return ref.watch(personRepositoryProvider).watchAll(
+      remote: args.remote, params: args.params, headers: args.headers);
+});
+
+AutoDisposeStateNotifierStateProvider<DataState<List<Person>>> watchPeople(
+    {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+  return _watchPeople(
+          WatchArgs(remote: remote, params: params, headers: headers))
+      .state;
+}
 
 extension PersonX on Person {
   /// Initializes "fresh" models (i.e. manually instantiated) to use

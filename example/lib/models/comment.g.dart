@@ -64,17 +64,52 @@ class $CommentRemoteAdapter = RemoteAdapter<Comment>
 
 //
 
-final commentLocalAdapterProvider =
-    RiverpodAlias.provider<LocalAdapter<Comment>>((ref) =>
-        $CommentHiveLocalAdapter(
-            ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
+final commentLocalAdapterProvider = Provider<LocalAdapter<Comment>>((ref) =>
+    $CommentHiveLocalAdapter(
+        ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
-final commentRemoteAdapterProvider =
-    RiverpodAlias.provider<RemoteAdapter<Comment>>(
-        (ref) => $CommentRemoteAdapter(ref.read(commentLocalAdapterProvider)));
+final commentRemoteAdapterProvider = Provider<RemoteAdapter<Comment>>(
+    (ref) => $CommentRemoteAdapter(ref.read(commentLocalAdapterProvider)));
 
-final commentRepositoryProvider = RiverpodAlias.provider<Repository<Comment>>(
-    (ref) => Repository<Comment>(ref));
+final commentRepositoryProvider =
+    Provider<Repository<Comment>>((ref) => Repository<Comment>(ref));
+
+final _watchComment = StateNotifierProvider.autoDispose
+    .family<DataStateNotifier<Comment>, WatchArgs<Comment>>((ref, args) {
+  return ref.watch(commentRepositoryProvider).watchOne(args.id,
+      remote: args.remote,
+      params: args.params,
+      headers: args.headers,
+      alsoWatch: args.alsoWatch);
+});
+
+AutoDisposeStateNotifierStateProvider<DataState<Comment>> watchComment(
+    dynamic id,
+    {bool remote = true,
+    Map<String, dynamic> params = const {},
+    Map<String, String> headers = const {},
+    AlsoWatch<Comment> alsoWatch}) {
+  return _watchComment(WatchArgs(
+          id: id,
+          remote: remote,
+          params: params,
+          headers: headers,
+          alsoWatch: alsoWatch))
+      .state;
+}
+
+final _watchComments = StateNotifierProvider.autoDispose
+    .family<DataStateNotifier<List<Comment>>, WatchArgs<Comment>>((ref, args) {
+  return ref.watch(commentRepositoryProvider).watchAll(
+      remote: args.remote, params: args.params, headers: args.headers);
+});
+
+AutoDisposeStateNotifierStateProvider<DataState<List<Comment>>> watchComments(
+    {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+  return _watchComments(
+          WatchArgs(remote: remote, params: params, headers: headers))
+      .state;
+}
 
 extension CommentX on Comment {
   /// Initializes "fresh" models (i.e. manually instantiated) to use

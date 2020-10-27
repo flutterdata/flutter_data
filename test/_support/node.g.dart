@@ -70,15 +70,51 @@ class $NodeRemoteAdapter = RemoteAdapter<Node> with NothingMixin;
 
 //
 
-final nodeLocalAdapterProvider = RiverpodAlias.provider<LocalAdapter<Node>>(
-    (ref) => $NodeHiveLocalAdapter(
+final nodeLocalAdapterProvider = Provider<LocalAdapter<Node>>((ref) =>
+    $NodeHiveLocalAdapter(
         ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
-final nodeRemoteAdapterProvider = RiverpodAlias.provider<RemoteAdapter<Node>>(
+final nodeRemoteAdapterProvider = Provider<RemoteAdapter<Node>>(
     (ref) => $NodeRemoteAdapter(ref.read(nodeLocalAdapterProvider)));
 
 final nodeRepositoryProvider =
-    RiverpodAlias.provider<Repository<Node>>((ref) => Repository<Node>(ref));
+    Provider<Repository<Node>>((ref) => Repository<Node>(ref));
+
+final _watchNode = StateNotifierProvider.autoDispose
+    .family<DataStateNotifier<Node>, WatchArgs<Node>>((ref, args) {
+  return ref.watch(nodeRepositoryProvider).watchOne(args.id,
+      remote: args.remote,
+      params: args.params,
+      headers: args.headers,
+      alsoWatch: args.alsoWatch);
+});
+
+AutoDisposeStateNotifierStateProvider<DataState<Node>> watchNode(dynamic id,
+    {bool remote = true,
+    Map<String, dynamic> params = const {},
+    Map<String, String> headers = const {},
+    AlsoWatch<Node> alsoWatch}) {
+  return _watchNode(WatchArgs(
+          id: id,
+          remote: remote,
+          params: params,
+          headers: headers,
+          alsoWatch: alsoWatch))
+      .state;
+}
+
+final _watchNodes = StateNotifierProvider.autoDispose
+    .family<DataStateNotifier<List<Node>>, WatchArgs<Node>>((ref, args) {
+  return ref.watch(nodeRepositoryProvider).watchAll(
+      remote: args.remote, params: args.params, headers: args.headers);
+});
+
+AutoDisposeStateNotifierStateProvider<DataState<List<Node>>> watchNodes(
+    {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+  return _watchNodes(
+          WatchArgs(remote: remote, params: params, headers: headers))
+      .state;
+}
 
 extension NodeX on Node {
   /// Initializes "fresh" models (i.e. manually instantiated) to use

@@ -67,15 +67,51 @@ class $PostRemoteAdapter = RemoteAdapter<Post> with JSONServerAdapter<Post>;
 
 //
 
-final postLocalAdapterProvider = RiverpodAlias.provider<LocalAdapter<Post>>(
-    (ref) => $PostHiveLocalAdapter(
+final postLocalAdapterProvider = Provider<LocalAdapter<Post>>((ref) =>
+    $PostHiveLocalAdapter(
         ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
-final postRemoteAdapterProvider = RiverpodAlias.provider<RemoteAdapter<Post>>(
+final postRemoteAdapterProvider = Provider<RemoteAdapter<Post>>(
     (ref) => $PostRemoteAdapter(ref.read(postLocalAdapterProvider)));
 
 final postRepositoryProvider =
-    RiverpodAlias.provider<Repository<Post>>((ref) => Repository<Post>(ref));
+    Provider<Repository<Post>>((ref) => Repository<Post>(ref));
+
+final _watchPost = StateNotifierProvider.autoDispose
+    .family<DataStateNotifier<Post>, WatchArgs<Post>>((ref, args) {
+  return ref.watch(postRepositoryProvider).watchOne(args.id,
+      remote: args.remote,
+      params: args.params,
+      headers: args.headers,
+      alsoWatch: args.alsoWatch);
+});
+
+AutoDisposeStateNotifierStateProvider<DataState<Post>> watchPost(dynamic id,
+    {bool remote = true,
+    Map<String, dynamic> params = const {},
+    Map<String, String> headers = const {},
+    AlsoWatch<Post> alsoWatch}) {
+  return _watchPost(WatchArgs(
+          id: id,
+          remote: remote,
+          params: params,
+          headers: headers,
+          alsoWatch: alsoWatch))
+      .state;
+}
+
+final _watchPosts = StateNotifierProvider.autoDispose
+    .family<DataStateNotifier<List<Post>>, WatchArgs<Post>>((ref, args) {
+  return ref.watch(postRepositoryProvider).watchAll(
+      remote: args.remote, params: args.params, headers: args.headers);
+});
+
+AutoDisposeStateNotifierStateProvider<DataState<List<Post>>> watchPosts(
+    {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+  return _watchPosts(
+          WatchArgs(remote: remote, params: params, headers: headers))
+      .state;
+}
 
 extension PostX on Post {
   /// Initializes "fresh" models (i.e. manually instantiated) to use

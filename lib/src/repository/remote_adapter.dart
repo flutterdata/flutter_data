@@ -147,6 +147,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
 
   // lifecycle methods
 
+  Future<void> onInitialized() async {}
+
   @override
   @mustCallSuper
   Future<RemoteAdapter<T>> initialize(
@@ -163,6 +165,10 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     await localAdapter.initialize();
 
     await super.initialize();
+
+    // hook for clients
+    await onInitialized();
+
     return this as RemoteAdapter<T>;
   }
 

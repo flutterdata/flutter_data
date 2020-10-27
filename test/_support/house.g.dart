@@ -60,15 +60,51 @@ class $HouseRemoteAdapter = RemoteAdapter<House> with NothingMixin;
 
 //
 
-final houseLocalAdapterProvider = RiverpodAlias.provider<LocalAdapter<House>>(
-    (ref) => $HouseHiveLocalAdapter(
+final houseLocalAdapterProvider = Provider<LocalAdapter<House>>((ref) =>
+    $HouseHiveLocalAdapter(
         ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
-final houseRemoteAdapterProvider = RiverpodAlias.provider<RemoteAdapter<House>>(
+final houseRemoteAdapterProvider = Provider<RemoteAdapter<House>>(
     (ref) => $HouseRemoteAdapter(ref.read(houseLocalAdapterProvider)));
 
 final houseRepositoryProvider =
-    RiverpodAlias.provider<Repository<House>>((ref) => Repository<House>(ref));
+    Provider<Repository<House>>((ref) => Repository<House>(ref));
+
+final _watchHouse = StateNotifierProvider.autoDispose
+    .family<DataStateNotifier<House>, WatchArgs<House>>((ref, args) {
+  return ref.watch(houseRepositoryProvider).watchOne(args.id,
+      remote: args.remote,
+      params: args.params,
+      headers: args.headers,
+      alsoWatch: args.alsoWatch);
+});
+
+AutoDisposeStateNotifierStateProvider<DataState<House>> watchHouse(dynamic id,
+    {bool remote = true,
+    Map<String, dynamic> params = const {},
+    Map<String, String> headers = const {},
+    AlsoWatch<House> alsoWatch}) {
+  return _watchHouse(WatchArgs(
+          id: id,
+          remote: remote,
+          params: params,
+          headers: headers,
+          alsoWatch: alsoWatch))
+      .state;
+}
+
+final _watchHouses = StateNotifierProvider.autoDispose
+    .family<DataStateNotifier<List<House>>, WatchArgs<House>>((ref, args) {
+  return ref.watch(houseRepositoryProvider).watchAll(
+      remote: args.remote, params: args.params, headers: args.headers);
+});
+
+AutoDisposeStateNotifierStateProvider<DataState<List<House>>> watchHouses(
+    {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+  return _watchHouses(
+          WatchArgs(remote: remote, params: params, headers: headers))
+      .state;
+}
 
 extension HouseX on House {
   /// Initializes "fresh" models (i.e. manually instantiated) to use

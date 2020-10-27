@@ -86,16 +86,51 @@ class $FamilyRemoteAdapter = RemoteAdapter<Family> with NothingMixin;
 
 //
 
-final familyLocalAdapterProvider = RiverpodAlias.provider<LocalAdapter<Family>>(
-    (ref) => $FamilyHiveLocalAdapter(
+final familyLocalAdapterProvider = Provider<LocalAdapter<Family>>((ref) =>
+    $FamilyHiveLocalAdapter(
         ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
 
-final familyRemoteAdapterProvider =
-    RiverpodAlias.provider<RemoteAdapter<Family>>(
-        (ref) => $FamilyRemoteAdapter(ref.read(familyLocalAdapterProvider)));
+final familyRemoteAdapterProvider = Provider<RemoteAdapter<Family>>(
+    (ref) => $FamilyRemoteAdapter(ref.read(familyLocalAdapterProvider)));
 
-final familyRepositoryProvider = RiverpodAlias.provider<Repository<Family>>(
-    (ref) => Repository<Family>(ref));
+final familyRepositoryProvider =
+    Provider<Repository<Family>>((ref) => Repository<Family>(ref));
+
+final _watchFamily = StateNotifierProvider.autoDispose
+    .family<DataStateNotifier<Family>, WatchArgs<Family>>((ref, args) {
+  return ref.watch(familyRepositoryProvider).watchOne(args.id,
+      remote: args.remote,
+      params: args.params,
+      headers: args.headers,
+      alsoWatch: args.alsoWatch);
+});
+
+AutoDisposeStateNotifierStateProvider<DataState<Family>> watchFamily(dynamic id,
+    {bool remote = true,
+    Map<String, dynamic> params = const {},
+    Map<String, String> headers = const {},
+    AlsoWatch<Family> alsoWatch}) {
+  return _watchFamily(WatchArgs(
+          id: id,
+          remote: remote,
+          params: params,
+          headers: headers,
+          alsoWatch: alsoWatch))
+      .state;
+}
+
+final _watchFamilies = StateNotifierProvider.autoDispose
+    .family<DataStateNotifier<List<Family>>, WatchArgs<Family>>((ref, args) {
+  return ref.watch(familyRepositoryProvider).watchAll(
+      remote: args.remote, params: args.params, headers: args.headers);
+});
+
+AutoDisposeStateNotifierStateProvider<DataState<List<Family>>> watchFamilies(
+    {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+  return _watchFamilies(
+          WatchArgs(remote: remote, params: params, headers: headers))
+      .state;
+}
 
 extension FamilyX on Family {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
