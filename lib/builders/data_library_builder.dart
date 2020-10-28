@@ -202,7 +202,7 @@ i.registerSingletonWithDependencies<Repository<${(c['name']).capitalize()}>>(
         await isDependency('hooks_riverpod', b);
 
     final riverpodImport = importFlutterRiverpod
-        ? "import 'package:flutter/widgets.dart';\nimport 'package:flutter_riverpod/flutter_riverpod.dart';"
+        ? "import 'package:flutter_riverpod/flutter_riverpod.dart';"
         : '';
 
     final internalLocator = importFlutterRiverpod
