@@ -56,8 +56,6 @@ class WatchArgs<T> with EquatableMixin {
   final Map<String, String> headers;
   final AlsoWatch<T> alsoWatch;
 
-  // WatchArgs are deliberately not equal to each other
-  // as caching will occur in the Flutter Data layer, not Riverpod
   @override
-  List<Object> get props => [Random().nextDouble()];
+  List<Object> get props => [id, remote, params, headers, alsoWatch];
 }
