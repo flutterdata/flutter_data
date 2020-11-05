@@ -255,12 +255,13 @@ AutoDisposeStateNotifierStateProvider<DataState<$classType>> watch$classType(dyn
 final _watch$classTypePlural =
     StateNotifierProvider.autoDispose.family<DataStateNotifier<List<$classType>>, WatchArgs<$classType>>(
         (ref, args) {
+  ref.maintainState = false;
   return ref.watch(${typeLowerCased}RepositoryProvider).watchAll(remote: args.remote, params: args.params, headers: args.headers);
 });
 
-AutoDisposeStateNotifierStateProvider<DataState<List<$classType>>> watch$classTypePlural(
+AutoDisposeStateNotifierProvider<DataStateNotifier<List<$classType>>> watch$classTypePlural(
     {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
-  return _watch$classTypePlural(WatchArgs(remote: remote, params: params, headers: headers)).state;
+  return _watch$classTypePlural(WatchArgs(remote: remote, params: params, headers: headers));
 }
 
 extension ${classType}X on $classType {
