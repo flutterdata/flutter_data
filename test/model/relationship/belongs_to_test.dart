@@ -38,12 +38,14 @@ void main() async {
     // relationships are now associated to a key
     expect(family.residence.key, isNotNull);
     expect(family.residence.key, graph.getKeyForId('houses', '31'));
+    expect(family.residence.id, '31');
     expect(family.persons.keys.first, isNotNull);
     expect(family.persons.keys.first, graph.getKeyForId('people', '1'));
 
     // ensure there are not more than 1 key
     family.residence.value = house2;
     expect(family.residence.keys, hasLength(1));
+    expect(family.residence.id, '2');
   });
 
   test('assignment with relationship initialized & uninitialized', () {

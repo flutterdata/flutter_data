@@ -61,6 +61,8 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E> {
   @visibleForTesting
   String get key => super.keys.safeFirst;
 
+  String get id => super.ids.safeFirst;
+
   /// Returns a [StateNotifier] which emits the latest [value] of
   /// this [BelongsTo] relationship.
   @override

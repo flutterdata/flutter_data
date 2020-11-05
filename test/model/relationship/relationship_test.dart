@@ -135,6 +135,9 @@ void main() async {
     graph.getKeyForId('people', '3', keyIfAbsent: 'people#c3c3c3');
     graph.getKeyForId('houses', '98', keyIfAbsent: 'houses#c98d1b');
 
+    // test ids
+    expect(family.persons.ids, {'1', '2', '3'});
+
     // (2) then load persons
 
     final p1 = Person(id: '1', name: 'z1', age: 23).init(container);

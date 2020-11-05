@@ -165,6 +165,10 @@ abstract class Relationship<E extends DataModel<E>, N>
     return _uninitializedKeys;
   }
 
+  Set<String> get ids {
+    return keys.map(_graph?.getId).filterNulls.toSet();
+  }
+
   E _ensureModelIsInitialized(E model) {
     if (!model._isInitialized && isInitialized) {
       model._initialize(_adapters, save: true);
