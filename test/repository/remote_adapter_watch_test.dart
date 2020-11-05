@@ -27,6 +27,7 @@ void main() async {
       expectAsync1((state) {
         if (i == 0) {
           expect(state.model, [matcher]);
+          expect(state.isLoading, isFalse);
         } else if (i == 1) {
           expect(state.model, [matcher, matcher]);
         } else if (i == 2) {

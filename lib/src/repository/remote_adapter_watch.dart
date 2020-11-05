@@ -30,11 +30,13 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         } catch (error, stackTrace) {
           // we're only interested in notifying errors
           // as models will pop up via the graph notifier
-          notifier.data = notifier.data.copyWith(
-            isLoading: false,
-            exception: error,
-            stackTrace: stackTrace,
-          );
+          if (notifier.mounted) {
+            notifier.data = notifier.data.copyWith(
+              isLoading: false,
+              exception: error,
+              stackTrace: stackTrace,
+            );
+          }
         }
       },
     );
@@ -116,11 +118,13 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         } catch (error, stackTrace) {
           // we're only interested in notifying errors
           // as models will pop up via the graph notifier
-          notifier.data = notifier.data.copyWith(
-            isLoading: false,
-            exception: error,
-            stackTrace: stackTrace,
-          );
+          if (notifier.mounted) {
+            notifier.data = notifier.data.copyWith(
+              isLoading: false,
+              exception: error,
+              stackTrace: stackTrace,
+            );
+          }
         }
       },
     );
