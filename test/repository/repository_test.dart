@@ -262,23 +262,39 @@ void main() async {
     ))).called(1);
     verifyNoMoreInteractions(listener);
 
-    await oneMs(); // wait for response
-
-    // verify no longer loading
-    verify(listener(argThat(
-      withState<Family>((s) => s.isLoading, false)
-          .having((s) => s.model.id, 'has a model', '22'),
-    ))).called(1);
-    verifyNoMoreInteractions(listener);
-
     final f1 = await familyRepository.findOne('22', remote: false);
     f1.persons.add(Person(name: 'Martin', age: 44)); // this time without init
     await oneMs();
 
     verify(listener(argThat(
-      withState<Family>((s) => s.model.persons, hasLength(1)),
-    ))).called(1);
+            withState<Family>((s) => s.model.persons, hasLength(1))
+                .having((s) => s.isLoading, 'loading', false))))
+        .called(1);
     verifyNoMoreInteractions(listener);
+  });
+
+  test('watchAll updates isLoading even in an empty response', () async {
+    final listener = Listener<DataState<List<Family>>>();
+
+    final notifier = familyRepository.watchAll(
+      remote: true,
+      headers: {'response': '[]'},
+    );
+
+    dispose = notifier.addListener(listener, fireImmediately: true);
+
+    verify(listener(argThat(
+      isA<DataState<List<Family>>>()
+          .having((s) => s.isLoading, 'loading', true),
+    ))).called(1);
+
+    await oneMs();
+
+    verify(listener(argThat(
+      isA<DataState<List<Family>>>()
+          .having((s) => s.model, 'empty', isEmpty)
+          .having((s) => s.isLoading, 'loading', false),
+    ))).called(1);
   });
 
   test('remote can return a different ID', () async {

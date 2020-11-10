@@ -100,18 +100,21 @@ void main() async {
 
     final listener = Listener<DataState<Dog>>();
 
-    final notifier = dogRepository.watchOne('2');
+    final notifier = dogRepository.watchOne('2', remote: false);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
     verify(listener(argThat(
-      withState<Dog>((s) => s.isLoading, true),
+      withState<Dog>((s) => s.model.name, 'Mandarin')
+          .having((s) => s.isLoading, 'loading', true),
     ))).called(1);
+    verifyNoMoreInteractions(listener);
 
     await oneMs();
 
     verify(listener(argThat(
-      withState<Dog>((s) => s.model.name, 'Mandarin'),
+      withState<Dog>((s) => s.model.name, 'Mandarin')
+          .having((s) => s.isLoading, 'loading', false),
     ))).called(1);
     verifyNoMoreInteractions(listener);
 

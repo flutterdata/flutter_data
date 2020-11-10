@@ -42,6 +42,10 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
       return id;
     }
 
+    if (data == null) {
+      onError(DataException(Exception('Empty response')));
+      return null;
+    }
     if (data is Map) {
       data = [data];
     }

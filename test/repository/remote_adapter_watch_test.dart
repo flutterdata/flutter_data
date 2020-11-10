@@ -138,7 +138,7 @@ void main() async {
 
     dispose = notifier.addListener(expectAsync1((state) {
       expect(state.model.name, 'Steve-O');
-    }), fireImmediately: false);
+    }), fireImmediately: true);
   });
 
   test('watchOne with alsoWatch relationships', () async {
@@ -155,23 +155,25 @@ void main() async {
 
     final listener = Listener<DataState<Family>>();
 
-    dispose = notifier.addListener(listener, fireImmediately: false);
-
-    await oneMs();
+    dispose = notifier.addListener(listener, fireImmediately: true);
 
     verify(listener(argThat(
-      withState<Family>((s) => s.isLoading, false),
+      withState<Family>((s) => s.isLoading, true),
     ))).called(1);
     verifyNoMoreInteractions(listener);
+
+    await oneMs();
 
     final p1 = Person(id: '1', name: 'Frank', age: 16).init(container);
     p1.family.value = f1;
     await oneMs();
 
-    verify(listener(argThat(
-      withState<Family>((s) => s.model.persons, hasLength(1)),
-    ))).called(1);
-    verifyNoMoreInteractions(listener);
+    final matcher = isA<DataState<Family>>()
+        .having((s) => s.model.persons, 'name', hasLength(1))
+        .having((s) => s.hasException, 'exception', false)
+        .having((s) => s.isLoading, 'loading', false);
+
+    verify(listener(argThat(matcher))).called(1);
 
     f1.persons.add(Person(name: 'Martin', age: 44)); // this time without init
     await oneMs();

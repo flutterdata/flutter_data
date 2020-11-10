@@ -446,7 +446,8 @@ enum DataGraphEventType {
   updateNode,
   addEdge,
   removeEdge,
-  updateEdge
+  updateEdge,
+  doneLoading,
 }
 
 extension DataGraphEventTypeX on DataGraphEventType {

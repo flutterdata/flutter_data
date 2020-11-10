@@ -16,6 +16,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       final Map<String, dynamic> params,
       final Map<String, String> headers}) {
     _assertInit();
+
     final _notifier = DataStateNotifier<List<T>>(
       DataState(localAdapter
           .findAll()
@@ -27,6 +28,8 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
               params: params, headers: headers, remote: remote, init: true);
           notifier.data = notifier.data.copyWith(isLoading: true);
           await _future;
+          // trigger doneLoading to ensure state is updated with isLoading=false
+          graph._notify([], DataGraphEventType.doneLoading);
         } catch (error, stackTrace) {
           // we're only interested in notifying errors
           // as models will pop up via the graph notifier
@@ -55,11 +58,17 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           event.keys.first.startsWith(type) &&
           !event.graph._hasEdge(event.keys.first, metadata: 'key'));
 
-      if (filteredEvents.isEmpty) {
+      final list = _notifier.data.model.toList();
+
+      if (list.isEmpty &&
+          events.safeFirst.type == DataGraphEventType.doneLoading) {
+        _notifier.data = _notifier.data.copyWith(model: [], isLoading: false);
         return;
       }
 
-      final list = _notifier.data.model.toList();
+      if (filteredEvents.isEmpty) {
+        return;
+      }
 
       for (final event in filteredEvents) {
         final key = event.keys.first;
@@ -112,9 +121,9 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           final _future = findOne(id,
               params: params, headers: headers, remote: remote, init: true);
           notifier.data = notifier.data.copyWith(isLoading: true);
-          final model = await _future;
-          notifier.data =
-              notifier.data.copyWith(isLoading: false, model: model);
+          await _future;
+          // trigger doneLoading to ensure state is updated with isLoading=false
+          graph._notify([key()], DataGraphEventType.doneLoading);
         } catch (error, stackTrace) {
           // we're only interested in notifying errors
           // as models will pop up via the graph notifier
@@ -192,6 +201,11 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
             refresh = true;
           }
+
+          if (modelBuffer != null &&
+              event.type == DataGraphEventType.doneLoading) {
+            refresh = true;
+          }
         }
 
         // updates on all models of specific relationships of this model
@@ -204,8 +218,8 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       // NOTE: because of this comparison, use field equality
       // rather than key equality (which wouldn't update)
       if (modelBuffer != _notifier.data.model || refresh) {
-        _notifier.data = _notifier.data
-            .copyWith(model: modelBuffer, isLoading: false, exception: null);
+        _notifier.data =
+            _notifier.data.copyWith(model: modelBuffer, isLoading: false);
       }
     });
 
