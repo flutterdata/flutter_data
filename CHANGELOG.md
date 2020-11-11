@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.5.13] - 2020-11-11
+
+- TODO since 0.5.9
+
 ## [0.5.8] - 2020-10-22
 
 - fix clearAll

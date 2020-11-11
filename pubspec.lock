@@ -172,11 +172,9 @@ packages:
   data_state:
     dependency: "direct main"
     description:
-      path: "packages/data_state"
-      ref: "0.3.6"
-      resolved-ref: b8bb01eebd95eeeeab6bc78671ee43f292d0c17b
-      url: "https://github.com/flutterdata/data_state.git"
-    source: git
+      name: data_state
+      url: "https://pub.dartlang.org"
+    source: hosted
     version: "0.3.6"
   equatable:
     dependency: "direct main"

@@ -33,7 +33,7 @@ Flutter Data is properly configured:
 If using Riverpod, did you supply the override?
 
 Widget build(context) {
-  return ProviderScope(
+  return ProviderContainer(
     overrides: [
       configureRepositoryLocalStorage()
     ],
