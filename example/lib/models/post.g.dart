@@ -102,15 +102,15 @@ AutoDisposeStateNotifierStateProvider<DataState<Post>> watchPost(dynamic id,
 
 final _watchPosts = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Post>>, WatchArgs<Post>>((ref, args) {
+  ref.maintainState = false;
   return ref.watch(postRepositoryProvider).watchAll(
       remote: args.remote, params: args.params, headers: args.headers);
 });
 
-AutoDisposeStateNotifierStateProvider<DataState<List<Post>>> watchPosts(
+AutoDisposeStateNotifierProvider<DataStateNotifier<List<Post>>> watchPosts(
     {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
   return _watchPosts(
-          WatchArgs(remote: remote, params: params, headers: headers))
-      .state;
+      WatchArgs(remote: remote, params: params, headers: headers));
 }
 
 extension PostX on Post {

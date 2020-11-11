@@ -151,12 +151,10 @@ packages:
   data_state:
     dependency: transitive
     description:
-      path: "packages/data_state"
-      ref: "0.3.6"
-      resolved-ref: b8bb01eebd95eeeeab6bc78671ee43f292d0c17b
-      url: "https://github.com/flutterdata/data_state.git"
-    source: git
-    version: "0.3.6"
+      name: data_state
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.3.7"
   equatable:
     dependency: transitive
     description:
@@ -177,7 +175,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.5.9"
+    version: "0.5.15"
   freezed_annotation:
     dependency: transitive
     description:

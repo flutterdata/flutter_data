@@ -52,10 +52,12 @@ final _repositoryInitializerProviderFamily =
       );
 
     ref.onDispose(() {
-            ref.read(postRepositoryProvider).dispose();
+      if (ref.mounted) {
+              ref.read(postRepositoryProvider).dispose();
       ref.read(userRepositoryProvider).dispose();
       ref.read(commentRepositoryProvider).dispose();
 
+      }
     });
 
     return RepositoryInitializer();

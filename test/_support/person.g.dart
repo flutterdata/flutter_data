@@ -80,15 +80,15 @@ AutoDisposeStateNotifierStateProvider<DataState<Person>> watchPerson(dynamic id,
 
 final _watchPeople = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Person>>, WatchArgs<Person>>((ref, args) {
+  ref.maintainState = false;
   return ref.watch(personRepositoryProvider).watchAll(
       remote: args.remote, params: args.params, headers: args.headers);
 });
 
-AutoDisposeStateNotifierStateProvider<DataState<List<Person>>> watchPeople(
+AutoDisposeStateNotifierProvider<DataStateNotifier<List<Person>>> watchPeople(
     {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
   return _watchPeople(
-          WatchArgs(remote: remote, params: params, headers: headers))
-      .state;
+      WatchArgs(remote: remote, params: params, headers: headers));
 }
 
 extension PersonX on Person {

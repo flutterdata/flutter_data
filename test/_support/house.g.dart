@@ -95,15 +95,15 @@ AutoDisposeStateNotifierStateProvider<DataState<House>> watchHouse(dynamic id,
 
 final _watchHouses = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<House>>, WatchArgs<House>>((ref, args) {
+  ref.maintainState = false;
   return ref.watch(houseRepositoryProvider).watchAll(
       remote: args.remote, params: args.params, headers: args.headers);
 });
 
-AutoDisposeStateNotifierStateProvider<DataState<List<House>>> watchHouses(
+AutoDisposeStateNotifierProvider<DataStateNotifier<List<House>>> watchHouses(
     {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
   return _watchHouses(
-          WatchArgs(remote: remote, params: params, headers: headers))
-      .state;
+      WatchArgs(remote: remote, params: params, headers: headers));
 }
 
 extension HouseX on House {

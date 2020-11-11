@@ -105,15 +105,15 @@ AutoDisposeStateNotifierStateProvider<DataState<Node>> watchNode(dynamic id,
 
 final _watchNodes = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Node>>, WatchArgs<Node>>((ref, args) {
+  ref.maintainState = false;
   return ref.watch(nodeRepositoryProvider).watchAll(
       remote: args.remote, params: args.params, headers: args.headers);
 });
 
-AutoDisposeStateNotifierStateProvider<DataState<List<Node>>> watchNodes(
+AutoDisposeStateNotifierProvider<DataStateNotifier<List<Node>>> watchNodes(
     {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
   return _watchNodes(
-          WatchArgs(remote: remote, params: params, headers: headers))
-      .state;
+      WatchArgs(remote: remote, params: params, headers: headers));
 }
 
 extension NodeX on Node {

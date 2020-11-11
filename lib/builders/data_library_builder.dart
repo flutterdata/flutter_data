@@ -256,7 +256,9 @@ final _repositoryInitializerProviderFamily =
     $repoInitializeEntries
 
     ref.onDispose(() {
-      $repoDisposeEntries
+      if (ref.mounted) {
+        $repoDisposeEntries
+      }
     });
 
     return RepositoryInitializer();

@@ -121,15 +121,15 @@ AutoDisposeStateNotifierStateProvider<DataState<Family>> watchFamily(dynamic id,
 
 final _watchFamilies = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Family>>, WatchArgs<Family>>((ref, args) {
+  ref.maintainState = false;
   return ref.watch(familyRepositoryProvider).watchAll(
       remote: args.remote, params: args.params, headers: args.headers);
 });
 
-AutoDisposeStateNotifierStateProvider<DataState<List<Family>>> watchFamilies(
+AutoDisposeStateNotifierProvider<DataStateNotifier<List<Family>>> watchFamilies(
     {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
   return _watchFamilies(
-          WatchArgs(remote: remote, params: params, headers: headers))
-      .state;
+      WatchArgs(remote: remote, params: params, headers: headers));
 }
 
 extension FamilyX on Family {

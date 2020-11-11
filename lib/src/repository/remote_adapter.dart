@@ -431,11 +431,11 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     Map<String, String> headers,
     String body,
     OnData<R> onSuccess,
-    OnDataError<R> onError,
+    OnDataError onError,
   }) async {
     // callbacks
     onSuccess ??= (_) async => null;
-    onError ??= (e) async => this.onError(e) as R;
+    onError ??= (DataException e) async => this.onError(e);
 
     http.Response response;
     dynamic data;
@@ -460,7 +460,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     // response handling
 
     if (response?.body == null) {
-      return await onError(DataException(error, stackTrace: stackTrace));
+      await onError(DataException(error, stackTrace: stackTrace));
+      return null;
     }
 
     try {
@@ -484,7 +485,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       if (_verbose) {
         print('[flutter_data] $T: $e');
       }
-      return await onError(e);
+      await onError(e);
+      return null;
     }
   }
 
@@ -494,7 +496,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   /// this default behavior.
   @protected
   @visibleForTesting
-  OnDataError<R> onError<R>(DataException e) => throw e;
+  FutureOr<void> onError(DataException e) => throw e;
 
   /// Initializes [model] making it ready to use with [DataModel] extensions.
   ///

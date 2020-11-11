@@ -96,14 +96,15 @@ AutoDisposeStateNotifierStateProvider<DataState<Dog>> watchDog(dynamic id,
 
 final _watchDogs = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Dog>>, WatchArgs<Dog>>((ref, args) {
+  ref.maintainState = false;
   return ref.watch(dogRepositoryProvider).watchAll(
       remote: args.remote, params: args.params, headers: args.headers);
 });
 
-AutoDisposeStateNotifierStateProvider<DataState<List<Dog>>> watchDogs(
+AutoDisposeStateNotifierProvider<DataStateNotifier<List<Dog>>> watchDogs(
     {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
-  return _watchDogs(WatchArgs(remote: remote, params: params, headers: headers))
-      .state;
+  return _watchDogs(
+      WatchArgs(remote: remote, params: params, headers: headers));
 }
 
 extension DogX on Dog {
@@ -185,14 +186,15 @@ AutoDisposeStateNotifierStateProvider<DataState<Cat>> watchCat(dynamic id,
 
 final _watchCats = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Cat>>, WatchArgs<Cat>>((ref, args) {
+  ref.maintainState = false;
   return ref.watch(catRepositoryProvider).watchAll(
       remote: args.remote, params: args.params, headers: args.headers);
 });
 
-AutoDisposeStateNotifierStateProvider<DataState<List<Cat>>> watchCats(
+AutoDisposeStateNotifierProvider<DataStateNotifier<List<Cat>>> watchCats(
     {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
-  return _watchCats(WatchArgs(remote: remote, params: params, headers: headers))
-      .state;
+  return _watchCats(
+      WatchArgs(remote: remote, params: params, headers: headers));
 }
 
 extension CatX on Cat {

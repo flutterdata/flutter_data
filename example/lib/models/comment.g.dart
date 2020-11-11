@@ -100,15 +100,18 @@ AutoDisposeStateNotifierStateProvider<DataState<Comment>> watchComment(
 
 final _watchComments = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Comment>>, WatchArgs<Comment>>((ref, args) {
+  ref.maintainState = false;
   return ref.watch(commentRepositoryProvider).watchAll(
       remote: args.remote, params: args.params, headers: args.headers);
 });
 
-AutoDisposeStateNotifierStateProvider<DataState<List<Comment>>> watchComments(
-    {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+AutoDisposeStateNotifierProvider<DataStateNotifier<List<Comment>>>
+    watchComments(
+        {bool remote,
+        Map<String, dynamic> params,
+        Map<String, String> headers}) {
   return _watchComments(
-          WatchArgs(remote: remote, params: params, headers: headers))
-      .state;
+      WatchArgs(remote: remote, params: params, headers: headers));
 }
 
 extension CommentX on Comment {
