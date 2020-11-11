@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.5.14] - 2020-11-11
+
+- fix faulty data_state
+
 ## [0.5.13] - 2020-11-11
 
 - TODO since 0.5.9
