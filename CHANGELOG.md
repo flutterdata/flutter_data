@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.5.16] - 2020-11-13
+
+- add testing support
+
 ## [0.5.15] - 2020-11-11
 
 - fix onError callback
