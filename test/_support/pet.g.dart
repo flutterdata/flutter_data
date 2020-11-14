@@ -61,9 +61,8 @@ class $DogRemoteAdapter = RemoteAdapter<Dog> with NothingMixin;
 
 //
 
-final dogLocalAdapterProvider = Provider<LocalAdapter<Dog>>((ref) =>
-    $DogHiveLocalAdapter(
-        ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
+final dogLocalAdapterProvider =
+    Provider<LocalAdapter<Dog>>((ref) => $DogHiveLocalAdapter(ref));
 
 final dogRemoteAdapterProvider = Provider<RemoteAdapter<Dog>>(
     (ref) => $DogRemoteAdapter(ref.read(dogLocalAdapterProvider)));
@@ -151,9 +150,8 @@ class $CatRemoteAdapter = RemoteAdapter<Cat> with NothingMixin;
 
 //
 
-final catLocalAdapterProvider = Provider<LocalAdapter<Cat>>((ref) =>
-    $CatHiveLocalAdapter(
-        ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
+final catLocalAdapterProvider =
+    Provider<LocalAdapter<Cat>>((ref) => $CatHiveLocalAdapter(ref));
 
 final catRemoteAdapterProvider = Provider<RemoteAdapter<Cat>>(
     (ref) => $CatRemoteAdapter(ref.read(catLocalAdapterProvider)));

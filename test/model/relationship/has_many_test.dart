@@ -3,9 +3,9 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../../_support/family.dart';
-import '../../_support/mocks.dart';
 import '../../_support/person.dart';
 import '../../_support/setup.dart';
+import '../../mocks.dart';
 
 void main() async {
   setUp(setUpFn);

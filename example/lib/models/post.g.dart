@@ -67,9 +67,8 @@ class $PostRemoteAdapter = RemoteAdapter<Post> with JSONServerAdapter<Post>;
 
 //
 
-final postLocalAdapterProvider = Provider<LocalAdapter<Post>>((ref) =>
-    $PostHiveLocalAdapter(
-        ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
+final postLocalAdapterProvider =
+    Provider<LocalAdapter<Post>>((ref) => $PostHiveLocalAdapter(ref));
 
 final postRemoteAdapterProvider = Provider<RemoteAdapter<Post>>(
     (ref) => $PostRemoteAdapter(ref.read(postLocalAdapterProvider)));

@@ -6,7 +6,7 @@ part of flutter_data;
 abstract class LocalAdapter<T extends DataModel<T>>
     with _Lifecycle<LocalAdapter<T>> {
   @protected
-  LocalAdapter(this.graph);
+  LocalAdapter(ProviderReference _ref) : graph = _ref.read(graphProvider);
 
   @protected
   final GraphNotifier graph;

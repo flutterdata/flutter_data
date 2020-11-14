@@ -51,9 +51,8 @@ class $UserRemoteAdapter = RemoteAdapter<User> with JSONServerAdapter<User>;
 
 //
 
-final userLocalAdapterProvider = Provider<LocalAdapter<User>>((ref) =>
-    $UserHiveLocalAdapter(
-        ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
+final userLocalAdapterProvider =
+    Provider<LocalAdapter<User>>((ref) => $UserHiveLocalAdapter(ref));
 
 final userRemoteAdapterProvider = Provider<RemoteAdapter<User>>(
     (ref) => $UserRemoteAdapter(ref.read(userLocalAdapterProvider)));

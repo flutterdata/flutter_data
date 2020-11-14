@@ -64,9 +64,8 @@ class $CommentRemoteAdapter = RemoteAdapter<Comment>
 
 //
 
-final commentLocalAdapterProvider = Provider<LocalAdapter<Comment>>((ref) =>
-    $CommentHiveLocalAdapter(
-        ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
+final commentLocalAdapterProvider =
+    Provider<LocalAdapter<Comment>>((ref) => $CommentHiveLocalAdapter(ref));
 
 final commentRemoteAdapterProvider = Provider<RemoteAdapter<Comment>>(
     (ref) => $CommentRemoteAdapter(ref.read(commentLocalAdapterProvider)));

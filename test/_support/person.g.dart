@@ -45,9 +45,8 @@ class $PersonRemoteAdapter = RemoteAdapter<Person>
 
 //
 
-final personLocalAdapterProvider = Provider<LocalAdapter<Person>>((ref) =>
-    $PersonHiveLocalAdapter(
-        ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
+final personLocalAdapterProvider =
+    Provider<LocalAdapter<Person>>((ref) => $PersonHiveLocalAdapter(ref));
 
 final personRemoteAdapterProvider = Provider<RemoteAdapter<Person>>(
     (ref) => $PersonRemoteAdapter(ref.read(personLocalAdapterProvider)));

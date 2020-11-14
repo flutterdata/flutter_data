@@ -6,10 +6,10 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../_support/family.dart';
-import '../_support/mocks.dart';
 import '../_support/person.dart';
 import '../_support/pet.dart';
 import '../_support/setup.dart';
+import '../mocks.dart';
 
 void main() async {
   setUp(setUpFn);
@@ -110,8 +110,13 @@ void main() async {
     } catch (e) {
       expect(
           e,
-          isA<DataException>()
-              .having((e) => e.error, 'error', isA<SocketException>()));
+          isA<DataException>().having(
+            // normally e.error, but riverpod is wrapping
+            // the exception thrown in its body
+            (e) => (e.error as dynamic).exception,
+            'SocketException',
+            isA<SocketException>(),
+          ));
     }
   });
 

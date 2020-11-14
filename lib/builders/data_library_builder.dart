@@ -39,7 +39,8 @@ class DataExtensionIntermediateBuilder implements Builder {
               (findTypesInRelationshipGraph(element as ClassElement).toList()
                     ..sort())
                   .join(','),
-              element.location.components.first
+              element.location.components.first,
+              element.name,
             ].join('#');
           }).join(';'));
     }

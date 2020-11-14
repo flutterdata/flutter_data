@@ -86,9 +86,8 @@ class $FamilyRemoteAdapter = RemoteAdapter<Family> with NothingMixin;
 
 //
 
-final familyLocalAdapterProvider = Provider<LocalAdapter<Family>>((ref) =>
-    $FamilyHiveLocalAdapter(
-        ref.read(hiveLocalStorageProvider), ref.read(graphProvider)));
+final familyLocalAdapterProvider =
+    Provider<LocalAdapter<Family>>((ref) => $FamilyHiveLocalAdapter(ref));
 
 final familyRemoteAdapterProvider = Provider<RemoteAdapter<Family>>(
     (ref) => $FamilyRemoteAdapter(ref.read(familyLocalAdapterProvider)));
