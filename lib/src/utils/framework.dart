@@ -4,7 +4,7 @@ typedef FutureFn<R> = FutureOr<R> Function();
 
 typedef OnData<R> = FutureOr<R> Function(dynamic);
 
-typedef OnDataError = FutureOr<void> Function(DataException);
+typedef OnDataError<R> = FutureOr<R> Function(DataException);
 
 class DataHelpers {
   static final uuid = Uuid();
