@@ -66,7 +66,8 @@ final repository = context.watch<Repository<User>>();
 return DataStateBuilder<List<User>>(
   notifier: () => repository.watchAll();
   builder: (context, state, notifier, _) {
-    if (state.isLoading) {
+    //model could be available from local storage and could be used in the meantime
+    if (state.isLoading && !state.hasModel) {
       return CircularProgressIndicator();
     }
     // state.model is a list of 10 user items
