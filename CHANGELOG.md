@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.5.17] - 2020-11-16
+
+- fix watchAll event handling
+
 ## [0.5.16] - 2020-11-13
 
 - add testing support

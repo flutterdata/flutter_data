@@ -60,16 +60,6 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
       final list = _notifier.data.model.toList();
 
-      if (list.isEmpty &&
-          events.safeFirst.type == DataGraphEventType.doneLoading) {
-        _notifier.data = _notifier.data.copyWith(model: [], isLoading: false);
-        return;
-      }
-
-      if (filteredEvents.isEmpty) {
-        return;
-      }
-
       for (final event in filteredEvents) {
         final key = event.keys.first;
         assert(key != null);
@@ -88,7 +78,10 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         }
       }
 
-      _notifier.data = _notifier.data.copyWith(model: list, isLoading: false);
+      if (!const DeepCollectionEquality().equals(list, _notifier.data.model) ||
+          events.map((e) => e.type).contains(DataGraphEventType.doneLoading)) {
+        _notifier.data = _notifier.data.copyWith(model: list, isLoading: false);
+      }
     });
 
     _notifier.onDispose = _graphNotifier.dispose;

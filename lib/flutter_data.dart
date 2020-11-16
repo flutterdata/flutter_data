@@ -13,6 +13,7 @@ import 'package:inflection2/inflection2.dart' as inflection;
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 import 'package:path/path.dart' as path_helper;
+import 'package:collection/collection.dart';
 
 import 'src/graph/notifier_extension.dart';
 import 'src/repository/hive_local_storage.dart';
