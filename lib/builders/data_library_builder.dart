@@ -215,7 +215,9 @@ i.registerSingletonWithDependencies<Repository<${(c['name']).capitalize()}>>(
     //
 
     final repoInitializeEntries = classes.map((c) => '''\n
-      await ref.read(${c['name']}RepositoryProvider).initialize(
+      final _${c['name']}Repository = ref.read(${c['name']}RepositoryProvider);
+      _${c['name']}Repository.dispose();
+      await _${c['name']}Repository.initialize(
         remote: args?.remote,
         verbose: args?.verbose,
         adapters: graphs['${c['related']}'],

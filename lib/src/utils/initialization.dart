@@ -27,14 +27,10 @@ class RepositoryInitializerArgs {
 
   @override
   bool operator ==(dynamic other) {
-    return identical(this, other) ||
-        (other is RepositoryInitializerArgs &&
-            other.remote == remote &&
-            other.verbose == verbose);
+    // always return false as the initializer
+    // should never be cached
+    return false;
   }
-
-  @override
-  int get hashCode => runtimeType.hashCode ^ remote.hashCode ^ verbose.hashCode;
 }
 
 @protected

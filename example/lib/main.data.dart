@@ -33,19 +33,25 @@ final _repositoryInitializerProviderFamily =
     final graphs = <String, Map<String, RemoteAdapter>>{'comments,posts,users': {'comments': ref.read(commentRemoteAdapterProvider), 'posts': ref.read(postRemoteAdapterProvider), 'users': ref.read(userRemoteAdapterProvider)}};
     
 
-      await ref.read(postRepositoryProvider).initialize(
+      final _postRepository = ref.read(postRepositoryProvider);
+      _postRepository.dispose();
+      await _postRepository.initialize(
         remote: args?.remote,
         verbose: args?.verbose,
         adapters: graphs['comments,posts,users'],
       );
 
-      await ref.read(userRepositoryProvider).initialize(
+      final _userRepository = ref.read(userRepositoryProvider);
+      _userRepository.dispose();
+      await _userRepository.initialize(
         remote: args?.remote,
         verbose: args?.verbose,
         adapters: graphs['comments,posts,users'],
       );
 
-      await ref.read(commentRepositoryProvider).initialize(
+      final _commentRepository = ref.read(commentRepositoryProvider);
+      _commentRepository.dispose();
+      await _commentRepository.initialize(
         remote: args?.remote,
         verbose: args?.verbose,
         adapters: graphs['comments,posts,users'],
