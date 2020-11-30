@@ -39,6 +39,8 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
               exception: error,
               stackTrace: stackTrace,
             );
+          } else {
+            rethrow;
           }
         }
       },
