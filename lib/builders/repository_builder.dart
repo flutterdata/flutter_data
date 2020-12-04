@@ -247,9 +247,9 @@ final _watch$classType =
   return ref.watch(${typeLowerCased}RepositoryProvider).watchOne(args.id, remote: args.remote, params: args.params, headers: args.headers, alsoWatch: args.alsoWatch);
 });
 
-AutoDisposeStateNotifierStateProvider<DataState<$classType>> watch$classType(dynamic id,
+AutoDisposeStateNotifierProvider<DataStateNotifier<$classType>> watch$classType(dynamic id,
     {bool remote = true, Map<String, dynamic> params = const {}, Map<String, String> headers = const {}, AlsoWatch<$classType> alsoWatch}) {
-  return _watch$classType(WatchArgs(id: id, remote: remote, params: params, headers: headers, alsoWatch: alsoWatch)).state;
+  return _watch$classType(WatchArgs(id: id, remote: remote, params: params, headers: headers, alsoWatch: alsoWatch));
 }
 
 final _watch$classTypePlural =

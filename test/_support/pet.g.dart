@@ -79,18 +79,17 @@ final _watchDog = StateNotifierProvider.autoDispose
       alsoWatch: args.alsoWatch);
 });
 
-AutoDisposeStateNotifierStateProvider<DataState<Dog>> watchDog(dynamic id,
+AutoDisposeStateNotifierProvider<DataStateNotifier<Dog>> watchDog(dynamic id,
     {bool remote = true,
     Map<String, dynamic> params = const {},
     Map<String, String> headers = const {},
     AlsoWatch<Dog> alsoWatch}) {
   return _watchDog(WatchArgs(
-          id: id,
-          remote: remote,
-          params: params,
-          headers: headers,
-          alsoWatch: alsoWatch))
-      .state;
+      id: id,
+      remote: remote,
+      params: params,
+      headers: headers,
+      alsoWatch: alsoWatch));
 }
 
 final _watchDogs = StateNotifierProvider.autoDispose
@@ -168,18 +167,17 @@ final _watchCat = StateNotifierProvider.autoDispose
       alsoWatch: args.alsoWatch);
 });
 
-AutoDisposeStateNotifierStateProvider<DataState<Cat>> watchCat(dynamic id,
+AutoDisposeStateNotifierProvider<DataStateNotifier<Cat>> watchCat(dynamic id,
     {bool remote = true,
     Map<String, dynamic> params = const {},
     Map<String, String> headers = const {},
     AlsoWatch<Cat> alsoWatch}) {
   return _watchCat(WatchArgs(
-          id: id,
-          remote: remote,
-          params: params,
-          headers: headers,
-          alsoWatch: alsoWatch))
-      .state;
+      id: id,
+      remote: remote,
+      params: params,
+      headers: headers,
+      alsoWatch: alsoWatch));
 }
 
 final _watchCats = StateNotifierProvider.autoDispose

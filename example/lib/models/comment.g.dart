@@ -82,19 +82,18 @@ final _watchComment = StateNotifierProvider.autoDispose
       alsoWatch: args.alsoWatch);
 });
 
-AutoDisposeStateNotifierStateProvider<DataState<Comment>> watchComment(
+AutoDisposeStateNotifierProvider<DataStateNotifier<Comment>> watchComment(
     dynamic id,
     {bool remote = true,
     Map<String, dynamic> params = const {},
     Map<String, String> headers = const {},
     AlsoWatch<Comment> alsoWatch}) {
   return _watchComment(WatchArgs(
-          id: id,
-          remote: remote,
-          params: params,
-          headers: headers,
-          alsoWatch: alsoWatch))
-      .state;
+      id: id,
+      remote: remote,
+      params: params,
+      headers: headers,
+      alsoWatch: alsoWatch));
 }
 
 final _watchComments = StateNotifierProvider.autoDispose

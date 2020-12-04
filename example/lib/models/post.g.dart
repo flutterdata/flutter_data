@@ -85,18 +85,17 @@ final _watchPost = StateNotifierProvider.autoDispose
       alsoWatch: args.alsoWatch);
 });
 
-AutoDisposeStateNotifierStateProvider<DataState<Post>> watchPost(dynamic id,
+AutoDisposeStateNotifierProvider<DataStateNotifier<Post>> watchPost(dynamic id,
     {bool remote = true,
     Map<String, dynamic> params = const {},
     Map<String, String> headers = const {},
     AlsoWatch<Post> alsoWatch}) {
   return _watchPost(WatchArgs(
-          id: id,
-          remote: remote,
-          params: params,
-          headers: headers,
-          alsoWatch: alsoWatch))
-      .state;
+      id: id,
+      remote: remote,
+      params: params,
+      headers: headers,
+      alsoWatch: alsoWatch));
 }
 
 final _watchPosts = StateNotifierProvider.autoDispose

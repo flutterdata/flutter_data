@@ -78,18 +78,18 @@ final _watchHouse = StateNotifierProvider.autoDispose
       alsoWatch: args.alsoWatch);
 });
 
-AutoDisposeStateNotifierStateProvider<DataState<House>> watchHouse(dynamic id,
+AutoDisposeStateNotifierProvider<DataStateNotifier<House>> watchHouse(
+    dynamic id,
     {bool remote = true,
     Map<String, dynamic> params = const {},
     Map<String, String> headers = const {},
     AlsoWatch<House> alsoWatch}) {
   return _watchHouse(WatchArgs(
-          id: id,
-          remote: remote,
-          params: params,
-          headers: headers,
-          alsoWatch: alsoWatch))
-      .state;
+      id: id,
+      remote: remote,
+      params: params,
+      headers: headers,
+      alsoWatch: alsoWatch));
 }
 
 final _watchHouses = StateNotifierProvider.autoDispose
