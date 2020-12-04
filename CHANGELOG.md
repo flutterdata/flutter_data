@@ -1,9 +1,13 @@
 # Changelog
 
+## [0.5.19] - 2020-12-04
+
+- Always return Riverpod `StateNotifierProvider`s (not `StateNotifierStateProvider`s)
+
 ## [0.5.18] - 2020-11-30
 
- - repositoryInitializerProvider is now fully restartable via riverpod ref.container.refresh
- - if can't channel error through notifier then throw
+- repositoryInitializerProvider is now fully restartable via riverpod ref.container.refresh
+- if can't channel error through notifier then throw
 
 ## [0.5.17] - 2020-11-16
 
