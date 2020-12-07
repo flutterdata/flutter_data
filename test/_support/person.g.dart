@@ -12,6 +12,7 @@ mixin $PersonLocalAdapter on LocalAdapter<Person> {
   @override
   Map<String, Map<String, Object>> relationshipsFor([Person model]) => {
         'family': {
+          'name': 'family',
           'inverse': 'persons',
           'type': 'families',
           'kind': 'BelongsTo',

@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:build/build.dart';
 import 'package:flutter_data/flutter_data.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -89,11 +90,21 @@ and execute a code generation build again.
 
       // prepare metadata
 
+      final jsonKeyAnnotation = TypeChecker.fromRuntime(JsonKey)
+          .firstAnnotationOfExact(field, throwOnUnresolved: false);
+
+      final keyName = jsonKeyAnnotation?.getField('name')?.toStringValue();
+
+      final remoteType =
+          relationshipAnnotation?.getField('remoteType')?.toStringValue();
+
       result.add({
+        'key': keyName ?? field.name,
         'name': field.name,
         'inverse': inverse,
         'kind': field.type.element.name,
         'type': DataHelpers.getType(relationshipClassElement.name),
+        'remoteType': remoteType,
       });
 
       return result;
@@ -101,11 +112,14 @@ and execute a code generation build again.
 
     final relationshipsFor = {
       for (final rel in relationships)
-        '\'${rel['name']}\'': {
+        '\'${rel['key']}\'': {
+          '\'name\'': '\'${rel['name']}\'',
           if (rel['inverse'] != null) '\'inverse\'': '\'${rel['inverse']}\'',
           '\'type\'': '\'${rel['type']}\'',
           '\'kind\'': '\'${rel['kind']}\'',
           '\'instance\'': 'model?.' + rel['name'],
+          if (rel['remoteType'] != null)
+            '\'remoteType\'': '\'${rel['remoteType']}\'',
         }
     };
 

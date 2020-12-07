@@ -213,5 +213,6 @@ abstract class Relationship<E extends DataModel<E>, N>
 
 class DataRelationship {
   final String inverse;
-  const DataRelationship({@required this.inverse});
+  final String remoteType;
+  const DataRelationship({this.inverse, this.remoteType});
 }

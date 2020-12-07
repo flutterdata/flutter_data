@@ -38,12 +38,18 @@ mixin $PostLocalAdapter on LocalAdapter<Post> {
   @override
   Map<String, Map<String, Object>> relationshipsFor([Post model]) => {
         'comments': {
+          'name': 'comments',
           'inverse': 'post',
           'type': 'comments',
           'kind': 'HasMany',
           'instance': model?.comments
         },
-        'user': {'type': 'users', 'kind': 'BelongsTo', 'instance': model?.user}
+        'user': {
+          'name': 'user',
+          'type': 'users',
+          'kind': 'BelongsTo',
+          'instance': model?.user
+        }
       };
 
   @override

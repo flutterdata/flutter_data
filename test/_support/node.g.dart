@@ -36,12 +36,14 @@ mixin $NodeLocalAdapter on LocalAdapter<Node> {
   @override
   Map<String, Map<String, Object>> relationshipsFor([Node model]) => {
         'parent': {
+          'name': 'parent',
           'inverse': 'children',
           'type': 'nodes',
           'kind': 'BelongsTo',
           'instance': model?.parent
         },
         'children': {
+          'name': 'children',
           'inverse': 'parent',
           'type': 'nodes',
           'kind': 'HasMany',

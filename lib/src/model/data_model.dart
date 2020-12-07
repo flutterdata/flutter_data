@@ -42,7 +42,7 @@ Please ensure `Repository<$T>` has been correctly initialized.''');
       relationship?.initialize(
         adapters: adapters,
         owner: _this,
-        name: metadata.key,
+        name: metadata.value['name'] as String,
         inverseName: metadata.value['inverse'] as String,
       );
     }

@@ -34,6 +34,7 @@ mixin $CommentLocalAdapter on LocalAdapter<Comment> {
   @override
   Map<String, Map<String, Object>> relationshipsFor([Comment model]) => {
         'post': {
+          'name': 'post',
           'inverse': 'comments',
           'type': 'posts',
           'kind': 'BelongsTo',

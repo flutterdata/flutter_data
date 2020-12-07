@@ -44,24 +44,32 @@ mixin $FamilyLocalAdapter on LocalAdapter<Family> {
   @override
   Map<String, Map<String, Object>> relationshipsFor([Family model]) => {
         'persons': {
+          'name': 'persons',
           'inverse': 'family',
           'type': 'people',
           'kind': 'HasMany',
           'instance': model?.persons
         },
         'cottage': {
+          'name': 'cottage',
           'inverse': 'owner',
           'type': 'houses',
           'kind': 'BelongsTo',
           'instance': model?.cottage
         },
         'residence': {
+          'name': 'residence',
           'inverse': 'owner',
           'type': 'houses',
           'kind': 'BelongsTo',
           'instance': model?.residence
         },
-        'dogs': {'type': 'dogs', 'kind': 'HasMany', 'instance': model?.dogs}
+        'dogs': {
+          'name': 'dogs',
+          'type': 'dogs',
+          'kind': 'HasMany',
+          'instance': model?.dogs
+        }
       };
 
   @override
