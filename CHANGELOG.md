@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.5.20] - 2020-12-06
+
+- Allow specifying remoteType (useful for the JSON:API adapter)
+
 ## [0.5.19] - 2020-12-04
 
 - Always return Riverpod `StateNotifierProvider`s (not `StateNotifierStateProvider`s)
