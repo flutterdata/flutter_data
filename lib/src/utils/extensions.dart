@@ -42,7 +42,7 @@ extension MapUtilsX<K, V> on Map<K, V> {
 extension UriUtilsX on Uri {
   Uri operator /(String path) {
     if (path == null) return this;
-    return replace(path: path_helper.canonicalize('/${this.path}/$path'));
+    return replace(path: path_helper.normalize('/${this.path}/$path'));
   }
 
   Uri operator &(Map<String, dynamic> params) => params != null &&

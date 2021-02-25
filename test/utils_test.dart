@@ -20,11 +20,12 @@ void main() async {
   });
 
   test('uri helpers', () {
-    final uri = 'http://example.com/namespace/'.asUri / 'path/' / '/sub' &
-        {
-          'a': 1,
-          'b': {'c': 3}
-        };
+    final uri =
+        'http://example.com/namespace/'.asUri / 'path/' / '../path' / '/./sub' &
+            {
+              'a': 1,
+              'b': {'c': 3}
+            };
 
     expect(uri.host, 'example.com');
     expect(uri.path, '/namespace/path/sub');
