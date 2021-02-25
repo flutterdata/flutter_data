@@ -14,7 +14,8 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
   DataStateNotifier<List<T>> watchAll(
       {final bool remote,
       final Map<String, dynamic> params,
-      final Map<String, String> headers}) {
+      final Map<String, String> headers,
+      final bool syncLocal}) {
     _assertInit();
 
     final _notifier = DataStateNotifier<List<T>>(
@@ -25,7 +26,11 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       reload: (notifier) async {
         try {
           final _future = findAll(
-              params: params, headers: headers, remote: remote, init: true);
+              params: params,
+              headers: headers,
+              remote: remote,
+              syncLocal: syncLocal,
+              init: true);
           notifier.data = notifier.data.copyWith(isLoading: true);
           await _future;
           // trigger doneLoading to ensure state is updated with isLoading=false
