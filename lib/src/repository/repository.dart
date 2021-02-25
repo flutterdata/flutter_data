@@ -51,11 +51,23 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   /// Arguments [params] and [headers] will be merged with
   /// [_RemoteAdapter.defaultParams] and [_RemoteAdapter.defaultHeaders], respectively.
   ///
+  /// By default, calling `findAll` will result in local storage for type [T] to
+  /// be synchronized to have the exact resources returned from the remote source.
+  /// This operation would, for example, reflect server-side resource deletions.
+  /// Use `syncLocal: false` to prevent this behavior.
+  ///
   /// See also: [_RemoteAdapter.urlForFindAll], [_RemoteAdapter.methodForFindAll].
   Future<List<T>> findAll(
-      {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+      {bool remote,
+      Map<String, dynamic> params,
+      Map<String, String> headers,
+      bool syncLocal}) {
     return _adapter.findAll(
-        remote: remote, params: params, headers: headers, init: true);
+        remote: remote,
+        params: params,
+        headers: headers,
+        syncLocal: syncLocal,
+        init: true);
   }
 
   /// Returns model of type [T] by [id].

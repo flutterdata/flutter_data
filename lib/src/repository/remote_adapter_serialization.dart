@@ -121,6 +121,8 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
   /// Transforms a [key] into a model's field.
   ///
   /// This mapping can also be done via `json_serializable`'s `@JsonKey`.
+  /// If both are used, `fieldForKey` will be applied before
+  /// reaching `fromJson`.
   @protected
   @visibleForTesting
   String fieldForKey(String key) {

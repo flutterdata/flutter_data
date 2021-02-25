@@ -35,6 +35,42 @@ void main() async {
     expect(await familyRepository.findAll(), isEmpty);
   });
 
+  test('findAll with and without syncLocal', () async {
+    final family1 = Family(id: '1', surname: 'Smith');
+    final family2 = Family(id: '2', surname: 'Jones');
+
+    final families1 = await familyRepository.findAll(remote: true, headers: {
+      'response': '''
+        [{ "id": "1", "surname": "Smith" }, { "id": "2", "surname": "Jones" }]
+      ''',
+    });
+
+    expect(families1, [family1, family2]);
+
+    final families2 = await familyRepository
+        .findAll(remote: true, syncLocal: false, headers: {
+      'response': '''
+        [{ "id": "1", "surname": "Smith" }]
+      ''',
+    });
+
+    expect(families2, [family1]);
+
+    // since `syncLocal: false` and `family2` was present from an older call, it remains in local storage
+    expect(await familyRepository.findAll(remote: false), [family1, family2]);
+
+    final families3 = await familyRepository.findAll(remote: true, headers: {
+      'response': '''
+        [{ "id": "1", "surname": "Smith" }]
+      ''',
+    });
+
+    expect(families3, [family1]);
+
+    // using the default `syncLocal: true` the result is equal to the contents of local storage
+    expect(await familyRepository.findAll(remote: false), families3);
+  });
+
   test('findOne', () async {
     final family = await familyRepository.findOne('1', remote: true, headers: {
       'response': '''
@@ -44,7 +80,7 @@ void main() async {
     expect(family, Family(id: '1', surname: 'Smith'));
 
     // and it can be found again locally
-    expect(family, await familyRepository.findOne('1'));
+    expect(family, await familyRepository.findOne('1', remote: false));
   });
 
   test('findOne with includes', () async {
@@ -59,10 +95,10 @@ void main() async {
     expect(family, Family(id: '1', surname: 'Smith'));
 
     // can be found again locally
-    expect(family, await familyRepository.findOne('1'));
+    expect(family, await familyRepository.findOne('1', remote: false));
 
     // as well as the included Person
-    expect(await personRepository.findOne('1'),
+    expect(await personRepository.findOne('1', remote: false),
         Person(id: '1', name: 'Stan', age: 31));
   });
 
@@ -100,7 +136,7 @@ void main() async {
     }
 
     // no record locally
-    expect(await familyRepository.findOne('1'), isNull);
+    expect(await familyRepository.findOne('1', remote: false), isNull);
   });
 
   test('socket exception', () async {
@@ -129,7 +165,7 @@ void main() async {
     await familyRepository
         .save(family, remote: true, headers: {'response': '', 'status': '204'});
     // and it can be found again locally
-    expect(family, await familyRepository.findOne('1'));
+    expect(family, await familyRepository.findOne('1', remote: false));
 
     // with non-empty response
     await familyRepository.save(Family(id: '2', surname: 'Jones'),
@@ -139,7 +175,8 @@ void main() async {
           'status': '200'
         });
     // and it can be found again locally
-    expect((await familyRepository.findOne('2')).surname, 'Jones Saved');
+    expect((await familyRepository.findOne('2', remote: false)).surname,
+        'Jones Saved');
   });
 
   test('delete', () async {

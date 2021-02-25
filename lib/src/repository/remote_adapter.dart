@@ -234,11 +234,13 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       {bool remote,
       Map<String, dynamic> params,
       Map<String, String> headers,
+      bool syncLocal,
       bool init}) async {
     _assertInit();
     remote ??= _remote;
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
+    syncLocal ??= true;
     init ??= false;
 
     if (!shouldLoadRemoteAll(remote, params, headers)) {
@@ -253,7 +255,10 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       baseUrl.asUri / urlForFindAll(params) & params,
       method: methodForFindAll(params),
       headers: headers,
-      onSuccess: (data) {
+      onSuccess: (data) async {
+        if (syncLocal) {
+          await localAdapter.clear();
+        }
         return deserialize(data, init: init).models;
       },
     );
