@@ -42,8 +42,9 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
       return id;
     }
 
-    if (data == null) {
-      // TODO handle empty response
+    if (data == null || data == '') {
+      result.models.add(null);
+      return result;
     }
     if (data is Map) {
       data = [data];

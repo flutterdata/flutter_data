@@ -60,6 +60,13 @@ void main() async {
     expect(json.encode(s2), isA<String>());
   });
 
+  test('serialize empty', () {
+    final model = personRemoteAdapter.deserialize(null).model;
+    expect(model, isNull);
+    final model2 = personRemoteAdapter.deserialize('').model;
+    expect(model2, isNull);
+  });
+
   test('deserialize multiple', () {
     final models = personRemoteAdapter.deserialize([
       {'_id': '23', 'name': 'Ko', 'age': 24},

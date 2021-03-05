@@ -83,6 +83,13 @@ void main() async {
     expect(family, await familyRepository.findOne('1', remote: false));
   });
 
+  test('findOne with empty response', () async {
+    final family = await familyRepository.findOne('1', remote: true, headers: {
+      'response': '',
+    });
+    expect(family, null);
+  });
+
   test('findOne with includes', () async {
     final family = await familyRepository.findOne('1',
         params: {'include': 'people'},

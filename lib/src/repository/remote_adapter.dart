@@ -464,18 +464,15 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
 
     // response handling
 
-    // TODO support/test 204
-    if (response?.body == null) {
-      return await onError(DataException(error, stackTrace: stackTrace));
-    }
-
     try {
-      data = response.body.isEmpty ? null : json.decode(response.body);
+      data = (response?.body != null && response.body.isNotEmpty)
+          ? json.decode(response.body)
+          : null;
     } on FormatException catch (e) {
       error = e;
     }
 
-    final code = response.statusCode;
+    final code = response?.statusCode;
 
     if (_verbose) {
       print(
