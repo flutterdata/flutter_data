@@ -93,6 +93,21 @@ void main() async {
     verifyNoMoreInteractions(listener);
   });
 
+  test('watchAll with filterLocal', () async {
+    final listener = Listener<DataState<List<Person>>>();
+
+    final p1 = Person(id: '1', name: 'Zof', age: 23).init(container);
+    Person(id: '2', name: 'Sarah', age: 50).init(container);
+    final notifier = personRemoteAdapter.watchAll(
+        filterLocal: (Person person) => person.age < 40);
+
+    await oneMs();
+    dispose = notifier.addListener(listener, fireImmediately: true);
+
+    verify(listener(DataState([p1]))).called(1);
+    verifyNoMoreInteractions(listener);
+  });
+
   test('watchOne', () async {
     final listener = Listener<DataState<Person>>();
 

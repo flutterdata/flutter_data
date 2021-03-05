@@ -15,6 +15,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       {final bool remote,
       final Map<String, dynamic> params,
       final Map<String, String> headers,
+      final bool Function(T) filterLocal,
       final bool syncLocal}) {
     _assertInit();
 
@@ -87,7 +88,10 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
       if (!const DeepCollectionEquality().equals(list, _notifier.data.model) ||
           events.map((e) => e.type).contains(DataGraphEventType.doneLoading)) {
-        _notifier.data = _notifier.data.copyWith(model: list, isLoading: false);
+        final filtered =
+            filterLocal != null ? list.where(filterLocal).toList() : list;
+        _notifier.data =
+            _notifier.data.copyWith(model: filtered, isLoading: false);
       }
     });
 

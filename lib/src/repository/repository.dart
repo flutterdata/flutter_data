@@ -126,14 +126,23 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
 
   /// Watches changes on all models of type [T] in local storage.
   ///
-  /// When called, will in turn call [findAll] with [remote], [params], [headers], [syncLocal].
+  /// When called, will in turn call [findAll] with [remote], [params],
+  /// [headers], [syncLocal].
+  ///
+  /// If [syncLocal] is set to `false` but results still need to be filtered,
+  /// use [filterLocal]. All data updates will be filtered through it.
   DataStateNotifier<List<T>> watchAll(
       {bool remote,
       Map<String, dynamic> params,
       Map<String, String> headers,
+      bool Function(T) filterLocal,
       bool syncLocal}) {
     return _adapter.watchAll(
-        remote: remote, params: params, headers: headers, syncLocal: syncLocal);
+        remote: remote,
+        params: params,
+        headers: headers,
+        filterLocal: filterLocal,
+        syncLocal: syncLocal);
   }
 
   /// Watches changes on model of type [T] by [id] in local storage.
