@@ -66,17 +66,42 @@ class Person with DataModel<Person> {
 // NOTE: keep this adapter without type arguments
 // as part of testing the type-parameter-less adapter feature
 mixin PersonLoginAdapter on RemoteAdapter<Person> {
+  @override
+  FutureOr<Map<String, String>> get defaultHeaders =>
+      {'response': '{"message": "not the message you sent"}'};
+
+  @override
+  FutureOr<Map<String, dynamic>> get defaultParams => {'default': true};
+
+  // if email is null it throws some garbage
   Future<String> login(String email, String password) async {
     return await sendRequest<String>(
       baseUrl.asUri / 'token' & await defaultParams & {'a': 1},
-      body: '',
-      headers: await defaultHeaders &
-          {
-            'response':
-                '{ "token": "$password" ${email == null ? '&*@%%*#@!' : ''} }'
-          },
+      headers: {
+        'response':
+            '{ "token": "$password" ${email == null ? '&*@%%*#@!' : ''} }'
+      },
       onSuccess: (data) => data['token'] as String,
       onError: (e) => throw UnsupportedError('custom error: $e'),
+      omitDefaultParams: true,
+    );
+  }
+
+  Future<String> hello({bool useDefaultHeaders = false}) async {
+    return await sendRequest(
+      baseUrl.asUri / 'hello' & {'a': 1},
+      headers: useDefaultHeaders ? null : {'response': '{"message": "hello"}'},
+      onSuccess: (data) => data['message'].toString(),
+    );
+  }
+
+  Future<String> url(Map<String, dynamic> params,
+      {bool useDefaultParams = false}) async {
+    return await sendRequest(
+      baseUrl.asUri / 'url' & params,
+      headers: {'response': '\$URL'},
+      onSuccess: (data) => data['url'].toString(),
+      omitDefaultParams: !useDefaultParams,
     );
   }
 }

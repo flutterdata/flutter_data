@@ -149,7 +149,7 @@ void main() async {
   test('socket exception', () async {
     try {
       await familyRepository
-          .findOne('error', remote: true, headers: {'response': null});
+          .findOne('error', remote: true, params: {'throw': 'unreachable'});
     } catch (e) {
       expect(
           e,
@@ -268,8 +268,8 @@ void main() async {
   test('watchOne with error', () async {
     final listener = Listener<DataState<Person>>();
 
-    final notifier = personRepository.watchOne('1', remote: true, headers: {
-      'response': '^@!@#(#(@#)#@',
+    final notifier = personRepository.watchOne('1', remote: true, params: {
+      'throw': 'unreachable',
     });
 
     dispose = notifier.addListener(listener, fireImmediately: true);

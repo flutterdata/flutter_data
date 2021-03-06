@@ -101,11 +101,15 @@ ProviderContainer createContainer() {
     overrides: [
       // app-specific
       mockResponseProvider.overrideWithProvider((ref, req) {
-        if (req.url.toString().endsWith('error')) {
+        if (req.url.toString().endsWith('unreachable')) {
           throw SocketException('unreachable');
         }
-        return http.Response(
-            req.headers['response'], int.parse(req.headers['status'] ?? '200'));
+        var responseText = req.headers['response'];
+        if (responseText == '\$URL') {
+          responseText = '{"url" : "${req.url.toString()}"}';
+        }
+        final status = int.parse(req.headers['status'] ?? '200');
+        return http.Response(responseText, status);
       }),
 
       // fd infra
@@ -149,8 +153,7 @@ ProviderContainer createContainer() {
 // ignore: must_be_immutable
 class HouseLocalAdapter = $HouseHiveLocalAdapter
     with TestHiveLocalAdapter<House>;
-class HouseRemoteAdapter = $HouseRemoteAdapter
-    with TestRemoteAdapter, TokenAdapter;
+class HouseRemoteAdapter = $HouseRemoteAdapter with TestRemoteAdapter;
 
 // ignore: must_be_immutable
 class FamilyLocalAdapter = $FamilyHiveLocalAdapter
@@ -173,26 +176,7 @@ class NodeLocalAdapter = $NodeHiveLocalAdapter with TestHiveLocalAdapter<Node>;
 
 class MockFamilyRepository extends Mock implements Repository<Family> {}
 
-class TokenHouseRemoteAdapter = $HouseRemoteAdapter
-    with TestRemoteAdapter, TokenAdapter;
-
-final tokenFutureProvider = FutureProvider((_) => Future.value('s3cr4t'));
-
-mixin TokenAdapter<T extends DataModel<T>> on RemoteAdapter<T> {
-  @override
-  FutureOr<Map<String, String>> get defaultHeaders async {
-    final token = await ref.watch(tokenFutureProvider.future);
-    return await super.defaultHeaders
-      ..addAll({'Authorization': token});
-  }
-
-  @override
-  FutureOr<Map<String, dynamic>> get defaultParams async {
-    final token = await ref.read(tokenFutureProvider.future);
-    return await super.defaultParams
-      ..addAll({'Authorization': token});
-  }
-}
+class TokenHouseRemoteAdapter = $HouseRemoteAdapter with TestRemoteAdapter;
 
 // utils
 

@@ -437,10 +437,15 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     String body,
     OnData<R> onSuccess,
     OnDataError<R> onError,
+    bool omitDefaultParams = false,
   }) async {
     // callbacks
     onSuccess ??= (_) async => null;
     onError ??= (DataException e) async => this.onError<R>(e);
+
+    headers ??= await defaultHeaders;
+    final _params =
+        omitDefaultParams ? <String, dynamic>{} : await defaultParams;
 
     http.Response response;
     dynamic data;
@@ -448,7 +453,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     StackTrace stackTrace;
 
     try {
-      final request = http.Request(method.toShortString(), uri);
+      final request = http.Request(method.toShortString(), uri & _params);
       request.headers.addAll(headers);
       if (body != null) {
         request.body = body;
@@ -476,7 +481,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
 
     if (_verbose) {
       print(
-          '[flutter_data] $T: ${method.toShortString()} $uri [HTTP $code]${body != null ? '\n -> body: $body' : ''}');
+          '[flutter_data] $T: ${method.toShortString()} $uri [HTTP $code]${body != null ? '\n -> body:\n $body' : ''}');
     }
 
     if (error == null && code >= 200 && code < 300) {

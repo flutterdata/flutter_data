@@ -81,4 +81,14 @@ void main() async {
     expect(graph.getNode(keyFor(person)), isNull);
     expect(graph.getKeyForId('people', person.id), isNull);
   });
+
+  test('use default headers & params', () async {
+    final adapter = (personRemoteAdapter as PersonRemoteAdapter);
+    expect(await adapter.hello(), 'hello');
+    expect(await adapter.hello(useDefaultHeaders: true),
+        'not the message you sent');
+    expect(await adapter.url({'a': 1}), '/url?a=1');
+    expect(await adapter.url({'b': 2}, useDefaultParams: true),
+        '/url?b=2&default=true');
+  });
 }
