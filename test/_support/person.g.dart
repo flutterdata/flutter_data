@@ -112,6 +112,13 @@ extension PersonX on Person {
 extension PersonRepositoryX on Repository<Person> {
   Future<String> login(String email, String password) =>
       (internalAdapter as YetAnotherLoginAdapter).login(email, password);
+  Future<String> hello({bool useDefaultHeaders = false}) =>
+      (internalAdapter as PersonLoginAdapter)
+          .hello(useDefaultHeaders: useDefaultHeaders);
+  Future<String> url(Map<String, dynamic> params,
+          {bool useDefaultParams = false}) =>
+      (internalAdapter as PersonLoginAdapter)
+          .url(params, useDefaultParams: useDefaultParams);
   Future<Person> doNothing(Person model, int n) =>
       (internalAdapter as GenericDoesNothingAdapter<Person>)
           .doNothing(model, n);

@@ -19,18 +19,14 @@ extension RepositoryInitializerX on RepositoryInitializer {
   bool get isLoading => this == null;
 }
 
-class RepositoryInitializerArgs {
+class RepositoryInitializerArgs with EquatableMixin {
   RepositoryInitializerArgs(this.remote, this.verbose);
 
   final bool remote;
   final bool verbose;
 
   @override
-  bool operator ==(dynamic other) {
-    // always return false as the initializer
-    // should never be cached
-    return false;
-  }
+  List<Object> get props => [remote, verbose];
 }
 
 @protected

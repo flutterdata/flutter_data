@@ -397,7 +397,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
             toNode.remove(inverseMetadata);
           }
         }
-        if (toNode.isEmpty) {
+        if (toNode == null || toNode.isEmpty) {
           _removeNode(to, notify: notify);
         }
       }
