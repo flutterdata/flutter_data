@@ -53,5 +53,5 @@ class WatchArgs<T> with EquatableMixin {
   final AlsoWatch<T> alsoWatch;
 
   @override
-  List<Object> get props => [id, remote, params, headers, alsoWatch];
+  List<Object> get props => [id, remote, params, headers];
 }
