@@ -316,9 +316,12 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     headers = await defaultHeaders & headers;
     init ??= false;
 
+    // we ignore the `init` argument as
+    // saving locally requires initializing
+    model._initialize(adapters, save: true);
+
     if (remote == false) {
-      // we ignore `init` as saving locally requires initializing
-      return model._initialize(adapters, save: true);
+      return model;
     }
 
     final body = json.encode(serialize(model));

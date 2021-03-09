@@ -182,8 +182,8 @@ void main() async {
           'status': '200'
         });
     // and it can be found again locally
-    expect((await familyRepository.findOne('2', remote: false)).surname,
-        'Jones Saved');
+    final family2 = await familyRepository.findOne('2', remote: false);
+    expect(family2.surname, 'Jones Saved');
   });
 
   test('delete', () async {
