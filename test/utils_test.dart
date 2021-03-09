@@ -42,10 +42,7 @@ void main() async {
     final args = RepositoryInitializerArgs(false, true);
     expect(args.remote, false);
     expect(args.verbose, true);
-    // even with equal arguments these are not equal
-    // such that the provider is never cached
-    expect(RepositoryInitializerArgs(false, true),
-        isNot(equals(RepositoryInitializerArgs(false, true))));
+    expect(args, equals(RepositoryInitializerArgs(false, true)));
 
     // isLoading: this == null
     RepositoryInitializer initializer;
