@@ -115,7 +115,6 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         graph.getKeyForId(type, id) ?? (model is T ? model._key : null);
 
     final _alsoWatchFilters = <String>{};
-    var _relatedKeys = <String>{};
 
     final _notifier = DataStateNotifier<T>(
       DataState(initializeModel(localAdapter.findOne(key()), save: true)),
@@ -195,14 +194,6 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
               event.type.isEdge &&
               _alsoWatchFilters.contains(event.metadata)) {
             // calculate currently related models
-            _relatedKeys = localAdapter
-                .relationshipsFor(_notifier.data.model)
-                .values
-                .map((meta) => (meta['instance'] as Relationship)?.keys)
-                .where((keys) => keys != null)
-                .expand((key) => key)
-                .toSet();
-
             refresh = true;
           }
 
@@ -214,7 +205,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
         // updates on all models of specific relationships of this model
         if (event.type == DataGraphEventType.updateNode &&
-            _relatedKeys.any(event.keys.contains)) {
+            _relatedKeys(_notifier.data.model).any(event.keys.contains)) {
           refresh = true;
         }
       }
@@ -229,6 +220,16 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
     _notifier.onDispose = _graphNotifier.dispose;
     return _notifier;
+  }
+
+  Set<String> _relatedKeys(T model) {
+    return localAdapter
+        .relationshipsFor(model)
+        .values
+        .map((meta) => (meta['instance'] as Relationship)?.keys)
+        .filterNulls
+        .expand((key) => key)
+        .toSet();
   }
 }
 
