@@ -1,24 +1,30 @@
 library data_state;
 
+import 'package:equatable/equatable.dart';
 import 'package:state_notifier/state_notifier.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'data_state.freezed.dart';
+class DataState<T> with EquatableMixin {
+  final T model;
+  final bool isLoading;
+  final Object exception;
+  final StackTrace stackTrace;
 
-@freezed
-abstract class DataState<T> with _$DataState<T> {
-  factory DataState(
-    @nullable T model, {
-    @Default(false) bool isLoading,
-    Object exception,
-    StackTrace stackTrace,
-  }) = _DataState<T>;
+  const DataState(
+    this.model, {
+    this.isLoading = false,
+    this.exception,
+    this.stackTrace,
+  });
 
-  @late
   bool get hasException => exception != null;
 
-  @late
   bool get hasModel => model != null;
+
+  @override
+  List<Object> get props => [model, isLoading, exception, stackTrace];
+
+  @override
+  bool get stringify => true;
 }
 
 class DataStateNotifier<T> extends StateNotifier<DataState<T>> {
@@ -33,12 +39,16 @@ class DataStateNotifier<T> extends StateNotifier<DataState<T>> {
 
   DataState<T> get data => super.state;
 
-  set data(DataState<T> value) {
-    super.state = value;
-  }
-
-  void refresh() {
-    super.state = state;
+  void updateWith(
+      {Object model = stamp,
+      Object isLoading = stamp,
+      Object exception = stamp,
+      Object stackTrace = stamp}) {
+    super.state = DataState<T>(model == stamp ? state.model : model as T,
+        isLoading: isLoading == stamp ? state.isLoading : isLoading as bool,
+        exception: exception == stamp ? state.exception : exception,
+        stackTrace:
+            stackTrace == stamp ? state.stackTrace : stackTrace as StackTrace);
   }
 
   Future<void> reload() async {
@@ -59,7 +69,6 @@ class DataStateNotifier<T> extends StateNotifier<DataState<T>> {
   }
 
   @override
-  @mustCallSuper
   void dispose() {
     if (mounted) {
       super.dispose();
@@ -67,3 +76,9 @@ class DataStateNotifier<T> extends StateNotifier<DataState<T>> {
     onDispose?.call();
   }
 }
+
+class _Stamp {
+  const _Stamp();
+}
+
+const stamp = _Stamp();
