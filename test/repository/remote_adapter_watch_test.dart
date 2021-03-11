@@ -47,7 +47,7 @@ void main() async {
           expect(state.isLoading, false); // since it's not hitting any API
         }
         i++;
-      }, count: count),
+      }, count: count - 1),
       fireImmediately: false,
     );
 

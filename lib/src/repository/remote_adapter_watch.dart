@@ -35,7 +35,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           notifier.data = notifier.data.copyWith(isLoading: true);
           await _future;
           // trigger doneLoading to ensure state is updated with isLoading=false
-          graph._notify([], DataGraphEventType.doneLoading);
+          graph._notify([type], DataGraphEventType.doneLoading);
         } catch (error, stackTrace) {
           // we're only interested in notifying errors
           // as models will pop up via the graph notifier
@@ -60,36 +60,16 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         return;
       }
 
-      // filter by keys (that are not IDs)
-      final filteredEvents = events.where((event) =>
-          event.type.isNode &&
-          event.keys.first.startsWith(type) &&
-          !event.graph._hasEdge(event.keys.first, metadata: 'key'));
-
-      final list = _notifier.data.model.toList();
-
-      for (final event in filteredEvents) {
-        final key = event.keys.first;
-        assert(key != null);
-        switch (event.type) {
-          case DataGraphEventType.addNode:
-            list.add(localAdapter.findOne(key));
-            break;
-          case DataGraphEventType.updateNode:
-            final idx = list.indexWhere((model) => model?._key == key);
-            list[idx] = localAdapter.findOne(key);
-            break;
-          case DataGraphEventType.removeNode:
-            list..removeWhere((model) => model?._key == key);
-            break;
-          default:
-        }
-      }
-
-      if (!const DeepCollectionEquality().equals(list, _notifier.data.model) ||
-          events.map((e) => e.type).contains(DataGraphEventType.doneLoading)) {
+      final models = localAdapter.findAll();
+      if (!const DeepCollectionEquality()
+              .equals(models, _notifier.data.model) ||
+          events.where((e) {
+            // ensure the done signal belongs to this notifier
+            return e.type == DataGraphEventType.doneLoading &&
+                e.keys.first == type;
+          }).isNotEmpty) {
         final filtered =
-            filterLocal != null ? list.where(filterLocal).toList() : list;
+            filterLocal != null ? models.where(filterLocal).toList() : models;
         _notifier.data =
             _notifier.data.copyWith(model: filtered, isLoading: false);
       }
@@ -198,6 +178,8 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           }
 
           if (modelBuffer != null &&
+              // ensure the done signal belongs to this type
+              event.keys.first == key() &&
               event.type == DataGraphEventType.doneLoading) {
             refresh = true;
           }
