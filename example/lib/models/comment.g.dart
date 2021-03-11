@@ -101,7 +101,11 @@ final _watchComments = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Comment>>, WatchArgs<Comment>>((ref, args) {
   ref.maintainState = false;
   return ref.watch(commentRepositoryProvider).watchAll(
-      remote: args.remote, params: args.params, headers: args.headers);
+      remote: args.remote,
+      params: args.params,
+      headers: args.headers,
+      filterLocal: args.filterLocal,
+      syncLocal: args.syncLocal);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<Comment>>>

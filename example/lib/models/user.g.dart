@@ -86,7 +86,11 @@ final _watchUsers = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<User>>, WatchArgs<User>>((ref, args) {
   ref.maintainState = false;
   return ref.watch(userRepositoryProvider).watchAll(
-      remote: args.remote, params: args.params, headers: args.headers);
+      remote: args.remote,
+      params: args.params,
+      headers: args.headers,
+      filterLocal: args.filterLocal,
+      syncLocal: args.syncLocal);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<User>>> watchUsers(
