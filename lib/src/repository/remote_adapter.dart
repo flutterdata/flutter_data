@@ -309,6 +309,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       {bool remote,
       Map<String, dynamic> params,
       Map<String, String> headers,
+      OnDataError onError,
       bool init}) async {
     _assertInit();
     remote ??= _remote;
@@ -331,6 +332,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       method: methodForSave(model.id, params),
       headers: headers,
       body: body,
+      onError: onError,
       onSuccess: (data) {
         if (data == null) {
           // return "old" model if response was empty
@@ -439,7 +441,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     Map<String, String> headers,
     String body,
     OnData<R> onSuccess,
-    OnDataError<R> onError,
+    OnDataError onError,
     bool omitDefaultParams = false,
   }) async {
     // callbacks
@@ -495,7 +497,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       if (_verbose) {
         print('[flutter_data] $T: $e');
       }
-      return await onError(e);
+      await onError(e);
+      return null;
     }
   }
 

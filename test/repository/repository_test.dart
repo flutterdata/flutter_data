@@ -171,6 +171,33 @@ void main() async {
     expect(family2.surname, 'Jones Saved');
   });
 
+  test('save with error', () async {
+    final family = Family(id: '1', surname: 'Smith');
+    container.read(responseProvider).state = TestResponse.text('@**&#*#&');
+
+    // overrides error handling with notifier
+    final listener = Listener<DataState<List<Family>>>();
+    final notifier = familyRepository.watchAll(remote: false);
+
+    dispose = notifier.addListener(listener, fireImmediately: true);
+
+    verify(listener(DataState([], isLoading: false))).called(1);
+
+    await familyRepository.save(family, remote: true, onError: (e) async {
+      await oneMs();
+      notifier.updateWith(exception: e.error, stackTrace: e.stackTrace);
+    });
+    await oneMs();
+
+    verify(listener(DataState([family], isLoading: false))).called(1);
+
+    verify(listener(argThat(
+      isA<DataState>().having((s) {
+        return s.exception;
+      }, 'exception', isA<FormatException>()),
+    ))).called(1);
+  });
+
   test('delete', () async {
     // init a person
     final person = Person(id: '1', name: 'John', age: 21).init(container);
@@ -220,7 +247,7 @@ void main() async {
     await oneMs();
 
     verify(listener(argThat(isA<DataState>()
-            .having((s) => s.exception, 'exception', isA<DataException>()))))
+            .having((s) => s.exception, 'exception', isA<FormatException>()))))
         .called(1);
     verifyNoMoreInteractions(listener);
   });

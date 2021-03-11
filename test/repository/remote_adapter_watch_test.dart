@@ -99,7 +99,7 @@ void main() async {
     final p1 = Person(id: '1', name: 'Zof', age: 23).init(container);
     Person(id: '2', name: 'Sarah', age: 50).init(container);
     final notifier = personRemoteAdapter.watchAll(
-        filterLocal: (Person person) => person.age < 40);
+        remote: false, filterLocal: (Person person) => person.age < 40);
 
     await oneMs();
     dispose = notifier.addListener(listener, fireImmediately: true);

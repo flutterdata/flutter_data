@@ -96,10 +96,19 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   /// [_RemoteAdapter.defaultParams] and [_RemoteAdapter.defaultHeaders], respectively.
   ///
   /// See also: [_RemoteAdapter.urlForSave], [_RemoteAdapter.methodForSave].
-  Future<T> save(T model,
-      {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+  Future<T> save(
+    T model, {
+    bool remote,
+    Map<String, dynamic> params,
+    Map<String, String> headers,
+    OnDataError onError,
+  }) {
     return _adapter.save(model,
-        remote: remote, params: params, headers: headers, init: true);
+        remote: remote,
+        params: params,
+        headers: headers,
+        onError: onError,
+        init: true);
   }
 
   /// Deletes [model] of type [T].

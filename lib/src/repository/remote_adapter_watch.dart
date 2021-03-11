@@ -32,18 +32,20 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
               remote: remote,
               syncLocal: syncLocal,
               init: true);
-          notifier.data = notifier.data.copyWith(isLoading: true);
+          if (remote ?? true) {
+            notifier.updateWith(isLoading: true);
+          }
           await _future;
           // trigger doneLoading to ensure state is updated with isLoading=false
           graph._notify([type], DataGraphEventType.doneLoading);
-        } catch (error, stackTrace) {
+        } catch (e, stackTrace) {
           // we're only interested in notifying errors
           // as models will pop up via the graph notifier
           if (notifier.mounted) {
-            notifier.data = notifier.data.copyWith(
+            notifier.updateWith(
               isLoading: false,
-              exception: error,
-              stackTrace: stackTrace,
+              exception: e.error ?? e,
+              stackTrace: e.stackTrace ?? stackTrace,
             );
           } else {
             rethrow;
@@ -70,8 +72,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           }).isNotEmpty) {
         final filtered =
             filterLocal != null ? models.where(filterLocal).toList() : models;
-        _notifier.data =
-            _notifier.data.copyWith(model: filtered, isLoading: false);
+        _notifier.updateWith(model: filtered, isLoading: false);
       }
     });
 
@@ -101,9 +102,16 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       reload: (notifier) async {
         if (id == null) return;
         try {
-          final _future = findOne(id,
-              params: params, headers: headers, remote: remote, init: true);
-          notifier.data = notifier.data.copyWith(isLoading: true);
+          final _future = findOne(
+            id,
+            params: params,
+            headers: headers,
+            remote: remote,
+            init: true,
+          );
+          if (remote ?? true) {
+            notifier.updateWith(isLoading: true);
+          }
           await _future;
           // trigger doneLoading to ensure state is updated with isLoading=false
           graph._notify([key()], DataGraphEventType.doneLoading);
@@ -111,7 +119,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           // we're only interested in notifying errors
           // as models will pop up via the graph notifier
           if (notifier.mounted) {
-            notifier.data = notifier.data.copyWith(
+            notifier.updateWith(
               isLoading: false,
               exception: error,
               stackTrace: stackTrace,
@@ -195,8 +203,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       // NOTE: because of this comparison, use field equality
       // rather than key equality (which wouldn't update)
       if (modelBuffer != _notifier.data.model || refresh) {
-        _notifier.data =
-            _notifier.data.copyWith(model: modelBuffer, isLoading: false);
+        _notifier.updateWith(model: modelBuffer, isLoading: false);
       }
     });
 

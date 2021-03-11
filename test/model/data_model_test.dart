@@ -96,21 +96,13 @@ void main() async {
     expect(keyFor(dog), keyFor(dog2));
     expect(dog, dog2);
 
-    // but this kind of equality doesn't work with updates
+    // both update
 
     final listener = Listener<DataState<Dog>>();
 
     final notifier = dogRepository.watchOne('2', remote: false);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
-
-    verify(listener(argThat(
-      withState<Dog>((s) => s.model.name, 'Mandarin')
-          .having((s) => s.isLoading, 'loading', true),
-    ))).called(1);
-    verifyNoMoreInteractions(listener);
-
-    await oneMs();
 
     verify(listener(argThat(
       withState<Dog>((s) => s.model.name, 'Mandarin')
@@ -121,10 +113,8 @@ void main() async {
     Dog(id: '2', name: 'Tango').init(container);
     await oneMs();
 
-    // we DO NOT see "Tango" show up in the listener because
-    // `Dog` uses key equality (and it was already present as "Mandarin")
-    verifyNever(
-        listener(argThat(withState<Dog>((s) => s.model.name, 'Tango'))));
+    verify(listener(argThat(withState<Dog>((s) => s.model.name, 'Tango'))))
+        .called(1);
     verifyNoMoreInteractions(listener);
   });
 
