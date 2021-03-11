@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.6.0] - 2021-03-11
+
+- add `syncLocal` and `filterLocal` features
+- make `save` optimistic
+- use default headers & params by default in `sendRequest`
+- include `data_state` package within Flutter Data, upgrade others
+- fix bug with related model updates in `alsoWatch`
+- fix initialization and refresh issues
+- fix empty response handling
+- fix URI helpers broken on web
+
 ## [0.5.20] - 2020-12-06
 
 - Allow specifying remoteType (useful for the JSON:API adapter)
