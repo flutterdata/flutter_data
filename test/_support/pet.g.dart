@@ -96,7 +96,11 @@ final _watchDogs = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Dog>>, WatchArgs<Dog>>((ref, args) {
   ref.maintainState = false;
   return ref.watch(dogRepositoryProvider).watchAll(
-      remote: args.remote, params: args.params, headers: args.headers);
+      remote: args.remote,
+      params: args.params,
+      headers: args.headers,
+      filterLocal: args.filterLocal,
+      syncLocal: args.syncLocal);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<Dog>>> watchDogs(
@@ -184,7 +188,11 @@ final _watchCats = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Cat>>, WatchArgs<Cat>>((ref, args) {
   ref.maintainState = false;
   return ref.watch(catRepositoryProvider).watchAll(
-      remote: args.remote, params: args.params, headers: args.headers);
+      remote: args.remote,
+      params: args.params,
+      headers: args.headers,
+      filterLocal: args.filterLocal,
+      syncLocal: args.syncLocal);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<Cat>>> watchCats(
