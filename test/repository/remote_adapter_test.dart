@@ -84,9 +84,18 @@ void main() async {
 
   test('use default headers & params', () async {
     final adapter = (personRemoteAdapter as PersonRemoteAdapter);
+
+    container.read(responseProvider).state =
+        TestResponse.text('{"message": "hello"}');
     expect(await adapter.hello(), 'hello');
+
+    container.read(responseProvider).state =
+        TestResponse(text: (req) => req.headers['response']);
     expect(await adapter.hello(useDefaultHeaders: true),
         'not the message you sent');
+
+    container.read(responseProvider).state =
+        TestResponse(text: (req) => '{"url" : "${req.url.toString()}"}');
     expect(await adapter.url({'a': 1}), '/url?a=1');
     expect(await adapter.url({'b': 2}, useDefaultParams: true),
         '/url?b=2&default=true');

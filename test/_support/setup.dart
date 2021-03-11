@@ -95,21 +95,28 @@ void tearDownFn() async {
 
 //
 
+class TestResponse {
+  final String Function(http.Request) text;
+  final int statusCode;
+
+  const TestResponse({this.text, this.statusCode = 200});
+
+  factory TestResponse.text(String text) {
+    return TestResponse(text: (_) => text);
+  }
+}
+
+final responseProvider = StateProvider<TestResponse>((_) => null);
+
 ProviderContainer createContainer() {
   // when testing in Flutter use ProviderScope
   return ProviderContainer(
     overrides: [
       // app-specific
       mockResponseProvider.overrideWithProvider((ref, req) {
-        if (req.url.toString().endsWith('unreachable')) {
-          throw SocketException('unreachable');
-        }
-        var responseText = req.headers['response'];
-        if (responseText == '\$URL') {
-          responseText = '{"url" : "${req.url.toString()}"}';
-        }
-        final status = int.parse(req.headers['status'] ?? '200');
-        return http.Response(responseText, status);
+        final response = ref.read(responseProvider).state;
+        final text = response.text(req);
+        return http.Response(text, response.statusCode);
       }),
 
       // fd infra

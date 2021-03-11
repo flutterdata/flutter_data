@@ -23,11 +23,10 @@ void main() async {
     final family1 = Family(id: '1', surname: 'Smith');
     final family2 = Family(id: '2', surname: 'Jones');
 
-    final families = await familyRepository.findAll(remote: true, headers: {
-      'response': '''
+    container.read(responseProvider).state = TestResponse.text('''
         [{ "id": "1", "surname": "Smith" }, { "id": "2", "surname": "Jones" }]
-      ''',
-    });
+      ''');
+    final families = await familyRepository.findAll(remote: true);
 
     expect(families, [family1, family2]);
 
@@ -39,31 +38,25 @@ void main() async {
     final family1 = Family(id: '1', surname: 'Smith');
     final family2 = Family(id: '2', surname: 'Jones');
 
-    final families1 = await familyRepository.findAll(remote: true, headers: {
-      'response': '''
+    container.read(responseProvider).state = TestResponse.text('''
         [{ "id": "1", "surname": "Smith" }, { "id": "2", "surname": "Jones" }]
-      ''',
-    });
+      ''');
+    final families1 = await familyRepository.findAll(remote: true);
 
     expect(families1, [family1, family2]);
 
-    final families2 = await familyRepository
-        .findAll(remote: true, syncLocal: false, headers: {
-      'response': '''
+    container.read(responseProvider).state = TestResponse.text('''
         [{ "id": "1", "surname": "Smith" }]
-      ''',
-    });
+      ''');
+    final families2 =
+        await familyRepository.findAll(remote: true, syncLocal: false);
 
     expect(families2, [family1]);
 
     // since `syncLocal: false` and `family2` was present from an older call, it remains in local storage
     expect(await familyRepository.findAll(remote: false), [family1, family2]);
 
-    final families3 = await familyRepository.findAll(remote: true, headers: {
-      'response': '''
-        [{ "id": "1", "surname": "Smith" }]
-      ''',
-    });
+    final families3 = await familyRepository.findAll(remote: true);
 
     expect(families3, [family1]);
 
@@ -72,11 +65,10 @@ void main() async {
   });
 
   test('findOne', () async {
-    final family = await familyRepository.findOne('1', remote: true, headers: {
-      'response': '''
+    container.read(responseProvider).state = TestResponse.text('''
         { "id": "1", "surname": "Smith" }
-      ''',
-    });
+      ''');
+    final family = await familyRepository.findOne('1', remote: true);
     expect(family, Family(id: '1', surname: 'Smith'));
 
     // and it can be found again locally
@@ -84,21 +76,17 @@ void main() async {
   });
 
   test('findOne with empty response', () async {
-    final family = await familyRepository.findOne('1', remote: true, headers: {
-      'response': '',
-    });
+    container.read(responseProvider).state = TestResponse.text('');
+    final family = await familyRepository.findOne('1', remote: true);
     expect(family, null);
   });
 
   test('findOne with includes', () async {
-    final family = await familyRepository.findOne('1',
-        params: {'include': 'people'},
-        remote: true,
-        headers: {
-          'response': '''
+    container.read(responseProvider).state = TestResponse.text('''
         { "id": "1", "surname": "Smith", "persons": [{"_id": "1", "name": "Stan", "age": 31}] }
-      ''',
-        });
+      ''');
+    final family = await familyRepository.findOne('1',
+        params: {'include': 'people'}, remote: true);
     expect(family, Family(id: '1', surname: 'Smith'));
 
     // can be found again locally
@@ -111,12 +99,10 @@ void main() async {
 
   test('findOne with errors', () async {
     try {
-      await familyRepository.findOne('1', remote: true, headers: {
-        'response': '''
-        &*@~&^@^&!(@*(@#{ "id": "1", "surname": "Smith" }
-      ''',
-        'status': '203'
-      });
+      container.read(responseProvider).state = TestResponse(
+          text: (_) => '''&*@~&^@^&!(@*(@#{ "id": "1", "surname": "Smith" }''',
+          statusCode: 203);
+      await familyRepository.findOne('1', remote: true);
     } catch (e) {
       expect(
           e,
@@ -128,9 +114,9 @@ void main() async {
     // not found
 
     try {
-      await familyRepository.findOne('2',
-          remote: true,
-          headers: {'response': '{ "error": "not found" }', 'status': '404'});
+      container.read(responseProvider).state = TestResponse(
+          text: (_) => '{ "error": "not found" }', statusCode: 404);
+      await familyRepository.findOne('2', remote: true);
     } catch (e) {
       expect(
         e,
@@ -148,8 +134,9 @@ void main() async {
 
   test('socket exception', () async {
     try {
-      await familyRepository
-          .findOne('error', remote: true, params: {'throw': 'unreachable'});
+      container.read(responseProvider).state =
+          TestResponse(text: (_) => throw SocketException('unreachable'));
+      await familyRepository.findOne('error', remote: true);
     } catch (e) {
       expect(
           e,
@@ -169,18 +156,16 @@ void main() async {
 
     // with empty response
     final family = Family(id: '1', surname: 'Smith');
-    await familyRepository
-        .save(family, remote: true, headers: {'response': '', 'status': '204'});
+    container.read(responseProvider).state = TestResponse.text('');
+    await familyRepository.save(family, remote: true);
     // and it can be found again locally
     expect(family, await familyRepository.findOne('1', remote: false));
 
     // with non-empty response
+    container.read(responseProvider).state =
+        TestResponse.text('{"id": "2", "surname": "Jones Saved"}');
     await familyRepository.save(Family(id: '2', surname: 'Jones'),
-        remote: true,
-        headers: {
-          'response': '{"id": "2", "surname": "Jones Saved"}',
-          'status': '200'
-        });
+        remote: true);
     // and it can be found again locally
     final family2 = await familyRepository.findOne('2', remote: false);
     expect(family2.surname, 'Jones Saved');
@@ -193,8 +178,8 @@ void main() async {
     expect(keyFor(person), isNotNull);
 
     // now delete
-    await personRepository
-        .delete(person.id, remote: true, headers: {'response': ''});
+    container.read(responseProvider).state = TestResponse.text('');
+    await personRepository.delete(person.id, remote: true);
 
     // so fetching by id again is null
     expect(await personRepository.findOne(person.id), isNull);
@@ -203,11 +188,10 @@ void main() async {
   test('watchAll', () async {
     final listener = Listener<DataState<List<Family>>>();
 
-    final notifier = familyRepository.watchAll(remote: true, headers: {
-      'response': '''
+    container.read(responseProvider).state = TestResponse.text('''
         [{ "id": "1", "surname": "Corleone" }, { "id": "2", "surname": "Soprano" }]
-      ''',
-    });
+      ''');
+    final notifier = familyRepository.watchAll(remote: true);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -225,9 +209,10 @@ void main() async {
   test('watchAll with error', () async {
     final listener = Listener<DataState<List<Family>>>();
 
-    final notifier = familyRepository.watchAll(remote: true, headers: {
-      'response': '^@!@#(#(@#)#@',
-    });
+    container.read(responseProvider).state = TestResponse.text('''
+        '^@!@#(#(@#)#@'
+      ''');
+    final notifier = familyRepository.watchAll(remote: true);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -243,9 +228,10 @@ void main() async {
   test('watchOne', () async {
     final listener = Listener<DataState<Person>>();
 
-    final notifier = personRepository.watchOne('1', remote: true, headers: {
-      'response': '''{ "_id": "1", "name": "Charlie", "age": 23 }''',
-    });
+    container.read(responseProvider).state = TestResponse.text(
+      '''{ "_id": "1", "name": "Charlie", "age": 23 }''',
+    );
+    final notifier = personRepository.watchOne('1', remote: true);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -268,9 +254,10 @@ void main() async {
   test('watchOne with error', () async {
     final listener = Listener<DataState<Person>>();
 
-    final notifier = personRepository.watchOne('1', remote: true, params: {
-      'throw': 'unreachable',
-    });
+    container.read(responseProvider).state = TestResponse(
+      text: (_) => throw SocketException('unreachable'),
+    );
+    final notifier = personRepository.watchOne('1', remote: true);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -294,12 +281,11 @@ void main() async {
 
     final listener = Listener<DataState<Family>>();
 
+    container.read(responseProvider).state =
+        TestResponse.text('''{ "id": "22", "surname": "Paez" }''');
     final notifier = familyRepository.watchOne(
       '22',
       remote: true,
-      headers: {
-        'response': '''{ "id": "22", "surname": "Paez" }''',
-      },
       alsoWatch: (family) => [family.persons],
     );
 
@@ -325,10 +311,8 @@ void main() async {
   test('watchAll updates isLoading even in an empty response', () async {
     final listener = Listener<DataState<List<Family>>>();
 
-    final notifier = familyRepository.watchAll(
-      remote: true,
-      headers: {'response': '[]'},
-    );
+    container.read(responseProvider).state = TestResponse.text('[]');
+    final notifier = familyRepository.watchAll(remote: true);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -346,16 +330,47 @@ void main() async {
     ))).called(1);
   });
 
+  test('watchAll syncLocal', () async {
+    final listener = Listener<DataState<List<Family>>>();
+
+    container.read(responseProvider).state = TestResponse.text(
+        '''[{ "id": "22", "surname": "Paez" }, { "id": "12", "surname": "Brunez" }]''');
+    final notifier = familyRepository.watchAll(remote: true);
+
+    dispose = notifier.addListener(listener, fireImmediately: true);
+    await oneMs();
+
+    verify(listener(DataState([
+      Family(id: '22', surname: 'Paez'),
+      Family(id: '12', surname: 'Brunez'),
+    ], isLoading: false)))
+        .called(1);
+
+    container.read(responseProvider).state =
+        TestResponse.text('''[{ "id": "22", "surname": "Paez" }]''');
+    await notifier.reload();
+    await oneMs();
+
+    verify(listener(DataState([
+      Family(id: '22', surname: 'Paez'),
+      Family(id: '12', surname: 'Brunez'),
+    ], isLoading: true)))
+        .called(1);
+
+    verify(listener(DataState([
+      Family(id: '22', surname: 'Paez'),
+    ], isLoading: false)))
+        .called(1);
+  });
+
   test('remote can return a different ID', () async {
     Family(id: '1', surname: 'Corleone').init(container);
     Family(id: '2', surname: 'Moletto').init(container);
 
-    await familyRepository.findOne('1', remote: true, headers: {
-      // returns 2, not the requested 1
-      'response': '''
-        {"id": "2", "surname": "Oslo"}
-      ''',
-    });
+    // returns 2, not the requested 1
+    container.read(responseProvider).state =
+        TestResponse.text('''{"id": "2", "surname": "Oslo"}''');
+    await familyRepository.findOne('1', remote: true);
     // (no model will show up in a watchOne('1') situation)
 
     // 1 was requested, but finally 2 was updated
@@ -375,12 +390,9 @@ void main() async {
     expect(keyFor(family1), isNot(keyFor(family2)));
 
     // it's saved to the server
-    await familyRepository.save(family2, remote: true, headers: {
-      // server decides it has an id=1
-      'response': '''
-        {"id": "1", "surname": "Oslo"}
-      ''',
-    });
+    container.read(responseProvider).state =
+        TestResponse.text('''{"id": "1", "surname": "Oslo"}''');
+    await familyRepository.save(family2, remote: true);
 
     // keys are reconciled and now both keys are equal
     expect(keyFor(family1), keyFor(family2));
@@ -388,6 +400,9 @@ void main() async {
 
   test('custom login adapter with repo extension', () async {
     // this crappy login uses password as token
+    container.read(responseProvider).state =
+        TestResponse.text('''{ "token": "zzz1" }''');
+
     final token = await personRepository.login('email@email.com', 'zzz1');
     expect(token, 'zzz1');
   });
@@ -397,6 +412,8 @@ void main() async {
     // and custom onError will throw an UnsupportedError
     // (instead of the standard DataException)
     expect(() async {
+      container.read(responseProvider).state =
+          TestResponse.text('''&*@%%*#@!''');
       await personRepository.login(null, null);
     }, throwsA(isA<UnsupportedError>()));
 
@@ -414,20 +431,14 @@ void main() async {
 
   test('verbose', overridePrint(() async {
     Dog(id: '3', name: 'Bowie').init(container);
-    await dogRepository.delete(
-      '3',
-      params: {'a': 1},
-      remote: true,
-      headers: {'response': ''},
-    );
+    container.read(responseProvider).state = TestResponse.text('');
+    await dogRepository.delete('3', params: {'a': 1}, remote: true);
     expect(verbose, ['[flutter_data] Dog: DELETE /dogs/3?a=1 [HTTP 200]']);
 
     try {
-      await dogRepository.findOne(
-        '1',
-        remote: true,
-        headers: {'response': '^@!@#(#(@#)#@', 'status': '500'},
-      );
+      container.read(responseProvider).state =
+          TestResponse(text: (_) => '^@!@#(#(@#)#@', statusCode: 500);
+      await dogRepository.findOne('1', remote: true);
     } catch (e) {
       expect(verbose.last, contains('DataException'));
     }
@@ -436,8 +447,8 @@ void main() async {
   test('override baseUrl', () {
     // node repo has no baseUrl (doesn't mix in TestRemoteAdapter)
     expect(() async {
-      return await nodeRepository
-          .findOne('1', remote: true, headers: {'response': ''});
+      container.read(responseProvider).state = TestResponse.text('');
+      return await nodeRepository.findOne('1', remote: true);
     }, throwsA(isA<UnsupportedError>()));
   });
 
