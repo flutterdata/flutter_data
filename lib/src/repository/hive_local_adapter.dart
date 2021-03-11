@@ -48,10 +48,20 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
   }
 
   Future<void> _deleteBox({bool graph = false}) async {
-    await _hiveLocalStorage.hive.deleteBoxFromDisk(_type);
-    if (graph) {
-      if (await _hiveLocalStorage.hive.boxExists('graph')) {
-        await _hiveLocalStorage.hive.deleteBoxFromDisk('_graph');
+    try {
+      await _hiveLocalStorage.hive.deleteBoxFromDisk(_type);
+      if (graph) {
+        if (await _hiveLocalStorage.hive.boxExists('graph')) {
+          await _hiveLocalStorage.hive.deleteBoxFromDisk('_graph');
+        }
+      }
+    } catch (e) {
+      // weird fs bug? where even after checking for file.exists()
+      // in Hive, it throws a No such file or directory error
+      if (e.toString().contains('No such file or directory')) {
+        // we can safely ignore?
+      } else {
+        rethrow;
       }
     }
   }
