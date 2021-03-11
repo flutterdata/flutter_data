@@ -40,6 +40,8 @@ class WatchArgs<T> with EquatableMixin {
       this.remote = true,
       this.params = const {},
       this.headers = const {},
+      this.filterLocal,
+      this.syncLocal,
       this.alsoWatch});
 
   final dynamic id;
@@ -47,6 +49,8 @@ class WatchArgs<T> with EquatableMixin {
   final Map<String, dynamic> params;
   final Map<String, String> headers;
   final AlsoWatch<T> alsoWatch;
+  final bool Function(T) filterLocal;
+  final bool syncLocal;
 
   @override
   List<Object> get props => [id, remote, params, headers];
