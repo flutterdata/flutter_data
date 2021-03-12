@@ -6,10 +6,12 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:build/build.dart';
 import 'package:flutter_data/builders/utils.dart';
 import 'package:glob/glob.dart';
+import 'package:path/path.dart' as path_helper;
 
 Builder testExtensionBuilder(options) => TestExtensionBuilder();
 
 class TestExtensionBuilder implements Builder {
+  static const testDir = 'test';
   @override
   final buildExtensions = const {
     r'$test$': ['test.data.dart']
@@ -17,15 +19,26 @@ class TestExtensionBuilder implements Builder {
 
   @override
   Future<void> build(BuildStep b) async {
-    final finalAssetId = AssetId(b.inputId.package, 'test/test.data.dart');
+    final finalAssetId = AssetId(b.inputId.package, '$testDir/test.data.dart');
+    final testPath = path_helper.join(b.inputId.package, testDir);
 
     final _classes = [
       await for (final file in b.findAssets(Glob('**/*.info')))
         await b.readAsString(file)
     ];
 
-    final imports =
-        _classes.map((s) => 'import \'${s.split('#')[2]}\';').join('\n');
+    final imports = _classes
+        .map((s) {
+          final assetUri = Uri.parse(s.split('#')[2]);
+          if (assetUri.scheme == 'asset') {
+            final relativePath =
+                path_helper.relative(assetUri.path, from: testPath);
+            return 'import \'$relativePath\';';
+          }
+          return 'import \'$assetUri\';';
+        })
+        .toSet()
+        .join('\n');
 
     final adapters = _classes.map((s) {
       final className = s.split('#')[3];

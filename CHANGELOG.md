@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.3] - 2021-03-12
+
+- Fix `test.data.dart` imports
+
 ## [0.6.2] - 2021-03-12
 
 - Fix type issues
