@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.2] - 2021-03-12
+
+- Fix type issues
+
 ## [0.6.1] - 2021-03-12
 
 - Add inverses to initialized belongsto relationships

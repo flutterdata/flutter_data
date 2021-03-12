@@ -72,7 +72,7 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E> {
     });
   }
 
-  void addInverse(String inverseName, DataModel<dynamic> model) {
+  void addInverse(String inverseName, DataModel model) {
     final _rels = value._adapter.localAdapter.relationshipsFor(value);
     final inverseMetadata = _rels[inverseName];
     final inverseRelationship = inverseMetadata['instance'] as Relationship;

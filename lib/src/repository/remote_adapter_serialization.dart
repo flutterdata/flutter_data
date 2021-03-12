@@ -25,9 +25,9 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
   }
 
   @override
-  DeserializedData<T, DataModel<dynamic>> deserialize(dynamic data,
+  DeserializedData<T, DataModel> deserialize(dynamic data,
       {String key, bool init}) {
-    final result = DeserializedData<T, DataModel<dynamic>>([], included: []);
+    final result = DeserializedData<T, DataModel>([], included: []);
     init ??= false;
 
     Object addIncluded(id, RemoteAdapter adapter) {
@@ -35,7 +35,7 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
         final data =
             adapter.deserialize(id as Map<String, dynamic>, init: init);
         result.included
-          ..add(data.model)
+          ..add(data.model as DataModel<DataModel>)
           ..addAll(data.included);
         return data.model.id;
       }

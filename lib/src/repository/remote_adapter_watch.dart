@@ -44,8 +44,8 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           if (notifier.mounted) {
             notifier.updateWith(
               isLoading: false,
-              exception: e.error ?? e,
-              stackTrace: e.stackTrace ?? stackTrace,
+              exception: e is DataException ? e.error : e,
+              stackTrace: e is DataException ? e.stackTrace : stackTrace,
             );
           } else {
             rethrow;

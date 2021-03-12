@@ -192,7 +192,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   /// [key] can be used to supply a specific `key` when deserializing ONE model.
   @protected
   @visibleForTesting
-  DeserializedData<T, DataModel<dynamic>> deserialize(dynamic data,
+  DeserializedData<T, DataModel> deserialize(dynamic data,
       {String key, bool init});
 
   /// Returns a serialized version of a model of [T],
