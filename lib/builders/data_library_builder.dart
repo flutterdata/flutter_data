@@ -239,6 +239,7 @@ $riverpodImport
 
 $modelImports
 
+// ignore: prefer_function_declarations_over_variables
 ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<String> baseDirFn, List<int> encryptionKey, bool clear}) {
   // ignore: unnecessary_statements
   baseDirFn${importPathProvider ? ' ??= () => getApplicationDocumentsDirectory().then((dir) => dir.path)' : ''};
@@ -246,6 +247,7 @@ ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<Str
         (_) => HiveLocalStorage(baseDirFn: baseDirFn, encryptionKey: encryptionKey, clear: clear)));
 };
 
+// ignore: prefer_function_declarations_over_variables
 RepositoryInitializerProvider repositoryInitializerProvider = (
         {bool remote, bool verbose}) {
   $internalLocator
