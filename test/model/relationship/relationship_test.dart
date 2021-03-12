@@ -160,6 +160,12 @@ void main() async {
     expect(house.owner.value, family);
     expect(family.residence.value.address, endsWith('Trail'));
     expect(house.owner.value, family); // same, passes here again
+
+    // (6) reusing a BelongsTo<Family> (`house.owner`) to add a person
+    // adds the inverse relationship
+    expect(family.persons.length, 3);
+    Person(name: 'Junior', age: 12, family: house.owner).init(container);
+    expect(family.persons.length, 4);
   });
 
   test('scenario #3', () {

@@ -39,12 +39,20 @@ Please ensure `Repository<$T>` has been correctly initialized.''');
         in _adapter.localAdapter.relationshipsFor(_this).entries) {
       final relationship = metadata.value['instance'] as Relationship;
 
-      relationship?.initialize(
-        adapters: adapters,
-        owner: _this,
-        name: metadata.value['name'] as String,
-        inverseName: metadata.value['inverse'] as String,
-      );
+      if (relationship != null) {
+        if (relationship.isInitialized) {
+          if (relationship is BelongsTo) {
+            relationship.addInverse(metadata.value['inverse'] as String, this);
+          }
+        } else {
+          relationship?.initialize(
+            adapters: adapters,
+            owner: _this,
+            name: metadata.value['name'] as String,
+            inverseName: metadata.value['inverse'] as String,
+          );
+        }
+      }
     }
 
     return _this;
@@ -84,13 +92,19 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   /// Usage: `await post.save()`, `author.save(remote: false, params: {'a': 'x'})`.
   ///
   /// **Requires this model to be initialized.**
-  Future<T> save(
-      {bool remote,
-      Map<String, dynamic> params,
-      Map<String, String> headers}) async {
+  Future<T> save({
+    bool remote,
+    Map<String, dynamic> params,
+    Map<String, String> headers,
+    OnDataError onError,
+  }) async {
     _assertInit('save');
     return await _adapter.save(_this,
-        remote: remote, params: params, headers: headers, init: true);
+        remote: remote,
+        params: params,
+        headers: headers,
+        onError: onError,
+        init: true);
   }
 
   /// Deletes this model through a call equivalent to [Repository.delete].

@@ -550,7 +550,7 @@ class DataException implements Exception {
 
   @override
   String toString() {
-    return 'DataException: $error ${statusCode != null ? " [HTTP $statusCode]" : ""}\n$stackTrace';
+    return 'DataException: $error ${statusCode != null ? " [HTTP $statusCode]" : ""}\n${stackTrace ?? ''}';
   }
 }
 
