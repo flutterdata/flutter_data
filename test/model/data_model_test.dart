@@ -125,9 +125,10 @@ void main() async {
   });
 
   test('data exception equality', () {
-    expect(DataException(Exception('whatever'), statusCode: 410),
-        DataException(Exception('whatever'), statusCode: 410));
-    expect(DataException([Exception('whatever')], statusCode: 410),
-        isNot(DataException(Exception('whatever'), statusCode: 410)));
+    final exception = Exception('whatever');
+    expect(DataException(exception, statusCode: 410),
+        DataException(exception, statusCode: 410));
+    expect(DataException([exception], statusCode: 410),
+        isNot(DataException(exception, statusCode: 410)));
   });
 }

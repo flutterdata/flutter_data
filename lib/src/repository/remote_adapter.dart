@@ -531,22 +531,15 @@ class DeserializedData<T, I> {
 /// A standard [Exception] used throughout Flutter Data.
 ///
 /// Usually thrown from [_RemoteAdapter.onError] in [_RemoteAdapter.sendRequest].
-class DataException implements Exception {
+class DataException with EquatableMixin implements Exception {
   final Object error;
-  final int statusCode;
   final StackTrace stackTrace;
+  final int statusCode;
+
   const DataException(this.error, {this.stackTrace, this.statusCode});
 
   @override
-  bool operator ==(dynamic other) =>
-      identical(this, other) || toString() == other.toString();
-
-  @override
-  int get hashCode =>
-      runtimeType.hashCode ^
-      statusCode.hashCode ^
-      error.hashCode ^
-      stackTrace.hashCode;
+  List<Object> get props => [error, stackTrace, statusCode];
 
   @override
   String toString() {

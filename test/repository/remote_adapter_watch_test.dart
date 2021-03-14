@@ -185,8 +185,9 @@ void main() async {
 
     final matcher = isA<DataState<Family>>()
         .having((s) => s.model.persons, 'name', hasLength(1))
-        .having((s) => s.hasException, 'exception', false)
-        .having((s) => s.isLoading, 'loading', false);
+        .having((s) => s.hasModel, 'hasModel', true)
+        .having((s) => s.hasException, 'hasException', false)
+        .having((s) => s.isLoading, 'isLoading', false);
 
     verify(listener(argThat(matcher))).called(1);
 

@@ -34,6 +34,7 @@ void main() async {
 
   test('string utils', () {
     expect('family'.capitalize(), 'Family');
+    expect('Family'.decapitalize(), 'family');
     expect('people'.singularize(), 'person');
     expect('zebra'.pluralize(), 'zebras');
   });
