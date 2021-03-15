@@ -150,7 +150,6 @@ and execute a code generation build again.
       final mixinType = obj.toTypeValue();
       final mixinMethods = <MethodElement>[];
       String displayName;
-      var hasOnRemoteAdapter = false;
 
       if (mixinType is ParameterizedType) {
         final args = mixinType.typeArguments;
@@ -170,22 +169,8 @@ and execute a code generation build again.
                 typeArguments: [if (args.isNotEmpty) classElement.thisType],
                 nullabilitySuffix: NullabilitySuffix.none);
         mixinMethods.addAll(instantiatedMixinType.methods);
-        displayName = instantiatedMixinType.getDisplayString();
-
-        hasOnRemoteAdapter = instantiatedMixinType.superclassConstraints
-            .any((type) => remoteAdapterTypeChecker.isExactlyType(type));
-      }
-
-      for (final m in mixinMethods.where((m) => m.isPublic)) {
-        // if method directly @overrides a method of RemoteAdapter, do not include
-        if (!(m.hasOverride && hasOnRemoteAdapter)) {
-          final params = m.parameters.map((p) {
-            return p.isPositional ? p.name : '${p.name}: ${p.name}';
-          }).join(', ');
-
-          additionalMixinExtensionMethods[m.name] =
-              '$m => (internalAdapter as $displayName).${m.name}($params);';
-        }
+        displayName =
+            instantiatedMixinType.getDisplayString(withNullability: false);
       }
 
       return displayName;

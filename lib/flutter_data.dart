@@ -2,7 +2,6 @@ library flutter_data;
 
 // import external packages
 import 'dart:async';
-import 'dart:collection';
 import 'dart:convert';
 import 'package:equatable/equatable.dart';
 import 'package:riverpod/riverpod.dart';

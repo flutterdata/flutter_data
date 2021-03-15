@@ -51,7 +51,7 @@ Widget build(context) {
     }
 
     final path = path_helper.join(await baseDirFn(), 'flutter_data');
-    hive..init(path);
+    hive.init(path);
 
     _isInitialized = true;
     return this;
