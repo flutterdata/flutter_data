@@ -6,6 +6,7 @@ import 'package:riverpod/riverpod.dart' hide Family;
 import 'package:http/http.dart' as http;
 
 import '../mocks.dart';
+import 'book.dart';
 import 'family.dart';
 import 'house.dart';
 import 'node.dart';
@@ -26,6 +27,8 @@ Repository<House> houseRepository;
 Repository<Person> personRepository;
 Repository<Dog> dogRepository;
 Repository<Node> nodeRepository;
+Repository<Author> authorRepository;
+Repository<Book> bookRepository;
 
 Function dispose;
 
@@ -78,6 +81,24 @@ void setUpFn() async {
     verbose: false,
     adapters: {
       'nodes': container.read(nodeRemoteAdapterProvider),
+    },
+  );
+
+  authorRepository = await container.read(authorRepositoryProvider).initialize(
+    remote: false,
+    verbose: false,
+    adapters: {
+      'authors': container.read(authorRemoteAdapterProvider),
+      'books': container.read(bookRemoteAdapterProvider),
+    },
+  );
+
+  bookRepository = await container.read(bookRepositoryProvider).initialize(
+    remote: false,
+    verbose: false,
+    adapters: {
+      'authors': container.read(authorRemoteAdapterProvider),
+      'books': container.read(bookRemoteAdapterProvider),
     },
   );
 }
@@ -137,6 +158,10 @@ ProviderContainer createContainer() {
           .overrideWithProvider(Provider((ref) => DogLocalAdapter(ref))),
       nodeLocalAdapterProvider
           .overrideWithProvider(Provider((ref) => NodeLocalAdapter(ref))),
+      authorLocalAdapterProvider
+          .overrideWithProvider(Provider((ref) => AuthorLocalAdapter(ref))),
+      bookLocalAdapterProvider
+          .overrideWithProvider(Provider((ref) => BookLocalAdapter(ref))),
 
       //
 
@@ -150,6 +175,10 @@ ProviderContainer createContainer() {
           (ref) => DogRemoteAdapter(ref.read(dogLocalAdapterProvider)))),
       nodeRemoteAdapterProvider.overrideWithProvider(Provider(
           (ref) => $NodeRemoteAdapter(ref.read(nodeLocalAdapterProvider)))),
+      authorRemoteAdapterProvider.overrideWithProvider(Provider(
+          (ref) => $AuthorRemoteAdapter(ref.read(authorLocalAdapterProvider)))),
+      bookRemoteAdapterProvider.overrideWithProvider(Provider(
+          (ref) => $BookRemoteAdapter(ref.read(bookLocalAdapterProvider)))),
     ],
   );
 }
@@ -177,6 +206,13 @@ class DogRemoteAdapter = $DogRemoteAdapter with TestRemoteAdapter;
 
 // ignore: must_be_immutable
 class NodeLocalAdapter = $NodeHiveLocalAdapter with TestHiveLocalAdapter<Node>;
+
+// ignore: must_be_immutable
+class AuthorLocalAdapter = $AuthorHiveLocalAdapter
+    with TestHiveLocalAdapter<Author>;
+
+// ignore: must_be_immutable
+class BookLocalAdapter = $BookHiveLocalAdapter with TestHiveLocalAdapter<Book>;
 
 // customizations
 

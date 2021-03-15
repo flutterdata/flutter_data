@@ -73,7 +73,7 @@ void main() async {
     assert(comments
         .map((c) => c.id)
         .toSet()
-        .difference(post.comments.map((c) => c.id).toSet())
+        .difference(post.comments.toSet().map((c) => c.id).toSet())
         .isEmpty);
 
     assert(user2.name == p3.user.value.name);

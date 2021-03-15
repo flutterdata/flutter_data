@@ -12,10 +12,11 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
 
       if (map[field] != null) {
         if (map[field] is HasMany) {
-          relationships[key] = map[field].map((e) => e?.id).toList();
+          relationships[key] =
+              (map[field] as HasMany).toSet().map((e) => e?.id).toList();
         }
         if (map[field] is BelongsTo) {
-          relationships[key] = map[field].value?.id;
+          relationships[key] = (map[field] as BelongsTo).value?.id;
         }
       }
       map.remove(field);

@@ -42,11 +42,11 @@ class HasMany<E extends DataModel<E>> extends Relationship<E, Set<E>> {
   /// this [HasMany] relationship.
   @override
   StateNotifier<Set<E>> watch() {
-    return _graphEvents.where((e) => e.isNotEmpty).map((e) => this);
+    return _graphEvents.where((e) => e.isNotEmpty).map((e) => toSet());
   }
 
   @override
-  String toString() => 'HasMany<$E>(${toSet()})';
+  String toString() => 'HasMany<$E>($prop)';
 }
 
 extension IterableRelationshipExtension<T extends DataModel<T>> on Set<T> {

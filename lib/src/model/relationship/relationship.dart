@@ -3,7 +3,7 @@ part of flutter_data;
 /// A `Set` that models a relationship between one or more [DataModel] objects
 /// and their a [DataModel] owner. Backed by a [GraphNotifier].
 abstract class Relationship<E extends DataModel<E>, N>
-    with SetMixin<E>, _Lifecycle<Relationship<E, N>> {
+    with _Lifecycle<Relationship<E, N>>, EquatableMixin {
   @protected
   Relationship([Set<E> models])
       : _uninitializedKeys = {},
@@ -51,7 +51,7 @@ abstract class Relationship<E extends DataModel<E>, N>
     final newKeys = _uninitializedModels.map((model) {
       return model._initialize(_adapters, save: true)._key;
     });
-    _uninitializedKeys..addAll(newKeys);
+    _uninitializedKeys.addAll(newKeys);
     _uninitializedModels.clear();
 
     // initialize keys
@@ -80,7 +80,6 @@ abstract class Relationship<E extends DataModel<E>, N>
   /// Add a [value] to this [Relationship]
   ///
   /// Attempting to add an existing [value] has no effect as this is a [Set]
-  @override
   bool add(E value, {bool notify = true}) {
     if (value == null) {
       return false;
@@ -102,21 +101,17 @@ abstract class Relationship<E extends DataModel<E>, N>
     return true;
   }
 
-  @override
   bool contains(Object element) {
     return _iterable.contains(element);
   }
 
-  @override
   Iterator<E> get iterator => _iterable.iterator;
 
-  @override
   E lookup(Object element) {
     return toSet().lookup(element);
   }
 
   /// Removes a [value] from this [Relationship]
-  @override
   bool remove(Object value, {bool notify = true}) {
     assert(value is E);
     final model = value as E;
@@ -134,10 +129,14 @@ abstract class Relationship<E extends DataModel<E>, N>
     return _uninitializedModels.remove(model);
   }
 
-  @override
   int get length => _iterable.length;
 
-  @override
+  bool get isEmpty => _iterable.isEmpty;
+
+  bool get isNotEmpty => _iterable.isNotEmpty;
+
+  E get first => _iterable.safeFirst;
+
   Set<E> toSet() {
     return _iterable.toSet();
   }
@@ -198,15 +197,11 @@ abstract class Relationship<E extends DataModel<E>, N>
   @override
   String toString();
 
-  // equality
+  @protected
+  String get prop => _iterable.map((e) => e.id).join(', ');
 
   @override
-  bool operator ==(dynamic other) =>
-      identical(this, other) ||
-      other is Relationship && toSet() == other.toSet();
-
-  @override
-  int get hashCode => runtimeType.hashCode ^ toSet().hashCode;
+  List<Object> get props => [prop];
 }
 
 // annotation

@@ -11,7 +11,7 @@ void main() async {
   setUp(setUpFn);
   tearDown(tearDownFn);
 
-  test('HasMany is a Set (without init - models)', () {
+  test('behaves like a collection (without init/models)', () {
     final anne = Person(name: 'Anne', age: 59);
     final f1 = Family(surname: 'Mayer', persons: {anne}.asHasMany);
 
@@ -25,15 +25,12 @@ void main() async {
     expect(f1.persons.length, 2);
 
     f1.persons.remove(anne);
-    expect(f1.persons, {agnes});
+    expect(f1.persons.toSet(), {agnes});
     f1.persons.add(null);
-    expect(f1.persons, {agnes});
-
-    f1.persons.clear();
-    expect(f1.persons.length, 0);
+    expect(f1.persons.toSet(), {agnes});
   });
 
-  test('HasMany is a Set (with init)', () {
+  test('behaves like a collection (with init)', () {
     final pete = Person(name: 'Pete', age: 29);
     final anne = Person(name: 'Anne', age: 59);
     final f2 =
@@ -48,12 +45,9 @@ void main() async {
     expect(f2.persons.length, 2);
 
     f2.persons.remove(anne);
-    expect(f2.persons, {pete});
+    expect(f2.persons.toSet(), {pete});
     f2.persons.add(null);
-    expect(f2.persons, {pete});
-
-    f2.persons.clear();
-    expect(f2.persons.length, 0);
+    expect(f2.persons.toSet(), {pete});
   });
 
   test('assignment with relationship initialized & uninitialized', () {

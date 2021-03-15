@@ -39,14 +39,14 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E> {
   }
 
   /// Obtains the single [E] value of this relationship (`null` if not present).
-  E get value => safeFirst;
+  E get value => first;
 
   /// Sets the single [E] value of this relationship, replacing any previous [value].
   ///
   /// Passing in `null` will remove the existing value from the relationship.
   set value(E value) {
     if (value != null) {
-      if (super.isNotEmpty) {
+      if (isNotEmpty) {
         super.remove(this.value);
       }
       super.add(value);
@@ -80,7 +80,7 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E> {
   }
 
   @override
-  String toString() => 'BelongsTo<$E>($value)';
+  String toString() => 'BelongsTo<$E>($prop)';
 }
 
 extension DataModelRelationshipExtension<T extends DataModel<T>>
