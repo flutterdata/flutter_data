@@ -251,7 +251,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       return models;
     }
 
-    return await sendRequest<List<T>>(
+    return await sendRequest(
       baseUrl.asUri / urlForFindAll(params) & params,
       method: methodForFindAll(params),
       headers: headers,
@@ -293,7 +293,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       return newModel;
     }
 
-    return await sendRequest<T>(
+    return await sendRequest(
       baseUrl.asUri / urlForFindOne(id, params) & params,
       method: methodForFindOne(id, params),
       headers: headers,
@@ -327,7 +327,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
 
     final body = json.encode(serialize(model));
 
-    return await sendRequest<T>(
+    return await sendRequest(
       baseUrl.asUri / urlForSave(model.id, params) & params,
       method: methodForSave(model.id, params),
       headers: headers,
@@ -380,7 +380,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
 
     if (remote && id != null) {
       graph.removeId(type, id);
-      return await sendRequest<void>(
+      return await sendRequest(
         baseUrl.asUri / urlForDelete(id, params) & params,
         method: methodForDelete(id, params),
         headers: headers,
@@ -411,6 +411,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   /// **IMPORTANT**:
   ///  - [uri] takes the FULL `Uri` including query parameters
   ///  - [headers] do NOT include ANY defaults such as [defaultHeaders]
+  ///    (unless you omit the argument, where defaults will be included)
   ///
   /// Example:
   ///
@@ -435,18 +436,18 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   /// [onError] can also be supplied to override [_RemoteAdapter.onError].
   @protected
   @visibleForTesting
-  FutureOr<R> sendRequest<R>(
+  FutureOr<R> sendRequest<R, E>(
     final Uri uri, {
     DataRequestMethod method = DataRequestMethod.GET,
     Map<String, String> headers,
     String body,
     OnData<R> onSuccess,
-    OnDataError onError,
+    OnDataError<E> onError,
     bool omitDefaultParams = false,
   }) async {
     // callbacks
     onSuccess ??= (_) async => null;
-    onError ??= (DataException e) async => this.onError<R>(e);
+    onError ??= (DataException e) async => this.onError<E>(e);
 
     headers ??= await defaultHeaders;
     final _params =
@@ -497,8 +498,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       if (_verbose) {
         print('[flutter_data] $T: $e');
       }
-      await onError(e);
-      return null;
+      final errorResult = await onError(e);
+      return errorResult is R ? errorResult : null;
     }
   }
 

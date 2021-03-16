@@ -75,7 +75,7 @@ mixin PersonLoginAdapter on RemoteAdapter<Person> {
 
   // if email is null it throws some garbage
   Future<String> login(String email, String password) async {
-    return await sendRequest<String>(
+    return await sendRequest(
       baseUrl.asUri / 'token' & await defaultParams & {'a': 1},
       onSuccess: (data) => data['token'] as String,
       onError: (e) => throw UnsupportedError('custom error: $e'),
