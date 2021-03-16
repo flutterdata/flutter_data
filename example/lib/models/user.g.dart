@@ -112,6 +112,6 @@ extension UserX on User {
     final repository = container is Repository<User>
         ? container
         : internalLocatorFn(userRepositoryProvider, container);
-    return repository.internalAdapter.initializeModel(this, save: true) as User;
+    return repository.remoteAdapter.initializeModel(this, save: true) as User;
   }
 }

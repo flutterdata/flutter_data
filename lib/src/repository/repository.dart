@@ -9,14 +9,8 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
 
   final _adapters = <String, RemoteAdapter>{};
 
-  RemoteAdapter<T> get _adapter => _adapters[type] as RemoteAdapter<T>;
-
-  /// ONLY FOR FLUTTER DATA INTERNAL USE
-  ///
-  /// It must remain non-private for the model extension to use.
-  @protected
-  @visibleForTesting
-  RemoteAdapter<T> get internalAdapter => _adapter;
+  /// Obtain the [RemoteAdapter] for this [type].
+  RemoteAdapter<T> get remoteAdapter => _adapters[type] as RemoteAdapter<T>;
 
   /// Initializes this [Repository]. Nothing will work without this.
   /// In standard scenarios this initialization is done by the framework.
@@ -26,7 +20,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
       {bool remote, bool verbose, Map<String, RemoteAdapter> adapters}) async {
     if (isInitialized) return this;
     _adapters.addAll(adapters);
-    await _adapter.initialize(
+    await remoteAdapter.initialize(
         remote: remote, verbose: verbose, adapters: adapters, ref: _ref);
     await super.initialize();
     return this;
@@ -37,10 +31,10 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   @mustCallSuper
   void dispose() {
     super.dispose();
-    _adapter?.dispose();
+    remoteAdapter?.dispose();
   }
 
-  // public API
+  // Public API
 
   /// Returns all models of type [T].
   ///
@@ -62,7 +56,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
       Map<String, dynamic> params,
       Map<String, String> headers,
       bool syncLocal}) {
-    return _adapter.findAll(
+    return remoteAdapter.findAll(
         remote: remote,
         params: params,
         headers: headers,
@@ -82,7 +76,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   /// See also: [_RemoteAdapter.urlForFindOne], [_RemoteAdapter.methodForFindOne].
   Future<T> findOne(final dynamic id,
       {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
-    return _adapter.findOne(id,
+    return remoteAdapter.findOne(id,
         remote: remote, params: params, headers: headers, init: true);
   }
 
@@ -103,7 +97,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
     Map<String, String> headers,
     OnDataError onError,
   }) {
-    return _adapter.save(model,
+    return remoteAdapter.save(model,
         remote: remote,
         params: params,
         headers: headers,
@@ -123,15 +117,15 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   /// See also: [_RemoteAdapter.urlForDelete], [_RemoteAdapter.methodForDelete].
   Future<void> delete(dynamic model,
       {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
-    return _adapter.delete(model,
+    return remoteAdapter.delete(model,
         remote: remote, params: params, headers: headers);
   }
 
   /// Deletes all models of type [T]. This ONLY affects local storage.
-  Future<void> clear() => _adapter.clear();
+  Future<void> clear() => remoteAdapter.clear();
 
   /// Deletes all models of all types. This ONLY affects local storage.
-  Future<void> clearAll() => _adapter.clearAll();
+  Future<void> clearAll() => remoteAdapter.clearAll();
 
   /// Watches changes on all models of type [T] in local storage.
   ///
@@ -146,7 +140,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
       Map<String, String> headers,
       bool Function(T) filterLocal,
       bool syncLocal}) {
-    return _adapter.watchAll(
+    return remoteAdapter.watchAll(
         remote: remote,
         params: params,
         headers: headers,
@@ -170,7 +164,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
       Map<String, dynamic> params,
       Map<String, String> headers,
       AlsoWatch<T> alsoWatch}) {
-    return _adapter.watchOne(id,
+    return remoteAdapter.watchOne(id,
         remote: remote, params: params, headers: headers, alsoWatch: alsoWatch);
   }
 }

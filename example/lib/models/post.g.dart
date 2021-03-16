@@ -134,6 +134,6 @@ extension PostX on Post {
     final repository = container is Repository<Post>
         ? container
         : internalLocatorFn(postRepositoryProvider, container);
-    return repository.internalAdapter.initializeModel(this, save: true) as Post;
+    return repository.remoteAdapter.initializeModel(this, save: true) as Post;
   }
 }

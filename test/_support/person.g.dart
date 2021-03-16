@@ -108,7 +108,6 @@ extension PersonX on Person {
     final repository = container is Repository<Person>
         ? container
         : internalLocatorFn(personRepositoryProvider, container);
-    return repository.internalAdapter.initializeModel(this, save: true)
-        as Person;
+    return repository.remoteAdapter.initializeModel(this, save: true) as Person;
   }
 }

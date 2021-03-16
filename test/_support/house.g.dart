@@ -123,7 +123,6 @@ extension HouseX on House {
     final repository = container is Repository<House>
         ? container
         : internalLocatorFn(houseRepositoryProvider, container);
-    return repository.internalAdapter.initializeModel(this, save: true)
-        as House;
+    return repository.remoteAdapter.initializeModel(this, save: true) as House;
   }
 }

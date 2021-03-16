@@ -122,7 +122,7 @@ extension DogX on Dog {
     final repository = container is Repository<Dog>
         ? container
         : internalLocatorFn(dogRepositoryProvider, container);
-    return repository.internalAdapter.initializeModel(this, save: true) as Dog;
+    return repository.remoteAdapter.initializeModel(this, save: true) as Dog;
   }
 }
 
@@ -214,6 +214,6 @@ extension CatX on Cat {
     final repository = container is Repository<Cat>
         ? container
         : internalLocatorFn(catRepositoryProvider, container);
-    return repository.internalAdapter.initializeModel(this, save: true) as Cat;
+    return repository.remoteAdapter.initializeModel(this, save: true) as Cat;
   }
 }

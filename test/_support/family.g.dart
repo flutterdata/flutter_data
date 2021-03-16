@@ -156,7 +156,6 @@ extension FamilyX on Family {
     final repository = container is Repository<Family>
         ? container
         : internalLocatorFn(familyRepositoryProvider, container);
-    return repository.internalAdapter.initializeModel(this, save: true)
-        as Family;
+    return repository.remoteAdapter.initializeModel(this, save: true) as Family;
   }
 }

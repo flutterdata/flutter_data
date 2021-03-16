@@ -144,17 +144,15 @@ void main() async {
 
     // (2) then load persons
 
-    final p1 = Person(id: '1', name: 'z1', age: 23).init(container);
+    Person(id: '1', name: 'z1', age: 23).init(container);
     Person(id: '2', name: 'z2', age: 33).init(container);
 
     // (3) assert two first are linked, third one null, residence is null
-    expect(family.persons.lookup(p1), p1);
     expect(family.persons.length, 2);
     expect(family.residence.value, isNull);
 
     // (4) load the last person and assert it exists now
     final p3 = Person(id: '3', name: 'z3', age: 3).init(container);
-    expect(family.persons.lookup(p3), isNotNull);
     expect(p3.family.value, family);
 
     // (5) load family and assert it exists now

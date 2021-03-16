@@ -51,7 +51,7 @@ void main() async {
         id: 1,
         name: 'a',
         children: {Node(id: 2, name: 'a1'), Node(id: 3, name: 'a2')}.asHasMany);
-    final s2 = nodeRepository.internalAdapter.serialize(n1);
+    final s2 = nodeRepository.remoteAdapter.serialize(n1);
     expect(s2, {
       'id': 1,
       'name': 'a',

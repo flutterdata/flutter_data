@@ -18,7 +18,6 @@ void main() async {
     f1.persons.add(anne);
     f1.persons.add(anne);
     expect(f1.persons.length, 1);
-    expect(f1.persons.lookup(anne), anne);
 
     final agnes = Person(name: 'Agnes', age: 29);
     f1.persons.add(agnes);
@@ -39,7 +38,6 @@ void main() async {
     f2.persons.add(pete);
     f2.persons.add(pete);
     expect(f2.persons.length, 1);
-    expect(f2.persons.lookup(pete), pete);
 
     f2.persons.add(anne);
     expect(f2.persons.length, 2);

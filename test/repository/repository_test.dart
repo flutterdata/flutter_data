@@ -301,7 +301,7 @@ void main() async {
     // simulate Family that exists in local storage
     // important to keep to test `alsoWatch` assignment order
     graph.getKeyForId('families', '22', keyIfAbsent: 'families#a1a1a1');
-    await (familyRepository.internalAdapter.localAdapter as HiveLocalAdapter)
+    await (familyRepository.remoteAdapter.localAdapter as HiveLocalAdapter)
         .box
         .put('families#a1a1a1',
             Family(id: '22', surname: 'Paez', persons: HasMany()));

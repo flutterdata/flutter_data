@@ -173,8 +173,7 @@ extension AuthorX on Author {
     final repository = container is Repository<Author>
         ? container
         : internalLocatorFn(authorRepositoryProvider, container);
-    return repository.internalAdapter.initializeModel(this, save: true)
-        as Author;
+    return repository.remoteAdapter.initializeModel(this, save: true) as Author;
   }
 }
 
@@ -274,6 +273,6 @@ extension BookX on Book {
     final repository = container is Repository<Book>
         ? container
         : internalLocatorFn(bookRepositoryProvider, container);
-    return repository.internalAdapter.initializeModel(this, save: true) as Book;
+    return repository.remoteAdapter.initializeModel(this, save: true) as Book;
   }
 }

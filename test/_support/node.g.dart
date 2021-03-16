@@ -133,6 +133,6 @@ extension NodeX on Node {
     final repository = container is Repository<Node>
         ? container
         : internalLocatorFn(nodeRepositoryProvider, container);
-    return repository.internalAdapter.initializeModel(this, save: true) as Node;
+    return repository.remoteAdapter.initializeModel(this, save: true) as Node;
   }
 }

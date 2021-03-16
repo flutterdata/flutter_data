@@ -65,14 +65,6 @@ Please ensure `Repository<$T>` has been correctly initialized.''');
 extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   T get _this => this as T;
 
-  /// Access to this [DataModel]'s [RemoteAdapter] instance.
-  ///
-  /// Intended for use in extensions to augment this model's API
-  /// like [save], [delete], etc.
-  @protected
-  @visibleForTesting
-  RemoteAdapter<T> get internalAdapter => _adapter;
-
   /// Initializes a model copying the identity of supplied [model].
   ///
   /// Usage:

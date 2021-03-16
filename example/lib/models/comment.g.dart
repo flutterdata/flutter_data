@@ -130,7 +130,7 @@ extension CommentX on Comment {
     final repository = container is Repository<Comment>
         ? container
         : internalLocatorFn(commentRepositoryProvider, container);
-    return repository.internalAdapter.initializeModel(this, save: true)
+    return repository.remoteAdapter.initializeModel(this, save: true)
         as Comment;
   }
 }
