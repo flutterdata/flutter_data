@@ -125,15 +125,13 @@ extension PostX on Post {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
-  /// Pass:
-  ///  - A `BuildContext` if using Flutter with Riverpod or Provider
-  ///  - Nothing if using Flutter with GetIt
-  ///  - A Riverpod `ProviderContainer` if using pure Dart
-  ///  - Its own [Repository<Post>]
-  Post init([container]) {
-    final repository = container is Repository<Post>
-        ? container
-        : internalLocatorFn(postRepositoryProvider, container);
-    return repository.remoteAdapter.initializeModel(this, save: true) as Post;
+  /// Requires a reader of type `[Repository<Post> read(ProviderBase<Object, Repository<Post>> _)]` (unless using GetIt).
+  ///
+  /// If needed, obtain it with:
+  ///  - `context.read` if using Flutter with Riverpod or Provider
+  ///  - `ref.read` or `container.read` if using Riverpod
+  Post init([Repository<Post> read(ProviderBase<Object, Repository<Post>> _)]) {
+    final repository = internalLocatorFn(postRepositoryProvider, read);
+    return repository.remoteAdapter.initializeModel(this, save: true);
   }
 }

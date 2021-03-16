@@ -118,9 +118,7 @@ List<SingleChildWidget> repositoryProviders({FutureFn<String> baseDirFn, List<in
     ),
     p.FutureProvider<RepositoryInitializer>(
       create: (context) async {
-        final init = await p.Provider.of<ProviderContainer>(context, listen: false).read(repositoryInitializerProvider(remote: remote, verbose: verbose).future);
-        internalLocatorFn = (provider, context) => p.Provider.of<ProviderContainer>(context, listen: false).read(provider);
-        return init;
+        return await p.Provider.of<ProviderContainer>(context, listen: false).read(repositoryInitializerProvider(remote: remote, verbose: verbose).future);
       },
     ),''' +
           classes.map((clazz) => '''
@@ -151,7 +149,9 @@ if (i.isRegistered<RepositoryInitializer>()) {
 
 i.registerSingletonAsync<RepositoryInitializer>(() async {
     final init = _container.read(repositoryInitializerProvider(remote: remote, verbose: verbose).future);
-    internalLocatorFn = (provider, _) => _container.read(provider);
+    internalLocatorFn =
+          <T extends DataModel<T>>(ProviderBase<Object, Repository<T>> provider, _) =>
+              _container.read(provider);
     return init;
   });''' +
           classes.map((clazz) => '''
@@ -183,12 +183,6 @@ i.registerSingletonWithDependencies<Repository<${clazz['name']}>>(
 
     final riverpodImport = importFlutterRiverpod
         ? "import 'package:flutter_riverpod/flutter_riverpod.dart';"
-        : '';
-
-    final internalLocator = importFlutterRiverpod
-        ? '''
-    internalLocatorFn = (provider, context) => context.read(provider);
-    '''
         : '';
 
     //
@@ -231,7 +225,6 @@ ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<Str
 // ignore: prefer_function_declarations_over_variables
 RepositoryInitializerProvider repositoryInitializerProvider = (
         {bool remote, bool verbose}) {
-  $internalLocator
   return _repositoryInitializerProviderFamily(
       RepositoryInitializerArgs(remote, verbose));
 };

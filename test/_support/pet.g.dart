@@ -113,15 +113,13 @@ extension DogX on Dog {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
-  /// Pass:
-  ///  - A `BuildContext` if using Flutter with Riverpod or Provider
-  ///  - Nothing if using Flutter with GetIt
-  ///  - A Riverpod `ProviderContainer` if using pure Dart
-  ///  - Its own [Repository<Dog>]
-  Dog init(container) {
-    final repository = container is Repository<Dog>
-        ? container
-        : internalLocatorFn(dogRepositoryProvider, container);
+  /// Requires a reader of type `Repository<Dog> read(ProviderBase<Object, Repository<Dog>> _)` (unless using GetIt).
+  ///
+  /// If needed, obtain it with:
+  ///  - `context.read` if using Flutter with Riverpod or Provider
+  ///  - `ref.read` or `container.read` if using Riverpod
+  Dog init(Repository<Dog> read(ProviderBase<Object, Repository<Dog>> _)) {
+    final repository = internalLocatorFn(dogRepositoryProvider, read);
     return repository.remoteAdapter.initializeModel(this, save: true) as Dog;
   }
 }
@@ -205,15 +203,13 @@ extension CatX on Cat {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
-  /// Pass:
-  ///  - A `BuildContext` if using Flutter with Riverpod or Provider
-  ///  - Nothing if using Flutter with GetIt
-  ///  - A Riverpod `ProviderContainer` if using pure Dart
-  ///  - Its own [Repository<Cat>]
-  Cat init(container) {
-    final repository = container is Repository<Cat>
-        ? container
-        : internalLocatorFn(catRepositoryProvider, container);
+  /// Requires a reader of type `Repository<Cat> read(ProviderBase<Object, Repository<Cat>> _)` (unless using GetIt).
+  ///
+  /// If needed, obtain it with:
+  ///  - `context.read` if using Flutter with Riverpod or Provider
+  ///  - `ref.read` or `container.read` if using Riverpod
+  Cat init(Repository<Cat> read(ProviderBase<Object, Repository<Cat>> _)) {
+    final repository = internalLocatorFn(catRepositoryProvider, read);
     return repository.remoteAdapter.initializeModel(this, save: true) as Cat;
   }
 }

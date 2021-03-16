@@ -40,8 +40,8 @@ void main() async {
       }
     }
 
-    final user2 =
-        User(id: 1, name: 'new name', email: 'new@fasd.io').init(container);
+    final user2 = User(id: 1, name: 'new name', email: 'new@fasd.io')
+        .init(container.read);
     await user2.save();
 
     var p3 = Post(
@@ -50,7 +50,7 @@ void main() async {
             body: '3@fasd.io',
             user: user2.asBelongsTo,
             comments: {Comment(id: 1, body: 'bla')}.asHasMany)
-        .init(container);
+        .init(container.read);
 
     assert(p3.body == '3@fasd.io');
     assert(p3.user.value.email == user2.email);

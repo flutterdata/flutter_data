@@ -164,15 +164,14 @@ extension AuthorX on Author {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
-  /// Pass:
-  ///  - A `BuildContext` if using Flutter with Riverpod or Provider
-  ///  - Nothing if using Flutter with GetIt
-  ///  - A Riverpod `ProviderContainer` if using pure Dart
-  ///  - Its own [Repository<Author>]
-  Author init(container) {
-    final repository = container is Repository<Author>
-        ? container
-        : internalLocatorFn(authorRepositoryProvider, container);
+  /// Requires a reader of type `Repository<Author> read(ProviderBase<Object, Repository<Author>> _)` (unless using GetIt).
+  ///
+  /// If needed, obtain it with:
+  ///  - `context.read` if using Flutter with Riverpod or Provider
+  ///  - `ref.read` or `container.read` if using Riverpod
+  Author init(
+      Repository<Author> read(ProviderBase<Object, Repository<Author>> _)) {
+    final repository = internalLocatorFn(authorRepositoryProvider, read);
     return repository.remoteAdapter.initializeModel(this, save: true) as Author;
   }
 }
@@ -264,15 +263,13 @@ extension BookX on Book {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
-  /// Pass:
-  ///  - A `BuildContext` if using Flutter with Riverpod or Provider
-  ///  - Nothing if using Flutter with GetIt
-  ///  - A Riverpod `ProviderContainer` if using pure Dart
-  ///  - Its own [Repository<Book>]
-  Book init(container) {
-    final repository = container is Repository<Book>
-        ? container
-        : internalLocatorFn(bookRepositoryProvider, container);
+  /// Requires a reader of type `Repository<Book> read(ProviderBase<Object, Repository<Book>> _)` (unless using GetIt).
+  ///
+  /// If needed, obtain it with:
+  ///  - `context.read` if using Flutter with Riverpod or Provider
+  ///  - `ref.read` or `container.read` if using Riverpod
+  Book init(Repository<Book> read(ProviderBase<Object, Repository<Book>> _)) {
+    final repository = internalLocatorFn(bookRepositoryProvider, read);
     return repository.remoteAdapter.initializeModel(this, save: true) as Book;
   }
 }

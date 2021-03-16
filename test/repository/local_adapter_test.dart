@@ -11,12 +11,12 @@ void main() async {
   tearDown(tearDownFn);
 
   test('deserialize existing (with save)', () {
-    final family = Family(surname: 'Moletto').init(container);
+    final family = Family(surname: 'Moletto').init(container.read);
 
     // simulate "save"
     graph.getKeyForId('families', '1098', keyIfAbsent: keyFor(family));
     final family2 = familyRemoteAdapter.localAdapter
-        .deserialize({'id': '1098', 'surname': 'Moletto'}).init(container);
+        .deserialize({'id': '1098', 'surname': 'Moletto'}).init(container.read);
 
     expect(family2, Family(id: '1098', surname: 'Moletto'));
     expect(
@@ -25,22 +25,22 @@ void main() async {
   });
 
   test('deserialize many local for same remote ID', () {
-    final family = Family(surname: 'Moletto').init(container);
-    final family2 = Family(surname: 'Zandiver').init(container);
+    final family = Family(surname: 'Moletto').init(container.read);
+    final family2 = Family(surname: 'Zandiver').init(container.read);
 
     // simulate "save" for family
     graph.getKeyForId('families', '1298', keyIfAbsent: keyFor(family));
     final family1b = familyRemoteAdapter.localAdapter.deserialize({
       'id': '1298',
       'surname': 'Helsinki',
-    }).init(container);
+    }).init(container.read);
 
     // simulate "save" for family2
     graph.getKeyForId('families', '1298', keyIfAbsent: keyFor(family2));
     final family2b = familyRemoteAdapter.localAdapter.deserialize({
       'id': '1298',
       'surname': 'Oslo',
-    }).init(container);
+    }).init(container.read);
 
     // since obj returned with same ID
     expect(keyFor(family1b), keyFor(family2b));
@@ -87,8 +87,8 @@ void main() async {
   });
 
   test('local deserialize with relationships', () {
-    final house = House(id: '1', address: '123 Main St').init(container);
-    final person = Person(id: '1', name: 'John', age: 21).init(container);
+    final house = House(id: '1', address: '123 Main St').init(container.read);
+    final person = Person(id: '1', name: 'John', age: 21).init(container.read);
 
     final obj = {
       'id': '1',
@@ -98,7 +98,7 @@ void main() async {
     };
 
     final family =
-        familyRemoteAdapter.localAdapter.deserialize(obj).init(container);
+        familyRemoteAdapter.localAdapter.deserialize(obj).init(container.read);
 
     expect(family, Family(id: '1', surname: 'Smith'));
     expect(family.residence.value.address, '123 Main St');

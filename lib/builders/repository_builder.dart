@@ -180,15 +180,12 @@ and execute a code generation build again.
 
     // imports (we only want them on pubspec to make sure our lib/app can import them)
 
-    final importProvider = await isDependency('provider', buildStep);
     final importGetIt = await isDependency('get_it', buildStep);
-    final importFlutterRiverpod =
-        await isDependency('flutter_riverpod', buildStep) ||
-            await isDependency('hooks_riverpod', buildStep);
-
-    final initArg =
-        (importProvider || importFlutterRiverpod) ? 'context' : 'container';
-    final initArgOptional = importGetIt ? '[$initArg]' : initArg;
+    var initArg =
+        'Repository<$classType> read(ProviderBase<Object, Repository<$classType>> _)';
+    if (importGetIt) {
+      initArg = '[$initArg]';
+    }
 
     // template
 
@@ -258,14 +255,14 @@ extension ${classType}X on $classType {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   /// 
-  /// Pass:
-  ///  - A `BuildContext` if using Flutter with Riverpod or Provider
-  ///  - Nothing if using Flutter with GetIt
-  ///  - A Riverpod `ProviderContainer` if using pure Dart
-  ///  - Its own [Repository<$classType>]
-  $classType init($initArgOptional) {
-    final repository = $initArg is Repository<$classType> ? $initArg : internalLocatorFn(${typeLowerCased}RepositoryProvider, $initArg);
-    return repository.remoteAdapter.initializeModel(this, save: true) as $classType;
+  /// Requires a reader of type `$initArg` (unless using GetIt).
+  /// 
+  /// If needed, obtain it with:
+  ///  - `context.read` if using Flutter with Riverpod or Provider
+  ///  - `ref.read` or `container.read` if using Riverpod
+  $classType init($initArg) {
+    final repository = internalLocatorFn(${typeLowerCased}RepositoryProvider, read);
+    return repository.remoteAdapter.initializeModel(this, save: true);
   }
 }
 ''';

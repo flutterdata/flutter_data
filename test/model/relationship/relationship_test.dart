@@ -27,12 +27,12 @@ void main() async {
       'id': '1',
       'surname': 'Rose',
       'residence': residenceKey
-    }).init(container);
+    }).init(container.read);
     expect(f1.residence.value, isNull);
     expect(keyFor(f1), isNotNull);
 
     // once it does
-    final house = House(id: '1', address: '123 Main St').init(container);
+    final house = House(id: '1', address: '123 Main St').init(container.read);
     // it's automatically wired up
     expect(f1.residence.value, house);
     expect(f1.residence.value.owner.value, f1);
@@ -45,7 +45,7 @@ void main() async {
       'id': '1',
       'surname': 'Rose',
       'persons': [personKey],
-    }).init(container);
+    }).init(container.read);
     // therefore
     // residence remains wired
     expect(f1b.residence.value, house);
@@ -53,24 +53,24 @@ void main() async {
     expect(f1b.persons, isEmpty);
 
     // once p1 exists
-    final p1 = Person(id: '1', name: 'Axl', age: 58).init(container);
+    final p1 = Person(id: '1', name: 'Axl', age: 58).init(container.read);
     // it's automatically wired up
     expect(f1b.persons.toSet(), {p1});
 
     // relationships are omitted - so they remain unchanged
     final f1c = familyRemoteAdapter.localAdapter
-        .deserialize({'id': '1', 'surname': 'Rose'}).init(container);
+        .deserialize({'id': '1', 'surname': 'Rose'}).init(container.read);
     expect(f1c.persons.toSet(), {p1});
     expect(f1c.residence.value, isNotNull);
 
-    final p2 = Person(id: '2', name: 'Brian', age: 55).init(container);
+    final p2 = Person(id: '2', name: 'Brian', age: 55).init(container.read);
 
     // persons has changed from [1] to [2]
     final f1d = familyRemoteAdapter.localAdapter.deserialize({
       'id': '1',
       'surname': 'Rose',
       'persons': [keyFor(p2)]
-    }).init(container);
+    }).init(container.read);
     // persons should be exactly equal to p2 (Brian)
     expect(f1d.persons.toSet(), {p2});
     // without directly modifying p2, its family should be automatically updated
@@ -84,7 +84,7 @@ void main() async {
       'surname': 'Rose',
       'persons': null,
       'residence': null
-    }).init(container);
+    }).init(container.read);
     expect(f1e.persons, isEmpty);
     expect(f1e.residence.value, isNull);
 
@@ -99,7 +99,7 @@ void main() async {
       'id': '1',
       'address': '123 Main St',
       'owner': 'families#a1a1a1'
-    }).init(container);
+    }).init(container.read);
     expect(h1.owner.value, isNull);
     expect(keyFor(h1), isNotNull);
 
@@ -107,7 +107,7 @@ void main() async {
 
     // once it does
     final family = Family(id: '1', surname: 'Rose', residence: BelongsTo())
-        .init(container);
+        .init(container.read);
     // it's automatically wired up & inverses work correctly
     expect(h1.owner.value, family);
     expect(h1.owner.value.residence.value, h1);
@@ -128,7 +128,7 @@ void main() async {
       residence: BelongsTo.fromJson({
         '_': ['houses#c98d1b', false, familyRepository]
       }),
-    ).init(container);
+    ).init(container.read);
 
     expect(family.residence.key, isNotNull);
     expect(family.persons.keys.length, 3);
@@ -144,19 +144,20 @@ void main() async {
 
     // (2) then load persons
 
-    Person(id: '1', name: 'z1', age: 23).init(container);
-    Person(id: '2', name: 'z2', age: 33).init(container);
+    Person(id: '1', name: 'z1', age: 23).init(container.read);
+    Person(id: '2', name: 'z2', age: 33).init(container.read);
 
     // (3) assert two first are linked, third one null, residence is null
     expect(family.persons.length, 2);
     expect(family.residence.value, isNull);
 
     // (4) load the last person and assert it exists now
-    final p3 = Person(id: '3', name: 'z3', age: 3).init(container);
+    final p3 = Person(id: '3', name: 'z3', age: 3).init(container.read);
     expect(p3.family.value, family);
 
     // (5) load family and assert it exists now
-    final house = House(id: '98', address: '21 Coconut Trail').init(container);
+    final house =
+        House(id: '98', address: '21 Coconut Trail').init(container.read);
     expect(house.owner.value, family);
     expect(family.residence.value.address, endsWith('Trail'));
     expect(house.owner.value, family); // same, passes here again
@@ -164,56 +165,58 @@ void main() async {
     // (6) reusing a BelongsTo<Family> (`house.owner`) to add a person
     // adds the inverse relationship
     expect(family.persons.length, 3);
-    Person(name: 'Junior', age: 12, family: house.owner).init(container);
+    Person(name: 'Junior', age: 12, family: house.owner).init(container.read);
     expect(family.persons.length, 4);
   });
 
   test('scenario #3', () {
-    final igor = Person(name: 'Igor', age: 33).init(container);
-    final f1 =
-        Family(surname: 'Kamchatka', persons: {igor}.asHasMany).init(container);
+    final igor = Person(name: 'Igor', age: 33).init(container.read);
+    final f1 = Family(surname: 'Kamchatka', persons: {igor}.asHasMany)
+        .init(container.read);
     expect(f1.persons.first.family.value, f1);
 
     final igor1b =
-        Person(name: 'Igor', age: 33, family: BelongsTo()).init(container);
+        Person(name: 'Igor', age: 33, family: BelongsTo()).init(container.read);
 
     final f1b = Family(surname: 'Kamchatka', persons: {igor1b}.asHasMany)
-        .init(container);
+        .init(container.read);
     expect(f1b.persons.first.family.value.surname, 'Kamchatka');
 
-    final f2 = Family(surname: 'Kamchatka', persons: HasMany()).init(container);
+    final f2 =
+        Family(surname: 'Kamchatka', persons: HasMany()).init(container.read);
     final igor2 =
-        Person(name: 'Igor', age: 33, family: BelongsTo()).init(container);
+        Person(name: 'Igor', age: 33, family: BelongsTo()).init(container.read);
     f2.persons.add(igor2);
     expect(f2.persons.first.family.value.surname, 'Kamchatka');
 
     f2.persons.remove(igor2);
     expect(f2.persons, isEmpty);
 
-    final residence = House(address: 'Sakharova Prospekt, 19').init(container);
+    final residence =
+        House(address: 'Sakharova Prospekt, 19').init(container.read);
     final f3 = Family(surname: 'Kamchatka', residence: residence.asBelongsTo)
-        .init(container);
+        .init(container.read);
     expect(f3.residence.value.owner.value.surname, 'Kamchatka');
     f3.residence.value = null;
     expect(f3.residence.value, isNull);
 
-    final f4 =
-        Family(surname: 'Kamchatka', residence: BelongsTo()).init(container);
+    final f4 = Family(surname: 'Kamchatka', residence: BelongsTo())
+        .init(container.read);
     f4.residence.value =
-        House(address: 'Sakharova Prospekt, 19').init(container);
+        House(address: 'Sakharova Prospekt, 19').init(container.read);
     expect(f4.residence.value.owner.value.surname, 'Kamchatka');
   });
 
   test('scenario #4: maintain relationship reference validity', () {
-    final brian = Person(name: 'Brian', age: 52).init(container);
+    final brian = Person(name: 'Brian', age: 52).init(container.read);
     final family =
         Family(id: '229', surname: 'Rose', persons: {brian}.asHasMany)
-            .init(container);
+            .init(container.read);
     expect(family.persons.length, 1);
 
     // new family comes in locally with no persons relationship info
-    final family2 =
-        Family(id: '229', surname: 'Rose', persons: HasMany()).init(container);
+    final family2 = Family(id: '229', surname: 'Rose', persons: HasMany())
+        .init(container.read);
     // it should keep the relationships unaltered
     expect(family2.persons.length, 1);
 
@@ -221,7 +224,7 @@ void main() async {
     final family3 = familyRemoteAdapter
         .deserialize({'id': '229', 'surname': 'Rose'})
         .model
-        .init(container);
+        .init(container.read);
     // it should keep the relationships unaltered
     expect(family3.persons.length, 1);
 
@@ -229,7 +232,7 @@ void main() async {
     final family4 = familyRemoteAdapter
         .deserialize({'id': '229', 'surname': 'Rose', 'persons': []})
         .model
-        .init(container);
+        .init(container.read);
     // it should keep the relationships unaltered
     expect(family4.persons.length, 0);
 
@@ -239,10 +242,10 @@ void main() async {
       'id': '229',
       'surname': 'Rose',
       'persons': ['people#231aaa']
-    }).init(container);
+    }).init(container.read);
 
     graph.getKeyForId('people', '231', keyIfAbsent: 'people#231aaa');
-    final axl = Person(id: '231', name: 'Axl', age: 58).init(container);
+    final axl = Person(id: '231', name: 'Axl', age: 58).init(container.read);
     expect(family5.persons.toSet(), {axl});
   });
 
@@ -251,15 +254,16 @@ void main() async {
     final jerry = Dog(name: 'Jerry');
     final zoe = Dog(name: 'Zoe');
     final f1 = Family(surname: 'Carlson', dogs: {jerry, zoe}.asHasMany)
-        .init(container);
+        .init(container.read);
     expect(f1.dogs.toSet(), {jerry, zoe});
   });
 
   test('self-ref with freezed', () {
-    final parent = Node(name: 'parent', children: HasMany()).init(container);
+    final parent =
+        Node(name: 'parent', children: HasMany()).init(container.read);
     final child =
         Node(name: 'child', parent: parent.asBelongsTo, children: HasMany())
-            .init(container);
+            .init(container.read);
 
     // since child has children defined, the rel is empty
     expect(child.children, isEmpty);
@@ -273,9 +277,9 @@ void main() async {
 
   test('freezed bidirectional one-to-many', () async {
     final book = Book(id: 23, title: 'Tao Te Ching', author: BelongsTo())
-        .init(container);
-    final author =
-        Author(id: 15, name: 'Walter', books: HasMany({book})).init(container);
+        .init(container.read);
+    final author = Author(id: 15, name: 'Walter', books: HasMany({book}))
+        .init(container.read);
 
     final listener = Listener<DataState<Author>>();
     final notifier = author.watch(remote: false);
@@ -285,7 +289,7 @@ void main() async {
     verify(listener(DataState(author, isLoading: false))).called(1);
     verifyNoMoreInteractions(listener);
 
-    final a2 = author.copyWith(name: 'Steve-O').init(container);
+    final a2 = author.copyWith(name: 'Steve-O').init(container.read);
     await a2.save(remote: false);
 
     await oneMs();

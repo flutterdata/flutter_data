@@ -139,7 +139,7 @@ void main() async {
   });
 
   test('saves key', () async {
-    final residence = House(address: '123 Main St').init(container);
+    final residence = House(address: '123 Main St').init(container.read);
     final length = 518;
     final div = 19;
 
@@ -149,11 +149,12 @@ void main() async {
         surname: 'Smith',
         residence: residence.asBelongsTo,
         persons: HasMany(),
-      ).init(container);
+      ).init(container.read);
 
       // add some people
       if (i % div == 0) {
-        family.persons.add(Person(name: 'new kid #$i', age: i).init(container));
+        family.persons
+            .add(Person(name: 'new kid #$i', age: i).init(container.read));
       }
 
       // remove some residence relationships

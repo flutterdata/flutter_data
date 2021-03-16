@@ -198,7 +198,7 @@ void main() async {
 
   test('delete', () async {
     // init a person
-    final person = Person(id: '1', name: 'John', age: 21).init(container);
+    final person = Person(id: '1', name: 'John', age: 21).init(container.read);
     // it does have a key
     expect(keyFor(person), isNotNull);
 
@@ -391,8 +391,8 @@ void main() async {
   });
 
   test('remote can return a different ID', () async {
-    Family(id: '1', surname: 'Corleone').init(container);
-    Family(id: '2', surname: 'Moletto').init(container);
+    Family(id: '1', surname: 'Corleone').init(container.read);
+    Family(id: '2', surname: 'Moletto').init(container.read);
 
     // returns 2, not the requested 1
     container.read(responseProvider).state =
@@ -407,10 +407,10 @@ void main() async {
 
   test('reconcile keys under same ID', () async {
     // id=1 exists locally, has a key
-    final family1 = Family(id: '1', surname: 'Corleone').init(container);
+    final family1 = Family(id: '1', surname: 'Corleone').init(container.read);
 
     // an id-less Family is created (obviously with new key)
-    final family2 = Family(surname: 'Moletto').init(container);
+    final family2 = Family(surname: 'Moletto').init(container.read);
 
     // therefore these objects have different keys
     expect(keyFor(family2), isNotNull);
@@ -457,7 +457,7 @@ void main() async {
   });
 
   test('verbose', overridePrint(() async {
-    Dog(id: '3', name: 'Bowie').init(container);
+    Dog(id: '3', name: 'Bowie').init(container.read);
     container.read(responseProvider).state = TestResponse.text('');
     await dogRepository.delete('3', params: {'a': 1}, remote: true);
     expect(verbose, ['[flutter_data] Dog: DELETE /dogs/3?a=1 [HTTP 200]']);

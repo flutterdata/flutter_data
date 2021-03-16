@@ -71,7 +71,7 @@ void main() async {
   test('watchAll updates', () async {
     final listener = Listener<DataState<List<Person>>>();
 
-    final p1 = Person(id: '1', name: 'Zof', age: 23).init(container);
+    final p1 = Person(id: '1', name: 'Zof', age: 23).init(container.read);
     final notifier = personRemoteAdapter.watchAll();
 
     dispose = notifier.addListener(listener, fireImmediately: true);
@@ -79,7 +79,7 @@ void main() async {
     verify(listener(DataState([p1], isLoading: true))).called(1);
     verifyNoMoreInteractions(listener);
 
-    final p2 = Person(id: '1', name: 'Zofie', age: 23).init(container);
+    final p2 = Person(id: '1', name: 'Zofie', age: 23).init(container.read);
     await oneMs();
 
     verify(listener(DataState([p2], isLoading: false))).called(1);
@@ -96,8 +96,8 @@ void main() async {
   test('watchAll with filterLocal', () async {
     final listener = Listener<DataState<List<Person>>>();
 
-    final p1 = Person(id: '1', name: 'Zof', age: 23).init(container);
-    Person(id: '2', name: 'Sarah', age: 50).init(container);
+    final p1 = Person(id: '1', name: 'Zof', age: 23).init(container.read);
+    Person(id: '2', name: 'Sarah', age: 50).init(container.read);
     final notifier = personRemoteAdapter.watchAll(
         remote: false, filterLocal: (Person person) => person.age < 40);
 
@@ -119,7 +119,7 @@ void main() async {
 
     dispose = notifier.addListener(listener, fireImmediately: false);
 
-    Person(id: '1', name: 'Frank', age: 30).init(container);
+    Person(id: '1', name: 'Frank', age: 30).init(container.read);
     await oneMs();
 
     verify(listener(argThat(matcher('Frank')))).called(1);
@@ -146,8 +146,8 @@ void main() async {
   });
 
   test('watchOne reads latest version', () async {
-    Person(id: '345', name: 'Frank', age: 30).init(container);
-    Person(id: '345', name: 'Steve-O', age: 34).init(container);
+    Person(id: '345', name: 'Frank', age: 30).init(container.read);
+    Person(id: '345', name: 'Steve-O', age: 34).init(container.read);
 
     final notifier = personRemoteAdapter.watchOne('345');
 
@@ -179,7 +179,7 @@ void main() async {
 
     await oneMs();
 
-    final p1 = Person(id: '1', name: 'Frank', age: 16).init(container);
+    final p1 = Person(id: '1', name: 'Frank', age: 16).init(container.read);
     p1.family.value = f1;
     await oneMs();
 
@@ -233,7 +233,7 @@ void main() async {
   });
 
   test('watchOne without ID and alsoWatch', () async {
-    final frank = Person(name: 'Frank', age: 30).init(container);
+    final frank = Person(name: 'Frank', age: 30).init(container.read);
 
     final notifier = frank.watch(alsoWatch: (p) => [p.family]);
 

@@ -6,11 +6,12 @@ typedef ConfigureRepositoryLocalStorage = Override Function(
 typedef RepositoryInitializerProvider = FutureProvider<RepositoryInitializer>
     Function({bool remote, bool verbose});
 
-typedef InternalLocator = Repository Function(Provider<Repository>, dynamic);
-
 /// ONLY FOR FLUTTER DATA INTERNAL USE
-InternalLocator internalLocatorFn =
-    (provider, container) => (container as ProviderContainer).read(provider);
+var internalLocatorFn =
+    <T extends DataModel<T>>(ProviderBase<Object, Repository<T>> provider,
+            Repository<T> Function(ProviderBase<Object, Repository<T>>)
+                reader) =>
+        reader(provider);
 
 class RepositoryInitializer {}
 

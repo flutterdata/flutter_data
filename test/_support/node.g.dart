@@ -124,15 +124,13 @@ extension NodeX on Node {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
-  /// Pass:
-  ///  - A `BuildContext` if using Flutter with Riverpod or Provider
-  ///  - Nothing if using Flutter with GetIt
-  ///  - A Riverpod `ProviderContainer` if using pure Dart
-  ///  - Its own [Repository<Node>]
-  Node init(container) {
-    final repository = container is Repository<Node>
-        ? container
-        : internalLocatorFn(nodeRepositoryProvider, container);
+  /// Requires a reader of type `Repository<Node> read(ProviderBase<Object, Repository<Node>> _)` (unless using GetIt).
+  ///
+  /// If needed, obtain it with:
+  ///  - `context.read` if using Flutter with Riverpod or Provider
+  ///  - `ref.read` or `container.read` if using Riverpod
+  Node init(Repository<Node> read(ProviderBase<Object, Repository<Node>> _)) {
+    final repository = internalLocatorFn(nodeRepositoryProvider, read);
     return repository.remoteAdapter.initializeModel(this, save: true) as Node;
   }
 }

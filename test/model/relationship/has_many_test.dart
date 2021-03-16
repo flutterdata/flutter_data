@@ -32,8 +32,8 @@ void main() async {
   test('behaves like a collection (with init)', () {
     final pete = Person(name: 'Pete', age: 29);
     final anne = Person(name: 'Anne', age: 59);
-    final f2 =
-        Family(surname: 'Sumberg', persons: {pete}.asHasMany).init(container);
+    final f2 = Family(surname: 'Sumberg', persons: {pete}.asHasMany)
+        .init(container.read);
 
     f2.persons.add(pete);
     f2.persons.add(pete);
@@ -55,7 +55,7 @@ void main() async {
     family.persons.add(person);
     expect(family.persons.contains(person), isTrue);
 
-    family.init(container);
+    family.init(container.read);
 
     family.persons.add(person);
     expect(family.persons.contains(person), isTrue);
@@ -78,7 +78,7 @@ void main() async {
       id: '1',
       surname: 'Smith',
       persons: HasMany<Person>(),
-    ).init(container);
+    ).init(container.read);
 
     final p1 = Person(name: 'a', age: 1);
     final p2 = Person(name: 'b', age: 2);
