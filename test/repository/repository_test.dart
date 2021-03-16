@@ -280,7 +280,7 @@ void main() async {
     final listener = Listener<DataState<Person>>();
 
     container.read(responseProvider).state = TestResponse(
-      text: (_) => throw SocketException('unreachable'),
+      text: (_) => throw Exception('whatever'),
     );
     final notifier = personRepository.watchOne('1', remote: true);
 
@@ -290,7 +290,9 @@ void main() async {
     await oneMs();
 
     verify(listener(argThat(isA<DataState>().having(
-            (s) => s.exception.error, 'exception', isA<SocketException>()))))
+            (s) => s.exception.error.toString(),
+            'exception',
+            'Exception: whatever'))))
         .called(1);
     verifyNoMoreInteractions(listener);
   });

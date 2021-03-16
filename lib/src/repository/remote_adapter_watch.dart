@@ -11,6 +11,24 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
   StateNotifier<List<DataGraphEvent>> get throttledGraph =>
       graph.throttle(throttleDuration);
 
+  // initialize
+
+  @override
+  Future<void> onInitialized() async {
+    _save();
+  }
+
+  // reads
+
+  var _readCounter = 0;
+
+  /// Sort-of-exponential backoff for reads
+  Duration readRetryAfter(int i) {
+    final list = [0, 1, 2, 2, 2, 2, 2, 4, 4, 4, 8, 8, 16, 16, 24, 36, 72];
+    final index = i < list.length ? i : list.length - 1;
+    return Duration(seconds: list[index]);
+  }
+
   DataStateNotifier<List<T>> watchAll(
       {final bool remote,
       final Map<String, dynamic> params,
@@ -36,17 +54,22 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
             notifier.updateWith(isLoading: true);
           }
           await _future;
+
+          // success
+
+          // reset counter
+          _readCounter = 0;
+
           // trigger doneLoading to ensure state is updated with isLoading=false
           graph._notify([type], DataGraphEventType.doneLoading);
-        } catch (e, stackTrace) {
+        } on DataException catch (e) {
+          if (e.error.toString().contains('SocketException')) {
+            Future.delayed(readRetryAfter(_readCounter++), notifier.reload);
+          }
           // we're only interested in notifying errors
           // as models will pop up via the graph notifier
           if (notifier.mounted) {
-            notifier.updateWith(
-              isLoading: false,
-              exception: e is DataException ? e.error : e,
-              stackTrace: e is DataException ? e.stackTrace : stackTrace,
-            );
+            notifier.updateWith(isLoading: false, exception: e);
           } else {
             rethrow;
           }
@@ -113,17 +136,23 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
             notifier.updateWith(isLoading: true);
           }
           await _future;
+
+          // success
+
+          // reset counter
+          // _readCounter = 0;
           // trigger doneLoading to ensure state is updated with isLoading=false
           graph._notify([key()], DataGraphEventType.doneLoading);
-        } catch (error, stackTrace) {
+        } on DataException catch (e) {
+          if (e.error.toString().contains('SocketException')) {
+            Future.delayed(readRetryAfter(_readCounter++), notifier.reload);
+          }
           // we're only interested in notifying errors
           // as models will pop up via the graph notifier
           if (notifier.mounted) {
-            notifier.updateWith(
-              isLoading: false,
-              exception: error,
-              stackTrace: stackTrace,
-            );
+            notifier.updateWith(isLoading: false, exception: e);
+          } else {
+            rethrow;
           }
         }
       },
@@ -219,6 +248,66 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         .filterNulls
         .expand((key) => key)
         .toSet();
+  }
+
+  // writes
+
+  /// Sort-of-exponential backoff for writes
+  Duration writeRetryAfter(int i) => readRetryAfter(i);
+
+  var _writeCounter = 0;
+
+  final _offlineAdapterKey = '_offline:adapter';
+  final _offlineSaveMetadata = '_offline:save';
+
+  void _save() async {
+    final keys =
+        graph.getEdge(_offlineAdapterKey, metadata: _offlineSaveMetadata);
+    if (keys != null) {
+      for (final key in keys) {
+        final model = localAdapter.findOne(key);
+        if (model != null) {
+          await model.save(); // might throw here
+          graph.removeEdge(_offlineAdapterKey, key,
+              metadata: _offlineSaveMetadata);
+          _writeCounter = 0; // reset write counter
+        }
+      }
+    }
+  }
+
+  @override
+  Future<T> save(
+    T model, {
+    bool remote,
+    Map<String, dynamic> params,
+    Map<String, String> headers,
+    OnDataError onError,
+    bool init,
+  }) async {
+    try {
+      return await super.save(model,
+          remote: remote,
+          params: params,
+          onError: onError,
+          headers: headers,
+          init: init);
+    } on DataException catch (e) {
+      if (e.error.toString().contains('SocketException')) {
+        // ensure offline node exists
+        if (!graph.hasNode(_offlineAdapterKey)) {
+          graph.addNode(_offlineAdapterKey);
+        }
+
+        // add model's key with offline meta
+        graph.addEdge(_offlineAdapterKey, keyFor(model),
+            metadata: _offlineSaveMetadata);
+
+        // there was a failure, so call _trySave again
+        Future.delayed(writeRetryAfter(_writeCounter++), _save);
+      }
+      rethrow;
+    }
   }
 }
 
