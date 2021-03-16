@@ -26,16 +26,6 @@ void main() async {
     _dir = await Directory('tmp').create();
     _dir.deleteSync(recursive: true);
 
-    // GetIt.instance.registerRepositories(
-    //     baseDirFn: () => _dir.path, encryptionKey: _encryptionKey);
-    // await GetIt.instance.allReady();
-
-    // final usersRepo = GetIt.instance.get<Repository<User>>();
-    // final postsRepo = GetIt.instance.get<Repository<Post>>();
-    // final commentsRepo = GetIt.instance.get<Repository<Comment>>();
-
-    // container.read(userLocalAdapterProvider);
-
     await container.read(repositoryInitializerProvider().future);
 
     final usersRepo = container.read(userRepositoryProvider);
@@ -50,9 +40,8 @@ void main() async {
       }
     }
 
-    final user2 = User(id: 1, name: 'new name', email: 'new@fasd.io')
-        // .init();
-        .init(container);
+    final user2 =
+        User(id: 1, name: 'new name', email: 'new@fasd.io').init(container);
     await user2.save();
 
     var p3 = Post(
@@ -61,7 +50,6 @@ void main() async {
             body: '3@fasd.io',
             user: user2.asBelongsTo,
             comments: {Comment(id: 1, body: 'bla')}.asHasMany)
-        // .init();
         .init(container);
 
     assert(p3.body == '3@fasd.io');
