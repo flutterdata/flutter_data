@@ -29,7 +29,7 @@ class TestExtensionBuilder implements Builder {
 
     final imports = _classes
         .map((s) {
-          final assetUri = Uri.parse(s.split('#')[2]);
+          final assetUri = Uri.parse(s.split('#')[1]);
           if (assetUri.scheme == 'asset') {
             final relativePath =
                 path_helper.relative(assetUri.path, from: testPath);
@@ -41,7 +41,7 @@ class TestExtensionBuilder implements Builder {
         .join('\n');
 
     final adapters = _classes.map((s) {
-      final className = s.split('#')[3];
+      final className = s.split('#')[0];
       return '''
 // ignore: must_be_immutable
 class \$Test${className}LocalAdapter = \$${className}HiveLocalAdapter
@@ -51,7 +51,7 @@ class Test${className}RemoteAdapter = \$${className}RemoteAdapter with TestRemot
     }).join('\n\n');
 
     final overrides = _classes.map((s) {
-      final className = s.split('#')[3];
+      final className = s.split('#')[0];
       return '''
 ${className.decapitalize()}LocalAdapterProvider.overrideWithProvider(Provider((ref) =>
     \$Test${className}LocalAdapter(ref))),

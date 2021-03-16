@@ -35,12 +35,8 @@ class DataExtensionIntermediateBuilder implements Builder {
           buildStep.inputId.changeExtension('.info'),
           annotated.map((element) {
             return [
-              DataHelpers.getType(element.name),
-              (findTypesInRelationshipGraph(element as ClassElement).toList()
-                    ..sort())
-                  .join(','),
-              element.location.components.first,
               element.name,
+              element.location.components.first,
             ].join('#');
           }).join(';'));
     }
@@ -64,54 +60,37 @@ class DataExtensionBuilder implements Builder {
         await b.readAsString(file)
     ];
 
-    // find contiguous graphs, independent from each other, e.g
-    // IN: [{'b'}, {'a', 'b', 'c'}, {'b'}, {'a'}, {'d', 'e'}, {'f'}, {'d'}]
-    // OUT: {'a,b,c', 'd,e', 'f'}
-    final _gs = _classes.map((e) => e.split('#')[1].split(',').toSet());
-    for (final g in _gs) {
-      for (final g2 in _gs) {
-        if (g != g2 && g2 != null) {
-          if (g2.intersection(g).isNotEmpty) {
-            g.addAll(g2);
-          }
-        }
-      }
-    }
-    final graphs = _gs.map((e) => (e.toList()..sort()).join(',')).toSet();
-
     final classes = _classes.fold<List<Map<String, String>>>([], (acc, line) {
       for (final e in line.split(';')) {
-        var parts = e.split('#');
-
-        final graph = graphs.firstWhere((e) => e.split(',').contains(parts[0]));
-
+        final parts = e.split('#');
+        final type = DataHelpers.getType(parts[0]);
         acc.add({
-          'name': parts[0].singularize(),
-          'related': graph,
-          'path': parts[2],
+          'name': parts[0],
+          'type': type,
+          'singularType': type.singularize(),
+          'path': parts[1]
         });
       }
       return acc;
-    });
+    })
+      ..sort((a, b) => a['type'].compareTo(b['type']));
 
     // if this is a library, do not generate
-    if (classes.any((c) => c['path'].startsWith('asset:'))) {
+    if (classes.any((clazz) => clazz['path'].startsWith('asset:'))) {
       return null;
     }
 
-    final modelImports =
-        classes.map((c) => 'import \'${c["path"]}\';').toSet().join('\n');
+    final modelImports = classes
+        .map((clazz) => 'import \'${clazz['path']}\';')
+        .toSet()
+        .join('\n');
 
     var providerRegistration = '';
 
-    final graphsMap = {
+    final graphMap = {
       for (final clazz in classes)
-        if (clazz['related'].isNotEmpty)
-          '\'${clazz['related']}\'': {
-            for (final type in clazz['related'].split(','))
-              '\'$type\'':
-                  'ref.read(${type.singularize()}RemoteAdapterProvider)'
-          }
+        '\'${clazz['type']}\'':
+            'ref.read(${clazz['singularType']}RemoteAdapterProvider)'
     };
 
     // check dependencies
@@ -144,10 +123,10 @@ List<SingleChildWidget> repositoryProviders({FutureFn<String> baseDirFn, List<in
         return init;
       },
     ),''' +
-          classes.map((c) => '''
-    p.ProxyProvider<RepositoryInitializer, Repository<${(c['name']).capitalize()}>>(
+          classes.map((clazz) => '''
+    p.ProxyProvider<RepositoryInitializer, Repository<${clazz['name']}>>(
       lazy: false,
-      update: (context, i, __) => i == null ? null : p.Provider.of<ProviderContainer>(context, listen: false).read(${c['name']}RepositoryProvider),
+      update: (context, i, __) => i == null ? null : p.Provider.of<ProviderContainer>(context, listen: false).read(${clazz['singularType']}RepositoryProvider),
       dispose: (_, r) => r?.dispose(),
     ),''').join('\n') +
           ']; }';
@@ -175,10 +154,10 @@ i.registerSingletonAsync<RepositoryInitializer>(() async {
     internalLocatorFn = (provider, _) => _container.read(provider);
     return init;
   });''' +
-          classes.map((c) => '''
+          classes.map((clazz) => '''
   
-i.registerSingletonWithDependencies<Repository<${(c['name']).capitalize()}>>(
-      () => _container.read(${c['name']}RepositoryProvider),
+i.registerSingletonWithDependencies<Repository<${clazz['name']}>>(
+      () => _container.read(${clazz['singularType']}RepositoryProvider),
       dependsOn: [RepositoryInitializer]);
 
       ''').join('\n') +
@@ -214,17 +193,19 @@ i.registerSingletonWithDependencies<Repository<${(c['name']).capitalize()}>>(
 
     //
 
-    final repoInitializeEntries = classes.map((c) => '''\n
-      final _${c['name']}Repository = ref.read(${c['name']}RepositoryProvider);
-      _${c['name']}Repository.dispose();
-      await _${c['name']}Repository.initialize(
+    final repoInitializeEntries = classes.map((clazz) => '''\n
+      final _${clazz['singularType']}Repository = ref.read(${clazz['singularType']}RepositoryProvider);
+      _${clazz['singularType']}Repository.dispose();
+      await _${clazz['singularType']}Repository.initialize(
         remote: args?.remote,
         verbose: args?.verbose,
-        adapters: graphs['${c['related']}'],
+        adapters: adapters,
       );''').join('');
 
-    final repoDisposeEntries = classes.map((c) => '''
-      ref.read(${c['name']}RepositoryProvider).dispose();\n''').join('');
+    final repoDisposeEntries = classes
+        .map((clazz) => '''
+      ref.read(${clazz['singularType']}RepositoryProvider).dispose();\n''')
+        .join('');
 
     await b.writeAsString(finalAssetId, '''\n
 // GENERATED CODE - DO NOT MODIFY BY HAND
@@ -257,7 +238,7 @@ RepositoryInitializerProvider repositoryInitializerProvider = (
 
 final _repositoryInitializerProviderFamily =
   FutureProvider.family<RepositoryInitializer, RepositoryInitializerArgs>((ref, args) async {
-    final graphs = <String, Map<String, RemoteAdapter>>$graphsMap;
+    final adapters = <String, RemoteAdapter>$graphMap;
     $repoInitializeEntries
 
     ref.onDispose(() {

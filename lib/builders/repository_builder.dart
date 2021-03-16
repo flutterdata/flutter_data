@@ -142,8 +142,6 @@ and execute a code generation build again.
 
     // additional adapters
 
-    final additionalMixinExtensionMethods = {};
-
     final remoteAdapterTypeChecker = TypeChecker.fromRuntime(RemoteAdapter);
 
     final mixins = annotation.read('adapters').listValue.map((obj) {
@@ -179,13 +177,6 @@ and execute a code generation build again.
     if (mixins.isEmpty) {
       mixins.add('NothingMixin');
     }
-
-    final additionalMixinExtension = additionalMixinExtensionMethods.isNotEmpty
-        ? '''
-    extension ${classType}RepositoryX on Repository<$classType> {
-      ${additionalMixinExtensionMethods.values.join('\n')}
-    }'''
-        : '';
 
     // imports (we only want them on pubspec to make sure our lib/app can import them)
 
@@ -274,12 +265,9 @@ extension ${classType}X on $classType {
   ///  - Its own [Repository<$classType>]
   $classType init($initArgOptional) {
     final repository = $initArg is Repository<$classType> ? $initArg : internalLocatorFn(${typeLowerCased}RepositoryProvider, $initArg);
-    return repository.internalAdapter.initializeModel(this, save: true) as $classType;
+    return repository.remoteAdapter.initializeModel(this, save: true) as $classType;
   }
 }
-
-$additionalMixinExtension
-
 ''';
   }
 }
