@@ -124,7 +124,13 @@ mixin TestRemoteAdapter<T extends DataModel<T>> on RemoteAdapter<T> {
   @override
   http.Client get httpClient {
     return MockClient((req) async {
-      return ref.watch(mockResponseProvider(req));
+      try {
+        return ref.watch(mockResponseProvider(req));
+      } on ProviderException catch (e) {
+        // unwrap provider exception
+        // ignore: only_throw_errors
+        throw e.exception;
+      }
     });
   }
 }

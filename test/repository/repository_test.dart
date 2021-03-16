@@ -141,9 +141,7 @@ void main() async {
       expect(
           e,
           isA<DataException>().having(
-            // normally e.error, but riverpod is wrapping
-            // the exception thrown in its body
-            (e) => (e.error as dynamic).exception,
+            (e) => e.error,
             'SocketException',
             isA<SocketException>(),
           ));
@@ -185,7 +183,7 @@ void main() async {
 
     await familyRepository.save(family, remote: true, onError: (e) async {
       await oneMs();
-      notifier.updateWith(exception: e.error, stackTrace: e.stackTrace);
+      notifier.updateWith(exception: e);
     });
     await oneMs();
 
@@ -193,7 +191,7 @@ void main() async {
 
     verify(listener(argThat(
       isA<DataState>().having((s) {
-        return s.exception;
+        return s.exception.error;
       }, 'exception', isA<FormatException>()),
     ))).called(1);
   });
@@ -246,8 +244,8 @@ void main() async {
     verify(listener(DataState([], isLoading: true))).called(1);
     await oneMs();
 
-    verify(listener(argThat(isA<DataState>()
-            .having((s) => s.exception, 'exception', isA<FormatException>()))))
+    verify(listener(argThat(isA<DataState<List<Family>>>().having(
+            (s) => s.exception.error, 'exception', isA<FormatException>()))))
         .called(1);
     verifyNoMoreInteractions(listener);
   });
@@ -291,8 +289,8 @@ void main() async {
     verify(listener(DataState(null, isLoading: true))).called(1);
     await oneMs();
 
-    verify(listener(argThat(isA<DataState>()
-            .having((s) => s.exception, 'exception', isA<DataException>()))))
+    verify(listener(argThat(isA<DataState>().having(
+            (s) => s.exception.error, 'exception', isA<SocketException>()))))
         .called(1);
     verifyNoMoreInteractions(listener);
   });

@@ -529,25 +529,6 @@ class DeserializedData<T, I> {
   T get model => models.single;
 }
 
-/// A standard [Exception] used throughout Flutter Data.
-///
-/// Usually thrown from [_RemoteAdapter.onError] in [_RemoteAdapter.sendRequest].
-class DataException with EquatableMixin implements Exception {
-  final Object error;
-  final StackTrace stackTrace;
-  final int statusCode;
-
-  const DataException(this.error, {this.stackTrace, this.statusCode});
-
-  @override
-  List<Object> get props => [error, stackTrace, statusCode];
-
-  @override
-  String toString() {
-    return 'DataException: $error ${statusCode != null ? " [HTTP $statusCode]" : ""}\n${stackTrace ?? ''}';
-  }
-}
-
 // ignore: constant_identifier_names
 enum DataRequestMethod { GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS, TRACE }
 

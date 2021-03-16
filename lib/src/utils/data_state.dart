@@ -6,14 +6,12 @@ import 'package:state_notifier/state_notifier.dart';
 class DataState<T> with EquatableMixin {
   final T model;
   final bool isLoading;
-  final Object exception;
-  final StackTrace stackTrace;
+  final DataException exception;
 
   const DataState(
     this.model, {
     this.isLoading = false,
     this.exception,
-    this.stackTrace,
   });
 
   bool get hasException => exception != null;
@@ -21,10 +19,26 @@ class DataState<T> with EquatableMixin {
   bool get hasModel => model != null;
 
   @override
-  List<Object> get props => [model, isLoading, exception, stackTrace];
+  List<Object> get props => [model, isLoading, exception];
 
   @override
   bool get stringify => true;
+}
+
+class DataException with EquatableMixin implements Exception {
+  final Object error;
+  final StackTrace stackTrace;
+  final int statusCode;
+
+  const DataException(this.error, {this.stackTrace, this.statusCode});
+
+  @override
+  List<Object> get props => [error, stackTrace, statusCode];
+
+  @override
+  String toString() {
+    return 'DataException: $error ${statusCode != null ? " [HTTP $statusCode]" : ""}\n${stackTrace ?? ''}';
+  }
 }
 
 class DataStateNotifier<T> extends StateNotifier<DataState<T>> {
@@ -42,13 +56,13 @@ class DataStateNotifier<T> extends StateNotifier<DataState<T>> {
   void updateWith(
       {Object model = stamp,
       Object isLoading = stamp,
-      Object exception = stamp,
-      Object stackTrace = stamp}) {
-    super.state = DataState<T>(model == stamp ? state.model : model as T,
-        isLoading: isLoading == stamp ? state.isLoading : isLoading as bool,
-        exception: exception == stamp ? state.exception : exception,
-        stackTrace:
-            stackTrace == stamp ? state.stackTrace : stackTrace as StackTrace);
+      Object exception = stamp}) {
+    super.state = DataState<T>(
+      model == stamp ? state.model : model as T,
+      isLoading: isLoading == stamp ? state.isLoading : isLoading as bool,
+      exception:
+          exception == stamp ? state.exception : exception as DataException,
+    );
   }
 
   Future<void> reload() async {
