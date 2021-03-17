@@ -38,13 +38,12 @@ void main() async {
 
     graph.removeEdge('h1', 'b2', metadata: 'blogs', inverseMetadata: 'host');
 
-    expect(graph.toMap(), {
-      'h1': {
-        'blogs': {'b1'}
-      },
-      'b1': {
-        'host': {'h1'}
-      }
+    final _map = graph.toMap();
+    expect(_map['h1'], {
+      'blogs': {'b1'}
+    });
+    expect(_map['b1'], {
+      'host': {'h1'}
     });
 
     expect(graph.getEdge('b2', metadata: 'host'), isNull);
@@ -131,8 +130,14 @@ void main() async {
     graph.getKeyForId('people', '1', keyIfAbsent: 'people#a1a1a1');
     graph.getKeyForId('people', 'a1a1a1', keyIfAbsent: 'people#a2a2a2');
     expect(graph.getKeyForId('people', 'a1a1a1'), 'people#a2a2a2');
-    expect(graph.toMap().keys.toSet(),
-        {'people#a2a2a2', 'people#a1a1a1', 'id:people#a1a1a1', 'id:people#1'});
+    expect(
+        graph.toMap().keys.toSet(),
+        containsAll({
+          'people#a2a2a2',
+          'people#a1a1a1',
+          'id:people#a1a1a1',
+          'id:people#1'
+        }));
     expect(graph.getKeyForId('people', '1'), 'people#a1a1a1');
     graph.removeKey('people#a1a1a1');
     expect(graph.getKeyForId('people', '1'), isNull);

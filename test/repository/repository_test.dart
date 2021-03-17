@@ -196,6 +196,35 @@ void main() async {
     ))).called(1);
   });
 
+  test('save offline', () async {
+    final family = Family(id: '1', surname: 'Smith');
+    container.read(responseProvider).state =
+        TestResponse(text: (_) => throw SocketException('unreachable'));
+
+    final listener = Listener<DataState<List<Family>>>();
+    final notifier = familyRepository.watchAll(remote: false);
+
+    dispose = notifier.addListener(listener, fireImmediately: true);
+
+    verify(listener(DataState([], isLoading: false))).called(1);
+
+    await familyRepository.save(family, remote: true, onError: (e) async {
+      await oneMs();
+      notifier.updateWith(exception: e);
+    });
+    await oneMs();
+
+    verify(listener(DataState([family], isLoading: false))).called(1);
+
+    verify(listener(argThat(
+      isA<DataState>().having((s) {
+        return s.exception;
+      }, 'exception', isA<DataException>()),
+    ))).called(1);
+
+    expect(familyRepository.remoteAdapter.unsaved, hasLength(1));
+  });
+
   test('delete', () async {
     // init a person
     final person = Person(id: '1', name: 'John', age: 21).init(container.read);

@@ -493,6 +493,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     if (error == null && code >= 200 && code < 300) {
       return await onSuccess(data);
     } else {
+      if (error.toString().contains('SocketException')) {
+        throw OfflineException(model: null, source: error);
+      }
       final e = DataException(error ?? data,
           stackTrace: stackTrace, statusCode: code);
       if (_verbose) {
