@@ -32,6 +32,10 @@ class DataHelpers {
 class OfflineException extends DataException {
   final DataModel model;
   OfflineException({this.model, Object error}) : super(error);
+  @override
+  String toString() {
+    return 'OfflineException: $error';
+  }
 }
 
 abstract class _Lifecycle<T> {

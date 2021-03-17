@@ -354,9 +354,8 @@ void main() async {
   test('watchAll with error', () async {
     final listener = Listener<DataState<List<Family>>>();
 
-    container.read(responseProvider).state = TestResponse.text('''
-        '^@!@#(#(@#)#@'
-      ''');
+    container.read(responseProvider).state =
+        TestResponse(text: (_) => throw SocketException('unreachable'));
     final notifier = familyRepository.watchAll(remote: true);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
@@ -364,9 +363,35 @@ void main() async {
     verify(listener(DataState([], isLoading: true))).called(1);
     await oneMs();
 
-    verify(listener(argThat(isA<DataState<List<Family>>>().having(
-            (s) => s.exception.error, 'exception', isA<FormatException>()))))
+    // finished loading but found the network unreachable
+    verify(listener(argThat(isA<DataState<List<Family>>>()
+            .having((s) => s.isLoading, 'isLoading', isFalse)
+            .having((s) => s.exception, 'exception', isA<OfflineException>()))))
         .called(1);
+    verifyNoMoreInteractions(listener);
+
+    // now server will successfully respond with two families
+    container.read(responseProvider).state = TestResponse.text('''
+        [{ "id": "1", "surname": "Corleone" }, { "id": "2", "surname": "Soprano" }]
+      ''');
+
+    // reload
+    await notifier.reload();
+    await oneMs();
+
+    final family = Family(id: '1', surname: 'Corleone');
+    final family2 = Family(id: '2', surname: 'Soprano');
+
+    // loads again, for now exception remains
+    verify(listener(argThat(isA<DataState<List<Family>>>()
+            .having((s) => s.isLoading, 'isLoading', isTrue)
+            .having((s) => s.exception, 'exception', isA<OfflineException>()))))
+        .called(1);
+
+    await oneMs();
+
+    // now responds with models, loading done, and no exception
+    verify(listener(DataState([family, family2], isLoading: false))).called(1);
     verifyNoMoreInteractions(listener);
   });
 
@@ -397,16 +422,16 @@ void main() async {
   });
 
   test('watchOne with error', () async {
-    final listener = Listener<DataState<Person>>();
+    final listener = Listener<DataState<Family>>();
 
     container.read(responseProvider).state = TestResponse(
       text: (_) => throw Exception('whatever'),
     );
-    final notifier = personRepository.watchOne('1', remote: true);
+    final notifier = familyRepository.watchOne('1', remote: true);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
-    verify(listener(DataState(null, isLoading: true))).called(1);
+    verify(listener(DataState<Family>(null, isLoading: true))).called(1);
     await oneMs();
 
     verify(listener(argThat(isA<DataState>().having(
@@ -414,6 +439,50 @@ void main() async {
             'exception',
             'Exception: whatever'))))
         .called(1);
+    verifyNoMoreInteractions(listener);
+
+    container.read(responseProvider).state =
+        TestResponse(text: (_) => throw SocketException('unreachable'));
+
+    await notifier.reload();
+    await oneMs();
+
+    // loads again, for now original exception remains
+    verify(listener(argThat(isA<DataState<Family>>()
+            .having((s) => s.isLoading, 'isLoading', isTrue)
+            .having((s) => s.exception.error.toString(), 'exception',
+                startsWith('Exception:')))))
+        .called(1);
+
+    await oneMs();
+    // finished loading but found the network unreachable
+    verify(listener(argThat(isA<DataState<Family>>()
+            .having((s) => s.isLoading, 'isLoading', isFalse)
+            .having((s) => s.exception, 'exception', isA<OfflineException>()))))
+        .called(1);
+    verifyNoMoreInteractions(listener);
+
+    // now server will successfully respond with a family
+    container.read(responseProvider).state = TestResponse.text('''
+        { "id": "1", "surname": "Corleone" }
+      ''');
+
+    // reload
+    await notifier.reload();
+    await oneMs();
+
+    final family = Family(id: '1', surname: 'Corleone');
+
+    // loads again, for now exception remains
+    verify(listener(argThat(isA<DataState<Family>>()
+            .having((s) => s.isLoading, 'isLoading', isTrue)
+            .having((s) => s.exception, 'exception', isA<OfflineException>()))))
+        .called(1);
+
+    await oneMs();
+
+    // now responds with model, loading done, and no exception
+    verify(listener(DataState(family, isLoading: false))).called(1);
     verifyNoMoreInteractions(listener);
   });
 

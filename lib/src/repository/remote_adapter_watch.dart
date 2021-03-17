@@ -69,7 +69,8 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           }).isNotEmpty) {
         final filtered =
             filterLocal != null ? models.where(filterLocal).toList() : models;
-        _notifier.updateWith(model: filtered, isLoading: false);
+        _notifier.updateWith(
+            model: filtered, isLoading: false, exception: null);
       }
     });
 
@@ -198,7 +199,8 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       // NOTE: because of this comparison, use field equality
       // rather than key equality (which wouldn't update)
       if (modelBuffer != _notifier.data.model || refresh) {
-        _notifier.updateWith(model: modelBuffer, isLoading: false);
+        _notifier.updateWith(
+            model: modelBuffer, isLoading: false, exception: null);
       }
     });
 
