@@ -147,7 +147,15 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
 
   // lifecycle methods
 
-  Future<void> onInitialized() async {}
+  final _offlineAdapterKey = '_offline:adapter';
+
+  @mustCallSuper
+  Future<void> onInitialized() async {
+    // ensure offline node exists
+    if (!graph.hasNode(_offlineAdapterKey)) {
+      graph.addNode(_offlineAdapterKey);
+    }
+  }
 
   @override
   @mustCallSuper
@@ -332,6 +340,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       method: methodForSave(model.id, params),
       headers: headers,
       body: body,
+      key: keyFor(model),
       onError: onError,
       onSuccess: (data) {
         if (data == null) {
@@ -396,6 +405,31 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   @visibleForTesting
   Future<void> clearAll() => localAdapter.clearAll();
 
+  // offline
+
+  @protected
+  @visibleForTesting
+  List<T> get offlineModels {
+    final keys = graph.getEdge(_offlineAdapterKey, metadata: type);
+    return (keys ?? []).map(localAdapter.findOne).toList();
+  }
+
+  @protected
+  @visibleForTesting
+  Future<List<DataException>> saveOfflineModels() async {
+    final exceptions = <DataException>[];
+    final all = offlineModels.map((model) =>
+        save(model, onError: (e) => exceptions.add(e), remote: true));
+    await Future.wait(all);
+    return exceptions;
+  }
+
+  @protected
+  @visibleForTesting
+  void forgetOfflineModels() {
+    graph.removeEdges(_offlineAdapterKey, metadata: type);
+  }
+
   // http
 
   /// An [http.Client] used to make an HTTP request.
@@ -441,6 +475,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     DataRequestMethod method = DataRequestMethod.GET,
     Map<String, String> headers,
     String body,
+    String key,
     OnData<R> onSuccess,
     OnDataError<E> onError,
     bool omitDefaultParams = false,
@@ -491,17 +526,29 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     }
 
     if (error == null && code >= 200 && code < 300) {
+      if (key != null) {
+        // request succeeded, remove model from offline meta, if present
+        graph.removeEdge(_offlineAdapterKey, key, metadata: type);
+      }
       return await onSuccess(data);
     } else {
+      DataException _e;
       if (error.toString().contains('SocketException')) {
-        throw OfflineException(model: null, source: error);
+        if (key != null) {
+          // request failed, add model to offline edge
+          graph.addEdge(_offlineAdapterKey, key, metadata: type);
+          _e = OfflineException(error: error, model: localAdapter.findOne(key));
+        } else {
+          _e = OfflineException(error: error);
+        }
+      } else {
+        _e = DataException(error ?? data,
+            stackTrace: stackTrace, statusCode: code);
       }
-      final e = DataException(error ?? data,
-          stackTrace: stackTrace, statusCode: code);
       if (_verbose) {
-        print('[flutter_data] $T: $e');
+        print('[flutter_data] $T: $_e');
       }
-      final errorResult = await onError(e);
+      final errorResult = await onError(_e);
       return errorResult is R ? errorResult : null;
     }
   }

@@ -127,6 +127,30 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   /// Deletes all models of all types. This ONLY affects local storage.
   Future<void> clearAll() => remoteAdapter.clearAll();
 
+  // offline
+
+  /// Shows all models of type [T] that have failed to be
+  /// remotely persisted through [save].
+  List<T> get offlineModels => remoteAdapter.offlineModels;
+
+  /// Retries saving [offlineModels].
+  ///
+  /// Does NOT support custom `params` or `headers` for this subsequent
+  /// `save` attempt.
+  ///
+  /// Returns a list of [DataException] only for those failed saves.
+  /// Some or all of them might still be [OfflineException]s.
+  ///
+  /// An empty resulting list indicates a success saving all [offlineModels].
+  Future<List<DataException>> saveOfflineModels() =>
+      remoteAdapter.saveOfflineModels();
+
+  /// Forgets/ignores all failed to save models such that
+  /// [offlineModels] becomes empty.
+  void forgetOfflineModels() => remoteAdapter.forgetOfflineModels();
+
+  // watchers
+
   /// Watches changes on all models of type [T] in local storage.
   ///
   /// When called, will in turn call [findAll] with [remote], [params],

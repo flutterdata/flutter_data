@@ -197,32 +197,123 @@ void main() async {
   });
 
   test('save offline', () async {
-    final family = Family(id: '1', surname: 'Smith');
-    container.read(responseProvider).state =
-        TestResponse(text: (_) => throw SocketException('unreachable'));
-
     final listener = Listener<DataState<List<Family>>>();
+    // listening to local changes enough
     final notifier = familyRepository.watchAll(remote: false);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
-    verify(listener(DataState([], isLoading: false))).called(1);
+    final family = Family(id: '1', surname: 'Smith');
 
+    // network issue persisting family
+    container.read(responseProvider).state =
+        TestResponse(text: (_) => throw SocketException('unreachable'));
+
+    // must specify remote=true as repo's default is remote=false
     await familyRepository.save(family, remote: true, onError: (e) async {
+      // supply onError for exception to show up in notifier
       await oneMs();
       notifier.updateWith(exception: e);
     });
     await oneMs();
 
-    verify(listener(DataState([family], isLoading: false))).called(1);
-
+    // assert it's an OfflineException
     verify(listener(argThat(
-      isA<DataState>().having((s) {
-        return s.exception;
-      }, 'exception', isA<DataException>()),
+      isA<DataState<List<Family>>>().having(
+        (s) => s.exception,
+        'exception',
+        isA<OfflineException>().having(
+          (s) => s.model,
+          'model',
+          equals(family),
+        ),
+      ),
     ))).called(1);
 
-    expect(familyRepository.remoteAdapter.unsaved, hasLength(1));
+    // family is remembered as failed to persist
+    expect(familyRepository.offlineModels, [family]);
+
+    // try with family2
+    final family2 = Family(id: '2', surname: 'Montewicz');
+    try {
+      await familyRepository.save(family2, remote: true);
+    } catch (_) {
+      // without onError, ignore exception
+    }
+    await oneMs();
+
+    // now two families failed to persist
+    expect(familyRepository.offlineModels, [family, family2]);
+
+    // retry saving them
+    final exceptions = await familyRepository.saveOfflineModels();
+    // await 1ms for each family
+    await oneMs();
+    await oneMs();
+
+    // none of them could be saved upon retry - we get two OfflineExceptions again
+    expect(exceptions.map((e) => (e as OfflineException).model),
+        equals([family, family2]));
+
+    // change the response to: success for family, failure for family2
+    container.read(responseProvider).state = TestResponse(
+      text: (req) {
+        if (req.url.pathSegments.last == '1') {
+          return '{"id": "1", "surname": "Jones 1"}';
+        }
+        throw SocketException('unreachable');
+      },
+    );
+
+    // retry
+    final exceptions2 = await familyRepository.saveOfflineModels();
+    await oneMs();
+    await oneMs();
+
+    // the returned OfflineException still points to family2, failed on retry
+    expect(exceptions2.map((e) => (e as OfflineException).model), [family2]);
+
+    // family2 still remembered as not persisted
+    expect(familyRepository.offlineModels, [family2]);
+
+    // change response to success for both family and family2
+    container.read(responseProvider).state = TestResponse(text: (req) {
+      return '{"id": "${req.url.pathSegments.last}", "surname": "Jones ${req.url.pathSegments.last}"}';
+    });
+
+    // retry
+    final exceptions3 = await familyRepository.saveOfflineModels();
+    await oneMs();
+    await oneMs();
+
+    // should be empty as all saves succeeded
+    expect(exceptions3.map((e) => (e as OfflineException).model), isEmpty);
+
+    // same here
+    expect(familyRepository.offlineModels, isEmpty);
+
+    // simulate a network issue once again for family3
+    container.read(responseProvider).state =
+        TestResponse(text: (_) => throw SocketException('unreachable'));
+
+    try {
+      await Family(id: '3', surname: 'Zweck')
+          .init(container.read)
+          .save(remote: true);
+    } catch (_) {
+      // without onError, ignore exception
+    }
+    await oneMs();
+
+    // assert family3 hasn't been persisted
+    expect(familyRepository.offlineModels,
+        equals([Family(id: '3', surname: 'Zweck')]));
+
+    // use `resetOfflineModels` to forget/ignore failed to save models
+    familyRepository.forgetOfflineModels();
+
+    // so it's empty again
+    expect(familyRepository.offlineModels, isEmpty);
   });
 
   test('delete', () async {

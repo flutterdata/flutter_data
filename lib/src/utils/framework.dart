@@ -29,9 +29,9 @@ class DataHelpers {
   }
 }
 
-class OfflineException<T extends DataModel<T>> extends DataException {
-  final T model;
-  OfflineException({this.model, Object source}) : super(source);
+class OfflineException extends DataException {
+  final DataModel model;
+  OfflineException({this.model, Object error}) : super(error);
 }
 
 abstract class _Lifecycle<T> {

@@ -11,20 +11,6 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
   StateNotifier<List<DataGraphEvent>> get throttledGraph =>
       graph.throttle(throttleDuration);
 
-  // initialize
-
-  final _offlineAdapterKey = '_offline:adapter';
-
-  @override
-  Future<void> onInitialized() async {
-    // ensure offline node exists
-    if (!graph.hasNode(_offlineAdapterKey)) {
-      graph.addNode(_offlineAdapterKey);
-    }
-  }
-
-  // reads
-
   DataStateNotifier<List<T>> watchAll(
       {final bool remote,
       final Map<String, dynamic> params,
@@ -41,11 +27,12 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       reload: (notifier) async {
         try {
           final _future = findAll(
-              params: params,
-              headers: headers,
-              remote: remote,
-              syncLocal: syncLocal,
-              init: true);
+            params: params,
+            headers: headers,
+            remote: remote,
+            syncLocal: syncLocal,
+            init: true,
+          );
           if (remote ?? true) {
             notifier.updateWith(isLoading: true);
           }
@@ -53,13 +40,10 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           // trigger doneLoading to ensure state is updated with isLoading=false
           graph._notify([type], DataGraphEventType.doneLoading);
         } on DataException catch (e) {
-          final exception = e.error.toString().contains('SocketException')
-              ? OfflineException<T>(source: e.error)
-              : e;
           // we're only interested in notifying errors
           // as models will pop up via the graph notifier
           if (notifier.mounted) {
-            notifier.updateWith(isLoading: false, exception: exception);
+            notifier.updateWith(isLoading: false, exception: e);
           } else {
             rethrow;
           }
@@ -129,13 +113,10 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           // trigger doneLoading to ensure state is updated with isLoading=false
           graph._notify([key()], DataGraphEventType.doneLoading);
         } on DataException catch (e) {
-          final exception = e.error.toString().contains('SocketException')
-              ? OfflineException<T>(source: e.error)
-              : e;
           // we're only interested in notifying errors
           // as models will pop up via the graph notifier
           if (notifier.mounted) {
-            notifier.updateWith(isLoading: false, exception: exception);
+            notifier.updateWith(isLoading: false, exception: e);
           } else {
             rethrow;
           }
@@ -233,46 +214,6 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         .filterNulls
         .expand((key) => key)
         .toSet();
-  }
-
-  // writes
-
-  List<T> get unsaved {
-    final keys = graph.getEdge(_offlineAdapterKey, metadata: type);
-    return (keys ?? []).map(localAdapter.findOne).toList();
-  }
-
-  @override
-  Future<T> save(
-    T model, {
-    bool remote,
-    Map<String, dynamic> params,
-    Map<String, String> headers,
-    OnDataError onError,
-    bool init,
-  }) async {
-    try {
-      final newModel = await super.save(model,
-          remote: remote,
-          params: params,
-          onError: onError,
-          headers: headers,
-          init: init);
-      // succeeded so remove edge if present
-      graph.removeEdge(_offlineAdapterKey, keyFor(model), metadata: type);
-      return newModel;
-    } on OfflineException catch (e) {
-      // add model's key with offline meta
-      graph.addEdge(_offlineAdapterKey, keyFor(model), metadata: type);
-
-      final newE = OfflineException(model: model, source: e.error);
-      if (onError != null) {
-        onError(newE);
-        return null;
-      } else {
-        throw newE;
-      }
-    }
   }
 }
 
