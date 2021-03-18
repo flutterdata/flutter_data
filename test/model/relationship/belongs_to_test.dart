@@ -103,4 +103,32 @@ void main() async {
 
     verify(listener(argThat(isNull))).called(1);
   });
+
+  test('inverses work when reusing a relationship', () {
+    final person = Person(name: 'Cecil', age: 2).init(container.read);
+    final house =
+        House(id: '1', address: '21 Coconut Trail').init(container.read);
+    final family = Family(
+            id: '2',
+            surname: 'Raoult',
+            residence: house.asBelongsTo,
+            persons: {person}.asHasMany)
+        .init(container.read);
+
+    // reusing a BelongsTo<Family> (`house.owner`) to add a person
+    // adds the inverse relationship
+    expect(family.persons.length, 1);
+    Person(name: 'Junior', age: 12, family: house.owner).init(container.read);
+    expect(family.persons.length, 2);
+
+    // an empty reused relationship should not fail
+    final house2 =
+        House(id: '17', address: '798 Birkham Rd', owner: BelongsTo<Family>())
+            .init(container.read);
+
+    // trying to add walter to a null family does nothing
+    Person(name: 'Walter', age: 55, family: house2.owner).init(container.read);
+
+    expect(family.persons.length, 2);
+  });
 }

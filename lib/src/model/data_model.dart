@@ -39,20 +39,12 @@ Please ensure `Repository<$T>` has been correctly initialized.''');
         in _adapter.localAdapter.relationshipsFor(_this).entries) {
       final relationship = metadata.value['instance'] as Relationship;
 
-      if (relationship != null) {
-        if (relationship.isInitialized) {
-          if (relationship is BelongsTo) {
-            relationship.addInverse(metadata.value['inverse'] as String, this);
-          }
-        } else {
-          relationship?.initialize(
-            adapters: adapters,
-            owner: _this,
-            name: metadata.value['name'] as String,
-            inverseName: metadata.value['inverse'] as String,
-          );
-        }
-      }
+      relationship?.initialize(
+        adapters: adapters,
+        owner: _this,
+        name: metadata.value['name'] as String,
+        inverseName: metadata.value['inverse'] as String,
+      );
     }
 
     return _this;

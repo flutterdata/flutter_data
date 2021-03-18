@@ -63,6 +63,19 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E> {
 
   String get id => super.ids.safeFirst;
 
+  @override
+  Future<Relationship<E, E>> initialize(
+      {@required final Map<String, RemoteAdapter> adapters,
+      @required final DataModel owner,
+      @required final String name,
+      @required final String inverseName}) async {
+    if (isInitialized) {
+      addInverse(inverseName, owner);
+    }
+    return super.initialize(
+        adapters: adapters, owner: owner, name: name, inverseName: inverseName);
+  }
+
   /// Returns a [StateNotifier] which emits the latest [value] of
   /// this [BelongsTo] relationship.
   @override
@@ -73,10 +86,12 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E> {
   }
 
   void addInverse(String inverseName, DataModel model) {
-    final _rels = value._adapter.localAdapter.relationshipsFor(value);
-    final inverseMetadata = _rels[inverseName];
-    final inverseRelationship = inverseMetadata['instance'] as Relationship;
-    inverseRelationship.add(model);
+    if (value != null) {
+      final _rels = value._adapter.localAdapter.relationshipsFor(value);
+      final inverseMetadata = _rels[inverseName];
+      final inverseRelationship = inverseMetadata['instance'] as Relationship;
+      inverseRelationship.add(model);
+    }
   }
 
   @override
