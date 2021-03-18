@@ -7,11 +7,13 @@ class DataState<T> with EquatableMixin {
   final T model;
   final bool isLoading;
   final DataException exception;
+  final StackTrace stackTrace;
 
   const DataState(
     this.model, {
     this.isLoading = false,
     this.exception,
+    this.stackTrace,
   });
 
   bool get hasException => exception != null;
@@ -43,25 +45,29 @@ class DataException with EquatableMixin implements Exception {
 
 class DataStateNotifier<T> extends StateNotifier<DataState<T>> {
   DataStateNotifier({
-    DataState<T> model,
+    DataState<T> data,
     Future<void> Function(DataStateNotifier<T>) reload,
   })  : _reloadFn = reload,
-        super(model);
+        super(data);
 
   final Future<void> Function(DataStateNotifier<T>) _reloadFn;
   void Function() onDispose;
 
   DataState<T> get data => super.state;
 
-  void updateWith(
-      {Object model = stamp,
-      Object isLoading = stamp,
-      Object exception = stamp}) {
+  void updateWith({
+    Object model = stamp,
+    Object isLoading = stamp,
+    Object exception = stamp,
+    Object stackTrace = stamp,
+  }) {
     super.state = DataState<T>(
       model == stamp ? state.model : model as T,
       isLoading: isLoading == stamp ? state.isLoading : isLoading as bool,
       exception:
           exception == stamp ? state.exception : exception as DataException,
+      stackTrace:
+          stackTrace == stamp ? state.stackTrace : stackTrace as StackTrace,
     );
   }
 

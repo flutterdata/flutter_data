@@ -20,7 +20,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     _assertInit();
 
     final _notifier = DataStateNotifier<List<T>>(
-      model: DataState(localAdapter
+      data: DataState(localAdapter
           .findAll()
           .map((m) => initializeModel(m, save: true))
           .toList()),
@@ -96,8 +96,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     final _alsoWatchFilters = <String>{};
 
     final _notifier = DataStateNotifier<T>(
-      model:
-          DataState(initializeModel(localAdapter.findOne(key()), save: true)),
+      data: DataState(initializeModel(localAdapter.findOne(key()), save: true)),
       reload: (notifier) async {
         if (id == null) return;
         try {
