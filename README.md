@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD033 MD041 -->
 <p align="center" style="margin-bottom: 0px;">
   <img src="https://avatars2.githubusercontent.com/u/61839689?s=200&v=4" width="85px">
 </p>
@@ -36,7 +37,7 @@ Inspired by [Ember Data](https://github.com/emberjs/data) and [ActiveRecord](htt
   - Truly configurable and composable
   - Scales very well (both up _and_ down)
 
-#### Check out the [Documentation](https://flutterdata.dev) or the [Tutorial](https://flutterdata.dev/tutorial) 📚 where we build a CRUD app from the ground app in record time.
+**Check out the [Documentation](https://flutterdata.dev) or the [Tutorial](https://flutterdata.dev/tutorial) 📚 where we build a CRUD app from the ground app in record time.**
 
 ## Getting started
 
@@ -95,7 +96,7 @@ return DataStateBuilder<List<User>>(
 In addition to the reactivity, a `User` now gets extensions and automatic relationships, ActiveRecord-style:
 
 ```dart
-final todo = await Todo(title: 'Finish docs').init(context).save();
+final todo = await Todo(title: 'Finish docs').init(context.read).save();
 // POST https://my-json-server.typicode.com/flutterdata/demo/todos/
 print(todo.id); // 201
 
@@ -132,7 +133,7 @@ Fully compatible with the tools we know and love:
 
 ## 📲 Apps using Flutter Data
 
-![](https://mk0scoutforpetsedheb.kinstacdn.com/wp-content/uploads/scout.svg)
+![scout app](https://mk0scoutforpetsedheb.kinstacdn.com/wp-content/uploads/scout.svg)
 
 The new offline-first [Scout](https://scoutforpets.com) Flutter app is being developed in record time with Flutter Data.
 

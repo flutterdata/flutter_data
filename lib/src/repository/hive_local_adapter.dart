@@ -9,7 +9,7 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
         super(_ref);
 
   final HiveLocalStorage _hiveLocalStorage;
-  final _type = DataHelpers.getType<T>();
+  String get _internalType => DataHelpers.getType<T>();
 
   // once late final field, remove ignore on class
   @protected
@@ -23,7 +23,7 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
     await super.initialize();
     final clear = _hiveLocalStorage.clear ?? false;
 
-    if (!_hiveLocalStorage.hive.isBoxOpen(_type)) {
+    if (!_hiveLocalStorage.hive.isBoxOpen(_internalType)) {
       if (!_hiveLocalStorage.hive.isAdapterRegistered(typeId)) {
         _hiveLocalStorage.hive.registerAdapter(this);
       }
@@ -43,13 +43,13 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
   }
 
   Future<Box<T>> _openBox() async {
-    return await _hiveLocalStorage.hive.openBox<T>(_type,
+    return await _hiveLocalStorage.hive.openBox<T>(_internalType,
         encryptionCipher: _hiveLocalStorage.encryptionCipher);
   }
 
   Future<void> _deleteBox({bool graph = false}) async {
     try {
-      await _hiveLocalStorage.hive.deleteBoxFromDisk(_type);
+      await _hiveLocalStorage.hive.deleteBoxFromDisk(_internalType);
       if (graph) {
         if (await _hiveLocalStorage.hive.boxExists('graph')) {
           await _hiveLocalStorage.hive.deleteBoxFromDisk('_graph');
@@ -137,13 +137,14 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
 
     final _typesNode = graph.getNode('hive:adapter');
 
-    if (_typesNode[_type] != null && _typesNode[_type].isNotEmpty) {
-      return int.parse(_typesNode[_type].first);
+    if (_typesNode[_internalType] != null &&
+        _typesNode[_internalType].isNotEmpty) {
+      return int.parse(_typesNode[_internalType].first);
     }
 
     final index = _typesNode.length + 1;
     // insert at last position of _typesNode map
-    _typesNode[_type] = [index.toString()];
+    _typesNode[_internalType] = [index.toString()];
     return index;
   }
 

@@ -54,14 +54,20 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   /// Give adapter subclasses access to the dependency injection system
   @nonVirtual
   @protected
-  ProviderReference ref;
+  ProviderReference ref; // late final
+
+  /// INTERNAL: DO NOT USE OR ELSE THINGS WILL BREAK
+  @visibleForTesting
+  @protected
+  String get internalType => DataHelpers.getType<T>();
 
   /// The pluralized and downcased [DataHelpers.getType<T>] version of type [T]
+  /// by default.
   ///
   /// Example: [T] as `Post` has a [type] of `posts`.
-  @nonVirtual
+  @visibleForTesting
   @protected
-  final type = DataHelpers.getType<T>();
+  String get type => internalType;
 
   /// Returns the base URL for this type [T].
   ///

@@ -95,16 +95,12 @@ and execute a code generation build again.
 
       final keyName = jsonKeyAnnotation?.getField('name')?.toStringValue();
 
-      final remoteType =
-          relationshipAnnotation?.getField('remoteType')?.toStringValue();
-
       result.add({
         'key': keyName ?? field.name,
         'name': field.name,
         'inverse': inverse,
         'kind': field.type.element.name,
         'type': DataHelpers.getType(relationshipClassElement.name),
-        'remoteType': remoteType,
       });
 
       return result;
@@ -118,8 +114,6 @@ and execute a code generation build again.
           '\'type\'': '\'${rel['type']}\'',
           '\'kind\'': '\'${rel['kind']}\'',
           '\'instance\'': 'model?.' + rel['name'],
-          if (rel['remoteType'] != null)
-            '\'remoteType\'': '\'${rel['remoteType']}\'',
         }
     };
 

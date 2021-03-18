@@ -5,7 +5,7 @@ part 'book.freezed.dart';
 part 'book.g.dart';
 
 @freezed
-@DataRepository([])
+@DataRepository([AuthorAdapter])
 abstract class Author with DataModel<Author>, _$Author {
   @With.fromString('DataModel<Author>')
   factory Author({
@@ -28,22 +28,7 @@ abstract class Book with DataModel<Book>, _$Book {
   factory Book.fromJson(Map<String, dynamic> json) => _$BookFromJson(json);
 }
 
-@freezed
-abstract class Hotel with _$Hotel {
-  factory Hotel({
-    int id,
-    String name,
-    List<Room> room,
-  }) = _Hotel;
-  factory Hotel.fromJson(Map<String, dynamic> json) => _$HotelFromJson(json);
-}
-
-@freezed
-abstract class Room with _$Room {
-  factory Room({
-    int id,
-    String name,
-    Hotel hotel,
-  }) = _Room;
-  factory Room.fromJson(Map<String, dynamic> json) => _$RoomFromJson(json);
+mixin AuthorAdapter on RemoteAdapter<Author> {
+  @override
+  String get type => 'writers';
 }

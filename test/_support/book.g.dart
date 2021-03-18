@@ -38,39 +38,6 @@ Map<String, dynamic> _$_$_BookToJson(_$_Book instance) => <String, dynamic>{
       'author': instance.author,
     };
 
-_$_Hotel _$_$_HotelFromJson(Map<String, dynamic> json) {
-  return _$_Hotel(
-    id: json['id'] as int,
-    name: json['name'] as String,
-    room: (json['room'] as List)
-        ?.map(
-            (e) => e == null ? null : Room.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
-  );
-}
-
-Map<String, dynamic> _$_$_HotelToJson(_$_Hotel instance) => <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
-      'room': instance.room,
-    };
-
-_$_Room _$_$_RoomFromJson(Map<String, dynamic> json) {
-  return _$_Room(
-    id: json['id'] as int,
-    name: json['name'] as String,
-    hotel: json['hotel'] == null
-        ? null
-        : Hotel.fromJson(json['hotel'] as Map<String, dynamic>),
-  );
-}
-
-Map<String, dynamic> _$_$_RoomToJson(_$_Room instance) => <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
-      'hotel': instance.hotel,
-    };
-
 // **************************************************************************
 // RepositoryGenerator
 // **************************************************************************
@@ -107,7 +74,7 @@ mixin $AuthorLocalAdapter on LocalAdapter<Author> {
 class $AuthorHiveLocalAdapter = HiveLocalAdapter<Author>
     with $AuthorLocalAdapter;
 
-class $AuthorRemoteAdapter = RemoteAdapter<Author> with NothingMixin;
+class $AuthorRemoteAdapter = RemoteAdapter<Author> with AuthorAdapter;
 
 //
 

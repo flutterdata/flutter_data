@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
+import '../_support/book.dart';
 import '../_support/family.dart';
 import '../_support/house.dart';
 import '../_support/person.dart';
@@ -99,5 +100,12 @@ void main() async {
     expect(await adapter.url({'a': 1}), '/url?a=1');
     expect(await adapter.url({'b': 2}, useDefaultParams: true),
         '/url?b=2&default=true');
+  });
+
+  test('can override type', () {
+    final author = Author(id: 15, name: 'Walter').init(container.read);
+    final adapter = adapterFor(author);
+    expect(adapter.type, 'writers');
+    expect(adapter.internalType, 'authors');
   });
 }

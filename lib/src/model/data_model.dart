@@ -12,8 +12,8 @@ abstract class DataModel<T extends DataModel<T>> {
   Map<String, RemoteAdapter> _adapters;
 
   // computed
-  String get _type => DataHelpers.getType<T>();
-  RemoteAdapter<T> get _adapter => _adapters[_type] as RemoteAdapter<T>;
+  String get _internalType => DataHelpers.getType<T>();
+  RemoteAdapter<T> get _adapter => _adapters[_internalType] as RemoteAdapter<T>;
   bool get _isInitialized => _key != null && _adapters != null;
 
   // initializers
@@ -138,15 +138,15 @@ This model MUST be initialized in order to call `$method`.
 
 DON'T DO THIS:
 
-  final ${_type.singularize()} = $T(...);
-  ${_type.singularize()}.$method(...);
+  final ${_internalType.singularize()} = $T(...);
+  ${_internalType.singularize()}.$method(...);
 
 DO THIS:
 
-  final ${_type.singularize()} = $T(...).init(context);
-  ${_type.singularize()}.$method(...);
+  final ${_internalType.singularize()} = $T(...).init(context.read);
+  ${_internalType.singularize()}.$method(...);
 
-Call `init(context)` on the model first.
+Call `init(context.read)` on the model first.
 
 This ONLY happens when a model is manually instantiated
 and had no contact with Flutter Data.
@@ -156,7 +156,8 @@ Initializing models is not necessary in any other case.
 When assigning new models to a relationship, only initialize
 the actual model:
 
-Family(surname: 'Carlson', dogs: {Dog(name: 'Jerry'), Dog(name: 'Zoe')}.asHasMany).init(context);
+Family(surname: 'Carlson', dogs: {Dog(name: 'Jerry'), Dog(name: 'Zoe')}.asHasMany)
+  .init(context.read);
 ''');
   }
 }
@@ -165,3 +166,7 @@ Family(surname: 'Carlson', dogs: {Dog(name: 'Jerry'), Dog(name: 'Zoe')}.asHasMan
 ///
 /// Useful for testing, debugging or usage in [RemoteAdapter] subclasses.
 String keyFor<T extends DataModel<T>>(T model) => model?._key;
+
+@visibleForTesting
+@protected
+RemoteAdapter adapterFor<T extends DataModel<T>>(T model) => model?._adapter;

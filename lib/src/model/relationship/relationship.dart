@@ -25,8 +25,7 @@ abstract class Relationship<E extends DataModel<E>, N>
   final Set<E> _uninitializedModels;
   final bool _wasOmitted;
 
-  @protected
-  String get type => DataHelpers.getType<E>();
+  String get _internalType => DataHelpers.getType<E>();
 
   /// Initializes this relationship (typically when initializing the owner
   /// in [DataModel]) by supplying the owner, and related [adapters] and metadata.
@@ -40,7 +39,7 @@ abstract class Relationship<E extends DataModel<E>, N>
     if (isInitialized) return this;
 
     _adapters = adapters;
-    _adapter = adapters[type] as RemoteAdapter<E>;
+    _adapter = adapters[_internalType] as RemoteAdapter<E>;
 
     assert(owner != null && _adapter != null);
     _ownerKey = owner._key;
@@ -208,6 +207,5 @@ abstract class Relationship<E extends DataModel<E>, N>
 
 class DataRelationship {
   final String inverse;
-  final String remoteType;
-  const DataRelationship({this.inverse, this.remoteType});
+  const DataRelationship({this.inverse});
 }

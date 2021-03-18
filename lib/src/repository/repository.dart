@@ -5,12 +5,13 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   final ProviderReference _ref;
   Repository(this._ref);
 
-  String get type => DataHelpers.getType<T>();
+  String get _internalType => DataHelpers.getType<T>();
 
   final _adapters = <String, RemoteAdapter>{};
 
-  /// Obtain the [RemoteAdapter] for this [type].
-  RemoteAdapter<T> get remoteAdapter => _adapters[type] as RemoteAdapter<T>;
+  /// Obtain the [RemoteAdapter] for this type.
+  RemoteAdapter<T> get remoteAdapter =>
+      _adapters[_internalType] as RemoteAdapter<T>;
 
   /// Initializes this [Repository]. Nothing will work without this.
   /// In standard scenarios this initialization is done by the framework.
