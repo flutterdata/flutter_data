@@ -85,98 +85,19 @@ class DataExtensionBuilder implements Builder {
         .toSet()
         .join('\n');
 
-    var providerRegistration = '';
-
     final graphMap = {
       for (final clazz in classes)
         '\'${clazz['type']}\'':
             'ref.read(${clazz['singularType']}RemoteAdapterProvider)'
     };
 
-    // check dependencies
+    // imports
 
     final importPathProvider = await isDependency('path_provider', b);
-    final importProvider = await isDependency('provider', b);
-    final importGetIt = await isDependency('get_it', b);
-
-    //
-    var getItRegistration = '';
-
-    if (importProvider) {
-      providerRegistration = '''\n
-List<SingleChildWidget> repositoryProviders({FutureFn<String> baseDirFn, List<int> encryptionKey,
-    bool clear, bool remote, bool verbose}) {
-
-  return [
-    p.Provider(
-        create: (_) => ProviderContainer(
-          overrides: [
-            configureRepositoryLocalStorage(
-                baseDirFn: baseDirFn, encryptionKey: encryptionKey, clear: clear),
-          ]
-      ),
-    ),
-    p.FutureProvider<RepositoryInitializer>(
-      create: (context) async {
-        return await p.Provider.of<ProviderContainer>(context, listen: false).read(repositoryInitializerProvider(remote: remote, verbose: verbose).future);
-      },
-    ),''' +
-          classes.map((clazz) => '''
-    p.ProxyProvider<RepositoryInitializer, Repository<${clazz['name']}>>(
-      lazy: false,
-      update: (context, i, __) => i == null ? null : p.Provider.of<ProviderContainer>(context, listen: false).read(${clazz['singularType']}RepositoryProvider),
-      dispose: (_, r) => r?.dispose(),
-    ),''').join('\n') +
-          ']; }';
-    }
-
-    if (importGetIt) {
-      getItRegistration = '''
-extension GetItFlutterDataX on GetIt {
-  void registerRepositories({FutureFn<String> baseDirFn, List<int> encryptionKey,
-    bool clear, bool remote, bool verbose}) {
-final i = GetIt.instance;
-
-final _container = ProviderContainer(
-  overrides: [
-    configureRepositoryLocalStorage(baseDirFn: baseDirFn, encryptionKey: encryptionKey, clear: clear),
-  ],
-);
-
-if (i.isRegistered<RepositoryInitializer>()) {
-  return;
-}
-
-i.registerSingletonAsync<RepositoryInitializer>(() async {
-    final init = _container.read(repositoryInitializerProvider(remote: remote, verbose: verbose).future);
-    internalLocatorFn =
-          <T extends DataModel<T>>(ProviderBase<Object, Repository<T>> provider, _) =>
-              _container.read(provider);
-    return init;
-  });''' +
-          classes.map((clazz) => '''
-  
-i.registerSingletonWithDependencies<Repository<${clazz['name']}>>(
-      () => _container.read(${clazz['singularType']}RepositoryProvider),
-      dependsOn: [RepositoryInitializer]);
-
-      ''').join('\n') +
-          '} }';
-    }
 
     final pathProviderImport = importPathProvider
         ? "import 'package:path_provider/path_provider.dart';"
         : '';
-
-    final providerImports = importProvider
-        ? [
-            "import 'package:provider/provider.dart' as p hide ReadContext;",
-            "import 'package:provider/single_child_widget.dart';",
-          ].join('\n')
-        : '';
-
-    final getItImport =
-        importGetIt ? "import 'package:get_it/get_it.dart';" : '';
 
     final importFlutterRiverpod = await isDependency('flutter_riverpod', b) ||
         await isDependency('hooks_riverpod', b);
@@ -187,20 +108,6 @@ i.registerSingletonWithDependencies<Repository<${clazz['name']}>>(
 
     //
 
-    final repoInitializeEntries = classes.map((clazz) => '''\n
-      final _${clazz['singularType']}Repository = ref.read(${clazz['singularType']}RepositoryProvider);
-      _${clazz['singularType']}Repository.dispose();
-      await _${clazz['singularType']}Repository.initialize(
-        remote: args?.remote,
-        verbose: args?.verbose,
-        adapters: adapters,
-      );''').join('');
-
-    final repoDisposeEntries = classes
-        .map((clazz) => '''
-      ref.read(${clazz['singularType']}RepositoryProvider).dispose();\n''')
-        .join('');
-
     await b.writeAsString(finalAssetId, '''\n
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: directives_ordering, top_level_function_literal_block
@@ -208,8 +115,6 @@ i.registerSingletonWithDependencies<Repository<${clazz['name']}>>(
 import 'package:flutter_data/flutter_data.dart';
 
 $pathProviderImport
-$providerImports
-$getItImport
 $riverpodImport
 
 $modelImports
@@ -229,23 +134,34 @@ RepositoryInitializerProvider repositoryInitializerProvider = (
       RepositoryInitializerArgs(remote, verbose));
 };
 
+final repositoryProviders = {
+  ${classes.map((clazz) => clazz['singularType'] + 'RepositoryProvider').join(',\n')}
+};
+
 final _repositoryInitializerProviderFamily =
   FutureProvider.family<RepositoryInitializer, RepositoryInitializerArgs>((ref, args) async {
     final adapters = <String, RemoteAdapter>$graphMap;
-    $repoInitializeEntries
+
+    for (final repositoryProvider in repositoryProviders) {
+      final repository = ref.read(repositoryProvider);
+      repository.dispose();
+      await repository.initialize(
+        remote: args?.remote,
+        verbose: args?.verbose,
+        adapters: adapters,
+      );
+    }
 
     ref.onDispose(() {
       if (ref.mounted) {
-        $repoDisposeEntries
+        for (final repositoryProvider in repositoryProviders) {
+          ref.read(repositoryProvider).dispose();
+        }
       }
     });
 
     return RepositoryInitializer();
 });
-
-$providerRegistration
-
-$getItRegistration
 ''');
   }
 }

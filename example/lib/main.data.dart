@@ -29,41 +29,31 @@ RepositoryInitializerProvider repositoryInitializerProvider = (
       RepositoryInitializerArgs(remote, verbose));
 };
 
+final repositoryProviders = {
+  commentRepositoryProvider,
+postRepositoryProvider,
+userRepositoryProvider
+};
+
 final _repositoryInitializerProviderFamily =
   FutureProvider.family<RepositoryInitializer, RepositoryInitializerArgs>((ref, args) async {
     final adapters = <String, RemoteAdapter>{'comments': ref.read(commentRemoteAdapterProvider), 'posts': ref.read(postRemoteAdapterProvider), 'users': ref.read(userRemoteAdapterProvider)};
-    
 
-      final _commentRepository = ref.read(commentRepositoryProvider);
-      _commentRepository.dispose();
-      await _commentRepository.initialize(
+    for (final repositoryProvider in repositoryProviders) {
+      final repository = ref.read(repositoryProvider);
+      repository.dispose();
+      await repository.initialize(
         remote: args?.remote,
         verbose: args?.verbose,
         adapters: adapters,
       );
-
-      final _postRepository = ref.read(postRepositoryProvider);
-      _postRepository.dispose();
-      await _postRepository.initialize(
-        remote: args?.remote,
-        verbose: args?.verbose,
-        adapters: adapters,
-      );
-
-      final _userRepository = ref.read(userRepositoryProvider);
-      _userRepository.dispose();
-      await _userRepository.initialize(
-        remote: args?.remote,
-        verbose: args?.verbose,
-        adapters: adapters,
-      );
+    }
 
     ref.onDispose(() {
       if (ref.mounted) {
-              ref.read(commentRepositoryProvider).dispose();
-      ref.read(postRepositoryProvider).dispose();
-      ref.read(userRepositoryProvider).dispose();
-
+        for (final repositoryProvider in repositoryProviders) {
+          ref.read(repositoryProvider).dispose();
+        }
       }
     });
 
