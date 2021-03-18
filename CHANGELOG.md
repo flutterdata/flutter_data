@@ -1,16 +1,20 @@
 # Changelog
 
+## [0.7.0-rc2]
+
+- Allow `type` to be overridable
+
 ## [0.7.0-rc1]
 
-- implemented offline-supporting APIs: `offlineModels`, `saveOfflineModels`, `forgetOfflineModels`
-- offline handling in `watchAll`, `watchOne` and `save`
-- fix `addInverse` issue
-- fix initialization issues
-- make relationship collection-like, rework equality, fixes #88
-- `data_state` improvements
-- restore functional `sendRequest` API, add `E` type param
-- unify adapters into one main adapter graph and sort, closes #78
-- remove `Provider` and `GetIt` built-in support, can easily be done with documented extensions
+- Implemented offline-supporting APIs: `offlineModels`, `saveOfflineModels`, `forgetOfflineModels`
+- Offline handling in `watchAll`, `watchOne` and `save`
+- Fix `addInverse` issue
+- Fix initialization issues
+- Make relationship collection-like, rework equality, fixes #88
+- Improvements to `data_state`
+- Restore functional `sendRequest` API, add `E` type param
+- Unify adapters into one main adapter graph and sort, closes #78
+- Remove `Provider` and `GetIt` built-in support, can easily be done with documented extensions
 
 ## [0.6.3] - 2021-03-12
 
