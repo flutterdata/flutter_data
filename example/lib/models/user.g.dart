@@ -103,10 +103,8 @@ extension UserX on User {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
-  /// Requires a `[Reader read]` (unless using GetIt).
-  ///
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
-  User init([Reader read]) {
+  User init(Reader read) {
     final repository = internalLocatorFn(userRepositoryProvider, read);
     return repository.remoteAdapter.initializeModel(this, save: true);
   }

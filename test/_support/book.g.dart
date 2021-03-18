@@ -164,8 +164,6 @@ extension AuthorX on Author {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
-  /// Requires a `Reader read` (unless using GetIt).
-  ///
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
   Author init(Reader read) {
     final repository = internalLocatorFn(authorRepositoryProvider, read);
@@ -259,8 +257,6 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Book>>> watchBooks(
 extension BookX on Book {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
-  ///
-  /// Requires a `Reader read` (unless using GetIt).
   ///
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
   Book init(Reader read) {

@@ -114,8 +114,6 @@ extension HouseX on House {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
-  /// Requires a `Reader read` (unless using GetIt).
-  ///
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
   House init(Reader read) {
     final repository = internalLocatorFn(houseRepositoryProvider, read);

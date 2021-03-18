@@ -7,8 +7,6 @@ import 'package:flutter_data/flutter_data.dart';
 
 
 
-import 'package:get_it/get_it.dart';
-
 
 import 'package:jsonplaceholder_example/models/comment.dart';
 import 'package:jsonplaceholder_example/models/post.dart';
@@ -59,45 +57,3 @@ final _repositoryInitializerProviderFamily =
 
     return RepositoryInitializer();
 });
-
-
-
-extension GetItFlutterDataX on GetIt {
-  void registerRepositories({FutureFn<String> baseDirFn, List<int> encryptionKey,
-    bool clear, bool remote, bool verbose}) {
-final i = GetIt.instance;
-
-final _container = ProviderContainer(
-  overrides: [
-    configureRepositoryLocalStorage(baseDirFn: baseDirFn, encryptionKey: encryptionKey, clear: clear),
-  ],
-);
-
-if (i.isRegistered<RepositoryInitializer>()) {
-  return;
-}
-
-i.registerSingletonAsync<RepositoryInitializer>(() async {
-    final init = _container.read(repositoryInitializerProvider(remote: remote, verbose: verbose).future);
-    internalLocatorFn =
-          <T extends DataModel<T>>(ProviderBase<Object, Repository<T>> provider, _) =>
-              _container.read(provider);
-    return init;
-  });  
-i.registerSingletonWithDependencies<Repository<Comment>>(
-      () => _container.read(commentRepositoryProvider),
-      dependsOn: [RepositoryInitializer]);
-
-      
-  
-i.registerSingletonWithDependencies<Repository<Post>>(
-      () => _container.read(postRepositoryProvider),
-      dependsOn: [RepositoryInitializer]);
-
-      
-  
-i.registerSingletonWithDependencies<Repository<User>>(
-      () => _container.read(userRepositoryProvider),
-      dependsOn: [RepositoryInitializer]);
-
-      } }

@@ -113,8 +113,6 @@ extension DogX on Dog {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
-  /// Requires a `Reader read` (unless using GetIt).
-  ///
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
   Dog init(Reader read) {
     final repository = internalLocatorFn(dogRepositoryProvider, read);
@@ -200,8 +198,6 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Cat>>> watchCats(
 extension CatX on Cat {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
-  ///
-  /// Requires a `Reader read` (unless using GetIt).
   ///
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
   Cat init(Reader read) {
