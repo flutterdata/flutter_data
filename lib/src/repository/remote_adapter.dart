@@ -148,6 +148,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   // lifecycle methods
 
   final _offlineAdapterKey = '_offline:adapter';
+  String get _offlineMetadata => '_offline:$type';
 
   @mustCallSuper
   Future<void> onInitialized() async {
@@ -410,7 +411,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   @protected
   @visibleForTesting
   List<T> get offlineModels {
-    final keys = graph.getEdge(_offlineAdapterKey, metadata: type);
+    final keys = graph.getEdge(_offlineAdapterKey, metadata: _offlineMetadata);
     return (keys ?? []).map(localAdapter.findOne).toList();
   }
 
@@ -427,7 +428,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   @protected
   @visibleForTesting
   void forgetOfflineModels() {
-    graph.removeEdges(_offlineAdapterKey, metadata: type);
+    graph.removeEdges(_offlineAdapterKey, metadata: _offlineMetadata);
   }
 
   // http
@@ -528,7 +529,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     if (error == null && code >= 200 && code < 300) {
       if (key != null) {
         // request succeeded, remove model from offline meta, if present
-        graph.removeEdge(_offlineAdapterKey, key, metadata: type);
+        graph.removeEdge(_offlineAdapterKey, key, metadata: _offlineMetadata);
       }
       return await onSuccess(data);
     } else {
@@ -536,7 +537,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       if (error.toString().contains('SocketException')) {
         if (key != null) {
           // request failed, add model to offline edge
-          graph.addEdge(_offlineAdapterKey, key, metadata: type);
+          graph.addEdge(_offlineAdapterKey, key, metadata: _offlineMetadata);
           _e = OfflineException(error: error, model: localAdapter.findOne(key));
         } else {
           _e = OfflineException(error: error);
