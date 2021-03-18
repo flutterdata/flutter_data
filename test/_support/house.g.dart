@@ -114,14 +114,11 @@ extension HouseX on House {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
-  /// Requires a reader of type `Repository<House> read(ProviderBase<Object, Repository<House>> _)` (unless using GetIt).
+  /// Requires a `Reader read` (unless using GetIt).
   ///
-  /// If needed, obtain it with:
-  ///  - `context.read` if using Flutter with Riverpod or Provider
-  ///  - `ref.read` or `container.read` if using Riverpod
-  House init(
-      Repository<House> read(ProviderBase<Object, Repository<House>> _)) {
+  /// Can be obtained via `context.read`, `ref.read`, `container.read`
+  House init(Reader read) {
     final repository = internalLocatorFn(houseRepositoryProvider, read);
-    return repository.remoteAdapter.initializeModel(this, save: true) as House;
+    return repository.remoteAdapter.initializeModel(this, save: true);
   }
 }

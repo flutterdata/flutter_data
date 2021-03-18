@@ -113,14 +113,12 @@ extension DogX on Dog {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
-  /// Requires a reader of type `Repository<Dog> read(ProviderBase<Object, Repository<Dog>> _)` (unless using GetIt).
+  /// Requires a `Reader read` (unless using GetIt).
   ///
-  /// If needed, obtain it with:
-  ///  - `context.read` if using Flutter with Riverpod or Provider
-  ///  - `ref.read` or `container.read` if using Riverpod
-  Dog init(Repository<Dog> read(ProviderBase<Object, Repository<Dog>> _)) {
+  /// Can be obtained via `context.read`, `ref.read`, `container.read`
+  Dog init(Reader read) {
     final repository = internalLocatorFn(dogRepositoryProvider, read);
-    return repository.remoteAdapter.initializeModel(this, save: true) as Dog;
+    return repository.remoteAdapter.initializeModel(this, save: true);
   }
 }
 
@@ -203,13 +201,11 @@ extension CatX on Cat {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
-  /// Requires a reader of type `Repository<Cat> read(ProviderBase<Object, Repository<Cat>> _)` (unless using GetIt).
+  /// Requires a `Reader read` (unless using GetIt).
   ///
-  /// If needed, obtain it with:
-  ///  - `context.read` if using Flutter with Riverpod or Provider
-  ///  - `ref.read` or `container.read` if using Riverpod
-  Cat init(Repository<Cat> read(ProviderBase<Object, Repository<Cat>> _)) {
+  /// Can be obtained via `context.read`, `ref.read`, `container.read`
+  Cat init(Reader read) {
     final repository = internalLocatorFn(catRepositoryProvider, read);
-    return repository.remoteAdapter.initializeModel(this, save: true) as Cat;
+    return repository.remoteAdapter.initializeModel(this, save: true);
   }
 }

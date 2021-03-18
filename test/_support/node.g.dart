@@ -124,13 +124,11 @@ extension NodeX on Node {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
-  /// Requires a reader of type `Repository<Node> read(ProviderBase<Object, Repository<Node>> _)` (unless using GetIt).
+  /// Requires a `Reader read` (unless using GetIt).
   ///
-  /// If needed, obtain it with:
-  ///  - `context.read` if using Flutter with Riverpod or Provider
-  ///  - `ref.read` or `container.read` if using Riverpod
-  Node init(Repository<Node> read(ProviderBase<Object, Repository<Node>> _)) {
+  /// Can be obtained via `context.read`, `ref.read`, `container.read`
+  Node init(Reader read) {
     final repository = internalLocatorFn(nodeRepositoryProvider, read);
-    return repository.remoteAdapter.initializeModel(this, save: true) as Node;
+    return repository.remoteAdapter.initializeModel(this, save: true);
   }
 }

@@ -99,14 +99,11 @@ extension PersonX on Person {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
-  /// Requires a reader of type `Repository<Person> read(ProviderBase<Object, Repository<Person>> _)` (unless using GetIt).
+  /// Requires a `Reader read` (unless using GetIt).
   ///
-  /// If needed, obtain it with:
-  ///  - `context.read` if using Flutter with Riverpod or Provider
-  ///  - `ref.read` or `container.read` if using Riverpod
-  Person init(
-      Repository<Person> read(ProviderBase<Object, Repository<Person>> _)) {
+  /// Can be obtained via `context.read`, `ref.read`, `container.read`
+  Person init(Reader read) {
     final repository = internalLocatorFn(personRepositoryProvider, read);
-    return repository.remoteAdapter.initializeModel(this, save: true) as Person;
+    return repository.remoteAdapter.initializeModel(this, save: true);
   }
 }

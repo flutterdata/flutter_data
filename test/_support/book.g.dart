@@ -164,15 +164,12 @@ extension AuthorX on Author {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
-  /// Requires a reader of type `Repository<Author> read(ProviderBase<Object, Repository<Author>> _)` (unless using GetIt).
+  /// Requires a `Reader read` (unless using GetIt).
   ///
-  /// If needed, obtain it with:
-  ///  - `context.read` if using Flutter with Riverpod or Provider
-  ///  - `ref.read` or `container.read` if using Riverpod
-  Author init(
-      Repository<Author> read(ProviderBase<Object, Repository<Author>> _)) {
+  /// Can be obtained via `context.read`, `ref.read`, `container.read`
+  Author init(Reader read) {
     final repository = internalLocatorFn(authorRepositoryProvider, read);
-    return repository.remoteAdapter.initializeModel(this, save: true) as Author;
+    return repository.remoteAdapter.initializeModel(this, save: true);
   }
 }
 
@@ -263,13 +260,11 @@ extension BookX on Book {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
-  /// Requires a reader of type `Repository<Book> read(ProviderBase<Object, Repository<Book>> _)` (unless using GetIt).
+  /// Requires a `Reader read` (unless using GetIt).
   ///
-  /// If needed, obtain it with:
-  ///  - `context.read` if using Flutter with Riverpod or Provider
-  ///  - `ref.read` or `container.read` if using Riverpod
-  Book init(Repository<Book> read(ProviderBase<Object, Repository<Book>> _)) {
+  /// Can be obtained via `context.read`, `ref.read`, `container.read`
+  Book init(Reader read) {
     final repository = internalLocatorFn(bookRepositoryProvider, read);
-    return repository.remoteAdapter.initializeModel(this, save: true) as Book;
+    return repository.remoteAdapter.initializeModel(this, save: true);
   }
 }

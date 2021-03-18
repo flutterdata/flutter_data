@@ -42,11 +42,11 @@ class DataException with EquatableMixin implements Exception {
 }
 
 class DataStateNotifier<T> extends StateNotifier<DataState<T>> {
-  DataStateNotifier(
-    DataState<T> initialData, {
+  DataStateNotifier({
+    DataState<T> model,
     Future<void> Function(DataStateNotifier<T>) reload,
   })  : _reloadFn = reload,
-        super(initialData ?? DataState<T>(null));
+        super(model);
 
   final Future<void> Function(DataStateNotifier<T>) _reloadFn;
   void Function() onDispose;

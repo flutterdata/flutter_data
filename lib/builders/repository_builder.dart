@@ -181,8 +181,7 @@ and execute a code generation build again.
     // imports (we only want them on pubspec to make sure our lib/app can import them)
 
     final importGetIt = await isDependency('get_it', buildStep);
-    var initArg =
-        'Repository<$classType> read(ProviderBase<Object, Repository<$classType>> _)';
+    var initArg = 'Reader read';
     if (importGetIt) {
       initArg = '[$initArg]';
     }
@@ -255,11 +254,9 @@ extension ${classType}X on $classType {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   /// 
-  /// Requires a reader of type `$initArg` (unless using GetIt).
+  /// Requires a `$initArg` (unless using GetIt).
   /// 
-  /// If needed, obtain it with:
-  ///  - `context.read` if using Flutter with Riverpod or Provider
-  ///  - `ref.read` or `container.read` if using Riverpod
+  /// Can be obtained via `context.read`, `ref.read`, `container.read`
   $classType init($initArg) {
     final repository = internalLocatorFn(${typeLowerCased}RepositoryProvider, read);
     return repository.remoteAdapter.initializeModel(this, save: true);

@@ -103,12 +103,10 @@ extension UserX on User {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
-  /// Requires a reader of type `[Repository<User> read(ProviderBase<Object, Repository<User>> _)]` (unless using GetIt).
+  /// Requires a `[Reader read]` (unless using GetIt).
   ///
-  /// If needed, obtain it with:
-  ///  - `context.read` if using Flutter with Riverpod or Provider
-  ///  - `ref.read` or `container.read` if using Riverpod
-  User init([Repository<User> read(ProviderBase<Object, Repository<User>> _)]) {
+  /// Can be obtained via `context.read`, `ref.read`, `container.read`
+  User init([Reader read]) {
     final repository = internalLocatorFn(userRepositoryProvider, read);
     return repository.remoteAdapter.initializeModel(this, save: true);
   }

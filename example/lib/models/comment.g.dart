@@ -121,13 +121,10 @@ extension CommentX on Comment {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
-  /// Requires a reader of type `[Repository<Comment> read(ProviderBase<Object, Repository<Comment>> _)]` (unless using GetIt).
+  /// Requires a `[Reader read]` (unless using GetIt).
   ///
-  /// If needed, obtain it with:
-  ///  - `context.read` if using Flutter with Riverpod or Provider
-  ///  - `ref.read` or `container.read` if using Riverpod
-  Comment init(
-      [Repository<Comment> read(ProviderBase<Object, Repository<Comment>> _)]) {
+  /// Can be obtained via `context.read`, `ref.read`, `container.read`
+  Comment init([Reader read]) {
     final repository = internalLocatorFn(commentRepositoryProvider, read);
     return repository.remoteAdapter.initializeModel(this, save: true);
   }

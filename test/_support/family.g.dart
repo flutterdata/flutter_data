@@ -147,14 +147,11 @@ extension FamilyX on Family {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
-  /// Requires a reader of type `Repository<Family> read(ProviderBase<Object, Repository<Family>> _)` (unless using GetIt).
+  /// Requires a `Reader read` (unless using GetIt).
   ///
-  /// If needed, obtain it with:
-  ///  - `context.read` if using Flutter with Riverpod or Provider
-  ///  - `ref.read` or `container.read` if using Riverpod
-  Family init(
-      Repository<Family> read(ProviderBase<Object, Repository<Family>> _)) {
+  /// Can be obtained via `context.read`, `ref.read`, `container.read`
+  Family init(Reader read) {
     final repository = internalLocatorFn(familyRepositoryProvider, read);
-    return repository.remoteAdapter.initializeModel(this, save: true) as Family;
+    return repository.remoteAdapter.initializeModel(this, save: true);
   }
 }
