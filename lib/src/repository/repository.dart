@@ -13,6 +13,10 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   RemoteAdapter<T> get remoteAdapter =>
       _adapters[_internalType] as RemoteAdapter<T>;
 
+  /// Type for the [RemoteAdapter]
+  @nonVirtual
+  String get type => remoteAdapter.type;
+
   /// Initializes this [Repository]. Nothing will work without this.
   /// In standard scenarios this initialization is done by the framework.
   @override
@@ -216,5 +220,6 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
 ///```
 class DataRepository {
   final List<Type> adapters;
-  const DataRepository(this.adapters);
+  final bool remote;
+  const DataRepository(this.adapters, {this.remote = true});
 }

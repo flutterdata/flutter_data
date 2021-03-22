@@ -25,18 +25,19 @@ class DataExtensionIntermediateBuilder implements Builder {
     if (!await resolver.isLibrary(buildStep.inputId)) return;
     final lib = LibraryReader(await buildStep.inputLibrary);
 
-    final exportAnnotation = TypeChecker.fromRuntime(DataRepository);
-    final annotated = [
-      for (final member in lib.annotatedWith(exportAnnotation)) member.element,
+    final annotation = TypeChecker.fromRuntime(DataRepository);
+    final members = [
+      for (final member in lib.annotatedWith(annotation)) member,
     ];
 
-    if (annotated.isNotEmpty) {
+    if (members.isNotEmpty) {
       await buildStep.writeAsString(
           buildStep.inputId.changeExtension('.info'),
-          annotated.map((element) {
+          members.map((member) {
             return [
-              element.name,
-              element.location.components.first,
+              member.element.name,
+              member.element.location.components.first,
+              member.annotation.read('remote').boolValue,
             ].join('#');
           }).join(';'));
     }
@@ -68,7 +69,8 @@ class DataExtensionBuilder implements Builder {
           'name': parts[0],
           'type': type,
           'singularType': type.singularize(),
-          'path': parts[1]
+          'path': parts[1],
+          'remote': parts[2],
         });
       }
       return acc;
@@ -85,10 +87,14 @@ class DataExtensionBuilder implements Builder {
         .toSet()
         .join('\n');
 
-    final graphMap = {
+    final adaptersMap = {
       for (final clazz in classes)
         '\'${clazz['type']}\'':
             'ref.read(${clazz['singularType']}RemoteAdapterProvider)'
+    };
+
+    final remotesMap = {
+      for (final clazz in classes) '\'${clazz['type']}\'': clazz['remote']
     };
 
     // imports
@@ -97,13 +103,6 @@ class DataExtensionBuilder implements Builder {
 
     final pathProviderImport = importPathProvider
         ? "import 'package:path_provider/path_provider.dart';"
-        : '';
-
-    final importFlutterRiverpod = await isDependency('flutter_riverpod', b) ||
-        await isDependency('hooks_riverpod', b);
-
-    final riverpodImport = importFlutterRiverpod
-        ? "import 'package:flutter_riverpod/flutter_riverpod.dart';"
         : '';
 
     //
@@ -115,7 +114,6 @@ class DataExtensionBuilder implements Builder {
 import 'package:flutter_data/flutter_data.dart';
 
 $pathProviderImport
-$riverpodImport
 
 $modelImports
 
@@ -135,18 +133,19 @@ RepositoryInitializerProvider repositoryInitializerProvider = (
 };
 
 final repositoryProviders = {
-  ${classes.map((clazz) => clazz['singularType'] + 'RepositoryProvider').join(',\n')}
+  ${classes.map((clazz) => '\'' + clazz['type'] + '\': ' + clazz['singularType'] + 'RepositoryProvider').join(',\n')}
 };
 
 final _repositoryInitializerProviderFamily =
   FutureProvider.family<RepositoryInitializer, RepositoryInitializerArgs>((ref, args) async {
-    final adapters = <String, RemoteAdapter>$graphMap;
+    final adapters = <String, RemoteAdapter>$adaptersMap;
+    final remotes = <String, bool>$remotesMap;
 
-    for (final repositoryProvider in repositoryProviders) {
-      final repository = ref.read(repositoryProvider);
+    for (final key in repositoryProviders.keys) {
+      final repository = ref.read(repositoryProviders[key]);
       repository.dispose();
       await repository.initialize(
-        remote: args?.remote,
+        remote: args?.remote ?? remotes[key],
         verbose: args?.verbose,
         adapters: adapters,
       );
@@ -154,7 +153,7 @@ final _repositoryInitializerProviderFamily =
 
     ref.onDispose(() {
       if (ref.mounted) {
-        for (final repositoryProvider in repositoryProviders) {
+        for (final repositoryProvider in repositoryProviders.values) {
           ref.read(repositoryProvider).dispose();
         }
       }

@@ -5,7 +5,7 @@ part 'book.freezed.dart';
 part 'book.g.dart';
 
 @freezed
-@DataRepository([AuthorAdapter])
+@DataRepository([AuthorAdapter], remote: false)
 abstract class Author with DataModel<Author>, _$Author {
   @With.fromString('DataModel<Author>')
   factory Author({
