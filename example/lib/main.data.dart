@@ -6,8 +6,6 @@
 import 'package:flutter_data/flutter_data.dart';
 
 
-
-
 import 'package:jsonplaceholder_example/models/comment.dart';
 import 'package:jsonplaceholder_example/models/post.dart';
 import 'package:jsonplaceholder_example/models/user.dart';
@@ -28,20 +26,21 @@ RepositoryInitializerProvider repositoryInitializerProvider = (
 };
 
 final repositoryProviders = {
-  commentRepositoryProvider,
-postRepositoryProvider,
-userRepositoryProvider
+  'comments': commentRepositoryProvider,
+'posts': postRepositoryProvider,
+'users': userRepositoryProvider
 };
 
 final _repositoryInitializerProviderFamily =
   FutureProvider.family<RepositoryInitializer, RepositoryInitializerArgs>((ref, args) async {
     final adapters = <String, RemoteAdapter>{'comments': ref.read(commentRemoteAdapterProvider), 'posts': ref.read(postRemoteAdapterProvider), 'users': ref.read(userRemoteAdapterProvider)};
+    final remotes = <String, bool>{'comments': true, 'posts': true, 'users': true};
 
-    for (final repositoryProvider in repositoryProviders) {
-      final repository = ref.read(repositoryProvider);
+    for (final key in repositoryProviders.keys) {
+      final repository = ref.read(repositoryProviders[key]);
       repository.dispose();
       await repository.initialize(
-        remote: args?.remote,
+        remote: args?.remote ?? remotes[key],
         verbose: args?.verbose,
         adapters: adapters,
       );
@@ -49,7 +48,7 @@ final _repositoryInitializerProviderFamily =
 
     ref.onDispose(() {
       if (ref.mounted) {
-        for (final repositoryProvider in repositoryProviders) {
+        for (final repositoryProvider in repositoryProviders.values) {
           ref.read(repositoryProvider).dispose();
         }
       }

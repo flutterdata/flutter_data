@@ -112,7 +112,6 @@ class DataExtensionBuilder implements Builder {
 // ignore_for_file: directives_ordering, top_level_function_literal_block
 
 import 'package:flutter_data/flutter_data.dart';
-
 $pathProviderImport
 
 $modelImports
