@@ -2,7 +2,7 @@ name: flutter_data
 description: >
   The seamless way to work with persistent data models in Flutter. Inspired by
   Ember Data and ActiveRecord.
-version: 0.7.0-rc2
+version: 0.7.0-rc3
 homepage: https://github.com/flutterdata/flutter_data
 documentation: https://flutterdata.dev/
 

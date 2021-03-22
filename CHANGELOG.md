@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.7.0-rc3]
+
+- Allow specifying remote default value via `@DataRepository`
+
 ## [0.7.0-rc2]
 
 - Allow `type` to be overridable
