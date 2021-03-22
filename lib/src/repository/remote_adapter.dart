@@ -529,7 +529,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
 
     if (_verbose) {
       print(
-          '[flutter_data] $T: ${method.toShortString()} $uri [HTTP $code]${body != null ? '\n -> body:\n $body' : ''}');
+          '[flutter_data] $T: ${method.toShortString()} $uri [HTTP ${code ?? ''}]${body != null ? '\n -> body:\n $body' : ''}');
     }
 
     if (error == null && code >= 200 && code < 300) {
