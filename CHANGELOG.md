@@ -1,15 +1,10 @@
 # Changelog
 
-## [0.7.0-rc3]
+## [0.7.0-rc4]
 
+- Fix singular/plural types, fix remote default
 - Allow specifying remote default value via `@DataRepository`
-
-## [0.7.0-rc2]
-
 - Allow `type` to be overridable
-
-## [0.7.0-rc1]
-
 - Implemented offline-supporting APIs: `offlineModels`, `saveOfflineModels`, `forgetOfflineModels`
 - Offline handling in `watchAll`, `watchOne` and `save`
 - Fix `addInverse` issue
