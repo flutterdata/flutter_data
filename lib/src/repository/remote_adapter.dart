@@ -437,6 +437,13 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     graph.removeEdges(_offlineAdapterKey, metadata: _offlineMetadata);
   }
 
+  @protected
+  bool isNetworkError(error) {
+    // timeouts via http's `connectionTimeout` are
+    // also socket exceptions
+    return error.toString().startsWith('SocketException:');
+  }
+
   // http
 
   /// An [http.Client] used to make an HTTP request.
@@ -540,7 +547,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       return await onSuccess(data);
     } else {
       DataException _e;
-      if (error.toString().contains('SocketException')) {
+      if (isNetworkError(error)) {
         if (key != null) {
           // request failed, add model to offline edge
           graph.addEdge(_offlineAdapterKey, key, metadata: _offlineMetadata);
