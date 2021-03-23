@@ -24,6 +24,18 @@ Map<String, dynamic> _$CommentToJson(Comment instance) => <String, dynamic>{
       'post': instance.post,
     };
 
+Sheep _$SheepFromJson(Map<String, dynamic> json) {
+  return Sheep(
+    id: json['id'] as int,
+    name: json['name'] as String,
+  );
+}
+
+Map<String, dynamic> _$SheepToJson(Sheep instance) => <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+    };
+
 // **************************************************************************
 // RepositoryGenerator
 // **************************************************************************
@@ -65,18 +77,18 @@ class $CommentRemoteAdapter = RemoteAdapter<Comment>
 
 //
 
-final commentLocalAdapterProvider =
+final commentsLocalAdapterProvider =
     Provider<LocalAdapter<Comment>>((ref) => $CommentHiveLocalAdapter(ref));
 
-final commentRemoteAdapterProvider = Provider<RemoteAdapter<Comment>>(
-    (ref) => $CommentRemoteAdapter(ref.read(commentLocalAdapterProvider)));
+final commentsRemoteAdapterProvider = Provider<RemoteAdapter<Comment>>(
+    (ref) => $CommentRemoteAdapter(ref.read(commentsLocalAdapterProvider)));
 
-final commentRepositoryProvider =
+final commentsRepositoryProvider =
     Provider<Repository<Comment>>((ref) => Repository<Comment>(ref));
 
 final _watchComment = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Comment>, WatchArgs<Comment>>((ref, args) {
-  return ref.watch(commentRepositoryProvider).watchOne(args.id,
+  return ref.watch(commentsRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -85,7 +97,7 @@ final _watchComment = StateNotifierProvider.autoDispose
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Comment>> watchComment(
     dynamic id,
-    {bool remote = true,
+    {bool remote,
     Map<String, dynamic> params = const {},
     Map<String, String> headers = const {},
     AlsoWatch<Comment> alsoWatch}) {
@@ -100,7 +112,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Comment>> watchComment(
 final _watchComments = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Comment>>, WatchArgs<Comment>>((ref, args) {
   ref.maintainState = false;
-  return ref.watch(commentRepositoryProvider).watchAll(
+  return ref.watch(commentsRepositoryProvider).watchAll(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -123,7 +135,94 @@ extension CommentX on Comment {
   ///
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
   Comment init(Reader read) {
-    final repository = internalLocatorFn(commentRepositoryProvider, read);
+    final repository = internalLocatorFn(commentsRepositoryProvider, read);
+    return repository.remoteAdapter.initializeModel(this, save: true);
+  }
+}
+
+// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member, non_constant_identifier_names
+
+mixin $SheepLocalAdapter on LocalAdapter<Sheep> {
+  @override
+  Map<String, Map<String, Object>> relationshipsFor([Sheep model]) => {};
+
+  @override
+  Sheep deserialize(map) {
+    for (final key in relationshipsFor().keys) {
+      map[key] = {
+        '_': [map[key], !map.containsKey(key)],
+      };
+    }
+    return _$SheepFromJson(map);
+  }
+
+  @override
+  Map<String, dynamic> serialize(model) => _$SheepToJson(model);
+}
+
+// ignore: must_be_immutable
+class $SheepHiveLocalAdapter = HiveLocalAdapter<Sheep> with $SheepLocalAdapter;
+
+class $SheepRemoteAdapter = RemoteAdapter<Sheep> with JSONServerAdapter<Sheep>;
+
+//
+
+final sheepLocalAdapterProvider =
+    Provider<LocalAdapter<Sheep>>((ref) => $SheepHiveLocalAdapter(ref));
+
+final sheepRemoteAdapterProvider = Provider<RemoteAdapter<Sheep>>(
+    (ref) => $SheepRemoteAdapter(ref.read(sheepLocalAdapterProvider)));
+
+final sheepRepositoryProvider =
+    Provider<Repository<Sheep>>((ref) => Repository<Sheep>(ref));
+
+final _watchOneSheep = StateNotifierProvider.autoDispose
+    .family<DataStateNotifier<Sheep>, WatchArgs<Sheep>>((ref, args) {
+  return ref.watch(sheepRepositoryProvider).watchOne(args.id,
+      remote: args.remote,
+      params: args.params,
+      headers: args.headers,
+      alsoWatch: args.alsoWatch);
+});
+
+AutoDisposeStateNotifierProvider<DataStateNotifier<Sheep>> watchOneSheep(
+    dynamic id,
+    {bool remote,
+    Map<String, dynamic> params = const {},
+    Map<String, String> headers = const {},
+    AlsoWatch<Sheep> alsoWatch}) {
+  return _watchOneSheep(WatchArgs(
+      id: id,
+      remote: remote,
+      params: params,
+      headers: headers,
+      alsoWatch: alsoWatch));
+}
+
+final _watchSheep = StateNotifierProvider.autoDispose
+    .family<DataStateNotifier<List<Sheep>>, WatchArgs<Sheep>>((ref, args) {
+  ref.maintainState = false;
+  return ref.watch(sheepRepositoryProvider).watchAll(
+      remote: args.remote,
+      params: args.params,
+      headers: args.headers,
+      filterLocal: args.filterLocal,
+      syncLocal: args.syncLocal);
+});
+
+AutoDisposeStateNotifierProvider<DataStateNotifier<List<Sheep>>> watchSheep(
+    {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+  return _watchSheep(
+      WatchArgs(remote: remote, params: params, headers: headers));
+}
+
+extension SheepX on Sheep {
+  /// Initializes "fresh" models (i.e. manually instantiated) to use
+  /// [save], [delete] and so on.
+  ///
+  /// Can be obtained via `context.read`, `ref.read`, `container.read`
+  Sheep init(Reader read) {
+    final repository = internalLocatorFn(sheepRepositoryProvider, read);
     return repository.remoteAdapter.initializeModel(this, save: true);
   }
 }

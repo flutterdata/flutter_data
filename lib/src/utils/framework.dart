@@ -14,9 +14,7 @@ class DataHelpers {
       return null;
     }
     type ??= T.toString();
-    if (type.isNotEmpty) {
-      type = type[0].toLowerCase() + type.substring(1);
-    }
+    type = type.decapitalize();
     return type.pluralize();
   }
 

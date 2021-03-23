@@ -52,11 +52,12 @@ class Test${className}RemoteAdapter = \$${className}RemoteAdapter with TestRemot
 
     final overrides = _classes.map((s) {
       final className = s.split('#')[0];
+      final classType = DataHelpers.getType(className);
       return '''
-${className.decapitalize()}LocalAdapterProvider.overrideWithProvider(Provider((ref) =>
+${classType}LocalAdapterProvider.overrideWithProvider(Provider((ref) =>
     \$Test${className}LocalAdapter(ref))),
-${className.decapitalize()}RemoteAdapterProvider.overrideWithProvider(Provider((ref) =>
-    Test${className}RemoteAdapter(ref.read(${className.decapitalize()}LocalAdapterProvider)))),
+${classType}RemoteAdapterProvider.overrideWithProvider(Provider((ref) =>
+    Test${className}RemoteAdapter(ref.read(${classType}LocalAdapterProvider)))),
 ''';
     }).join('\n');
 

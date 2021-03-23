@@ -36,7 +36,7 @@ mixin NothingMixin {}
 class WatchArgs<T> with EquatableMixin {
   WatchArgs(
       {this.id,
-      this.remote = true,
+      this.remote,
       this.params = const {},
       this.headers = const {},
       this.filterLocal,

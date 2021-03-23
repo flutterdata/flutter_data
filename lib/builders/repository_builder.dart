@@ -21,7 +21,7 @@ class RepositoryGenerator extends GeneratorForAnnotation<DataRepository> {
       Element element, ConstantReader annotation, BuildStep buildStep) async {
     final classType = element.name;
     final classTypePlural = element.name.pluralize();
-    final typeLowerCased = DataHelpers.getType(classType).singularize();
+    final typeLowerCased = DataHelpers.getType(classType);
     ClassElement classElement;
 
     try {
@@ -213,15 +213,15 @@ final ${typeLowerCased}RemoteAdapterProvider =
 final ${typeLowerCased}RepositoryProvider =
     Provider<Repository<$classType>>((ref) => Repository<$classType>(ref));
 
-final _watch$classType =
+final _watch${classType == classTypePlural ? 'One' : ''}$classType =
     StateNotifierProvider.autoDispose.family<DataStateNotifier<$classType>, WatchArgs<$classType>>(
         (ref, args) {
   return ref.watch(${typeLowerCased}RepositoryProvider).watchOne(args.id, remote: args.remote, params: args.params, headers: args.headers, alsoWatch: args.alsoWatch);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<$classType>> watch$classType(dynamic id,
-    {bool remote = true, Map<String, dynamic> params = const {}, Map<String, String> headers = const {}, AlsoWatch<$classType> alsoWatch}) {
-  return _watch$classType(WatchArgs(id: id, remote: remote, params: params, headers: headers, alsoWatch: alsoWatch));
+AutoDisposeStateNotifierProvider<DataStateNotifier<$classType>> watch${classType == classTypePlural ? 'One' : ''}$classType(dynamic id,
+    {bool remote, Map<String, dynamic> params = const {}, Map<String, String> headers = const {}, AlsoWatch<$classType> alsoWatch}) {
+  return _watch${classType == classTypePlural ? 'One' : ''}$classType(WatchArgs(id: id, remote: remote, params: params, headers: headers, alsoWatch: alsoWatch));
 }
 
 final _watch$classTypePlural =

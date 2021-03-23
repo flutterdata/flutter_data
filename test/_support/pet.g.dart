@@ -61,18 +61,18 @@ class $DogRemoteAdapter = RemoteAdapter<Dog> with NothingMixin;
 
 //
 
-final dogLocalAdapterProvider =
+final dogsLocalAdapterProvider =
     Provider<LocalAdapter<Dog>>((ref) => $DogHiveLocalAdapter(ref));
 
-final dogRemoteAdapterProvider = Provider<RemoteAdapter<Dog>>(
-    (ref) => $DogRemoteAdapter(ref.read(dogLocalAdapterProvider)));
+final dogsRemoteAdapterProvider = Provider<RemoteAdapter<Dog>>(
+    (ref) => $DogRemoteAdapter(ref.read(dogsLocalAdapterProvider)));
 
-final dogRepositoryProvider =
+final dogsRepositoryProvider =
     Provider<Repository<Dog>>((ref) => Repository<Dog>(ref));
 
 final _watchDog = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Dog>, WatchArgs<Dog>>((ref, args) {
-  return ref.watch(dogRepositoryProvider).watchOne(args.id,
+  return ref.watch(dogsRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -80,7 +80,7 @@ final _watchDog = StateNotifierProvider.autoDispose
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Dog>> watchDog(dynamic id,
-    {bool remote = true,
+    {bool remote,
     Map<String, dynamic> params = const {},
     Map<String, String> headers = const {},
     AlsoWatch<Dog> alsoWatch}) {
@@ -95,7 +95,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Dog>> watchDog(dynamic id,
 final _watchDogs = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Dog>>, WatchArgs<Dog>>((ref, args) {
   ref.maintainState = false;
-  return ref.watch(dogRepositoryProvider).watchAll(
+  return ref.watch(dogsRepositoryProvider).watchAll(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -115,7 +115,7 @@ extension DogX on Dog {
   ///
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
   Dog init(Reader read) {
-    final repository = internalLocatorFn(dogRepositoryProvider, read);
+    final repository = internalLocatorFn(dogsRepositoryProvider, read);
     return repository.remoteAdapter.initializeModel(this, save: true);
   }
 }
@@ -147,18 +147,18 @@ class $CatRemoteAdapter = RemoteAdapter<Cat> with NothingMixin;
 
 //
 
-final catLocalAdapterProvider =
+final catsLocalAdapterProvider =
     Provider<LocalAdapter<Cat>>((ref) => $CatHiveLocalAdapter(ref));
 
-final catRemoteAdapterProvider = Provider<RemoteAdapter<Cat>>(
-    (ref) => $CatRemoteAdapter(ref.read(catLocalAdapterProvider)));
+final catsRemoteAdapterProvider = Provider<RemoteAdapter<Cat>>(
+    (ref) => $CatRemoteAdapter(ref.read(catsLocalAdapterProvider)));
 
-final catRepositoryProvider =
+final catsRepositoryProvider =
     Provider<Repository<Cat>>((ref) => Repository<Cat>(ref));
 
 final _watchCat = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Cat>, WatchArgs<Cat>>((ref, args) {
-  return ref.watch(catRepositoryProvider).watchOne(args.id,
+  return ref.watch(catsRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -166,7 +166,7 @@ final _watchCat = StateNotifierProvider.autoDispose
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Cat>> watchCat(dynamic id,
-    {bool remote = true,
+    {bool remote,
     Map<String, dynamic> params = const {},
     Map<String, String> headers = const {},
     AlsoWatch<Cat> alsoWatch}) {
@@ -181,7 +181,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Cat>> watchCat(dynamic id,
 final _watchCats = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Cat>>, WatchArgs<Cat>>((ref, args) {
   ref.maintainState = false;
-  return ref.watch(catRepositoryProvider).watchAll(
+  return ref.watch(catsRepositoryProvider).watchAll(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -201,7 +201,7 @@ extension CatX on Cat {
   ///
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
   Cat init(Reader read) {
-    final repository = internalLocatorFn(catRepositoryProvider, read);
+    final repository = internalLocatorFn(catsRepositoryProvider, read);
     return repository.remoteAdapter.initializeModel(this, save: true);
   }
 }

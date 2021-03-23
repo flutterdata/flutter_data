@@ -94,18 +94,18 @@ class $FamilyRemoteAdapter = RemoteAdapter<Family> with NothingMixin;
 
 //
 
-final familyLocalAdapterProvider =
+final familiesLocalAdapterProvider =
     Provider<LocalAdapter<Family>>((ref) => $FamilyHiveLocalAdapter(ref));
 
-final familyRemoteAdapterProvider = Provider<RemoteAdapter<Family>>(
-    (ref) => $FamilyRemoteAdapter(ref.read(familyLocalAdapterProvider)));
+final familiesRemoteAdapterProvider = Provider<RemoteAdapter<Family>>(
+    (ref) => $FamilyRemoteAdapter(ref.read(familiesLocalAdapterProvider)));
 
-final familyRepositoryProvider =
+final familiesRepositoryProvider =
     Provider<Repository<Family>>((ref) => Repository<Family>(ref));
 
 final _watchFamily = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Family>, WatchArgs<Family>>((ref, args) {
-  return ref.watch(familyRepositoryProvider).watchOne(args.id,
+  return ref.watch(familiesRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -114,7 +114,7 @@ final _watchFamily = StateNotifierProvider.autoDispose
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Family>> watchFamily(
     dynamic id,
-    {bool remote = true,
+    {bool remote,
     Map<String, dynamic> params = const {},
     Map<String, String> headers = const {},
     AlsoWatch<Family> alsoWatch}) {
@@ -129,7 +129,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Family>> watchFamily(
 final _watchFamilies = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Family>>, WatchArgs<Family>>((ref, args) {
   ref.maintainState = false;
-  return ref.watch(familyRepositoryProvider).watchAll(
+  return ref.watch(familiesRepositoryProvider).watchAll(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -149,7 +149,7 @@ extension FamilyX on Family {
   ///
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
   Family init(Reader read) {
-    final repository = internalLocatorFn(familyRepositoryProvider, read);
+    final repository = internalLocatorFn(familiesRepositoryProvider, read);
     return repository.remoteAdapter.initializeModel(this, save: true);
   }
 }

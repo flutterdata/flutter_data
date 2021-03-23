@@ -42,63 +42,64 @@ void setUpFn() async {
   // Equivalent to generated in `main.data.dart`
 
   final adapterGraph = <String, RemoteAdapter<DataModel>>{
-    'houses': container.read(houseRemoteAdapterProvider),
-    'families': container.read(familyRemoteAdapterProvider),
-    'people': container.read(personRemoteAdapterProvider),
-    'dogs': container.read(dogRemoteAdapterProvider),
+    'houses': container.read(housesRemoteAdapterProvider),
+    'families': container.read(familiesRemoteAdapterProvider),
+    'people': container.read(peopleRemoteAdapterProvider),
+    'dogs': container.read(dogsRemoteAdapterProvider),
   };
 
-  houseRemoteAdapter = container.read(houseRemoteAdapterProvider);
-  familyRemoteAdapter = container.read(familyRemoteAdapterProvider);
-  personRemoteAdapter = container.read(personRemoteAdapterProvider);
+  houseRemoteAdapter = container.read(housesRemoteAdapterProvider);
+  familyRemoteAdapter = container.read(familiesRemoteAdapterProvider);
+  personRemoteAdapter = container.read(peopleRemoteAdapterProvider);
 
-  houseRepository = await container.read(houseRepositoryProvider).initialize(
+  houseRepository = await container.read(housesRepositoryProvider).initialize(
         remote: false,
         verbose: false,
         adapters: adapterGraph,
       );
 
-  familyRepository = await container.read(familyRepositoryProvider).initialize(
+  familyRepository =
+      await container.read(familiesRepositoryProvider).initialize(
+            remote: false,
+            verbose: false,
+            adapters: adapterGraph,
+          );
+
+  personRepository = await container.read(peopleRepositoryProvider).initialize(
         remote: false,
         verbose: false,
         adapters: adapterGraph,
       );
 
-  personRepository = await container.read(personRepositoryProvider).initialize(
-        remote: false,
-        verbose: false,
-        adapters: adapterGraph,
-      );
-
-  dogRepository = await container.read(dogRepositoryProvider).initialize(
+  dogRepository = await container.read(dogsRepositoryProvider).initialize(
         remote: false,
         verbose: true,
         adapters: adapterGraph,
       );
 
-  nodeRepository = await container.read(nodeRepositoryProvider).initialize(
+  nodeRepository = await container.read(nodesRepositoryProvider).initialize(
     remote: false,
     verbose: false,
     adapters: {
-      'nodes': container.read(nodeRemoteAdapterProvider),
+      'nodes': container.read(nodesRemoteAdapterProvider),
     },
   );
 
-  authorRepository = await container.read(authorRepositoryProvider).initialize(
+  authorRepository = await container.read(authorsRepositoryProvider).initialize(
     remote: false,
     verbose: false,
     adapters: {
-      'authors': container.read(authorRemoteAdapterProvider),
-      'books': container.read(bookRemoteAdapterProvider),
+      'authors': container.read(authorsRemoteAdapterProvider),
+      'books': container.read(booksRemoteAdapterProvider),
     },
   );
 
-  bookRepository = await container.read(bookRepositoryProvider).initialize(
+  bookRepository = await container.read(booksRepositoryProvider).initialize(
     remote: false,
     verbose: false,
     adapters: {
-      'authors': container.read(authorRemoteAdapterProvider),
-      'books': container.read(bookRemoteAdapterProvider),
+      'authors': container.read(authorsRemoteAdapterProvider),
+      'books': container.read(booksRemoteAdapterProvider),
     },
   );
 }
@@ -148,37 +149,37 @@ ProviderContainer createContainer() {
 
       // model-specific
 
-      houseLocalAdapterProvider
+      housesLocalAdapterProvider
           .overrideWithProvider(Provider((ref) => HouseLocalAdapter(ref))),
-      familyLocalAdapterProvider
+      familiesLocalAdapterProvider
           .overrideWithProvider(Provider((ref) => FamilyLocalAdapter(ref))),
-      personLocalAdapterProvider
+      peopleLocalAdapterProvider
           .overrideWithProvider(Provider((ref) => PersonLocalAdapter(ref))),
-      dogLocalAdapterProvider
+      dogsLocalAdapterProvider
           .overrideWithProvider(Provider((ref) => DogLocalAdapter(ref))),
-      nodeLocalAdapterProvider
+      nodesLocalAdapterProvider
           .overrideWithProvider(Provider((ref) => NodeLocalAdapter(ref))),
-      authorLocalAdapterProvider
+      authorsLocalAdapterProvider
           .overrideWithProvider(Provider((ref) => AuthorLocalAdapter(ref))),
-      bookLocalAdapterProvider
+      booksLocalAdapterProvider
           .overrideWithProvider(Provider((ref) => BookLocalAdapter(ref))),
 
       //
 
-      houseRemoteAdapterProvider.overrideWithProvider(Provider((ref) =>
-          TokenHouseRemoteAdapter(ref.read(houseLocalAdapterProvider)))),
-      familyRemoteAdapterProvider.overrideWithProvider(Provider(
-          (ref) => FamilyRemoteAdapter(ref.read(familyLocalAdapterProvider)))),
-      personRemoteAdapterProvider.overrideWithProvider(Provider(
-          (ref) => PersonRemoteAdapter(ref.read(personLocalAdapterProvider)))),
-      dogRemoteAdapterProvider.overrideWithProvider(Provider(
-          (ref) => DogRemoteAdapter(ref.read(dogLocalAdapterProvider)))),
-      nodeRemoteAdapterProvider.overrideWithProvider(Provider(
-          (ref) => $NodeRemoteAdapter(ref.read(nodeLocalAdapterProvider)))),
-      authorRemoteAdapterProvider.overrideWithProvider(Provider(
-          (ref) => $AuthorRemoteAdapter(ref.read(authorLocalAdapterProvider)))),
-      bookRemoteAdapterProvider.overrideWithProvider(Provider(
-          (ref) => $BookRemoteAdapter(ref.read(bookLocalAdapterProvider)))),
+      housesRemoteAdapterProvider.overrideWithProvider(Provider((ref) =>
+          TokenHouseRemoteAdapter(ref.read(housesLocalAdapterProvider)))),
+      familiesRemoteAdapterProvider.overrideWithProvider(Provider((ref) =>
+          FamilyRemoteAdapter(ref.read(familiesLocalAdapterProvider)))),
+      peopleRemoteAdapterProvider.overrideWithProvider(Provider(
+          (ref) => PersonRemoteAdapter(ref.read(peopleLocalAdapterProvider)))),
+      dogsRemoteAdapterProvider.overrideWithProvider(Provider(
+          (ref) => DogRemoteAdapter(ref.read(dogsLocalAdapterProvider)))),
+      nodesRemoteAdapterProvider.overrideWithProvider(Provider(
+          (ref) => $NodeRemoteAdapter(ref.read(nodesLocalAdapterProvider)))),
+      authorsRemoteAdapterProvider.overrideWithProvider(Provider((ref) =>
+          $AuthorRemoteAdapter(ref.read(authorsLocalAdapterProvider)))),
+      booksRemoteAdapterProvider.overrideWithProvider(Provider(
+          (ref) => $BookRemoteAdapter(ref.read(booksLocalAdapterProvider)))),
     ],
   );
 }

@@ -73,18 +73,18 @@ class $PostRemoteAdapter = RemoteAdapter<Post> with JSONServerAdapter<Post>;
 
 //
 
-final postLocalAdapterProvider =
+final postsLocalAdapterProvider =
     Provider<LocalAdapter<Post>>((ref) => $PostHiveLocalAdapter(ref));
 
-final postRemoteAdapterProvider = Provider<RemoteAdapter<Post>>(
-    (ref) => $PostRemoteAdapter(ref.read(postLocalAdapterProvider)));
+final postsRemoteAdapterProvider = Provider<RemoteAdapter<Post>>(
+    (ref) => $PostRemoteAdapter(ref.read(postsLocalAdapterProvider)));
 
-final postRepositoryProvider =
+final postsRepositoryProvider =
     Provider<Repository<Post>>((ref) => Repository<Post>(ref));
 
 final _watchPost = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Post>, WatchArgs<Post>>((ref, args) {
-  return ref.watch(postRepositoryProvider).watchOne(args.id,
+  return ref.watch(postsRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -92,7 +92,7 @@ final _watchPost = StateNotifierProvider.autoDispose
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Post>> watchPost(dynamic id,
-    {bool remote = true,
+    {bool remote,
     Map<String, dynamic> params = const {},
     Map<String, String> headers = const {},
     AlsoWatch<Post> alsoWatch}) {
@@ -107,7 +107,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Post>> watchPost(dynamic id,
 final _watchPosts = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Post>>, WatchArgs<Post>>((ref, args) {
   ref.maintainState = false;
-  return ref.watch(postRepositoryProvider).watchAll(
+  return ref.watch(postsRepositoryProvider).watchAll(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -127,7 +127,7 @@ extension PostX on Post {
   ///
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
   Post init(Reader read) {
-    final repository = internalLocatorFn(postRepositoryProvider, read);
+    final repository = internalLocatorFn(postsRepositoryProvider, read);
     return repository.remoteAdapter.initializeModel(this, save: true);
   }
 }

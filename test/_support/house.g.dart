@@ -61,18 +61,18 @@ class $HouseRemoteAdapter = RemoteAdapter<House> with NothingMixin;
 
 //
 
-final houseLocalAdapterProvider =
+final housesLocalAdapterProvider =
     Provider<LocalAdapter<House>>((ref) => $HouseHiveLocalAdapter(ref));
 
-final houseRemoteAdapterProvider = Provider<RemoteAdapter<House>>(
-    (ref) => $HouseRemoteAdapter(ref.read(houseLocalAdapterProvider)));
+final housesRemoteAdapterProvider = Provider<RemoteAdapter<House>>(
+    (ref) => $HouseRemoteAdapter(ref.read(housesLocalAdapterProvider)));
 
-final houseRepositoryProvider =
+final housesRepositoryProvider =
     Provider<Repository<House>>((ref) => Repository<House>(ref));
 
 final _watchHouse = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<House>, WatchArgs<House>>((ref, args) {
-  return ref.watch(houseRepositoryProvider).watchOne(args.id,
+  return ref.watch(housesRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -81,7 +81,7 @@ final _watchHouse = StateNotifierProvider.autoDispose
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<House>> watchHouse(
     dynamic id,
-    {bool remote = true,
+    {bool remote,
     Map<String, dynamic> params = const {},
     Map<String, String> headers = const {},
     AlsoWatch<House> alsoWatch}) {
@@ -96,7 +96,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<House>> watchHouse(
 final _watchHouses = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<House>>, WatchArgs<House>>((ref, args) {
   ref.maintainState = false;
-  return ref.watch(houseRepositoryProvider).watchAll(
+  return ref.watch(housesRepositoryProvider).watchAll(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -116,7 +116,7 @@ extension HouseX on House {
   ///
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
   House init(Reader read) {
-    final repository = internalLocatorFn(houseRepositoryProvider, read);
+    final repository = internalLocatorFn(housesRepositoryProvider, read);
     return repository.remoteAdapter.initializeModel(this, save: true);
   }
 }

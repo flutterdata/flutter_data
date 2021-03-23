@@ -26,15 +26,16 @@ RepositoryInitializerProvider repositoryInitializerProvider = (
 };
 
 final repositoryProviders = {
-  'comments': commentRepositoryProvider,
-'posts': postRepositoryProvider,
-'users': userRepositoryProvider
+  'comments': commentsRepositoryProvider,
+'posts': postsRepositoryProvider,
+'sheep': sheepRepositoryProvider,
+'users': usersRepositoryProvider
 };
 
 final _repositoryInitializerProviderFamily =
   FutureProvider.family<RepositoryInitializer, RepositoryInitializerArgs>((ref, args) async {
-    final adapters = <String, RemoteAdapter>{'comments': ref.read(commentRemoteAdapterProvider), 'posts': ref.read(postRemoteAdapterProvider), 'users': ref.read(userRemoteAdapterProvider)};
-    final remotes = <String, bool>{'comments': true, 'posts': true, 'users': true};
+    final adapters = <String, RemoteAdapter>{'comments': ref.read(commentsRemoteAdapterProvider), 'posts': ref.read(postsRemoteAdapterProvider), 'sheep': ref.read(sheepRemoteAdapterProvider), 'users': ref.read(usersRemoteAdapterProvider)};
+    final remotes = <String, bool>{'comments': true, 'posts': true, 'sheep': false, 'users': true};
 
     for (final key in repositoryProviders.keys) {
       final repository = ref.read(repositoryProviders[key]);

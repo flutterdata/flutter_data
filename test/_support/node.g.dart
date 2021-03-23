@@ -72,18 +72,18 @@ class $NodeRemoteAdapter = RemoteAdapter<Node> with NothingMixin;
 
 //
 
-final nodeLocalAdapterProvider =
+final nodesLocalAdapterProvider =
     Provider<LocalAdapter<Node>>((ref) => $NodeHiveLocalAdapter(ref));
 
-final nodeRemoteAdapterProvider = Provider<RemoteAdapter<Node>>(
-    (ref) => $NodeRemoteAdapter(ref.read(nodeLocalAdapterProvider)));
+final nodesRemoteAdapterProvider = Provider<RemoteAdapter<Node>>(
+    (ref) => $NodeRemoteAdapter(ref.read(nodesLocalAdapterProvider)));
 
-final nodeRepositoryProvider =
+final nodesRepositoryProvider =
     Provider<Repository<Node>>((ref) => Repository<Node>(ref));
 
 final _watchNode = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Node>, WatchArgs<Node>>((ref, args) {
-  return ref.watch(nodeRepositoryProvider).watchOne(args.id,
+  return ref.watch(nodesRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -91,7 +91,7 @@ final _watchNode = StateNotifierProvider.autoDispose
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Node>> watchNode(dynamic id,
-    {bool remote = true,
+    {bool remote,
     Map<String, dynamic> params = const {},
     Map<String, String> headers = const {},
     AlsoWatch<Node> alsoWatch}) {
@@ -106,7 +106,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Node>> watchNode(dynamic id,
 final _watchNodes = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Node>>, WatchArgs<Node>>((ref, args) {
   ref.maintainState = false;
-  return ref.watch(nodeRepositoryProvider).watchAll(
+  return ref.watch(nodesRepositoryProvider).watchAll(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -126,7 +126,7 @@ extension NodeX on Node {
   ///
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
   Node init(Reader read) {
-    final repository = internalLocatorFn(nodeRepositoryProvider, read);
+    final repository = internalLocatorFn(nodesRepositoryProvider, read);
     return repository.remoteAdapter.initializeModel(this, save: true);
   }
 }

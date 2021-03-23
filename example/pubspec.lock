@@ -168,7 +168,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.7.0-rc2"
+    version: "0.7.0-rc3"
   freezed_annotation:
     dependency: transitive
     description:

@@ -46,18 +46,18 @@ class $PersonRemoteAdapter = RemoteAdapter<Person>
 
 //
 
-final personLocalAdapterProvider =
+final peopleLocalAdapterProvider =
     Provider<LocalAdapter<Person>>((ref) => $PersonHiveLocalAdapter(ref));
 
-final personRemoteAdapterProvider = Provider<RemoteAdapter<Person>>(
-    (ref) => $PersonRemoteAdapter(ref.read(personLocalAdapterProvider)));
+final peopleRemoteAdapterProvider = Provider<RemoteAdapter<Person>>(
+    (ref) => $PersonRemoteAdapter(ref.read(peopleLocalAdapterProvider)));
 
-final personRepositoryProvider =
+final peopleRepositoryProvider =
     Provider<Repository<Person>>((ref) => Repository<Person>(ref));
 
 final _watchPerson = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Person>, WatchArgs<Person>>((ref, args) {
-  return ref.watch(personRepositoryProvider).watchOne(args.id,
+  return ref.watch(peopleRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -66,7 +66,7 @@ final _watchPerson = StateNotifierProvider.autoDispose
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Person>> watchPerson(
     dynamic id,
-    {bool remote = true,
+    {bool remote,
     Map<String, dynamic> params = const {},
     Map<String, String> headers = const {},
     AlsoWatch<Person> alsoWatch}) {
@@ -81,7 +81,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Person>> watchPerson(
 final _watchPeople = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Person>>, WatchArgs<Person>>((ref, args) {
   ref.maintainState = false;
-  return ref.watch(personRepositoryProvider).watchAll(
+  return ref.watch(peopleRepositoryProvider).watchAll(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -101,7 +101,7 @@ extension PersonX on Person {
   ///
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
   Person init(Reader read) {
-    final repository = internalLocatorFn(personRepositoryProvider, read);
+    final repository = internalLocatorFn(peopleRepositoryProvider, read);
     return repository.remoteAdapter.initializeModel(this, save: true);
   }
 }

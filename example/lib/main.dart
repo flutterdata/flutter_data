@@ -26,9 +26,10 @@ void main() async {
 
     await container.read(repositoryInitializerProvider().future);
 
-    final usersRepo = container.read(userRepositoryProvider);
-    final postsRepo = container.read(postRepositoryProvider);
-    final commentsRepo = container.read(commentRepositoryProvider);
+    final usersRepo = container.read(usersRepositoryProvider);
+    final postsRepo = container.read(postsRepositoryProvider);
+    final commentsRepo = container.read(commentsRepositoryProvider);
+    final sheepRepo = container.read(sheepRepositoryProvider);
 
     try {
       await usersRepo.findOne('2314444');
@@ -61,6 +62,10 @@ void main() async {
         .toSet()
         .difference(post.comments.toSet().map((c) => c.id).toSet())
         .isEmpty);
+
+    final molly = Sheep(id: 1, name: 'Molly');
+    await sheepRepo.save(molly);
+    assert(await sheepRepo.findAll() == [molly]);
 
     assert(user2.name == p3.user.value.name);
     assert(comments.first.post.value == post);

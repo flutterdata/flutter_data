@@ -23,3 +23,13 @@ class Comment with DataModel<Comment> {
     BelongsTo<Post> post,
   }) : post = post ?? BelongsTo<Post>();
 }
+
+@JsonSerializable()
+@DataRepository([JSONServerAdapter], remote: false)
+class Sheep with DataModel<Sheep> {
+  @override
+  final int id;
+  final String name;
+
+  Sheep({this.id, this.name});
+}

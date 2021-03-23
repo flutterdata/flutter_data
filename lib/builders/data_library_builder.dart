@@ -68,7 +68,6 @@ class DataExtensionBuilder implements Builder {
         acc.add({
           'name': parts[0],
           'type': type,
-          'singularType': type.singularize(),
           'path': parts[1],
           'remote': parts[2],
         });
@@ -90,7 +89,7 @@ class DataExtensionBuilder implements Builder {
     final adaptersMap = {
       for (final clazz in classes)
         '\'${clazz['type']}\'':
-            'ref.read(${clazz['singularType']}RemoteAdapterProvider)'
+            'ref.read(${clazz['type']}RemoteAdapterProvider)'
     };
 
     final remotesMap = {
@@ -132,7 +131,7 @@ RepositoryInitializerProvider repositoryInitializerProvider = (
 };
 
 final repositoryProviders = {
-  ${classes.map((clazz) => '\'' + clazz['type'] + '\': ' + clazz['singularType'] + 'RepositoryProvider').join(',\n')}
+  ${classes.map((clazz) => '\'' + clazz['type'] + '\': ' + clazz['type'] + 'RepositoryProvider').join(',\n')}
 };
 
 final _repositoryInitializerProviderFamily =

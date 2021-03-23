@@ -78,18 +78,18 @@ class $AuthorRemoteAdapter = RemoteAdapter<Author> with AuthorAdapter;
 
 //
 
-final authorLocalAdapterProvider =
+final authorsLocalAdapterProvider =
     Provider<LocalAdapter<Author>>((ref) => $AuthorHiveLocalAdapter(ref));
 
-final authorRemoteAdapterProvider = Provider<RemoteAdapter<Author>>(
-    (ref) => $AuthorRemoteAdapter(ref.read(authorLocalAdapterProvider)));
+final authorsRemoteAdapterProvider = Provider<RemoteAdapter<Author>>(
+    (ref) => $AuthorRemoteAdapter(ref.read(authorsLocalAdapterProvider)));
 
-final authorRepositoryProvider =
+final authorsRepositoryProvider =
     Provider<Repository<Author>>((ref) => Repository<Author>(ref));
 
 final _watchAuthor = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Author>, WatchArgs<Author>>((ref, args) {
-  return ref.watch(authorRepositoryProvider).watchOne(args.id,
+  return ref.watch(authorsRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -98,7 +98,7 @@ final _watchAuthor = StateNotifierProvider.autoDispose
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Author>> watchAuthor(
     dynamic id,
-    {bool remote = true,
+    {bool remote,
     Map<String, dynamic> params = const {},
     Map<String, String> headers = const {},
     AlsoWatch<Author> alsoWatch}) {
@@ -113,7 +113,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Author>> watchAuthor(
 final _watchAuthors = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Author>>, WatchArgs<Author>>((ref, args) {
   ref.maintainState = false;
-  return ref.watch(authorRepositoryProvider).watchAll(
+  return ref.watch(authorsRepositoryProvider).watchAll(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -133,7 +133,7 @@ extension AuthorX on Author {
   ///
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
   Author init(Reader read) {
-    final repository = internalLocatorFn(authorRepositoryProvider, read);
+    final repository = internalLocatorFn(authorsRepositoryProvider, read);
     return repository.remoteAdapter.initializeModel(this, save: true);
   }
 }
@@ -173,18 +173,18 @@ class $BookRemoteAdapter = RemoteAdapter<Book> with NothingMixin;
 
 //
 
-final bookLocalAdapterProvider =
+final booksLocalAdapterProvider =
     Provider<LocalAdapter<Book>>((ref) => $BookHiveLocalAdapter(ref));
 
-final bookRemoteAdapterProvider = Provider<RemoteAdapter<Book>>(
-    (ref) => $BookRemoteAdapter(ref.read(bookLocalAdapterProvider)));
+final booksRemoteAdapterProvider = Provider<RemoteAdapter<Book>>(
+    (ref) => $BookRemoteAdapter(ref.read(booksLocalAdapterProvider)));
 
-final bookRepositoryProvider =
+final booksRepositoryProvider =
     Provider<Repository<Book>>((ref) => Repository<Book>(ref));
 
 final _watchBook = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Book>, WatchArgs<Book>>((ref, args) {
-  return ref.watch(bookRepositoryProvider).watchOne(args.id,
+  return ref.watch(booksRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -192,7 +192,7 @@ final _watchBook = StateNotifierProvider.autoDispose
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Book>> watchBook(dynamic id,
-    {bool remote = true,
+    {bool remote,
     Map<String, dynamic> params = const {},
     Map<String, String> headers = const {},
     AlsoWatch<Book> alsoWatch}) {
@@ -207,7 +207,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Book>> watchBook(dynamic id,
 final _watchBooks = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Book>>, WatchArgs<Book>>((ref, args) {
   ref.maintainState = false;
-  return ref.watch(bookRepositoryProvider).watchAll(
+  return ref.watch(booksRepositoryProvider).watchAll(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -227,7 +227,7 @@ extension BookX on Book {
   ///
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
   Book init(Reader read) {
-    final repository = internalLocatorFn(bookRepositoryProvider, read);
+    final repository = internalLocatorFn(booksRepositoryProvider, read);
     return repository.remoteAdapter.initializeModel(this, save: true);
   }
 }
