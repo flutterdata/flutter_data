@@ -89,7 +89,7 @@ final authorsRepositoryProvider =
 
 final _watchAuthor = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Author>, WatchArgs<Author>>((ref, args) {
-  return ref.watch(authorsRepositoryProvider).watchOne(args.id,
+  return ref.read(authorsRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -113,7 +113,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Author>> watchAuthor(
 final _watchAuthors = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Author>>, WatchArgs<Author>>((ref, args) {
   ref.maintainState = false;
-  return ref.watch(authorsRepositoryProvider).watchAll(
+  return ref.read(authorsRepositoryProvider).watchAll(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -184,7 +184,7 @@ final booksRepositoryProvider =
 
 final _watchBook = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Book>, WatchArgs<Book>>((ref, args) {
-  return ref.watch(booksRepositoryProvider).watchOne(args.id,
+  return ref.read(booksRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -207,7 +207,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Book>> watchBook(dynamic id,
 final _watchBooks = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Book>>, WatchArgs<Book>>((ref, args) {
   ref.maintainState = false;
-  return ref.watch(booksRepositoryProvider).watchAll(
+  return ref.read(booksRepositoryProvider).watchAll(
       remote: args.remote,
       params: args.params,
       headers: args.headers,

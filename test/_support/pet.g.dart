@@ -72,7 +72,7 @@ final dogsRepositoryProvider =
 
 final _watchDog = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Dog>, WatchArgs<Dog>>((ref, args) {
-  return ref.watch(dogsRepositoryProvider).watchOne(args.id,
+  return ref.read(dogsRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -95,7 +95,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Dog>> watchDog(dynamic id,
 final _watchDogs = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Dog>>, WatchArgs<Dog>>((ref, args) {
   ref.maintainState = false;
-  return ref.watch(dogsRepositoryProvider).watchAll(
+  return ref.read(dogsRepositoryProvider).watchAll(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -158,7 +158,7 @@ final catsRepositoryProvider =
 
 final _watchCat = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Cat>, WatchArgs<Cat>>((ref, args) {
-  return ref.watch(catsRepositoryProvider).watchOne(args.id,
+  return ref.read(catsRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -181,7 +181,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Cat>> watchCat(dynamic id,
 final _watchCats = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Cat>>, WatchArgs<Cat>>((ref, args) {
   ref.maintainState = false;
-  return ref.watch(catsRepositoryProvider).watchAll(
+  return ref.read(catsRepositoryProvider).watchAll(
       remote: args.remote,
       params: args.params,
       headers: args.headers,

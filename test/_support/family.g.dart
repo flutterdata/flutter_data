@@ -105,7 +105,7 @@ final familiesRepositoryProvider =
 
 final _watchFamily = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Family>, WatchArgs<Family>>((ref, args) {
-  return ref.watch(familiesRepositoryProvider).watchOne(args.id,
+  return ref.read(familiesRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -129,7 +129,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Family>> watchFamily(
 final _watchFamilies = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Family>>, WatchArgs<Family>>((ref, args) {
   ref.maintainState = false;
-  return ref.watch(familiesRepositoryProvider).watchAll(
+  return ref.read(familiesRepositoryProvider).watchAll(
       remote: args.remote,
       params: args.params,
       headers: args.headers,

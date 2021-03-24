@@ -88,7 +88,7 @@ final commentsRepositoryProvider =
 
 final _watchComment = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Comment>, WatchArgs<Comment>>((ref, args) {
-  return ref.watch(commentsRepositoryProvider).watchOne(args.id,
+  return ref.read(commentsRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -112,7 +112,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Comment>> watchComment(
 final _watchComments = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Comment>>, WatchArgs<Comment>>((ref, args) {
   ref.maintainState = false;
-  return ref.watch(commentsRepositoryProvider).watchAll(
+  return ref.read(commentsRepositoryProvider).watchAll(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -178,7 +178,7 @@ final sheepRepositoryProvider =
 
 final _watchOneSheep = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Sheep>, WatchArgs<Sheep>>((ref, args) {
-  return ref.watch(sheepRepositoryProvider).watchOne(args.id,
+  return ref.read(sheepRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -202,7 +202,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Sheep>> watchOneSheep(
 final _watchSheep = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Sheep>>, WatchArgs<Sheep>>((ref, args) {
   ref.maintainState = false;
-  return ref.watch(sheepRepositoryProvider).watchAll(
+  return ref.read(sheepRepositoryProvider).watchAll(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
