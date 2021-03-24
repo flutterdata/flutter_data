@@ -36,9 +36,9 @@ void main() async {
   });
 
   test('string utils', () {
-    expect('family'.capitalize(), 'Family');
     expect('Family'.decapitalize(), 'family');
     expect(''.decapitalize(), '');
+    expect('family'.capitalize(), 'Family');
     expect('people'.singularize(), 'person');
     expect('zebra'.pluralize(), 'zebras');
   });
@@ -52,6 +52,14 @@ void main() async {
     // isLoading: this == null
     RepositoryInitializer initializer;
     expect(initializer.isLoading, true);
+  });
+
+  test('repo watch args', () {
+    final args = WatchArgs(id: 1, remote: true, params: {'a': 1});
+    expect(args.id, 1);
+    expect(args.remote, true);
+    expect(args.params, {'a': 1});
+    expect(args, equals(WatchArgs(id: 1, remote: true, params: {'a': 1})));
   });
 
   test('iterable utils', () {
