@@ -46,7 +46,7 @@ void main() async {
       'host': {'h1'}
     });
 
-    expect(graph.getEdge('b2', metadata: 'host'), isNull);
+    expect(graph.getEdge('b2', metadata: 'host'), isEmpty);
 
     graph.addNode('hosts#1');
     graph.addEdge('h1', 'hosts#1', metadata: 'id', inverseMetadata: 'key');
@@ -55,6 +55,11 @@ void main() async {
     // all edges without filtering by metadata
     expect(graph.getNode('h1'), {
       'blogs': {'b1'},
+      'id': {'hosts#1'}
+    });
+
+    graph.removeEdges('h1', metadata: 'blogs');
+    expect(graph.getNode('h1'), {
       'id': {'hosts#1'}
     });
   });
@@ -198,6 +203,12 @@ void main() async {
     expect(graph.hasNode('superman:1'), isFalse);
 
     expect(() => graph.addNode('super:man:1'), throwsA(isA<AssertionError>()));
+  });
+
+  test('namespace id', () {
+    expect(graph.namespace('id', graph.typify('posts', 'a9')), 'id:posts#a9');
+    expect(graph.namespace('zzz', graph.typify('animals', '278#12')),
+        'zzz:animals#278#12');
   });
 
   test('denamespace', () {

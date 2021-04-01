@@ -48,10 +48,10 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
   String getKeyForId(String type, dynamic id, {String keyIfAbsent}) {
     type = DataHelpers.getType(type);
     if (id != null) {
-      final _id = 'id:$type#$id';
+      final namespacedId = namespace('id', typify(type, id));
 
-      if (_getNode(_id) != null) {
-        final tos = _getEdge(_id, metadata: 'key');
+      if (_getNode(namespacedId) != null) {
+        final tos = _getEdge(namespacedId, metadata: 'key');
         if (tos != null && tos.isNotEmpty) {
           final key = tos.first;
           return key;
@@ -65,12 +65,12 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
         if (!_hasNode(keyIfAbsent)) {
           _addNode(keyIfAbsent, notify: false);
         }
-        if (!_hasNode(_id)) {
-          _addNode(_id, notify: false);
+        if (!_hasNode(namespacedId)) {
+          _addNode(namespacedId, notify: false);
         }
         _removeEdges(keyIfAbsent,
             metadata: 'id', inverseMetadata: 'key', notify: false);
-        _addEdge(keyIfAbsent, _id,
+        _addEdge(keyIfAbsent, namespacedId,
             metadata: 'id', inverseMetadata: 'key', notify: false);
         return keyIfAbsent;
       }
@@ -92,11 +92,12 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
     final tos = _getEdge(key, metadata: 'id');
     return tos == null || tos.isEmpty
         ? null
-        : (denamespace(tos.first).split('#')..removeAt(0)).join('#');
+        : (detypify(denamespace(tos.first)));
   }
 
   /// Removes [type]/[id] (and its edges) from graph
-  void removeId(String type, dynamic id) => _removeNode('id:$type#$id');
+  void removeId(String type, dynamic id) =>
+      _removeNode(namespace('id', typify(type, id)));
 
   // nodes
 
@@ -216,8 +217,26 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
     return _hasEdge(key, metadata: metadata);
   }
 
-  /// Returns key without namespace, e.g. `key` from `manager:key`
+  // utils
+
+  @protected
+  @visibleForTesting
+  String namespace(String prefix, String text) => '$prefix:$text';
+
+  @protected
+  @visibleForTesting
   String denamespace(String namespacedKey) => namespacedKey.split(':').last;
+
+  @protected
+  @visibleForTesting
+  String typify(String type, dynamic id) => '$type#$id';
+
+  @protected
+  @visibleForTesting
+  String detypify(String text) {
+    return (text.split('#')..removeAt(0)).join(
+        '#'); // need to re-join with # in case there were other #s in the id
+  }
 
   /// Returns a [Map] representation of this graph, the underlying Hive [box].
   Map<String, Map> toMap() => _toMap();
@@ -240,9 +259,9 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
   List<String> _getEdge(String key, {@required String metadata}) {
     final node = _getNode(key);
     if (node != null) {
-      return node[metadata];
+      return node[metadata] ?? [];
     }
-    return null;
+    return [];
   }
 
   bool _hasEdge(String key, {@required String metadata}) {
@@ -388,10 +407,12 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
       );
     }
 
-    if (tos != null && inverseMetadata != null) {
+    if (tos != null) {
       for (final to in tos) {
         final toNode = _getNode(to);
-        if (toNode != null && toNode[inverseMetadata] != null) {
+        if (toNode != null &&
+            inverseMetadata != null &&
+            toNode[inverseMetadata] != null) {
           toNode[inverseMetadata].remove(from);
           if (toNode[inverseMetadata].isEmpty) {
             toNode.remove(inverseMetadata);
