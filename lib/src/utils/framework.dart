@@ -2,10 +2,6 @@ part of flutter_data;
 
 typedef FutureFn<R> = FutureOr<R> Function();
 
-typedef OnData<R> = FutureOr<R> Function(dynamic);
-
-typedef OnDataError<R> = FutureOr<R> Function(DataException);
-
 class DataHelpers {
   static final uuid = Uuid();
 
@@ -29,7 +25,8 @@ class DataHelpers {
 
 class OfflineException extends DataException {
   final DataModel model;
-  OfflineException({this.model, Object error}) : super(error);
+  final String id;
+  OfflineException({Object error, this.model, this.id}) : super(error);
   @override
   String toString() {
     return 'OfflineException: $error';

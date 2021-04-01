@@ -35,6 +35,7 @@ part 'src/model/relationship/belongs_to.dart';
 
 part 'src/repository/remote_adapter.dart';
 part 'src/repository/remote_adapter_serialization.dart';
+part 'src/repository/remote_adapter_offline.dart';
 part 'src/repository/remote_adapter_watch.dart';
 part 'src/repository/repository.dart';
 part 'src/repository/hive_local_adapter.dart';

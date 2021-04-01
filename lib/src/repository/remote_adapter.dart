@@ -26,7 +26,10 @@ part of flutter_data;
 /// }
 /// ```
 class RemoteAdapter<T extends DataModel<T>> = _RemoteAdapter<T>
-    with _RemoteAdapterSerialization<T>, _RemoteAdapterWatch<T>;
+    with
+        _RemoteAdapterSerialization<T>,
+        _RemoteAdapterOffline<T>,
+        _RemoteAdapterWatch<T>;
 
 abstract class _RemoteAdapter<T extends DataModel<T>>
     with _Lifecycle<_RemoteAdapter<T>> {
@@ -153,16 +156,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
 
   // lifecycle methods
 
-  final _offlineAdapterKey = '_offline:adapter';
-  String get _offlineMetadata => '_offline:$type';
-
   @mustCallSuper
-  Future<void> onInitialized() async {
-    // ensure offline node exists
-    if (!graph.hasNode(_offlineAdapterKey)) {
-      graph.addNode(_offlineAdapterKey);
-    }
-  }
+  Future<void> onInitialized() async {}
 
   @override
   @mustCallSuper
@@ -245,12 +240,14 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
 
   @protected
   @visibleForTesting
-  Future<List<T>> findAll(
-      {bool remote,
-      Map<String, dynamic> params,
-      Map<String, String> headers,
-      bool syncLocal,
-      bool init}) async {
+  Future<List<T>> findAll({
+    bool remote,
+    Map<String, dynamic> params,
+    Map<String, String> headers,
+    bool syncLocal,
+    bool init,
+    OnDataError onError,
+  }) async {
     _assertInit();
     remote ??= _remote;
     params = await defaultParams & params;
@@ -276,16 +273,20 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
         }
         return deserialize(data, init: init).models;
       },
+      onError: onError,
     );
   }
 
   @protected
   @visibleForTesting
-  Future<T> findOne(final dynamic model,
-      {bool remote,
-      Map<String, dynamic> params,
-      Map<String, String> headers,
-      bool init}) async {
+  Future<T> findOne(
+    final dynamic model, {
+    bool remote,
+    Map<String, dynamic> params,
+    Map<String, String> headers,
+    bool init,
+    OnDataError onError,
+  }) async {
     _assertInit();
     assert(model != null);
     remote ??= _remote;
@@ -315,17 +316,21 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       onSuccess: (data) {
         return deserialize(data as Map<String, dynamic>, init: init).model;
       },
+      onError: onError,
     );
   }
 
   @protected
   @visibleForTesting
-  Future<T> save(final T model,
-      {bool remote,
-      Map<String, dynamic> params,
-      Map<String, String> headers,
-      OnDataError onError,
-      bool init}) async {
+  Future<T> save(
+    final T model, {
+    bool remote,
+    Map<String, dynamic> params,
+    Map<String, String> headers,
+    OnDataSave<T> onSuccess,
+    OnDataError onError,
+    bool init,
+  }) async {
     _assertInit();
     remote ??= _remote;
     params = await defaultParams & params;
@@ -347,39 +352,45 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       method: methodForSave(model.id, params),
       headers: headers,
       body: body,
-      key: keyFor(model),
-      onError: onError,
       onSuccess: (data) {
+        T _model;
         if (data == null) {
           // return "old" model if response was empty
           if (init) {
             model._initialize(adapters, save: true);
           }
-          return model;
-        }
-        // deserialize already inits models
-        // if model had a key already, reuse it
-        final newModel = deserialize(data as Map<String, dynamic>,
-                key: model._key, init: init)
-            .model;
+          _model = model;
+        } else {
+          // deserialize already inits models
+          // if model had a key already, reuse it
+          final _newModel = deserialize(data as Map<String, dynamic>,
+                  key: model._key, init: init)
+              .model;
 
-        // in the unlikely case where supplied key couldn't be used
-        // ensure "old" copy of model carries the updated key
-        if (init && model._key != null && model._key != newModel._key) {
-          graph.removeKey(model._key);
-          model._key = newModel._key;
+          // in the unlikely case where supplied key couldn't be used
+          // ensure "old" copy of model carries the updated key
+          if (init && model._key != null && model._key != _newModel._key) {
+            graph.removeKey(model._key);
+            model._key = _newModel._key;
+          }
+          _model = _newModel;
         }
-        return newModel;
+        return onSuccess?.call(_model);
       },
+      onError: onError,
     );
   }
 
   @protected
   @visibleForTesting
-  Future<void> delete(final dynamic model,
-      {bool remote,
-      Map<String, dynamic> params,
-      Map<String, String> headers}) async {
+  Future<void> delete(
+    final dynamic model, {
+    bool remote,
+    Map<String, dynamic> params,
+    Map<String, String> headers,
+    OnDataDelete onSuccess,
+    OnDataError onError,
+  }) async {
     _assertInit();
     remote ??= _remote;
     params = await defaultParams & params;
@@ -388,18 +399,17 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     final id = model is T ? model.id : model;
     final key = graph.getKeyForId(type, id) ?? (model is T ? model._key : null);
 
-    if (key == null) {
-      return;
+    if (key != null) {
+      await localAdapter.delete(key);
     }
 
-    await localAdapter.delete(key);
-
     if (remote && id != null) {
-      graph.removeId(type, id);
       return await sendRequest(
         baseUrl.asUri / urlForDelete(id, params) & params,
         method: methodForDelete(id, params),
         headers: headers,
+        onSuccess: onSuccess,
+        onError: onError,
       );
     }
   }
@@ -411,38 +421,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   @protected
   @visibleForTesting
   Future<void> clearAll() => localAdapter.clearAll();
-
-  // offline
-
-  @protected
-  @visibleForTesting
-  List<T> get offlineModels {
-    final keys = graph.getEdge(_offlineAdapterKey, metadata: _offlineMetadata);
-    return (keys ?? []).map(localAdapter.findOne).toList();
-  }
-
-  @protected
-  @visibleForTesting
-  Future<List<DataException>> saveOfflineModels() async {
-    final exceptions = <DataException>[];
-    final all = offlineModels.map((model) =>
-        save(model, onError: (e) => exceptions.add(e), remote: true));
-    await Future.wait(all);
-    return exceptions;
-  }
-
-  @protected
-  @visibleForTesting
-  void forgetOfflineModels() {
-    graph.removeEdges(_offlineAdapterKey, metadata: _offlineMetadata);
-  }
-
-  @protected
-  bool isNetworkError(error) {
-    // timeouts via http's `connectionTimeout` are
-    // also socket exceptions
-    return error.toString().startsWith('SocketException:');
-  }
 
   // http
 
@@ -489,14 +467,12 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     DataRequestMethod method = DataRequestMethod.GET,
     Map<String, String> headers,
     String body,
-    String key,
-    OnData<R> onSuccess,
+    @required OnData<R> onSuccess,
     OnDataError<E> onError,
     bool omitDefaultParams = false,
   }) async {
     // callbacks
-    onSuccess ??= (_) async => null;
-    onError ??= (DataException e) async => this.onError<E>(e);
+    onError ??= this.onError;
 
     headers ??= await defaultHeaders;
     final _params =
@@ -540,30 +516,16 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     }
 
     if (error == null && code >= 200 && code < 300) {
-      if (key != null) {
-        // request succeeded, remove model from offline meta, if present
-        graph.removeEdge(_offlineAdapterKey, key, metadata: _offlineMetadata);
-      }
-      return await onSuccess(data);
+      return await onSuccess?.call(data);
     } else {
-      DataException _e;
-      if (isNetworkError(error)) {
-        if (key != null) {
-          // request failed, add model to offline edge
-          graph.addEdge(_offlineAdapterKey, key, metadata: _offlineMetadata);
-          _e = OfflineException(error: error, model: localAdapter.findOne(key));
-        } else {
-          _e = OfflineException(error: error);
-        }
-      } else {
-        _e = DataException(error ?? data,
-            stackTrace: stackTrace, statusCode: code);
-      }
+      final e = DataException(error ?? data,
+          stackTrace: stackTrace, statusCode: code);
+
       if (_verbose) {
-        print('[flutter_data] $T: $_e');
+        print('[flutter_data] $T: $e');
       }
-      final errorResult = await onError(_e);
-      return errorResult is R ? errorResult : null;
+      final onErrorResult = await onError(e);
+      return onErrorResult is R ? onErrorResult : null;
     }
   }
 
@@ -599,3 +561,6 @@ enum DataRequestMethod { GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS, TRACE }
 extension _ToStringX on DataRequestMethod {
   String toShortString() => toString().split('.').last;
 }
+
+typedef OnData<R> = FutureOr<R> Function(dynamic);
+typedef OnDataError<R> = FutureOr<R> Function(DataException);

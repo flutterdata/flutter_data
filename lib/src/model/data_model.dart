@@ -80,15 +80,19 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     bool remote,
     Map<String, dynamic> params,
     Map<String, String> headers,
+    OnDataSave<T> onSuccess,
     OnDataError onError,
   }) async {
     _assertInit('save');
-    return await _adapter.save(_this,
-        remote: remote,
-        params: params,
-        headers: headers,
-        onError: onError,
-        init: true);
+    return await _adapter.save(
+      _this,
+      remote: remote,
+      params: params,
+      headers: headers,
+      onSuccess: onSuccess,
+      onError: onError,
+      init: true,
+    );
   }
 
   /// Deletes this model through a call equivalent to [Repository.delete].
@@ -96,40 +100,61 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   /// Usage: `await post.delete()`
   ///
   /// **Requires this model to be initialized.**
-  Future<void> delete(
-      {bool remote,
-      Map<String, dynamic> params,
-      Map<String, String> headers}) async {
+  Future<void> delete({
+    bool remote,
+    Map<String, dynamic> params,
+    Map<String, String> headers,
+    OnDataDelete onSuccess,
+    OnDataError onError,
+  }) async {
     _assertInit('delete');
-    await _adapter.delete(_this,
-        remote: remote, params: params, headers: headers);
+    await _adapter.delete(
+      _this,
+      remote: remote,
+      params: params,
+      headers: headers,
+      onSuccess: onSuccess,
+      onError: onError,
+    );
   }
 
   /// Re-fetch this model through a call equivalent to [Repository.findOne].
   /// with the current object/[id]
   ///
   /// **Requires this model to be initialized.**
-  Future<T> reload(
-      {bool remote,
-      Map<String, dynamic> params,
-      Map<String, String> headers}) async {
+  Future<T> reload({
+    bool remote,
+    Map<String, dynamic> params,
+    Map<String, String> headers,
+  }) async {
     _assertInit('reload');
-    return await _adapter.findOne(_this,
-        remote: remote, params: params, headers: headers, init: true);
+    return await _adapter.findOne(
+      _this,
+      remote: remote,
+      params: params,
+      headers: headers,
+      init: true,
+    );
   }
 
   /// Watch this model through a call equivalent to [Repository.watchOne].
   /// with the current object/[id].
   ///
   /// **Requires this model to be initialized.**
-  DataStateNotifier<T> watch(
-      {bool remote,
-      Map<String, dynamic> params,
-      Map<String, String> headers,
-      AlsoWatch<T> alsoWatch}) {
+  DataStateNotifier<T> watch({
+    bool remote,
+    Map<String, dynamic> params,
+    Map<String, String> headers,
+    AlsoWatch<T> alsoWatch,
+  }) {
     _assertInit('watch');
-    return _adapter.watchOne(_this,
-        remote: remote, params: params, headers: headers, alsoWatch: alsoWatch);
+    return _adapter.watchOne(
+      _this,
+      remote: remote,
+      params: params,
+      headers: headers,
+      alsoWatch: alsoWatch,
+    );
   }
 
   void _assertInit(String method) {
