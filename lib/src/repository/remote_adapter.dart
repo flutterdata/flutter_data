@@ -467,7 +467,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     DataRequestMethod method = DataRequestMethod.GET,
     Map<String, String> headers,
     String body,
-    @required OnData<R> onSuccess,
+    OnData<R> onSuccess,
     OnDataError<E> onError,
     bool omitDefaultParams = false,
   }) async {

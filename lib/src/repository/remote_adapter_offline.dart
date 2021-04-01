@@ -5,16 +5,16 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
 
   String get _offlineHeadersMetadata => '_offline:headers';
   String get _offlineParamsMetadata => '_offline:params';
-  String get _offlineSaveMetadata => '_offline:save:$type';
-  String get _offlineDeleteMetadata => '_offline:delete:$type';
+  String get _offlineSaveMetadata => '_offline:save_$type';
+  String get _offlineDeleteMetadata => '_offline:delete_$type';
 
   @override
   @mustCallSuper
   Future<void> onInitialized() async {
     await super.onInitialized();
     // ensure offline nodes exist
-    if (!graph.hasNode(_offlineAdapterKey)) {
-      graph.addNode(_offlineAdapterKey);
+    if (!graph._hasNode(_offlineAdapterKey)) {
+      graph._addNode(_offlineAdapterKey);
     }
   }
 
@@ -84,7 +84,7 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
       onSuccess: (newModel) {
         final key = newModel._key;
         // save request succeeded, remove meta
-        graph.removeEdge(_offlineAdapterKey, key,
+        graph._removeEdge(_offlineAdapterKey, key,
             metadata: _offlineSaveMetadata, notify: false);
         _removeAllMeta(key);
 
@@ -94,7 +94,7 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
       onError: (e) {
         if (isNetworkError(e.error)) {
           // save request failed, add meta
-          graph.addEdge(_offlineAdapterKey, model._key,
+          graph._addEdge(_offlineAdapterKey, model._key,
               metadata: _offlineSaveMetadata, notify: false);
           _saveMeta(model._key, _offlineHeadersMetadata, headers);
           _saveMeta(model._key, _offlineParamsMetadata, params);
@@ -132,7 +132,7 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
         final id = (model is T ? model.id : model).toString();
         final namespacedId = graph.namespace('id', graph.typify(type, id));
 
-        graph.removeEdge(_offlineAdapterKey, namespacedId,
+        graph._removeEdge(_offlineAdapterKey, namespacedId,
             metadata: _offlineDeleteMetadata, notify: false);
         _removeAllMeta(namespacedId);
 
@@ -147,7 +147,7 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
           final id = (model is T ? model.id : model).toString();
           final namespacedId = graph.namespace('id', graph.typify(type, id));
 
-          graph.addEdge(_offlineAdapterKey, namespacedId,
+          graph._addEdge(_offlineAdapterKey, namespacedId,
               metadata: _offlineDeleteMetadata, notify: false);
           _saveMeta(namespacedId, _offlineHeadersMetadata, headers);
           _saveMeta(namespacedId, _offlineParamsMetadata, params);
@@ -178,7 +178,7 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
   @visibleForTesting
   List<T> get offlineSaved {
     final keys =
-        graph.getEdge(_offlineAdapterKey, metadata: _offlineSaveMetadata);
+        graph._getEdge(_offlineAdapterKey, metadata: _offlineSaveMetadata);
     return keys.map(localAdapter.findOne).filterNulls.toList();
   }
 
@@ -196,7 +196,7 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
     final exceptions = <DataException>[];
 
     final keysToSave =
-        graph.getEdge(_offlineAdapterKey, metadata: _offlineSaveMetadata);
+        graph._getEdge(_offlineAdapterKey, metadata: _offlineSaveMetadata);
 
     final allSaved = keysToSave.map((key) {
       final model = localAdapter.findOne(key);
@@ -231,7 +231,7 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
     });
 
     final idsToDelete =
-        graph.getEdge(_offlineAdapterKey, metadata: _offlineDeleteMetadata);
+        graph._getEdge(_offlineAdapterKey, metadata: _offlineDeleteMetadata);
 
     final allDeleted = idsToDelete.map((namespacedId) {
       final id = graph.detypify(graph.denamespace(namespacedId));
@@ -265,29 +265,29 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
   @protected
   @visibleForTesting
   void offlineClear() {
-    graph.removeEdges(_offlineAdapterKey, metadata: _offlineSaveMetadata);
-    graph.removeEdges(_offlineAdapterKey, metadata: _offlineDeleteMetadata);
+    graph._removeEdges(_offlineAdapterKey, metadata: _offlineSaveMetadata);
+    graph._removeEdges(_offlineAdapterKey, metadata: _offlineDeleteMetadata);
   }
 
   // utils
 
   Map _getMeta(String key, String metadata) {
-    final values = graph.getEdge(key, metadata: metadata);
+    final values = graph._getEdge(key, metadata: metadata);
     return values.isNotEmpty ? json.decode(values.first) as Map : {};
   }
 
   void _saveMeta(String key, String metadata, Map map) {
     if (map != null && map.isNotEmpty) {
       final mapNode = json.encode(map);
-      graph.addNode(mapNode);
-      graph.addEdge(key, mapNode, metadata: metadata);
+      graph._addNode(mapNode);
+      graph._addEdge(key, mapNode, metadata: metadata);
     }
   }
 
   void _removeAllMeta(String key) {
-    if (graph.hasNode(key)) {
-      graph.removeEdges(key, metadata: _offlineHeadersMetadata, notify: false);
-      graph.removeEdges(key, metadata: _offlineParamsMetadata, notify: false);
+    if (graph._hasNode(key)) {
+      graph._removeEdges(key, metadata: _offlineHeadersMetadata, notify: false);
+      graph._removeEdges(key, metadata: _offlineParamsMetadata, notify: false);
     }
   }
 }
