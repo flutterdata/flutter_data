@@ -64,6 +64,21 @@ void main() async {
     expect(await familyRepository.findAll(remote: false), families3);
   });
 
+  test('findAll with error', () async {
+    expect(() async {
+      container.read(responseProvider).state = TestResponse(
+          text: (_) => '''&*@~&^@^&!(@*(@#{ "id": "1", "surname": "Smith" }''',
+          statusCode: 203);
+      await familyRepository.findAll(remote: true);
+    }, throwsA(isA<DataException>()));
+
+    await familyRepository.findAll(
+        remote: true,
+        onError: (e) {
+          expect(e, isA<DataException>());
+        });
+  });
+
   test('findOne', () async {
     container.read(responseProvider).state = TestResponse.text('''
         { "id": "1", "surname": "Smith" }
@@ -98,54 +113,51 @@ void main() async {
   });
 
   test('findOne with errors', () async {
-    try {
+    final error203 = isA<DataException>()
+        .having((e) => e.error, 'error', isA<FormatException>())
+        .having((e) => e.statusCode, 'status code', 203);
+
+    expect(() async {
       container.read(responseProvider).state = TestResponse(
           text: (_) => '''&*@~&^@^&!(@*(@#{ "id": "1", "surname": "Smith" }''',
           statusCode: 203);
       await familyRepository.findOne('1', remote: true);
-    } catch (e) {
-      expect(
-          e,
-          isA<DataException>()
-              .having((e) => e.error, 'error', isA<FormatException>())
-              .having((e) => e.statusCode, 'status code', 203));
-    }
+    }, throwsA(error203));
+
+    await oneMs();
+
+    await familyRepository.findOne('1', remote: true, onError: (e) {
+      expect(e, error203);
+    });
 
     // not found
 
-    try {
+    expect(() async {
       container.read(responseProvider).state = TestResponse(
           text: (_) => '{ "error": "not found" }', statusCode: 404);
       await familyRepository.findOne('2', remote: true);
-    } catch (e) {
-      expect(
-        e,
-        isA<DataException>().having(
+    },
+        throwsA(isA<DataException>().having(
           (e) => e.error,
           'error',
           {'error': 'not found'},
-        ).having((e) => e.statusCode, 'status code', 404),
-      );
-    }
+        ).having((e) => e.statusCode, 'status code', 404)));
 
     // no record locally
     expect(await familyRepository.findOne('1', remote: false), isNull);
   });
 
   test('socket exception', () async {
-    try {
+    expect(() async {
       container.read(responseProvider).state =
           TestResponse(text: (_) => throw SocketException('unreachable'));
       await familyRepository.findOne('error', remote: true);
-    } catch (e) {
-      expect(
-          e,
-          isA<DataException>().having(
-            (e) => e.error,
-            'SocketException',
-            isA<SocketException>(),
-          ));
-    }
+    },
+        throwsA(isA<DataException>().having(
+          (e) => e.error,
+          'SocketException',
+          isA<SocketException>(),
+        )));
   });
 
   test('save', () async {
@@ -194,126 +206,6 @@ void main() async {
         return s.exception.error;
       }, 'exception', isA<FormatException>()),
     ))).called(1);
-  });
-
-  test('save offline', () async {
-    final listener = Listener<DataState<List<Family>>>();
-    // listening to local changes enough
-    final notifier = familyRepository.watchAll(remote: false);
-
-    dispose = notifier.addListener(listener, fireImmediately: true);
-
-    final family = Family(id: '1', surname: 'Smith');
-
-    // network issue persisting family
-    container.read(responseProvider).state =
-        TestResponse(text: (_) => throw SocketException('unreachable'));
-
-    // must specify remote=true as repo's default is remote=false
-    await familyRepository.save(family, remote: true, onError: (e) async {
-      // supply onError for exception to show up in notifier
-      await oneMs();
-      notifier.updateWith(exception: e);
-    });
-    await oneMs();
-
-    // assert it's an OfflineException
-    verify(listener(argThat(
-      isA<DataState<List<Family>>>().having(
-        (s) => s.exception,
-        'exception',
-        isA<OfflineException>().having(
-          (s) => s.model,
-          'model',
-          equals(family),
-        ),
-      ),
-    ))).called(1);
-
-    // family is remembered as failed to persist
-    expect(familyRepository.offlineModels, [family]);
-
-    // try with family2
-    final family2 = Family(id: '2', surname: 'Montewicz');
-    try {
-      await familyRepository.save(family2, remote: true);
-    } catch (_) {
-      // without onError, ignore exception
-    }
-    await oneMs();
-
-    // now two families failed to persist
-    expect(familyRepository.offlineModels, [family, family2]);
-
-    // retry saving them
-    final exceptions = await familyRepository.saveOfflineModels();
-    // await 1ms for each family
-    await oneMs();
-    await oneMs();
-
-    // none of them could be saved upon retry - we get two OfflineExceptions again
-    expect(exceptions.map((e) => (e as OfflineException).model),
-        equals([family, family2]));
-
-    // change the response to: success for family, failure for family2
-    container.read(responseProvider).state = TestResponse(
-      text: (req) {
-        if (req.url.pathSegments.last == '1') {
-          return '{"id": "1", "surname": "Jones 1"}';
-        }
-        throw SocketException('unreachable');
-      },
-    );
-
-    // retry
-    final exceptions2 = await familyRepository.saveOfflineModels();
-    await oneMs();
-    await oneMs();
-
-    // the returned OfflineException still points to family2, failed on retry
-    expect(exceptions2.map((e) => (e as OfflineException).model), [family2]);
-
-    // family2 still remembered as not persisted
-    expect(familyRepository.offlineModels, [family2]);
-
-    // change response to success for both family and family2
-    container.read(responseProvider).state = TestResponse(text: (req) {
-      return '{"id": "${req.url.pathSegments.last}", "surname": "Jones ${req.url.pathSegments.last}"}';
-    });
-
-    // retry
-    final exceptions3 = await familyRepository.saveOfflineModels();
-    await oneMs();
-    await oneMs();
-
-    // should be empty as all saves succeeded
-    expect(exceptions3.map((e) => (e as OfflineException).model), isEmpty);
-
-    // same here
-    expect(familyRepository.offlineModels, isEmpty);
-
-    // simulate a network issue once again for family3
-    container.read(responseProvider).state =
-        TestResponse(text: (_) => throw SocketException('unreachable'));
-
-    try {
-      await Family(id: '3', surname: 'Zweck')
-          .init(container.read)
-          .save(remote: true);
-    } catch (_) {
-      // without onError, ignore exception
-    }
-    await oneMs();
-
-    // assert family3 hasn't been persisted
-    expect(familyRepository.offlineModels,
-        equals([Family(id: '3', surname: 'Zweck')]));
-
-    // use `resetOfflineModels` to forget/ignore failed to save models
-    familyRepository.forgetOfflineModels();
-
-    // so it's empty again
-    expect(familyRepository.offlineModels, isEmpty);
   });
 
   test('delete', () async {
@@ -655,7 +547,7 @@ void main() async {
       container.read(responseProvider).state =
           TestResponse(text: (_) => '^@!@#(#(@#)#@', statusCode: 500);
       await dogRepository.findOne('1', remote: true);
-    } catch (e) {
+    } catch (_) {
       expect(verbose.last, contains('DataException'));
     }
   }));
