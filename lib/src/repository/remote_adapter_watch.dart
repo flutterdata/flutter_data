@@ -11,6 +11,8 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
   StateNotifier<List<DataGraphEvent>> get throttledGraph =>
       graph.throttle(throttleDuration);
 
+  @protected
+  @visibleForTesting
   DataStateNotifier<List<T>> watchAll(
       {final bool remote,
       final Map<String, dynamic> params,
@@ -42,6 +44,8 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         } on DataException catch (e) {
           // we're only interested in notifying errors
           // as models will pop up via the graph notifier
+          // (we can catch the exception as we are NOT supplying
+          // an `onError` to `findAll`)
           if (notifier.mounted) {
             notifier.updateWith(isLoading: false, exception: e);
           } else {
@@ -78,6 +82,8 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     return _notifier;
   }
 
+  @protected
+  @visibleForTesting
   DataStateNotifier<T> watchOne(final dynamic model,
       {final bool remote,
       final Map<String, dynamic> params,
@@ -116,6 +122,8 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         } on DataException catch (e) {
           // we're only interested in notifying errors
           // as models will pop up via the graph notifier
+          // (we can catch the exception as we are NOT supplying
+          // an `onError` to `findOne`)
           if (notifier.mounted) {
             notifier.updateWith(isLoading: false, exception: e);
           } else {
