@@ -25,7 +25,7 @@ class DataHelpers {
 
 class OfflineException extends DataException {
   final DataModel model;
-  final String id;
+  final dynamic id;
   OfflineException({Object error, this.model, this.id}) : super(error);
   @override
   String toString() {

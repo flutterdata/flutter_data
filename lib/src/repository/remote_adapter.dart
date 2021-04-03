@@ -327,7 +327,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     bool remote,
     Map<String, dynamic> params,
     Map<String, String> headers,
-    OnDataSave<T> onSuccess,
+    OnData<T> onSuccess,
     OnDataError onError,
     bool init,
   }) async {
@@ -375,7 +375,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
           }
           _model = _newModel;
         }
-        return onSuccess?.call(_model);
+        return onSuccess?.call(_model) ?? _model;
       },
       onError: onError,
     );
@@ -388,7 +388,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     bool remote,
     Map<String, dynamic> params,
     Map<String, String> headers,
-    OnDataDelete onSuccess,
+    OnData<void> onSuccess,
     OnDataError onError,
   }) async {
     _assertInit();
@@ -397,7 +397,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     headers = await defaultHeaders & headers;
 
     final id = model is T ? model.id : model;
-    final key = graph.getKeyForId(type, id) ?? (model is T ? model._key : null);
+    final key = _keyForModel(model);
 
     if (key != null) {
       await localAdapter.delete(key);
@@ -467,7 +467,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     DataRequestMethod method = DataRequestMethod.GET,
     Map<String, String> headers,
     String body,
-    OnData<R> onSuccess,
+    FutureOr<R> Function(dynamic) onSuccess,
     OnDataError<E> onError,
     bool omitDefaultParams = false,
   }) async {
@@ -545,6 +545,11 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   T initializeModel(T model, {String key, bool save}) {
     return model?._initialize(adapters, key: key, save: save);
   }
+
+  String _keyForModel(dynamic model) {
+    final id = model is T ? model.id : model;
+    return graph.getKeyForId(type, id) ?? (model is T ? model._key : null);
+  }
 }
 
 /// A utility class used to return deserialized main [models] AND [included] models.
@@ -562,5 +567,5 @@ extension _ToStringX on DataRequestMethod {
   String toShortString() => toString().split('.').last;
 }
 
-typedef OnData<R> = FutureOr<R> Function(dynamic);
+typedef OnData<R> = FutureOr<R> Function(R);
 typedef OnDataError<R> = FutureOr<R> Function(DataException);

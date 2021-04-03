@@ -279,11 +279,12 @@ void main() async {
 
     // we know that a node will be created with the JSON contents
     // of headers and params - assert it's been removed
+    // as deleting a pending save removes the save metadata
 
-    // final _json = json.encode({'X-Override-Name': 'Johnson'});
+    final _json = json.encode({'X-Override-Name': 'Johnson'});
 
-    // // ignore: invalid_use_of_protected_member
-    // expect(familyRepository.remoteAdapter.graph.toMap().keys,
-    //     isNot(contains(_json)));
+    // ignore: invalid_use_of_protected_member
+    expect(familyRepository.remoteAdapter.graph.toMap().keys,
+        isNot(contains(_json)));
   });
 }

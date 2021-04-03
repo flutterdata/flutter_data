@@ -115,7 +115,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
     bool remote,
     Map<String, dynamic> params,
     Map<String, String> headers,
-    OnDataSave<T> onSuccess,
+    OnData<T> onSuccess,
     OnDataError onError,
   }) {
     return remoteAdapter.save(
@@ -144,7 +144,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
     bool remote,
     Map<String, dynamic> params,
     Map<String, String> headers,
-    OnDataDelete onSuccess,
+    OnData<void> onSuccess,
     OnDataError onError,
   }) {
     return remoteAdapter.delete(

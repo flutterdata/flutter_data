@@ -80,7 +80,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     bool remote,
     Map<String, dynamic> params,
     Map<String, String> headers,
-    OnDataSave<T> onSuccess,
+    OnData<T> onSuccess,
     OnDataError onError,
   }) async {
     _assertInit('save');
@@ -104,7 +104,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     bool remote,
     Map<String, dynamic> params,
     Map<String, String> headers,
-    OnDataDelete onSuccess,
+    OnData<void> onSuccess,
     OnDataError onError,
   }) async {
     _assertInit('delete');

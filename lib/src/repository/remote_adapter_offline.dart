@@ -12,6 +12,8 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
   @mustCallSuper
   Future<void> onInitialized() async {
     await super.onInitialized();
+    // wipe out orphans
+    graph.removeOrphanNodes();
     // ensure offline nodes exist
     if (!graph._hasNode(_offlineAdapterKey)) {
       graph._addNode(_offlineAdapterKey);
@@ -72,7 +74,7 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
     bool remote,
     Map<String, dynamic> params,
     Map<String, String> headers,
-    OnDataSave<T> onSuccess,
+    OnData<T> onSuccess,
     OnDataError onError,
     bool init,
   }) async {
@@ -82,29 +84,13 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
       params: params,
       headers: headers,
       onSuccess: (newModel) {
-        final key = newModel._key;
-        // save request succeeded, remove meta
-        graph._removeEdge(_offlineAdapterKey, key,
-            metadata: _offlineSaveMetadata, notify: false);
-        _removeAllMeta(key);
-
-        ref.read(_offlineCallbackProvider).state.remove(key);
+        _removeOfflineKey(newModel._key, _offlineSaveMetadata);
         return onSuccess?.call(newModel) ?? newModel;
       },
       onError: (e) {
         if (isNetworkError(e.error)) {
-          // save request failed, add meta
-          graph._addEdge(_offlineAdapterKey, model._key,
-              metadata: _offlineSaveMetadata, notify: false);
-          _saveMeta(model._key, _offlineHeadersMetadata, headers);
-          _saveMeta(model._key, _offlineParamsMetadata, params);
-
-          // keep callbacks in memory
-          ref.read(_offlineCallbackProvider).state[model._key] = [
-            onSuccess,
-            onError
-          ];
-          // produce the offline exception
+          _addOfflineKey(model._key, _offlineSaveMetadata, headers, params,
+              onSuccess, onError);
           e = OfflineException(error: e.error, model: model);
         }
         onError?.call(e);
@@ -119,43 +105,38 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
     bool remote,
     Map<String, dynamic> params,
     Map<String, String> headers,
-    OnDataDelete onSuccess,
+    OnData<void> onSuccess,
     OnDataError onError,
   }) async {
-    return super.delete(
+    final id = model is T ? model.id : model;
+    final key = _keyForModel(model);
+
+    if (key != null) {
+      // ensure pending save is removed
+      _removeOfflineKey(key, _offlineSaveMetadata);
+    }
+
+    return await super.delete(
       model,
       remote: remote,
       params: params,
       headers: headers,
       onSuccess: (_) {
         // delete request succeeded, remove meta
-        final id = (model is T ? model.id : model).toString();
         final namespacedId = graph.namespace('id', graph.typify(type, id));
-
-        graph._removeEdge(_offlineAdapterKey, namespacedId,
-            metadata: _offlineDeleteMetadata, notify: false);
-        _removeAllMeta(namespacedId);
+        _removeOfflineKey(namespacedId, _offlineDeleteMetadata);
 
         // also remove id from graph
         graph.removeId(type, id);
-        ref.read(_offlineCallbackProvider).state.remove(namespacedId);
-        onSuccess?.call(id);
+        onSuccess?.call(_);
       },
       onError: (e) {
         if (isNetworkError(e.error)) {
           // delete request failed, add meta
-          final id = (model is T ? model.id : model).toString();
           final namespacedId = graph.namespace('id', graph.typify(type, id));
+          _addOfflineKey(namespacedId, _offlineDeleteMetadata, headers, params,
+              onSuccess, onError);
 
-          graph._addEdge(_offlineAdapterKey, namespacedId,
-              metadata: _offlineDeleteMetadata, notify: false);
-          _saveMeta(namespacedId, _offlineHeadersMetadata, headers);
-          _saveMeta(namespacedId, _offlineParamsMetadata, params);
-
-          ref.read(_offlineCallbackProvider).state[namespacedId] = [
-            onSuccess,
-            onError
-          ];
           // produce the offline exception with the ID
           e = OfflineException(error: e.error, id: id);
         }
@@ -165,14 +146,13 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
   }
 
   @protected
+  @visibleForTesting
   bool isNetworkError(error) {
     // timeouts via http's `connectionTimeout` are
     // also socket exceptions
     // we check the exception like this in order not to import `dart:io`
     return error.toString().startsWith('SocketException:');
   }
-
-  //
 
   @protected
   @visibleForTesting
@@ -198,6 +178,7 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
     final keysToSave =
         graph._getEdge(_offlineAdapterKey, metadata: _offlineSaveMetadata);
 
+    // prepare save futures
     final allSaved = keysToSave.map((key) {
       final model = localAdapter.findOne(key);
 
@@ -207,21 +188,29 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
         return Future.value();
       }
 
+      // restore metadata
       final headers =
           _getMeta(key, _offlineHeadersMetadata).cast<String, String>();
       final params =
           _getMeta(key, _offlineParamsMetadata).cast<String, dynamic>();
 
-      final _ = ref.read(_offlineCallbackProvider).state[key];
-      final onSuccess = _.first as OnDataSave<T>;
-      final onError = _.last as OnDataError;
+      // restore callbacks
+      OnData<T> onSuccess;
+      OnDataError onError;
+      final fns = ref.read(_offlineCallbackProvider).state[key];
+      if (fns != null && fns.length == 2) {
+        onSuccess = fns.first as OnData<T>;
+        onError = fns.last as OnDataError;
+      }
 
+      // reattempt save
       return save(
         model,
         params: params,
         headers: headers,
         onSuccess: onSuccess,
         onError: (e) {
+          // add exception to be returned
           exceptions.add(e);
           onError?.call(e);
         },
@@ -233,24 +222,33 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
     final idsToDelete =
         graph._getEdge(_offlineAdapterKey, metadata: _offlineDeleteMetadata);
 
+    // prepare delete futures
     final allDeleted = idsToDelete.map((namespacedId) {
       final id = graph.detypify(graph.denamespace(namespacedId));
 
+      // restore metadata
       final headers = _getMeta(namespacedId, _offlineHeadersMetadata)
           .cast<String, String>();
       final params = _getMeta(namespacedId, _offlineParamsMetadata)
           .cast<String, dynamic>();
 
-      final _ = ref.read(_offlineCallbackProvider).state[namespacedId];
-      final onSuccess = _.first as OnDataDelete;
-      final onError = _.last as OnDataError;
+      // restore callbacks
+      OnData<void> onSuccess;
+      OnDataError onError;
+      final fns = ref.read(_offlineCallbackProvider).state[namespacedId];
+      if (fns != null && fns.length == 2) {
+        onSuccess = fns.first as OnData<void>;
+        onError = fns.last as OnDataError;
+      }
 
+      // reattempt deletion
       return delete(
         id,
         params: params,
         headers: headers,
         onSuccess: onSuccess,
         onError: (e) {
+          // add exception to be returned
           exceptions.add(e);
           onError?.call(e);
         },
@@ -265,11 +263,40 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
   @protected
   @visibleForTesting
   void offlineClear() {
-    graph._removeEdges(_offlineAdapterKey, metadata: _offlineSaveMetadata);
-    graph._removeEdges(_offlineAdapterKey, metadata: _offlineDeleteMetadata);
+    final nodes =
+        graph._getEdge(_offlineAdapterKey, metadata: _offlineSaveMetadata);
+    for (final key in nodes.toSet()) {
+      // remove all save and delete offline-related metadata
+      _removeOfflineKey(key, _offlineSaveMetadata);
+      _removeOfflineKey(key, _offlineDeleteMetadata);
+    }
   }
 
   // utils
+
+  /// Adds an edge from the `_offlineAdapterKey` to the `key` for save/delete
+  /// and stores header/param metadata. Also stores callbacks.
+  void _addOfflineKey(String key, String metadata, Map<String, String> headers,
+      Map<String, dynamic> params, Function onSuccess, Function onError) {
+    graph._addEdge(_offlineAdapterKey, key, metadata: metadata, notify: false);
+    _saveMeta(key, _offlineHeadersMetadata, headers);
+    _saveMeta(key, _offlineParamsMetadata, params);
+    // keep callbacks in memory
+    ref.read(_offlineCallbackProvider).state[key] = [onSuccess, onError];
+  }
+
+  /// Removes the edge from the `_offlineAdapterKey` to the `key` for save/delete
+  /// and removes header/param metadata. Also removes callbacks.
+  void _removeOfflineKey(String key, String metadata) {
+    graph._removeEdge(_offlineAdapterKey, key,
+        metadata: metadata, notify: false);
+    if (graph._hasNode(key)) {
+      graph._removeEdges(key, metadata: _offlineHeadersMetadata, notify: false);
+      graph._removeEdges(key, metadata: _offlineParamsMetadata, notify: false);
+    }
+    // remove callbacks from memory
+    ref.read(_offlineCallbackProvider).state.remove(key);
+  }
 
   Map _getMeta(String key, String metadata) {
     final values = graph._getEdge(key, metadata: metadata);
@@ -283,17 +310,7 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
       graph._addEdge(key, mapNode, metadata: metadata);
     }
   }
-
-  void _removeAllMeta(String key) {
-    if (graph._hasNode(key)) {
-      graph._removeEdges(key, metadata: _offlineHeadersMetadata, notify: false);
-      graph._removeEdges(key, metadata: _offlineParamsMetadata, notify: false);
-    }
-  }
 }
-
-typedef OnDataSave<R> = FutureOr<R> Function(R model);
-typedef OnDataDelete = void Function(dynamic id);
 
 final _offlineCallbackProvider =
     StateProvider<Map<String, List<Function>>>((_) => {});
