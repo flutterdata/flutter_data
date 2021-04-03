@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.7.0-rc6]
+## [0.7.0-rc7]
 
 - Fix singular/plural types, fix remote default
 - Allow specifying remote default value via `@DataRepository`
