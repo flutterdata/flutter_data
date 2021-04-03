@@ -217,6 +217,16 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
     return _hasEdge(key, metadata: metadata);
   }
 
+  /// Removes orphan nodes (i.e. nodes without edges)
+  @protected
+  @visibleForTesting
+  void removeOrphanNodes() {
+    final orphanEntries = {...toMap()}.entries.where((e) => e.value.isEmpty);
+    for (final e in orphanEntries) {
+      _removeNode(e.key);
+    }
+  }
+
   // utils
 
   @protected

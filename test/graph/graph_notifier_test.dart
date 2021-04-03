@@ -205,7 +205,7 @@ void main() async {
     expect(() => graph.addNode('super:man:1'), throwsA(isA<AssertionError>()));
   });
 
-  test('namespace id', () {
+  test('namespace', () {
     expect(graph.namespace('id', graph.typify('posts', 'a9')), 'id:posts#a9');
     expect(graph.namespace('zzz', graph.typify('animals', '278#12')),
         'zzz:animals#278#12');
@@ -213,6 +213,15 @@ void main() async {
 
   test('denamespace', () {
     expect(graph.denamespace('superman:1'), '1');
+    expect(graph.detypify(graph.denamespace('id:posts#a9')), 'a9');
+  });
+
+  test('remove orphans', () {
+    graph.addNode('a');
+    graph.addNode('b');
+    graph.removeOrphanNodes();
+    expect(graph.hasNode('a'), isFalse);
+    expect(graph.hasNode('b'), isFalse);
   });
 
   test('event', () {
