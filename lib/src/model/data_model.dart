@@ -13,41 +13,42 @@ abstract class DataModel<T extends DataModel<T>> {
 
   // computed
   String get _internalType => DataHelpers.getType<T>();
-  RemoteAdapter<T> get _adapter => _adapters[_internalType] as RemoteAdapter<T>;
+  RemoteAdapter<T> get remoteAdapter =>
+      _adapters[_internalType] as RemoteAdapter<T>;
   bool get _isInitialized => _key != null && _adapters != null;
 
   // initializers
 
   T _initialize(final Map<String, RemoteAdapter> adapters,
       {final String key, final bool save}) {
-    if (_isInitialized) return _this;
+    if (_isInitialized) return this as T;
 
-    _this._adapters = adapters;
+    _adapters = adapters;
 
-    assert(_adapter != null, '''\n
+    assert(remoteAdapter != null, '''\n
 Please ensure `Repository<$T>` has been correctly initialized.''');
 
-    _this._key = _adapter.graph.getKeyForId(_this._adapter.type, _this.id,
+    _key = remoteAdapter.graph.getKeyForId(remoteAdapter.type, id,
         keyIfAbsent: key ?? DataHelpers.generateKey<T>());
 
     if (save ?? false) {
-      _adapter.localAdapter.save(_this._key, _this);
+      remoteAdapter.localAdapter.save(_key, this as T);
     }
 
     // initialize relationships
     for (final metadata
-        in _adapter.localAdapter.relationshipsFor(_this).entries) {
+        in remoteAdapter.localAdapter.relationshipsFor(this as T).entries) {
       final relationship = metadata.value['instance'] as Relationship;
 
       relationship?.initialize(
         adapters: adapters,
-        owner: _this,
+        owner: this,
         name: metadata.value['name'] as String,
         inverseName: metadata.value['inverse'] as String,
       );
     }
 
-    return _this;
+    return this as T;
   }
 }
 
@@ -55,8 +56,6 @@ Please ensure `Repository<$T>` has been correctly initialized.''');
 /// linking them to common [Repository] methods such as
 /// [save] and [delete].
 extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
-  T get _this => this as T;
-
   /// Initializes a model copying the identity of supplied [model].
   ///
   /// Usage:
@@ -68,7 +67,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   T was(T model) {
     assert(model != null && model._isInitialized,
         'Please initialize model before passing it to `was`');
-    return _this._initialize(model._adapters, key: model._key, save: true);
+    return _initialize(model._adapters, key: model._key, save: true);
   }
 
   /// Saves this model through a call equivalent to [Repository.save].
@@ -84,8 +83,8 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     OnDataError onError,
   }) async {
     _assertInit('save');
-    return await _adapter.save(
-      _this,
+    return await remoteAdapter.save(
+      this as T,
       remote: remote,
       params: params,
       headers: headers,
@@ -108,8 +107,8 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     OnDataError onError,
   }) async {
     _assertInit('delete');
-    await _adapter.delete(
-      _this,
+    await remoteAdapter.delete(
+      this,
       remote: remote,
       params: params,
       headers: headers,
@@ -128,8 +127,8 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     Map<String, String> headers,
   }) async {
     _assertInit('reload');
-    return await _adapter.findOne(
-      _this,
+    return await remoteAdapter.findOne(
+      this,
       remote: remote,
       params: params,
       headers: headers,
@@ -148,8 +147,8 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     AlsoWatch<T> alsoWatch,
   }) {
     _assertInit('watch');
-    return _adapter.watchOne(
-      _this,
+    return remoteAdapter.watchOne(
+      this,
       remote: remote,
       params: params,
       headers: headers,
@@ -194,4 +193,5 @@ String keyFor<T extends DataModel<T>>(T model) => model?._key;
 
 @visibleForTesting
 @protected
-RemoteAdapter adapterFor<T extends DataModel<T>>(T model) => model?._adapter;
+RemoteAdapter adapterFor<T extends DataModel<T>>(T model) =>
+    model?.remoteAdapter;

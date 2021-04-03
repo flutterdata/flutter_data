@@ -87,7 +87,7 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E> {
 
   void addInverse(String inverseName, DataModel model) {
     if (value != null) {
-      final _rels = value._adapter.localAdapter.relationshipsFor(value);
+      final _rels = value.remoteAdapter.localAdapter.relationshipsFor(value);
       if (_rels != null) {
         final inverseMetadata = _rels[inverseName];
         if (inverseMetadata != null) {
