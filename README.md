@@ -7,54 +7,50 @@
 
 [![tests](https://img.shields.io/github/workflow/status/flutterdata/flutter_data/test/master?label=tests&labelColor=333940&logo=github)](https://github.com/flutterdata/flutter_data/actions) [![codecov](https://codecov.io/gh/flutterdata/flutter_data/branch/master/graph/badge.svg)](https://codecov.io/gh/flutterdata/flutter_data) [![pub.dev](https://img.shields.io/pub/v/flutter_data?label=pub.dev&labelColor=333940&logo=dart)](https://pub.dev/packages/flutter_data) [![license](https://img.shields.io/github/license/flutterdata/flutter_data?color=%23007A88&labelColor=333940&logo=mit)](https://github.com/flutterdata/flutter_data/blob/master/LICENSE)
 
-Flutter Data is the seamless way to work with persistent data models in Flutter.
+## Persistent reactive models in Flutter with zero boilerplate.
 
-Inspired by [Ember Data](https://github.com/emberjs/data) and [ActiveRecord](https://guides.rubyonrails.org/active_record_basics.html).
+Flutter Data is an offline-first persistence framework that gives you a configurable REST client and powerful model relationships.
 
----
-
-<h1>⚠️ DOCUMENTATION IS OUT OF DATE. I'm working on it, please bare with me!</h1>
-
-<h3>Refer to https://github.com/flutterdata/flutter_data_setup_app and https://github.com/flutterdata/flutter_data_todos</h3>
+Heavily inspired by [Ember Data](https://github.com/emberjs/data) and [ActiveRecord](https://guides.rubyonrails.org/active_record_basics.html).
 
 ---
 
 ## Features
 
-- **Auto-generated repositories (REST clients) for all models** 🚀
-  - CRUD and custom actions on remote API
-  - StateNotifier, Future and Stream APIs
+- **Repositories for all models** 🚀
+  - CRUD and custom remote endpoints
+  - [StateNotifier](https://pub.dev/packages/state_notifier) watcher APIs
 - **Built for offline-first** 🔌
-  - uses Hive at its core for caching & local storage
-  - included read/write retry offline adapter
-- **Effortless setup** ⏰
-  - Automatically pre-configured for `provider`, `riverpod` and `get_it`
-  - Convention over configuration powered by Dart mixins
+  - [Hive](https://docs.hivedb.dev/)-based local storage at its core
+  - Failure handling & retry API
+- **Intuitive APIs, effortless setup** 💙
+  - Truly configurable and composable via Dart mixins and codegen
+  - Built-in [Riverpod](https://riverpod.dev/) providers for all models
 - **Exceptional relationship support** ⚡️
-  - Automatically synchronized, traversable relationship graph
+  - Automatically synchronized, fully traversable relationship graph
   - Reactive relationships
-- **Clean, intuitive API and minimal boilerplate** 💙
-  - Truly configurable and composable
-  - Scales very well (both up _and_ down)
 
-**Check out the [Documentation](https://flutterdata.dev) or the [Tutorial](https://flutterdata.dev/tutorial) 📚 where we build a CRUD app from the ground app in record time.**
+**Check out the [Documentation](https://flutterdata.dev) or the [Tutorial](https://flutterdata.dev/tutorial) 📚 where we build a TO-DO app from the ground up in record time.**
 
-## Getting started
+## Set up
 
-See the [quickstart guide](https://flutterdata.dev/quickstart) in the docs.
+See the [quickstart guide](https://flutterdata.dev/quickstart) for setup and boot configuration.
+
+Prefer an example? Here's the Flutter Data [sample setup app](https://github.com/flutterdata/flutter_data_setup_app) with support for Riverpod, Provider and get_it.
 
 ## 👩🏾‍💻 Usage
 
-For a given `User` model annotated with `@DataRepository`...
+For a given `User` model annotated with `@DataRepository`:
 
 ```dart
 @JsonSerializable()
 @DataRepository([MyJSONServerAdapter])
 class User with DataModel<User> {
   @override
-  final int id;
+  final int id; // ID can be of any type
   final String name;
   User({this.id, this.name});
+  // `User.fromJson` and `toJson` optional
 }
 
 mixin MyJSONServerAdapter on RemoteAdapter<User> {
@@ -63,37 +59,48 @@ mixin MyJSONServerAdapter on RemoteAdapter<User> {
 }
 ```
 
-- `id` can be of `int`, `String`, etc
-- `User.fromJson` and `toJson` are not required!
-
-After a code-gen build, Flutter Data will generate a `Repository<User>`:
+After a code-gen build, Flutter Data will generate a `Repository<User>`
+and utilities such as `watchUser`:
 
 ```dart
-// obtain it via Provider
-final repository = context.watch<Repository<User>>();
-
-return DataStateBuilder<List<User>>(
-  notifier: () => repository.watchAll();
-  builder: (context, state, notifier, _) {
-    //model could be available from local storage and could be used in the meantime
-    if (state.isLoading && !state.hasModel) {
-      return CircularProgressIndicator();
-    }
-    // state.model is a list of 10 user items
-    return ListView.builder(
-      itemBuilder: (context, i) {
-        return UserTile(state.model[i]);
-      },
-    );
+@override
+Widget build(BuildContext context) {
+  final state = useProvider(watchUser(1).state);
+  if (state.isLoading) {
+    return Center(child: const CircularProgressIndicator());
   }
+  final user = state.model;
+  return Text(user.name);
 }
 ```
 
-`repository.watchAll()` will make an HTTP request (to `https://my-json-server.typicode.com/flutterdata/demo/users` in this case), parse the incoming JSON and listen for any further changes to the `User` collection – whether those are local or remote!
+`watchUser(1)` is a shortcut to `repository.watchOne(1)`.
 
-`state` is of type `DataState` which has loading/error/data substates. Moreover, `notifier.reload()` is available, useful for the classic "pull-to-refresh" scenario.
+Let's see how to update the user:
 
-In addition to the reactivity, a `User` now gets extensions and automatic relationships, ActiveRecord-style:
+```dart
+GestureDetector(
+  onTap: () =>
+      context.read(usersRepositoryProvider).save(User(id: 1, name: 'Updated')),
+  child: Text('Update')
+),
+```
+
+`repository.watchOne(1)` will make an HTTP request (to `https://my-json-server.typicode.com/flutterdata/demo/users/1` in this case), parse the incoming JSON and listen for any further changes to the `User` – whether those are local or remote!
+
+`state` is of type `DataState` which has loading, error and data substates. Moreover, the `watchOne` notifier has a `reload()` function available, useful for the classic "pull-to-refresh" scenario.
+
+In addition to the reactivity, `DataModel`s get extensions and automatic relationships, ActiveRecord-style, so the above becomes:
+
+```dart
+GestureDetector(
+  onTap: () =>
+      User(id: 1, name: 'Updated').init(context.read).save(),
+  child: Text('Update')
+),
+```
+
+Some other examples:
 
 ```dart
 final todo = await Todo(title: 'Finish docs').init(context.read).save();
@@ -115,27 +122,71 @@ Fully functional app built with Flutter Data? See the code for the finished **[F
 
 Fully compatible with the tools we know and love:
 
-|                   | &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp; |                                                               |
-| ----------------- | ----------------------------------------------------- | ------------------------------------------------------------- |
-| Flutter           | &nbsp; ✅                                             | It can also be used with pure Dart                            |
-| json_serializable | &nbsp; ✅                                             | Not required! Other `fromJson`/`toJson` can be supplied       |
-| JSON REST API     | &nbsp; ✅                                             | Great support                                                 |
-| JSON:API          | &nbsp; ✅                                             | Great support                                                 |
-| Firebase          | &nbsp; ✅                                             | Adapter coming soon 🎉 as well as Firebase Auth               |
-| Provider          | &nbsp; ✅                                             | Not required! Configure in a few lines of code                |
-| Riverpod          | &nbsp; ✅                                             | Not required! Configure in a few lines of code                |
-| get_it            | &nbsp; ✅                                             | Not required! Configure in a few lines of code                |
-| BLoC              | &nbsp; ✅                                             | Great support                                                 |
-| Freezed           | &nbsp; ✅                                             | Good support                                                  |
-| Flutter Web       | &nbsp; ✅                                             | Great support                                                 |
-| Hive              | &nbsp; ✅                                             | Flutter Data uses Hive internally for local storage           |
-| Chopper/Retrofit  |                                                       | Not required: Flutter Data **generates its own REST clients** |
+<table class="table-fixed">
+  <thead>
+    <tr>
+      <th class="w-4/12"></th>
+      <th class="w-1/12"></th>
+      <th class="w-7/12"></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="font-bold px-4 py-2"><strong>Flutter</strong></td>
+      <td class="px-4 py-2">✅</td>
+      <td class="px-4 py-2 text-sm">And pure Dart, too. <b>Null-safety coming soon!</b></td>
+    </tr>
+    <tr class="bg-yellow-50">
+      <td class="font-bold px-4 py-2"><strong>Flutter Web</strong></td>
+      <td class="px-4 py-2">✅</td>
+      <td class="px-4 py-2 text-sm">Supported!</td>
+    </tr>
+    <tr>
+      <td class="font-bold px-4 py-2"><strong>json_serializable</strong></td>
+      <td class="px-4 py-2">✅</td>
+      <td class="px-4 py-2 text-sm">Fully supported (but not required)
+      </td>
+    </tr>
+    <tr class="bg-yellow-50">
+      <td class="font-bold px-4 py-2"><strong>Riverpod</strong></td>
+      <td class="px-4 py-2">✅</td>
+      <td class="px-4 py-2 text-sm">Supported &amp; automatically wired up</td>
+    </tr>
+    <tr>
+      <td class="font-bold px-4 py-2"><strong>Provider</strong></td>
+      <td class="px-4 py-2">✅</td>
+      <td class="px-4 py-2 text-sm">Supported with minimal extra code</td>
+    </tr>
+    <tr class="bg-yellow-50">
+      <td class="font-bold px-4 py-2"><strong>get_it</strong></td>
+      <td class="px-4 py-2">✅</td>
+      <td class="px-4 py-2 text-sm">Supported with minimal extra code</td>
+    </tr>
+    <tr>
+      <td class="font-bold px-4 py-2"><strong>Classic JSON REST API</strong></td>
+      <td class="px-4 py-2">✅</td>
+      <td class="px-4 py-2 text-sm">Built-in support!</td>
+    </tr>
+    <tr class="bg-yellow-50">
+      <td class="font-bold px-4 py-2"><strong>JSON:API</strong></td>
+      <td class="px-4 py-2">✅</td>
+      <td class="px-4 py-2 text-sm">Supported via <a href="https://pub.dev/packages/flutter_data_json_api_adapter">external adapter</a></td>
+    </tr>
+    <tr>
+      <td class="font-bold px-4 py-2"><strong>Freezed</strong></td>
+      <td class="px-4 py-2">✅</td>
+      <td class="px-4 py-2 text-sm">Supported!</td>
+    </tr>
+  </tbody>
+</table>
 
 ## 📲 Apps using Flutter Data
 
 ![scout app](https://mk0scoutforpetsedheb.kinstacdn.com/wp-content/uploads/scout.svg)
 
 The new offline-first [Scout](https://scoutforpets.com) Flutter app is being developed in record time with Flutter Data.
+
+**More great apps soon to be shared**.
 
 ## ➕ Questions and collaborating
 
