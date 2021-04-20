@@ -7,11 +7,11 @@
 
 [![tests](https://img.shields.io/github/workflow/status/flutterdata/flutter_data/test/master?label=tests&labelColor=333940&logo=github)](https://github.com/flutterdata/flutter_data/actions) [![codecov](https://codecov.io/gh/flutterdata/flutter_data/branch/master/graph/badge.svg)](https://codecov.io/gh/flutterdata/flutter_data) [![pub.dev](https://img.shields.io/pub/v/flutter_data?label=pub.dev&labelColor=333940&logo=dart)](https://pub.dev/packages/flutter_data) [![license](https://img.shields.io/github/license/flutterdata/flutter_data?color=%23007A88&labelColor=333940&logo=mit)](https://github.com/flutterdata/flutter_data/blob/master/LICENSE)
 
-## Persistent reactive models in Flutter with zero boilerplate.
+## Persistent reactive models in Flutter with zero boilerplate
 
 Flutter Data is an offline-first persistence framework that gives you a configurable REST client and powerful model relationships.
 
-Heavily inspired by [Ember Data](https://github.com/emberjs/data) and [ActiveRecord](https://guides.rubyonrails.org/active_record_basics.html).
+Heavily inspired by [Ember Data](https://github.com/emberjs/data) and [ActiveRecord](https://guides.rubyonrails.org/active_record_basics.html)
 
 ---
 
@@ -182,17 +182,13 @@ Fully compatible with the tools we know and love:
 
 ## 📲 Apps using Flutter Data
 
-![scout app](https://mk0scoutforpetsedheb.kinstacdn.com/wp-content/uploads/scout.svg)
-
-The new offline-first [Scout](https://scoutforpets.com) Flutter app is being developed in record time with Flutter Data.
-
-**More great apps soon to be shared**.
+![logos](https://user-images.githubusercontent.com/66403/115444364-79053f80-a1e2-11eb-9498-ee86718a4be5.png)
 
 ## ➕ Questions and collaborating
 
 Please use Github to ask questions, open issues and send PRs. Thanks!
 
-You can also hit me up on Twitter [@thefrank06](https://twitter.com/thefrank06)
+On Twitter: [@flutterdata](https://twitter.com/flutterdata)
 
 Tests can be run with: `pub run test`
 
