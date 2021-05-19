@@ -25,7 +25,7 @@ RepositoryInitializerProvider repositoryInitializerProvider = (
       RepositoryInitializerArgs(remote, verbose));
 };
 
-final repositoryProviders = {
+final repositoryProviders = <String, Provider<Repository<DataModel>>>{
   'comments': commentsRepositoryProvider,
 'posts': postsRepositoryProvider,
 'sheep': sheepRepositoryProvider,

@@ -130,7 +130,7 @@ RepositoryInitializerProvider repositoryInitializerProvider = (
       RepositoryInitializerArgs(remote, verbose));
 };
 
-final repositoryProviders = {
+final repositoryProviders = <String, Provider<Repository<DataModel>>>{
   ${classes.map((clazz) => '\'' + clazz['type'] + '\': ' + clazz['type'] + 'RepositoryProvider').join(',\n')}
 };
 
