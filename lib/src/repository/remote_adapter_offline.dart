@@ -28,7 +28,7 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
     OnDataError<R> onError,
   }) async {
     // default key to type#s3mth1ng
-    key ??= DataHelpers.generateKey(type);
+    key ??= DataHelpers.generateKey(internalType);
 
     // execute request
     return super.sendRequest(
@@ -111,7 +111,7 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
     final node = graph._getNode(_offlineAdapterKey);
     return node.entries.where((e) {
       // extract type from e.g. _offline:users#4:findOne
-      return e.key.split(':')[1].startsWith(type);
+      return e.key.split(':')[1].startsWith(internalType);
     }).map((e) {
       // get first edge value
       final map = json.decode(e.value.first) as Map<String, dynamic>;
@@ -235,8 +235,8 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
   T get model {
     switch (requestType) {
       case DataRequestType.findOne:
-        return adapter.localAdapter.findOne(
-            adapter.graph.getKeyForId(adapter.type, offlineKey.detypify()));
+        return adapter.localAdapter.findOne(adapter.graph
+            .getKeyForId(adapter.internalType, offlineKey.detypify()));
       case DataRequestType.save:
         return adapter.localAdapter.findOne(offlineKey);
       default:

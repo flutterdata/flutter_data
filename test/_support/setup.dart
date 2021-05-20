@@ -176,8 +176,8 @@ ProviderContainer createContainer() {
           (ref) => DogRemoteAdapter(ref.read(dogsLocalAdapterProvider)))),
       nodesRemoteAdapterProvider.overrideWithProvider(Provider(
           (ref) => $NodeRemoteAdapter(ref.read(nodesLocalAdapterProvider)))),
-      authorsRemoteAdapterProvider.overrideWithProvider(Provider((ref) =>
-          $AuthorRemoteAdapter(ref.read(authorsLocalAdapterProvider)))),
+      authorsRemoteAdapterProvider.overrideWithProvider(Provider(
+          (ref) => AuthorRemoteAdapter(ref.read(authorsLocalAdapterProvider)))),
       booksRemoteAdapterProvider.overrideWithProvider(Provider(
           (ref) => $BookRemoteAdapter(ref.read(booksLocalAdapterProvider)))),
     ],
@@ -211,6 +211,7 @@ class NodeLocalAdapter = $NodeHiveLocalAdapter with TestHiveLocalAdapter<Node>;
 // ignore: must_be_immutable
 class AuthorLocalAdapter = $AuthorHiveLocalAdapter
     with TestHiveLocalAdapter<Author>;
+class AuthorRemoteAdapter = $AuthorRemoteAdapter with TestRemoteAdapter;
 
 // ignore: must_be_immutable
 class BookLocalAdapter = $BookHiveLocalAdapter with TestHiveLocalAdapter<Book>;

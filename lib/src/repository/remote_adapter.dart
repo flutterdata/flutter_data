@@ -269,7 +269,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       method: methodForFindAll(params),
       headers: headers,
       requestType: DataRequestType.findAll,
-      key: type,
+      key: internalType,
       onSuccess: (data) async {
         if (syncLocal) {
           await localAdapter.clear();
@@ -302,8 +302,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     final id = _resolveId(model);
 
     if (!shouldLoadRemoteOne(id, remote, params, headers)) {
-      final key =
-          graph.getKeyForId(type, id) ?? (model is T ? model._key : null);
+      final key = graph.getKeyForId(internalType, id) ??
+          (model is T ? model._key : null);
       if (key == null) {
         return null;
       }
@@ -319,7 +319,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       method: methodForFindOne(id, params),
       headers: headers,
       requestType: DataRequestType.findOne,
-      key: StringUtils.typify(type, id),
+      key: StringUtils.typify(internalType, id),
       onSuccess: (data) {
         final model =
             deserialize(data as Map<String, dynamic>, init: init).model;
@@ -420,7 +420,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
         method: methodForDelete(id, params),
         headers: headers,
         requestType: DataRequestType.delete,
-        key: StringUtils.typify(type, id),
+        key: StringUtils.typify(internalType, id),
         onSuccess: onSuccess,
         onError: onError,
       );
@@ -574,7 +574,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
 
   String _keyForModel(dynamic model) {
     final id = _resolveId(model);
-    return graph.getKeyForId(type, id) ?? (model is T ? model._key : null);
+    return graph.getKeyForId(internalType, id) ??
+        (model is T ? model._key : null);
   }
 }
 

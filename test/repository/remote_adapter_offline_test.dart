@@ -4,6 +4,7 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
+import '../_support/book.dart';
 import '../_support/family.dart';
 import '../_support/setup.dart';
 import '../mocks.dart';
@@ -18,23 +19,23 @@ void main() async {
       throw HandshakeException('Connection terminated during handshake');
     });
 
-    final listener = Listener<DataState<List<Family>>>();
+    final listener = Listener<DataState<List<Author>>>();
 
     // watch
-    final notifier = familyRepository.watchAll(remote: true);
+    final notifier = authorRepository.watchAll(remote: true);
     dispose = notifier.addListener(listener, fireImmediately: true);
 
     await oneMs();
 
     // the internal findAll should trigger an offline operation
-    expect(familyRepository.offlineOperations, [
-      OfflineOperation<Family>(
-          offlineKey: 'families', requestType: DataRequestType.findAll)
+    expect(authorRepository.offlineOperations, [
+      OfflineOperation<Author>(
+          offlineKey: 'authors', requestType: DataRequestType.findAll)
     ]);
 
     // now try to findOne
-    await familyRepository.findOne(
-      '19',
+    await authorRepository.findOne(
+      19,
       remote: true,
       // ignore: missing_return
       onError: (e) async {
@@ -44,28 +45,28 @@ void main() async {
 
     // and verify onError does capture the `OfflineException`
     verify(listener(argThat(
-      isA<DataState<List<Family>>>()
+      isA<DataState<List<Author>>>()
           .having((s) => s.exception, 'exception', isA<OfflineException>()),
     ))).called(1); // one call per updateWith(e)
 
     // retry and assert there is one queued operation for findOne
-    await familyRepository.offlineOperations.retry();
+    await authorRepository.offlineOperations.retry();
     await oneMs();
-    expect(familyRepository.offlineOperations.only(DataRequestType.findOne),
+    expect(authorRepository.offlineOperations.only(DataRequestType.findOne),
         hasLength(1));
 
     // now make the response a success
     container.read(responseProvider).state =
-        TestResponse.text('{"id": "19", "surname": "Ko Saved"}');
+        TestResponse.text('{"id": 19, "name": "Author Saved"}');
 
     // retry and assert queue is empty
-    await familyRepository.offlineOperations.retry();
+    await authorRepository.offlineOperations.retry();
     await oneMs();
-    expect(familyRepository.offlineOperations, isEmpty);
+    expect(authorRepository.offlineOperations, isEmpty);
 
     // try findOne again this time without errors
-    final model = await familyRepository.findOne('19');
-    expect(model.surname, equals('Ko Saved'));
+    final model = await authorRepository.findOne(19, remote: true);
+    expect(model.name, equals('Author Saved'));
     await oneMs();
     expect(familyRepository.offlineOperations, isEmpty);
   });
