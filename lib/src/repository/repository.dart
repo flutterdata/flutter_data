@@ -61,7 +61,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
     Map<String, dynamic> params,
     Map<String, String> headers,
     bool syncLocal,
-    OnDataError onError,
+    OnDataError<List<T>> onError,
   }) {
     return remoteAdapter.findAll(
       remote: remote,
@@ -88,7 +88,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
     bool remote,
     Map<String, dynamic> params,
     Map<String, String> headers,
-    OnDataError onError,
+    OnDataError<T> onError,
   }) {
     return remoteAdapter.findOne(
       id,
@@ -116,7 +116,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
     Map<String, dynamic> params,
     Map<String, String> headers,
     OnData<T> onSuccess,
-    OnDataError onError,
+    OnDataError<T> onError,
   }) {
     return remoteAdapter.save(
       model,
@@ -145,7 +145,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
     Map<String, dynamic> params,
     Map<String, String> headers,
     OnData<void> onSuccess,
-    OnDataError onError,
+    OnDataError<void> onError,
   }) {
     return remoteAdapter.delete(
       model,
@@ -157,36 +157,17 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
     );
   }
 
-  /// Deletes all models of type [T]. This ONLY affects local storage.
-  Future<void> clear() => remoteAdapter.clear();
+  /// Deletes all models of type [T] in local storage.
+  Future<void> localClear() => remoteAdapter.localClear();
 
-  /// Deletes all models of all types. This ONLY affects local storage.
-  Future<void> clearAll() => remoteAdapter.clearAll();
+  /// Deletes all models of all types in local storage.
+  Future<void> localClearAll() => remoteAdapter.localClearAll();
 
   // offline
 
-  /// Shows all models that have failed to be
-  /// remotely persisted through [save].
-  List<T> get offlineSaved => remoteAdapter.offlineSaved;
-
-  /// Shows all models that have failed to be
-  /// remotely persisted through [delete].
-  List<dynamic> get offlineDeleted => remoteAdapter.offlineDeleted;
-
-  /// Retries saving [offlineSaved] and [offlineDeleted].
-  ///
-  /// Does NOT support custom `params` or `headers` for this subsequent
-  /// `save` attempt.
-  ///
-  /// Returns a list of [DataException] only for those failed saves.
-  /// Some or all of them might still be [OfflineException]s.
-  ///
-  /// An empty resulting list indicates a success saving all [offlineSaved].
-  Future<List<DataException>> offlineSync() => remoteAdapter.offlineSync();
-
-  /// Clears registry of failed saves and deletions such that
-  /// both [offlineSaved] and [offlineDeleted] becomes empty.
-  void offlineClear() => remoteAdapter.offlineClear();
+  /// Gets a list of all pending [OfflineOperation]s for this type.
+  List<OfflineOperation<T>> get offlineOperations =>
+      remoteAdapter.offlineOperations;
 
   // watchers
 

@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_data/flutter_data.dart';
@@ -13,13 +12,72 @@ void main() async {
   setUp(setUpFn);
   tearDown(tearDownFn);
 
-  test('save offline', () async {
+  test('watchAll/findAll and findOne', () async {
+    // cause network issue
+    container.read(responseProvider).state = TestResponse(text: (_) {
+      throw HandshakeException('Connection terminated during handshake');
+    });
+
+    final listener = Listener<DataState<List<Family>>>();
+
+    // watch
+    final notifier = familyRepository.watchAll(remote: true);
+    dispose = notifier.addListener(listener, fireImmediately: true);
+
+    await oneMs();
+
+    // the internal findAll should trigger an offline operation
+    expect(familyRepository.offlineOperations, [
+      OfflineOperation<Family>(
+          offlineKey: 'families', requestType: DataRequestType.findAll)
+    ]);
+
+    // now try to findOne
+    await familyRepository.findOne(
+      '19',
+      remote: true,
+      // ignore: missing_return
+      onError: (e) async {
+        notifier.updateWith(exception: e);
+      },
+    );
+
+    // and verify onError does capture the `OfflineException`
+    verify(listener(argThat(
+      isA<DataState<List<Family>>>()
+          .having((s) => s.exception, 'exception', isA<OfflineException>()),
+    ))).called(1); // one call per updateWith(e)
+
+    // retry and assert there is one queued operation for findOne
+    await familyRepository.offlineOperations.retry();
+    await oneMs();
+    expect(familyRepository.offlineOperations.only(DataRequestType.findOne),
+        hasLength(1));
+
+    // now make the response a success
+    container.read(responseProvider).state =
+        TestResponse.text('{"id": "19", "surname": "Ko Saved"}');
+
+    // retry and assert queue is empty
+    await familyRepository.offlineOperations.retry();
+    await oneMs();
+    expect(familyRepository.offlineOperations, isEmpty);
+
+    // try findOne again this time without errors
+    final model = await familyRepository.findOne('19');
+    expect(model.surname, equals('Ko Saved'));
+    await oneMs();
+    expect(familyRepository.offlineOperations, isEmpty);
+  });
+
+  test('save', () async {
     final listener = Listener<DataState<List<Family>>>();
     // listening to local changes enough
     final notifier = familyRepository.watchAll(remote: false);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
+    // sample family
     final family = Family(id: '1', surname: 'Smith');
 
     // network issue persisting family
@@ -30,8 +88,10 @@ void main() async {
     await familyRepository.save(
       family,
       remote: true,
+      // override headers & params
       headers: {'X-Override-Name': 'Mantego'},
       params: {'overrideSecondName': 'Zorrilla'},
+      // ignore: missing_return
       onError: (e) async {
         // supply onError for exception to show up in notifier
         await oneMs();
@@ -47,22 +107,25 @@ void main() async {
     await oneMs();
 
     // assert it's an OfflineException
-    verify(listener(argThat(
-      isA<DataState<List<Family>>>().having(
-        (s) {
-          return s.exception;
-        },
-        'exception',
-        isA<OfflineException>().having(
-          (s) => s.model,
-          'model',
-          equals(family),
+    verify(
+      listener(
+        argThat(
+          isA<DataState<List<Family>>>().having(
+            (s) => s.exception,
+            'exception',
+            isA<OfflineException>(),
+          ),
         ),
       ),
-    ))).called(1);
+    ).called(1);
 
     // family is remembered as failed to persist
-    expect(familyRepository.offlineSaved, [family]);
+    expect(
+        familyRepository.offlineOperations
+            .only(DataRequestType.save)
+            .map((o) => o.offlineKey)
+            .toList(),
+        [keyFor(family)]);
 
     // try with family2
     final family2 = Family(id: '2', surname: 'Montewicz');
@@ -74,16 +137,21 @@ void main() async {
     await oneMs();
 
     // now two families failed to persist
-    expect(familyRepository.offlineSaved, [family, family2]);
+    expect(
+        familyRepository.offlineOperations
+            .only(DataRequestType.save)
+            .map((o) => o.offlineKey)
+            .toList(),
+        [keyFor(family), keyFor(family2)]);
 
-    // retry saving them
-    final exceptions = await familyRepository.offlineSync();
+    // retry saving both
+    await familyRepository.offlineOperations.retry();
     // await 1ms for each family
     await oneMs();
     await oneMs();
 
-    // none of them could be saved upon retry - we get two OfflineExceptions again
-    expect(exceptions.map((e) => (e as OfflineException).model),
+    // none of them could be saved upon retry
+    expect(familyRepository.offlineOperations.map((o) => o.model),
         equals([family, family2]));
 
     // change the response to: success for family, failure for family2
@@ -97,15 +165,13 @@ void main() async {
     );
 
     // retry
-    final exceptions2 = await familyRepository.offlineSync();
+    await familyRepository.offlineOperations.retry();
     await oneMs();
     await oneMs();
 
-    // the returned OfflineException still points to family2, failed on retry
-    expect(exceptions2.map((e) => (e as OfflineException).model), [family2]);
-
-    // family2 still remembered as not persisted
-    expect(familyRepository.offlineSaved, [family2]);
+    // family2 failed on retry, operation still pending
+    expect(familyRepository.offlineOperations.map((o) => o.model),
+        equals([family2]));
 
     // change response to success for both family and family2
     container.read(responseProvider).state = TestResponse(text: (req) {
@@ -113,59 +179,55 @@ void main() async {
     });
 
     // retry
-    final exceptions3 = await familyRepository.offlineSync();
+    await familyRepository.offlineOperations.retry();
     await oneMs();
     await oneMs();
 
     // should be empty as all saves succeeded
-    expect(exceptions3.map((e) => (e as OfflineException).model), isEmpty);
-
-    // same here
-    expect(familyRepository.offlineSaved, isEmpty);
+    expect(familyRepository.offlineOperations.map((o) => o.model), isEmpty);
 
     // simulate a network issue once again for family3
     container.read(responseProvider).state =
         TestResponse(text: (_) => throw SocketException('unreachable'));
 
+    final family3 = Family(id: '3', surname: 'Zweck').init(container.read);
     try {
-      await Family(id: '3', surname: 'Zweck')
-          .init(container.read)
-          .save(remote: true);
+      await family3.save(remote: true);
     } catch (_) {
       // without onError, ignore exception
     }
     await oneMs();
 
     // assert family3 hasn't been persisted
-    expect(familyRepository.offlineSaved,
-        equals([Family(id: '3', surname: 'Zweck')]));
+    expect(
+        familyRepository.offlineOperations
+            .only(DataRequestType.save)
+            .map((o) => o.model),
+        [family3]);
 
-    // use `resetOfflineModels` to forget/ignore failed to save models
-    familyRepository.offlineClear();
+    // use `reset` to forget/ignore failed to save models
+    familyRepository.offlineOperations.reset();
 
     // so it's empty again
-    expect(familyRepository.offlineSaved, isEmpty);
-
-    // we know that a node will be created with the JSON contents
-    // of headers and params - assert it's been removed
-
-    final _json = json.encode({'X-Override-Name': 'Mantego'});
-
-    // ignore: invalid_use_of_protected_member
-    expect(familyRepository.remoteAdapter.graph.toMap().keys,
-        isNot(contains(_json)));
+    expect(
+        familyRepository.offlineOperations
+            .only(DataRequestType.save)
+            .map((o) => o.model),
+        isEmpty);
   });
 
-  test('delete offline', () async {
+  test('delete', () async {
     final listener = Listener<DataState<List<Family>>>();
     // listening to local changes enough
     final notifier = familyRepository.watchAll(remote: false);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
+    // init a family
     final family = Family(id: '1', surname: 'Smith').init(container.read);
     await oneMs();
 
+    // should show up through watchAll
     verify(listener(
       argThat(isA<DataState<List<Family>>>()
           .having((s) => s.model, 'model', [family])),
@@ -176,6 +238,7 @@ void main() async {
       throw SocketException('unreachable');
     });
 
+    // delete family and send offline exception to notifier
     await family.delete(
       remote: true,
       onError: (e) async {
@@ -183,48 +246,59 @@ void main() async {
       },
     );
 
+    // verify the model in local storage has been deleted
     verify(listener(
       argThat(isA<DataState<List<Family>>>()
           .having((s) => s.model, 'model', isEmpty)),
     )).called(1);
 
-    // assert it's an OfflineException
+    // and that we actually got an OfflineException
     verify(listener(argThat(
       isA<DataState<List<Family>>>()
           .having((s) => s.exception, 'exception', isA<OfflineException>()),
     ))).called(1);
 
     // family is remembered as failed to persist
-    expect(familyRepository.offlineDeleted, ['1']);
+    expect(
+        familyRepository.offlineOperations
+            .only(DataRequestType.delete)
+            .map((o) => o.offlineKey),
+        ['families#1']);
 
-    // retry deleting them
-    final exceptions = await familyRepository.offlineSync();
+    // retry
+    await familyRepository.offlineOperations.retry();
     await oneMs();
 
-    // could not be deleted upon retry - we get an OfflineException again
-    expect(exceptions.map((e) => (e as OfflineException).id), ['1']);
+    // could not be deleted upon retry
+    expect(
+        familyRepository.offlineOperations
+            .only(DataRequestType.delete)
+            .map((o) => o.offlineKey),
+        ['families#1']);
 
-    // change the response to: success for family
+    // change the response to success
     container.read(responseProvider).state = TestResponse.text('');
 
-    // retry deleting
-    final exceptions2 = await familyRepository.offlineSync();
+    // retry
+    await familyRepository.offlineOperations.retry();
     await oneMs();
 
-    expect(exceptions2, isEmpty);
+    // now offline queue is empty
+    expect(familyRepository.offlineOperations, isEmpty);
   });
 
-  test('save & delete offline & sync', () async {
+  test('save & delete combined', () async {
     final listener = Listener<DataState<List<Family>>>();
     // listening to local changes enough
     final notifier = familyRepository.watchAll(remote: false);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
+    // setup family
     final family = Family(id: '19', surname: 'Ko').init(container.read);
     await oneMs();
 
-    // network issue persisting family
+    // network issues
     container.read(responseProvider).state = TestResponse(text: (_) {
       throw SocketException('unreachable');
     });
@@ -233,6 +307,7 @@ void main() async {
     await family.save(
       remote: true,
       headers: {'X-Override-Name': 'Johnson'},
+      // ignore: missing_return
       onError: (e) async {
         notifier.updateWith(exception: e);
       },
@@ -250,41 +325,88 @@ void main() async {
 
     await oneMs();
 
-    // assert it's an OfflineException
+    // assert it's an OfflineException, TWICE (one call per updateWith(e))
     verify(listener(argThat(
       isA<DataState<List<Family>>>()
           .having((s) => s.exception, 'exception', isA<OfflineException>()),
-    ))).called(2); // one call per updateWith(e)
+    ))).called(2);
 
-    // should see a model here because of the failed save
-    // but the model was also deleted
-    expect(familyRepository.offlineSaved, isEmpty);
+    // should see the failed save queued
+    expect(
+        familyRepository.offlineOperations
+            .only(DataRequestType.save)
+            .map((o) => o.offlineKey)
+            .toList(),
+        [keyFor(family)]);
 
-    // and here is its id
-    expect(familyRepository.offlineDeleted, ['19']);
+    // clearly the local model was deleted, so the associated
+    // model should be null
+    expect(
+        familyRepository.offlineOperations
+            .only(DataRequestType.save)
+            .map((o) => o.model)
+            .toList(),
+        [null]);
 
-    // retry sync
-    final exceptions2 = await familyRepository.offlineSync();
+    // should see the failed delete queued
+    expect(
+        familyRepository.offlineOperations
+            .only(DataRequestType.delete)
+            .map((o) => o.offlineKey)
+            .toList(),
+        ['families#19']);
+
+    // retry
+    await familyRepository.offlineOperations.retry();
     await oneMs();
-    expect(exceptions2, hasLength(1));
+    // same result...
+    expect(familyRepository.offlineOperations, hasLength(2));
 
-    // change the response to: success for family
+    // change the response to success
     container.read(responseProvider).state = TestResponse.text('');
 
-    // retry sync
-    final exceptions3 = await familyRepository.offlineSync();
+    // retry
+    await familyRepository.offlineOperations.retry();
     await oneMs();
     // done
-    expect(exceptions3, isEmpty);
+    expect(familyRepository.offlineOperations, isEmpty);
+  });
 
-    // we know that a node will be created with the JSON contents
-    // of headers and params - assert it's been removed
-    // as deleting a pending save removes the save metadata
+  test('ad-hoc', () async {
+    // network issue
+    container.read(responseProvider).state = TestResponse(text: (_) {
+      throw SocketException('unreachable');
+    });
 
-    final _json = json.encode({'X-Override-Name': 'Johnson'});
+    // random endpoint with random headers
+    familyRepository.remoteAdapter.sendRequest(
+      '/fam'.asUri,
+      headers: {'X-Sats': '9389173717732'},
+      onSuccess: (_) {
+        expect(
+            _,
+            equals([
+              {'id': '19', 'surname': 'Ko Saved'}
+            ]));
+      },
+    );
+    await oneMs();
+    // fails to go through
+    expect(familyRepository.offlineOperations, hasLength(1));
 
-    // ignore: invalid_use_of_protected_member
-    expect(familyRepository.remoteAdapter.graph.toMap().keys,
-        isNot(contains(_json)));
+    // return a success response
+    container.read(responseProvider).state = TestResponse(
+      text: (req) {
+        // assert headers are included in the retry
+        expect(req.headers, equals({'X-Sats': '9389173717732'}));
+        return '[{"id": "19", "surname": "Ko Saved"}]';
+      },
+    );
+
+    // retry
+    await familyRepository.offlineOperations.retry();
+    await oneMs();
+    // done
+    expect(familyRepository.offlineOperations, isEmpty);
   });
 }

@@ -1,13 +1,8 @@
 part of flutter_data;
 
+const _offlineAdapterKey = '_offline:keys';
+
 mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
-  String get _offlineAdapterKey => '_offline:keys';
-
-  String get _offlineHeadersMetadata => '_offline:headers';
-  String get _offlineParamsMetadata => '_offline:params';
-  String get _offlineSaveMetadata => '_offline:save_$type';
-  String get _offlineDeleteMetadata => '_offline:delete_$type';
-
   @override
   @mustCallSuper
   Future<void> onInitialized() async {
@@ -21,296 +16,286 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
   }
 
   @override
-  Future<List<T>> findAll({
-    bool remote,
-    Map<String, dynamic> params,
+  FutureOr<R> sendRequest<R>(
+    final Uri uri, {
+    DataRequestMethod method = DataRequestMethod.GET,
     Map<String, String> headers,
-    bool syncLocal,
-    bool init,
-    OnDataError onError,
+    bool omitDefaultParams = false,
+    DataRequestType requestType = DataRequestType.adhoc,
+    String key,
+    String body,
+    OnRawData<R> onSuccess,
+    OnDataError<R> onError,
   }) async {
-    return super.findAll(
-      remote: remote,
-      params: params,
+    // default key to type#s3mth1ng
+    key ??= DataHelpers.generateKey(type);
+
+    // execute request
+    return super.sendRequest(
+      uri,
+      method: method,
       headers: headers,
-      syncLocal: syncLocal,
-      init: init,
+      requestType: requestType,
+      omitDefaultParams: omitDefaultParams,
+      key: key,
+      body: body,
+      onSuccess: (data) {
+        // remove all operations with this
+        // requestType/offlineKey metadata
+        OfflineOperation<T>(
+          requestType: requestType,
+          offlineKey: key,
+          adapter: this,
+        ).removeAll();
+
+        // yield
+        return onSuccess?.call(data);
+      },
       onError: (e) {
         if (isNetworkError(e.error)) {
+          // queue a new operation if this is
+          // a network error and we're offline
+          OfflineOperation<T>(
+            requestType: requestType,
+            offlineKey: key,
+            request: '${method.toShortString()} $uri',
+            timestamp: DateTime.now(),
+            headers: headers,
+            onSuccess: onSuccess,
+            onError: onError,
+            adapter: this,
+          ).add();
+
+          // wrap error in an OfflineException
           e = OfflineException(error: e.error);
+
+          // call error handler but do not return it
+          (onError ?? this.onError).call(e);
+
+          // instead return a fallback model
+          switch (requestType) {
+            case DataRequestType.findAll:
+              return findAll(remote: false, init: true) as Future<R>;
+            case DataRequestType.findOne:
+            case DataRequestType.save:
+              // call without type (ie 3 not users#3)
+              return findOne(key.detypify(), remote: false, init: true)
+                  as Future<R>;
+            default:
+              return null;
+          }
         }
-        (onError ?? this.onError).call(e);
+
+        // if it was not a network error, return handler call
+        return (onError ?? this.onError).call(e);
       },
     );
   }
 
-  @override
-  Future<T> findOne(
-    final dynamic model, {
-    bool remote,
-    Map<String, dynamic> params,
-    Map<String, String> headers,
-    bool init,
-    OnDataError onError,
-  }) async {
-    return super.findOne(
-      model,
-      remote: remote,
-      params: params,
-      headers: headers,
-      init: init,
-      onError: (e) {
-        if (isNetworkError(e.error)) {
-          e = OfflineException(error: e.error);
-        }
-        (onError ?? this.onError).call(e);
-      },
-    );
-  }
-
-  @override
-  Future<T> save(
-    final T model, {
-    bool remote,
-    Map<String, dynamic> params,
-    Map<String, String> headers,
-    OnData<T> onSuccess,
-    OnDataError onError,
-    bool init,
-  }) async {
-    return await super.save(
-      model,
-      remote: remote,
-      params: params,
-      headers: headers,
-      onSuccess: (newModel) {
-        _removeOfflineKey(newModel._key, _offlineSaveMetadata);
-        return onSuccess?.call(newModel) ?? newModel;
-      },
-      onError: (e) {
-        if (isNetworkError(e.error)) {
-          _addOfflineKey(model._key, _offlineSaveMetadata, headers, params,
-              onSuccess, onError);
-          e = OfflineException(error: e.error, model: model);
-        }
-        onError?.call(e);
-      },
-      init: init,
-    );
-  }
-
-  @override
-  Future<void> delete(
-    final dynamic model, {
-    bool remote,
-    Map<String, dynamic> params,
-    Map<String, String> headers,
-    OnData<void> onSuccess,
-    OnDataError onError,
-  }) async {
-    final id = model is T ? model.id : model;
-    final key = _keyForModel(model);
-
-    if (key != null) {
-      // ensure pending save is removed
-      _removeOfflineKey(key, _offlineSaveMetadata);
-    }
-
-    return await super.delete(
-      model,
-      remote: remote,
-      params: params,
-      headers: headers,
-      onSuccess: (_) {
-        // delete request succeeded, remove meta
-        final namespacedId = graph.namespace('id', graph.typify(type, id));
-        _removeOfflineKey(namespacedId, _offlineDeleteMetadata);
-
-        // also remove id from graph
-        graph.removeId(type, id);
-        onSuccess?.call(_);
-      },
-      onError: (e) {
-        if (isNetworkError(e.error)) {
-          // delete request failed, add meta
-          final namespacedId = graph.namespace('id', graph.typify(type, id));
-          _addOfflineKey(namespacedId, _offlineDeleteMetadata, headers, params,
-              onSuccess, onError);
-
-          // produce the offline exception with the ID
-          e = OfflineException(error: e.error, id: id);
-        }
-        onError?.call(e);
-      },
-    );
-  }
-
+  /// Determines whether [error] was a network error.
   @protected
   @visibleForTesting
   bool isNetworkError(error) {
     // timeouts via http's `connectionTimeout` are
     // also socket exceptions
     // we check the exception like this in order not to import `dart:io`
-    return error.toString().startsWith('SocketException:');
+    final _err = error.toString();
+    return _err.startsWith('SocketException') ||
+        _err.startsWith('Connection closed before full header was received') ||
+        _err.startsWith('HandshakeException');
   }
 
   @protected
   @visibleForTesting
-  List<T> get offlineSaved {
-    final keys =
-        graph._getEdge(_offlineAdapterKey, metadata: _offlineSaveMetadata);
-    return keys.map(localAdapter.findOne).filterNulls.toList();
-  }
-
-  List<String> get offlineDeleted {
-    return graph
-        .getEdge(_offlineAdapterKey, metadata: _offlineDeleteMetadata)
-        .map((id) {
-      return graph.detypify(graph.denamespace(id));
-    }).toList();
-  }
-
-  @protected
-  @visibleForTesting
-  Future<List<DataException>> offlineSync() async {
-    final exceptions = <DataException>[];
-
-    final keysToSave =
-        graph._getEdge(_offlineAdapterKey, metadata: _offlineSaveMetadata);
-
-    // prepare save futures
-    final allSaved = keysToSave.map((key) {
-      final model = localAdapter.findOne(key);
-
-      if (model == null) {
-        // if key was deleted in the meantime,
-        // do not attempt to save, return noop
-        return Future.value();
-      }
-
-      // restore metadata
-      final headers =
-          _getMeta(key, _offlineHeadersMetadata).cast<String, String>();
-      final params =
-          _getMeta(key, _offlineParamsMetadata).cast<String, dynamic>();
-
-      // restore callbacks
-      OnData<T> onSuccess;
-      OnDataError onError;
-      final fns = ref.read(_offlineCallbackProvider).state[key];
-      if (fns != null && fns.length == 2) {
-        onSuccess = fns.first as OnData<T>;
-        onError = fns.last as OnDataError;
-      }
-
-      // reattempt save
-      return save(
-        model,
-        params: params,
-        headers: headers,
-        onSuccess: onSuccess,
-        onError: (e) {
-          // add exception to be returned
-          exceptions.add(e);
-          onError?.call(e);
-        },
-        init: true,
-        remote: true,
-      );
-    });
-
-    final idsToDelete =
-        graph._getEdge(_offlineAdapterKey, metadata: _offlineDeleteMetadata);
-
-    // prepare delete futures
-    final allDeleted = idsToDelete.map((namespacedId) {
-      final id = graph.detypify(graph.denamespace(namespacedId));
-
-      // restore metadata
-      final headers = _getMeta(namespacedId, _offlineHeadersMetadata)
-          .cast<String, String>();
-      final params = _getMeta(namespacedId, _offlineParamsMetadata)
-          .cast<String, dynamic>();
-
-      // restore callbacks
-      OnData<void> onSuccess;
-      OnDataError onError;
-      final fns = ref.read(_offlineCallbackProvider).state[namespacedId];
-      if (fns != null && fns.length == 2) {
-        onSuccess = fns.first as OnData<void>;
-        onError = fns.last as OnDataError;
-      }
-
-      // reattempt deletion
-      return delete(
-        id,
-        params: params,
-        headers: headers,
-        onSuccess: onSuccess,
-        onError: (e) {
-          // add exception to be returned
-          exceptions.add(e);
-          onError?.call(e);
-        },
-        remote: true,
-      );
-    });
-
-    await Future.wait([...allSaved, ...allDeleted]);
-    return exceptions;
-  }
-
-  @protected
-  @visibleForTesting
-  void offlineClear() {
-    final nodes =
-        graph._getEdge(_offlineAdapterKey, metadata: _offlineSaveMetadata);
-    for (final key in nodes.toSet()) {
-      // remove all save and delete offline-related metadata
-      _removeOfflineKey(key, _offlineSaveMetadata);
-      _removeOfflineKey(key, _offlineDeleteMetadata);
-    }
-  }
-
-  // utils
-
-  /// Adds an edge from the `_offlineAdapterKey` to the `key` for save/delete
-  /// and stores header/param metadata. Also stores callbacks.
-  void _addOfflineKey(String key, String metadata, Map<String, String> headers,
-      Map<String, dynamic> params, Function onSuccess, Function onError) {
-    graph._addEdge(_offlineAdapterKey, key, metadata: metadata, notify: false);
-    _saveMeta(key, _offlineHeadersMetadata, headers);
-    _saveMeta(key, _offlineParamsMetadata, params);
-    // keep callbacks in memory
-    ref.read(_offlineCallbackProvider).state[key] = [onSuccess, onError];
-  }
-
-  /// Removes the edge from the `_offlineAdapterKey` to the `key` for save/delete
-  /// and removes header/param metadata. Also removes callbacks.
-  void _removeOfflineKey(String key, String metadata) {
-    graph._removeEdge(_offlineAdapterKey, key,
-        metadata: metadata, notify: false);
-    if (graph._hasNode(key)) {
-      graph._removeEdges(key, metadata: _offlineHeadersMetadata, notify: false);
-      graph._removeEdges(key, metadata: _offlineParamsMetadata, notify: false);
-    }
-    // remove callbacks from memory
-    ref.read(_offlineCallbackProvider).state.remove(key);
-  }
-
-  Map _getMeta(String key, String metadata) {
-    final values = graph._getEdge(key, metadata: metadata);
-    return values.isNotEmpty ? json.decode(values.first) as Map : {};
-  }
-
-  void _saveMeta(String key, String metadata, Map map) {
-    if (map != null && map.isNotEmpty) {
-      final mapNode = json.encode(map);
-      graph._addNode(mapNode);
-      graph._addEdge(key, mapNode, metadata: metadata);
-    }
+  List<OfflineOperation<T>> get offlineOperations {
+    final node = graph._getNode(_offlineAdapterKey);
+    return node.entries.where((e) {
+      // extract type from e.g. _offline:users#4:findOne
+      return e.key.split(':')[1].startsWith(type);
+    }).map((e) {
+      // get first edge value
+      final map = json.decode(e.value.first) as Map<String, dynamic>;
+      return OfflineOperation.fromJson(map, this);
+    }).toList()
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
   }
 }
 
+/// Represents an offline request that is pending to be retried.
+class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
+  final DataRequestType requestType;
+  final String offlineKey;
+  final String request;
+  final DateTime timestamp;
+  final Map<String, String> headers;
+  final Function onSuccess;
+  final Function onError;
+  final _RemoteAdapterOffline<T> adapter;
+
+  const OfflineOperation({
+    @required this.offlineKey,
+    @required this.requestType,
+    this.request,
+    this.timestamp,
+    this.headers,
+    this.onSuccess,
+    this.onError,
+    this.adapter,
+  });
+
+  /// Metadata format:
+  /// _offline:users#_:findAll
+  /// _offline:users#4:findOne
+  /// _offline:users#ab9c31:save
+  /// _offline:users#4:delete
+  /// _offline:users#a92e98ff:adhoc
+  String get metadata => '_offline:$offlineKey:${requestType.toShortString()}';
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      't': requestType.toShortString(),
+      'r': request,
+      'k': offlineKey,
+      'd': timestamp.toIso8601String(),
+      'h': headers,
+    };
+  }
+
+  factory OfflineOperation.fromJson(
+      Map<String, dynamic> json, _RemoteAdapterOffline<T> adapter) {
+    return OfflineOperation(
+      requestType: _getDataRequestType(json['t'] as String),
+      request: json['r'] as String,
+      offlineKey: json['k'] as String,
+      timestamp: DateTime.parse(json['d'] as String),
+      headers:
+          json['h'] == null ? null : Map<String, String>.from(json['h'] as Map),
+      adapter: adapter,
+    );
+  }
+
+  Uri get uri {
+    return request.split(' ').last.asUri;
+  }
+
+  DataRequestMethod get method {
+    return DataRequestMethod.values.singleWhere(
+        (m) => m.toShortString() == request.split(' ').first,
+        orElse: () => null);
+  }
+
+  Future<void> retry<R>() async {
+    final fns = adapter.ref.read(_offlineCallbackProvider).state[metadata];
+
+    // offlineKey of format different than users#ab9c31
+    // will return null
+    String body;
+    final model = adapter.localAdapter.findOne(offlineKey);
+    if (model != null) {
+      body = json.encode(adapter.serialize(model));
+    }
+
+    await adapter.sendRequest<R>(
+      uri,
+      method: method,
+      headers: headers,
+      requestType: requestType,
+      key: offlineKey,
+      body: body,
+      onSuccess: fns?.first as OnRawData<R>,
+      onError: fns?.last as OnDataError<R>,
+    );
+  }
+
+  /// Adds an edge from the `_offlineAdapterKey` to the `key` for save/delete
+  /// and stores header/param metadata. Also stores callbacks.
+  void add() {
+    final node = json.encode(toJson());
+
+    // remove all previous operations with this metadata
+    removeAll();
+
+    adapter.graph._addEdge(_offlineAdapterKey, node, metadata: metadata);
+
+    // keep callbacks in memory
+    adapter.ref.read(_offlineCallbackProvider).state[metadata] = [
+      onSuccess,
+      onError,
+    ];
+  }
+
+  /// Removes all edges from the `_offlineAdapterKey` for
+  /// current metadata, as well as callbacks from memory.
+  void removeAll() {
+    adapter.graph._removeEdges(_offlineAdapterKey, metadata: metadata);
+    adapter.ref.read(_offlineCallbackProvider).state.remove(metadata);
+  }
+
+  /// This getter ONLY makes sense for `findOne` and `save` operations
+  T get model {
+    switch (requestType) {
+      case DataRequestType.findOne:
+        return adapter.localAdapter.findOne(
+            adapter.graph.getKeyForId(adapter.type, offlineKey.detypify()));
+      case DataRequestType.save:
+        return adapter.localAdapter.findOne(offlineKey);
+      default:
+        return null;
+    }
+  }
+
+  @override
+  List<Object> get props => [metadata];
+}
+
+extension OfflineOperationsX<T extends DataModel<T>>
+    on List<OfflineOperation<T>> {
+  /// Retries all offline operations for current type.
+  FutureOr<void> retry() async {
+    if (isNotEmpty) {
+      await Future.wait(map((operation) {
+        return operation.retry();
+      }));
+    }
+  }
+
+  /// Removes all offline operations.
+  void reset() {
+    if (isEmpty) {
+      return;
+    }
+    final adapter = first.adapter;
+    // removes node and severs edges
+    final node = adapter.graph._getNode(_offlineAdapterKey);
+    for (final metadata in node.keys.toImmutableList()) {
+      adapter.graph._removeEdges(_offlineAdapterKey, metadata: metadata);
+    }
+    adapter.ref.read(_offlineCallbackProvider).state.clear();
+  }
+
+  /// Filter by [requestType].
+  List<OfflineOperation> only(DataRequestType requestType) {
+    return where((_) => _.requestType == requestType).toImmutableList();
+  }
+}
+
+// stores onSuccess/onError function combos
 final _offlineCallbackProvider =
     StateProvider<Map<String, List<Function>>>((_) => {});
+
+/// Notifies clients every time there is a
+/// pending offline operation for `type`.
+final pendingOfflineOperationsProvider =
+    StateNotifierProvider<StateNotifier<String>>((ref) {
+  final _graph = ref.read(graphProvider);
+  return _graph.where((event) {
+    // filter the right events
+    return event.type == DataGraphEventType.addEdge &&
+        event.keys.length == 2 &&
+        event.keys.containsFirst(_offlineAdapterKey);
+  }).map((event) {
+    // obtain type from e.g. _offline:users#4:findOne
+    final metadata = event.metadata.split(':');
+    return metadata[1].split('#')[0];
+  });
+});

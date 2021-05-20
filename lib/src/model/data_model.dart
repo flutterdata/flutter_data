@@ -80,7 +80,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     Map<String, dynamic> params,
     Map<String, String> headers,
     OnData<T> onSuccess,
-    OnDataError onError,
+    OnDataError<T> onError,
   }) async {
     _assertInit('save');
     return await remoteAdapter.save(

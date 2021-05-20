@@ -246,7 +246,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     Map<String, String> headers,
     bool syncLocal,
     bool init,
-    OnDataError onError,
+    OnData<List<T>> onSuccess,
+    OnDataError<List<T>> onError,
   }) async {
     _assertInit();
     remote ??= _remote;
@@ -267,11 +268,14 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       baseUrl.asUri / urlForFindAll(params) & params,
       method: methodForFindAll(params),
       headers: headers,
+      requestType: DataRequestType.findAll,
+      key: type,
       onSuccess: (data) async {
         if (syncLocal) {
           await localAdapter.clear();
         }
-        return deserialize(data, init: init).models;
+        final models = deserialize(data, init: init).models;
+        return onSuccess?.call(models) ?? models;
       },
       onError: onError,
     );
@@ -285,7 +289,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     Map<String, dynamic> params,
     Map<String, String> headers,
     bool init,
-    OnDataError onError,
+    OnData<T> onSuccess,
+    OnDataError<T> onError,
   }) async {
     _assertInit();
     assert(model != null);
@@ -294,7 +299,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     headers = await defaultHeaders & headers;
     init ??= false;
 
-    final id = model is T ? model.id : model;
+    final id = _resolveId(model);
 
     if (!shouldLoadRemoteOne(id, remote, params, headers)) {
       final key =
@@ -313,8 +318,12 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       baseUrl.asUri / urlForFindOne(id, params) & params,
       method: methodForFindOne(id, params),
       headers: headers,
+      requestType: DataRequestType.findOne,
+      key: StringUtils.typify(type, id),
       onSuccess: (data) {
-        return deserialize(data as Map<String, dynamic>, init: init).model;
+        final model =
+            deserialize(data as Map<String, dynamic>, init: init).model;
+        return onSuccess?.call(model) ?? model;
       },
       onError: onError,
     );
@@ -328,7 +337,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     Map<String, dynamic> params,
     Map<String, String> headers,
     OnData<T> onSuccess,
-    OnDataError onError,
+    OnDataError<T> onError,
     bool init,
   }) async {
     _assertInit();
@@ -337,7 +346,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     headers = await defaultHeaders & headers;
     init ??= false;
 
-    // we ignore the `init` argument as
+    // we ignore the `init` argument here as
     // saving locally requires initializing
     model._initialize(adapters, save: true);
 
@@ -352,6 +361,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       method: methodForSave(model.id, params),
       headers: headers,
       body: body,
+      requestType: DataRequestType.save,
+      key: model._key,
       onSuccess: (data) {
         T _model;
         if (data == null) {
@@ -389,14 +400,14 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     Map<String, dynamic> params,
     Map<String, String> headers,
     OnData<void> onSuccess,
-    OnDataError onError,
+    OnDataError<void> onError,
   }) async {
     _assertInit();
     remote ??= _remote;
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
 
-    final id = model is T ? model.id : model;
+    final id = _resolveId(model);
     final key = _keyForModel(model);
 
     if (key != null) {
@@ -408,6 +419,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
         baseUrl.asUri / urlForDelete(id, params) & params,
         method: methodForDelete(id, params),
         headers: headers,
+        requestType: DataRequestType.delete,
+        key: StringUtils.typify(type, id),
         onSuccess: onSuccess,
         onError: onError,
       );
@@ -416,11 +429,11 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
 
   @protected
   @visibleForTesting
-  Future<void> clear() => localAdapter.clear();
+  Future<void> localClear() => localAdapter.clear();
 
   @protected
   @visibleForTesting
-  Future<void> clearAll() => localAdapter.clearAll();
+  Future<void> localClearAll() => localAdapter.clearAll();
 
   // http
 
@@ -436,8 +449,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   ///
   /// **IMPORTANT**:
   ///  - [uri] takes the FULL `Uri` including query parameters
-  ///  - [headers] do NOT include ANY defaults such as [defaultHeaders]
-  ///    (unless you omit the argument, where defaults will be included)
+  ///  - [headers] does NOT include ANY defaults such as [defaultHeaders]
+  ///  (unless you omit the argument, in which case defaults will be included)
   ///
   /// Example:
   ///
@@ -462,13 +475,15 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   /// [onError] can also be supplied to override [_RemoteAdapter.onError].
   @protected
   @visibleForTesting
-  FutureOr<R> sendRequest<R, E>(
+  FutureOr<R> sendRequest<R>(
     final Uri uri, {
     DataRequestMethod method = DataRequestMethod.GET,
     Map<String, String> headers,
     String body,
-    FutureOr<R> Function(dynamic) onSuccess,
-    OnDataError<E> onError,
+    String key,
+    OnRawData<R> onSuccess,
+    OnDataError<R> onError,
+    DataRequestType requestType,
     bool omitDefaultParams = false,
   }) async {
     // callbacks
@@ -524,18 +539,25 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       if (_verbose) {
         print('[flutter_data] $T: $e');
       }
-      final onErrorResult = await onError(e);
-      return onErrorResult is R ? onErrorResult : null;
+      return await onError(e);
     }
   }
 
-  /// Describes how to handle errors arising in [sendRequest].
+  /// Implements global request error handling.
   ///
-  /// NOTE: [sendRequest] has an `onError` argument used to override
-  /// this default behavior.
+  /// Defaults to throw [e] unless it is an HTTP 404
+  /// or an `OfflineException`.
+  ///
+  /// NOTE: `onError` arguments throughout the API are used
+  /// to override this default behavior.
   @protected
   @visibleForTesting
-  FutureOr<R> onError<R>(DataException e) => throw e;
+  FutureOr<R> onError<R>(DataException e) {
+    if (e.statusCode == 404 || e is OfflineException) {
+      return null;
+    }
+    throw e;
+  }
 
   /// Initializes [model] making it ready to use with [DataModel] extensions.
   ///
@@ -546,8 +568,12 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     return model?._initialize(adapters, key: key, save: save);
   }
 
+  String _resolveId(dynamic model) {
+    return (model is T ? model.id : model).toString();
+  }
+
   String _keyForModel(dynamic model) {
-    final id = model is T ? model.id : model;
+    final id = _resolveId(model);
     return graph.getKeyForId(type, id) ?? (model is T ? model._key : null);
   }
 }
@@ -568,4 +594,21 @@ extension _ToStringX on DataRequestMethod {
 }
 
 typedef OnData<R> = FutureOr<R> Function(R);
+typedef OnRawData<R> = FutureOr<R> Function(dynamic);
 typedef OnDataError<R> = FutureOr<R> Function(DataException);
+
+// ignore: constant_identifier_names
+enum DataRequestType {
+  findAll,
+  findOne,
+  save,
+  delete,
+  adhoc,
+}
+
+extension _DataRequestTypeX on DataRequestType {
+  String toShortString() => toString().split('.').last;
+}
+
+DataRequestType _getDataRequestType(String type) =>
+    DataRequestType.values.singleWhere((_) => _.toShortString() == type);

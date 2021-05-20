@@ -30,7 +30,7 @@ void main() async {
 
     expect(families, [family1, family2]);
 
-    await familyRepository.clear();
+    await familyRepository.localClear();
     expect(await familyRepository.findAll(), isEmpty);
   });
 
@@ -74,6 +74,7 @@ void main() async {
 
     await familyRepository.findAll(
         remote: true,
+        // ignore: missing_return
         onError: (e) {
           expect(e, isA<DataException>());
         });
@@ -126,16 +127,29 @@ void main() async {
 
     await oneMs();
 
+    // ignore: missing_return
     await familyRepository.findOne('1', remote: true, onError: (e) {
       expect(e, error203);
     });
+  });
 
-    // not found
-
+  test('not found does not throw by default', () async {
     expect(() async {
       container.read(responseProvider).state = TestResponse(
           text: (_) => '{ "error": "not found" }', statusCode: 404);
       await familyRepository.findOne('2', remote: true);
+    }, returnsNormally);
+
+    // no record locally
+    expect(await familyRepository.findOne('1', remote: false), isNull);
+
+    // now throws with overriden onError
+
+    expect(() async {
+      container.read(responseProvider).state = TestResponse(
+          text: (_) => '{ "error": "not found" }', statusCode: 404);
+      await familyRepository.findOne('2',
+          remote: true, onError: (e) => throw e);
     },
         throwsA(isA<DataException>().having(
           (e) => e.error,
@@ -147,17 +161,13 @@ void main() async {
     expect(await familyRepository.findOne('1', remote: false), isNull);
   });
 
-  test('socket exception', () async {
-    expect(() async {
-      container.read(responseProvider).state =
-          TestResponse(text: (_) => throw SocketException('unreachable'));
-      await familyRepository.findOne('error', remote: true);
-    },
-        throwsA(isA<DataException>().having(
-          (e) => e.error,
-          'SocketException',
-          isA<SocketException>(),
-        )));
+  test('socket exception does not throw by default', () async {
+    container.read(responseProvider).state =
+        TestResponse(text: (_) => throw SocketException('unreachable'));
+    await familyRepository.findOne('error', remote: true, onError: (e) {
+      expect(e, isA<OfflineException>());
+      return null;
+    });
   });
 
   test('save', () async {
@@ -193,6 +203,7 @@ void main() async {
 
     verify(listener(DataState([], isLoading: false))).called(1);
 
+    // ignore: missing_return
     await familyRepository.save(family, remote: true, onError: (e) async {
       await oneMs();
       notifier.updateWith(exception: e);
@@ -247,7 +258,7 @@ void main() async {
     final listener = Listener<DataState<List<Family>>>();
 
     container.read(responseProvider).state =
-        TestResponse(text: (_) => throw SocketException('unreachable'));
+        TestResponse(text: (_) => throw Exception('unreachable'));
     final notifier = familyRepository.watchAll(remote: true);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
@@ -258,7 +269,7 @@ void main() async {
     // finished loading but found the network unreachable
     verify(listener(argThat(isA<DataState<List<Family>>>()
             .having((s) => s.isLoading, 'isLoading', isFalse)
-            .having((s) => s.exception, 'exception', isA<OfflineException>()))))
+            .having((s) => s.exception, 'exception', isA<Exception>()))))
         .called(1);
     verifyNoMoreInteractions(listener);
 
@@ -277,7 +288,7 @@ void main() async {
     // loads again, for now exception remains
     verify(listener(argThat(isA<DataState<List<Family>>>()
             .having((s) => s.isLoading, 'isLoading', isTrue)
-            .having((s) => s.exception, 'exception', isA<OfflineException>()))))
+            .having((s) => s.exception, 'exception', isA<Exception>()))))
         .called(1);
 
     await oneMs();
@@ -334,7 +345,7 @@ void main() async {
     verifyNoMoreInteractions(listener);
 
     container.read(responseProvider).state =
-        TestResponse(text: (_) => throw SocketException('unreachable'));
+        TestResponse(text: (_) => throw Exception('unreachable'));
 
     await notifier.reload();
     await oneMs();
@@ -350,7 +361,7 @@ void main() async {
     // finished loading but found the network unreachable
     verify(listener(argThat(isA<DataState<Family>>()
             .having((s) => s.isLoading, 'isLoading', isFalse)
-            .having((s) => s.exception, 'exception', isA<OfflineException>()))))
+            .having((s) => s.exception, 'exception', isA<Exception>()))))
         .called(1);
     verifyNoMoreInteractions(listener);
 
@@ -368,7 +379,7 @@ void main() async {
     // loads again, for now exception remains
     verify(listener(argThat(isA<DataState<Family>>()
             .having((s) => s.isLoading, 'isLoading', isTrue)
-            .having((s) => s.exception, 'exception', isA<OfflineException>()))))
+            .having((s) => s.exception, 'exception', isA<Exception>()))))
         .called(1);
 
     await oneMs();

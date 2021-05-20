@@ -92,7 +92,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     _assertInit();
     assert(model != null);
 
-    final id = model is T ? model.id : model;
+    final id = _resolveId(model);
 
     // lazy key access
     String _key;
