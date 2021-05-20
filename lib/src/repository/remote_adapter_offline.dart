@@ -248,8 +248,7 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
   List<Object> get props => [metadata];
 }
 
-extension OfflineOperationsX<T extends DataModel<T>>
-    on List<OfflineOperation<T>> {
+extension OfflineOperationsX on List<OfflineOperation<DataModel>> {
   /// Retries all offline operations for current type.
   FutureOr<void> retry() async {
     if (isNotEmpty) {
