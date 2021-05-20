@@ -17,16 +17,14 @@ class DataHelpers {
   static String generateKey<T>([String type]) {
     type = getType<T>(type);
     if (type != null) {
-      return '$type#${uuid.v1().substring(0, 8)}';
+      return StringUtils.typify(type, uuid.v1().substring(0, 8));
     }
     return null;
   }
 }
 
 class OfflineException extends DataException {
-  final DataModel model;
-  final dynamic id;
-  OfflineException({Object error, this.model, this.id}) : super(error);
+  OfflineException({Object error}) : super(error);
   @override
   String toString() {
     return 'OfflineException: $error';

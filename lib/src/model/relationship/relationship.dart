@@ -164,7 +164,7 @@ abstract class Relationship<E extends DataModel<E>, N>
   }
 
   Set<String> get ids {
-    return keys.map(_graph?.getId).filterNulls.toSet();
+    return keys.map(_graph?.getIdForKey).filterNulls.toSet();
   }
 
   E _ensureModelIsInitialized(E model) {

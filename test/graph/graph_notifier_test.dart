@@ -76,13 +76,13 @@ void main() async {
     var key = graph.getKeyForId('people', null,
         keyIfAbsent: DataHelpers.generateKey<Person>());
     expect(key, isNotNull);
-    expect(graph.getId(key), isNull);
+    expect(graph.getIdForKey(key), isNull);
   });
 
   test('reuses a provided key', () {
     final key = graph.getKeyForId('people', '29', keyIfAbsent: 'people#78a92b');
     expect(key, 'people#78a92b');
-    expect(graph.getId(key), '29');
+    expect(graph.getIdForKey(key), '29');
   });
 
   test('reassign a key', () {
@@ -90,7 +90,7 @@ void main() async {
     expect(key, 'people#a5a5a5');
 
     graph.getKeyForId('people', '2', keyIfAbsent: 'people#a5a5a5');
-    expect(graph.getId(key), '2');
+    expect(graph.getIdForKey(key), '2');
   });
 
   test('by keys', () {
@@ -99,8 +99,8 @@ void main() async {
     graph.getKeyForId('people', '2', keyIfAbsent: 'people#b2b2b2');
     graph.getKeyForId('people', '3', keyIfAbsent: 'people#c3c3c3');
 
-    final ids =
-        ['people#a1a1a1', 'people#b2b2b2', 'people#c3c3c3'].map(graph.getId);
+    final ids = ['people#a1a1a1', 'people#b2b2b2', 'people#c3c3c3']
+        .map(graph.getIdForKey);
     expect(ids, ['p#1', '2', '3']);
   });
 
@@ -206,14 +206,16 @@ void main() async {
   });
 
   test('namespace', () {
-    expect(graph.namespace('id', graph.typify('posts', 'a9')), 'id:posts#a9');
-    expect(graph.namespace('zzz', graph.typify('animals', '278#12')),
+    expect(StringUtils.namespace('id', StringUtils.typify('posts', 'a9')),
+        'id:posts#a9');
+    expect(
+        StringUtils.namespace('zzz', StringUtils.typify('animals', '278#12')),
         'zzz:animals#278#12');
   });
 
   test('denamespace', () {
-    expect(graph.denamespace('superman:1'), '1');
-    expect(graph.detypify(graph.denamespace('id:posts#a9')), 'a9');
+    expect('superman:1'.denamespace(), '1');
+    expect('id:posts#a9'.denamespace().detypify(), 'a9');
   });
 
   test('remove orphans', () {

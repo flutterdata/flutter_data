@@ -48,7 +48,8 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
   String getKeyForId(String type, dynamic id, {String keyIfAbsent}) {
     type = DataHelpers.getType(type);
     if (id != null) {
-      final namespacedId = namespace('id', typify(type, id));
+      final namespacedId =
+          StringUtils.namespace('id', StringUtils.typify(type, id));
 
       if (_getNode(namespacedId) != null) {
         final tos = _getEdge(namespacedId, metadata: 'key');
@@ -88,16 +89,16 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
   void removeKey(String key) => _removeNode(key);
 
   /// Finds an ID in the graph, given a [key].
-  String getId(String key) {
+  String getIdForKey(String key) {
     final tos = _getEdge(key, metadata: 'id');
     return tos == null || tos.isEmpty
         ? null
-        : (detypify(denamespace(tos.first)));
+        : (tos.first).denamespace().detypify();
   }
 
   /// Removes [type]/[id] (and its edges) from graph
   void removeId(String type, dynamic id) =>
-      _removeNode(namespace('id', typify(type, id)));
+      _removeNode(StringUtils.namespace('id', StringUtils.typify(type, id)));
 
   // nodes
 
@@ -228,25 +229,6 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
   }
 
   // utils
-
-  @protected
-  @visibleForTesting
-  String namespace(String prefix, String text) => '$prefix:$text';
-
-  @protected
-  @visibleForTesting
-  String denamespace(String namespacedKey) => namespacedKey.split(':').last;
-
-  @protected
-  @visibleForTesting
-  String typify(String type, dynamic id) => '$type#$id';
-
-  @protected
-  @visibleForTesting
-  String detypify(String text) {
-    return (text.split('#')..removeAt(0)).join(
-        '#'); // need to re-join with # in case there were other #s in the id
-  }
 
   /// Returns a [Map] representation of this graph, the underlying Hive [box].
   Map<String, Map> toMap() => _toMap();
