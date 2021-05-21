@@ -28,7 +28,7 @@ abstract class DataModel<T extends DataModel<T>> {
     assert(remoteAdapter != null, '''\n
 Please ensure `Repository<$T>` has been correctly initialized.''');
 
-    _key = remoteAdapter.graph.getKeyForId(remoteAdapter.type, id,
+    _key = remoteAdapter.graph.getKeyForId(remoteAdapter.internalType, id,
         keyIfAbsent: key ?? DataHelpers.generateKey<T>());
 
     if (save ?? false) {

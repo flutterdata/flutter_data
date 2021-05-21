@@ -107,5 +107,10 @@ void main() async {
     final adapter = adapterFor(author);
     expect(adapter.type, 'writers');
     expect(adapter.internalType, 'authors');
+
+    // check key was correctly assigned
+    // ignore: invalid_use_of_protected_member
+    final key = adapter.graph.getKeyForId(adapter.internalType, 15);
+    expect(keyFor(author), equals(key));
   });
 }
