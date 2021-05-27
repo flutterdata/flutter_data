@@ -30,7 +30,7 @@ void main() async {
 
     expect(families, [family1, family2]);
 
-    await familyRepository.localClear();
+    await familyRepository.clear();
     expect(await familyRepository.findAll(), isEmpty);
   });
 

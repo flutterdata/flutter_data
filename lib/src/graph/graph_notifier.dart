@@ -1,5 +1,7 @@
 part of flutter_data;
 
+const _kGraphBoxName = '_graph';
+
 /// A bidirected graph data structure that notifies
 /// modification events through a [StateNotifier].
 ///
@@ -27,10 +29,26 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
   Future<GraphNotifier> initialize() async {
     if (isInitialized) return this;
     await _hiveLocalStorage.initialize();
-    box = await _hiveLocalStorage.hive.openBox('_graph');
+    if (_hiveLocalStorage.clear ?? false) {
+      await _hiveLocalStorage.deleteBox(_kGraphBoxName);
+    }
+    box = await _hiveLocalStorage.openBox(_kGraphBoxName);
 
     await super.initialize();
     return this;
+  }
+
+  @override
+  @mustCallSuper
+  void dispose() async {
+    super.dispose();
+    if (box.isOpen) {
+      await box.close();
+    }
+  }
+
+  Future<void> clear() async {
+    return await box.clear();
   }
 
   @override
@@ -330,6 +348,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
 
     // use a set to ensure resulting list elements are unique
     fromNode[metadata] = {...?fromNode[metadata], ...tos}.toList();
+    box.put(from, fromNode);
 
     if (notify) {
       state = DataGraphEvent(
@@ -348,6 +367,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
 
         // use a set to ensure resulting list elements are unique
         toNode[inverseMetadata] = {...?toNode[inverseMetadata], from}.toList();
+        box.put(to, toNode);
       }
 
       if (notify) {
@@ -494,6 +514,6 @@ class DataGraphEvent {
   }
 }
 
-final graphProvider = Provider<GraphNotifier>((ref) {
+final graphNotifierProvider = Provider<GraphNotifier>((ref) {
   return GraphNotifier(ref.read(hiveLocalStorageProvider));
 });

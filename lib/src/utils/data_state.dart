@@ -93,7 +93,6 @@ class DataStateNotifier<T> extends StateNotifier<DataState<T>> {
     if (mounted) {
       super.dispose();
     }
-    onDispose?.call();
   }
 }
 

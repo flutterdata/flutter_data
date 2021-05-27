@@ -34,7 +34,7 @@ Function dispose;
 
 void setUpFn() async {
   container = createContainer();
-  graph = container.read(graphProvider);
+  graph = container.read(graphNotifierProvider);
   // IMPORTANT: disable namespace assertions
   // in order to test un-namespaced (key, id)
   graph.debugAssert(false);
@@ -51,6 +51,8 @@ void setUpFn() async {
   houseRemoteAdapter = container.read(housesRemoteAdapterProvider);
   familyRemoteAdapter = container.read(familiesRemoteAdapterProvider);
   personRemoteAdapter = container.read(peopleRemoteAdapterProvider);
+
+  await container.read(graphNotifierProvider).initialize();
 
   houseRepository = await container.read(housesRepositoryProvider).initialize(
         remote: false,
@@ -112,6 +114,7 @@ void tearDownFn() async {
   personRepository?.dispose();
   dogRepository?.dispose();
   nodeRepository?.dispose();
+  graph?.dispose();
 }
 
 //
@@ -144,7 +147,7 @@ ProviderContainer createContainer() {
 
       hiveLocalStorageProvider
           .overrideWithProvider(Provider((_) => TestHiveLocalStorage())),
-      graphProvider.overrideWithProvider(Provider(
+      graphNotifierProvider.overrideWithProvider(Provider(
           (ref) => TestDataGraphNotifier(ref.read(hiveLocalStorageProvider)))),
 
       // model-specific

@@ -88,7 +88,7 @@ $adapters
 final flutterDataTestOverrides = [
   hiveLocalStorageProvider
     .overrideWithProvider(Provider((_) => TestHiveLocalStorage())),
-  graphProvider.overrideWithProvider(Provider(
+  graphNotifierProvider.overrideWithProvider(Provider(
     (ref) => TestDataGraphNotifier(ref.read(hiveLocalStorageProvider)))),
   $overrides
 ];
@@ -200,7 +200,6 @@ mixin TestHiveLocalAdapter<T extends DataModel<T>> on HiveLocalAdapter<T> {
   @override
   // ignore: must_call_super
   Future<TestHiveLocalAdapter<T>> initialize() async {
-    await graph.initialize();
     await super.initialize();
     box = FakeBox<T>();
     return this;

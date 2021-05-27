@@ -139,6 +139,8 @@ final _repositoryInitializerProviderFamily =
     final adapters = <String, RemoteAdapter>$adaptersMap;
     final remotes = <String, bool>$remotesMap;
 
+    await ref.read(graphNotifierProvider).initialize();
+
     for (final key in repositoryProviders.keys) {
       final repository = ref.read(repositoryProviders[key]);
       repository.dispose();
@@ -154,6 +156,7 @@ final _repositoryInitializerProviderFamily =
         for (final repositoryProvider in repositoryProviders.values) {
           ref.read(repositoryProvider).dispose();
         }
+        ref.read(graphNotifierProvider).dispose();
       }
     });
 

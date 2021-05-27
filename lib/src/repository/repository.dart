@@ -158,10 +158,12 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   }
 
   /// Deletes all models of type [T] in local storage.
-  Future<void> localClear() => remoteAdapter.localClear();
-
-  /// Deletes all models of all types in local storage.
-  Future<void> localClearAll() => remoteAdapter.localClearAll();
+  ///
+  ///
+  ///
+  /// If you need to clear all models, use the
+  /// `repositoryProviders` map exposed on your `main.data.dart`.
+  Future<void> clear() => remoteAdapter.clear();
 
   // offline
 

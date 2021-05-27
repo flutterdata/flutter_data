@@ -56,6 +56,27 @@ Widget build(context) {
     _isInitialized = true;
     return this;
   }
+
+  Future<Box<B>> openBox<B>(String name) async {
+    return await hive.openBox<B>(name, encryptionCipher: encryptionCipher);
+  }
+
+  Future<void> deleteBox(String name) async {
+    // if hard clear, remove box
+    try {
+      if (await hive.boxExists(name)) {
+        await hive.deleteBoxFromDisk(name);
+      }
+    } catch (e) {
+      // weird fs bug? where even after checking for file.exists()
+      // in Hive, it throws a No such file or directory error
+      if (e.toString().contains('No such file or directory')) {
+        // we can safely ignore?
+      } else {
+        rethrow;
+      }
+    }
+  }
 }
 
 final hiveLocalStorageProvider =

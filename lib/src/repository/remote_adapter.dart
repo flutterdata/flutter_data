@@ -429,11 +429,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
 
   @protected
   @visibleForTesting
-  Future<void> localClear() => localAdapter.clear();
-
-  @protected
-  @visibleForTesting
-  Future<void> localClearAll() => localAdapter.clearAll();
+  Future<void> clear() => localAdapter.clear();
 
   // http
 

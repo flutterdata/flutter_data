@@ -107,7 +107,6 @@ mixin TestHiveLocalAdapter<T extends DataModel<T>> on HiveLocalAdapter<T> {
   @override
   // ignore: must_call_super
   Future<TestHiveLocalAdapter<T>> initialize() async {
-    await graph.initialize();
     await super.initialize();
     box = FakeBox<T>();
     return this;

@@ -6,25 +6,11 @@ part of flutter_data;
 abstract class LocalAdapter<T extends DataModel<T>>
     with _Lifecycle<LocalAdapter<T>> {
   @protected
-  LocalAdapter(ProviderReference _ref) : graph = _ref.read(graphProvider);
+  LocalAdapter(ProviderReference _ref)
+      : graph = _ref.read(graphNotifierProvider);
 
   @protected
   final GraphNotifier graph;
-
-  @override
-  @mustCallSuper
-  FutureOr<LocalAdapter<T>> initialize() async {
-    await super.initialize();
-    await graph.initialize();
-    return this;
-  }
-
-  @override
-  @mustCallSuper
-  void dispose() {
-    super.dispose();
-    graph.dispose();
-  }
 
   // protected API
 
@@ -56,11 +42,6 @@ abstract class LocalAdapter<T extends DataModel<T>>
   @protected
   @visibleForTesting
   Future<void> clear();
-
-  /// Deletes all models of all types in local storage.
-  @protected
-  @visibleForTesting
-  Future<void> clearAll();
 
   // public abstract methods
 

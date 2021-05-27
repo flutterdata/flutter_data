@@ -9,6 +9,10 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
         super(_ref);
 
   final HiveLocalStorage _hiveLocalStorage;
+
+  final _hiveAdapterNs = '_adapter_hive';
+  String get _hiveAdapterKey => StringUtils.namespace(_hiveAdapterNs, 'key');
+
   String get _internalType => DataHelpers.getType<T>();
 
   // once late final field, remove ignore on class
@@ -19,7 +23,7 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
   @override
   Future<HiveLocalAdapter<T>> initialize() async {
     if (isInitialized) return this;
-    // IMPORTANT: initialize graph before registering
+
     await super.initialize();
     final clear = _hiveLocalStorage.clear ?? false;
 
@@ -28,42 +32,18 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
         _hiveLocalStorage.hive.registerAdapter(this);
       }
       if (clear) {
-        await _deleteBox(graph: true);
+        await _hiveLocalStorage.deleteBox(_internalType);
       }
     }
 
     try {
-      box = await _openBox();
+      box = await _hiveLocalStorage.openBox<T>(_internalType);
     } catch (e) {
-      await _deleteBox();
-      box = await _openBox();
+      await _hiveLocalStorage.deleteBox(_internalType);
+      box = await _hiveLocalStorage.openBox<T>(_internalType);
     }
 
     return this;
-  }
-
-  Future<Box<T>> _openBox() async {
-    return await _hiveLocalStorage.hive.openBox<T>(_internalType,
-        encryptionCipher: _hiveLocalStorage.encryptionCipher);
-  }
-
-  Future<void> _deleteBox({bool graph = false}) async {
-    try {
-      await _hiveLocalStorage.hive.deleteBoxFromDisk(_internalType);
-      if (graph) {
-        if (await _hiveLocalStorage.hive.boxExists('graph')) {
-          await _hiveLocalStorage.hive.deleteBoxFromDisk('_graph');
-        }
-      }
-    } catch (e) {
-      // weird fs bug? where even after checking for file.exists()
-      // in Hive, it throws a No such file or directory error
-      if (e.toString().contains('No such file or directory')) {
-        // we can safely ignore?
-      } else {
-        rethrow;
-      }
-    }
   }
 
   @override
@@ -108,43 +88,44 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
 
   @override
   Future<void> clear() async {
-    await box.clear();
-  }
-
-  @override
-  Future<void> clearAll() async {
-    final _node = graph.getNode('hive:adapter');
-    final boxNames = _node.keys;
-    for (final boxName in boxNames) {
-      await _hiveLocalStorage.hive.deleteBoxFromDisk(boxName);
-    }
-    _node.clear();
+    return await box.clear();
   }
 
   // hive adapter
 
   @override
   int get typeId {
-    // _types: {
-    //   'posts': {'1'},
-    //   'comments': {'2'},
-    //   'houses': {'3'},
+    // _adapter_hive:key: {
+    //   '_adapter_hive:posts': ['_adapter_hive:1'],
+    //   '_adapter_hive:comments': ['_adapter_hive:2'],
+    //   '_adapter_hive:houses': ['_adapter_hive:3'],
     // }
 
-    if (!graph.hasNode('hive:adapter')) {
-      graph.addNode('hive:adapter');
+    if (!graph._hasNode(_hiveAdapterKey)) {
+      graph._addNode(_hiveAdapterKey);
     }
 
-    final _typesNode = graph.getNode('hive:adapter');
+    final _typesNode = graph._getNode(_hiveAdapterKey);
 
-    if (_typesNode[_internalType] != null &&
-        _typesNode[_internalType].isNotEmpty) {
-      return int.parse(_typesNode[_internalType].first);
+    final edge =
+        _typesNode[StringUtils.namespace(_hiveAdapterNs, _internalType)];
+
+    if (edge != null && edge.isNotEmpty) {
+      // first is of format: _adapter_hive:1
+      return int.parse(edge.first.denamespace());
     }
 
-    final index = _typesNode.length + 1;
-    // insert at last position of _typesNode map
-    _typesNode[_internalType] = [index.toString()];
+    // get namespaced indices
+    final index = _typesNode.values
+            // denamespace and parse single
+            .map((e) => int.parse(e.first.denamespace()))
+            // find max
+            .fold(0, max) +
+        1;
+
+    graph._addEdge(_hiveAdapterKey,
+        StringUtils.namespace(_hiveAdapterNs, index.toString()),
+        metadata: StringUtils.namespace(_hiveAdapterNs, _internalType));
     return index;
   }
 
