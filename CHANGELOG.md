@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.7.1] - 2021-05-27
+
+- Offline support for all types of requests, including ad-hoc requests via `sendRequest`
+- Fix `typeId` management and issues around `clear`
+- Fix graph persistence issues
+- Initialize graph externally (codegen)
+- Remove `clearAll` (use generated `repositoryProviders` + `clear` for each one)
+- Fix bugs related to `type`s, internal types
+- Misc utils fixes
+
 ## [0.7.0] - 2021-04-20
 
 - Fix singular/plural types, fix remote default
