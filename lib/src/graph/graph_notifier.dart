@@ -38,15 +38,6 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
     return this;
   }
 
-  @override
-  @mustCallSuper
-  void dispose() async {
-    super.dispose();
-    if (box.isOpen) {
-      await box.close();
-    }
-  }
-
   Future<void> clear() async {
     return await box.clear();
   }
