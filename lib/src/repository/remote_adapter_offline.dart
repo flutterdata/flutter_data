@@ -59,6 +59,7 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
             requestType: requestType,
             offlineKey: key,
             request: '${method.toShortString()} $uri',
+            body: body,
             timestamp: DateTime.now(),
             headers: headers,
             onSuccess: onSuccess,
@@ -86,7 +87,17 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
           }
         }
 
-        // if it was not a network error, return handler call
+        // if it was not a network error
+
+        // remove all operations with this
+        // requestType/offlineKey metadata
+        OfflineOperation<T>(
+          requestType: requestType,
+          offlineKey: key,
+          adapter: this,
+        ).removeAll();
+
+        // return handler call
         return (onError ?? this.onError).call(e);
       },
     );
@@ -125,6 +136,7 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
 class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
   final DataRequestType requestType;
   final String offlineKey;
+  final String body;
   final String request;
   final DateTime timestamp;
   final Map<String, String> headers;
@@ -136,6 +148,7 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
     @required this.offlineKey,
     @required this.requestType,
     this.request,
+    this.body,
     this.timestamp,
     this.headers,
     this.onSuccess,
@@ -155,6 +168,7 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
     return <String, dynamic>{
       't': requestType.toShortString(),
       'r': request,
+      'b': body,
       'k': offlineKey,
       'd': timestamp.toIso8601String(),
       'h': headers,
@@ -167,6 +181,7 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
       requestType: _getDataRequestType(json['t'] as String),
       request: json['r'] as String,
       offlineKey: json['k'] as String,
+      body: json['b'] as String,
       timestamp: DateTime.parse(json['d'] as String),
       headers:
           json['h'] == null ? null : Map<String, String>.from(json['h'] as Map),
@@ -189,10 +204,12 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
 
     // offlineKey of format different than users#ab9c31
     // will return null
-    String body;
-    final model = adapter.localAdapter.findOne(offlineKey);
-    if (model != null) {
-      body = json.encode(adapter.serialize(model));
+    var _body = body;
+    if (_body == null) {
+      final model = adapter.localAdapter.findOne(offlineKey);
+      if (model != null) {
+        _body = json.encode(adapter.serialize(model));
+      }
     }
 
     await adapter.sendRequest<R>(
@@ -282,19 +299,34 @@ extension OfflineOperationsX on List<OfflineOperation<DataModel>> {
 final _offlineCallbackProvider =
     StateProvider<Map<String, List<Function>>>((_) => {});
 
-/// Notifies clients every time there is a
-/// pending offline operation for `type`.
-final pendingOfflineOperationsProvider =
-    StateNotifierProvider<StateNotifier<String>>((ref) {
-  final _graph = ref.read(graphProvider);
-  return _graph.where((event) {
+/// Every time there is an offline operation added to the
+/// queue, this will notify clients with all pending types
+/// such that they can implement their retry strategy.
+final pendingOfflineTypesProvider =
+    StateNotifierProvider<ValueStateNotifier<Set<String>>>((ref) {
+  final _graph = ref.read(graphNotifierProvider);
+
+  Set<String> _pendingTypes() {
+    final node = _graph._getNode(_offlineAdapterKey);
+    // obtain types from metadata e.g. _offline:users#4:findOne
+    return node.keys.map((m) => m.split(':')[1].split('#')[0]).toSet();
+  }
+
+  final notifier = ValueStateNotifier(<String>{});
+  Timer.run(() {
+    notifier.value = _pendingTypes();
+  });
+
+  final _dispose = _graph.where((event) {
     // filter the right events
     return event.type == DataGraphEventType.addEdge &&
         event.keys.length == 2 &&
         event.keys.containsFirst(_offlineAdapterKey);
-  }).map((event) {
-    // obtain type from e.g. _offline:users#4:findOne
-    final metadata = event.metadata.split(':');
-    return metadata[1].split('#')[0];
+  }).addListener((_) {
+    notifier.value = _pendingTypes();
   });
+
+  notifier.onDispose = _dispose;
+
+  return notifier;
 });

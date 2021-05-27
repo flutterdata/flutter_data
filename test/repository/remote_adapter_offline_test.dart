@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_data/flutter_data.dart';
@@ -373,7 +374,7 @@ void main() async {
     expect(familyRepository.offlineOperations, isEmpty);
   });
 
-  test('ad-hoc', () async {
+  test('ad-hoc request with body', () async {
     // network issue
     container.read(responseProvider).state = TestResponse(text: (_) {
       throw SocketException('unreachable');
@@ -382,7 +383,9 @@ void main() async {
     // random endpoint with random headers
     familyRepository.remoteAdapter.sendRequest(
       '/fam'.asUri,
+      method: DataRequestMethod.POST,
       headers: {'X-Sats': '9389173717732'},
+      body: json.encode({'a': 2}),
       onSuccess: (_) {
         expect(
             _,
@@ -399,10 +402,33 @@ void main() async {
     container.read(responseProvider).state = TestResponse(
       text: (req) {
         // assert headers are included in the retry
-        expect(req.headers, equals({'X-Sats': '9389173717732'}));
+        expect(req.headers['X-Sats'], equals('9389173717732'));
+        expect(json.decode(req.body), {'a': 2});
         return '[{"id": "19", "surname": "Ko Saved"}]';
       },
     );
+
+    // retry
+    await familyRepository.offlineOperations.retry();
+    await oneMs();
+    // done
+    expect(familyRepository.offlineOperations, isEmpty);
+  });
+
+  test('another non-offline error should resolve the operation', () async {
+    // network issue
+    container.read(responseProvider).state = TestResponse(text: (_) {
+      throw SocketException('unreachable');
+    });
+    familyRepository.remoteAdapter.sendRequest('/fam'.asUri);
+
+    await oneMs();
+    // fails to go through
+    expect(familyRepository.offlineOperations, hasLength(1));
+
+    // return a 404
+    container.read(responseProvider).state =
+        TestResponse(text: (_) => 'not found', statusCode: 404);
 
     // retry
     await familyRepository.offlineOperations.retry();
