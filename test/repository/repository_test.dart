@@ -552,7 +552,7 @@ void main() async {
     Dog(id: '3', name: 'Bowie').init(container.read);
     container.read(responseProvider).state = TestResponse.text('');
     await dogRepository.delete('3', params: {'a': 1}, remote: true);
-    expect(verbose, ['[flutter_data] Dog: DELETE /dogs/3?a=1 [HTTP 200]']);
+    expect(verbose, ['[flutter_data] [dogs] DELETE /dogs/3?a=1 [HTTP 200]']);
 
     try {
       container.read(responseProvider).state =
