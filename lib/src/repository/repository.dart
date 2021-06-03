@@ -168,7 +168,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   // offline
 
   /// Gets a list of all pending [OfflineOperation]s for this type.
-  List<OfflineOperation<T>> get offlineOperations =>
+  Set<OfflineOperation<T>> get offlineOperations =>
       remoteAdapter.offlineOperations;
 
   // watchers

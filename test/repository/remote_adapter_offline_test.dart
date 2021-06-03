@@ -29,10 +29,9 @@ void main() async {
     await oneMs();
 
     // the internal findAll should trigger an offline operation
-    expect(authorRepository.offlineOperations, [
-      OfflineOperation<Author>(
-          offlineKey: 'authors', requestType: DataRequestType.findAll)
-    ]);
+    expect(authorRepository.offlineOperations.first.offlineKey, 'authors');
+    expect(authorRepository.offlineOperations.first.requestType,
+        DataRequestType.findAll);
 
     // now try to findOne
     await authorRepository.findOne(
@@ -435,5 +434,22 @@ void main() async {
     await oneMs();
     // done
     expect(familyRepository.offlineOperations, isEmpty);
+  });
+
+  test('operation equality', () {
+    final o1 = OfflineOperation<Family>(
+        requestType: DataRequestType.findAll,
+        offlineKey: 'families',
+        request: 'GET /families',
+        headers: {'X-Header': 'chupala'});
+
+    final o2 = OfflineOperation<Family>(
+        requestType: DataRequestType.findAll,
+        offlineKey: 'families',
+        request: 'GET /families',
+        headers: {'X-Header': 'chupala'});
+
+    expect(o1, equals(o2));
+    expect(o1.hash, equals(o2.hash));
   });
 }

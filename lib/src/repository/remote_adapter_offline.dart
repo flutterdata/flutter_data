@@ -45,8 +45,13 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
         OfflineOperation<T>(
           requestType: requestType,
           offlineKey: key,
+          request: '${method.toShortString()} $uri',
+          body: body,
+          headers: headers,
+          onSuccess: onSuccess,
+          onError: onError,
           adapter: this,
-        ).removeAll();
+        ).remove();
 
         // yield
         return onSuccess?.call(data);
@@ -60,7 +65,6 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
             offlineKey: key,
             request: '${method.toShortString()} $uri',
             body: body,
-            timestamp: DateTime.now(),
             headers: headers,
             onSuccess: onSuccess,
             onError: onError,
@@ -94,8 +98,13 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
         OfflineOperation<T>(
           requestType: requestType,
           offlineKey: key,
+          request: '${method.toShortString()} $uri',
+          body: body,
+          headers: headers,
+          onSuccess: onSuccess,
+          onError: onError,
           adapter: this,
-        ).removeAll();
+        ).remove();
 
         // return handler call
         return (onError ?? this.onError).call(e);
@@ -118,7 +127,7 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
 
   @protected
   @visibleForTesting
-  List<OfflineOperation<T>> get offlineOperations {
+  Set<OfflineOperation<T>> get offlineOperations {
     final node = graph._getNode(_offlineAdapterKey);
     return node.entries.where((e) {
       // extract type from e.g. _offline:users#4:findOne
@@ -127,8 +136,7 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
       // get first edge value
       final map = json.decode(e.value.first) as Map<String, dynamic>;
       return OfflineOperation.fromJson(map, this);
-    }).toList()
-      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    }).toSet();
   }
 }
 
@@ -138,18 +146,16 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
   final String offlineKey;
   final String body;
   final String request;
-  final DateTime timestamp;
   final Map<String, String> headers;
-  final Function onSuccess;
-  final Function onError;
+  final OnRawData onSuccess;
+  final OnDataError onError;
   final _RemoteAdapterOffline<T> adapter;
 
   const OfflineOperation({
     @required this.offlineKey,
     @required this.requestType,
-    this.request,
+    @required this.request,
     this.body,
-    this.timestamp,
     this.headers,
     this.onSuccess,
     this.onError,
@@ -157,20 +163,15 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
   });
 
   /// Metadata format:
-  /// _offline:users#_:findAll
-  /// _offline:users#4:findOne
-  /// _offline:users#ab9c31:save
-  /// _offline:users#4:delete
-  /// _offline:users#a92e98ff:adhoc
-  String get metadata => '_offline:$offlineKey:${requestType.toShortString()}';
+  /// _offline:users:d7bcc9a7b72bf90fffd826
+  String get metadata => '_offline:${adapter.internalType}:$hash';
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       't': requestType.toShortString(),
       'r': request,
-      'b': body,
       'k': offlineKey,
-      'd': timestamp.toIso8601String(),
+      'b': body,
       'h': headers,
     };
   }
@@ -182,7 +183,6 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
       request: json['r'] as String,
       offlineKey: json['k'] as String,
       body: json['b'] as String,
-      timestamp: DateTime.parse(json['d'] as String),
       headers:
           json['h'] == null ? null : Map<String, String>.from(json['h'] as Map),
       adapter: adapter,
@@ -199,53 +199,68 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
         orElse: () => null);
   }
 
-  Future<void> retry<R>() async {
-    final fns = adapter.ref.read(_offlineCallbackProvider).state[metadata];
-
-    // offlineKey of format different than users#ab9c31
-    // will return null
-    var _body = body;
-    if (_body == null) {
-      final model = adapter.localAdapter.findOne(offlineKey);
-      if (model != null) {
-        _body = json.encode(adapter.serialize(model));
-      }
-    }
-
-    await adapter.sendRequest<R>(
-      uri,
-      method: method,
-      headers: headers,
-      requestType: requestType,
-      key: offlineKey,
-      body: body,
-      onSuccess: fns?.first as OnRawData<R>,
-      onError: fns?.last as OnDataError<R>,
-    );
-  }
-
   /// Adds an edge from the `_offlineAdapterKey` to the `key` for save/delete
   /// and stores header/param metadata. Also stores callbacks.
   void add() {
-    final node = json.encode(toJson());
+    // DO NOT proceed if operation is in queue
+    if (!adapter.offlineOperations.contains(this)) {
+      final node = json.encode(toJson());
 
-    // remove all previous operations with this metadata
-    removeAll();
+      if (adapter._verbose) {
+        print(
+            '[flutter_data] [${adapter.internalType}] Adding offline operation with metadata: $metadata');
+        print('\n\n');
+      }
 
-    adapter.graph._addEdge(_offlineAdapterKey, node, metadata: metadata);
+      adapter.graph._addEdge(_offlineAdapterKey, node, metadata: metadata);
 
-    // keep callbacks in memory
-    adapter.ref.read(_offlineCallbackProvider).state[metadata] = [
-      onSuccess,
-      onError,
-    ];
+      // keep callbacks in memory
+      adapter.ref.read(_offlineCallbackProvider).state[metadata] ??= [];
+      adapter.ref
+          .read(_offlineCallbackProvider)
+          .state[metadata]
+          .add([onSuccess, onError]);
+    } else {
+      // trick
+      adapter.graph
+          ._notify([_offlineAdapterKey, null], DataGraphEventType.addEdge);
+    }
   }
 
   /// Removes all edges from the `_offlineAdapterKey` for
   /// current metadata, as well as callbacks from memory.
-  void removeAll() {
-    adapter.graph._removeEdges(_offlineAdapterKey, metadata: metadata);
-    adapter.ref.read(_offlineCallbackProvider).state.remove(metadata);
+  void remove() {
+    if (adapter.graph._hasEdge(_offlineAdapterKey, metadata: metadata)) {
+      adapter.graph._removeEdges(_offlineAdapterKey, metadata: metadata);
+      if (adapter._verbose) {
+        print(
+            '[flutter_data] [${adapter.internalType}] Removing offline operation with metadata: $metadata');
+        print('\n\n');
+      }
+
+      adapter.ref.read(_offlineCallbackProvider).state.remove(metadata);
+    }
+  }
+
+  Future<void> retry<R>() async {
+    // look up callbacks (or provide defaults)
+    final fns = adapter.ref.read(_offlineCallbackProvider).state[metadata] ??
+        [
+          [null, null]
+        ];
+
+    for (final pair in fns) {
+      await adapter.sendRequest<R>(
+        uri,
+        method: method,
+        headers: headers,
+        requestType: requestType,
+        key: offlineKey,
+        body: body,
+        onSuccess: pair.first as OnRawData<R>,
+        onError: pair.last as OnDataError<R>,
+      );
+    }
   }
 
   /// This getter ONLY makes sense for `findOne` and `save` operations
@@ -262,10 +277,16 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
   }
 
   @override
-  List<Object> get props => [metadata];
+  List<Object> get props => [requestType, request, body, offlineKey, headers];
+
+  @override
+  bool get stringify => true;
+
+  // generates a unique memory-independent hash of this object
+  String get hash => md5.convert(utf8.encode(toString())).toString();
 }
 
-extension OfflineOperationsX on List<OfflineOperation<DataModel>> {
+extension OfflineOperationsX on Set<OfflineOperation<DataModel>> {
   /// Retries all offline operations for current type.
   FutureOr<void> retry() async {
     if (isNotEmpty) {
@@ -297,11 +318,12 @@ extension OfflineOperationsX on List<OfflineOperation<DataModel>> {
 
 // stores onSuccess/onError function combos
 final _offlineCallbackProvider =
-    StateProvider<Map<String, List<Function>>>((_) => {});
+    StateProvider<Map<String, List<List<Function>>>>((_) => {});
 
-/// Every time there is an offline operation added to the
-/// queue, this will notify clients with all pending types
-/// such that they can implement their retry strategy.
+/// Every time there is an offline operation added to/
+/// removed from the queue, this will notify clients
+/// with all pending types (could be none) such that
+/// they can implement their own retry strategy.
 final pendingOfflineTypesProvider =
     StateNotifierProvider<ValueStateNotifier<Set<String>>>((ref) {
   final _graph = ref.read(graphNotifierProvider);
@@ -313,16 +335,19 @@ final pendingOfflineTypesProvider =
   }
 
   final notifier = ValueStateNotifier(<String>{});
+  // emit initial value
   Timer.run(() {
     notifier.value = _pendingTypes();
   });
 
   final _dispose = _graph.where((event) {
     // filter the right events
-    return event.type == DataGraphEventType.addEdge &&
+    return [DataGraphEventType.addEdge, DataGraphEventType.removeEdge]
+            .contains(event.type) &&
         event.keys.length == 2 &&
         event.keys.containsFirst(_offlineAdapterKey);
   }).addListener((_) {
+    // recalculate all pending types
     notifier.value = _pendingTypes();
   });
 
