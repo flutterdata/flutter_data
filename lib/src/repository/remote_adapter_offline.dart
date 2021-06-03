@@ -29,6 +29,7 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
   }) async {
     // default key to type#s3mth1ng
     key ??= DataHelpers.generateKey(internalType);
+    assert(key.startsWith(internalType));
 
     // execute request
     return super.sendRequest(
