@@ -101,7 +101,6 @@ void main() async {
     final notifier = personRemoteAdapter.watchAll(
         remote: false, filterLocal: (Person person) => person.age < 40);
 
-    await oneMs();
     dispose = notifier.addListener(listener, fireImmediately: true);
 
     verify(listener(DataState([p1]))).called(1);

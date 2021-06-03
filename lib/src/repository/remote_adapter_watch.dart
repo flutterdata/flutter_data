@@ -17,13 +17,15 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       {final bool remote,
       final Map<String, dynamic> params,
       final Map<String, String> headers,
-      final bool Function(T) filterLocal,
+      bool Function(T) filterLocal,
       final bool syncLocal}) {
     _assertInit();
+    filterLocal ??= (_) => true;
 
     final _notifier = DataStateNotifier<List<T>>(
       data: DataState(localAdapter
           .findAll()
+          .where(filterLocal)
           .map((m) => initializeModel(m, save: true))
           .toList()),
       reload: (notifier) async {
@@ -33,6 +35,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
             headers: headers,
             remote: remote,
             syncLocal: syncLocal,
+            filterLocal: filterLocal,
             init: true,
           );
           if (remote ?? true) {
@@ -63,7 +66,8 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         return;
       }
 
-      final models = localAdapter.findAll();
+      final models =
+          localAdapter.findAll().where(filterLocal).toImmutableList();
       if (!const DeepCollectionEquality()
               .equals(models, _notifier.data.model) ||
           events.where((e) {
@@ -71,10 +75,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
             return e.type == DataGraphEventType.doneLoading &&
                 e.keys.first == type;
           }).isNotEmpty) {
-        final filtered =
-            filterLocal != null ? models.where(filterLocal).toList() : models;
-        _notifier.updateWith(
-            model: filtered, isLoading: false, exception: null);
+        _notifier.updateWith(model: models, isLoading: false, exception: null);
       }
     });
 

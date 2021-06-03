@@ -56,11 +56,12 @@ void main() async {
     // since `syncLocal: false` and `family2` was present from an older call, it remains in local storage
     expect(await familyRepository.findAll(remote: false), [family1, family2]);
 
-    final families3 = await familyRepository.findAll(remote: true);
+    final families3 =
+        await familyRepository.findAll(remote: true, syncLocal: true);
 
     expect(families3, [family1]);
 
-    // using the default `syncLocal: true` the result is equal to the contents of local storage
+    // using `syncLocal: true` the result is equal to the contents of local storage
     expect(await familyRepository.findAll(remote: false), families3);
   });
 
@@ -454,7 +455,7 @@ void main() async {
 
     container.read(responseProvider).state = TestResponse.text(
         '''[{ "id": "22", "surname": "Paez" }, { "id": "12", "surname": "Brunez" }]''');
-    final notifier = familyRepository.watchAll(remote: true);
+    final notifier = familyRepository.watchAll(remote: true, syncLocal: true);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
     await oneMs();

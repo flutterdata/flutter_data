@@ -245,6 +245,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     Map<String, dynamic> params,
     Map<String, String> headers,
     bool syncLocal,
+    bool Function(T) filterLocal,
     bool init,
     OnData<List<T>> onSuccess,
     OnDataError<List<T>> onError,
@@ -253,11 +254,13 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     remote ??= _remote;
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
-    syncLocal ??= true;
+    syncLocal ??= false;
+    filterLocal ??= (_) => true;
     init ??= false;
 
     if (!shouldLoadRemoteAll(remote, params, headers)) {
-      final models = localAdapter.findAll();
+      final models =
+          localAdapter.findAll().where(filterLocal).toImmutableList();
       if (init) {
         models.map((m) => m._initialize(adapters, save: true));
       }
@@ -274,7 +277,10 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
         if (syncLocal) {
           await localAdapter.clear();
         }
-        final models = deserialize(data, init: init).models;
+        final models = deserialize(data, init: init)
+            .models
+            .where(filterLocal)
+            .toImmutableList();
         return onSuccess?.call(models) ?? models;
       },
       onError: onError,
