@@ -339,6 +339,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
 
     // use a set to ensure resulting list elements are unique
     fromNode[metadata] = {...?fromNode[metadata], ...tos}.toList();
+    // persist change
     box.put(from, fromNode);
 
     if (notify) {
@@ -358,6 +359,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
 
         // use a set to ensure resulting list elements are unique
         toNode[inverseMetadata] = {...?toNode[inverseMetadata], from}.toList();
+        // persist change
         box.put(to, toNode);
       }
 
@@ -395,10 +397,14 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
       if (fromNode[metadata].isEmpty) {
         fromNode.remove(metadata);
       }
+      // persist change
+      box.put(from, fromNode);
     } else {
       // tos == null as argument means ALL
       // remove metadata and retrieve all tos
       tos = fromNode.remove(metadata);
+      // persist change
+      box.put(from, fromNode);
     }
 
     if (notify) {
@@ -420,6 +426,8 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
           if (toNode[inverseMetadata].isEmpty) {
             toNode.remove(inverseMetadata);
           }
+          // persist change
+          box.put(to, toNode);
         }
         if (toNode == null || toNode.isEmpty) {
           _removeNode(to, notify: notify);
