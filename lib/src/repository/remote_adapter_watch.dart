@@ -9,7 +9,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
   @protected
   @visibleForTesting
   StateNotifier<List<DataGraphEvent>> get throttledGraph =>
-      graph.throttle(throttleDuration);
+      graph.throttle(() => throttleDuration);
 
   @protected
   @visibleForTesting

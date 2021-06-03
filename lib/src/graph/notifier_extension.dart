@@ -34,22 +34,22 @@ class _FunctionalStateNotifier<S, T> extends StateNotifier<T> {
 
   final _bufferedState = <S>[];
 
-  StateNotifier<T> throttle(Duration duration) {
-    _timer = _makeTimer(duration);
+  StateNotifier<T> throttle(Duration Function() durationFn) {
+    _timer = _makeTimer(durationFn);
     _sourceDisposeFn = _source.addListener((model) {
       _bufferedState.add(model);
     }, fireImmediately: false);
     return this;
   }
 
-  Timer _makeTimer(Duration duration) {
-    return Timer(duration, () {
+  Timer _makeTimer(Duration Function() durationFn) {
+    return Timer(durationFn(), () {
       if (mounted) {
         if (_bufferedState.isNotEmpty) {
           super.state = _bufferedState as T; // since T == List<S>;
           _bufferedState.clear(); // clear buffer
         }
-        _timer = _makeTimer(duration); // reset timer
+        _timer = _makeTimer(durationFn); // reset timer
       }
     });
   }
@@ -96,10 +96,10 @@ extension StateNotifierX<T> on StateNotifier<T> {
         .forEach(action);
   }
 
-  /// Buffers all incoming [T] events during [duration] and emits
-  /// them as a [List<T>] (unless there were none)
-  StateNotifier<List<T>> throttle(Duration duration) {
+  /// Buffers all incoming [T] events for a duration obtained via
+  /// [durationFn] and emits them as a [List<T>] (unless there were none)
+  StateNotifier<List<T>> throttle(Duration Function() durationFn) {
     return _FunctionalStateNotifier<T, List<T>>(this, name: 'throttle')
-        .throttle(duration);
+        .throttle(durationFn);
   }
 }
