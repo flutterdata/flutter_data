@@ -338,7 +338,9 @@ final pendingOfflineTypesProvider =
   final notifier = ValueStateNotifier(<String>{});
   // emit initial value
   Timer.run(() {
-    notifier.value = _pendingTypes();
+    if (notifier.mounted) {
+      notifier.value = _pendingTypes();
+    }
   });
 
   final _dispose = _graph.where((event) {
@@ -348,8 +350,10 @@ final pendingOfflineTypesProvider =
         event.keys.length == 2 &&
         event.keys.containsFirst(_offlineAdapterKey);
   }).addListener((_) {
-    // recalculate all pending types
-    notifier.value = _pendingTypes();
+    if (notifier.mounted) {
+      // recalculate all pending types
+      notifier.value = _pendingTypes();
+    }
   });
 
   notifier.onDispose = _dispose;
