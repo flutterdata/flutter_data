@@ -29,6 +29,9 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           .map((m) => initializeModel(m, save: true))
           .toList()),
       reload: (notifier) async {
+        if (!notifier.mounted) {
+          return;
+        }
         try {
           final _future = findAll(
             params: params,
@@ -105,7 +108,9 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     final _notifier = DataStateNotifier<T>(
       data: DataState(initializeModel(localAdapter.findOne(key()), save: true)),
       reload: (notifier) async {
-        if (id == null) return;
+        if (id == null || !notifier.mounted) {
+          return;
+        }
         try {
           final _future = findOne(
             id,
