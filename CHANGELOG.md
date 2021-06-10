@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.7.2] - 2021-06-09
+
+- Upgrade offline operations design
+- Fix graph persistence issues
+- Notifier `throttle` helper now takes a `Duration Function()` argument
+- Make `syncLocal=false` the default
+- Fix flashing screen with `filterLocal`
+- Misc watcher fixes
+- Update logging style
+
 ## [0.7.1] - 2021-05-27
 
 - Offline support for all types of requests, including ad-hoc requests via `sendRequest`
