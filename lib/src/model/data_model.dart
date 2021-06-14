@@ -8,37 +8,38 @@ abstract class DataModel<T extends DataModel<T>> {
   Object get id;
 
   // "late" finals
-  String _key;
-  Map<String, RemoteAdapter> _adapters;
+  String? _key;
+  Map<String, RemoteAdapter>? _adapters;
 
   // computed
   String get _internalType => DataHelpers.getType<T>();
-  RemoteAdapter<T> get remoteAdapter =>
-      _adapters[_internalType] as RemoteAdapter<T>;
-  bool get _isInitialized => _key != null && _adapters != null;
+  RemoteAdapter<T>? get remoteAdapter =>
+      _adapters?[_internalType] as RemoteAdapter<T>?;
+
+  bool get isInitialized => _key != null && _adapters != null;
 
   // initializers
 
   T _initialize(final Map<String, RemoteAdapter> adapters,
-      {final String key, final bool save}) {
-    if (_isInitialized) return this as T;
+      {String? key, bool save = false}) {
+    if (isInitialized) return this as T;
 
     _adapters = adapters;
 
     assert(remoteAdapter != null, '''\n
-Please ensure `Repository<$T>` has been correctly initialized.''');
+    Please ensure `Repository<$T>` has been correctly initialized.''');
 
-    _key = remoteAdapter.graph.getKeyForId(remoteAdapter.internalType, id,
-        keyIfAbsent: key ?? DataHelpers.generateKey<T>());
+    _key = remoteAdapter!.graph?.getKeyForId(remoteAdapter!.internalType, id,
+        keyIfAbsent: key ?? DataHelpers.generateKey<T>())!;
 
-    if (save ?? false) {
-      remoteAdapter.localAdapter.save(_key, this as T);
+    if (save) {
+      remoteAdapter!.localAdapter.save(_key!, this as T);
     }
 
     // initialize relationships
     for (final metadata
-        in remoteAdapter.localAdapter.relationshipsFor(this as T).entries) {
-      final relationship = metadata.value['instance'] as Relationship;
+        in remoteAdapter!.localAdapter.relationshipsFor(this as T).entries) {
+      final relationship = metadata.value['instance'] as Relationship?;
 
       relationship?.initialize(
         adapters: adapters,
@@ -65,9 +66,9 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   /// newPost.was(post); // new is now initialized with same key as post
   /// ```
   T was(T model) {
-    assert(model != null && model._isInitialized,
+    assert(model.isInitialized,
         'Please initialize model before passing it to `was`');
-    return _initialize(model._adapters, key: model._key, save: true);
+    return _initialize(model._adapters!, key: model._key, save: true);
   }
 
   /// Saves this model through a call equivalent to [Repository.save].
@@ -76,14 +77,14 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   ///
   /// **Requires this model to be initialized.**
   Future<T> save({
-    bool remote,
-    Map<String, dynamic> params,
-    Map<String, String> headers,
-    OnData<T> onSuccess,
-    OnDataError<T> onError,
+    bool? remote,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    OnData<T>? onSuccess,
+    OnDataError<T>? onError,
   }) async {
     _assertInit('save');
-    return await remoteAdapter.save(
+    return await remoteAdapter!.save(
       this as T,
       remote: remote,
       params: params,
@@ -100,14 +101,14 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   ///
   /// **Requires this model to be initialized.**
   Future<void> delete({
-    bool remote,
-    Map<String, dynamic> params,
-    Map<String, String> headers,
-    OnData<void> onSuccess,
-    OnDataError onError,
+    bool? remote,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    OnData<void>? onSuccess,
+    OnDataError<void>? onError,
   }) async {
     _assertInit('delete');
-    await remoteAdapter.delete(
+    await remoteAdapter!.delete(
       this,
       remote: remote,
       params: params,
@@ -121,13 +122,13 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   /// with the current object/[id]
   ///
   /// **Requires this model to be initialized.**
-  Future<T> reload({
-    bool remote,
-    Map<String, dynamic> params,
-    Map<String, String> headers,
+  Future<T?> reload({
+    bool? remote,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
   }) async {
     _assertInit('reload');
-    return await remoteAdapter.findOne(
+    return await remoteAdapter!.findOne(
       this,
       remote: remote,
       params: params,
@@ -140,14 +141,14 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   /// with the current object/[id].
   ///
   /// **Requires this model to be initialized.**
-  DataStateNotifier<T> watch({
-    bool remote,
-    Map<String, dynamic> params,
-    Map<String, String> headers,
-    AlsoWatch<T> alsoWatch,
+  DataStateNotifier<T?> watch({
+    bool? remote,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    AlsoWatch<T>? alsoWatch,
   }) {
     _assertInit('watch');
-    return remoteAdapter.watchOne(
+    return remoteAdapter!.watchOne(
       this,
       remote: remote,
       params: params,
@@ -157,7 +158,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   }
 
   void _assertInit(String method) {
-    assert(_isInitialized, '''\n
+    assert(isInitialized, '''\n
 This model MUST be initialized in order to call `$method`.
 
 DON'T DO THIS:
@@ -189,9 +190,9 @@ Family(surname: 'Carlson', dogs: {Dog(name: 'Jerry'), Dog(name: 'Zoe')}.asHasMan
 /// Returns a model's `_key` private attribute.
 ///
 /// Useful for testing, debugging or usage in [RemoteAdapter] subclasses.
-String keyFor<T extends DataModel<T>>(T model) => model?._key;
+String? keyFor<T extends DataModel<T>>(T model) => model._key;
 
 @visibleForTesting
 @protected
-RemoteAdapter adapterFor<T extends DataModel<T>>(T model) =>
-    model?.remoteAdapter;
+RemoteAdapter? adapterFor<T extends DataModel<T>>(T model) =>
+    model.remoteAdapter;
