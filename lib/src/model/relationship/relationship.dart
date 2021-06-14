@@ -169,7 +169,7 @@ abstract class Relationship<E extends DataModel<E>, N>
   }
 
   StateNotifier<List<DataGraphEvent>> get _graphEvents {
-    return _adapter.throttledGraph.map((events) {
+    return _adapter!.throttledGraph.map((events) {
       final appliesToRelationship = (DataGraphEvent event) {
         return event.type.isEdge &&
             event.metadata == _name &&

@@ -29,8 +29,8 @@ abstract class DataModel<T extends DataModel<T>> {
     assert(remoteAdapter != null, '''\n
     Please ensure `Repository<$T>` has been correctly initialized.''');
 
-    _key = remoteAdapter!.graph?.getKeyForId(remoteAdapter!.internalType, id,
-        keyIfAbsent: key ?? DataHelpers.generateKey<T>())!;
+    _key = remoteAdapter!.graph.getKeyForId(remoteAdapter!.internalType, id,
+        keyIfAbsent: key ?? DataHelpers.generateKey<T>());
 
     if (save) {
       remoteAdapter!.localAdapter.save(_key!, this as T);
@@ -77,7 +77,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   ///
   /// **Requires this model to be initialized.**
   Future<T> save({
-    bool? remote,
+    bool remote = true,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     OnData<T>? onSuccess,
@@ -101,7 +101,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   ///
   /// **Requires this model to be initialized.**
   Future<void> delete({
-    bool? remote,
+    bool remote = true,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     OnData<void>? onSuccess,
@@ -123,7 +123,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   ///
   /// **Requires this model to be initialized.**
   Future<T?> reload({
-    bool? remote,
+    bool remote = true,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
   }) async {
@@ -142,7 +142,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   ///
   /// **Requires this model to be initialized.**
   DataStateNotifier<T?> watch({
-    bool? remote,
+    bool remote = true,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     AlsoWatch<T>? alsoWatch,
