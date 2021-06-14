@@ -22,14 +22,14 @@ abstract class LocalAdapter<T extends DataModel<T>>
   /// Finds model of type [T] by [key] in local storage.
   @protected
   @visibleForTesting
-  T findOne(String key);
+  T? findOne(String key);
 
   /// Saves model of type [T] with [key] in local storage.
   ///
   /// By default notifies this modification to the associated [GraphNotifier].
   @protected
   @visibleForTesting
-  Future<void> save(String key, T model, {bool notify = true});
+  Future<T> save(String key, T model, {bool notify = true});
 
   /// Deletes model of type [T] with [key] from local storage.
   ///
