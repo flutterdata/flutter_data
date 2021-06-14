@@ -13,7 +13,7 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
       if (map[field] != null) {
         if (map[field] is HasMany) {
           relationships[key] =
-              (map[field] as HasMany).toSet().map((e) => e?.id).toList();
+              (map[field] as HasMany).toSet().map((e) => e.id).toList();
         }
         if (map[field] is BelongsTo) {
           relationships[key] = (map[field] as BelongsTo).value?.id;
@@ -27,12 +27,11 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
 
   @override
   DeserializedData<T, DataModel> deserialize(dynamic data,
-      {String key, bool init}) {
+      {String? key, bool init = false}) {
     final result = DeserializedData<T, DataModel>([], included: []);
-    init ??= false;
 
-    Object addIncluded(id, RemoteAdapter adapter) {
-      if (id is Map) {
+    dynamic addIncluded(id, RemoteAdapter? adapter) {
+      if (id is Map && adapter != null) {
         final data =
             adapter.deserialize(id as Map<String, dynamic>, init: init);
         result.included
@@ -44,14 +43,14 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
     }
 
     if (data == null || data == '') {
-      result.models.add(null);
+      // result.models.add(null); // TODO WTF was this?
       return result;
     }
     if (data is Map) {
       data = [data];
     }
 
-    for (final mapIn in (data as Iterable)) {
+    for (final mapIn in (data as Iterable<Map<String, Object>>)) {
       final mapOut = <String, dynamic>{};
 
       final relationships = localAdapter.relationshipsFor();
@@ -64,7 +63,7 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
           final _type = metadata['type'] as String;
 
           if (metadata['kind'] == 'BelongsTo') {
-            final id = addIncluded(mapIn[mapInKey], adapters[_type]);
+            final id = addIncluded(mapIn[mapInKey], adapters![_type]);
             mapOut[mapOutKey] = id == null
                 ? null
                 : graph.getKeyForId(_type, id,
@@ -73,15 +72,15 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
 
           if (metadata['kind'] == 'HasMany') {
             mapOut[mapOutKey] = (mapIn[mapInKey] as Iterable)
-                ?.map((id) {
-                  id = addIncluded(id, adapters[_type]);
+                .map((id) {
+                  id = addIncluded(id, adapters![_type]);
                   return id == null
                       ? null
                       : graph.getKeyForId(_type, id,
                           keyIfAbsent: DataHelpers.generateKey(_type));
                 })
-                ?.filterNulls
-                ?.toImmutableList();
+                .filterNulls
+                .toImmutableList();
           }
         } else {
           // regular field mapping
@@ -91,7 +90,7 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
 
       final model = localAdapter.deserialize(mapOut);
       if (init) {
-        model._initialize(adapters, key: key, save: true);
+        model._initialize(adapters!, key: key, save: true);
       }
       result.models.add(model);
     }

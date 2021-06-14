@@ -13,12 +13,13 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
   @protected
   @visibleForTesting
-  DataStateNotifier<List<T>> watchAll(
-      {final bool remote,
-      final Map<String, dynamic> params,
-      final Map<String, String> headers,
-      bool Function(T) filterLocal,
-      final bool syncLocal}) {
+  DataStateNotifier<List<T>> watchAll({
+    required bool remote,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    required bool syncLocal,
+    bool Function(T)? filterLocal,
+  }) {
     _assertInit();
     filterLocal ??= (_) => true;
 
@@ -27,6 +28,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           .findAll()
           .where(filterLocal)
           .map((m) => initializeModel(m, save: true))
+          .filterNulls
           .toList()),
       reload: (notifier) async {
         if (!notifier.mounted) {
@@ -41,7 +43,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
             filterLocal: filterLocal,
             init: true,
           );
-          if (remote ?? true) {
+          if (remote) {
             notifier.updateWith(isLoading: true);
           }
           await _future;
@@ -70,14 +72,15 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       }
 
       final models =
-          localAdapter.findAll().where(filterLocal).toImmutableList();
-      if (!const DeepCollectionEquality()
-              .equals(models, _notifier.data.model) ||
-          events.where((e) {
-            // ensure the done signal belongs to this notifier
-            return e.type == DataGraphEventType.doneLoading &&
-                e.keys.first == type;
-          }).isNotEmpty) {
+          localAdapter.findAll().where(filterLocal!).toImmutableList();
+      final modelChanged =
+          !const DeepCollectionEquality().equals(models, _notifier.data.model);
+      // ensure the done signal belongs to this notifier
+      final doneLoading = events.singleWhereOrNull((e) =>
+              e.type == DataGraphEventType.doneLoading &&
+              e.keys.first == type) !=
+          null;
+      if (modelChanged || doneLoading) {
         _notifier.updateWith(model: models, isLoading: false, exception: null);
       }
     });
@@ -88,27 +91,34 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
   @protected
   @visibleForTesting
-  DataStateNotifier<T> watchOne(final dynamic model,
-      {final bool remote,
-      final Map<String, dynamic> params,
-      final Map<String, String> headers,
-      final AlsoWatch<T> alsoWatch}) {
+  DataStateNotifier<T?> watchOne(
+    dynamic model, {
+    required bool remote,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    AlsoWatch<T>? alsoWatch,
+  }) {
     _assertInit();
     assert(model != null);
 
     final id = _resolveId(model);
 
+    // String _key;
+    // String key() => _key ??=
+    //     graph.getKeyForId(type, id) ?? (model is T ? model._key : null);
+
+    // TODO CHECK (old above) ^^^
     // lazy key access
-    String _key;
-    String key() => _key ??=
-        graph.getKeyForId(type, id) ?? (model is T ? model._key : null);
+    String key() {
+      return graph.getKeyForId(type, id, keyIfAbsent: (model as T)._key)!;
+    }
 
     final _alsoWatchFilters = <String>{};
 
-    final _notifier = DataStateNotifier<T>(
+    final _notifier = DataStateNotifier<T?>(
       data: DataState(initializeModel(localAdapter.findOne(key()), save: true)),
       reload: (notifier) async {
-        if (id == null || !notifier.mounted) {
+        if (!notifier.mounted) {
           return;
         }
         try {
@@ -119,7 +129,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
             remote: remote,
             init: true,
           );
-          if (remote ?? true) {
+          if (remote) {
             notifier.updateWith(isLoading: true);
           }
           await _future;
@@ -139,13 +149,13 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       },
     );
 
-    void _initializeRelationshipsToWatch(T model) {
+    void _initializeRelationshipsToWatch(T? model) {
       if (alsoWatch != null &&
           _alsoWatchFilters.isEmpty &&
           model != null &&
-          model._isInitialized) {
+          model.isInitialized) {
         _alsoWatchFilters.addAll(alsoWatch(model).map((rel) {
-          return rel?._name;
+          return rel._name!;
         }));
       }
     }
@@ -205,7 +215,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
         // updates on all models of specific relationships of this model
         if (event.type == DataGraphEventType.updateNode &&
-            _relatedKeys(_notifier.data.model).any(event.keys.contains)) {
+            _relatedKeys(_notifier.data.model!).any(event.keys.contains)) {
           refresh = true;
         }
       }
@@ -226,7 +236,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     return localAdapter
         .relationshipsFor(model)
         .values
-        .map((meta) => (meta['instance'] as Relationship)?.keys)
+        .map((meta) => (meta['instance'] as Relationship).keys)
         .filterNulls
         .expand((key) => key)
         .toSet();

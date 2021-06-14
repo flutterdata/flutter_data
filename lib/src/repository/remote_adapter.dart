@@ -31,8 +31,7 @@ class RemoteAdapter<T extends DataModel<T>> = _RemoteAdapter<T>
         _RemoteAdapterOffline<T>,
         _RemoteAdapterWatch<T>;
 
-abstract class _RemoteAdapter<T extends DataModel<T>>
-    with _Lifecycle<_RemoteAdapter<T>> {
+abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @protected
   _RemoteAdapter(this.localAdapter);
 
@@ -48,16 +47,16 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   ///
   /// This [Map] is typically required when initializing new models, and passed as-is.
   @protected
-  Map<String, RemoteAdapter> adapters;
+  Map<String, RemoteAdapter>? adapters;
 
   // late finals
-  bool _remote;
-  bool _verbose;
+  bool? _remote;
+  late final bool _verbose; // TODO trying out late final here
 
   /// Give adapter subclasses access to the dependency injection system
   @nonVirtual
   @protected
-  ProviderReference ref; // late final
+  ProviderReference? ref; // late final
 
   /// INTERNAL: DO NOT USE OR ELSE THINGS WILL BREAK
   @visibleForTesting
@@ -159,22 +158,19 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   @mustCallSuper
   Future<void> onInitialized() async {}
 
-  @override
   @mustCallSuper
   Future<RemoteAdapter<T>> initialize(
-      {final bool remote,
-      final bool verbose,
-      final Map<String, RemoteAdapter> adapters,
-      ProviderReference ref}) async {
+      {bool remote = true,
+      bool verbose = true,
+      required Map<String, RemoteAdapter> adapters,
+      required ProviderReference ref}) async {
     if (isInitialized) return this as RemoteAdapter<T>;
-    _remote = remote ?? true;
-    _verbose = verbose ?? true;
+    _remote = remote;
+    _verbose = verbose;
     this.adapters = adapters;
     this.ref = ref;
 
     await localAdapter.initialize();
-
-    await super.initialize();
 
     // hook for clients
     await onInitialized();
@@ -183,8 +179,10 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   }
 
   @override
+  bool get isInitialized => localAdapter.isInitialized;
+
+  @override
   void dispose() {
-    super.dispose();
     localAdapter.dispose();
   }
 
@@ -241,33 +239,33 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   @protected
   @visibleForTesting
   Future<List<T>> findAll({
-    bool remote,
-    Map<String, dynamic> params,
-    Map<String, String> headers,
-    bool syncLocal,
-    bool Function(T) filterLocal,
-    bool init,
-    OnData<List<T>> onSuccess,
-    OnDataError<List<T>> onError,
+    required bool remote,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    required bool syncLocal,
+    bool Function(T)? filterLocal,
+    required bool init,
+    OnData<List<T>>? onSuccess,
+    OnDataError<List<T>>? onError,
   }) async {
     _assertInit();
-    remote ??= _remote;
+    // overwrite remote if set globally
+    remote = _remote ?? remote;
+
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
-    syncLocal ??= false;
     filterLocal ??= (_) => true;
-    init ??= false;
 
     if (!shouldLoadRemoteAll(remote, params, headers)) {
       final models =
           localAdapter.findAll().where(filterLocal).toImmutableList();
       if (init) {
-        models.map((m) => m._initialize(adapters, save: true));
+        models.map((m) => m._initialize(adapters!, save: true));
       }
       return models;
     }
 
-    return await sendRequest(
+    final result = await sendRequest(
       baseUrl.asUri / urlForFindAll(params) & params,
       method: methodForFindAll(params),
       headers: headers,
@@ -279,43 +277,45 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
         }
         final models = deserialize(data, init: init)
             .models
-            .where(filterLocal)
+            .where(filterLocal!)
             .toImmutableList();
         return onSuccess?.call(models) ?? models;
       },
       onError: onError,
     );
+    return result!;
   }
 
   @protected
   @visibleForTesting
-  Future<T> findOne(
+  Future<T?> findOne(
     final dynamic model, {
-    bool remote,
-    Map<String, dynamic> params,
-    Map<String, String> headers,
-    bool init,
-    OnData<T> onSuccess,
-    OnDataError<T> onError,
+    required bool remote,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    bool init = false,
+    OnData<T>? onSuccess,
+    OnDataError<T>? onError,
   }) async {
     _assertInit();
     assert(model != null);
-    remote ??= _remote;
+    // overwrite remote if set globally
+    remote = _remote ?? remote;
+
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
-    init ??= false;
 
     final id = _resolveId(model);
 
     if (!shouldLoadRemoteOne(id, remote, params, headers)) {
-      final key = graph.getKeyForId(internalType, id) ??
-          (model is T ? model._key : null);
+      final key = graph.getKeyForId(internalType, id,
+          keyIfAbsent: model is T ? model._key : null);
       if (key == null) {
         return null;
       }
       final newModel = localAdapter.findOne(key);
       if (init) {
-        newModel?._initialize(adapters, save: true);
+        newModel?._initialize(adapters!, save: true);
       }
       return newModel;
     }
@@ -338,23 +338,24 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   @protected
   @visibleForTesting
   Future<T> save(
-    final T model, {
-    bool remote,
-    Map<String, dynamic> params,
-    Map<String, String> headers,
-    OnData<T> onSuccess,
-    OnDataError<T> onError,
-    bool init,
+    T model, {
+    required bool remote,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    OnData<T>? onSuccess,
+    OnDataError<T>? onError,
+    bool init = false,
   }) async {
     _assertInit();
-    remote ??= _remote;
+    // overwrite remote if set globally
+    remote = _remote ?? remote;
+
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
-    init ??= false;
 
     // we ignore the `init` argument here as
     // saving locally requires initializing
-    model._initialize(adapters, save: true);
+    model._initialize(adapters!, save: true);
 
     if (remote == false) {
       return model;
@@ -362,7 +363,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
 
     final body = json.encode(serialize(model));
 
-    return await sendRequest(
+    final result = await sendRequest(
       baseUrl.asUri / urlForSave(model.id, params) & params,
       method: methodForSave(model.id, params),
       headers: headers,
@@ -374,20 +375,20 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
         if (data == null) {
           // return "old" model if response was empty
           if (init) {
-            model._initialize(adapters, save: true);
+            model._initialize(adapters!, save: true);
           }
           _model = model;
         } else {
           // deserialize already inits models
           // if model had a key already, reuse it
           final _newModel = deserialize(data as Map<String, dynamic>,
-                  key: model._key, init: init)
+                  key: model._key!, init: init)
               .model;
 
           // in the unlikely case where supplied key couldn't be used
           // ensure "old" copy of model carries the updated key
           if (init && model._key != null && model._key != _newModel._key) {
-            graph.removeKey(model._key);
+            graph.removeKey(model._key!);
             model._key = _newModel._key;
           }
           _model = _newModel;
@@ -396,20 +397,23 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       },
       onError: onError,
     );
+    return result!;
   }
 
   @protected
   @visibleForTesting
   Future<void> delete(
-    final dynamic model, {
-    bool remote,
-    Map<String, dynamic> params,
-    Map<String, String> headers,
-    OnData<void> onSuccess,
-    OnDataError<void> onError,
+    dynamic model, {
+    required bool remote,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    OnData<void>? onSuccess,
+    OnDataError<void>? onError,
   }) async {
     _assertInit();
-    remote ??= _remote;
+    // overwrite remote if set globally
+    remote = _remote ?? remote;
+
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
 
@@ -420,7 +424,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
       await localAdapter.delete(key);
     }
 
-    if (remote && id != null) {
+    if (remote) {
       return await sendRequest(
         baseUrl.asUri / urlForDelete(id, params) & params,
         method: methodForDelete(id, params),
@@ -477,28 +481,28 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   /// [onError] can also be supplied to override [_RemoteAdapter.onError].
   @protected
   @visibleForTesting
-  FutureOr<R> sendRequest<R>(
+  FutureOr<R?> sendRequest<R>(
     final Uri uri, {
     DataRequestMethod method = DataRequestMethod.GET,
-    Map<String, String> headers,
-    String body,
-    String key,
-    OnRawData<R> onSuccess,
-    OnDataError<R> onError,
-    DataRequestType requestType,
+    Map<String, String>? headers,
+    String? body,
+    String? key,
+    OnRawData<R>? onSuccess,
+    OnDataError<R>? onError,
+    DataRequestType requestType = DataRequestType.adhoc,
     bool omitDefaultParams = false,
   }) async {
     // callbacks
-    onError ??= this.onError;
+    onError ??= this.onError as OnDataError<R>; // TODO check
 
     headers ??= await defaultHeaders;
     final _params =
         omitDefaultParams ? <String, dynamic>{} : await defaultParams;
 
-    http.Response response;
-    dynamic data;
-    dynamic error;
-    StackTrace stackTrace;
+    http.Response? response;
+    Object? data;
+    Object? error;
+    StackTrace? stackTrace;
 
     try {
       final request = http.Request(method.toShortString(), uri & _params);
@@ -518,9 +522,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
     // response handling
 
     try {
-      data = (response?.body != null && response.body.isNotEmpty)
-          ? json.decode(response.body)
-          : null;
+      if (response?.body.isNotEmpty ?? false) {
+        data = json.decode(response!.body);
+      }
     } on FormatException catch (e) {
       error = e;
     }
@@ -532,10 +536,10 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
           '[flutter_data] [$internalType] ${method.toShortString()} $uri [HTTP ${code ?? ''}]${body != null ? '\n -> body:\n $body' : ''}');
     }
 
-    if (error == null && code >= 200 && code < 300) {
+    if (error == null && code != null && code >= 200 && code < 300) {
       return await onSuccess?.call(data);
     } else {
-      final e = DataException(error ?? data,
+      final e = DataException(error ?? data!,
           stackTrace: stackTrace, statusCode: code);
 
       if (_verbose) {
@@ -554,7 +558,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   /// to override this default behavior.
   @protected
   @visibleForTesting
-  FutureOr<R> onError<R>(DataException e) {
+  FutureOr<R?> onError<R>(DataException e) {
     if (e.statusCode == 404 || e is OfflineException) {
       return null;
     }
@@ -566,24 +570,25 @@ abstract class _RemoteAdapter<T extends DataModel<T>>
   /// Optionally provide [key]. Use [save] to persist in local storage.
   @protected
   @visibleForTesting
-  T initializeModel(T model, {String key, bool save}) {
-    return model?._initialize(adapters, key: key, save: save);
+  T? initializeModel(T? model, {String? key, bool save = false}) {
+    return model?._initialize(adapters!, key: key, save: save);
   }
 
   String _resolveId(dynamic model) {
+    assert(model != null);
     return (model is T ? model.id : model).toString();
   }
 
-  String _keyForModel(dynamic model) {
+  String? _keyForModel(dynamic model) {
     final id = _resolveId(model);
-    return graph.getKeyForId(internalType, id) ??
-        (model is T ? model._key : null);
+    return graph.getKeyForId(internalType, id,
+        keyIfAbsent: model is T ? model._key : null);
   }
 }
 
 /// A utility class used to return deserialized main [models] AND [included] models.
 class DeserializedData<T, I> {
-  const DeserializedData(this.models, {this.included});
+  const DeserializedData(this.models, {this.included = const []});
   final List<T> models;
   final List<I> included;
   T get model => models.single;
@@ -597,8 +602,8 @@ extension _ToStringX on DataRequestMethod {
 }
 
 typedef OnData<R> = FutureOr<R> Function(R);
-typedef OnRawData<R> = FutureOr<R> Function(dynamic);
-typedef OnDataError<R> = FutureOr<R> Function(DataException);
+typedef OnRawData<R> = FutureOr<R?> Function(dynamic);
+typedef OnDataError<R> = FutureOr<R?> Function(DataException);
 
 // ignore: constant_identifier_names
 enum DataRequestType {
