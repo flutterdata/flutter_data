@@ -14,10 +14,6 @@ var internalLocatorFn =
 
 class RepositoryInitializer {}
 
-extension RepositoryInitializerX on RepositoryInitializer {
-  bool get isLoading => this == null;
-}
-
 class RepositoryInitializerArgs with EquatableMixin {
   RepositoryInitializerArgs(this.remote, this.verbose);
 
@@ -34,23 +30,24 @@ mixin NothingMixin {}
 /// This argument holder class is used internally with
 /// Riverpod `family`s.
 class WatchArgs<T> with EquatableMixin {
-  WatchArgs(
-      {this.id,
-      this.remote,
-      this.params = const {},
-      this.headers = const {},
-      this.filterLocal,
-      this.syncLocal,
-      this.alsoWatch});
+  WatchArgs({
+    this.id,
+    this.remote = true,
+    this.params,
+    this.headers,
+    this.syncLocal = false,
+    this.filterLocal,
+    this.alsoWatch,
+  });
 
-  final dynamic id;
+  final Object? id;
   final bool remote;
-  final Map<String, dynamic> params;
-  final Map<String, String> headers;
-  final AlsoWatch<T> alsoWatch;
-  final bool Function(T) filterLocal;
+  final Map<String, dynamic>? params;
+  final Map<String, String>? headers;
   final bool syncLocal;
+  final bool Function(T)? filterLocal;
+  final AlsoWatch<T>? alsoWatch;
 
   @override
-  List<Object> get props => [id, remote, params, headers];
+  List<Object?> get props => [id, remote, params, headers];
 }

@@ -3,17 +3,19 @@ part of flutter_data;
 extension IterableX<T> on Iterable<T> {
   @protected
   @visibleForTesting
-  T get safeFirst => (this != null && isNotEmpty) ? first : null;
+  T? get safeFirst => isNotEmpty ? first : null;
   @protected
   @visibleForTesting
   bool containsFirst(T model) => safeFirst == model;
   @protected
   @visibleForTesting
-  Iterable<T> get filterNulls =>
-      this == null ? null : where((elem) => elem != null);
+  List<T> toImmutableList() => List.unmodifiable(this);
+}
+
+extension IterableNullX<T> on Iterable<T?> {
   @protected
   @visibleForTesting
-  List<T> toImmutableList() => this == null ? null : List.unmodifiable(this);
+  Iterable<T> get filterNulls => where((elem) => elem != null).cast();
 }
 
 extension StringUtilsX on String {
@@ -59,7 +61,7 @@ class StringUtils {
 extension MapUtilsX<K, V> on Map<K, V> {
   @protected
   @visibleForTesting
-  Map<K, V> operator &(Map<K, V> more) => {...this, ...?more};
+  Map<K, V> operator &(Map<K, V> more) => {...this, ...more};
 
   @protected
   @visibleForTesting
@@ -71,20 +73,16 @@ extension MapUtilsX<K, V> on Map<K, V> {
 
 extension UriUtilsX on Uri {
   Uri operator /(String path) {
-    if (path == null) return this;
     return replace(path: path_helper.normalize('/${this.path}/$path'));
   }
 
-  Uri operator &(Map<String, dynamic> params) => params != null &&
-          params.isNotEmpty
+  Uri operator &(Map<String, dynamic> params) => params.isNotEmpty
       ? replace(
           queryParameters: queryParameters & _flattenQueryParameters(params))
       : this;
 }
 
 Map<String, String> _flattenQueryParameters(Map<String, dynamic> params) {
-  params ??= const {};
-
   return params.entries.fold<Map<String, String>>({}, (acc, e) {
     if (e.value is Map<String, dynamic>) {
       for (final e2 in (e.value as Map<String, dynamic>).entries) {

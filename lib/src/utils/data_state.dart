@@ -6,8 +6,8 @@ import 'package:state_notifier/state_notifier.dart';
 class DataState<T> with EquatableMixin {
   final T model;
   final bool isLoading;
-  final DataException exception;
-  final StackTrace stackTrace;
+  final DataException? exception;
+  final StackTrace? stackTrace;
 
   const DataState(
     this.model, {
@@ -21,7 +21,7 @@ class DataState<T> with EquatableMixin {
   bool get hasModel => model != null;
 
   @override
-  List<Object> get props => [model, isLoading, exception];
+  List<Object?> get props => [model, isLoading, exception];
 
   @override
   bool get stringify => true;
@@ -29,13 +29,13 @@ class DataState<T> with EquatableMixin {
 
 class DataException with EquatableMixin implements Exception {
   final Object error;
-  final StackTrace stackTrace;
-  final int statusCode;
+  final StackTrace? stackTrace;
+  final int? statusCode;
 
   const DataException(this.error, {this.stackTrace, this.statusCode});
 
   @override
-  List<Object> get props => [error, stackTrace, statusCode];
+  List<Object?> get props => [error, stackTrace, statusCode];
 
   @override
   String toString() {
@@ -45,13 +45,13 @@ class DataException with EquatableMixin implements Exception {
 
 class DataStateNotifier<T> extends StateNotifier<DataState<T>> {
   DataStateNotifier({
-    DataState<T> data,
-    Future<void> Function(DataStateNotifier<T>) reload,
+    required DataState<T> data,
+    Future<void> Function(DataStateNotifier<T>)? reload,
   })  : _reloadFn = reload,
         super(data);
 
-  final Future<void> Function(DataStateNotifier<T>) _reloadFn;
-  void Function() onDispose;
+  final Future<void> Function(DataStateNotifier<T>)? _reloadFn;
+  void Function()? onDispose;
 
   DataState<T> get data => super.state;
 
@@ -72,7 +72,7 @@ class DataStateNotifier<T> extends StateNotifier<DataState<T>> {
   }
 
   Future<void> reload() async {
-    return _reloadFn?.call(this) ?? ((_) {});
+    return _reloadFn?.call(this);
   }
 
   @override
