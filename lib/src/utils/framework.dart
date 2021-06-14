@@ -28,9 +28,7 @@ class OfflineException extends DataException {
   }
 }
 
-abstract class _Lifecycle<T> {
-  FutureOr<T?> initialize();
-
+abstract class _Lifecycle {
   @protected
   @visibleForTesting
   bool get isInitialized;

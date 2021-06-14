@@ -13,8 +13,7 @@ const _kGraphBoxName = '_graph';
 ///
 /// Its public API requires all keys and metadata to be namespaced
 /// i.e. `manager:key`
-class GraphNotifier extends StateNotifier<DataGraphEvent?>
-    with _Lifecycle<GraphNotifier> {
+class GraphNotifier extends StateNotifier<DataGraphEvent?> with _Lifecycle {
   @protected
   GraphNotifier(this._hiveLocalStorage) : super(null);
 
@@ -25,7 +24,6 @@ class GraphNotifier extends StateNotifier<DataGraphEvent?>
   bool _doAssert = true;
 
   /// Initializes Hive local storage and box it depends on
-  @override
   Future<GraphNotifier> initialize() async {
     if (isInitialized) return this;
     await _hiveLocalStorage.initialize();
