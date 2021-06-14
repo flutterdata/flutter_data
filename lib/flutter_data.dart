@@ -17,6 +17,7 @@ import 'package:path/path.dart' as path_helper;
 import 'package:collection/collection.dart';
 
 // import internal packages
+import 'src/graph/notifier_extension.dart';
 import 'src/repository/hive_local_storage.dart';
 import 'src/utils/data_state.dart';
 

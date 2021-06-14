@@ -61,7 +61,7 @@ class StringUtils {
 extension MapUtilsX<K, V> on Map<K, V> {
   @protected
   @visibleForTesting
-  Map<K, V> operator &(Map<K, V> more) => {...this, ...more};
+  Map<K, V> operator &(Map<K, V>? more) => {...this, ...?more};
 
   @protected
   @visibleForTesting

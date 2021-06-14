@@ -184,11 +184,11 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   /// If [syncLocal] is set to `false` but results still need to be filtered,
   /// use [filterLocal]. All data updates will be filtered through it.
   DataStateNotifier<List<T>> watchAll({
-    bool? remote,
+    bool remote = true,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
+    bool syncLocal = false,
     bool Function(T)? filterLocal,
-    bool syncLocal = true,
   }) {
     return remoteAdapter.watchAll(
       remote: remote,
@@ -210,9 +210,9 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   /// ```
   ///
   /// When called, will in turn call [findAll] with [remote], [params], [headers].
-  DataStateNotifier<T> watchOne(
+  DataStateNotifier<T?> watchOne(
     dynamic id, {
-    bool? remote,
+    bool remote = true,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     AlsoWatch<T>? alsoWatch,
