@@ -3,8 +3,7 @@ part of flutter_data;
 /// An adapter interface to access local storage
 ///
 /// See also: [HiveLocalAdapter]
-abstract class LocalAdapter<T extends DataModel<T>>
-    with _Lifecycle<LocalAdapter<T>> {
+abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
   @protected
   LocalAdapter(ProviderReference _ref)
       : graph = _ref.read(graphNotifierProvider);
@@ -49,5 +48,5 @@ abstract class LocalAdapter<T extends DataModel<T>>
 
   T deserialize(Map<String, dynamic> map);
 
-  Map<String, Map<String, Object>> relationshipsFor([T model]);
+  Map<String, Map<String, Object>>? relationshipsFor([T model]);
 }
