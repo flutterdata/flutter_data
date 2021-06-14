@@ -13,7 +13,7 @@ const _kGraphBoxName = '_graph';
 ///
 /// Its public API requires all keys and metadata to be namespaced
 /// i.e. `manager:key`
-class GraphNotifier extends StateNotifier<DataGraphEvent>
+class GraphNotifier extends StateNotifier<DataGraphEvent?>
     with _Lifecycle<GraphNotifier> {
   @protected
   GraphNotifier(this._hiveLocalStorage) : super(null);
@@ -21,7 +21,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
   final HiveLocalStorage _hiveLocalStorage;
 
   @protected
-  Box<Map> box;
+  Box<Map>? box;
   bool _doAssert = true;
 
   /// Initializes Hive local storage and box it depends on
@@ -29,32 +29,31 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
   Future<GraphNotifier> initialize() async {
     if (isInitialized) return this;
     await _hiveLocalStorage.initialize();
-    if (_hiveLocalStorage.clear ?? false) {
+    if (_hiveLocalStorage.clear) {
       await _hiveLocalStorage.deleteBox(_kGraphBoxName);
     }
     box = await _hiveLocalStorage.openBox(_kGraphBoxName);
 
-    await super.initialize();
     return this;
   }
 
   Future<void> clear() async {
-    return await box.clear();
+    await box?.clear();
   }
 
   @override
-  bool get isInitialized => box != null && box.isOpen;
+  bool get isInitialized => box?.isOpen ?? false;
 
   // key-related methods
 
   /// Finds a model's key in the graph.
   ///
-  ///  - Attempts a lookup by [type]/[id] (these are allowed to be `null`)
+  ///  - Attempts a lookup by [type]/[id]
   ///  - If the key was not found, it returns a default [keyIfAbsent]
   ///    (if provided)
   ///  - It associates [keyIfAbsent] with the supplied [type]/[id]
   ///    (if both [keyIfAbsent] & [type]/[id] were provided)
-  String getKeyForId(String type, dynamic id, {String keyIfAbsent}) {
+  String? getKeyForId(String type, dynamic? id, {String? keyIfAbsent}) {
     type = DataHelpers.getType(type);
     if (id != null) {
       final namespacedId =
@@ -62,7 +61,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
 
       if (_getNode(namespacedId) != null) {
         final tos = _getEdge(namespacedId, metadata: 'key');
-        if (tos != null && tos.isNotEmpty) {
+        if (tos.isNotEmpty) {
           final key = tos.first;
           return key;
         }
@@ -98,11 +97,9 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
   void removeKey(String key) => _removeNode(key);
 
   /// Finds an ID in the graph, given a [key].
-  String getIdForKey(String key) {
+  String? getIdForKey(String key) {
     final tos = _getEdge(key, metadata: 'id');
-    return tos == null || tos.isEmpty
-        ? null
-        : (tos.first).denamespace().detypify();
+    return tos.isEmpty ? null : (tos.first).denamespace().detypify();
   }
 
   /// Removes [type]/[id] (and its edges) from graph
@@ -112,7 +109,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
   // nodes
 
   void _assertKey(String key) {
-    if (_doAssert && key != null) {
+    if (_doAssert) {
       assert(key.split(':').length == 2);
     }
   }
@@ -132,7 +129,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
   }
 
   /// Obtains a node, [key] MUST be namespaced (e.g. `manager:key`)
-  Map<String, List<String>> getNode(String key) {
+  Map<String, List<String>>? getNode(String key) {
     _assertKey(key);
     return _getNode(key);
   }
@@ -155,13 +152,15 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
 
   /// See [addEdge]
   void addEdges(String from,
-      {@required String metadata,
-      @required Iterable<String> tos,
-      String inverseMetadata,
+      {required String metadata,
+      required Iterable<String> tos,
+      String? inverseMetadata,
       bool notify = true}) {
     _assertKey(from);
     _assertKey(metadata);
-    _assertKey(inverseMetadata);
+    if (inverseMetadata != null) {
+      _assertKey(inverseMetadata);
+    }
     _addEdges(from,
         metadata: metadata, tos: tos, inverseMetadata: inverseMetadata);
   }
@@ -169,7 +168,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
   /// Returns edge by [metadata]
   ///
   /// [key] and [metadata] MUST be namespaced (e.g. `manager:key`)
-  List<String> getEdge(String key, {@required String metadata}) {
+  List<String> getEdge(String key, {required String metadata}) {
     _assertKey(key);
     _assertKey(metadata);
     return _getEdge(key, metadata: metadata);
@@ -182,23 +181,27 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
   ///
   /// [from], [metadata] & [inverseMetadata] MUST be namespaced (e.g. `manager:key`)
   void addEdge(String from, String to,
-      {@required String metadata, String inverseMetadata, bool notify = true}) {
+      {required String metadata, String? inverseMetadata, bool notify = true}) {
     _assertKey(from);
     _assertKey(metadata);
-    _assertKey(inverseMetadata);
+    if (inverseMetadata != null) {
+      _assertKey(inverseMetadata);
+    }
     return _addEdge(from, to,
         metadata: metadata, inverseMetadata: inverseMetadata, notify: notify);
   }
 
   /// See [removeEdge]
   void removeEdges(String from,
-      {@required String metadata,
-      Iterable<String> tos,
-      String inverseMetadata,
+      {required String metadata,
+      Iterable<String>? tos,
+      String? inverseMetadata,
       bool notify = true}) {
     _assertKey(from);
     _assertKey(metadata);
-    _assertKey(inverseMetadata);
+    if (inverseMetadata != null) {
+      _assertKey(inverseMetadata);
+    }
     return _removeEdges(from,
         metadata: metadata, inverseMetadata: inverseMetadata, notify: notify);
   }
@@ -210,10 +213,12 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
   ///
   /// [from], [metadata] & [inverseMetadata] MUST be namespaced (e.g. `manager:key`)
   void removeEdge(String from, String to,
-      {@required String metadata, String inverseMetadata, bool notify = true}) {
+      {required String metadata, String? inverseMetadata, bool notify = true}) {
     _assertKey(from);
     _assertKey(metadata);
-    _assertKey(inverseMetadata);
+    if (inverseMetadata != null) {
+      _assertKey(inverseMetadata);
+    }
     return _removeEdge(from, to,
         metadata: metadata, inverseMetadata: inverseMetadata, notify: notify);
   }
@@ -221,7 +226,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
   /// Returns whether the requested edge is present in this graph.
   ///
   /// [key] and [metadata] MUST be namespaced (e.g. `manager:key`)
-  bool hasEdge(String key, {@required String metadata}) {
+  bool hasEdge(String key, {required String metadata}) {
     _assertKey(key);
     _assertKey(metadata);
     return _hasEdge(key, metadata: metadata);
@@ -231,7 +236,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
   @protected
   @visibleForTesting
   void removeOrphanNodes() {
-    final orphanEntries = {...toMap()}.entries.where((e) => e.value.isEmpty);
+    final orphanEntries = {...?toMap()}.entries.where((e) => e.value.isEmpty);
     for (final e in orphanEntries) {
       _removeNode(e.key);
     }
@@ -240,7 +245,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
   // utils
 
   /// Returns a [Map] representation of this graph, the underlying Hive [box].
-  Map<String, Map> toMap() => _toMap();
+  Map<String, Map>? toMap() => _toMap();
 
   @protected
   @visibleForTesting
@@ -248,16 +253,15 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
 
   // private API
 
-  Map<String, List<String>> _getNode(String key) {
-    assert(key != null, 'key cannot be null');
-    return box.get(key)?.cast<String, List<String>>();
+  Map<String, List<String>>? _getNode(String key) {
+    return box?.get(key)?.cast<String, List<String>>();
   }
 
   bool _hasNode(String key) {
-    return box.containsKey(key);
+    return box?.containsKey(key) ?? false;
   }
 
-  List<String> _getEdge(String key, {@required String metadata}) {
+  List<String> _getEdge(String key, {required String metadata}) {
     final node = _getNode(key);
     if (node != null) {
       return node[metadata] ?? [];
@@ -265,9 +269,9 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
     return [];
   }
 
-  bool _hasEdge(String key, {@required String metadata}) {
+  bool _hasEdge(String key, {required String metadata}) {
     final fromNode = _getNode(key);
-    return fromNode?.keys?.contains(metadata) ?? false;
+    return fromNode?.keys.contains(metadata) ?? false;
   }
 
   // write
@@ -279,9 +283,8 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
   }
 
   void _addNode(String key, {bool notify = true}) {
-    assert(key != null, 'key cannot be null');
-    if (!box.containsKey(key)) {
-      box.put(key, {});
+    if (!(box?.containsKey(key) ?? false)) {
+      box?.put(key, {});
       if (notify) {
         state = DataGraphEvent(
             keys: [key], type: DataGraphEventType.addNode, graph: this);
@@ -290,7 +293,6 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
   }
 
   void _removeNode(String key, {bool notify = true}) {
-    assert(key != null, 'key cannot be null');
     final fromNode = _getNode(key);
 
     if (fromNode == null) {
@@ -308,7 +310,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
       }
     }
 
-    box.delete(key);
+    box?.delete(key);
 
     if (notify) {
       state = DataGraphEvent(
@@ -317,7 +319,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
   }
 
   void _addEdge(String from, String to,
-      {@required String metadata, String inverseMetadata, bool notify = true}) {
+      {required String metadata, String? inverseMetadata, bool notify = true}) {
     _addEdges(from,
         tos: [to],
         metadata: metadata,
@@ -326,12 +328,11 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
   }
 
   void _addEdges(String from,
-      {@required String metadata,
-      @required Iterable<String> tos,
-      String inverseMetadata,
+      {required String metadata,
+      required Iterable<String> tos,
+      String? inverseMetadata,
       bool notify = true}) {
-    final fromNode = _getNode(from);
-    assert(fromNode != null && tos != null);
+    final fromNode = _getNode(from)!;
 
     if (tos.isEmpty) {
       return;
@@ -340,7 +341,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
     // use a set to ensure resulting list elements are unique
     fromNode[metadata] = {...?fromNode[metadata], ...tos}.toList();
     // persist change
-    box.put(from, fromNode);
+    box?.put(from, fromNode);
 
     if (notify) {
       state = DataGraphEvent(
@@ -355,12 +356,12 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
       for (final to in tos) {
         // get or create toNode
         final toNode =
-            _hasNode(to) ? _getNode(to) : (this.._addNode(to))._getNode(to);
+            _hasNode(to) ? _getNode(to)! : (this.._addNode(to))._getNode(to)!;
 
         // use a set to ensure resulting list elements are unique
         toNode[inverseMetadata] = {...?toNode[inverseMetadata], from}.toList();
         // persist change
-        box.put(to, toNode);
+        box?.put(to, toNode);
       }
 
       if (notify) {
@@ -375,7 +376,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
   }
 
   void _removeEdge(String from, String to,
-      {@required String metadata, String inverseMetadata, bool notify = true}) {
+      {required String metadata, String? inverseMetadata, bool notify = true}) {
     _removeEdges(from,
         tos: [to],
         metadata: metadata,
@@ -384,27 +385,26 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
   }
 
   void _removeEdges(String from,
-      {@required String metadata,
-      Iterable<String> tos,
-      String inverseMetadata,
+      {required String metadata,
+      Iterable<String>? tos,
+      String? inverseMetadata,
       bool notify = true}) {
-    final fromNode = _getNode(from);
-    assert(fromNode != null);
+    final fromNode = _getNode(from)!;
 
     if (tos != null && fromNode[metadata] != null) {
       // remove all tos from fromNode[metadata]
-      fromNode[metadata].removeWhere(tos.contains);
-      if (fromNode[metadata].isEmpty) {
+      fromNode[metadata]?.removeWhere(tos.contains);
+      if (fromNode[metadata]?.isEmpty ?? false) {
         fromNode.remove(metadata);
       }
       // persist change
-      box.put(from, fromNode);
+      box?.put(from, fromNode);
     } else {
       // tos == null as argument means ALL
       // remove metadata and retrieve all tos
       tos = fromNode.remove(metadata);
       // persist change
-      box.put(from, fromNode);
+      box?.put(from, fromNode);
     }
 
     if (notify) {
@@ -422,12 +422,12 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
         if (toNode != null &&
             inverseMetadata != null &&
             toNode[inverseMetadata] != null) {
-          toNode[inverseMetadata].remove(from);
-          if (toNode[inverseMetadata].isEmpty) {
+          toNode[inverseMetadata]?.remove(from);
+          if (toNode[inverseMetadata]?.isEmpty ?? false) {
             toNode.remove(inverseMetadata);
           }
           // persist change
-          box.put(to, toNode);
+          box?.put(to, toNode);
         }
         if (toNode == null || toNode.isEmpty) {
           _removeNode(to, notify: notify);
@@ -455,7 +455,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
 
   // misc
 
-  Set<String> _connectedKeys(String key, {Iterable<String> metadatas}) {
+  Set<String> _connectedKeys(String key, {Iterable<String>? metadatas}) {
     final node = _getNode(key);
     if (node == null) {
       return {};
@@ -469,7 +469,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent>
     });
   }
 
-  Map<String, Map> _toMap() => box.toMap().cast();
+  Map<String, Map>? _toMap() => box?.toMap().cast();
 }
 
 enum DataGraphEventType {
@@ -497,14 +497,14 @@ extension DataGraphEventTypeX on DataGraphEventType {
 
 class DataGraphEvent {
   const DataGraphEvent({
-    this.keys,
+    required this.keys,
+    required this.type,
     this.metadata,
-    this.type,
-    this.graph,
+    required this.graph,
   });
   final List<String> keys;
-  final String metadata;
   final DataGraphEventType type;
+  final String? metadata;
   final GraphNotifier graph;
 
   @override
