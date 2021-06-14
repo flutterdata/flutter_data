@@ -23,7 +23,7 @@ class HasMany<E extends DataModel<E>> extends Relationship<E, Set<E>> {
   /// ```
   ///
   /// See also: [IterableRelationshipExtension<E>.asHasMany]
-  HasMany([Set<E> models]) : super(models);
+  HasMany([Set<E>? models]) : super(models);
 
   HasMany._(Iterable<String> keys, bool _wasOmitted)
       : super._(keys, _wasOmitted);

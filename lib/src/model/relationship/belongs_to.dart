@@ -23,14 +23,14 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E> {
   /// ```
   ///
   /// See also: [DataModelRelationshipExtension<E>.asBelongsTo]
-  BelongsTo([final E model]) : super(model != null ? {model} : null);
+  BelongsTo([final E? model]) : super(model != null ? {model} : null);
 
-  BelongsTo._(String key, bool _wasOmitted)
+  BelongsTo._(String? key, bool _wasOmitted)
       : super._(key != null ? {key} : {}, _wasOmitted);
 
   /// For internal use with `json_serializable`.
   factory BelongsTo.fromJson(final Map<String, dynamic> map) {
-    final key = map['_'][0] as String;
+    final key = map['_'][0] as String?;
     if (key == null) {
       final wasOmitted = map['_'][1] as bool;
       return BelongsTo._(null, wasOmitted);
@@ -39,19 +39,17 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E> {
   }
 
   /// Obtains the single [E] value of this relationship (`null` if not present).
-  E get value => first;
+  E? get value => first;
 
   /// Sets the single [E] value of this relationship, replacing any previous [value].
   ///
   /// Passing in `null` will remove the existing value from the relationship.
-  set value(E value) {
+  set value(E? value) {
+    if (this.value != null) {
+      super.remove(this.value!);
+    }
     if (value != null) {
-      if (isNotEmpty) {
-        super.remove(this.value);
-      }
       super.add(value);
-    } else {
-      super.remove(this.value);
     }
     assert(length <= 1);
   }
@@ -59,16 +57,16 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E> {
   /// Returns the [value]'s `key`
   @protected
   @visibleForTesting
-  String get key => super.keys.safeFirst;
+  String? get key => super.keys.safeFirst;
 
-  String get id => super.ids.safeFirst;
+  String? get id => super.ids.safeFirst;
 
   @override
   Future<Relationship<E, E>> initialize(
-      {@required final Map<String, RemoteAdapter> adapters,
-      @required final DataModel owner,
-      @required final String name,
-      @required final String inverseName}) async {
+      {required final Map<String, RemoteAdapter> adapters,
+      required final DataModel owner,
+      required final String name,
+      required final String inverseName}) async {
     if (isInitialized) {
       addInverse(inverseName, owner);
     }
@@ -87,7 +85,7 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E> {
 
   void addInverse(String inverseName, DataModel model) {
     if (value != null) {
-      final _rels = value.remoteAdapter.localAdapter.relationshipsFor(value);
+      final _rels = value!.remoteAdapter!.localAdapter.relationshipsFor(value!);
       if (_rels != null) {
         final inverseMetadata = _rels[inverseName];
         if (inverseMetadata != null) {

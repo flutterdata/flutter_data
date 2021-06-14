@@ -3,9 +3,9 @@ part of flutter_data;
 /// A `Set` that models a relationship between one or more [DataModel] objects
 /// and their a [DataModel] owner. Backed by a [GraphNotifier].
 abstract class Relationship<E extends DataModel<E>, N>
-    with _Lifecycle<Relationship<E, N>>, EquatableMixin {
+    with _Lifecycle, EquatableMixin {
   @protected
-  Relationship([Set<E> models])
+  Relationship([Set<E>? models])
       : _uninitializedKeys = {},
         _uninitializedModels = models ?? {},
         _wasOmitted = models == null;
@@ -14,12 +14,13 @@ abstract class Relationship<E extends DataModel<E>, N>
       : _uninitializedKeys = keys.toSet(),
         _uninitializedModels = {};
 
-  String _ownerKey;
-  String _name;
-  String _inverseName;
-  Map<String, RemoteAdapter> _adapters;
-  RemoteAdapter<E> _adapter;
-  GraphNotifier get _graph => _adapter?.localAdapter?.graph;
+  // late finals
+  String? _ownerKey;
+  String? _name;
+  String? _inverseName;
+  Map<String, RemoteAdapter>? _adapters;
+  RemoteAdapter<E>? _adapter;
+  GraphNotifier get _graph => _adapter!.localAdapter.graph;
 
   final Set<String> _uninitializedKeys;
   final Set<E> _uninitializedModels;
@@ -29,26 +30,23 @@ abstract class Relationship<E extends DataModel<E>, N>
 
   /// Initializes this relationship (typically when initializing the owner
   /// in [DataModel]) by supplying the owner, and related [adapters] and metadata.
-  @override
-  @mustCallSuper
   Future<Relationship<E, N>> initialize(
-      {@required final Map<String, RemoteAdapter> adapters,
-      @required final DataModel owner,
-      @required final String name,
-      @required final String inverseName}) async {
+      {required final Map<String, RemoteAdapter> adapters,
+      required final DataModel owner,
+      required final String name,
+      required final String inverseName}) async {
     if (isInitialized) return this;
 
     _adapters = adapters;
     _adapter = adapters[_internalType] as RemoteAdapter<E>;
 
-    assert(owner != null && _adapter != null);
     _ownerKey = owner._key;
     _name = name;
     _inverseName = inverseName;
 
     // initialize uninitialized models and get keys
     final newKeys = _uninitializedModels.map((model) {
-      return model._initialize(_adapters, save: true)._key;
+      return model._initialize(_adapters!, save: true)._key!;
     });
     _uninitializedKeys.addAll(newKeys);
     _uninitializedModels.clear();
@@ -56,18 +54,17 @@ abstract class Relationship<E extends DataModel<E>, N>
     // initialize keys
     if (!_wasOmitted) {
       // if it wasn't omitted, we overwrite
-      _graph._removeEdges(_ownerKey,
-          metadata: _name, inverseMetadata: _inverseName);
+      _graph._removeEdges(_ownerKey!,
+          metadata: _name!, inverseMetadata: _inverseName);
       _graph._addEdges(
-        _ownerKey,
+        _ownerKey!,
         tos: _uninitializedKeys,
-        metadata: _name,
+        metadata: _name!,
         inverseMetadata: _inverseName,
       );
       _uninitializedKeys.clear();
     }
 
-    super.initialize();
     return this;
   }
 
@@ -80,9 +77,6 @@ abstract class Relationship<E extends DataModel<E>, N>
   ///
   /// Attempting to add an existing [value] has no effect as this is a [Set]
   bool add(E value, {bool notify = true}) {
-    if (value == null) {
-      return false;
-    }
     if (contains(value)) {
       return false;
     }
@@ -90,9 +84,9 @@ abstract class Relationship<E extends DataModel<E>, N>
     // try to ensure value is initialized
     _ensureModelIsInitialized(value);
 
-    if (value._isInitialized && isInitialized) {
-      _graph._addEdge(_ownerKey, value._key,
-          metadata: _name, inverseMetadata: _inverseName);
+    if (value.isInitialized && isInitialized) {
+      _graph._addEdge(_ownerKey!, value._key!,
+          metadata: _name!, inverseMetadata: _inverseName);
     } else {
       // if it can't be initialized, add to the models queue
       _uninitializedModels.add(value);
@@ -113,9 +107,9 @@ abstract class Relationship<E extends DataModel<E>, N>
     if (isInitialized) {
       _ensureModelIsInitialized(model);
       _graph._removeEdge(
-        _ownerKey,
-        model._key,
-        metadata: _name,
+        _ownerKey!,
+        model._key!,
+        metadata: _name!,
         inverseMetadata: _inverseName,
         notify: notify,
       );
@@ -124,7 +118,7 @@ abstract class Relationship<E extends DataModel<E>, N>
     return _uninitializedModels.remove(model);
   }
 
-  E get first => _iterable.safeFirst;
+  E? get first => _iterable.safeFirst;
 
   int get length => _iterable.length;
 
@@ -145,9 +139,9 @@ abstract class Relationship<E extends DataModel<E>, N>
   Iterable<E> get _iterable {
     if (isInitialized) {
       return keys
-          .map((key) => _adapter.localAdapter
+          .map((key) => _adapter!.localAdapter
               .findOne(key)
-              ?._initialize(_adapters, key: key))
+              ?._initialize(_adapters!, key: key))
           .filterNulls;
     }
     return _uninitializedModels;
@@ -158,29 +152,28 @@ abstract class Relationship<E extends DataModel<E>, N>
   @visibleForTesting
   Set<String> get keys {
     if (isInitialized) {
-      return _graph?._getEdge(_ownerKey, metadata: _name)?.toSet() ?? {};
+      return _graph._getEdge(_ownerKey!, metadata: _name!).toSet();
     }
     return _uninitializedKeys;
   }
 
   Set<String> get ids {
-    return keys.map(_graph?.getIdForKey).filterNulls.toSet();
+    return keys.map(_graph.getIdForKey).filterNulls.toSet();
   }
 
   E _ensureModelIsInitialized(E model) {
-    if (!model._isInitialized && isInitialized) {
-      model._initialize(_adapters, save: true);
+    if (!model.isInitialized && isInitialized) {
+      model._initialize(_adapters!, save: true);
     }
     return model;
   }
 
   StateNotifier<List<DataGraphEvent>> get _graphEvents {
-    assert(_adapter != null);
     return _adapter.throttledGraph.map((events) {
       final appliesToRelationship = (DataGraphEvent event) {
         return event.type.isEdge &&
             event.metadata == _name &&
-            event.keys.containsFirst(_ownerKey);
+            event.keys.containsFirst(_ownerKey!);
       };
       return events.where(appliesToRelationship).toImmutableList();
     });
@@ -201,11 +194,18 @@ abstract class Relationship<E extends DataModel<E>, N>
 
   @override
   List<Object> get props => [prop];
+
+  @override
+  void dispose() {
+    // TODO check this does not cause issues
+    _ownerKey = null;
+    _adapters = null;
+  }
 }
 
 // annotation
 
 class DataRelationship {
   final String inverse;
-  const DataRelationship({this.inverse});
+  const DataRelationship({required this.inverse});
 }
