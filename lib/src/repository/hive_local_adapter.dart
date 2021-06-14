@@ -18,20 +18,17 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
   // once late final field, remove ignore on class
   @protected
   @visibleForTesting
-  Box<T> box;
+  Box<T>? box;
 
   @override
   Future<HiveLocalAdapter<T>> initialize() async {
     if (isInitialized) return this;
 
-    await super.initialize();
-    final clear = _hiveLocalStorage.clear ?? false;
-
     if (!_hiveLocalStorage.hive.isBoxOpen(_internalType)) {
       if (!_hiveLocalStorage.hive.isAdapterRegistered(typeId)) {
         _hiveLocalStorage.hive.registerAdapter(this);
       }
-      if (clear) {
+      if (_hiveLocalStorage.clear) {
         await _hiveLocalStorage.deleteBox(_internalType);
       }
     }
@@ -47,8 +44,10 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
   }
 
   @override
+  bool get isInitialized => box?.isOpen ?? false;
+
+  @override
   void dispose() {
-    super.dispose();
     box?.close();
   }
 
@@ -56,17 +55,16 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
 
   @override
   List<T> findAll() {
-    return box.values.toImmutableList();
+    return box!.values.toImmutableList();
   }
 
   @override
-  T findOne(String key) => key != null ? box.get(key) : null;
+  T? findOne(String key) => box!.get(key);
 
   @override
-  Future<void> save(String key, T model, {bool notify = true}) async {
-    assert(key != null);
-    final keyExisted = box.containsKey(key);
-    final save = box.put(key, model);
+  Future<T> save(String key, T model, {bool notify = true}) async {
+    final keyExisted = box!.containsKey(key);
+    final save = box!.put(key, model);
     if (notify) {
       graph._notify(
         [key],
@@ -74,21 +72,20 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
       );
     }
     await save;
+    return model;
   }
 
   @override
   Future<void> delete(String key) async {
-    if (key != null) {
-      final delete = box.delete(key); // delete in bg
-      // id will become orphan & purged
-      graph.removeKey(key);
-      await delete;
-    }
+    final delete = box!.delete(key); // delete in bg
+    // id will become orphan & purged
+    graph.removeKey(key);
+    await delete;
   }
 
   @override
   Future<void> clear() async {
-    return await box.clear();
+    await box!.clear();
   }
 
   // hive adapter
@@ -105,7 +102,7 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
       graph._addNode(_hiveAdapterKey);
     }
 
-    final _typesNode = graph._getNode(_hiveAdapterKey);
+    final _typesNode = graph._getNode(_hiveAdapterKey)!;
 
     final edge =
         _typesNode[StringUtils.namespace(_hiveAdapterNs, _internalType)];

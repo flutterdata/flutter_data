@@ -1,7 +1,7 @@
 part of flutter_data;
 
 /// Thin wrapper on the [RemoteAdapter] API
-class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
+class Repository<T extends DataModel<T>> with _Lifecycle {
   final ProviderReference _ref;
   Repository(this._ref);
 
@@ -19,24 +19,27 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
 
   /// Initializes this [Repository]. Nothing will work without this.
   /// In standard scenarios this initialization is done by the framework.
-  @override
   @mustCallSuper
-  FutureOr<Repository<T>> initialize(
-      {bool remote, bool verbose, Map<String, RemoteAdapter> adapters}) async {
+  FutureOr<Repository<T>?> initialize(
+      {bool remote = true,
+      bool verbose = true,
+      required Map<String, RemoteAdapter> adapters}) async {
     if (isInitialized) return this;
     _adapters.addAll(adapters);
     await remoteAdapter.initialize(
         remote: remote, verbose: verbose, adapters: adapters, ref: _ref);
-    await super.initialize();
     return this;
   }
 
+  /// Returns whether this [Repository] is initialized
+  /// (when its underlying [RemoteAdapter] is).
+  @override
+  bool get isInitialized => remoteAdapter.isInitialized;
+
   /// Disposes this [Repository] and everything that depends on it.
   @override
-  @mustCallSuper
   void dispose() {
-    super.dispose();
-    remoteAdapter?.dispose();
+    remoteAdapter.dispose();
   }
 
   // Public API
@@ -57,11 +60,11 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   ///
   /// See also: [_RemoteAdapter.urlForFindAll], [_RemoteAdapter.methodForFindAll].
   Future<List<T>> findAll({
-    bool remote,
-    Map<String, dynamic> params,
-    Map<String, String> headers,
-    bool syncLocal,
-    OnDataError<List<T>> onError,
+    bool remote = true,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    bool syncLocal = false,
+    OnDataError<List<T>>? onError,
   }) {
     return remoteAdapter.findAll(
       remote: remote,
@@ -83,12 +86,12 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   /// [_RemoteAdapter.defaultParams] and [_RemoteAdapter.defaultHeaders], respectively.
   ///
   /// See also: [_RemoteAdapter.urlForFindOne], [_RemoteAdapter.methodForFindOne].
-  Future<T> findOne(
+  Future<T?> findOne(
     final dynamic id, {
-    bool remote,
-    Map<String, dynamic> params,
-    Map<String, String> headers,
-    OnDataError<T> onError,
+    bool remote = true,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    OnDataError<T>? onError,
   }) {
     return remoteAdapter.findOne(
       id,
@@ -112,11 +115,11 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   /// See also: [_RemoteAdapter.urlForSave], [_RemoteAdapter.methodForSave].
   Future<T> save(
     T model, {
-    bool remote,
-    Map<String, dynamic> params,
-    Map<String, String> headers,
-    OnData<T> onSuccess,
-    OnDataError<T> onError,
+    bool remote = true,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    OnData<T>? onSuccess,
+    OnDataError<T>? onError,
   }) {
     return remoteAdapter.save(
       model,
@@ -141,11 +144,11 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   /// See also: [_RemoteAdapter.urlForDelete], [_RemoteAdapter.methodForDelete].
   Future<void> delete(
     dynamic model, {
-    bool remote,
-    Map<String, dynamic> params,
-    Map<String, String> headers,
-    OnData<void> onSuccess,
-    OnDataError<void> onError,
+    bool remote = true,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    OnData<void>? onSuccess,
+    OnDataError<void>? onError,
   }) {
     return remoteAdapter.delete(
       model,
@@ -181,11 +184,11 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   /// If [syncLocal] is set to `false` but results still need to be filtered,
   /// use [filterLocal]. All data updates will be filtered through it.
   DataStateNotifier<List<T>> watchAll({
-    bool remote,
-    Map<String, dynamic> params,
-    Map<String, String> headers,
-    bool Function(T) filterLocal,
-    bool syncLocal,
+    bool? remote,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    bool Function(T)? filterLocal,
+    bool syncLocal = true,
   }) {
     return remoteAdapter.watchAll(
       remote: remote,
@@ -209,10 +212,10 @@ class Repository<T extends DataModel<T>> with _Lifecycle<Repository<T>> {
   /// When called, will in turn call [findAll] with [remote], [params], [headers].
   DataStateNotifier<T> watchOne(
     dynamic id, {
-    bool remote,
-    Map<String, dynamic> params,
-    Map<String, String> headers,
-    AlsoWatch<T> alsoWatch,
+    bool? remote,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    AlsoWatch<T>? alsoWatch,
   }) {
     return remoteAdapter.watchOne(
       id,

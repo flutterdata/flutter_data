@@ -11,6 +11,8 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
   @protected
   final GraphNotifier graph;
 
+  FutureOr<LocalAdapter<T>> initialize();
+
   // protected API
 
   /// Returns all models of type [T] in local storage.
