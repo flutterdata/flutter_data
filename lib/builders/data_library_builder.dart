@@ -5,7 +5,6 @@ import 'dart:async';
 import 'package:build/build.dart';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:source_gen/source_gen.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:glob/glob.dart';
 
 import 'utils.dart';
@@ -36,7 +35,7 @@ class DataExtensionIntermediateBuilder implements Builder {
           members.map((member) {
             return [
               member.element.name,
-              member.element.location.components.first,
+              member.element.location!.components.first,
               member.annotation.read('remote').boolValue,
             ].join('#');
           }).join(';'));
@@ -74,10 +73,10 @@ class DataExtensionBuilder implements Builder {
       }
       return acc;
     })
-      ..sort((a, b) => a['type'].compareTo(b['type']));
+      ..sort((a, b) => a['type']!.compareTo(b['type']!));
 
     // if this is a library, do not generate
-    if (classes.any((clazz) => clazz['path'].startsWith('asset:'))) {
+    if (classes.any((clazz) => clazz['path']!.startsWith('asset:'))) {
       return null;
     }
 
@@ -131,7 +130,7 @@ RepositoryInitializerProvider repositoryInitializerProvider = (
 };
 
 final repositoryProviders = <String, Provider<Repository<DataModel>>>{
-  ${classes.map((clazz) => '\'' + clazz['type'] + '\': ' + clazz['type'] + 'RepositoryProvider').join(',\n')}
+  ${classes.map((clazz) => '\'' + clazz['type']! + '\': ' + clazz['type']! + 'RepositoryProvider').join(',\n')}
 };
 
 final _repositoryInitializerProviderFamily =
@@ -164,18 +163,4 @@ final _repositoryInitializerProviderFamily =
 });
 ''');
   }
-}
-
-Set<String> findTypesInRelationshipGraph(ClassElement elem,
-    [Set<String> result]) {
-  return relationshipFields(elem)
-      .fold<Set<String>>(result ?? {DataHelpers.getType(elem.name)}, (acc, f) {
-    var type = DataHelpers.getType(f.typeElement.name);
-
-    if (!acc.contains(type)) {
-      acc.add(type);
-      acc.addAll(findTypesInRelationshipGraph(f.typeElement, acc));
-    }
-    return acc;
-  });
 }

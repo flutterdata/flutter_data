@@ -16,7 +16,7 @@ Iterable<VariableElement> relationshipFields(ClassElement elem) {
     for (final field in elem.fields)
       if (field.type.element is ClassElement &&
           (field.type.element as ClassElement).supertype != null &&
-          relationshipTypeChecker.isSuperOf(field.type.element))
+          relationshipTypeChecker.isSuperOf(field.type.element!))
         field.name: field,
   };
 
@@ -27,7 +27,8 @@ Iterable<VariableElement> relationshipFields(ClassElement elem) {
       for (final constructor in elem.constructors)
         if (constructor.isFactory)
           for (final param in constructor.parameters)
-            if (relationshipTypeChecker.isSuperOf(param.type.element))
+            if (param.type.element != null &&
+                relationshipTypeChecker.isSuperOf(param.type.element!))
               param.name: param,
     };
   }
@@ -36,8 +37,8 @@ Iterable<VariableElement> relationshipFields(ClassElement elem) {
 
   // if parent mixes DataModel in, also include its relationships
   if (elem.supertype != null &&
-      dataModelTypeChecker.isAssignableFrom(elem.supertype.element)) {
-    out.addAll(relationshipFields(elem.supertype.element));
+      dataModelTypeChecker.isAssignableFrom(elem.supertype!.element)) {
+    out.addAll(relationshipFields(elem.supertype!.element));
   }
 
   return out;
@@ -48,11 +49,9 @@ extension VariableElementX on VariableElement {
       (type as ParameterizedType).typeArguments.single.element as ClassElement;
 }
 
-Pubspec _pubspec;
-
 Future<bool> isDependency(String package, BuildStep buildStep,
     {bool dev = false}) async {
-  _pubspec ??= Pubspec.parse(await buildStep
+  final _pubspec = Pubspec.parse(await buildStep
       .readAsString(AssetId(buildStep.inputId.package, 'pubspec.yaml')));
   var deps = _pubspec.dependencies;
   if (dev) {

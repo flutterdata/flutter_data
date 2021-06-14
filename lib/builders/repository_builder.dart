@@ -20,7 +20,7 @@ class RepositoryGenerator extends GeneratorForAnnotation<DataRepository> {
   Future<String> generateForAnnotatedElement(
       Element element, ConstantReader annotation, BuildStep buildStep) async {
     final classType = element.name;
-    final classTypePlural = element.name.pluralize();
+    final classTypePlural = element.name?.pluralize();
     final typeLowerCased = DataHelpers.getType(classType);
     ClassElement classElement;
 
@@ -31,9 +31,9 @@ class RepositoryGenerator extends GeneratorForAnnotation<DataRepository> {
           "Can't generate repository for $classType. Please use @DataRepository on a class.");
     }
 
-    void _checkIsFinal(final ClassElement element, String name) {
+    void _checkIsFinal(final ClassElement? element, String? name) {
       if (element != null) {
-        if (element.getSetter(name) != null) {
+        if (name != null && element.getSetter(name) != null) {
           throw UnsupportedError(
               "Can't generate repository for $classType. The `$name` field MUST be final");
         }
@@ -50,7 +50,7 @@ class RepositoryGenerator extends GeneratorForAnnotation<DataRepository> {
     // relationship-related
 
     final relationships = relationshipFields(classElement)
-        .fold<Set<Map<String, String>>>({}, (result, field) {
+        .fold<Set<Map<String, String?>>>({}, (result, field) {
       final relationshipClassElement = field.typeElement;
 
       // define inverse
@@ -99,7 +99,7 @@ and execute a code generation build again.
         'key': keyName ?? field.name,
         'name': field.name,
         'inverse': inverse,
-        'kind': field.type.element.name,
+        'kind': field.type.element?.name,
         'type': DataHelpers.getType(relationshipClassElement.name),
       });
 
@@ -113,7 +113,7 @@ and execute a code generation build again.
           if (rel['inverse'] != null) '\'inverse\'': '\'${rel['inverse']}\'',
           '\'type\'': '\'${rel['type']}\'',
           '\'kind\'': '\'${rel['kind']}\'',
-          '\'instance\'': 'model?.' + rel['name'],
+          '\'instance\'': 'model?.' + rel['name']!,
         }
     };
 
@@ -141,7 +141,7 @@ and execute a code generation build again.
     final mixins = annotation.read('adapters').listValue.map((obj) {
       final mixinType = obj.toTypeValue();
       final mixinMethods = <MethodElement>[];
-      String displayName;
+      String? displayName;
 
       if (mixinType is ParameterizedType) {
         final args = mixinType.typeArguments;
@@ -214,7 +214,7 @@ final ${typeLowerCased}RepositoryProvider =
     Provider<Repository<$classType>>((ref) => Repository<$classType>(ref));
 
 final _watch${classType == classTypePlural ? 'One' : ''}$classType =
-    StateNotifierProvider.autoDispose.family<DataStateNotifier<$classType>, WatchArgs<$classType>>(
+    StateNotifierProvider.autoDispose.family<DataStateNotifier<$classType>, $classType, WatchArgs<$classType>>(
         (ref, args) {
   return ref.read(${typeLowerCased}RepositoryProvider).watchOne(args.id, remote: args.remote, params: args.params, headers: args.headers, alsoWatch: args.alsoWatch);
 });
@@ -225,7 +225,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<$classType>> watch${classType
 }
 
 final _watch$classTypePlural =
-    StateNotifierProvider.autoDispose.family<DataStateNotifier<List<$classType>>, WatchArgs<$classType>>(
+    StateNotifierProvider.autoDispose.family<DataStateNotifier<List<$classType>>, List<$classType>, WatchArgs<$classType>>(
         (ref, args) {
   ref.maintainState = false;
   return ref.read(${typeLowerCased}RepositoryProvider).watchAll(remote: args.remote, params: args.params, headers: args.headers, filterLocal: args.filterLocal, syncLocal: args.syncLocal);
