@@ -13,9 +13,10 @@ const _kGraphBoxName = '_graph';
 ///
 /// Its public API requires all keys and metadata to be namespaced
 /// i.e. `manager:key`
-class GraphNotifier extends StateNotifier<DataGraphEvent?> with _Lifecycle {
+class GraphNotifier extends StateNotifier<DataGraphEvent> with _Lifecycle {
   @protected
-  GraphNotifier(this._hiveLocalStorage) : super(null);
+  GraphNotifier(this._hiveLocalStorage)
+      : super(DataGraphEvent(keys: [], type: DataGraphEventType.doneLoading));
 
   final HiveLocalStorage _hiveLocalStorage;
 
@@ -284,8 +285,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent?> with _Lifecycle {
     if (!(box?.containsKey(key) ?? false)) {
       box?.put(key, {});
       if (notify) {
-        state = DataGraphEvent(
-            keys: [key], type: DataGraphEventType.addNode, graph: this);
+        state = DataGraphEvent(keys: [key], type: DataGraphEventType.addNode);
       }
     }
   }
@@ -311,8 +311,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent?> with _Lifecycle {
     box?.delete(key);
 
     if (notify) {
-      state = DataGraphEvent(
-          keys: [key], type: DataGraphEventType.removeNode, graph: this);
+      state = DataGraphEvent(keys: [key], type: DataGraphEventType.removeNode);
     }
   }
 
@@ -346,7 +345,6 @@ class GraphNotifier extends StateNotifier<DataGraphEvent?> with _Lifecycle {
         keys: [from, ...tos],
         metadata: metadata,
         type: DataGraphEventType.addEdge,
-        graph: this,
       );
     }
 
@@ -367,7 +365,6 @@ class GraphNotifier extends StateNotifier<DataGraphEvent?> with _Lifecycle {
           keys: [...tos, from],
           metadata: inverseMetadata,
           type: DataGraphEventType.addEdge,
-          graph: this,
         );
       }
     }
@@ -410,7 +407,6 @@ class GraphNotifier extends StateNotifier<DataGraphEvent?> with _Lifecycle {
         keys: [from, ...?tos],
         metadata: metadata,
         type: DataGraphEventType.removeEdge,
-        graph: this,
       );
     }
 
@@ -437,18 +433,13 @@ class GraphNotifier extends StateNotifier<DataGraphEvent?> with _Lifecycle {
           keys: [...tos, from],
           metadata: inverseMetadata,
           type: DataGraphEventType.removeEdge,
-          graph: this,
         );
       }
     }
   }
 
   void _notify(List<String> keys, DataGraphEventType type) {
-    state = DataGraphEvent(
-      type: type,
-      keys: keys,
-      graph: this,
-    );
+    state = DataGraphEvent(type: type, keys: keys);
   }
 
   // misc
@@ -498,12 +489,10 @@ class DataGraphEvent {
     required this.keys,
     required this.type,
     this.metadata,
-    required this.graph,
   });
   final List<String> keys;
   final DataGraphEventType type;
   final String? metadata;
-  final GraphNotifier graph;
 
   @override
   String toString() {
