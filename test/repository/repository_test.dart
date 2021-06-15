@@ -189,7 +189,7 @@ void main() async {
         remote: true);
     // and it can be found again locally
     final family2 = await familyRepository.findOne('2', remote: false);
-    expect(family2.surname, 'Jones Saved');
+    expect(family2!.surname, 'Jones Saved');
   });
 
   test('save with error', () async {
@@ -197,7 +197,7 @@ void main() async {
     container.read(responseProvider).state = TestResponse.text('@**&#*#&');
 
     // overrides error handling with notifier
-    final listener = Listener<DataState<List<Family>>>();
+    final listener = Listener<DataState<List<Family>>?>();
     final notifier = familyRepository.watchAll(remote: false);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
@@ -215,7 +215,7 @@ void main() async {
 
     verify(listener(argThat(
       isA<DataState>().having((s) {
-        return s.exception.error;
+        return s.exception!.error;
       }, 'exception', isA<FormatException>()),
     ))).called(1);
   });
@@ -256,7 +256,7 @@ void main() async {
   });
 
   test('watchAll with error', () async {
-    final listener = Listener<DataState<List<Family>>>();
+    final listener = Listener<DataState<List<Family>>?>();
 
     container.read(responseProvider).state =
         TestResponse(text: (_) => throw Exception('unreachable'));
@@ -300,7 +300,7 @@ void main() async {
   });
 
   test('watchOne', () async {
-    final listener = Listener<DataState<Person>>();
+    final listener = Listener<DataState<Person?>?>();
 
     container.read(responseProvider).state = TestResponse.text(
       '''{ "_id": "1", "name": "Charlie", "age": 23 }''',
@@ -320,13 +320,13 @@ void main() async {
     await personRepository.save(Person(id: '1', name: 'Charlie', age: 24));
     await oneMs();
 
-    verify(listener(argThat(withState<Person>((s) => s.model.age, 24))))
+    verify(listener(argThat(withState<Person>((s) => s.model.age!, 24))))
         .called(1);
     verifyNoMoreInteractions(listener);
   });
 
   test('watchOne with error', () async {
-    final listener = Listener<DataState<Family>>();
+    final listener = Listener<DataState<Family?>?>();
 
     container.read(responseProvider).state = TestResponse(
       text: (_) => throw Exception('whatever'),
@@ -335,11 +335,11 @@ void main() async {
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
-    verify(listener(DataState<Family>(null, isLoading: true))).called(1);
+    verify(listener(DataState<Family?>(null, isLoading: true))).called(1);
     await oneMs();
 
     verify(listener(argThat(isA<DataState>().having(
-            (s) => s.exception.error.toString(),
+            (s) => s.exception!.error.toString(),
             'exception',
             'Exception: whatever'))))
         .called(1);
@@ -354,7 +354,7 @@ void main() async {
     // loads again, for now original exception remains
     verify(listener(argThat(isA<DataState<Family>>()
             .having((s) => s.isLoading, 'isLoading', isTrue)
-            .having((s) => s.exception.error.toString(), 'exception',
+            .having((s) => s.exception!.error.toString(), 'exception',
                 startsWith('Exception:')))))
         .called(1);
 
@@ -395,18 +395,18 @@ void main() async {
     // important to keep to test `alsoWatch` assignment order
     graph.getKeyForId('families', '22', keyIfAbsent: 'families#a1a1a1');
     await (familyRepository.remoteAdapter.localAdapter as HiveLocalAdapter)
-        .box
+        .box!
         .put('families#a1a1a1',
             Family(id: '22', surname: 'Paez', persons: HasMany()));
 
-    final listener = Listener<DataState<Family>>();
+    final listener = Listener<DataState<Family?>?>();
 
     container.read(responseProvider).state =
         TestResponse.text('''{ "id": "22", "surname": "Paez" }''');
     final notifier = familyRepository.watchOne(
       '22',
       remote: true,
-      alsoWatch: (family) => [family.persons],
+      alsoWatch: (family) => [family.persons!],
     );
 
     dispose = notifier.addListener(listener, fireImmediately: true);
@@ -418,18 +418,18 @@ void main() async {
     verifyNoMoreInteractions(listener);
 
     final f1 = await familyRepository.findOne('22', remote: false);
-    f1.persons.add(Person(name: 'Martin', age: 44)); // this time without init
+    f1!.persons!.add(Person(name: 'Martin', age: 44)); // this time without init
     await oneMs();
 
     verify(listener(argThat(
-            withState<Family>((s) => s.model.persons, hasLength(1))
+            withState<Family>((s) => s.model.persons!, hasLength(1))
                 .having((s) => s.isLoading, 'loading', false))))
         .called(1);
     verifyNoMoreInteractions(listener);
   });
 
   test('watchAll updates isLoading even in an empty response', () async {
-    final listener = Listener<DataState<List<Family>>>();
+    final listener = Listener<DataState<List<Family>>?>();
 
     container.read(responseProvider).state = TestResponse.text('[]');
     final notifier = familyRepository.watchAll(remote: true);
@@ -545,7 +545,8 @@ void main() async {
     when(bloc.repo.findAll())
         .thenAnswer((_) => Future(() => [Family(surname: 'Smith')]));
     final families = await bloc.repo.findAll();
-    expect(families, predicate((list) => list.first.surname == 'Smith'));
+    expect(families,
+        predicate((List<Family> list) => list.first.surname == 'Smith'));
     verify(bloc.repo.findAll());
   });
 

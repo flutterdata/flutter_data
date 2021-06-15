@@ -15,22 +15,22 @@ import 'pet.dart';
 
 //
 
-ProviderContainer container;
-GraphNotifier graph;
+late ProviderContainer container;
+late GraphNotifier graph;
 
-RemoteAdapter<House> houseRemoteAdapter;
-RemoteAdapter<Family> familyRemoteAdapter;
-RemoteAdapter<Person> personRemoteAdapter;
+late RemoteAdapter<House> houseRemoteAdapter;
+late RemoteAdapter<Family> familyRemoteAdapter;
+late RemoteAdapter<Person> personRemoteAdapter;
 
-Repository<Family> familyRepository;
-Repository<House> houseRepository;
-Repository<Person> personRepository;
-Repository<Dog> dogRepository;
-Repository<Node> nodeRepository;
-Repository<Author> authorRepository;
-Repository<Book> bookRepository;
+late Repository<Family> familyRepository;
+late Repository<House> houseRepository;
+late Repository<Person> personRepository;
+late Repository<Dog> dogRepository;
+late Repository<Node> nodeRepository;
+late Repository<Author> authorRepository;
+late Repository<Book> bookRepository;
 
-Function dispose;
+late Function dispose;
 
 void setUpFn() async {
   container = createContainer();
@@ -108,13 +108,13 @@ void setUpFn() async {
 
 void tearDownFn() async {
   // Equivalent to generated in `main.data.dart`
-  dispose?.call();
-  houseRepository?.dispose();
-  familyRepository?.dispose();
-  personRepository?.dispose();
-  dogRepository?.dispose();
-  nodeRepository?.dispose();
-  graph?.dispose();
+  dispose.call();
+  houseRepository.dispose();
+  familyRepository.dispose();
+  personRepository.dispose();
+  dogRepository.dispose();
+  nodeRepository.dispose();
+  graph.dispose();
 }
 
 //
@@ -123,14 +123,14 @@ class TestResponse {
   final String Function(http.Request) text;
   final int statusCode;
 
-  const TestResponse({this.text, this.statusCode = 200});
+  const TestResponse({required this.text, this.statusCode = 200});
 
   factory TestResponse.text(String text) {
     return TestResponse(text: (_) => text);
   }
 }
 
-final responseProvider = StateProvider<TestResponse>((_) => null);
+final responseProvider = StateProvider<TestResponse?>((_) => null);
 
 ProviderContainer createContainer() {
   // when testing in Flutter use ProviderScope
@@ -139,7 +139,7 @@ ProviderContainer createContainer() {
       // app-specific
       mockResponseProvider.overrideWithProvider((ref, req) {
         final response = ref.read(responseProvider).state;
-        final text = response.text(req);
+        final text = response!.text(req);
         return http.Response(text, response.statusCode);
       }),
 
@@ -234,4 +234,5 @@ Future<void> oneMs() async {
 
 TypeMatcher<DataState<T>> withState<T extends DataModel<T>>(
         Object Function(DataState<T>) feature, matcher) =>
-    isA<DataState<T>>().having(feature, null, matcher);
+    isA<DataState<T>>().having(feature, '', matcher);
+// TODO null => '' ???

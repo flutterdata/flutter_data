@@ -1,6 +1,5 @@
 import 'package:flutter_data/flutter_data.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:meta/meta.dart';
 
 import 'house.dart';
 import 'person.dart';
@@ -12,16 +11,16 @@ part 'family.g.dart';
 @DataRepository([])
 class Family with DataModel<Family> {
   @override
-  final String id;
+  final String? id;
   final String surname;
-  final HasMany<Person> persons;
-  final BelongsTo<House> cottage;
-  final BelongsTo<House> residence;
-  final HasMany<Dog> dogs;
+  final HasMany<Person>? persons;
+  final BelongsTo<House>? cottage;
+  final BelongsTo<House>? residence;
+  final HasMany<Dog>? dogs;
 
   Family({
     this.id,
-    @required this.surname,
+    required this.surname,
     this.persons,
     this.cottage,
     this.residence,

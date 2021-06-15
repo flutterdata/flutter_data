@@ -17,11 +17,11 @@ class RepositoryInitializer {}
 class RepositoryInitializerArgs with EquatableMixin {
   RepositoryInitializerArgs(this.remote, this.verbose);
 
-  final bool remote;
+  final bool? remote;
   final bool verbose;
 
   @override
-  List<Object> get props => [remote, verbose];
+  List<Object?> get props => [remote, verbose];
 }
 
 @protected
@@ -32,19 +32,19 @@ mixin NothingMixin {}
 class WatchArgs<T> with EquatableMixin {
   WatchArgs({
     this.id,
-    this.remote = true,
+    this.remote,
     this.params,
     this.headers,
-    this.syncLocal = false,
+    this.syncLocal,
     this.filterLocal,
     this.alsoWatch,
   });
 
   final Object? id;
-  final bool remote;
+  final bool? remote;
   final Map<String, dynamic>? params;
   final Map<String, String>? headers;
-  final bool syncLocal;
+  final bool? syncLocal;
   final bool Function(T)? filterLocal;
   final AlsoWatch<T>? alsoWatch;
 

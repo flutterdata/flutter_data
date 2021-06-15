@@ -28,7 +28,7 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
 
 mixin $UserLocalAdapter on LocalAdapter<User> {
   @override
-  Map<String, Map<String, Object>> relationshipsFor([User model]) => {};
+  Map<String, Map<String, Object?>> relationshipsFor([User? model]) => {};
 
   @override
   User deserialize(map) {
@@ -61,7 +61,8 @@ final usersRepositoryProvider =
     Provider<Repository<User>>((ref) => Repository<User>(ref));
 
 final _watchUser = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<User>, WatchArgs<User>>((ref, args) {
+    .family<DataStateNotifier<User?>, DataState<User?>, WatchArgs<User>>(
+        (ref, args) {
   return ref.read(usersRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
@@ -69,11 +70,12 @@ final _watchUser = StateNotifierProvider.autoDispose
       alsoWatch: args.alsoWatch);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<User>> watchUser(dynamic id,
-    {bool remote,
-    Map<String, dynamic> params = const {},
-    Map<String, String> headers = const {},
-    AlsoWatch<User> alsoWatch}) {
+AutoDisposeStateNotifierProvider<DataStateNotifier<User?>, DataState<User?>>
+    watchUser(dynamic id,
+        {bool? remote,
+        Map<String, dynamic>? params,
+        Map<String, String>? headers,
+        AlsoWatch<User>? alsoWatch}) {
   return _watchUser(WatchArgs(
       id: id,
       remote: remote,
@@ -82,8 +84,10 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<User>> watchUser(dynamic id,
       alsoWatch: alsoWatch));
 }
 
-final _watchUsers = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<List<User>>, WatchArgs<User>>((ref, args) {
+final _watchUsers = StateNotifierProvider.autoDispose.family<
+    DataStateNotifier<List<User>>,
+    DataState<List<User>>,
+    WatchArgs<User>>((ref, args) {
   ref.maintainState = false;
   return ref.read(usersRepositoryProvider).watchAll(
       remote: args.remote,
@@ -93,8 +97,12 @@ final _watchUsers = StateNotifierProvider.autoDispose
       syncLocal: args.syncLocal);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<List<User>>> watchUsers(
-    {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+AutoDisposeStateNotifierProvider<DataStateNotifier<List<User>>,
+        DataState<List<User>>>
+    watchUsers(
+        {bool? remote,
+        Map<String, dynamic>? params,
+        Map<String, String>? headers}) {
   return _watchUsers(
       WatchArgs(remote: remote, params: params, headers: headers));
 }

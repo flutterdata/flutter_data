@@ -18,7 +18,7 @@ void main() async {
     final notifier = personRemoteAdapter.watchAll();
 
     final matcher = predicate((p) {
-      return p is Person && p.name.startsWith('Person Number') && p.age < 19;
+      return p is Person && p.name.startsWith('Person Number') && p.age! < 19;
     });
 
     final count = 29;
@@ -40,7 +40,7 @@ void main() async {
           expect(state.model, hasLength(i - 1));
           expect(
               (personRemoteAdapter.localAdapter as HiveLocalAdapter<Person>)
-                  .box
+                  .box!
                   .keys
                   .length,
               i - 1);
@@ -99,7 +99,7 @@ void main() async {
     final p1 = Person(id: '1', name: 'Zof', age: 23).init(container.read);
     Person(id: '2', name: 'Sarah', age: 50).init(container.read);
     final notifier = personRemoteAdapter.watchAll(
-        remote: false, filterLocal: (Person person) => person.age < 40);
+        remote: false, filterLocal: (Person person) => person.age! < 40);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -108,7 +108,7 @@ void main() async {
   });
 
   test('watchOne', () async {
-    final listener = Listener<DataState<Person>>();
+    final listener = Listener<DataState<Person?>?>();
 
     final notifier = personRemoteAdapter.watchOne('1');
 
@@ -151,7 +151,7 @@ void main() async {
     final notifier = personRemoteAdapter.watchOne('345');
 
     dispose = notifier.addListener(expectAsync1((state) {
-      expect(state.model.name, 'Steve-O');
+      expect(state.model!.name, 'Steve-O');
     }), fireImmediately: true);
   });
 
@@ -165,9 +165,9 @@ void main() async {
     );
 
     final notifier = familyRemoteAdapter.watchOne('22',
-        alsoWatch: (family) => [family.persons, family.residence]);
+        alsoWatch: (family) => [family.persons!, family.residence!]);
 
-    final listener = Listener<DataState<Family>>();
+    final listener = Listener<DataState<Family?>?>();
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -190,33 +190,34 @@ void main() async {
 
     verify(listener(argThat(matcher))).called(1);
 
-    f1.persons.add(Person(name: 'Martin', age: 44)); // this time without init
+    f1.persons!.add(Person(name: 'Martin', age: 44)); // this time without init
     await oneMs();
 
     verify(listener(argThat(
-      withState<Family>((s) => s.model.persons, hasLength(2)),
+      withState<Family>((s) => s.model.persons!, hasLength(2)),
     ))).called(1);
     verifyNoMoreInteractions(listener);
 
-    f1.residence.value = House(address: '123 Main St'); // no init
+    f1.residence!.value = House(address: '123 Main St'); // no init
     await oneMs();
 
     verify(listener(argThat(
-      withState<Family>((s) => s.model.residence.value.address, '123 Main St'),
+      withState<Family>(
+          (s) => s.model.residence!.value!.address, '123 Main St'),
     ))).called(1);
     verifyNoMoreInteractions(listener);
 
-    f1.persons.remove(p1);
+    f1.persons!.remove(p1);
     await oneMs();
 
     verify(listener(argThat(
-      withState<Family>((s) => s.model.persons, hasLength(1)),
+      withState<Family>((s) => s.model.persons!, hasLength(1)),
     ))).called(1);
     verifyNoMoreInteractions(listener);
 
     // a non-watched relationship does not trigger
 
-    f1.cottage.value = House(address: '7342 Mountain Rd');
+    f1.cottage!.value = House(address: '7342 Mountain Rd');
     await oneMs();
 
     verifyNever(listener(any));
@@ -236,7 +237,7 @@ void main() async {
 
     final notifier = frank.watch(alsoWatch: (p) => [p.family]);
 
-    final listener = Listener<DataState<Person>>();
+    final listener = Listener<DataState<Person?>?>();
     dispose = notifier.addListener(listener, fireImmediately: false);
 
     final matcher = isA<DataState<Person>>()

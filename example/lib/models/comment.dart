@@ -1,4 +1,3 @@
-import 'package:meta/meta.dart';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -12,15 +11,15 @@ part 'comment.g.dart';
 class Comment with DataModel<Comment> {
   @override
   final int id;
-  final String body;
-  bool approved = false;
-  final BelongsTo<Post> post;
+  final String? body;
+  final bool? approved;
+  final BelongsTo<Post>? post;
 
   Comment({
-    this.id,
-    @required this.body,
-    this.approved,
-    BelongsTo<Post> post,
+    required this.id,
+    required this.body,
+    this.approved = false,
+    BelongsTo<Post>? post,
   }) : post = post ?? BelongsTo<Post>();
 }
 
@@ -31,5 +30,5 @@ class Sheep with DataModel<Sheep> {
   final int id;
   final String name;
 
-  Sheep({this.id, this.name});
+  Sheep({required this.id, required this.name});
 }

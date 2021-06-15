@@ -21,6 +21,7 @@ class RepositoryGenerator extends GeneratorForAnnotation<DataRepository> {
       Element element, ConstantReader annotation, BuildStep buildStep) async {
     final classType = element.name;
     final classTypePlural = element.name?.pluralize();
+    print('*********** $classType ***************');
     final typeLowerCased = DataHelpers.getType(classType);
     ClassElement classElement;
 
@@ -179,7 +180,7 @@ and execute a code generation build again.
 
 mixin \$${classType}LocalAdapter on LocalAdapter<$classType> {
   @override
-  Map<String, Map<String, Object>> relationshipsFor([$classType model]) =>
+  Map<String, Map<String, Object?>> relationshipsFor([$classType? model]) =>
     $relationshipsFor;
 
   @override
@@ -214,25 +215,25 @@ final ${typeLowerCased}RepositoryProvider =
     Provider<Repository<$classType>>((ref) => Repository<$classType>(ref));
 
 final _watch${classType == classTypePlural ? 'One' : ''}$classType =
-    StateNotifierProvider.autoDispose.family<DataStateNotifier<$classType>, $classType, WatchArgs<$classType>>(
+    StateNotifierProvider.autoDispose.family<DataStateNotifier<$classType?>, DataState<$classType?>, WatchArgs<$classType>>(
         (ref, args) {
   return ref.read(${typeLowerCased}RepositoryProvider).watchOne(args.id, remote: args.remote, params: args.params, headers: args.headers, alsoWatch: args.alsoWatch);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<$classType>> watch${classType == classTypePlural ? 'One' : ''}$classType(dynamic id,
-    {bool remote, Map<String, dynamic> params = const {}, Map<String, String> headers = const {}, AlsoWatch<$classType> alsoWatch}) {
+AutoDisposeStateNotifierProvider<DataStateNotifier<$classType?>, DataState<$classType?>> watch${classType == classTypePlural ? 'One' : ''}$classType(dynamic id,
+    {bool? remote, Map<String, dynamic>? params, Map<String, String>? headers, AlsoWatch<$classType>? alsoWatch}) {
   return _watch${classType == classTypePlural ? 'One' : ''}$classType(WatchArgs(id: id, remote: remote, params: params, headers: headers, alsoWatch: alsoWatch));
 }
 
 final _watch$classTypePlural =
-    StateNotifierProvider.autoDispose.family<DataStateNotifier<List<$classType>>, List<$classType>, WatchArgs<$classType>>(
+    StateNotifierProvider.autoDispose.family<DataStateNotifier<List<$classType>>, DataState<List<$classType>>, WatchArgs<$classType>>(
         (ref, args) {
   ref.maintainState = false;
   return ref.read(${typeLowerCased}RepositoryProvider).watchAll(remote: args.remote, params: args.params, headers: args.headers, filterLocal: args.filterLocal, syncLocal: args.syncLocal);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<List<$classType>>> watch$classTypePlural(
-    {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+AutoDisposeStateNotifierProvider<DataStateNotifier<List<$classType>>, DataState<List<$classType>>> watch$classTypePlural(
+    {bool? remote, Map<String, dynamic>? params, Map<String, String>? headers}) {
   return _watch$classTypePlural(WatchArgs(remote: remote, params: params, headers: headers));
 }
 

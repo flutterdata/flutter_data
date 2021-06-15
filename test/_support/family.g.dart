@@ -8,7 +8,7 @@ part of 'family.dart';
 
 Family _$FamilyFromJson(Map<String, dynamic> json) {
   return Family(
-    id: json['id'] as String,
+    id: json['id'] as String?,
     surname: json['surname'] as String,
     persons: json['persons'] == null
         ? null
@@ -104,7 +104,7 @@ final familiesRepositoryProvider =
     Provider<Repository<Family>>((ref) => Repository<Family>(ref));
 
 final _watchFamily = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<Family>, WatchArgs<Family>>((ref, args) {
+    .family<DataStateNotifier<Family>, Family, WatchArgs<Family>>((ref, args) {
   return ref.read(familiesRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
@@ -127,7 +127,8 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Family>> watchFamily(
 }
 
 final _watchFamilies = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<List<Family>>, WatchArgs<Family>>((ref, args) {
+    .family<DataStateNotifier<List<Family>>, List<Family>, WatchArgs<Family>>(
+        (ref, args) {
   ref.maintainState = false;
   return ref.read(familiesRepositoryProvider).watchAll(
       remote: args.remote,

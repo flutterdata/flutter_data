@@ -6,9 +6,6 @@ class DataHelpers {
   static final uuid = Uuid();
 
   static String getType<T>([String? type]) {
-    if (T == dynamic) {
-      return '<dynamic>'; // TODO CHECK
-    }
     type ??= T.toString();
     type = type.decapitalize();
     return type.pluralize();

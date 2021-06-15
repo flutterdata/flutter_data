@@ -94,7 +94,7 @@ void main() async {
 
     Family(id: '332', surname: 'Tao').init(container.read);
 
-    expect(p1.family.value.id, '332');
+    expect(p1.family.value!.id, '332');
 
     final p2 = Person(
         id: '27',
@@ -117,7 +117,7 @@ void main() async {
     ], init: true).model;
 
     expect(
-        f.persons.keys,
+        f.persons!.keys,
         unorderedEquals([
           graph.getKeyForId('people', '1'),
           graph.getKeyForId('people', '2'),

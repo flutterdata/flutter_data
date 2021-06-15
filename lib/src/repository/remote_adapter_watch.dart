@@ -14,10 +14,10 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
   @protected
   @visibleForTesting
   DataStateNotifier<List<T>> watchAll({
-    required bool remote,
+    bool remote = true,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    required bool syncLocal,
+    bool syncLocal = false,
     bool Function(T)? filterLocal,
   }) {
     _assertInit();
@@ -93,13 +93,15 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
   @visibleForTesting
   DataStateNotifier<T?> watchOne(
     dynamic model, {
-    required bool remote,
+    bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     AlsoWatch<T>? alsoWatch,
   }) {
     _assertInit();
     assert(model != null);
+    // global _remote takes precedence
+    remote = _remote ?? remote ?? true;
 
     final id = _resolveId(model);
 
@@ -115,8 +117,10 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
     final _alsoWatchFilters = <String>{};
 
+    final localModel = localAdapter.findOne(key());
     final _notifier = DataStateNotifier<T?>(
-      data: DataState(initializeModel(localAdapter.findOne(key()), save: true)),
+      data: DataState(
+          localModel == null ? null : initializeModel(localModel, save: true)),
       reload: (notifier) async {
         if (!notifier.mounted) {
           return;
@@ -129,7 +133,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
             remote: remote,
             init: true,
           );
-          if (remote) {
+          if (remote!) {
             notifier.updateWith(isLoading: true);
           }
           await _future;

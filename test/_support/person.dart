@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:meta/meta.dart';
 import 'package:flutter_data/flutter_data.dart';
 import 'family.dart';
 
@@ -11,16 +10,16 @@ part 'person.g.dart';
     [PersonLoginAdapter, GenericDoesNothingAdapter, YetAnotherLoginAdapter])
 class Person with DataModel<Person> {
   @override
-  final String id;
+  final String? id;
   final String name;
-  final int age;
+  final int? age;
   final BelongsTo<Family> family;
 
   Person({
     this.id,
-    @required this.name,
-    @required this.age,
-    BelongsTo<Family> family,
+    required this.name,
+    this.age,
+    BelongsTo<Family>? family,
   }) : family = family ?? BelongsTo();
 
   // testing without jsonserializable
@@ -54,7 +53,7 @@ class Person with DataModel<Person> {
 
   //
 
-  factory Person.generate(ProviderContainer container, {String withId}) {
+  factory Person.generate(ProviderContainer container, {String? withId}) {
     return Person(
             id: withId,
             name: 'Person Number ${withId ?? Random().nextInt(999999999)}',
@@ -74,7 +73,7 @@ mixin PersonLoginAdapter on RemoteAdapter<Person> {
   FutureOr<Map<String, dynamic>> get defaultParams => {'default': true};
 
   // if email is null it throws some garbage
-  Future<String> login(String email, String password) async {
+  Future<String?> login(String? email, String? password) async {
     return await sendRequest(
       baseUrl.asUri / 'token' & await defaultParams & {'a': 1},
       onSuccess: (data) => data['token'] as String,
@@ -83,7 +82,7 @@ mixin PersonLoginAdapter on RemoteAdapter<Person> {
     );
   }
 
-  Future<String> hello({bool useDefaultHeaders = false}) async {
+  Future<String?> hello({bool useDefaultHeaders = false}) async {
     return await sendRequest(
       baseUrl.asUri / 'hello' & {'a': 1},
       headers: useDefaultHeaders ? null : {},
@@ -91,7 +90,7 @@ mixin PersonLoginAdapter on RemoteAdapter<Person> {
     );
   }
 
-  Future<String> url(Map<String, dynamic> params,
+  Future<String?> url(Map<String, dynamic> params,
       {bool useDefaultParams = false}) async {
     return await sendRequest(
       baseUrl.asUri / 'url' & params,
@@ -102,31 +101,31 @@ mixin PersonLoginAdapter on RemoteAdapter<Person> {
 }
 
 mixin GenericDoesNothingAdapter<T extends DataModel<T>> on RemoteAdapter<T> {
-  Future<T> doNothing(T model, int n) async {
+  Future<T?> doNothing(T? model, int n) async {
     return model;
   }
 }
 
 mixin YetAnotherLoginAdapter on PersonLoginAdapter {
   @override
-  Future<String> login(String email, String password) async {
+  Future<String?> login(String? email, String? password) async {
     return super.login(email, password);
   }
 }
 
 extension PersonRepositoryX on Repository<Person> {
-  Future<String> login(String email, String password) =>
+  Future<String?> login(String? email, String? password) =>
       (remoteAdapter as YetAnotherLoginAdapter).login(email, password);
 
-  Future<String> hello({bool useDefaultHeaders = false}) =>
+  Future<String?> hello({bool useDefaultHeaders = false}) =>
       (remoteAdapter as PersonLoginAdapter)
           .hello(useDefaultHeaders: useDefaultHeaders);
 
-  Future<String> url(Map<String, dynamic> params,
+  Future<String?> url(Map<String, dynamic> params,
           {bool useDefaultParams = false}) =>
       (remoteAdapter as PersonLoginAdapter)
           .url(params, useDefaultParams: useDefaultParams);
 
-  Future<Person> doNothing(Person model, int n) =>
+  Future<Person?> doNothing(Person? model, int n) =>
       (remoteAdapter as GenericDoesNothingAdapter<Person>).doNothing(model, n);
 }

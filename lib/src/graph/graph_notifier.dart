@@ -235,7 +235,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent> with _Lifecycle {
   @protected
   @visibleForTesting
   void removeOrphanNodes() {
-    final orphanEntries = {...?toMap()}.entries.where((e) => e.value.isEmpty);
+    final orphanEntries = {...toMap()}.entries.where((e) => e.value.isEmpty);
     for (final e in orphanEntries) {
       _removeNode(e.key);
     }
@@ -244,7 +244,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent> with _Lifecycle {
   // utils
 
   /// Returns a [Map] representation of this graph, the underlying Hive [box].
-  Map<String, Map>? toMap() => _toMap();
+  Map<String, Map> toMap() => _toMap();
 
   @protected
   @visibleForTesting
@@ -397,7 +397,10 @@ class GraphNotifier extends StateNotifier<DataGraphEvent> with _Lifecycle {
     } else {
       // tos == null as argument means ALL
       // remove metadata and retrieve all tos
-      tos = fromNode.remove(metadata);
+
+      if (fromNode.containsKey(metadata)) {
+        tos = fromNode.remove(metadata);
+      }
       // persist change
       box?.put(from, fromNode);
     }
@@ -458,7 +461,7 @@ class GraphNotifier extends StateNotifier<DataGraphEvent> with _Lifecycle {
     });
   }
 
-  Map<String, Map>? _toMap() => box?.toMap().cast();
+  Map<String, Map> _toMap() => box!.toMap().cast();
 }
 
 enum DataGraphEventType {

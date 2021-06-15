@@ -50,7 +50,7 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
       data = [data];
     }
 
-    for (final mapIn in (data as Iterable<Map<String, Object>>)) {
+    for (final mapIn in <Map>[...data]) {
       final mapOut = <String, dynamic>{};
 
       final relationships = localAdapter.relationshipsFor();
@@ -113,7 +113,7 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
   @protected
   String get identifierSuffix => '_id';
 
-  Map<String, Map<String, Object>> get _belongsTos =>
+  Map<String, Map<String, Object?>> get _belongsTos =>
       Map.fromEntries(localAdapter
           .relationshipsFor()
           .entries

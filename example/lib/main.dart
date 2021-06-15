@@ -10,7 +10,7 @@ import 'models/user.dart';
 // https://github.com/flutterdata/flutter_data_todos
 
 void main() async {
-  Directory _dir;
+  late final Directory _dir;
   final container = ProviderContainer(
     overrides: [
       configureRepositoryLocalStorage(
@@ -52,7 +52,7 @@ void main() async {
         .init(container.read);
 
     assert(p3.body == '3@fasd.io');
-    assert(p3.user.value.email == user2.email);
+    assert(p3.user!.value!.email == user2.email);
 
     final post = await postsRepo.findOne(1, params: {'_embed': 'comments'});
     final comments = await commentsRepo.findAll(params: {'postId': 1});
@@ -60,15 +60,16 @@ void main() async {
     assert(comments
         .map((c) => c.id)
         .toSet()
-        .difference(post.comments.toSet().map((c) => c.id).toSet())
+        .difference(post!.comments!.toSet().map((c) => c.id).toSet())
         .isEmpty);
 
     final molly = Sheep(id: 1, name: 'Molly');
     await sheepRepo.save(molly);
-    assert(await sheepRepo.findAll() == [molly]);
+    final sheep = await sheepRepo.findAll();
+    assert(sheep.first == molly);
 
-    assert(user2.name == p3.user.value.name);
-    assert(comments.first.post.value == post);
+    assert(user2.name == p3.user!.value!.name);
+    assert(comments.first.post!.value == post);
 
     print(comments.map((c) => c.body).toList());
   } finally {

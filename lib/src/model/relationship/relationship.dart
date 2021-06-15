@@ -34,7 +34,7 @@ abstract class Relationship<E extends DataModel<E>, N>
       {required final Map<String, RemoteAdapter> adapters,
       required final DataModel owner,
       required final String name,
-      required final String inverseName}) async {
+      final String? inverseName}) async {
     if (isInitialized) return this;
 
     _adapters = adapters;

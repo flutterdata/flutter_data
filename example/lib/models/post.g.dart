@@ -9,8 +9,8 @@ part of 'post.dart';
 Post _$PostFromJson(Map<String, dynamic> json) {
   return Post(
     id: json['id'] as int,
-    title: json['title'] as String,
-    body: json['body'] as String,
+    title: json['title'] as String?,
+    body: json['body'] as String?,
     comments: json['comments'] == null
         ? null
         : HasMany.fromJson(json['comments'] as Map<String, dynamic>),
@@ -36,7 +36,7 @@ Map<String, dynamic> _$PostToJson(Post instance) => <String, dynamic>{
 
 mixin $PostLocalAdapter on LocalAdapter<Post> {
   @override
-  Map<String, Map<String, Object>> relationshipsFor([Post model]) => {
+  Map<String, Map<String, Object?>> relationshipsFor([Post? model]) => {
         'comments': {
           'name': 'comments',
           'inverse': 'post',
@@ -83,7 +83,8 @@ final postsRepositoryProvider =
     Provider<Repository<Post>>((ref) => Repository<Post>(ref));
 
 final _watchPost = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<Post>, WatchArgs<Post>>((ref, args) {
+    .family<DataStateNotifier<Post?>, DataState<Post?>, WatchArgs<Post>>(
+        (ref, args) {
   return ref.read(postsRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
@@ -91,11 +92,12 @@ final _watchPost = StateNotifierProvider.autoDispose
       alsoWatch: args.alsoWatch);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<Post>> watchPost(dynamic id,
-    {bool remote,
-    Map<String, dynamic> params = const {},
-    Map<String, String> headers = const {},
-    AlsoWatch<Post> alsoWatch}) {
+AutoDisposeStateNotifierProvider<DataStateNotifier<Post?>, DataState<Post?>>
+    watchPost(dynamic id,
+        {bool? remote,
+        Map<String, dynamic>? params,
+        Map<String, String>? headers,
+        AlsoWatch<Post>? alsoWatch}) {
   return _watchPost(WatchArgs(
       id: id,
       remote: remote,
@@ -104,8 +106,10 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Post>> watchPost(dynamic id,
       alsoWatch: alsoWatch));
 }
 
-final _watchPosts = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<List<Post>>, WatchArgs<Post>>((ref, args) {
+final _watchPosts = StateNotifierProvider.autoDispose.family<
+    DataStateNotifier<List<Post>>,
+    DataState<List<Post>>,
+    WatchArgs<Post>>((ref, args) {
   ref.maintainState = false;
   return ref.read(postsRepositoryProvider).watchAll(
       remote: args.remote,
@@ -115,8 +119,12 @@ final _watchPosts = StateNotifierProvider.autoDispose
       syncLocal: args.syncLocal);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<List<Post>>> watchPosts(
-    {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+AutoDisposeStateNotifierProvider<DataStateNotifier<List<Post>>,
+        DataState<List<Post>>>
+    watchPosts(
+        {bool? remote,
+        Map<String, dynamic>? params,
+        Map<String, String>? headers}) {
   return _watchPosts(
       WatchArgs(remote: remote, params: params, headers: headers));
 }

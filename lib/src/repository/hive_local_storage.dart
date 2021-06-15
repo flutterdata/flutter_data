@@ -6,13 +6,13 @@ import 'package:path/path.dart' as path_helper;
 
 class HiveLocalStorage {
   HiveLocalStorage(
-      {required this.baseDirFn, List<int>? encryptionKey, this.clear = false})
+      {this.baseDirFn, List<int>? encryptionKey, this.clear = false})
       : encryptionCipher =
             encryptionKey != null ? HiveAesCipher(encryptionKey) : null;
 
   HiveInterface get hive => Hive;
   final HiveAesCipher? encryptionCipher;
-  final FutureOr<String> Function() baseDirFn;
+  final FutureOr<String> Function()? baseDirFn;
   final bool clear;
 
   bool isInitialized = false;
@@ -20,38 +20,37 @@ class HiveLocalStorage {
   Future<void> initialize() async {
     if (isInitialized) return;
 
-// TODO really not needed?
-//     if (baseDirFn == null) {
-//       throw UnsupportedError('''
-// A base directory path MUST be supplied to
-// the hiveLocalStorageProvider via the `baseDirFn`
-// callback.
+    if (baseDirFn == null) {
+      throw UnsupportedError('''
+A base directory path MUST be supplied to
+the hiveLocalStorageProvider via the `baseDirFn`
+callback.
 
-// In Flutter, `baseDirFn` will be supplied automatically if
-// the `path_provider` package is in `pubspec.yaml` AND
-// Flutter Data is properly configured:
+In Flutter, `baseDirFn` will be supplied automatically if
+the `path_provider` package is in `pubspec.yaml` AND
+Flutter Data is properly configured:
 
-// If using Riverpod, did you supply the override?
+If using Riverpod, did you supply the override?
 
-// Widget build(context) {
-//   return ProviderContainer(
-//     overrides: [
-//       configureRepositoryLocalStorage()
-//     ],
-//     child: MaterialApp(
+Widget build(context) {
+  return ProviderContainer(
+    overrides: [
+      configureRepositoryLocalStorage()
+    ],
+    child: MaterialApp(
 
-// If using Provider, did you include the providers?
+If using Provider, did you include the providers?
 
-// Widget build(context) {
-//   return MultiProvider(
-//     providers: [
-//       ...repositoryProviders(),
-//     ],
-//     child: MaterialApp(
-// ''');
-//     }
+Widget build(context) {
+  return MultiProvider(
+    providers: [
+      ...repositoryProviders(),
+    ],
+    child: MaterialApp(
+''');
+    }
 
-    final path = path_helper.join(await baseDirFn(), 'flutter_data');
+    final path = path_helper.join(await baseDirFn!(), 'flutter_data');
     hive.init(path);
 
     isInitialized = true;

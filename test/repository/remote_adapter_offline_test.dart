@@ -20,7 +20,7 @@ void main() async {
       throw HandshakeException('Connection terminated during handshake');
     });
 
-    final listener = Listener<DataState<List<Author>>>();
+    final listener = Listener<DataState<List<Author>>?>();
 
     // watch
     final notifier = authorRepository.watchAll(remote: true);
@@ -66,13 +66,13 @@ void main() async {
 
     // try findOne again this time without errors
     final model = await authorRepository.findOne(19, remote: true);
-    expect(model.name, equals('Author Saved'));
+    expect(model!.name, equals('Author Saved'));
     await oneMs();
     expect(familyRepository.offlineOperations, isEmpty);
   });
 
   test('save', () async {
-    final listener = Listener<DataState<List<Family>>>();
+    final listener = Listener<DataState<List<Family>>?>();
     // listening to local changes enough
     final notifier = familyRepository.watchAll(remote: false);
 
@@ -218,7 +218,7 @@ void main() async {
   });
 
   test('delete', () async {
-    final listener = Listener<DataState<List<Family>>>();
+    final listener = Listener<DataState<List<Family>>?>();
     // listening to local changes enough
     final notifier = familyRepository.watchAll(remote: false);
 
@@ -289,7 +289,7 @@ void main() async {
   });
 
   test('save & delete combined', () async {
-    final listener = Listener<DataState<List<Family>>>();
+    final listener = Listener<DataState<List<Family>>?>();
     // listening to local changes enough
     final notifier = familyRepository.watchAll(remote: false);
 
@@ -438,16 +438,20 @@ void main() async {
 
   test('operation equality', () {
     final o1 = OfflineOperation<Family>(
-        requestType: DataRequestType.findAll,
-        offlineKey: 'families',
-        request: 'GET /families',
-        headers: {'X-Header': 'chupala'});
+      requestType: DataRequestType.findAll,
+      offlineKey: 'families',
+      request: 'GET /families',
+      headers: {'X-Header': 'chupala'},
+      adapter: familyRemoteAdapter,
+    );
 
     final o2 = OfflineOperation<Family>(
-        requestType: DataRequestType.findAll,
-        offlineKey: 'families',
-        request: 'GET /families',
-        headers: {'X-Header': 'chupala'});
+      requestType: DataRequestType.findAll,
+      offlineKey: 'families',
+      request: 'GET /families',
+      headers: {'X-Header': 'chupala'},
+      adapter: familyRemoteAdapter,
+    );
 
     expect(o1, equals(o2));
     expect(o1.hash, equals(o2.hash));

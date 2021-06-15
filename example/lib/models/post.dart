@@ -12,17 +12,17 @@ part 'post.g.dart';
 class Post with DataModel<Post> {
   @override
   final int id;
-  final String title;
-  final String body;
-  final HasMany<Comment> comments;
-  final BelongsTo<User> user;
+  final String? title;
+  final String? body;
+  final HasMany<Comment>? comments;
+  final BelongsTo<User>? user;
 
   Post({
-    this.id,
-    this.title,
-    this.body,
-    HasMany<Comment> comments,
-    BelongsTo<User> user,
+    required this.id,
+    required this.title,
+    required this.body,
+    HasMany<Comment>? comments,
+    BelongsTo<User>? user,
   })  : comments = comments ?? HasMany<Comment>(),
         user = user ?? BelongsTo<User>();
 }

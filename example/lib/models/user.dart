@@ -1,4 +1,3 @@
-import 'package:meta/meta.dart';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -14,5 +13,5 @@ class User with DataModel<User> {
   final String name;
   final String email;
 
-  User({this.id, this.name, @required this.email});
+  User({required this.id, required this.name, required this.email});
 }

@@ -6,12 +6,12 @@ part 'node.g.dart';
 
 @freezed
 @DataRepository([])
-abstract class Node with DataModel<Node>, _$Node {
+class Node with DataModel<Node>, _$Node {
   Node._();
   factory Node(
-      {int id,
-      String name,
-      @DataRelationship(inverse: 'children') BelongsTo<Node> parent,
-      @DataRelationship(inverse: 'parent') HasMany<Node> children}) = _Node;
+      {int? id,
+      String? name,
+      @DataRelationship(inverse: 'children') BelongsTo<Node>? parent,
+      @DataRelationship(inverse: 'parent') HasMany<Node>? children}) = _Node;
   factory Node.fromJson(Map<String, dynamic> json) => _$NodeFromJson(json);
 }

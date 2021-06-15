@@ -20,7 +20,9 @@ void main() async {
 
     expect(family2, Family(id: '1098', surname: 'Moletto'));
     expect(
-        (familyRemoteAdapter.localAdapter as HiveLocalAdapter<Family>).box.keys,
+        (familyRemoteAdapter.localAdapter as HiveLocalAdapter<Family>)
+            .box!
+            .keys,
         [keyFor(family2)]);
   });
 
@@ -101,8 +103,8 @@ void main() async {
         familyRemoteAdapter.localAdapter.deserialize(obj).init(container.read);
 
     expect(family, Family(id: '1', surname: 'Smith'));
-    expect(family.residence.value.address, '123 Main St');
-    expect(family.persons.first.age, 21);
+    expect(family.residence!.value!.address, '123 Main St');
+    expect(family.persons!.first!.age, 21);
   });
 
   test('hive adapter typeId', () {

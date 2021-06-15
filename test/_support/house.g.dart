@@ -8,7 +8,7 @@ part of 'house.dart';
 
 House _$HouseFromJson(Map<String, dynamic> json) {
   return House(
-    id: json['id'] as String,
+    id: json['id'] as String?,
     address: json['address'] as String,
     owner: json['owner'] == null
         ? null
@@ -71,7 +71,7 @@ final housesRepositoryProvider =
     Provider<Repository<House>>((ref) => Repository<House>(ref));
 
 final _watchHouse = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<House>, WatchArgs<House>>((ref, args) {
+    .family<DataStateNotifier<House>, House, WatchArgs<House>>((ref, args) {
   return ref.read(housesRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
@@ -94,7 +94,8 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<House>> watchHouse(
 }
 
 final _watchHouses = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<List<House>>, WatchArgs<House>>((ref, args) {
+    .family<DataStateNotifier<List<House>>, List<House>, WatchArgs<House>>(
+        (ref, args) {
   ref.maintainState = false;
   return ref.read(housesRepositoryProvider).watchAll(
       remote: args.remote,

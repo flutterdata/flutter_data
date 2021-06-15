@@ -24,28 +24,28 @@ void main() async {
         persons: HasMany<Person>({person}));
 
     // values are there even if family (and its relationships) are not init'd
-    expect(family.residence.value, house);
-    expect(family.persons.toSet(), {person});
+    expect(family.residence!.value, house);
+    expect(family.persons!.toSet(), {person});
     expect(family.persons, equals(family.persons));
 
     family.init(container.read);
 
     // after init, values remain the same
-    expect(family.residence.value, house);
-    expect(family.persons.toSet(), {person});
+    expect(family.residence!.value, house);
+    expect(family.persons!.toSet(), {person});
     expect(family.persons, equals(family.persons));
 
     // relationships are now associated to a key
-    expect(family.residence.key, isNotNull);
-    expect(family.residence.key, graph.getKeyForId('houses', '31'));
-    expect(family.residence.id, '31');
-    expect(family.persons.keys.first, isNotNull);
-    expect(family.persons.keys.first, graph.getKeyForId('people', '1'));
+    expect(family.residence!.key, isNotNull);
+    expect(family.residence!.key, graph.getKeyForId('houses', '31'));
+    expect(family.residence!.id, '31');
+    expect(family.persons!.keys.first, isNotNull);
+    expect(family.persons!.keys.first, graph.getKeyForId('people', '1'));
 
     // ensure there are not more than 1 key
-    family.residence.value = house2;
-    expect(family.residence.keys, hasLength(1));
-    expect(family.residence.id, '2');
+    family.residence!.value = house2;
+    expect(family.residence!.keys, hasLength(1));
+    expect(family.residence!.id, '2');
   });
 
   test('assignment with relationship initialized & uninitialized', () {
@@ -53,12 +53,12 @@ void main() async {
         Family(id: '1', surname: 'Smith', residence: BelongsTo<House>());
     final house = House(id: '1', address: '456 Lemon Rd');
 
-    family.residence.value = house;
-    expect(family.residence.value, house);
+    family.residence!.value = house;
+    expect(family.residence!.value, house);
 
     family.init(container.read);
-    family.residence.value = house; // assigning again shouldn't affect
-    expect(family.residence.value, house);
+    family.residence!.value = house; // assigning again shouldn't affect
+    expect(family.residence!.value, house);
   });
 
   test('use fromJson constructor without initialization', () {
@@ -80,25 +80,25 @@ void main() async {
       residence: BelongsTo<House>(),
     ).init(container.read);
 
-    final notifier = family.residence.watch();
-    final listener = Listener<House>();
+    final notifier = family.residence!.watch();
+    final listener = Listener<House?>();
     dispose = notifier.addListener(listener, fireImmediately: false);
 
-    family.residence.value = House(id: '2', address: '456 Main St');
+    family.residence!.value = House(id: '2', address: '456 Main St');
     await oneMs();
 
     verify(listener(argThat(
       isA<House>().having((h) => h.address, 'address', startsWith('456')),
     ))).called(1);
 
-    family.residence.value = House(id: '1', address: '123 Main St');
+    family.residence!.value = House(id: '1', address: '123 Main St');
     await oneMs();
 
     verify(listener(argThat(
       isA<House>().having((h) => h.address, 'address', startsWith('123')),
     ))).called(1);
 
-    family.residence.value = null;
+    family.residence!.value = null;
     await oneMs();
 
     verify(listener(argThat(isNull))).called(1);
@@ -117,9 +117,9 @@ void main() async {
 
     // reusing a BelongsTo<Family> (`house.owner`) to add a person
     // adds the inverse relationship
-    expect(family.persons.length, 1);
+    expect(family.persons!.length, 1);
     Person(name: 'Junior', age: 12, family: house.owner).init(container.read);
-    expect(family.persons.length, 2);
+    expect(family.persons!.length, 2);
 
     // an empty reused relationship should not fail
     final house2 =
@@ -129,6 +129,6 @@ void main() async {
     // trying to add walter to a null family does nothing
     Person(name: 'Walter', age: 55, family: house2.owner).init(container.read);
 
-    expect(family.persons.length, 2);
+    expect(family.persons!.length, 2);
   });
 }

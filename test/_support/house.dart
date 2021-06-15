@@ -1,5 +1,4 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:meta/meta.dart';
 import 'package:flutter_data/flutter_data.dart';
 import 'family.dart';
 
@@ -9,15 +8,15 @@ part 'house.g.dart';
 @DataRepository([])
 class House with DataModel<House> {
   @override
-  final String id;
+  final String? id;
   final String address;
   @DataRelationship(inverse: 'residence')
   final BelongsTo<Family> owner;
 
   House({
     this.id,
-    @required this.address,
-    BelongsTo<Family> owner,
+    required this.address,
+    BelongsTo<Family>? owner,
   }) : owner = owner ?? BelongsTo();
 
   @override

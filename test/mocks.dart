@@ -16,7 +16,7 @@ class FakeBox<T> extends Fake implements Box<T> {
   bool isOpen = false;
 
   @override
-  T get(key, {T defaultValue}) {
+  T? get(key, {T? defaultValue}) {
     return _map[key] ?? defaultValue;
   }
 
@@ -97,7 +97,7 @@ class TestHiveLocalStorage extends HiveLocalStorage {
   HiveInterface get hive => HiveMock();
 
   @override
-  HiveAesCipher get encryptionCipher => null;
+  HiveAesCipher? get encryptionCipher => null;
 
   @override
   Future<String> Function() get baseDirFn => () async => '';
@@ -124,7 +124,7 @@ mixin TestRemoteAdapter<T extends DataModel<T>> on RemoteAdapter<T> {
   http.Client get httpClient {
     return MockClient((req) async {
       try {
-        return ref.watch(mockResponseProvider(req));
+        return ref!.watch(mockResponseProvider(req));
       } on ProviderException catch (e) {
         // unwrap provider exception
         // ignore: only_throw_errors

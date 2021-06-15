@@ -5,7 +5,7 @@ part of flutter_data;
 ///
 /// It contains private state and methods to track the model's identity.
 abstract class DataModel<T extends DataModel<T>> {
-  Object get id;
+  Object? get id;
 
   // "late" finals
   String? _key;
@@ -45,7 +45,7 @@ abstract class DataModel<T extends DataModel<T>> {
         adapters: adapters,
         owner: this,
         name: metadata.value['name'] as String,
-        inverseName: metadata.value['inverse'] as String,
+        inverseName: metadata.value['inverse'] as String?,
       );
     }
 
@@ -122,19 +122,19 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   /// with the current object/[id]
   ///
   /// **Requires this model to be initialized.**
-  Future<T?> reload({
+  Future<T> reload({
     bool remote = true,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
   }) async {
     _assertInit('reload');
-    return await remoteAdapter!.findOne(
+    return (await remoteAdapter!.findOne(
       this,
       remote: remote,
       params: params,
       headers: headers,
       init: true,
-    );
+    ))!;
   }
 
   /// Watch this model through a call equivalent to [Repository.watchOne].

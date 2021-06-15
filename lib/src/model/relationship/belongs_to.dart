@@ -66,8 +66,8 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
       {required final Map<String, RemoteAdapter> adapters,
       required final DataModel owner,
       required final String name,
-      required final String inverseName}) async {
-    if (isInitialized) {
+      final String? inverseName}) async {
+    if (isInitialized && inverseName != null) {
       addInverse(inverseName, owner);
     }
     return super.initialize(

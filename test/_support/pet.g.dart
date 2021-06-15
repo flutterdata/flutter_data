@@ -8,7 +8,7 @@ part of 'pet.dart';
 
 Dog _$DogFromJson(Map<String, dynamic> json) {
   return Dog(
-    id: json['id'] as String,
+    id: json['id'] as String?,
     name: json['name'] as String,
   );
 }
@@ -20,7 +20,7 @@ Map<String, dynamic> _$DogToJson(Dog instance) => <String, dynamic>{
 
 Cat _$CatFromJson(Map<String, dynamic> json) {
   return Cat(
-    id: json['id'] as String,
+    id: json['id'] as String?,
     meow: json['meow'] as bool,
   );
 }
@@ -71,7 +71,7 @@ final dogsRepositoryProvider =
     Provider<Repository<Dog>>((ref) => Repository<Dog>(ref));
 
 final _watchDog = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<Dog>, WatchArgs<Dog>>((ref, args) {
+    .family<DataStateNotifier<Dog>, Dog, WatchArgs<Dog>>((ref, args) {
   return ref.read(dogsRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
@@ -93,7 +93,8 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Dog>> watchDog(dynamic id,
 }
 
 final _watchDogs = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<List<Dog>>, WatchArgs<Dog>>((ref, args) {
+    .family<DataStateNotifier<List<Dog>>, List<Dog>, WatchArgs<Dog>>(
+        (ref, args) {
   ref.maintainState = false;
   return ref.read(dogsRepositoryProvider).watchAll(
       remote: args.remote,
@@ -157,7 +158,7 @@ final catsRepositoryProvider =
     Provider<Repository<Cat>>((ref) => Repository<Cat>(ref));
 
 final _watchCat = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<Cat>, WatchArgs<Cat>>((ref, args) {
+    .family<DataStateNotifier<Cat>, Cat, WatchArgs<Cat>>((ref, args) {
   return ref.read(catsRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
@@ -179,7 +180,8 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Cat>> watchCat(dynamic id,
 }
 
 final _watchCats = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<List<Cat>>, WatchArgs<Cat>>((ref, args) {
+    .family<DataStateNotifier<List<Cat>>, List<Cat>, WatchArgs<Cat>>(
+        (ref, args) {
   ref.maintainState = false;
   return ref.read(catsRepositoryProvider).watchAll(
       remote: args.remote,

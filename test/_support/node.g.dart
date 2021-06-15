@@ -8,8 +8,8 @@ part of 'node.dart';
 
 _$_Node _$_$_NodeFromJson(Map<String, dynamic> json) {
   return _$_Node(
-    id: json['id'] as int,
-    name: json['name'] as String,
+    id: json['id'] as int?,
+    name: json['name'] as String?,
     parent: json['parent'] == null
         ? null
         : BelongsTo.fromJson(json['parent'] as Map<String, dynamic>),
@@ -82,7 +82,7 @@ final nodesRepositoryProvider =
     Provider<Repository<Node>>((ref) => Repository<Node>(ref));
 
 final _watchNode = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<Node>, WatchArgs<Node>>((ref, args) {
+    .family<DataStateNotifier<Node>, Node, WatchArgs<Node>>((ref, args) {
   return ref.read(nodesRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
@@ -104,7 +104,8 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Node>> watchNode(dynamic id,
 }
 
 final _watchNodes = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<List<Node>>, WatchArgs<Node>>((ref, args) {
+    .family<DataStateNotifier<List<Node>>, List<Node>, WatchArgs<Node>>(
+        (ref, args) {
   ref.maintainState = false;
   return ref.read(nodesRepositoryProvider).watchAll(
       remote: args.remote,

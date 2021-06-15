@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 
 void main() async {
   test('hive local storage', () async {
-    Directory _dir;
+    late final Directory _dir;
 
     try {
       _dir = await Directory('tmp').create();

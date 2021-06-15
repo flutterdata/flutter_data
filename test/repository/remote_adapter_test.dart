@@ -79,7 +79,7 @@ void main() async {
     expect(await personRemoteAdapter.findOne(person.id), isNull);
 
     // and now key & id are both non-existent
-    expect(graph.getNode(keyFor(person)), isNull);
+    expect(graph.getNode(keyFor(person)!), isNull);
     expect(graph.getKeyForId('people', person.id), isNull);
   });
 
@@ -91,7 +91,7 @@ void main() async {
     expect(await adapter.hello(), 'hello');
 
     container.read(responseProvider).state =
-        TestResponse(text: (req) => req.headers['response']);
+        TestResponse(text: (req) => req.headers['response']!);
     expect(await adapter.hello(useDefaultHeaders: true),
         'not the message you sent');
 
@@ -104,7 +104,7 @@ void main() async {
 
   test('can override type', () {
     final author = Author(id: 15, name: 'Walter').init(container.read);
-    final adapter = adapterFor(author);
+    final adapter = adapterFor(author)!;
     expect(adapter.type, 'writers');
     expect(adapter.internalType, 'authors');
 

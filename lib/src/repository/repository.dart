@@ -5,13 +5,15 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   final ProviderReference _ref;
   Repository(this._ref);
 
+  var _isInit = false;
+
   String get _internalType => DataHelpers.getType<T>();
 
   final _adapters = <String, RemoteAdapter>{};
 
   /// Obtain the [RemoteAdapter] for this type.
   RemoteAdapter<T> get remoteAdapter =>
-      _adapters[_internalType] as RemoteAdapter<T>;
+      _adapters[_internalType]! as RemoteAdapter<T>;
 
   /// Type for the [RemoteAdapter]
   @nonVirtual
@@ -20,7 +22,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   /// Initializes this [Repository]. Nothing will work without this.
   /// In standard scenarios this initialization is done by the framework.
   @mustCallSuper
-  FutureOr<Repository<T>?> initialize(
+  FutureOr<Repository<T>> initialize(
       {bool remote = true,
       bool verbose = true,
       required Map<String, RemoteAdapter> adapters}) async {
@@ -28,18 +30,22 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     _adapters.addAll(adapters);
     await remoteAdapter.initialize(
         remote: remote, verbose: verbose, adapters: adapters, ref: _ref);
+    _isInit = true;
     return this;
   }
 
   /// Returns whether this [Repository] is initialized
   /// (when its underlying [RemoteAdapter] is).
   @override
-  bool get isInitialized => remoteAdapter.isInitialized;
+  bool get isInitialized => _isInit && remoteAdapter.isInitialized;
 
   /// Disposes this [Repository] and everything that depends on it.
   @override
   void dispose() {
-    remoteAdapter.dispose();
+    if (isInitialized) {
+      remoteAdapter.dispose();
+      _isInit = false;
+    }
   }
 
   // Public API
@@ -60,10 +66,10 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   ///
   /// See also: [_RemoteAdapter.urlForFindAll], [_RemoteAdapter.methodForFindAll].
   Future<List<T>> findAll({
-    bool remote = true,
+    bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    bool syncLocal = false,
+    bool? syncLocal,
     OnDataError<List<T>>? onError,
   }) {
     return remoteAdapter.findAll(
@@ -88,14 +94,14 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   /// See also: [_RemoteAdapter.urlForFindOne], [_RemoteAdapter.methodForFindOne].
   Future<T?> findOne(
     final dynamic id, {
-    bool remote = true,
+    bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     OnDataError<T>? onError,
   }) {
     return remoteAdapter.findOne(
       id,
-      remote: remote,
+      remote: remote ?? true,
       params: params,
       headers: headers,
       onError: onError,
@@ -115,7 +121,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   /// See also: [_RemoteAdapter.urlForSave], [_RemoteAdapter.methodForSave].
   Future<T> save(
     T model, {
-    bool remote = true,
+    bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     OnData<T>? onSuccess,
@@ -144,7 +150,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   /// See also: [_RemoteAdapter.urlForDelete], [_RemoteAdapter.methodForDelete].
   Future<void> delete(
     dynamic model, {
-    bool remote = true,
+    bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     OnData<void>? onSuccess,
@@ -184,18 +190,18 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   /// If [syncLocal] is set to `false` but results still need to be filtered,
   /// use [filterLocal]. All data updates will be filtered through it.
   DataStateNotifier<List<T>> watchAll({
-    bool remote = true,
+    bool? remote = true,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    bool syncLocal = false,
+    bool? syncLocal = false,
     bool Function(T)? filterLocal,
   }) {
     return remoteAdapter.watchAll(
-      remote: remote,
+      remote: remote!,
       params: params,
       headers: headers,
       filterLocal: filterLocal,
-      syncLocal: syncLocal,
+      syncLocal: syncLocal!,
     );
   }
 
@@ -212,7 +218,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   /// When called, will in turn call [findAll] with [remote], [params], [headers].
   DataStateNotifier<T?> watchOne(
     dynamic id, {
-    bool remote = true,
+    bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     AlsoWatch<T>? alsoWatch,

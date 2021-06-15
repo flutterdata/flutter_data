@@ -11,7 +11,7 @@ import 'package:jsonplaceholder_example/models/post.dart';
 import 'package:jsonplaceholder_example/models/user.dart';
 
 // ignore: prefer_function_declarations_over_variables
-ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<String> baseDirFn, List<int> encryptionKey, bool clear}) {
+ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<String>? baseDirFn, List<int>? encryptionKey, bool clear = false}) {
   // ignore: unnecessary_statements
   baseDirFn;
   return hiveLocalStorageProvider.overrideWithProvider(Provider(
@@ -20,7 +20,7 @@ ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<Str
 
 // ignore: prefer_function_declarations_over_variables
 RepositoryInitializerProvider repositoryInitializerProvider = (
-        {bool remote, bool verbose}) {
+        {bool? remote, bool verbose = false}) {
   return _repositoryInitializerProviderFamily(
       RepositoryInitializerArgs(remote, verbose));
 };
@@ -40,11 +40,11 @@ final _repositoryInitializerProviderFamily =
     await ref.read(graphNotifierProvider).initialize();
 
     for (final key in repositoryProviders.keys) {
-      final repository = ref.read(repositoryProviders[key]);
+      final repository = ref.read(repositoryProviders[key]!);
       repository.dispose();
       await repository.initialize(
-        remote: args?.remote ?? remotes[key],
-        verbose: args?.verbose,
+        remote: args.remote ?? remotes[key]!,
+        verbose: args.verbose,
         adapters: adapters,
       );
     }

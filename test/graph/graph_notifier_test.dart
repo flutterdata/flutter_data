@@ -18,15 +18,15 @@ void main() async {
     expect(graph.getNode('b1'), isNull);
   });
 
-  test('assertions', () {
-    expect(() => graph.addNode(null), throwsA(isA<AssertionError>()));
-    expect(() => graph.getNode(null), throwsA(isA<AssertionError>()));
-    expect(() => graph.removeNode(null), throwsA(isA<AssertionError>()));
-    expect(() => graph.addEdges('a:b', tos: null, metadata: 'c:d'),
-        throwsA(isA<AssertionError>()));
-    expect(() => graph.removeEdges(null, metadata: 'c:d'),
-        throwsA(isA<AssertionError>()));
-  });
+  // test('assertions', () {
+  //   expect(() => graph.addNode(null), throwsA(isA<AssertionError>()));
+  //   expect(() => graph.getNode(null), throwsA(isA<AssertionError>()));
+  //   expect(() => graph.removeNode(null), throwsA(isA<AssertionError>()));
+  //   expect(() => graph.addEdges('a:b', tos: null, metadata: 'c:d'),
+  //       throwsA(isA<AssertionError>()));
+  //   expect(() => graph.removeEdges(null, metadata: 'c:d'),
+  //       throwsA(isA<AssertionError>()));
+  // });
 
   test('add/remove edges with metadata', () {
     graph.addNodes(['h1', 'b1', 'b2']);
@@ -74,19 +74,19 @@ void main() async {
 
   test('does not associate a key when id is null', () {
     var key = graph.getKeyForId('people', null,
-        keyIfAbsent: DataHelpers.generateKey<Person>());
-    expect(key, isNotNull);
+        keyIfAbsent: DataHelpers.generateKey<Person>())!;
     expect(graph.getIdForKey(key), isNull);
   });
 
   test('reuses a provided key', () {
-    final key = graph.getKeyForId('people', '29', keyIfAbsent: 'people#78a92b');
+    final key =
+        graph.getKeyForId('people', '29', keyIfAbsent: 'people#78a92b')!;
     expect(key, 'people#78a92b');
     expect(graph.getIdForKey(key), '29');
   });
 
   test('reassign a key', () {
-    final key = graph.getKeyForId('people', '1', keyIfAbsent: 'people#a5a5a5');
+    final key = graph.getKeyForId('people', '1', keyIfAbsent: 'people#a5a5a5')!;
     expect(key, 'people#a5a5a5');
 
     graph.getKeyForId('people', '2', keyIfAbsent: 'people#a5a5a5');
@@ -163,13 +163,13 @@ void main() async {
 
       // add some people
       if (i % div == 0) {
-        family.persons
+        family.persons!
             .add(Person(name: 'new kid #$i', age: i).init(container.read));
       }
 
       // remove some residence relationships
       if (Random().nextBool()) {
-        family.residence.value = null;
+        family.residence!.value = null;
       }
 
       await family.save();
@@ -240,7 +240,7 @@ void main() async {
     expect(graph.getEdge('test:a', metadata: 'test:m2'), equals(['test:c']));
 
     // ignore: invalid_use_of_protected_member
-    await graph.box.close();
+    await graph.box!.close();
 
     // ignore: invalid_use_of_protected_member
     await container.read(hiveLocalStorageProvider).hive.openBox('_graph');

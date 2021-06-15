@@ -239,19 +239,20 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @protected
   @visibleForTesting
   Future<List<T>> findAll({
-    required bool remote,
+    bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    required bool syncLocal,
+    bool? syncLocal,
     bool Function(T)? filterLocal,
-    required bool init,
+    bool? init,
     OnData<List<T>>? onSuccess,
     OnDataError<List<T>>? onError,
   }) async {
     _assertInit();
-    // overwrite remote if set globally
-    remote = _remote ?? remote;
-
+    // global _remote takes precedence
+    remote = _remote ?? remote ?? true;
+    syncLocal ??= false;
+    init ??= false;
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
     filterLocal ??= (_) => true;
@@ -272,10 +273,10 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       requestType: DataRequestType.findAll,
       key: internalType,
       onSuccess: (data) async {
-        if (syncLocal) {
+        if (syncLocal!) {
           await localAdapter.clear();
         }
-        final models = deserialize(data, init: init)
+        final models = deserialize(data, init: init!)
             .models
             .where(filterLocal!)
             .toImmutableList();
@@ -290,17 +291,18 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @visibleForTesting
   Future<T?> findOne(
     final dynamic model, {
-    required bool remote,
+    bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    bool init = false,
+    bool? init,
     OnData<T>? onSuccess,
     OnDataError<T>? onError,
   }) async {
     _assertInit();
     assert(model != null);
-    // overwrite remote if set globally
-    remote = _remote ?? remote;
+    // global _remote takes precedence
+    remote = _remote ?? remote ?? true;
+    init ??= false;
 
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
@@ -328,7 +330,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       key: StringUtils.typify(internalType, id),
       onSuccess: (data) {
         final model =
-            deserialize(data as Map<String, dynamic>, init: init).model;
+            deserialize(data as Map<String, dynamic>, init: init!).model;
         return onSuccess?.call(model) ?? model;
       },
       onError: onError,
@@ -339,16 +341,17 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @visibleForTesting
   Future<T> save(
     T model, {
-    required bool remote,
+    bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     OnData<T>? onSuccess,
     OnDataError<T>? onError,
-    bool init = false,
+    bool? init,
   }) async {
     _assertInit();
-    // overwrite remote if set globally
-    remote = _remote ?? remote;
+    // global _remote takes precedence
+    remote = _remote ?? remote ?? true;
+    init ??= false;
 
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
@@ -374,7 +377,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
         T _model;
         if (data == null) {
           // return "old" model if response was empty
-          if (init) {
+          if (init!) {
             model._initialize(adapters!, save: true);
           }
           _model = model;
@@ -382,7 +385,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
           // deserialize already inits models
           // if model had a key already, reuse it
           final _newModel = deserialize(data as Map<String, dynamic>,
-                  key: model._key!, init: init)
+                  key: model._key!, init: init!)
               .model;
 
           // in the unlikely case where supplied key couldn't be used
@@ -404,15 +407,15 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @visibleForTesting
   Future<void> delete(
     dynamic model, {
-    required bool remote,
+    bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     OnData<void>? onSuccess,
     OnDataError<void>? onError,
   }) async {
     _assertInit();
-    // overwrite remote if set globally
-    remote = _remote ?? remote;
+    // global _remote takes precedence
+    remote = _remote ?? remote ?? true;
 
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
@@ -570,8 +573,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   /// Optionally provide [key]. Use [save] to persist in local storage.
   @protected
   @visibleForTesting
-  T? initializeModel(T? model, {String? key, bool save = false}) {
-    return model?._initialize(adapters!, key: key, save: save);
+  T initializeModel(T model, {String? key, bool save = false}) {
+    return model._initialize(adapters!, key: key, save: save);
   }
 
   String _resolveId(dynamic model) {
