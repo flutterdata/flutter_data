@@ -30,7 +30,7 @@ Map<String, dynamic> _$HouseToJson(House instance) => <String, dynamic>{
 
 mixin $HouseLocalAdapter on LocalAdapter<House> {
   @override
-  Map<String, Map<String, Object>> relationshipsFor([House model]) => {
+  Map<String, Map<String, Object?>> relationshipsFor([House? model]) => {
         'owner': {
           'name': 'owner',
           'inverse': 'residence',
@@ -71,7 +71,8 @@ final housesRepositoryProvider =
     Provider<Repository<House>>((ref) => Repository<House>(ref));
 
 final _watchHouse = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<House>, House, WatchArgs<House>>((ref, args) {
+    .family<DataStateNotifier<House?>, DataState<House?>, WatchArgs<House>>(
+        (ref, args) {
   return ref.read(housesRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
@@ -79,12 +80,12 @@ final _watchHouse = StateNotifierProvider.autoDispose
       alsoWatch: args.alsoWatch);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<House>> watchHouse(
-    dynamic id,
-    {bool remote,
-    Map<String, dynamic> params = const {},
-    Map<String, String> headers = const {},
-    AlsoWatch<House> alsoWatch}) {
+AutoDisposeStateNotifierProvider<DataStateNotifier<House?>, DataState<House?>>
+    watchHouse(dynamic id,
+        {bool? remote,
+        Map<String, dynamic>? params,
+        Map<String, String>? headers,
+        AlsoWatch<House>? alsoWatch}) {
   return _watchHouse(WatchArgs(
       id: id,
       remote: remote,
@@ -93,9 +94,10 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<House>> watchHouse(
       alsoWatch: alsoWatch));
 }
 
-final _watchHouses = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<List<House>>, List<House>, WatchArgs<House>>(
-        (ref, args) {
+final _watchHouses = StateNotifierProvider.autoDispose.family<
+    DataStateNotifier<List<House>>,
+    DataState<List<House>>,
+    WatchArgs<House>>((ref, args) {
   ref.maintainState = false;
   return ref.read(housesRepositoryProvider).watchAll(
       remote: args.remote,
@@ -105,8 +107,12 @@ final _watchHouses = StateNotifierProvider.autoDispose
       syncLocal: args.syncLocal);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<List<House>>> watchHouses(
-    {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+AutoDisposeStateNotifierProvider<DataStateNotifier<List<House>>,
+        DataState<List<House>>>
+    watchHouses(
+        {bool? remote,
+        Map<String, dynamic>? params,
+        Map<String, String>? headers}) {
   return _watchHouses(
       WatchArgs(remote: remote, params: params, headers: headers));
 }

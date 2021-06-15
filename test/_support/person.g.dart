@@ -10,7 +10,7 @@ part of 'person.dart';
 
 mixin $PersonLocalAdapter on LocalAdapter<Person> {
   @override
-  Map<String, Map<String, Object>> relationshipsFor([Person model]) => {
+  Map<String, Map<String, Object?>> relationshipsFor([Person? model]) => {
         'family': {
           'name': 'family',
           'inverse': 'persons',
@@ -56,7 +56,8 @@ final peopleRepositoryProvider =
     Provider<Repository<Person>>((ref) => Repository<Person>(ref));
 
 final _watchPerson = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<Person>, Person, WatchArgs<Person>>((ref, args) {
+    .family<DataStateNotifier<Person?>, DataState<Person?>, WatchArgs<Person>>(
+        (ref, args) {
   return ref.read(peopleRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
@@ -64,12 +65,12 @@ final _watchPerson = StateNotifierProvider.autoDispose
       alsoWatch: args.alsoWatch);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<Person>> watchPerson(
-    dynamic id,
-    {bool remote,
-    Map<String, dynamic> params = const {},
-    Map<String, String> headers = const {},
-    AlsoWatch<Person> alsoWatch}) {
+AutoDisposeStateNotifierProvider<DataStateNotifier<Person?>, DataState<Person?>>
+    watchPerson(dynamic id,
+        {bool? remote,
+        Map<String, dynamic>? params,
+        Map<String, String>? headers,
+        AlsoWatch<Person>? alsoWatch}) {
   return _watchPerson(WatchArgs(
       id: id,
       remote: remote,
@@ -78,9 +79,10 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Person>> watchPerson(
       alsoWatch: alsoWatch));
 }
 
-final _watchPeople = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<List<Person>>, List<Person>, WatchArgs<Person>>(
-        (ref, args) {
+final _watchPeople = StateNotifierProvider.autoDispose.family<
+    DataStateNotifier<List<Person>>,
+    DataState<List<Person>>,
+    WatchArgs<Person>>((ref, args) {
   ref.maintainState = false;
   return ref.read(peopleRepositoryProvider).watchAll(
       remote: args.remote,
@@ -90,8 +92,12 @@ final _watchPeople = StateNotifierProvider.autoDispose
       syncLocal: args.syncLocal);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<List<Person>>> watchPeople(
-    {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+AutoDisposeStateNotifierProvider<DataStateNotifier<List<Person>>,
+        DataState<List<Person>>>
+    watchPeople(
+        {bool? remote,
+        Map<String, dynamic>? params,
+        Map<String, String>? headers}) {
   return _watchPeople(
       WatchArgs(remote: remote, params: params, headers: headers));
 }

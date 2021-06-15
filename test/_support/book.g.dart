@@ -46,7 +46,7 @@ Map<String, dynamic> _$_$_BookToJson(_$_Book instance) => <String, dynamic>{
 
 mixin $AuthorLocalAdapter on LocalAdapter<Author> {
   @override
-  Map<String, Map<String, Object>> relationshipsFor([Author model]) => {
+  Map<String, Map<String, Object?>> relationshipsFor([Author? model]) => {
         'books': {
           'name': 'books',
           'inverse': 'author',
@@ -88,7 +88,8 @@ final authorsRepositoryProvider =
     Provider<Repository<Author>>((ref) => Repository<Author>(ref));
 
 final _watchAuthor = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<Author>, Author, WatchArgs<Author>>((ref, args) {
+    .family<DataStateNotifier<Author?>, DataState<Author?>, WatchArgs<Author>>(
+        (ref, args) {
   return ref.read(authorsRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
@@ -96,12 +97,12 @@ final _watchAuthor = StateNotifierProvider.autoDispose
       alsoWatch: args.alsoWatch);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<Author>> watchAuthor(
-    dynamic id,
-    {bool remote,
-    Map<String, dynamic> params = const {},
-    Map<String, String> headers = const {},
-    AlsoWatch<Author> alsoWatch}) {
+AutoDisposeStateNotifierProvider<DataStateNotifier<Author?>, DataState<Author?>>
+    watchAuthor(dynamic id,
+        {bool? remote,
+        Map<String, dynamic>? params,
+        Map<String, String>? headers,
+        AlsoWatch<Author>? alsoWatch}) {
   return _watchAuthor(WatchArgs(
       id: id,
       remote: remote,
@@ -110,9 +111,10 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Author>> watchAuthor(
       alsoWatch: alsoWatch));
 }
 
-final _watchAuthors = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<List<Author>>, List<Author>, WatchArgs<Author>>(
-        (ref, args) {
+final _watchAuthors = StateNotifierProvider.autoDispose.family<
+    DataStateNotifier<List<Author>>,
+    DataState<List<Author>>,
+    WatchArgs<Author>>((ref, args) {
   ref.maintainState = false;
   return ref.read(authorsRepositoryProvider).watchAll(
       remote: args.remote,
@@ -122,8 +124,12 @@ final _watchAuthors = StateNotifierProvider.autoDispose
       syncLocal: args.syncLocal);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<List<Author>>> watchAuthors(
-    {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+AutoDisposeStateNotifierProvider<DataStateNotifier<List<Author>>,
+        DataState<List<Author>>>
+    watchAuthors(
+        {bool? remote,
+        Map<String, dynamic>? params,
+        Map<String, String>? headers}) {
   return _watchAuthors(
       WatchArgs(remote: remote, params: params, headers: headers));
 }
@@ -143,7 +149,7 @@ extension AuthorX on Author {
 
 mixin $BookLocalAdapter on LocalAdapter<Book> {
   @override
-  Map<String, Map<String, Object>> relationshipsFor([Book model]) => {
+  Map<String, Map<String, Object?>> relationshipsFor([Book? model]) => {
         'author': {
           'name': 'author',
           'inverse': 'books',
@@ -184,7 +190,8 @@ final booksRepositoryProvider =
     Provider<Repository<Book>>((ref) => Repository<Book>(ref));
 
 final _watchBook = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<Book>, Book, WatchArgs<Book>>((ref, args) {
+    .family<DataStateNotifier<Book?>, DataState<Book?>, WatchArgs<Book>>(
+        (ref, args) {
   return ref.read(booksRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
@@ -192,11 +199,12 @@ final _watchBook = StateNotifierProvider.autoDispose
       alsoWatch: args.alsoWatch);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<Book>> watchBook(dynamic id,
-    {bool remote,
-    Map<String, dynamic> params = const {},
-    Map<String, String> headers = const {},
-    AlsoWatch<Book> alsoWatch}) {
+AutoDisposeStateNotifierProvider<DataStateNotifier<Book?>, DataState<Book?>>
+    watchBook(dynamic id,
+        {bool? remote,
+        Map<String, dynamic>? params,
+        Map<String, String>? headers,
+        AlsoWatch<Book>? alsoWatch}) {
   return _watchBook(WatchArgs(
       id: id,
       remote: remote,
@@ -205,9 +213,10 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Book>> watchBook(dynamic id,
       alsoWatch: alsoWatch));
 }
 
-final _watchBooks = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<List<Book>>, List<Book>, WatchArgs<Book>>(
-        (ref, args) {
+final _watchBooks = StateNotifierProvider.autoDispose.family<
+    DataStateNotifier<List<Book>>,
+    DataState<List<Book>>,
+    WatchArgs<Book>>((ref, args) {
   ref.maintainState = false;
   return ref.read(booksRepositoryProvider).watchAll(
       remote: args.remote,
@@ -217,8 +226,12 @@ final _watchBooks = StateNotifierProvider.autoDispose
       syncLocal: args.syncLocal);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<List<Book>>> watchBooks(
-    {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
+AutoDisposeStateNotifierProvider<DataStateNotifier<List<Book>>,
+        DataState<List<Book>>>
+    watchBooks(
+        {bool? remote,
+        Map<String, dynamic>? params,
+        Map<String, String>? headers}) {
   return _watchBooks(
       WatchArgs(remote: remote, params: params, headers: headers));
 }
