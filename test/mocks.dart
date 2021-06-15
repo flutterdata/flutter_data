@@ -13,7 +13,7 @@ class FakeBox<T> extends Fake implements Box<T> {
   final _map = <dynamic, T>{};
 
   @override
-  bool isOpen = false;
+  bool isOpen = true;
 
   @override
   T? get(key, {T? defaultValue}) {
@@ -84,8 +84,8 @@ mixin TestMetaBox on GraphNotifier {
   @override
   // ignore: must_call_super
   Future<GraphNotifier> initialize() async {
-    await super.initialize();
     box = FakeBox<Map>();
+    await super.initialize();
     return this;
   }
 }
@@ -107,8 +107,8 @@ mixin TestHiveLocalAdapter<T extends DataModel<T>> on HiveLocalAdapter<T> {
   @override
   // ignore: must_call_super
   Future<TestHiveLocalAdapter<T>> initialize() async {
-    await super.initialize();
     box = FakeBox<T>();
+    await super.initialize();
     return this;
   }
 }
