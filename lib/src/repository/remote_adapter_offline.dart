@@ -87,7 +87,7 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
             case DataRequestType.save:
               // call without type (ie 3 not users#3)
               return findOne(key!.detypify(), remote: false, init: true)
-                  as Future<R>;
+                  as Future<R?>;
             default:
               return null;
           }

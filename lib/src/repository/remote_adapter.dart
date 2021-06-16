@@ -249,8 +249,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     OnDataError<List<T>>? onError,
   }) async {
     _assertInit();
-    // global _remote takes precedence
-    remote = _remote ?? remote ?? true;
+    remote ??= _remote ?? true;
     syncLocal ??= false;
     init ??= false;
     params = await defaultParams & params;
@@ -284,7 +283,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       },
       onError: onError,
     );
-    return result!;
+    return result ?? [];
   }
 
   @protected
@@ -295,13 +294,12 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     bool? init,
-    OnData<T>? onSuccess,
-    OnDataError<T>? onError,
+    OnData<T?>? onSuccess,
+    OnDataError<T?>? onError,
   }) async {
     _assertInit();
     assert(model != null);
-    // global _remote takes precedence
-    remote = _remote ?? remote ?? true;
+    remote ??= _remote ?? true;
     init ??= false;
 
     params = await defaultParams & params;
@@ -329,8 +327,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       requestType: DataRequestType.findOne,
       key: StringUtils.typify(internalType, id),
       onSuccess: (data) {
-        final model =
-            deserialize(data as Map<String, dynamic>, init: init!).model;
+        final model = data != null
+            ? deserialize(data as Map<String, dynamic>, init: init!).model
+            : null;
         return onSuccess?.call(model) ?? model;
       },
       onError: onError,
@@ -349,8 +348,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     bool? init,
   }) async {
     _assertInit();
-    // global _remote takes precedence
-    remote = _remote ?? remote ?? true;
+    remote ??= _remote ?? true;
     init ??= false;
 
     params = await defaultParams & params;
@@ -400,7 +398,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       },
       onError: onError,
     );
-    return result!;
+    return result ?? model;
   }
 
   @protected
@@ -414,8 +412,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     OnDataError<void>? onError,
   }) async {
     _assertInit();
-    // global _remote takes precedence
-    remote = _remote ?? remote ?? true;
+    remote ??= _remote ?? true;
 
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
