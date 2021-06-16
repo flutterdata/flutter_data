@@ -1,7 +1,7 @@
 import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
-import '_support/person.dart';
+import '../_support/person.dart';
 
 void main() async {
   test('getType', () {

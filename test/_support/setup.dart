@@ -130,7 +130,8 @@ class TestResponse {
   }
 }
 
-final responseProvider = StateProvider<TestResponse?>((_) => null);
+final responseProvider =
+    StateProvider<TestResponse>((_) => TestResponse.text(''));
 
 ProviderContainer createContainer() {
   // when testing in Flutter use ProviderScope
@@ -139,7 +140,7 @@ ProviderContainer createContainer() {
       // app-specific
       mockResponseProvider.overrideWithProvider((ref, req) {
         final response = ref.read(responseProvider).state;
-        final text = response!.text(req);
+        final text = response.text(req);
         return http.Response(text, response.statusCode);
       }),
 

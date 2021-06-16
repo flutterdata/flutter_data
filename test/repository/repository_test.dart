@@ -95,7 +95,7 @@ void main() async {
   test('findOne with empty response', () async {
     container.read(responseProvider).state = TestResponse.text('');
     final family = await familyRepository.findOne('1', remote: true);
-    expect(family, null);
+    expect(family, isNull);
   });
 
   test('findOne with includes', () async {
