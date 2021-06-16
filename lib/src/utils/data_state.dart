@@ -56,17 +56,18 @@ class DataStateNotifier<T> extends StateNotifier<DataState<T>> {
   DataState<T> get data => super.state;
 
   void updateWith({
-    T? model,
+    Object? model = stamp,
     bool? isLoading,
-    DataException? exception,
-    StackTrace? stackTrace,
+    Object? exception,
+    Object? stackTrace,
   }) {
-    // TODO complete experiment
     super.state = DataState<T>(
-      model == (model != null) ? state.model : model!,
-      isLoading: (isLoading != null) ? state.isLoading : isLoading!,
-      exception: (exception != null) ? state.exception : exception,
-      stackTrace: (stackTrace != null) ? state.stackTrace : stackTrace,
+      model == stamp ? state.model : model as T,
+      isLoading: isLoading ?? state.isLoading,
+      exception:
+          exception == stamp ? state.exception : exception as DataException?,
+      stackTrace:
+          stackTrace == stamp ? state.stackTrace : stackTrace as StackTrace?,
     );
   }
 
@@ -94,3 +95,9 @@ class DataStateNotifier<T> extends StateNotifier<DataState<T>> {
     }
   }
 }
+
+class _Stamp {
+  const _Stamp();
+}
+
+const stamp = _Stamp();
