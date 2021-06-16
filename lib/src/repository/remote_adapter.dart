@@ -200,7 +200,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   /// [key] can be used to supply a specific `key` when deserializing ONE model.
   @protected
   @visibleForTesting
-  DeserializedData<T, DataModel> deserialize(dynamic data,
+  DeserializedData<T, DataModel> deserialize(Object data,
       {String key, bool init});
 
   /// Returns a serialized version of a model of [T],
@@ -275,15 +275,17 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
         if (syncLocal!) {
           await localAdapter.clear();
         }
-        final models = deserialize(data, init: init!)
-            .models
-            .where(filterLocal!)
-            .toImmutableList();
+        final models = data != null
+            ? deserialize(data as Object, init: init!)
+                .models
+                .where(filterLocal!)
+                .toImmutableList()
+            : <T>[];
         return onSuccess?.call(models) ?? models;
       },
       onError: onError,
     );
-    return result ?? [];
+    return result ?? <T>[];
   }
 
   @protected
@@ -384,7 +386,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
           // if model had a key already, reuse it
           final _newModel = deserialize(data as Map<String, dynamic>,
                   key: model._key!, init: init!)
-              .model;
+              .model!;
 
           // in the unlikely case where supplied key couldn't be used
           // ensure "old" copy of model carries the updated key
@@ -493,7 +495,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     bool omitDefaultParams = false,
   }) async {
     // callbacks
-    onError ??= this.onError as OnDataError<R>; // TODO check
+    onError ??= this.onError as OnDataError<R>;
 
     headers ??= await defaultHeaders;
     final _params =
@@ -591,7 +593,7 @@ class DeserializedData<T, I> {
   const DeserializedData(this.models, {this.included = const []});
   final List<T> models;
   final List<I> included;
-  T get model => models.single;
+  T? get model => models.singleOrNull;
 }
 
 // ignore: constant_identifier_names

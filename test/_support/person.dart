@@ -25,9 +25,9 @@ class Person with DataModel<Person> {
   // testing without jsonserializable
   // also, simulates a @JsonKey(name: '_id) on `id`
   factory Person.fromJson(Map<String, dynamic> json) => Person(
-        id: json['_id'] as String,
+        id: json['_id'] as String?,
         name: json['name'] as String,
-        age: json['age'] as int,
+        age: json['age'] as int?,
         family: json['family'] == null
             ? null
             : BelongsTo.fromJson(json['family'] as Map<String, dynamic>),

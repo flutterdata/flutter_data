@@ -40,7 +40,7 @@ void main() async {
   test('findOne with includes', () async {
     final data = familyRemoteAdapter.deserialize(json.decode('''
       { "id": "1", "surname": "Smith", "persons": [{"_id": "1", "name": "Stan", "age": 31}] }
-    '''));
+    ''') as Object);
     expect(data.model, Family(id: '1', surname: 'Smith'));
     expect(data.included, [Person(id: '1', name: 'Stan', age: 31)]);
   });

@@ -217,7 +217,7 @@ void main() async {
     // new family comes in from API (simulate) with no persons relationship info
     final family3 = familyRemoteAdapter
         .deserialize({'id': '229', 'surname': 'Rose'})
-        .model
+        .model!
         .init(container.read);
     // it should keep the relationships unaltered
     expect(family3.persons!.length, 1);
@@ -225,7 +225,7 @@ void main() async {
     // new family comes in from API (simulate) with empty persons relationship
     final family4 = familyRemoteAdapter
         .deserialize({'id': '229', 'surname': 'Rose', 'persons': []})
-        .model
+        .model!
         .init(container.read);
     // it should keep the relationships unaltered
     expect(family4.persons!.length, 0);

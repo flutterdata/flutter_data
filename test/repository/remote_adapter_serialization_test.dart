@@ -82,7 +82,7 @@ void main() async {
   test('deserialize with BelongsTo id', () {
     final p = personRemoteAdapter.deserialize([
       {'_id': '1', 'name': 'Na', 'age': 88, 'family_id': null}
-    ], init: true).model;
+    ], init: true).model!;
 
     Family(id: '1', surname: 'Kong').init(container.read);
 
@@ -90,7 +90,7 @@ void main() async {
 
     final p1 = personRemoteAdapter.deserialize([
       {'_id': '27', 'name': 'Ko', 'age': 24, 'family_id': '332'}
-    ], init: true).model;
+    ], init: true).model!;
 
     Family(id: '332', surname: 'Tao').init(container.read);
 
@@ -114,7 +114,7 @@ void main() async {
         'surname': 'Ko',
         'persons': ['1', null, '2']
       }
-    ], init: true).model;
+    ], init: true).model!;
 
     expect(
         f.persons!.keys,
@@ -142,7 +142,7 @@ void main() async {
       ],
     );
 
-    final f1 = data.model;
+    final f1 = data.model!;
     final f2 = Family(id: '1', surname: 'Byrde');
 
     expect(f1, f2);

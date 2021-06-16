@@ -26,7 +26,7 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
   }
 
   @override
-  DeserializedData<T, DataModel> deserialize(dynamic data,
+  DeserializedData<T, DataModel> deserialize(Object? data,
       {String? key, bool init = false}) {
     final result = DeserializedData<T, DataModel>([], included: []);
 
@@ -37,62 +37,63 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
         result.included
           ..add(data.model as DataModel<DataModel>)
           ..addAll(data.included);
-        return data.model.id;
+        return data.model!.id;
       }
       return id;
     }
 
     if (data == null || data == '') {
-      // result.models.add(null); // TODO WTF was this?
       return result;
     }
     if (data is Map) {
       data = [data];
     }
 
-    for (final mapIn in <Map>[...data]) {
-      final mapOut = <String, dynamic>{};
+    if (data is Iterable) {
+      for (final mapIn in data) {
+        final mapOut = <String, dynamic>{};
 
-      final relationships = localAdapter.relationshipsFor();
+        final relationships = localAdapter.relationshipsFor();
 
-      for (final mapInKey in mapIn.keys) {
-        final mapOutKey = fieldForKey(mapInKey.toString());
-        final metadata = relationships[mapOutKey];
+        for (final mapInKey in mapIn.keys) {
+          final mapOutKey = fieldForKey(mapInKey.toString());
+          final metadata = relationships[mapOutKey];
 
-        if (metadata != null) {
-          final _type = metadata['type'] as String;
+          if (metadata != null) {
+            final _type = metadata['type'] as String;
 
-          if (metadata['kind'] == 'BelongsTo') {
-            final id = addIncluded(mapIn[mapInKey], adapters![_type]);
-            mapOut[mapOutKey] = id == null
-                ? null
-                : graph.getKeyForId(_type, id,
-                    keyIfAbsent: DataHelpers.generateKey(_type));
+            if (metadata['kind'] == 'BelongsTo') {
+              final id = addIncluded(mapIn[mapInKey], adapters![_type]);
+              mapOut[mapOutKey] = id == null
+                  ? null
+                  : graph.getKeyForId(_type, id,
+                      keyIfAbsent: DataHelpers.generateKey(_type));
+            }
+
+            if (metadata['kind'] == 'HasMany') {
+              mapOut[mapOutKey] = (mapIn[mapInKey] as Iterable)
+                  .map((id) {
+                    id = addIncluded(id, adapters![_type]);
+                    return id == null
+                        ? null
+                        : graph.getKeyForId(_type, id,
+                            keyIfAbsent: DataHelpers.generateKey(_type));
+                  })
+                  .filterNulls
+                  .toImmutableList();
+            }
+          } else {
+            // regular field mapping
+            mapOut[mapOutKey] = mapIn[mapInKey];
           }
-
-          if (metadata['kind'] == 'HasMany') {
-            mapOut[mapOutKey] = (mapIn[mapInKey] as Iterable)
-                .map((id) {
-                  id = addIncluded(id, adapters![_type]);
-                  return id == null
-                      ? null
-                      : graph.getKeyForId(_type, id,
-                          keyIfAbsent: DataHelpers.generateKey(_type));
-                })
-                .filterNulls
-                .toImmutableList();
-          }
-        } else {
-          // regular field mapping
-          mapOut[mapOutKey] = mapIn[mapInKey];
         }
-      }
 
-      final model = localAdapter.deserialize(mapOut);
-      if (init) {
-        model._initialize(adapters!, key: key, save: true);
+        final model = localAdapter.deserialize(mapOut);
+        if (init) {
+          model._initialize(adapters!, key: key, save: true);
+        }
+        result.models.add(model);
       }
-      result.models.add(model);
     }
 
     return result;

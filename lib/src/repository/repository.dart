@@ -193,7 +193,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     bool? remote = true,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    bool? syncLocal = false,
+    bool? syncLocal,
     bool Function(T)? filterLocal,
   }) {
     return remoteAdapter.watchAll(
@@ -201,7 +201,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
       params: params,
       headers: headers,
       filterLocal: filterLocal,
-      syncLocal: syncLocal!,
+      syncLocal: syncLocal,
     );
   }
 
