@@ -231,20 +231,4 @@ void main() async {
         DataGraphEvent(keys: ['a', 'b'], type: DataGraphEventType.addEdge);
     expect(event.toString(), '[GraphEvent] DataGraphEventType.addEdge: [a, b]');
   });
-
-  test('nodes/edges should be persistent', () async {
-    graph.addNode('test:a');
-    graph.addEdge('test:a', 'test:b', metadata: 'test:m1');
-    graph.addEdge('test:a', 'test:c', metadata: 'test:m2');
-    expect(graph.getEdge('test:a', metadata: 'test:m1'), equals(['test:b']));
-    expect(graph.getEdge('test:a', metadata: 'test:m2'), equals(['test:c']));
-
-    // ignore: invalid_use_of_protected_member
-    await graph.box!.close();
-
-    // ignore: invalid_use_of_protected_member
-    await container.read(hiveLocalStorageProvider).hive.openBox('_graph');
-    expect(graph.getEdge('test:a', metadata: 'test:m1'), equals(['test:b']));
-    expect(graph.getEdge('test:a', metadata: 'test:m2'), equals(['test:c']));
-  });
 }

@@ -112,7 +112,7 @@ void main() async {
     final a1b = familyRemoteAdapter.localAdapter as HiveLocalAdapter<Family>;
     final a2 = houseRemoteAdapter.localAdapter as HiveLocalAdapter<House>;
     final a3 = personRemoteAdapter.localAdapter as HiveLocalAdapter<Person>;
-    expect(
-        [a1, a1b, a2, a3].map((a) => a.typeId), unorderedEquals([1, 1, 2, 3]));
+    expect(<HiveLocalAdapter<DataModel>>[a1, a1b, a2, a3].map((a) => a.typeId),
+        unorderedEquals([1, 1, 2, 3]));
   });
 }

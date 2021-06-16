@@ -63,7 +63,9 @@ class FakeBox<T> extends Fake implements Box<T> {
   }
 
   @override
-  Future<void> close() => Future.value();
+  Future<void> close() async {
+    isOpen = false;
+  }
 }
 
 class HiveMock extends Mock implements HiveInterface {

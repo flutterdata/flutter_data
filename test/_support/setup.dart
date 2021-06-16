@@ -30,7 +30,7 @@ late Repository<Node> nodeRepository;
 late Repository<Author> authorRepository;
 late Repository<Book> bookRepository;
 
-late Function dispose;
+Function? dispose;
 
 void setUpFn() async {
   container = createContainer();
@@ -108,7 +108,7 @@ void setUpFn() async {
 
 void tearDownFn() async {
   // Equivalent to generated in `main.data.dart`
-  dispose.call();
+  dispose?.call();
   houseRepository.dispose();
   familyRepository.dispose();
   personRepository.dispose();

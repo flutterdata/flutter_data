@@ -5,7 +5,7 @@ import '_support/person.dart';
 
 void main() async {
   test('getType', () {
-    expect(DataHelpers.getType(), isNull);
+    expect(() => DataHelpers.getType(), throwsA(isA<UnsupportedError>()));
     expect(DataHelpers.getType<Person>(), 'people');
     expect(DataHelpers.getType('CreditCard'), 'creditCards');
     expect(
@@ -17,9 +17,9 @@ void main() async {
   });
 
   test('generateKey', () {
+    expect(() => DataHelpers.generateKey(), throwsA(isA<UnsupportedError>()));
     expect(DataHelpers.generateKey<Person>(), isNotNull);
     expect(DataHelpers.generateKey('robots'), isNotNull);
-    expect(DataHelpers.generateKey(), isNull);
   });
 
   test('uri helpers', () {
@@ -48,11 +48,6 @@ void main() async {
     expect(args.remote, false);
     expect(args.verbose, true);
     expect(args, equals(RepositoryInitializerArgs(false, true)));
-
-    // isLoading: this == null
-    // TODO fix this
-    // RepositoryInitializer initializer;
-    // expect(initializer.isLoading, true);
   });
 
   test('repo watch args', () {
@@ -66,18 +61,12 @@ void main() async {
   test('iterable utils', () {
     expect([1, 2, 3].safeFirst, 1);
     expect([].safeFirst, isNull);
-    // expect(null.safeFirst, isNull); TODO
 
     expect([1, 2, 3].containsFirst(1), isTrue);
     expect([1, 2, 3].containsFirst(2), isFalse);
-    // expect(null.containsFirst(1), isFalse); TODO
 
     expect([1, null, 3, null].filterNulls, [1, 3]);
     expect([1, 2, 3].filterNulls, [1, 2, 3]);
-    // ignore: unnecessary_cast
-    expect((null as Iterable).filterNulls, isNull);
-
-    // expect(null.toImmutableList(), isNull); TODO
   });
 
   test('map utils', () {
