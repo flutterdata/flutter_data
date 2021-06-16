@@ -1,3 +1,5 @@
+@Timeout(Duration(minutes: 2))
+
 import 'dart:async';
 import 'dart:io';
 
@@ -281,7 +283,6 @@ void main() async {
 
     // reload
     await notifier.reload();
-    await oneMs();
 
     final family = Family(id: '1', surname: 'Corleone');
     final family2 = Family(id: '2', surname: 'Soprano');
@@ -320,7 +321,8 @@ void main() async {
     await personRepository.save(Person(id: '1', name: 'Charlie', age: 24));
     await oneMs();
 
-    verify(listener(argThat(withState<Person>((s) => s.model.age!, 24))))
+    verify(listener(DataState(Person(id: '1', name: 'Charlie', age: 24),
+            isLoading: false)))
         .called(1);
     verifyNoMoreInteractions(listener);
   });
@@ -393,11 +395,11 @@ void main() async {
   test('watchOne with alsoWatch relationships', () async {
     // simulate Family that exists in local storage
     // important to keep to test `alsoWatch` assignment order
+    final family = Family(id: '22', surname: 'Paez', persons: HasMany());
     graph.getKeyForId('families', '22', keyIfAbsent: 'families#a1a1a1');
     await (familyRepository.remoteAdapter.localAdapter as HiveLocalAdapter)
         .box!
-        .put('families#a1a1a1',
-            Family(id: '22', surname: 'Paez', persons: HasMany()));
+        .put('families#a1a1a1', family);
 
     final listener = Listener<DataState<Family?>?>();
 
@@ -406,24 +408,22 @@ void main() async {
     final notifier = familyRepository.watchOne(
       '22',
       remote: true,
-      alsoWatch: (family) => [family.persons!],
+      alsoWatch: (f) => [f.persons!],
     );
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
     // verify loading
-    verify(listener(argThat(
-      withState<Family>((s) => s.isLoading, true),
-    ))).called(1);
+    verify(listener(DataState(family, isLoading: true))).called(1);
     verifyNoMoreInteractions(listener);
 
     final f1 = await familyRepository.findOne('22', remote: false);
     f1!.persons!.add(Person(name: 'Martin', age: 44)); // this time without init
     await oneMs();
 
-    verify(listener(argThat(
-            withState<Family>((s) => s.model.persons!, hasLength(1))
-                .having((s) => s.isLoading, 'loading', false))))
+    verify(listener(argThat(isA<DataState>()
+            .having((s) => s.model.persons!, 'rel', hasLength(1))
+            .having((s) => s.isLoading, 'loading', false))))
         .called(1);
     verifyNoMoreInteractions(listener);
   });
@@ -538,16 +538,6 @@ void main() async {
     }, throwsA(isA<UnsupportedError>()));
 
     await personRepository.doNothing(null, 1);
-  });
-
-  test('mock repository', () async {
-    final bloc = Bloc(MockFamilyRepository());
-    when(bloc.repo.findAll())
-        .thenAnswer((_) => Future(() => [Family(surname: 'Smith')]));
-    final families = await bloc.repo.findAll();
-    expect(families,
-        predicate((List<Family> list) => list.first.surname == 'Smith'));
-    verify(bloc.repo.findAll());
   });
 
   test('verbose', overridePrint(() async {

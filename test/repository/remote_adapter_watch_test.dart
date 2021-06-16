@@ -171,9 +171,9 @@ void main() async {
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
-    verify(listener(argThat(
-      withState<Family>((s) => s.isLoading, true),
-    ))).called(1);
+    verify(listener(
+      argThat(isA<DataState>().having((s) => s.isLoading, '', true)),
+    )).called(1);
     verifyNoMoreInteractions(listener);
 
     await oneMs();
@@ -182,7 +182,7 @@ void main() async {
     p1.family.value = f1;
     await oneMs();
 
-    final matcher = isA<DataState<Family>>()
+    final matcher = isA<DataState>()
         .having((s) => s.model.persons, 'name', hasLength(1))
         .having((s) => s.hasModel, 'hasModel', true)
         .having((s) => s.hasException, 'hasException', false)

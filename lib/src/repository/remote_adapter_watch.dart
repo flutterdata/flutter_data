@@ -240,7 +240,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     return localAdapter
         .relationshipsFor(model)
         .values
-        .map((meta) => (meta['instance'] as Relationship).keys)
+        .map((meta) => (meta['instance'] as Relationship?)?.keys)
         .filterNulls
         .expand((key) => key)
         .toSet();
