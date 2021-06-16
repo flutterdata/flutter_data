@@ -168,7 +168,7 @@ abstract class Relationship<E extends DataModel<E>, N>
     return model;
   }
 
-  StateNotifier<List<DataGraphEvent>> get _graphEvents {
+  DelayedStateNotifier<List<DataGraphEvent>> get _graphEvents {
     return _adapter!.throttledGraph.map((events) {
       final appliesToRelationship = (DataGraphEvent event) {
         return event.type.isEdge &&
@@ -179,7 +179,7 @@ abstract class Relationship<E extends DataModel<E>, N>
     });
   }
 
-  StateNotifier<N> watch();
+  DelayedStateNotifier<N> watch();
 
   /// This is used to make `json_serializable`'s `explicitToJson` transparent.
   ///
