@@ -77,7 +77,7 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
   /// Returns a [StateNotifier] which emits the latest [value] of
   /// this [BelongsTo] relationship.
   @override
-  StateNotifier<E?> watch() {
+  DelayedStateNotifier<E?> watch() {
     return _graphEvents.where((e) => e.isNotEmpty).map((e) {
       return e.last.type == DataGraphEventType.removeNode ? null : value;
     });

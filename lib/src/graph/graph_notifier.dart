@@ -13,10 +13,10 @@ const _kGraphBoxName = '_graph';
 ///
 /// Its public API requires all keys and metadata to be namespaced
 /// i.e. `manager:key`
-class GraphNotifier extends StateNotifier<DataGraphEvent> with _Lifecycle {
+class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
+    with _Lifecycle {
   @protected
-  GraphNotifier(this._hiveLocalStorage)
-      : super(DataGraphEvent(keys: [], type: DataGraphEventType.doneLoading));
+  GraphNotifier(this._hiveLocalStorage);
 
   final HiveLocalStorage _hiveLocalStorage;
 
@@ -34,6 +34,14 @@ class GraphNotifier extends StateNotifier<DataGraphEvent> with _Lifecycle {
     box = await _hiveLocalStorage.openBox(_kGraphBoxName);
 
     return this;
+  }
+
+  @override
+  void dispose() {
+    if (isInitialized) {
+      box?.close();
+      super.dispose();
+    }
   }
 
   Future<void> clear() async {

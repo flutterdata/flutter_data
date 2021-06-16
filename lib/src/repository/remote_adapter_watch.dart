@@ -8,7 +8,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
   @protected
   @visibleForTesting
-  StateNotifier<List<DataGraphEvent>> get throttledGraph =>
+  DelayedStateNotifier<List<DataGraphEvent>> get throttledGraph =>
       graph.throttle(() => throttleDuration);
 
   @protected
@@ -105,14 +105,10 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
     final id = _resolveId(model);
 
-    // String _key;
-    // String key() => _key ??=
-    //     graph.getKeyForId(type, id) ?? (model is T ? model._key : null);
-
-    // TODO CHECK (old above) ^^^
     // lazy key access
     String key() {
-      return graph.getKeyForId(type, id, keyIfAbsent: (model as T)._key)!;
+      return graph.getKeyForId(type, id,
+          keyIfAbsent: (model is T ? model._key : null))!;
     }
 
     final _alsoWatchFilters = <String>{};
