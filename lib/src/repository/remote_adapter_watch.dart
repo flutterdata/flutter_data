@@ -108,7 +108,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
     // lazy key access
     String? key() {
-      return graph.getKeyForId(type, id,
+      return graph.getKeyForId(internalType, id,
           keyIfAbsent: (model is T ? model._key : null));
     }
 
@@ -125,17 +125,19 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           return;
         }
         try {
-          final _future = findOne(
-            id,
-            params: params,
-            headers: headers,
-            remote: remote,
-            init: true,
-          );
-          if (remote!) {
-            notifier.updateWith(isLoading: true);
+          if (id != null) {
+            final _future = findOne(
+              id,
+              params: params,
+              headers: headers,
+              remote: remote,
+              init: true,
+            );
+            if (remote!) {
+              notifier.updateWith(isLoading: true);
+            }
+            await _future;
           }
-          await _future;
 
           _key ??= key();
           if (_key != null) {

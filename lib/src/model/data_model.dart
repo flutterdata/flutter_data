@@ -77,7 +77,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   ///
   /// **Requires this model to be initialized.**
   Future<T> save({
-    bool remote = true,
+    bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     OnData<T>? onSuccess,
@@ -101,7 +101,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   ///
   /// **Requires this model to be initialized.**
   Future<void> delete({
-    bool remote = true,
+    bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     OnData<void>? onSuccess,
@@ -123,7 +123,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   ///
   /// **Requires this model to be initialized.**
   Future<T?> reload({
-    bool remote = true,
+    bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
   }) async {
@@ -142,7 +142,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   ///
   /// **Requires this model to be initialized.**
   DataStateNotifier<T?> watch({
-    bool remote = true,
+    bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     AlsoWatch<T>? alsoWatch,

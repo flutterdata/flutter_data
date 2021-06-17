@@ -272,7 +272,7 @@ void main() async {
   test('freezed bidirectional one-to-many', () async {
     final book = Book(id: 23, title: 'Tao Te Ching', author: BelongsTo())
         .init(container.read);
-    final author = Author(id: 15, name: 'Walter', books: HasMany({book}))
+    final author = Author(id: 15, name: 'Lao Tzu', books: HasMany({book}))
         .init(container.read);
 
     final listener = Listener<DataState<Author?>>();
@@ -283,8 +283,9 @@ void main() async {
     verify(listener(DataState(author, isLoading: false))).called(1);
     verifyNoMoreInteractions(listener);
 
-    final a2 = author.copyWith(name: 'Steve-O').init(container.read);
-    await a2.save(remote: false);
+    // we can do this because `author` has an ID
+    final author2 = author.copyWith(name: 'Steve-O').init(container.read);
+    await author2.save(remote: false);
 
     await oneMs();
 
@@ -293,9 +294,10 @@ void main() async {
     // not to fail.
     // Test sometimes passes (always does when run alone)
     // Weird shit.
+    // TODO
 
-    // verify(listener(DataState(a2, isLoading: false))).called(1);
-    // verifyNoMoreInteractions(listener);
+    verify(listener(DataState(author2, isLoading: false))).called(1);
+    verifyNoMoreInteractions(listener);
 
     expect(author.books!.first!.author!.value,
         equals(Author(id: 15, name: 'Steve-O', books: HasMany({book}))));

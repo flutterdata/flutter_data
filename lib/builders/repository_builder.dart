@@ -21,7 +21,6 @@ class RepositoryGenerator extends GeneratorForAnnotation<DataRepository> {
       Element element, ConstantReader annotation, BuildStep buildStep) async {
     final classType = element.name;
     final classTypePlural = element.name?.pluralize();
-    print('*********** $classType ***************');
     final typeLowerCased = DataHelpers.getType(classType);
     ClassElement classElement;
 

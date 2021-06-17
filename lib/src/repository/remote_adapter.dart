@@ -576,9 +576,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     return model._initialize(adapters!, key: key, save: save);
   }
 
-  String _resolveId(dynamic model) {
-    assert(model != null);
-    return (model is T ? model.id : model).toString();
+  String? _resolveId(dynamic model) {
+    final id = model is T ? model.id : model;
+    return id?.toString();
   }
 
   String? _keyForModel(dynamic model) {

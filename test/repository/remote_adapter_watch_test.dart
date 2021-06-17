@@ -245,7 +245,7 @@ void main() async {
 
     final matcher = isA<DataState>()
         .having((s) => s.model.name, 'name', 'Steve-O')
-        .having((s) => s.hasException, 'exception', isNull)
+        .having((s) => s.hasException, 'exception', isFalse)
         .having((s) => s.isLoading, 'loading', isFalse);
 
     verifyNever(listener(argThat(matcher)));
