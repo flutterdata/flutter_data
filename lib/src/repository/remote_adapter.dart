@@ -300,7 +300,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     OnDataError<T?>? onError,
   }) async {
     _assertInit();
-    assert(model != null);
+    if (model == null) {
+      throw AssertionError('Model must be not null');
+    }
     remote ??= _remote ?? true;
     init ??= false;
 

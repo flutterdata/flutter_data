@@ -289,13 +289,6 @@ void main() async {
 
     await oneMs();
 
-    // NOTE: Need to disable
-    // these two lines in order for `pub run test_coverage`
-    // not to fail.
-    // Test sometimes passes (always does when run alone)
-    // Weird shit.
-    // TODO
-
     verify(listener(DataState(author2, isLoading: false))).called(1);
     verifyNoMoreInteractions(listener);
 

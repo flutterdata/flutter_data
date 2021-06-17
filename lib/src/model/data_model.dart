@@ -26,8 +26,10 @@ abstract class DataModel<T extends DataModel<T>> {
 
     _adapters = adapters;
 
-    assert(remoteAdapter != null, '''\n
-    Please ensure `Repository<$T>` has been correctly initialized.''');
+    if (remoteAdapter == null) {
+      throw AssertionError(
+          'Please ensure `Repository<$T>` has been correctly initialized.');
+    }
 
     _key = remoteAdapter!.graph.getKeyForId(remoteAdapter!.internalType, id,
         keyIfAbsent: key ?? DataHelpers.generateKey<T>());
@@ -158,7 +160,10 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   }
 
   void _assertInit(String method) {
-    assert(isInitialized, '''\n
+    if (isInitialized) {
+      return;
+    }
+    throw AssertionError('''\n
 This model MUST be initialized in order to call `$method`.
 
 DON'T DO THIS:

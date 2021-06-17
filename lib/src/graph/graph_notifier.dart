@@ -117,7 +117,9 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
 
   void _assertKey(String key) {
     if (_doAssert) {
-      assert(key.split(':').length == 2);
+      if (key.split(':').length != 2) {
+        throw AssertionError('Key must be namespaced');
+      }
     }
   }
 

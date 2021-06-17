@@ -14,10 +14,10 @@ void main() async {
 
   test('uninitialized throws an assertion error', () {
     final family = Family(id: '1', surname: 'Johnson');
-    expect(() => family.save(), throwsA(isA<AssertionError>()));
-    expect(() => family.delete(), throwsA(isA<AssertionError>()));
-    expect(() => family.reload(), throwsA(isA<AssertionError>()));
-    expect(() => family.watch(), throwsA(isA<AssertionError>()));
+    expectLater(family.save, throwsA(isA<AssertionError>()));
+    expectLater(family.delete, throwsA(isA<AssertionError>()));
+    expectLater(family.reload, throwsA(isA<AssertionError>()));
+    expectLater(family.watch, throwsA(isA<AssertionError>()));
   });
 
   test('init', () async {

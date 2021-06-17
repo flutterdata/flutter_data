@@ -33,8 +33,8 @@ void main() async {
   });
 
   test('findOne with null', () {
-    expect(() async => await familyRemoteAdapter.findOne(null),
-        throwsA(isA<AssertionError>()));
+    expectLater(
+        familyRemoteAdapter.findOne(null), throwsA(isA<AssertionError>()));
   });
 
   test('findOne with includes', () async {

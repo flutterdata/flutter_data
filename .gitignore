@@ -2,7 +2,7 @@ example/tmp
 .vscode/
 TO-DO.md
 
-test/.test_coverage.dart
+test/.test_cov.dart
 coverage/
 coverage_badge.svg
 

@@ -101,7 +101,9 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     AlsoWatch<T>? alsoWatch,
   }) {
     _assertInit();
-    assert(model != null);
+    if (model == null) {
+      throw AssertionError();
+    }
     remote ??= _remote ?? true;
 
     final id = _resolveId(model);
