@@ -170,12 +170,7 @@ abstract class Relationship<E extends DataModel<E>, N>
 
   DelayedStateNotifier<List<DataGraphEvent>> get _graphEvents {
     return _adapter!.throttledGraph.map((events) {
-      final appliesToRelationship = (DataGraphEvent event) {
-        return event.type.isEdge &&
-            event.metadata == _name &&
-            event.keys.containsFirst(_ownerKey!);
-      };
-      return events.where(appliesToRelationship).toImmutableList();
+      return events.where(_appliesToRelationship).toImmutableList();
     });
   }
 
@@ -189,17 +184,23 @@ abstract class Relationship<E extends DataModel<E>, N>
   @override
   String toString();
 
-  @protected
-  String get prop => _iterable.map((e) => e.id).join(', ');
-
   @override
-  List<Object> get props => [prop];
+  List<Object> get props => [_prop];
 
   @override
   void dispose() {
-    // TODO check this does not cause issues
     _ownerKey = null;
     _adapters = null;
+  }
+
+  // utils
+
+  String get _prop => _iterable.map((e) => e.id).join(', ');
+
+  bool _appliesToRelationship(DataGraphEvent event) {
+    return event.type.isEdge &&
+        event.metadata == _name &&
+        event.keys.containsFirst(_ownerKey!);
   }
 }
 

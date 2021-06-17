@@ -45,7 +45,7 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
   ///
   /// Passing in `null` will remove the existing value from the relationship.
   set value(E? value) {
-    if (this.value != null) {
+    if (this.value != null || value == null) {
       super.remove(this.value!);
     }
     if (value != null) {
@@ -79,7 +79,10 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
   @override
   DelayedStateNotifier<E?> watch() {
     return _graphEvents.where((e) => e.isNotEmpty).map((e) {
-      return e.last.type == DataGraphEventType.removeNode ? null : value;
+      return [DataGraphEventType.removeNode, DataGraphEventType.removeEdge]
+              .contains(e.last.type)
+          ? null
+          : value;
     });
   }
 
@@ -95,7 +98,7 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
   }
 
   @override
-  String toString() => 'BelongsTo<$E>($prop)';
+  String toString() => 'BelongsTo<$E>($_prop)';
 }
 
 extension DataModelRelationshipExtension<T extends DataModel<T>>

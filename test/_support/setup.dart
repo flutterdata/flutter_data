@@ -168,6 +168,8 @@ ProviderContainer createContainer() {
 
       //
 
+      housesRemoteAdapterProvider.overrideWithProvider(Provider((ref) =>
+          TokenHouseRemoteAdapter(ref.read(housesLocalAdapterProvider)))),
       familiesRemoteAdapterProvider.overrideWithProvider(Provider((ref) =>
           FamilyRemoteAdapter(ref.read(familiesLocalAdapterProvider)))),
       peopleRemoteAdapterProvider.overrideWithProvider(Provider(
@@ -215,6 +217,8 @@ class AuthorRemoteAdapter = $AuthorRemoteAdapter with TestRemoteAdapter;
 
 // ignore: must_be_immutable
 class BookLocalAdapter = $BookHiveLocalAdapter with TestHiveLocalAdapter<Book>;
+
+class TokenHouseRemoteAdapter = $HouseRemoteAdapter with TestRemoteAdapter;
 
 // utils
 

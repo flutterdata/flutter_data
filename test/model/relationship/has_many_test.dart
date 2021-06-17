@@ -76,12 +76,12 @@ void main() async {
       persons: HasMany<Person>(),
     ).init(container.read);
 
-    final p1 = Person(name: 'a', age: 1);
-    final p2 = Person(name: 'b', age: 2);
     final notifier = family.persons!.watch();
-
     final listener = Listener<Set<Person>>();
     dispose = notifier.addListener(listener, fireImmediately: false);
+
+    final p1 = Person(name: 'a', age: 1);
+    final p2 = Person(name: 'b', age: 2);
 
     family.persons!.add(p1);
     await oneMs();

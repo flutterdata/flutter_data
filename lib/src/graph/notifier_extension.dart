@@ -10,13 +10,20 @@ class DelayedStateNotifier<T> extends StateNotifier<T?> {
   @override
   RemoveListener addListener(void Function(T) listener,
       {bool fireImmediately = true}) {
-    final _listener = (T? event) {
-      if (event != null) {
-        listener(event);
+    final _listener = (T? value) {
+      // if `value` is `null` and `T` is actually a nullable
+      // type, then the listener MUST be called with `null`
+      if (_typesEqual<T, T?>() && value == null) {
+        listener(null as T);
+      } else {
+        // if `value != null` and `T` is non-nullable, also
+        listener(value!);
       }
     };
     return super.addListener(_listener, fireImmediately: false);
   }
+
+  bool _typesEqual<T1, T2>() => T1 == T2;
 }
 
 class _FunctionalStateNotifier<S, T> extends DelayedStateNotifier<T> {

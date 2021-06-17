@@ -46,7 +46,7 @@ class HasMany<E extends DataModel<E>> extends Relationship<E, Set<E>> {
   }
 
   @override
-  String toString() => 'HasMany<$E>($prop)';
+  String toString() => 'HasMany<$E>($_prop)';
 }
 
 extension IterableRelationshipExtension<T extends DataModel<T>> on Set<T> {
