@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.8.0-rc1] - 2021-06-17
+
+- Migrate to null safety
+
 ## [0.7.2] - 2021-06-09
 
 - Upgrade offline operations design
