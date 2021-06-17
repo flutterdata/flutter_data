@@ -14,13 +14,12 @@ abstract class Relationship<E extends DataModel<E>, N>
       : _uninitializedKeys = keys.toSet(),
         _uninitializedModels = {};
 
-  // late finals
-  String? _ownerKey;
-  String? _name;
-  String? _inverseName;
-  Map<String, RemoteAdapter>? _adapters;
-  RemoteAdapter<E>? _adapter;
-  GraphNotifier get _graph => _adapter!.localAdapter.graph;
+  late final String _ownerKey;
+  late final String _name;
+  late final String? _inverseName;
+  late final Map<String, RemoteAdapter> _adapters;
+  late final RemoteAdapter<E> _adapter;
+  GraphNotifier get _graph => _adapter.localAdapter.graph;
 
   final Set<String> _uninitializedKeys;
   final Set<E> _uninitializedModels;
@@ -40,13 +39,13 @@ abstract class Relationship<E extends DataModel<E>, N>
     _adapters = adapters;
     _adapter = adapters[_internalType] as RemoteAdapter<E>;
 
-    _ownerKey = owner._key;
+    _ownerKey = owner._key!;
     _name = name;
     _inverseName = inverseName;
 
     // initialize uninitialized models and get keys
     final newKeys = _uninitializedModels.map((model) {
-      return model._initialize(_adapters!, save: true)._key!;
+      return model._initialize(_adapters, save: true)._key!;
     });
     _uninitializedKeys.addAll(newKeys);
     _uninitializedModels.clear();
@@ -54,22 +53,23 @@ abstract class Relationship<E extends DataModel<E>, N>
     // initialize keys
     if (!_wasOmitted) {
       // if it wasn't omitted, we overwrite
-      _graph._removeEdges(_ownerKey!,
-          metadata: _name!, inverseMetadata: _inverseName);
+      _graph._removeEdges(_ownerKey,
+          metadata: _name, inverseMetadata: _inverseName);
       _graph._addEdges(
-        _ownerKey!,
+        _ownerKey,
         tos: _uninitializedKeys,
-        metadata: _name!,
+        metadata: _name,
         inverseMetadata: _inverseName,
       );
       _uninitializedKeys.clear();
     }
 
+    isInitialized = true;
     return this;
   }
 
   @override
-  bool get isInitialized => _ownerKey != null && _adapters != null;
+  bool isInitialized = false;
 
   // implement collection-like methods
 
@@ -85,8 +85,8 @@ abstract class Relationship<E extends DataModel<E>, N>
     _ensureModelIsInitialized(value);
 
     if (value.isInitialized && isInitialized) {
-      _graph._addEdge(_ownerKey!, value._key!,
-          metadata: _name!, inverseMetadata: _inverseName);
+      _graph._addEdge(_ownerKey, value._key!,
+          metadata: _name, inverseMetadata: _inverseName);
     } else {
       // if it can't be initialized, add to the models queue
       _uninitializedModels.add(value);
@@ -107,9 +107,9 @@ abstract class Relationship<E extends DataModel<E>, N>
     if (isInitialized) {
       _ensureModelIsInitialized(model);
       _graph._removeEdge(
-        _ownerKey!,
+        _ownerKey,
         model._key!,
-        metadata: _name!,
+        metadata: _name,
         inverseMetadata: _inverseName,
         notify: notify,
       );
@@ -139,9 +139,9 @@ abstract class Relationship<E extends DataModel<E>, N>
   Iterable<E> get _iterable {
     if (isInitialized) {
       return keys
-          .map((key) => _adapter!.localAdapter
+          .map((key) => _adapter.localAdapter
               .findOne(key)
-              ?._initialize(_adapters!, key: key))
+              ?._initialize(_adapters, key: key))
           .filterNulls;
     }
     return _uninitializedModels;
@@ -152,7 +152,7 @@ abstract class Relationship<E extends DataModel<E>, N>
   @visibleForTesting
   Set<String> get keys {
     if (isInitialized) {
-      return _graph._getEdge(_ownerKey!, metadata: _name!).toSet();
+      return _graph._getEdge(_ownerKey, metadata: _name).toSet();
     }
     return _uninitializedKeys;
   }
@@ -163,13 +163,13 @@ abstract class Relationship<E extends DataModel<E>, N>
 
   E _ensureModelIsInitialized(E model) {
     if (!model.isInitialized && isInitialized) {
-      model._initialize(_adapters!, save: true);
+      model._initialize(_adapters, save: true);
     }
     return model;
   }
 
   DelayedStateNotifier<List<DataGraphEvent>> get _graphEvents {
-    return _adapter!.throttledGraph.map((events) {
+    return _adapter.throttledGraph.map((events) {
       return events.where(_appliesToRelationship).toImmutableList();
     });
   }
@@ -189,8 +189,7 @@ abstract class Relationship<E extends DataModel<E>, N>
 
   @override
   void dispose() {
-    _ownerKey = null;
-    _adapters = null;
+    isInitialized = false;
   }
 
   // utils
@@ -200,7 +199,7 @@ abstract class Relationship<E extends DataModel<E>, N>
   bool _appliesToRelationship(DataGraphEvent event) {
     return event.type.isEdge &&
         event.metadata == _name &&
-        event.keys.containsFirst(_ownerKey!);
+        event.keys.containsFirst(_ownerKey);
   }
 }
 

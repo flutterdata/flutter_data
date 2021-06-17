@@ -55,7 +55,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   /// Give adapter subclasses access to the dependency injection system
   @nonVirtual
   @protected
-  ProviderReference? ref; // late final
+  late final ProviderReference ref;
 
   /// INTERNAL: DO NOT USE OR ELSE THINGS WILL BREAK
   @visibleForTesting

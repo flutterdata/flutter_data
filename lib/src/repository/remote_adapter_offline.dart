@@ -214,8 +214,8 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
       adapter.graph._addEdge(_offlineAdapterKey, node, metadata: metadata);
 
       // keep callbacks in memory
-      adapter.ref!.read(_offlineCallbackProvider).state[metadata] ??= [];
-      adapter.ref!
+      adapter.ref.read(_offlineCallbackProvider).state[metadata] ??= [];
+      adapter.ref
           .read(_offlineCallbackProvider)
           .state[metadata]!
           .add([onSuccess, onError]);
@@ -237,13 +237,13 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
         print('\n\n');
       }
 
-      adapter.ref!.read(_offlineCallbackProvider).state.remove(metadata);
+      adapter.ref.read(_offlineCallbackProvider).state.remove(metadata);
     }
   }
 
   Future<void> retry<R>() async {
     // look up callbacks (or provide defaults)
-    final fns = adapter.ref!.read(_offlineCallbackProvider).state[metadata] ??
+    final fns = adapter.ref.read(_offlineCallbackProvider).state[metadata] ??
         [
           [null, null]
         ];
@@ -306,7 +306,7 @@ extension OfflineOperationsX on Set<OfflineOperation<DataModel>> {
     for (final metadata in (node ?? {}).keys.toImmutableList()) {
       adapter.graph._removeEdges(_offlineAdapterKey, metadata: metadata);
     }
-    adapter.ref!.read(_offlineCallbackProvider).state.clear();
+    adapter.ref.read(_offlineCallbackProvider).state.clear();
   }
 
   /// Filter by [requestType].

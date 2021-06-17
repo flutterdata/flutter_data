@@ -164,7 +164,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           model != null &&
           model.isInitialized) {
         _alsoWatchFilters.addAll(alsoWatch(model).map((rel) {
-          return rel._name!;
+          return rel._name;
         }));
       }
     }

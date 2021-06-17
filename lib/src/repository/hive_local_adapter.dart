@@ -15,7 +15,6 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
 
   String get _internalType => DataHelpers.getType<T>();
 
-  // once late final field, remove ignore on class
   @protected
   @visibleForTesting
   Box<T>? box;
