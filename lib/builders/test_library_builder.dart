@@ -99,23 +99,16 @@ class FakeBox<T> extends Fake implements Box<T> {
   final _map = <dynamic, T>{};
 
   @override
-  bool isOpen = false;
+  bool isOpen = true;
 
   @override
-  T get(key, {T defaultValue}) {
+  T? get(key, {T? defaultValue}) {
     return _map[key] ?? defaultValue;
   }
 
   @override
   Future<void> put(key, T value) async {
     _map[key] = value;
-  }
-
-  @override
-  Future<void> putAll(Map<dynamic, T> entries) async {
-    for (final key in entries.keys) {
-      await put(key, entries[key]);
-    }
   }
 
   @override
@@ -156,7 +149,9 @@ class FakeBox<T> extends Fake implements Box<T> {
   }
 
   @override
-  Future<void> close() => Future.value();
+  Future<void> close() async {
+    isOpen = false;
+  }
 }
 
 class HiveMock extends Mock implements HiveInterface {
@@ -177,8 +172,8 @@ mixin TestMetaBox on GraphNotifier {
   @override
   // ignore: must_call_super
   Future<GraphNotifier> initialize() async {
-    await super.initialize();
     box = FakeBox<Map>();
+    await super.initialize();
     return this;
   }
 }
@@ -190,7 +185,7 @@ class TestHiveLocalStorage extends HiveLocalStorage {
   HiveInterface get hive => HiveMock();
 
   @override
-  HiveAesCipher get encryptionCipher => null;
+  HiveAesCipher? get encryptionCipher => null;
 
   @override
   Future<String> Function() get baseDirFn => () async => '';
@@ -200,8 +195,8 @@ mixin TestHiveLocalAdapter<T extends DataModel<T>> on HiveLocalAdapter<T> {
   @override
   // ignore: must_call_super
   Future<TestHiveLocalAdapter<T>> initialize() async {
-    await super.initialize();
     box = FakeBox<T>();
+    await super.initialize();
     return this;
   }
 }
@@ -216,7 +211,13 @@ mixin TestRemoteAdapter<T extends DataModel<T>> on RemoteAdapter<T> {
   @override
   http.Client get httpClient {
     return MockClient((req) async {
-      return ref.watch(mockResponseProvider(req));
+      try {
+        return ref!.watch(mockResponseProvider(req));
+      } on ProviderException catch (e) {
+        // unwrap provider exception
+        // ignore: only_throw_errors
+        throw e.exception;
+      }
     });
   }
 }
