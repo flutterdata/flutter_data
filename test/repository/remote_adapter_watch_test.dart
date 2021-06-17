@@ -1,3 +1,5 @@
+@Timeout(Duration(minutes: 3))
+
 import 'dart:math';
 
 import 'package:flutter_data/flutter_data.dart';
@@ -72,7 +74,7 @@ void main() async {
     final listener = Listener<DataState<List<Person>>>();
 
     final p1 = Person(id: '1', name: 'Zof', age: 23).init(container.read);
-    final notifier = personRemoteAdapter.watchAll();
+    final notifier = personRemoteAdapter.watchAll(remote: true);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -112,7 +114,7 @@ void main() async {
 
     final notifier = personRemoteAdapter.watchOne('1');
 
-    final matcher = (name) => isA<DataState<Person>>()
+    final matcher = (name) => isA<DataState>()
         .having((s) => s.model.id, 'id', '1')
         .having((s) => s.model.name, 'name', name);
 
@@ -165,7 +167,8 @@ void main() async {
     );
 
     final notifier = familyRemoteAdapter.watchOne('22',
-        alsoWatch: (family) => [family.persons!, family.residence!]);
+        alsoWatch: (family) => [family.persons!, family.residence!],
+        remote: true);
 
     final listener = Listener<DataState<Family?>?>();
 
@@ -194,7 +197,7 @@ void main() async {
     await oneMs();
 
     verify(listener(argThat(
-      withState<Family>((s) => s.model.persons!, hasLength(2)),
+      isA<DataState>().having((s) => s.model.persons!, 'persons', hasLength(2)),
     ))).called(1);
     verifyNoMoreInteractions(listener);
 
@@ -202,8 +205,8 @@ void main() async {
     await oneMs();
 
     verify(listener(argThat(
-      withState<Family>(
-          (s) => s.model.residence!.value!.address, '123 Main St'),
+      isA<DataState>().having(
+          (s) => s.model.residence!.value!.address, 'address', '123 Main St'),
     ))).called(1);
     verifyNoMoreInteractions(listener);
 
@@ -211,7 +214,7 @@ void main() async {
     await oneMs();
 
     verify(listener(argThat(
-      withState<Family>((s) => s.model.persons!, hasLength(1)),
+      isA<DataState>().having((s) => s.model.persons!, 'persons', hasLength(1)),
     ))).called(1);
     verifyNoMoreInteractions(listener);
 
@@ -227,7 +230,7 @@ void main() async {
     await oneMs();
 
     verify(listener(argThat(
-      withState<Family>((s) => s.model, isNull),
+      isA<DataState>().having((s) => s.model, 'model', isNull),
     ))).called(1);
     verifyNoMoreInteractions(listener);
   });
@@ -240,9 +243,9 @@ void main() async {
     final listener = Listener<DataState<Person?>?>();
     dispose = notifier.addListener(listener, fireImmediately: false);
 
-    final matcher = isA<DataState<Person>>()
+    final matcher = isA<DataState>()
         .having((s) => s.model.name, 'name', 'Steve-O')
-        .having((s) => s.hasException, 'exception', isFalse)
+        .having((s) => s.hasException, 'exception', isNull)
         .having((s) => s.isLoading, 'loading', isFalse);
 
     verifyNever(listener(argThat(matcher)));

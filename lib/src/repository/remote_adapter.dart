@@ -51,7 +51,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
   // late finals
   bool? _remote;
-  late final bool _verbose; // TODO trying out late final here
+  late final bool _verbose; // TODO trying out late final here - try more
 
   /// Give adapter subclasses access to the dependency injection system
   @nonVirtual

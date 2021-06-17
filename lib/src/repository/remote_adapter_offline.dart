@@ -184,7 +184,7 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
       requestType: _getDataRequestType(json['t'] as String),
       request: json['r'] as String,
       offlineKey: json['k'] as String,
-      body: json['b'] as String,
+      body: json['b'] as String?,
       headers:
           json['h'] == null ? null : Map<String, String>.from(json['h'] as Map),
       adapter: adapter,
@@ -258,8 +258,8 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
         requestType: requestType,
         key: offlineKey,
         body: body,
-        onSuccess: pair.first as OnRawData<R>,
-        onError: pair.last as OnDataError<R>,
+        onSuccess: pair.first as OnRawData<R>?,
+        onError: pair.last as OnDataError<R>?,
       );
     }
   }

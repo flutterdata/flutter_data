@@ -270,7 +270,7 @@ void main() async {
     await oneMs();
 
     // finished loading but found the network unreachable
-    verify(listener(argThat(isA<DataState<List<Family>>>()
+    verify(listener(argThat(isA<DataState>()
             .having((s) => s.isLoading, 'isLoading', isFalse)
             .having((s) => s.exception, 'exception', isA<Exception>()))))
         .called(1);
@@ -288,7 +288,7 @@ void main() async {
     final family2 = Family(id: '2', surname: 'Soprano');
 
     // loads again, for now exception remains
-    verify(listener(argThat(isA<DataState<List<Family>>>()
+    verify(listener(argThat(isA<DataState>()
             .having((s) => s.isLoading, 'isLoading', isTrue)
             .having((s) => s.exception, 'exception', isA<Exception>()))))
         .called(1);
@@ -354,7 +354,7 @@ void main() async {
     await oneMs();
 
     // loads again, for now original exception remains
-    verify(listener(argThat(isA<DataState<Family>>()
+    verify(listener(argThat(isA<DataState>()
             .having((s) => s.isLoading, 'isLoading', isTrue)
             .having((s) => s.exception!.error.toString(), 'exception',
                 startsWith('Exception:')))))
@@ -362,7 +362,7 @@ void main() async {
 
     await oneMs();
     // finished loading but found the network unreachable
-    verify(listener(argThat(isA<DataState<Family>>()
+    verify(listener(argThat(isA<DataState>()
             .having((s) => s.isLoading, 'isLoading', isFalse)
             .having((s) => s.exception, 'exception', isA<Exception>()))))
         .called(1);
@@ -380,7 +380,7 @@ void main() async {
     final family = Family(id: '1', surname: 'Corleone');
 
     // loads again, for now exception remains
-    verify(listener(argThat(isA<DataState<Family>>()
+    verify(listener(argThat(isA<DataState>()
             .having((s) => s.isLoading, 'isLoading', isTrue)
             .having((s) => s.exception, 'exception', isA<Exception>()))))
         .called(1);
@@ -437,14 +437,13 @@ void main() async {
     dispose = notifier.addListener(listener, fireImmediately: true);
 
     verify(listener(argThat(
-      isA<DataState<List<Family>>>()
-          .having((s) => s.isLoading, 'loading', true),
+      isA<DataState>().having((s) => s.isLoading, 'loading', true),
     ))).called(1);
 
     await oneMs();
 
     verify(listener(argThat(
-      isA<DataState<List<Family>>>()
+      isA<DataState>()
           .having((s) => s.model, 'empty', isEmpty)
           .having((s) => s.isLoading, 'loading', false),
     ))).called(1);

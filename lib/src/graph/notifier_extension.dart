@@ -11,7 +11,9 @@ class DelayedStateNotifier<T> extends StateNotifier<T?> {
   RemoveListener addListener(void Function(T) listener,
       {bool fireImmediately = true}) {
     final _listener = (T? event) {
-      listener(event!);
+      if (event != null) {
+        listener(event);
+      }
     };
     return super.addListener(_listener, fireImmediately: false);
   }

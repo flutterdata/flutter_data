@@ -1,7 +1,5 @@
 import 'dart:async';
 import 'package:flutter_data/flutter_data.dart';
-import 'package:matcher/matcher.dart';
-import 'package:mockito/mockito.dart';
 import 'package:riverpod/riverpod.dart' hide Family;
 import 'package:http/http.dart' as http;
 
@@ -170,8 +168,6 @@ ProviderContainer createContainer() {
 
       //
 
-      housesRemoteAdapterProvider.overrideWithProvider(Provider((ref) =>
-          TokenHouseRemoteAdapter(ref.read(housesLocalAdapterProvider)))),
       familiesRemoteAdapterProvider.overrideWithProvider(Provider((ref) =>
           FamilyRemoteAdapter(ref.read(familiesLocalAdapterProvider)))),
       peopleRemoteAdapterProvider.overrideWithProvider(Provider(
@@ -220,20 +216,9 @@ class AuthorRemoteAdapter = $AuthorRemoteAdapter with TestRemoteAdapter;
 // ignore: must_be_immutable
 class BookLocalAdapter = $BookHiveLocalAdapter with TestHiveLocalAdapter<Book>;
 
-// customizations
-
-class MockFamilyRepository extends Mock implements Repository<Family> {}
-
-class TokenHouseRemoteAdapter = $HouseRemoteAdapter with TestRemoteAdapter;
-
 // utils
 
 /// Waits 1 millisecond (tests have a throttle of Duration.zero)
 Future<void> oneMs() async {
   await Future.delayed(const Duration(milliseconds: 1));
 }
-
-TypeMatcher<DataState<T>> withState<T extends DataModel<T>>(
-        Object Function(DataState<T>) feature, matcher) =>
-    isA<DataState<T>>().having(feature, '', matcher);
-// TODO null => '' ???

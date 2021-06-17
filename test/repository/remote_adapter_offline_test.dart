@@ -45,7 +45,7 @@ void main() async {
 
     // and verify onError does capture the `OfflineException`
     verify(listener(argThat(
-      isA<DataState<List<Author>>>()
+      isA<DataState>()
           .having((s) => s.exception, 'exception', isA<OfflineException>()),
     ))).called(1); // one call per updateWith(e)
 
@@ -111,11 +111,8 @@ void main() async {
     verify(
       listener(
         argThat(
-          isA<DataState<List<Family>>>().having(
-            (s) => s.exception,
-            'exception',
-            isA<OfflineException>(),
-          ),
+          isA<DataState>()
+              .having((s) => s.exception, 'exception', isA<OfflineException>()),
         ),
       ),
     ).called(1);
@@ -230,8 +227,7 @@ void main() async {
 
     // should show up through watchAll
     verify(listener(
-      argThat(isA<DataState<List<Family>>>()
-          .having((s) => s.model, 'model', [family])),
+      argThat(isA<DataState>().having((s) => s.model, 'model', [family])),
     )).called(1);
 
     // network issue deleting family
@@ -249,13 +245,12 @@ void main() async {
 
     // verify the model in local storage has been deleted
     verify(listener(
-      argThat(isA<DataState<List<Family>>>()
-          .having((s) => s.model, 'model', isEmpty)),
+      argThat(isA<DataState>().having((s) => s.model, 'model', isEmpty)),
     )).called(1);
 
     // and that we actually got an OfflineException
     verify(listener(argThat(
-      isA<DataState<List<Family>>>()
+      isA<DataState>()
           .having((s) => s.exception, 'exception', isA<OfflineException>()),
     ))).called(1);
 
@@ -328,7 +323,7 @@ void main() async {
 
     // assert it's an OfflineException, TWICE (one call per updateWith(e))
     verify(listener(argThat(
-      isA<DataState<List<Family>>>()
+      isA<DataState>()
           .having((s) => s.exception, 'exception', isA<OfflineException>()),
     ))).called(2);
 

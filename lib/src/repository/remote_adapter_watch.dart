@@ -112,9 +112,11 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           keyIfAbsent: (model is T ? model._key : null));
     }
 
+    var _key = key();
+
     final _alsoWatchFilters = <String>{};
 
-    final localModel = key() != null ? localAdapter.findOne(key()!) : null;
+    final localModel = _key != null ? localAdapter.findOne(_key) : null;
     final _notifier = DataStateNotifier<T?>(
       data: DataState(
           localModel == null ? null : initializeModel(localModel, save: true)),
@@ -134,9 +136,11 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
             notifier.updateWith(isLoading: true);
           }
           await _future;
-          if (key() != null) {
+
+          _key ??= key();
+          if (_key != null) {
             // trigger doneLoading to ensure state is updated with isLoading=false
-            graph._notify([key()!], DataGraphEventType.doneLoading);
+            graph._notify([_key!], DataGraphEventType.doneLoading);
           }
         } on DataException catch (e) {
           // we're only interested in notifying errors
@@ -182,12 +186,12 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       var refresh = false;
 
       for (final event in events) {
-        final _key = key();
-        if (event.keys.containsFirst(_key!)) {
+        _key ??= key();
+        if (_key != null && event.keys.containsFirst(_key!)) {
           // add/update
           if (event.type == DataGraphEventType.addNode ||
               event.type == DataGraphEventType.updateNode) {
-            final model = localAdapter.findOne(_key);
+            final model = localAdapter.findOne(_key!);
             if (model != null) {
               initializeModel(model, save: true);
               _initializeRelationshipsToWatch(model);

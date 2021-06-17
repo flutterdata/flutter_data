@@ -113,7 +113,8 @@ void main() async {
     Dog(id: '2', name: 'Tango').init(container.read);
     await oneMs();
 
-    verify(listener(argThat(withState<Dog>((s) => s.model.name, 'Tango'))))
+    verify(listener(argThat(
+            isA<DataState>().having((s) => s.model.name, 'name', 'Tango'))))
         .called(1);
     verifyNoMoreInteractions(listener);
   });
