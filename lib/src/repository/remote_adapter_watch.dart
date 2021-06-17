@@ -49,7 +49,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           }
           await _future;
           // trigger doneLoading to ensure state is updated with isLoading=false
-          graph._notify([type], DataGraphEventType.doneLoading);
+          graph._notify([internalType], DataGraphEventType.doneLoading);
         } on DataException catch (e) {
           // we're only interested in notifying errors
           // as models will pop up via the graph notifier
@@ -79,7 +79,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       // ensure the done signal belongs to this notifier
       final doneLoading = events.singleWhereOrNull((e) =>
               e.type == DataGraphEventType.doneLoading &&
-              e.keys.first == type) !=
+              e.keys.first == internalType) !=
           null;
       if (modelChanged || doneLoading) {
         _notifier.updateWith(model: models, isLoading: false, exception: null);
