@@ -30,16 +30,16 @@ void main() async {
     expect(model.family.key, graph.getKeyForId('families', '55'));
 
     // (2) it saves the model locally
-    expect(model, await personRepository.findOne(model.id));
+    expect(model, await personRepository.findOne(model.id, remote: false));
   });
 
   test('findOne (reload) without ID', () async {
     final family = Family(surname: 'Zliedowski').init(container.read);
     final f2 = Family(surname: 'Zliedowski').was(family);
 
-    final f3 = await family.reload();
+    final f3 = await family.reload(remote: false);
     expect(keyFor(family), keyFor(f2));
-    expect(keyFor(family), keyFor(f3));
+    expect(keyFor(family), keyFor(f3!));
   });
 
   test('delete model with and without ID', () async {
