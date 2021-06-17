@@ -190,7 +190,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   /// If [syncLocal] is set to `false` but results still need to be filtered,
   /// use [filterLocal]. All data updates will be filtered through it.
   DataStateNotifier<List<T>> watchAll({
-    bool? remote = true,
+    bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     bool? syncLocal,
