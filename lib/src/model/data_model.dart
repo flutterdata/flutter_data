@@ -93,7 +93,6 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
       headers: headers,
       onSuccess: onSuccess,
       onError: onError,
-      init: true,
     );
   }
 
@@ -135,7 +134,6 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
       remote: remote,
       params: params,
       headers: headers,
-      init: true,
     );
   }
 

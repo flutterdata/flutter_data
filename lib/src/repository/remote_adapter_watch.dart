@@ -21,7 +21,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     bool Function(T)? filterLocal,
   }) {
     _assertInit();
-    remote ??= _remote ?? true;
+    remote ??= _remote;
     syncLocal ??= false;
     filterLocal ??= (_) => true;
 
@@ -43,7 +43,6 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
             remote: remote,
             syncLocal: syncLocal,
             filterLocal: filterLocal,
-            init: true,
           );
           if (remote!) {
             notifier.updateWith(isLoading: true);
@@ -104,7 +103,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     if (model == null) {
       throw AssertionError();
     }
-    remote ??= _remote ?? true;
+    remote ??= _remote;
 
     final id = _resolveId(model);
 
@@ -133,7 +132,6 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
               params: params,
               headers: headers,
               remote: remote,
-              init: true,
             );
             if (remote!) {
               notifier.updateWith(isLoading: true);

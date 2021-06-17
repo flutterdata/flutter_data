@@ -81,13 +81,11 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
           // instead return a fallback model
           switch (requestType) {
             case DataRequestType.findAll:
-              return findAll(remote: false, syncLocal: false, init: true)
-                  as Future<R>;
+              return findAll(remote: false, syncLocal: false) as Future<R>;
             case DataRequestType.findOne:
             case DataRequestType.save:
               // call without type (ie 3 not users#3)
-              return findOne(key!.detypify(), remote: false, init: true)
-                  as Future<R?>;
+              return findOne(key!.detypify(), remote: false) as Future<R?>;
             default:
               return null;
           }

@@ -82,7 +82,7 @@ void main() async {
   test('deserialize with BelongsTo id', () {
     final p = personRemoteAdapter.deserialize([
       {'_id': '1', 'name': 'Na', 'age': 88, 'family_id': null}
-    ], init: true).model!;
+    ]).model!;
 
     Family(id: '1', surname: 'Kong').init(container.read);
 
@@ -90,7 +90,7 @@ void main() async {
 
     final p1 = personRemoteAdapter.deserialize([
       {'_id': '27', 'name': 'Ko', 'age': 24, 'family_id': '332'}
-    ], init: true).model!;
+    ]).model!;
 
     Family(id: '332', surname: 'Tao').init(container.read);
 
@@ -114,7 +114,7 @@ void main() async {
         'surname': 'Ko',
         'persons': ['1', null, '2']
       }
-    ], init: true).model!;
+    ]).model!;
 
     expect(
         f.persons!.keys,
@@ -147,15 +147,13 @@ void main() async {
 
     expect(f1, f2);
 
-    // f2 isn't initialized, so f1.persons will be empty
-    expect(f1.persons, isEmpty);
+    final p1 = Person(id: '1', name: 'Wendy', age: 58);
+    final p2 = Person(id: '2', name: 'Marty', age: 60);
 
     // check included instead
-    expect(data.included, [
-      Person(id: '1', name: 'Wendy', age: 58),
-      Person(id: '2', name: 'Marty', age: 60),
-      House(id: '1', address: '123 Main St'),
-    ]);
+    expect(data.included, [p1, p2, House(id: '1', address: '123 Main St')]);
+
+    expect(f1.persons!.toSet(), {p1, p2});
   });
 
   test('deserialize with nested embedded relationships', () {

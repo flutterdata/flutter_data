@@ -49,8 +49,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @protected
   Map<String, RemoteAdapter>? adapters;
 
-  // late finals
-  bool? _remote;
+  late final bool _remote;
   late final bool _verbose;
 
   /// Give adapter subclasses access to the dependency injection system
@@ -160,15 +159,17 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
   @mustCallSuper
   Future<RemoteAdapter<T>> initialize(
-      {bool remote = true,
-      bool verbose = true,
+      {bool? remote,
+      bool? verbose,
       required Map<String, RemoteAdapter> adapters,
       required ProviderReference ref}) async {
     if (isInitialized) return this as RemoteAdapter<T>;
-    _remote = remote;
-    _verbose = verbose;
     this.adapters = adapters;
     this.ref = ref;
+
+    // set defaults
+    _remote = remote ?? true;
+    _verbose = verbose ?? true;
 
     await localAdapter.initialize();
 
@@ -194,14 +195,10 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
   /// Returns a [DeserializedData] object when deserializing a given [data].
   ///
-  /// If [init] is `true`, ALL models in deserialization (including `included`)
-  /// will be initialized.
-  ///
   /// [key] can be used to supply a specific `key` when deserializing ONE model.
   @protected
   @visibleForTesting
-  DeserializedData<T, DataModel> deserialize(Object data,
-      {String key, bool init});
+  DeserializedData<T, DataModel> deserialize(Object data, {String key});
 
   /// Returns a serialized version of a model of [T],
   /// as a [Map<String, dynamic>] ready to be JSON-encoded.
@@ -244,14 +241,12 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     Map<String, String>? headers,
     bool? syncLocal,
     bool Function(T)? filterLocal,
-    bool? init,
     OnData<List<T>>? onSuccess,
     OnDataError<List<T>>? onError,
   }) async {
     _assertInit();
-    remote ??= _remote ?? true;
+    remote ??= _remote;
     syncLocal ??= false;
-    init ??= false;
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
     filterLocal ??= (_) => true;
@@ -259,9 +254,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     if (!shouldLoadRemoteAll(remote, params, headers)) {
       final models =
           localAdapter.findAll().where(filterLocal).toImmutableList();
-      if (init) {
-        models.map((m) => m._initialize(adapters!, save: true));
-      }
+      models.map((m) => m._initialize(adapters!, save: true));
       return models;
     }
 
@@ -276,7 +269,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
           await localAdapter.clear();
         }
         final models = data != null
-            ? deserialize(data as Object, init: init!)
+            ? deserialize(data as Object)
                 .models
                 .where(filterLocal!)
                 .toImmutableList()
@@ -295,7 +288,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    bool? init,
     OnData<T?>? onSuccess,
     OnDataError<T?>? onError,
   }) async {
@@ -303,8 +295,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     if (model == null) {
       throw AssertionError('Model must be not null');
     }
-    remote ??= _remote ?? true;
-    init ??= false;
+    remote ??= _remote;
 
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
@@ -318,9 +309,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
         return null;
       }
       final newModel = localAdapter.findOne(key);
-      if (init) {
-        newModel?._initialize(adapters!, save: true);
-      }
+      newModel?._initialize(adapters!, save: true);
       return newModel;
     }
 
@@ -332,7 +321,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       key: StringUtils.typify(internalType, id),
       onSuccess: (data) {
         final model = data != null
-            ? deserialize(data as Map<String, dynamic>, init: init!).model
+            ? deserialize(data as Map<String, dynamic>).model
             : null;
         return onSuccess?.call(model) ?? model;
       },
@@ -349,11 +338,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     Map<String, String>? headers,
     OnData<T>? onSuccess,
     OnDataError<T>? onError,
-    bool? init,
   }) async {
     _assertInit();
-    remote ??= _remote ?? true;
-    init ??= false;
+    remote ??= _remote;
 
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
@@ -379,20 +366,17 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
         T _model;
         if (data == null) {
           // return "old" model if response was empty
-          if (init!) {
-            model._initialize(adapters!, save: true);
-          }
-          _model = model;
+          _model = model._initialize(adapters!, save: true);
         } else {
           // deserialize already inits models
           // if model had a key already, reuse it
-          final _newModel = deserialize(data as Map<String, dynamic>,
-                  key: model._key!, init: init!)
-              .model!;
+          final _newModel =
+              deserialize(data as Map<String, dynamic>, key: model._key!)
+                  .model!;
 
           // in the unlikely case where supplied key couldn't be used
           // ensure "old" copy of model carries the updated key
-          if (init && model._key != null && model._key != _newModel._key) {
+          if (model._key != null && model._key != _newModel._key) {
             graph.removeKey(model._key!);
             model._key = _newModel._key;
           }
@@ -416,7 +400,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     OnDataError<void>? onError,
   }) async {
     _assertInit();
-    remote ??= _remote ?? true;
+    remote ??= _remote;
 
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;

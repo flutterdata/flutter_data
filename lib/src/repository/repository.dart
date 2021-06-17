@@ -23,13 +23,17 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   /// In standard scenarios this initialization is done by the framework.
   @mustCallSuper
   FutureOr<Repository<T>> initialize(
-      {bool remote = true,
-      bool verbose = true,
+      {bool? remote,
+      bool? verbose,
       required Map<String, RemoteAdapter> adapters}) async {
     if (isInitialized) return this;
     _adapters.addAll(adapters);
     await remoteAdapter.initialize(
-        remote: remote, verbose: verbose, adapters: adapters, ref: _ref);
+      remote: remote,
+      verbose: verbose,
+      adapters: adapters,
+      ref: _ref,
+    );
     _isInit = true;
     return this;
   }
@@ -78,7 +82,6 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
       headers: headers,
       syncLocal: syncLocal,
       onError: onError,
-      init: true,
     );
   }
 
@@ -105,7 +108,6 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
       params: params,
       headers: headers,
       onError: onError,
-      init: true,
     );
   }
 
@@ -134,7 +136,6 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
       headers: headers,
       onSuccess: onSuccess,
       onError: onError,
-      init: true,
     );
   }
 

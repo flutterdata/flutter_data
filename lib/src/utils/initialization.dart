@@ -1,7 +1,7 @@
 part of flutter_data;
 
 typedef ConfigureRepositoryLocalStorage = Override Function(
-    {FutureFn<String> baseDirFn, List<int> encryptionKey, bool clear});
+    {FutureFn<String>? baseDirFn, List<int>? encryptionKey, bool clear});
 
 typedef RepositoryInitializerProvider = FutureProvider<RepositoryInitializer>
     Function({bool remote, bool verbose});
@@ -18,7 +18,7 @@ class RepositoryInitializerArgs with EquatableMixin {
   RepositoryInitializerArgs(this.remote, this.verbose);
 
   final bool? remote;
-  final bool verbose;
+  final bool? verbose;
 
   @override
   List<Object?> get props => [remote, verbose];
