@@ -45,8 +45,8 @@ void main() async {
 
     // and verify onError does capture the `OfflineException`
     verify(listener(argThat(
-      isA<DataState>()
-          .having((s) => s.exception, 'exception', isA<OfflineException>()),
+      isA<DataState>().having((s) => s.exception!.toString(), 'exception',
+          startsWith('OfflineException:')),
     ))).called(1); // one call per updateWith(e)
 
     // retry and assert there is one queued operation for findOne

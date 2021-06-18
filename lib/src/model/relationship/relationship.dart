@@ -98,8 +98,6 @@ abstract class Relationship<E extends DataModel<E>, N>
     return _iterable.contains(element);
   }
 
-  Iterator<E> get iterator => _iterable.iterator;
-
   /// Removes a [value] from this [Relationship]
   bool remove(Object value, {bool notify = true}) {
     assert(value is E);
@@ -189,7 +187,7 @@ abstract class Relationship<E extends DataModel<E>, N>
 
   @override
   void dispose() {
-    isInitialized = false;
+    // relationships are not disposed
   }
 
   // utils

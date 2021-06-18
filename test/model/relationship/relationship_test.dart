@@ -307,4 +307,16 @@ void main() async {
     expect(author.books!.first!.author!.value.toString(),
         'Author(id: 15, name: Steve-O, books: HasMany<Book>(23))');
   });
+
+  test('HasMany iterable proxies', () {
+    final rel = {
+      Person(id: '1', name: 'Martin', age: 49),
+      Person(id: '2', name: 'Julia', age: 23)
+    }.asHasMany;
+
+    expect(rel.isNotEmpty, isTrue);
+    expect(rel.toList(), isA<List>());
+    expect(rel.where((e) => e.age! > 40), hasLength(1));
+    expect(rel.map((e) => e.age! - 10).toSet(), {39, 13});
+  });
 }
