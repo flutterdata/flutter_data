@@ -13,8 +13,8 @@ abstract class DataModel<T extends DataModel<T>> {
 
   // computed
   String get _internalType => DataHelpers.getType<T>();
-  RemoteAdapter<T>? get remoteAdapter =>
-      _adapters?[_internalType] as RemoteAdapter<T>?;
+  RemoteAdapter<T> get remoteAdapter =>
+      _adapters?[_internalType]! as RemoteAdapter<T>;
 
   bool get isInitialized => _key != null && _adapters != null;
 
@@ -26,21 +26,16 @@ abstract class DataModel<T extends DataModel<T>> {
 
     _adapters = adapters;
 
-    if (remoteAdapter == null) {
-      throw AssertionError(
-          'Please ensure `Repository<$T>` has been correctly initialized.');
-    }
-
-    _key = remoteAdapter!.graph.getKeyForId(remoteAdapter!.internalType, id,
+    _key = remoteAdapter.graph.getKeyForId(remoteAdapter.internalType, id,
         keyIfAbsent: key ?? DataHelpers.generateKey<T>());
 
     if (save) {
-      remoteAdapter!.localAdapter.save(_key!, this as T);
+      remoteAdapter.localAdapter.save(_key!, this as T);
     }
 
     // initialize relationships
     for (final metadata
-        in remoteAdapter!.localAdapter.relationshipsFor(this as T).entries) {
+        in remoteAdapter.localAdapter.relationshipsFor(this as T).entries) {
       final relationship = metadata.value['instance'] as Relationship?;
 
       relationship?.initialize(
@@ -86,7 +81,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     OnDataError<T>? onError,
   }) async {
     _assertInit('save');
-    return await remoteAdapter!.save(
+    return await remoteAdapter.save(
       this as T,
       remote: remote,
       params: params,
@@ -109,7 +104,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     OnDataError<void>? onError,
   }) async {
     _assertInit('delete');
-    await remoteAdapter!.delete(
+    await remoteAdapter.delete(
       this,
       remote: remote,
       params: params,
@@ -129,7 +124,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     Map<String, String>? headers,
   }) async {
     _assertInit('reload');
-    return await remoteAdapter!.findOne(
+    return await remoteAdapter.findOne(
       this,
       remote: remote,
       params: params,
@@ -148,7 +143,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     AlsoWatch<T>? alsoWatch,
   }) {
     _assertInit('watch');
-    return remoteAdapter!.watchOne(
+    return remoteAdapter.watchOne(
       this,
       remote: remote,
       params: params,

@@ -47,7 +47,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   ///
   /// This [Map] is typically required when initializing new models, and passed as-is.
   @protected
-  Map<String, RemoteAdapter>? adapters;
+  late final Map<String, RemoteAdapter> adapters;
 
   late final bool _remote;
   late final bool _verbose;
@@ -254,7 +254,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     if (!shouldLoadRemoteAll(remote, params, headers)) {
       final models =
           localAdapter.findAll().where(filterLocal).toImmutableList();
-      models.map((m) => m._initialize(adapters!, save: true));
+      models.map((m) => m._initialize(adapters, save: true));
       return models;
     }
 
@@ -309,7 +309,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
         return null;
       }
       final newModel = localAdapter.findOne(key);
-      newModel?._initialize(adapters!, save: true);
+      newModel?._initialize(adapters, save: true);
       return newModel;
     }
 
@@ -347,7 +347,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
     // we ignore the `init` argument here as
     // saving locally requires initializing
-    model._initialize(adapters!, save: true);
+    model._initialize(adapters, save: true);
 
     if (remote == false) {
       return model;
@@ -366,7 +366,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
         T _model;
         if (data == null) {
           // return "old" model if response was empty
-          _model = model._initialize(adapters!, save: true);
+          _model = model._initialize(adapters, save: true);
         } else {
           // deserialize already inits models
           // if model had a key already, reuse it
@@ -559,7 +559,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @protected
   @visibleForTesting
   T initializeModel(T model, {String? key, bool save = false}) {
-    return model._initialize(adapters!, key: key, save: save);
+    return model._initialize(adapters, key: key, save: save);
   }
 
   String? _resolveId(dynamic model) {

@@ -231,4 +231,12 @@ void main() async {
         DataGraphEvent(keys: ['a', 'b'], type: DataGraphEventType.addEdge);
     expect(event.toString(), '[GraphEvent] DataGraphEventType.addEdge: [a, b]');
   });
+
+  test('clear', () {
+    graph.addNode('a');
+    graph.addNode('b');
+    expect(graph.toMap(), isNotEmpty);
+    graph.clear();
+    expect(graph.toMap(), isEmpty);
+  });
 }
