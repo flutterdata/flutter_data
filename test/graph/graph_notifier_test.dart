@@ -72,6 +72,14 @@ void main() async {
     expect(key, startsWith('people#'));
   });
 
+  test('deletes a new key', () {
+    final key = graph.getKeyForId('people', '1',
+        keyIfAbsent: DataHelpers.generateKey<Person>())!;
+    expect(graph.getIdForKey(key), '1');
+    graph.removeId('people', '1');
+    expect(graph.getIdForKey(key), isNull);
+  });
+
   test('does not associate a key when id is null', () {
     var key = graph.getKeyForId('people', null,
         keyIfAbsent: DataHelpers.generateKey<Person>())!;
