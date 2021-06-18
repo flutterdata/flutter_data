@@ -115,7 +115,7 @@ $pathProviderImport
 $modelImports
 
 // ignore: prefer_function_declarations_over_variables
-ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<String>? baseDirFn, List<int>? encryptionKey, bool clear = false}) {
+ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<String>? baseDirFn, List<int>? encryptionKey, bool? clear}) {
   // ignore: unnecessary_statements
   baseDirFn${importPathProvider ? ' ??= () => getApplicationDocumentsDirectory().then((dir) => dir.path)' : ''};
   return hiveLocalStorageProvider.overrideWithProvider(Provider(
@@ -124,7 +124,7 @@ ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<Str
 
 // ignore: prefer_function_declarations_over_variables
 RepositoryInitializerProvider repositoryInitializerProvider = (
-        {bool? remote, bool verbose = false}) {
+        {bool? remote, bool? verbose}) {
   return _repositoryInitializerProviderFamily(
       RepositoryInitializerArgs(remote, verbose));
 };

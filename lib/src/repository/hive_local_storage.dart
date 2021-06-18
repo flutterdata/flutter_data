@@ -5,10 +5,10 @@ import 'package:riverpod/riverpod.dart';
 import 'package:path/path.dart' as path_helper;
 
 class HiveLocalStorage {
-  HiveLocalStorage(
-      {this.baseDirFn, List<int>? encryptionKey, this.clear = false})
+  HiveLocalStorage({this.baseDirFn, List<int>? encryptionKey, bool? clear})
       : encryptionCipher =
-            encryptionKey != null ? HiveAesCipher(encryptionKey) : null;
+            encryptionKey != null ? HiveAesCipher(encryptionKey) : null,
+        clear = clear ?? false;
 
   HiveInterface get hive => Hive;
   final HiveAesCipher? encryptionCipher;

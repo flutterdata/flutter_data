@@ -1,10 +1,10 @@
 part of flutter_data;
 
 typedef ConfigureRepositoryLocalStorage = Override Function(
-    {FutureFn<String>? baseDirFn, List<int>? encryptionKey, bool clear});
+    {FutureFn<String>? baseDirFn, List<int>? encryptionKey, bool? clear});
 
 typedef RepositoryInitializerProvider = FutureProvider<RepositoryInitializer>
-    Function({bool remote, bool verbose});
+    Function({bool? remote, bool? verbose});
 
 /// ONLY FOR FLUTTER DATA INTERNAL USE
 var internalLocatorFn =

@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.8.0-rc1] - 2021-06-17
+## [0.8.0-rc2] - 2021-06-18
 
 - Migrate to null safety
 
