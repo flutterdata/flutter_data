@@ -15,13 +15,9 @@ abstract class LocalAdapter<T extends DataModel<T>>
   // protected API
 
   /// Returns all models of type [T] in local storage.
-  @protected
-  @visibleForTesting
   List<T> findAll();
 
   /// Finds model of type [T] by [key] in local storage.
-  @protected
-  @visibleForTesting
   T findOne(String key);
 
   /// Saves model of type [T] with [key] in local storage.

@@ -27,7 +27,7 @@ Repository<House> houseRepository;
 Repository<Person> personRepository;
 Repository<Dog> dogRepository;
 Repository<Node> nodeRepository;
-Repository<Author> authorRepository;
+Repository<BookAuthor> bookAuthorRepository;
 Repository<Book> bookRepository;
 
 Function dispose;
@@ -87,11 +87,12 @@ void setUpFn() async {
     },
   );
 
-  authorRepository = await container.read(authorsRepositoryProvider).initialize(
+  bookAuthorRepository =
+      await container.read(bookAuthorsRepositoryProvider).initialize(
     remote: false,
     verbose: false,
     adapters: {
-      'authors': container.read(authorsRemoteAdapterProvider),
+      'bookAuthors': container.read(bookAuthorsRemoteAdapterProvider),
       'books': container.read(booksRemoteAdapterProvider),
     },
   );
@@ -100,7 +101,7 @@ void setUpFn() async {
     remote: false,
     verbose: false,
     adapters: {
-      'authors': container.read(authorsRemoteAdapterProvider),
+      'bookAuthors': container.read(bookAuthorsRemoteAdapterProvider),
       'books': container.read(booksRemoteAdapterProvider),
     },
   );
@@ -162,8 +163,8 @@ ProviderContainer createContainer() {
           .overrideWithProvider(Provider((ref) => DogLocalAdapter(ref))),
       nodesLocalAdapterProvider
           .overrideWithProvider(Provider((ref) => NodeLocalAdapter(ref))),
-      authorsLocalAdapterProvider
-          .overrideWithProvider(Provider((ref) => AuthorLocalAdapter(ref))),
+      bookAuthorsLocalAdapterProvider
+          .overrideWithProvider(Provider((ref) => BookAuthorLocalAdapter(ref))),
       booksLocalAdapterProvider
           .overrideWithProvider(Provider((ref) => BookLocalAdapter(ref))),
 
@@ -179,8 +180,8 @@ ProviderContainer createContainer() {
           (ref) => DogRemoteAdapter(ref.read(dogsLocalAdapterProvider)))),
       nodesRemoteAdapterProvider.overrideWithProvider(Provider(
           (ref) => $NodeRemoteAdapter(ref.read(nodesLocalAdapterProvider)))),
-      authorsRemoteAdapterProvider.overrideWithProvider(Provider(
-          (ref) => AuthorRemoteAdapter(ref.read(authorsLocalAdapterProvider)))),
+      bookAuthorsRemoteAdapterProvider.overrideWithProvider(Provider((ref) =>
+          BookAuthorRemoteAdapter(ref.read(bookAuthorsLocalAdapterProvider)))),
       booksRemoteAdapterProvider.overrideWithProvider(Provider(
           (ref) => $BookRemoteAdapter(ref.read(booksLocalAdapterProvider)))),
     ],
@@ -212,9 +213,9 @@ class DogRemoteAdapter = $DogRemoteAdapter with TestRemoteAdapter;
 class NodeLocalAdapter = $NodeHiveLocalAdapter with TestHiveLocalAdapter<Node>;
 
 // ignore: must_be_immutable
-class AuthorLocalAdapter = $AuthorHiveLocalAdapter
-    with TestHiveLocalAdapter<Author>;
-class AuthorRemoteAdapter = $AuthorRemoteAdapter with TestRemoteAdapter;
+class BookAuthorLocalAdapter = $BookAuthorHiveLocalAdapter
+    with TestHiveLocalAdapter<BookAuthor>;
+class BookAuthorRemoteAdapter = $BookAuthorRemoteAdapter with TestRemoteAdapter;
 
 // ignore: must_be_immutable
 class BookLocalAdapter = $BookHiveLocalAdapter with TestHiveLocalAdapter<Book>;

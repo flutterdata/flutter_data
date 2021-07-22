@@ -10,8 +10,8 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
     // wipe out orphans
     graph.removeOrphanNodes();
     // ensure offline nodes exist
-    if (!graph._hasNode(_offlineAdapterKey)) {
-      graph._addNode(_offlineAdapterKey);
+    if (!graph.hasNode(_offlineAdapterKey)) {
+      graph.addNode(_offlineAdapterKey);
     }
   }
 

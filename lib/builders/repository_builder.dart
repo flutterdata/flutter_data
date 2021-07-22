@@ -241,9 +241,10 @@ extension ${classType}X on $classType {
   /// [save], [delete] and so on.
   /// 
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
-  $classType init(Reader read) {
+  $classType init(Reader read, {bool save = true}) {
     final repository = internalLocatorFn(${typeLowerCased}RepositoryProvider, read);
-    return repository.remoteAdapter.initializeModel(this, save: true);
+    final updatedModel = repository.remoteAdapter.initializeModel(this, save: save);
+    return save ? updatedModel : this;
   }
 }
 ''';

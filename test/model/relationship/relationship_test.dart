@@ -270,12 +270,13 @@ void main() async {
   });
 
   test('freezed bidirectional one-to-many', () async {
-    final book = Book(id: 23, title: 'Tao Te Ching', author: BelongsTo())
-        .init(container.read);
-    final author = Author(id: 15, name: 'Walter', books: HasMany({book}))
+    final book =
+        Book(id: 23, title: 'Tao Te Ching', originalAuthor: BelongsTo())
+            .init(container.read);
+    final author = BookAuthor(id: 15, name: 'Walter', books: HasMany({book}))
         .init(container.read);
 
-    final listener = Listener<DataState<Author>>();
+    final listener = Listener<DataState<BookAuthor>>();
     final notifier = author.watch(remote: false);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
@@ -297,8 +298,8 @@ void main() async {
     // verify(listener(DataState(a2, isLoading: false))).called(1);
     // verifyNoMoreInteractions(listener);
 
-    expect(author.books.first.author.value,
-        equals(Author(id: 15, name: 'Steve-O', books: HasMany({book}))));
+    expect(author.books.first.originalAuthor.value,
+        equals(BookAuthor(id: 15, name: 'Steve-O', books: HasMany({book}))));
 
     expect(HasMany({book}), isNot(HasMany<Book>()));
     expect(HasMany({book}), equals(HasMany<Book>({book})));
@@ -307,9 +308,10 @@ void main() async {
         const DeepCollectionEquality().equals(author.books, HasMany({book}));
     expect(eq, isTrue);
 
-    expect(author.books.first.author.toString(), 'BelongsTo<Author>(15)');
+    expect(author.books.first.originalAuthor.toString(),
+        'BelongsTo<BookAuthor>(15)');
     expect(author.books.toString(), 'HasMany<Book>(23)');
-    expect(author.books.first.author.value.toString(),
-        'Author(id: 15, name: Steve-O, books: HasMany<Book>(23))');
+    expect(author.books.first.originalAuthor.value.toString(),
+        'BookAuthor(id: 15, name: Steve-O, books: HasMany<Book>(23))');
   });
 }

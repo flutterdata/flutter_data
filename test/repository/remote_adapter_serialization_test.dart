@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
+import '../_support/book.dart';
 import '../_support/family.dart';
 import '../_support/house.dart';
 import '../_support/node.dart';
@@ -180,5 +181,18 @@ void main() async {
       Family(id: '1', surname: 'Byrde'),
       House(id: '1', address: '123 Main St'),
     ]);
+  });
+
+  test('deserializes/serializes with overriden json key for relationship', () {
+    BookAuthor(id: 332, name: 'Zhung').init(container.read);
+
+    final book = bookRepository.remoteAdapter.deserialize([
+      {'id': 27, 'title': 'Ko', 'original_author_id': 332}
+    ], init: true).model;
+
+    expect(book.originalAuthor.value.id, 332);
+
+    expect(bookRepository.remoteAdapter.serialize(book),
+        {'id': 27, 'title': 'Ko', 'original_author_id': 332});
   });
 }

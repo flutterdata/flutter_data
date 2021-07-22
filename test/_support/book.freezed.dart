@@ -8,17 +8,17 @@ part of 'book.dart';
 // **************************************************************************
 
 T _$identity<T>(T value) => value;
-Author _$AuthorFromJson(Map<String, dynamic> json) {
-  return _Author.fromJson(json);
+BookAuthor _$BookAuthorFromJson(Map<String, dynamic> json) {
+  return _BookAuthor.fromJson(json);
 }
 
 /// @nodoc
-class _$AuthorTearOff {
-  const _$AuthorTearOff();
+class _$BookAuthorTearOff {
+  const _$BookAuthorTearOff();
 
 // ignore: unused_element
-  _Author call({int id, String name, HasMany<Book> books}) {
-    return _Author(
+  _BookAuthor call({int id, String name, HasMany<Book> books}) {
+    return _BookAuthor(
       id: id,
       name: name,
       books: books,
@@ -26,39 +26,40 @@ class _$AuthorTearOff {
   }
 
 // ignore: unused_element
-  Author fromJson(Map<String, Object> json) {
-    return Author.fromJson(json);
+  BookAuthor fromJson(Map<String, Object> json) {
+    return BookAuthor.fromJson(json);
   }
 }
 
 /// @nodoc
 // ignore: unused_element
-const $Author = _$AuthorTearOff();
+const $BookAuthor = _$BookAuthorTearOff();
 
 /// @nodoc
-mixin _$Author {
+mixin _$BookAuthor {
   int get id;
   String get name;
   HasMany<Book> get books;
 
   Map<String, dynamic> toJson();
-  $AuthorCopyWith<Author> get copyWith;
+  $BookAuthorCopyWith<BookAuthor> get copyWith;
 }
 
 /// @nodoc
-abstract class $AuthorCopyWith<$Res> {
-  factory $AuthorCopyWith(Author value, $Res Function(Author) then) =
-      _$AuthorCopyWithImpl<$Res>;
+abstract class $BookAuthorCopyWith<$Res> {
+  factory $BookAuthorCopyWith(
+          BookAuthor value, $Res Function(BookAuthor) then) =
+      _$BookAuthorCopyWithImpl<$Res>;
   $Res call({int id, String name, HasMany<Book> books});
 }
 
 /// @nodoc
-class _$AuthorCopyWithImpl<$Res> implements $AuthorCopyWith<$Res> {
-  _$AuthorCopyWithImpl(this._value, this._then);
+class _$BookAuthorCopyWithImpl<$Res> implements $BookAuthorCopyWith<$Res> {
+  _$BookAuthorCopyWithImpl(this._value, this._then);
 
-  final Author _value;
+  final BookAuthor _value;
   // ignore: unused_field
-  final $Res Function(Author) _then;
+  final $Res Function(BookAuthor) _then;
 
   @override
   $Res call({
@@ -75,21 +76,23 @@ class _$AuthorCopyWithImpl<$Res> implements $AuthorCopyWith<$Res> {
 }
 
 /// @nodoc
-abstract class _$AuthorCopyWith<$Res> implements $AuthorCopyWith<$Res> {
-  factory _$AuthorCopyWith(_Author value, $Res Function(_Author) then) =
-      __$AuthorCopyWithImpl<$Res>;
+abstract class _$BookAuthorCopyWith<$Res> implements $BookAuthorCopyWith<$Res> {
+  factory _$BookAuthorCopyWith(
+          _BookAuthor value, $Res Function(_BookAuthor) then) =
+      __$BookAuthorCopyWithImpl<$Res>;
   @override
   $Res call({int id, String name, HasMany<Book> books});
 }
 
 /// @nodoc
-class __$AuthorCopyWithImpl<$Res> extends _$AuthorCopyWithImpl<$Res>
-    implements _$AuthorCopyWith<$Res> {
-  __$AuthorCopyWithImpl(_Author _value, $Res Function(_Author) _then)
-      : super(_value, (v) => _then(v as _Author));
+class __$BookAuthorCopyWithImpl<$Res> extends _$BookAuthorCopyWithImpl<$Res>
+    implements _$BookAuthorCopyWith<$Res> {
+  __$BookAuthorCopyWithImpl(
+      _BookAuthor _value, $Res Function(_BookAuthor) _then)
+      : super(_value, (v) => _then(v as _BookAuthor));
 
   @override
-  _Author get _value => super._value as _Author;
+  _BookAuthor get _value => super._value as _BookAuthor;
 
   @override
   $Res call({
@@ -97,7 +100,7 @@ class __$AuthorCopyWithImpl<$Res> extends _$AuthorCopyWithImpl<$Res>
     Object name = freezed,
     Object books = freezed,
   }) {
-    return _then(_Author(
+    return _then(_BookAuthor(
       id: id == freezed ? _value.id : id as int,
       name: name == freezed ? _value.name : name as String,
       books: books == freezed ? _value.books : books as HasMany<Book>,
@@ -106,14 +109,14 @@ class __$AuthorCopyWithImpl<$Res> extends _$AuthorCopyWithImpl<$Res>
 }
 
 @JsonSerializable()
-@With.fromString('DataModel<Author>')
+@With.fromString('DataModel<BookAuthor>')
 
 /// @nodoc
-class _$_Author with DataModel<Author> implements _Author {
-  _$_Author({this.id, this.name, this.books});
+class _$_BookAuthor with DataModel<BookAuthor> implements _BookAuthor {
+  _$_BookAuthor({this.id, this.name, this.books});
 
-  factory _$_Author.fromJson(Map<String, dynamic> json) =>
-      _$_$_AuthorFromJson(json);
+  factory _$_BookAuthor.fromJson(Map<String, dynamic> json) =>
+      _$_$_BookAuthorFromJson(json);
 
   @override
   final int id;
@@ -124,13 +127,13 @@ class _$_Author with DataModel<Author> implements _Author {
 
   @override
   String toString() {
-    return 'Author(id: $id, name: $name, books: $books)';
+    return 'BookAuthor(id: $id, name: $name, books: $books)';
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _Author &&
+        (other is _BookAuthor &&
             (identical(other.id, id) ||
                 const DeepCollectionEquality().equals(other.id, id)) &&
             (identical(other.name, name) ||
@@ -147,19 +150,21 @@ class _$_Author with DataModel<Author> implements _Author {
       const DeepCollectionEquality().hash(books);
 
   @override
-  _$AuthorCopyWith<_Author> get copyWith =>
-      __$AuthorCopyWithImpl<_Author>(this, _$identity);
+  _$BookAuthorCopyWith<_BookAuthor> get copyWith =>
+      __$BookAuthorCopyWithImpl<_BookAuthor>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$_$_AuthorToJson(this);
+    return _$_$_BookAuthorToJson(this);
   }
 }
 
-abstract class _Author implements Author, DataModel<Author> {
-  factory _Author({int id, String name, HasMany<Book> books}) = _$_Author;
+abstract class _BookAuthor implements BookAuthor, DataModel<BookAuthor> {
+  factory _BookAuthor({int id, String name, HasMany<Book> books}) =
+      _$_BookAuthor;
 
-  factory _Author.fromJson(Map<String, dynamic> json) = _$_Author.fromJson;
+  factory _BookAuthor.fromJson(Map<String, dynamic> json) =
+      _$_BookAuthor.fromJson;
 
   @override
   int get id;
@@ -168,7 +173,7 @@ abstract class _Author implements Author, DataModel<Author> {
   @override
   HasMany<Book> get books;
   @override
-  _$AuthorCopyWith<_Author> get copyWith;
+  _$BookAuthorCopyWith<_BookAuthor> get copyWith;
 }
 
 Book _$BookFromJson(Map<String, dynamic> json) {
@@ -180,11 +185,16 @@ class _$BookTearOff {
   const _$BookTearOff();
 
 // ignore: unused_element
-  _Book call({int id, String title, BelongsTo<Author> author}) {
+  _Book call(
+      {int id,
+      String title,
+      int numberOfSales,
+      @JsonKey(name: 'original_author') BelongsTo<BookAuthor> originalAuthor}) {
     return _Book(
       id: id,
       title: title,
-      author: author,
+      numberOfSales: numberOfSales,
+      originalAuthor: originalAuthor,
     );
   }
 
@@ -202,7 +212,9 @@ const $Book = _$BookTearOff();
 mixin _$Book {
   int get id;
   String get title;
-  BelongsTo<Author> get author;
+  int get numberOfSales;
+  @JsonKey(name: 'original_author')
+  BelongsTo<BookAuthor> get originalAuthor;
 
   Map<String, dynamic> toJson();
   $BookCopyWith<Book> get copyWith;
@@ -212,7 +224,11 @@ mixin _$Book {
 abstract class $BookCopyWith<$Res> {
   factory $BookCopyWith(Book value, $Res Function(Book) then) =
       _$BookCopyWithImpl<$Res>;
-  $Res call({int id, String title, BelongsTo<Author> author});
+  $Res call(
+      {int id,
+      String title,
+      int numberOfSales,
+      @JsonKey(name: 'original_author') BelongsTo<BookAuthor> originalAuthor});
 }
 
 /// @nodoc
@@ -227,12 +243,18 @@ class _$BookCopyWithImpl<$Res> implements $BookCopyWith<$Res> {
   $Res call({
     Object id = freezed,
     Object title = freezed,
-    Object author = freezed,
+    Object numberOfSales = freezed,
+    Object originalAuthor = freezed,
   }) {
     return _then(_value.copyWith(
       id: id == freezed ? _value.id : id as int,
       title: title == freezed ? _value.title : title as String,
-      author: author == freezed ? _value.author : author as BelongsTo<Author>,
+      numberOfSales: numberOfSales == freezed
+          ? _value.numberOfSales
+          : numberOfSales as int,
+      originalAuthor: originalAuthor == freezed
+          ? _value.originalAuthor
+          : originalAuthor as BelongsTo<BookAuthor>,
     ));
   }
 }
@@ -242,7 +264,11 @@ abstract class _$BookCopyWith<$Res> implements $BookCopyWith<$Res> {
   factory _$BookCopyWith(_Book value, $Res Function(_Book) then) =
       __$BookCopyWithImpl<$Res>;
   @override
-  $Res call({int id, String title, BelongsTo<Author> author});
+  $Res call(
+      {int id,
+      String title,
+      int numberOfSales,
+      @JsonKey(name: 'original_author') BelongsTo<BookAuthor> originalAuthor});
 }
 
 /// @nodoc
@@ -258,22 +284,32 @@ class __$BookCopyWithImpl<$Res> extends _$BookCopyWithImpl<$Res>
   $Res call({
     Object id = freezed,
     Object title = freezed,
-    Object author = freezed,
+    Object numberOfSales = freezed,
+    Object originalAuthor = freezed,
   }) {
     return _then(_Book(
       id: id == freezed ? _value.id : id as int,
       title: title == freezed ? _value.title : title as String,
-      author: author == freezed ? _value.author : author as BelongsTo<Author>,
+      numberOfSales: numberOfSales == freezed
+          ? _value.numberOfSales
+          : numberOfSales as int,
+      originalAuthor: originalAuthor == freezed
+          ? _value.originalAuthor
+          : originalAuthor as BelongsTo<BookAuthor>,
     ));
   }
 }
 
-@JsonSerializable()
 @With.fromString('DataModel<Book>')
+@JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
 
 /// @nodoc
 class _$_Book with DataModel<Book> implements _Book {
-  _$_Book({this.id, this.title, this.author});
+  _$_Book(
+      {this.id,
+      this.title,
+      this.numberOfSales,
+      @JsonKey(name: 'original_author') this.originalAuthor});
 
   factory _$_Book.fromJson(Map<String, dynamic> json) =>
       _$_$_BookFromJson(json);
@@ -283,11 +319,14 @@ class _$_Book with DataModel<Book> implements _Book {
   @override
   final String title;
   @override
-  final BelongsTo<Author> author;
+  final int numberOfSales;
+  @override
+  @JsonKey(name: 'original_author')
+  final BelongsTo<BookAuthor> originalAuthor;
 
   @override
   String toString() {
-    return 'Book(id: $id, title: $title, author: $author)';
+    return 'Book(id: $id, title: $title, numberOfSales: $numberOfSales, originalAuthor: $originalAuthor)';
   }
 
   @override
@@ -298,8 +337,12 @@ class _$_Book with DataModel<Book> implements _Book {
                 const DeepCollectionEquality().equals(other.id, id)) &&
             (identical(other.title, title) ||
                 const DeepCollectionEquality().equals(other.title, title)) &&
-            (identical(other.author, author) ||
-                const DeepCollectionEquality().equals(other.author, author)));
+            (identical(other.numberOfSales, numberOfSales) ||
+                const DeepCollectionEquality()
+                    .equals(other.numberOfSales, numberOfSales)) &&
+            (identical(other.originalAuthor, originalAuthor) ||
+                const DeepCollectionEquality()
+                    .equals(other.originalAuthor, originalAuthor)));
   }
 
   @override
@@ -307,7 +350,8 @@ class _$_Book with DataModel<Book> implements _Book {
       runtimeType.hashCode ^
       const DeepCollectionEquality().hash(id) ^
       const DeepCollectionEquality().hash(title) ^
-      const DeepCollectionEquality().hash(author);
+      const DeepCollectionEquality().hash(numberOfSales) ^
+      const DeepCollectionEquality().hash(originalAuthor);
 
   @override
   _$BookCopyWith<_Book> get copyWith =>
@@ -320,7 +364,12 @@ class _$_Book with DataModel<Book> implements _Book {
 }
 
 abstract class _Book implements Book, DataModel<Book> {
-  factory _Book({int id, String title, BelongsTo<Author> author}) = _$_Book;
+  factory _Book(
+      {int id,
+      String title,
+      int numberOfSales,
+      @JsonKey(name: 'original_author')
+          BelongsTo<BookAuthor> originalAuthor}) = _$_Book;
 
   factory _Book.fromJson(Map<String, dynamic> json) = _$_Book.fromJson;
 
@@ -329,7 +378,10 @@ abstract class _Book implements Book, DataModel<Book> {
   @override
   String get title;
   @override
-  BelongsTo<Author> get author;
+  int get numberOfSales;
+  @override
+  @JsonKey(name: 'original_author')
+  BelongsTo<BookAuthor> get originalAuthor;
   @override
   _$BookCopyWith<_Book> get copyWith;
 }

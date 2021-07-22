@@ -6,8 +6,8 @@ part of 'book.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_Author _$_$_AuthorFromJson(Map<String, dynamic> json) {
-  return _$_Author(
+_$_BookAuthor _$_$_BookAuthorFromJson(Map<String, dynamic> json) {
+  return _$_BookAuthor(
     id: json['id'] as int,
     name: json['name'] as String,
     books: json['books'] == null
@@ -16,7 +16,8 @@ _$_Author _$_$_AuthorFromJson(Map<String, dynamic> json) {
   );
 }
 
-Map<String, dynamic> _$_$_AuthorToJson(_$_Author instance) => <String, dynamic>{
+Map<String, dynamic> _$_$_BookAuthorToJson(_$_BookAuthor instance) =>
+    <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
       'books': instance.books,
@@ -26,17 +27,28 @@ _$_Book _$_$_BookFromJson(Map<String, dynamic> json) {
   return _$_Book(
     id: json['id'] as int,
     title: json['title'] as String,
-    author: json['author'] == null
+    numberOfSales: json['number_of_sales'] as int,
+    originalAuthor: json['original_author'] == null
         ? null
-        : BelongsTo.fromJson(json['author'] as Map<String, dynamic>),
+        : BelongsTo.fromJson(json['original_author'] as Map<String, dynamic>),
   );
 }
 
-Map<String, dynamic> _$_$_BookToJson(_$_Book instance) => <String, dynamic>{
-      'id': instance.id,
-      'title': instance.title,
-      'author': instance.author,
-    };
+Map<String, dynamic> _$_$_BookToJson(_$_Book instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('id', instance.id);
+  writeNotNull('title', instance.title);
+  writeNotNull('number_of_sales', instance.numberOfSales);
+  writeNotNull('original_author', instance.originalAuthor);
+  return val;
+}
 
 // **************************************************************************
 // RepositoryGenerator
@@ -44,12 +56,12 @@ Map<String, dynamic> _$_$_BookToJson(_$_Book instance) => <String, dynamic>{
 
 // ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member, non_constant_identifier_names
 
-mixin $AuthorLocalAdapter on LocalAdapter<Author> {
+mixin $BookAuthorLocalAdapter on LocalAdapter<BookAuthor> {
   @override
-  Map<String, Map<String, Object>> relationshipsFor([Author model]) => {
+  Map<String, Map<String, Object>> relationshipsFor([BookAuthor model]) => {
         'books': {
           'name': 'books',
-          'inverse': 'author',
+          'inverse': 'originalAuthor',
           'type': 'books',
           'kind': 'HasMany',
           'instance': model?.books
@@ -57,13 +69,13 @@ mixin $AuthorLocalAdapter on LocalAdapter<Author> {
       };
 
   @override
-  Author deserialize(map) {
+  BookAuthor deserialize(map) {
     for (final key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key)],
       };
     }
-    return Author.fromJson(map);
+    return BookAuthor.fromJson(map);
   }
 
   @override
@@ -71,38 +83,40 @@ mixin $AuthorLocalAdapter on LocalAdapter<Author> {
 }
 
 // ignore: must_be_immutable
-class $AuthorHiveLocalAdapter = HiveLocalAdapter<Author>
-    with $AuthorLocalAdapter;
+class $BookAuthorHiveLocalAdapter = HiveLocalAdapter<BookAuthor>
+    with $BookAuthorLocalAdapter;
 
-class $AuthorRemoteAdapter = RemoteAdapter<Author> with AuthorAdapter;
+class $BookAuthorRemoteAdapter = RemoteAdapter<BookAuthor>
+    with BookAuthorAdapter;
 
 //
 
-final authorsLocalAdapterProvider =
-    Provider<LocalAdapter<Author>>((ref) => $AuthorHiveLocalAdapter(ref));
+final bookAuthorsLocalAdapterProvider = Provider<LocalAdapter<BookAuthor>>(
+    (ref) => $BookAuthorHiveLocalAdapter(ref));
 
-final authorsRemoteAdapterProvider = Provider<RemoteAdapter<Author>>(
-    (ref) => $AuthorRemoteAdapter(ref.read(authorsLocalAdapterProvider)));
+final bookAuthorsRemoteAdapterProvider = Provider<RemoteAdapter<BookAuthor>>(
+    (ref) =>
+        $BookAuthorRemoteAdapter(ref.read(bookAuthorsLocalAdapterProvider)));
 
-final authorsRepositoryProvider =
-    Provider<Repository<Author>>((ref) => Repository<Author>(ref));
+final bookAuthorsRepositoryProvider =
+    Provider<Repository<BookAuthor>>((ref) => Repository<BookAuthor>(ref));
 
-final _watchAuthor = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<Author>, WatchArgs<Author>>((ref, args) {
-  return ref.read(authorsRepositoryProvider).watchOne(args.id,
+final _watchBookAuthor = StateNotifierProvider.autoDispose
+    .family<DataStateNotifier<BookAuthor>, WatchArgs<BookAuthor>>((ref, args) {
+  return ref.read(bookAuthorsRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
       alsoWatch: args.alsoWatch);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<Author>> watchAuthor(
+AutoDisposeStateNotifierProvider<DataStateNotifier<BookAuthor>> watchBookAuthor(
     dynamic id,
     {bool remote,
     Map<String, dynamic> params = const {},
     Map<String, String> headers = const {},
-    AlsoWatch<Author> alsoWatch}) {
-  return _watchAuthor(WatchArgs(
+    AlsoWatch<BookAuthor> alsoWatch}) {
+  return _watchBookAuthor(WatchArgs(
       id: id,
       remote: remote,
       params: params,
@@ -110,10 +124,11 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Author>> watchAuthor(
       alsoWatch: alsoWatch));
 }
 
-final _watchAuthors = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<List<Author>>, WatchArgs<Author>>((ref, args) {
+final _watchBookAuthors = StateNotifierProvider.autoDispose
+    .family<DataStateNotifier<List<BookAuthor>>, WatchArgs<BookAuthor>>(
+        (ref, args) {
   ref.maintainState = false;
-  return ref.read(authorsRepositoryProvider).watchAll(
+  return ref.read(bookAuthorsRepositoryProvider).watchAll(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -121,19 +136,22 @@ final _watchAuthors = StateNotifierProvider.autoDispose
       syncLocal: args.syncLocal);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<List<Author>>> watchAuthors(
-    {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
-  return _watchAuthors(
+AutoDisposeStateNotifierProvider<DataStateNotifier<List<BookAuthor>>>
+    watchBookAuthors(
+        {bool remote,
+        Map<String, dynamic> params,
+        Map<String, String> headers}) {
+  return _watchBookAuthors(
       WatchArgs(remote: remote, params: params, headers: headers));
 }
 
-extension AuthorX on Author {
+extension BookAuthorX on BookAuthor {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
-  Author init(Reader read) {
-    final repository = internalLocatorFn(authorsRepositoryProvider, read);
+  BookAuthor init(Reader read) {
+    final repository = internalLocatorFn(bookAuthorsRepositoryProvider, read);
     return repository.remoteAdapter.initializeModel(this, save: true);
   }
 }
@@ -143,12 +161,12 @@ extension AuthorX on Author {
 mixin $BookLocalAdapter on LocalAdapter<Book> {
   @override
   Map<String, Map<String, Object>> relationshipsFor([Book model]) => {
-        'author': {
-          'name': 'author',
+        'original_author': {
+          'name': 'originalAuthor',
           'inverse': 'books',
-          'type': 'authors',
+          'type': 'bookAuthors',
           'kind': 'BelongsTo',
-          'instance': model?.author
+          'instance': model?.originalAuthor
         }
       };
 
