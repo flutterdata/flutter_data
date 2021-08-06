@@ -124,9 +124,15 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Comment>>>
     watchComments(
         {bool remote,
         Map<String, dynamic> params,
-        Map<String, String> headers}) {
-  return _watchComments(
-      WatchArgs(remote: remote, params: params, headers: headers));
+        Map<String, String> headers,
+        bool Function(Comment) filterLocal,
+        bool syncLocal}) {
+  return _watchComments(WatchArgs(
+      remote: remote,
+      params: params,
+      headers: headers,
+      filterLocal: filterLocal,
+      syncLocal: syncLocal));
 }
 
 extension CommentX on Comment {
@@ -134,9 +140,11 @@ extension CommentX on Comment {
   /// [save], [delete] and so on.
   ///
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
-  Comment init(Reader read) {
+  Comment init(Reader read, {bool save = true}) {
     final repository = internalLocatorFn(commentsRepositoryProvider, read);
-    return repository.remoteAdapter.initializeModel(this, save: true);
+    final updatedModel =
+        repository.remoteAdapter.initializeModel(this, save: save);
+    return save ? updatedModel : this;
   }
 }
 
@@ -211,9 +219,17 @@ final _watchSheep = StateNotifierProvider.autoDispose
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<Sheep>>> watchSheep(
-    {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
-  return _watchSheep(
-      WatchArgs(remote: remote, params: params, headers: headers));
+    {bool remote,
+    Map<String, dynamic> params,
+    Map<String, String> headers,
+    bool Function(Sheep) filterLocal,
+    bool syncLocal}) {
+  return _watchSheep(WatchArgs(
+      remote: remote,
+      params: params,
+      headers: headers,
+      filterLocal: filterLocal,
+      syncLocal: syncLocal));
 }
 
 extension SheepX on Sheep {
@@ -221,8 +237,10 @@ extension SheepX on Sheep {
   /// [save], [delete] and so on.
   ///
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
-  Sheep init(Reader read) {
+  Sheep init(Reader read, {bool save = true}) {
     final repository = internalLocatorFn(sheepRepositoryProvider, read);
-    return repository.remoteAdapter.initializeModel(this, save: true);
+    final updatedModel =
+        repository.remoteAdapter.initializeModel(this, save: save);
+    return save ? updatedModel : this;
   }
 }

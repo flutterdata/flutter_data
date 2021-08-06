@@ -105,9 +105,17 @@ final _watchHouses = StateNotifierProvider.autoDispose
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<House>>> watchHouses(
-    {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
-  return _watchHouses(
-      WatchArgs(remote: remote, params: params, headers: headers));
+    {bool remote,
+    Map<String, dynamic> params,
+    Map<String, String> headers,
+    bool Function(House) filterLocal,
+    bool syncLocal}) {
+  return _watchHouses(WatchArgs(
+      remote: remote,
+      params: params,
+      headers: headers,
+      filterLocal: filterLocal,
+      syncLocal: syncLocal));
 }
 
 extension HouseX on House {
@@ -115,8 +123,10 @@ extension HouseX on House {
   /// [save], [delete] and so on.
   ///
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
-  House init(Reader read) {
+  House init(Reader read, {bool save = true}) {
     final repository = internalLocatorFn(housesRepositoryProvider, read);
-    return repository.remoteAdapter.initializeModel(this, save: true);
+    final updatedModel =
+        repository.remoteAdapter.initializeModel(this, save: save);
+    return save ? updatedModel : this;
   }
 }

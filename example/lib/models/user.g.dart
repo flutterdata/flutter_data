@@ -94,9 +94,17 @@ final _watchUsers = StateNotifierProvider.autoDispose
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<User>>> watchUsers(
-    {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
-  return _watchUsers(
-      WatchArgs(remote: remote, params: params, headers: headers));
+    {bool remote,
+    Map<String, dynamic> params,
+    Map<String, String> headers,
+    bool Function(User) filterLocal,
+    bool syncLocal}) {
+  return _watchUsers(WatchArgs(
+      remote: remote,
+      params: params,
+      headers: headers,
+      filterLocal: filterLocal,
+      syncLocal: syncLocal));
 }
 
 extension UserX on User {
@@ -104,8 +112,10 @@ extension UserX on User {
   /// [save], [delete] and so on.
   ///
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
-  User init(Reader read) {
+  User init(Reader read, {bool save = true}) {
     final repository = internalLocatorFn(usersRepositoryProvider, read);
-    return repository.remoteAdapter.initializeModel(this, save: true);
+    final updatedModel =
+        repository.remoteAdapter.initializeModel(this, save: save);
+    return save ? updatedModel : this;
   }
 }

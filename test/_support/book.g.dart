@@ -140,9 +140,15 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<BookAuthor>>>
     watchBookAuthors(
         {bool remote,
         Map<String, dynamic> params,
-        Map<String, String> headers}) {
-  return _watchBookAuthors(
-      WatchArgs(remote: remote, params: params, headers: headers));
+        Map<String, String> headers,
+        bool Function(BookAuthor) filterLocal,
+        bool syncLocal}) {
+  return _watchBookAuthors(WatchArgs(
+      remote: remote,
+      params: params,
+      headers: headers,
+      filterLocal: filterLocal,
+      syncLocal: syncLocal));
 }
 
 extension BookAuthorX on BookAuthor {
@@ -150,9 +156,11 @@ extension BookAuthorX on BookAuthor {
   /// [save], [delete] and so on.
   ///
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
-  BookAuthor init(Reader read) {
+  BookAuthor init(Reader read, {bool save = true}) {
     final repository = internalLocatorFn(bookAuthorsRepositoryProvider, read);
-    return repository.remoteAdapter.initializeModel(this, save: true);
+    final updatedModel =
+        repository.remoteAdapter.initializeModel(this, save: save);
+    return save ? updatedModel : this;
   }
 }
 
@@ -234,9 +242,17 @@ final _watchBooks = StateNotifierProvider.autoDispose
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<Book>>> watchBooks(
-    {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
-  return _watchBooks(
-      WatchArgs(remote: remote, params: params, headers: headers));
+    {bool remote,
+    Map<String, dynamic> params,
+    Map<String, String> headers,
+    bool Function(Book) filterLocal,
+    bool syncLocal}) {
+  return _watchBooks(WatchArgs(
+      remote: remote,
+      params: params,
+      headers: headers,
+      filterLocal: filterLocal,
+      syncLocal: syncLocal));
 }
 
 extension BookX on Book {
@@ -244,8 +260,10 @@ extension BookX on Book {
   /// [save], [delete] and so on.
   ///
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
-  Book init(Reader read) {
+  Book init(Reader read, {bool save = true}) {
     final repository = internalLocatorFn(booksRepositoryProvider, read);
-    return repository.remoteAdapter.initializeModel(this, save: true);
+    final updatedModel =
+        repository.remoteAdapter.initializeModel(this, save: save);
+    return save ? updatedModel : this;
   }
 }

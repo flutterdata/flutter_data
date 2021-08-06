@@ -232,8 +232,8 @@ final _watch$classTypePlural =
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<$classType>>> watch$classTypePlural(
-    {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
-  return _watch$classTypePlural(WatchArgs(remote: remote, params: params, headers: headers));
+    {bool remote, Map<String, dynamic> params, Map<String, String> headers, bool Function($classType) filterLocal, bool syncLocal}) {
+  return _watch$classTypePlural(WatchArgs(remote: remote, params: params, headers: headers, filterLocal: filterLocal, syncLocal: syncLocal));
 }
 
 extension ${classType}X on $classType {

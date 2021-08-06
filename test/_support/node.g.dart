@@ -115,9 +115,17 @@ final _watchNodes = StateNotifierProvider.autoDispose
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<Node>>> watchNodes(
-    {bool remote, Map<String, dynamic> params, Map<String, String> headers}) {
-  return _watchNodes(
-      WatchArgs(remote: remote, params: params, headers: headers));
+    {bool remote,
+    Map<String, dynamic> params,
+    Map<String, String> headers,
+    bool Function(Node) filterLocal,
+    bool syncLocal}) {
+  return _watchNodes(WatchArgs(
+      remote: remote,
+      params: params,
+      headers: headers,
+      filterLocal: filterLocal,
+      syncLocal: syncLocal));
 }
 
 extension NodeX on Node {
@@ -125,8 +133,10 @@ extension NodeX on Node {
   /// [save], [delete] and so on.
   ///
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
-  Node init(Reader read) {
+  Node init(Reader read, {bool save = true}) {
     final repository = internalLocatorFn(nodesRepositoryProvider, read);
-    return repository.remoteAdapter.initializeModel(this, save: true);
+    final updatedModel =
+        repository.remoteAdapter.initializeModel(this, save: save);
+    return save ? updatedModel : this;
   }
 }
