@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.7.3] - 2021-08-06
+
+- Add filterLocal and syncLocal to watchers
+- Ensure model is persisted even if already initialized
+- Allow bool save in DataModel init()
+- Backport fixes in null-safety branch
+- Fix minor issue serialization
+- Improve tests around serialization edge cases
+
 ## [0.7.2] - 2021-06-09
 
 - Upgrade offline operations design
