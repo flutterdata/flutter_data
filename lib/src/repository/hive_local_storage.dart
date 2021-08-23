@@ -30,21 +30,12 @@ In Flutter, `baseDirFn` will be supplied automatically if
 the `path_provider` package is in `pubspec.yaml` AND
 Flutter Data is properly configured:
 
-If using Riverpod, did you supply the override?
+Did you supply the override?
 
 Widget build(context) {
   return ProviderContainer(
     overrides: [
       configureRepositoryLocalStorage()
-    ],
-    child: MaterialApp(
-
-If using Provider, did you include the providers?
-
-Widget build(context) {
-  return MultiProvider(
-    providers: [
-      ...repositoryProviders(),
     ],
     child: MaterialApp(
 ''');

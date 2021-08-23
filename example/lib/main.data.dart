@@ -6,14 +6,19 @@
 import 'package:flutter_data/flutter_data.dart';
 
 
+
 import 'package:jsonplaceholder_example/models/comment.dart';
 import 'package:jsonplaceholder_example/models/post.dart';
 import 'package:jsonplaceholder_example/models/user.dart';
 
 // ignore: prefer_function_declarations_over_variables
 ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<String>? baseDirFn, List<int>? encryptionKey, bool? clear}) {
-  // ignore: unnecessary_statements
-  baseDirFn;
+  
+    
+  
+  
+  
+  
   return hiveLocalStorageProvider.overrideWithProvider(Provider(
         (_) => HiveLocalStorage(baseDirFn: baseDirFn, encryptionKey: encryptionKey, clear: clear)));
 };

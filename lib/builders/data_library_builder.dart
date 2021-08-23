@@ -97,10 +97,18 @@ class DataExtensionBuilder implements Builder {
 
     // imports
 
-    final importPathProvider = await isDependency('path_provider', b);
+    final isFlutter = await isDependency('flutter', b);
+    final hasPathProvider = await isDependency('path_provider', b);
 
-    final pathProviderImport = importPathProvider
+    final flutterFoundationImport = isFlutter
+        ? "import 'package:flutter/foundation.dart' show kIsWeb;"
+        : '';
+    final pathProviderImport = hasPathProvider
         ? "import 'package:path_provider/path_provider.dart';"
+        : '';
+
+    final autoBaseDirFn = hasPathProvider
+        ? 'baseDirFn ??= () => getApplicationDocumentsDirectory().then((dir) => dir.path);'
         : '';
 
     //
@@ -110,14 +118,19 @@ class DataExtensionBuilder implements Builder {
 // ignore_for_file: directives_ordering, top_level_function_literal_block
 
 import 'package:flutter_data/flutter_data.dart';
+$flutterFoundationImport
 $pathProviderImport
 
 $modelImports
 
 // ignore: prefer_function_declarations_over_variables
 ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<String>? baseDirFn, List<int>? encryptionKey, bool? clear}) {
-  // ignore: unnecessary_statements
-  baseDirFn${importPathProvider ? ' ??= () => getApplicationDocumentsDirectory().then((dir) => dir.path)' : ''};
+  ${isFlutter ? 'if (!kIsWeb) {' : ''}
+    $autoBaseDirFn
+  ${isFlutter ? '} else {' : ''}
+  ${isFlutter ? '  baseDirFn ??= () => \'\';' : ''}
+  ${isFlutter ? '}' : ''}
+  
   return hiveLocalStorageProvider.overrideWithProvider(Provider(
         (_) => HiveLocalStorage(baseDirFn: baseDirFn, encryptionKey: encryptionKey, clear: clear)));
 };
