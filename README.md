@@ -47,9 +47,9 @@ For a given `User` model annotated with `@DataRepository`:
 @DataRepository([MyJSONServerAdapter])
 class User with DataModel<User> {
   @override
-  final int id; // ID can be of any type
+  final int? id; // ID can be of any type
   final String name;
-  User({this.id, this.name});
+  User({this.id, required this.name});
   // `User.fromJson` and `toJson` optional
 }
 
@@ -65,7 +65,7 @@ and utilities such as `watchUser`:
 ```dart
 @override
 Widget build(BuildContext context) {
-  final state = useProvider(watchUser(1).state);
+  final state = useProvider(watchUser(1));
   if (state.isLoading) {
     return Center(child: const CircularProgressIndicator());
   }
@@ -82,7 +82,7 @@ Let's see how to update the user:
 GestureDetector(
   onTap: () =>
       context.read(usersRepositoryProvider).save(User(id: 1, name: 'Updated')),
-  child: Text('Update')
+  child: Text('Update'),
 ),
 ```
 
@@ -134,7 +134,7 @@ Fully compatible with the tools we know and love:
     <tr>
       <td class="font-bold px-4 py-2"><strong>Flutter</strong></td>
       <td class="px-4 py-2">✅</td>
-      <td class="px-4 py-2 text-sm">And pure Dart, too. <b>Null-safety coming soon!</b></td>
+      <td class="px-4 py-2 text-sm">And pure Dart, too.</td>
     </tr>
     <tr class="bg-yellow-50">
       <td class="font-bold px-4 py-2"><strong>Flutter Web</strong></td>
