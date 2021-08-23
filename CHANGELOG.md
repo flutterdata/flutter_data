@@ -2,9 +2,11 @@
 
 ## [0.8.1]
 
+- `baseDirFn` for web bugfix
+- Fix watchers dispose, remove forEach extension
 - Add filterLocal and syncLocal to watchers
 - Ensure model is persisted even if already initialized
-- Allow bool save in DataModel init()
+- Allow bool save in DataModel `init`
 - Fix minor issue serialization
 - Improve tests around serialization edge cases
 
