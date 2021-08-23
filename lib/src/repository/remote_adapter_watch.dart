@@ -67,7 +67,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     // kick off
     _notifier.reload();
 
-    final _graphNotifier = throttledGraph.forEach((events) {
+    final _dispose = throttledGraph.addListener((events) {
       if (!_notifier.mounted) {
         return;
       }
@@ -86,7 +86,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       }
     });
 
-    _notifier.onDispose = _graphNotifier.dispose;
+    _notifier.onDispose = _dispose;
     return _notifier;
   }
 
@@ -178,7 +178,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     _notifier.reload();
 
     // start listening to graph for further changes
-    final _graphNotifier = throttledGraph.forEach((events) {
+    final _dispose = throttledGraph.addListener((events) {
       if (!_notifier.mounted) {
         return;
       }
@@ -238,7 +238,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       }
     });
 
-    _notifier.onDispose = _graphNotifier.dispose;
+    _notifier.onDispose = _dispose;
     return _notifier;
   }
 

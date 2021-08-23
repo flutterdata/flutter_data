@@ -43,11 +43,6 @@ class _FunctionalStateNotifier<S, T> extends DelayedStateNotifier<T> {
     return this;
   }
 
-  DelayedStateNotifier<void> forEach(void Function(S) action) {
-    _sourceDisposeFn = _source.addListener(action, fireImmediately: false);
-    return this;
-  }
-
   DelayedStateNotifier<T> map(T Function(S) convert) {
     _sourceDisposeFn = _source.addListener((state) {
       super.state = convert(state);
@@ -82,9 +77,6 @@ class _FunctionalStateNotifier<S, T> extends DelayedStateNotifier<T> {
     Listener<T> listener, {
     bool fireImmediately = true,
   }) {
-    // final _listener = (T? event) {
-    //   return listener.call(event!);
-    // };
     final dispose =
         super.addListener(listener, fireImmediately: fireImmediately);
     return () {
@@ -114,12 +106,6 @@ extension StateNotifierX<T> on DelayedStateNotifier<T> {
   /// Maps events of type [T] onto events of type [R] via [convert]
   DelayedStateNotifier<R> map<R>(R Function(T) convert) {
     return _FunctionalStateNotifier<T, R>(this, name: 'map').map(convert);
-  }
-
-  /// Applies a function [action] to every incoming event of type [T]
-  DelayedStateNotifier<void> forEach(void Function(T) action) {
-    return _FunctionalStateNotifier<T, void>(this, name: 'forEach')
-        .forEach(action);
   }
 
   /// Buffers all incoming [T] events for a duration obtained via

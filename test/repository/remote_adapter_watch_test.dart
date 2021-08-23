@@ -1,5 +1,3 @@
-@Timeout(Duration(minutes: 3))
-
 import 'dart:math';
 
 import 'package:flutter_data/flutter_data.dart';
@@ -15,6 +13,14 @@ import '../mocks.dart';
 void main() async {
   setUp(setUpFn);
   tearDown(tearDownFn);
+
+  test('should be able to watch, dispose and watch again', () async {
+    final notifier = personRemoteAdapter.watchAll();
+    dispose = notifier.addListener((_) {});
+    dispose!();
+    final notifier2 = personRemoteAdapter.watchAll();
+    dispose = notifier2.addListener((_) {});
+  });
 
   test('watchAll', () async {
     final notifier = personRemoteAdapter.watchAll();
