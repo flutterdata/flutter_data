@@ -232,8 +232,8 @@ final _watch$classTypePlural =
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<$classType>>, DataState<List<$classType>>> watch$classTypePlural(
-    {bool? remote, Map<String, dynamic>? params, Map<String, String>? headers}) {
-  return _watch$classTypePlural(WatchArgs(remote: remote, params: params, headers: headers));
+    {bool? remote, Map<String, dynamic>? params, Map<String, String>? headers, bool Function($classType)? filterLocal, bool? syncLocal}) {
+  return _watch$classTypePlural(WatchArgs(remote: remote, params: params, headers: headers, filterLocal: filterLocal, syncLocal: syncLocal));
 }
 
 extension ${classType}X on $classType {
@@ -241,9 +241,10 @@ extension ${classType}X on $classType {
   /// [save], [delete] and so on.
   /// 
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
-  $classType init(Reader read) {
+  $classType init(Reader read, {bool save = true}) {
     final repository = internalLocatorFn(${typeLowerCased}RepositoryProvider, read);
-    return repository.remoteAdapter.initializeModel(this, save: true);
+    final updatedModel = repository.remoteAdapter.initializeModel(this, save: save);
+    return save ? updatedModel : this;
   }
 }
 ''';

@@ -145,9 +145,15 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Family>>,
     watchFamilies(
         {bool? remote,
         Map<String, dynamic>? params,
-        Map<String, String>? headers}) {
-  return _watchFamilies(
-      WatchArgs(remote: remote, params: params, headers: headers));
+        Map<String, String>? headers,
+        bool Function(Family)? filterLocal,
+        bool? syncLocal}) {
+  return _watchFamilies(WatchArgs(
+      remote: remote,
+      params: params,
+      headers: headers,
+      filterLocal: filterLocal,
+      syncLocal: syncLocal));
 }
 
 extension FamilyX on Family {
@@ -155,8 +161,10 @@ extension FamilyX on Family {
   /// [save], [delete] and so on.
   ///
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
-  Family init(Reader read) {
+  Family init(Reader read, {bool save = true}) {
     final repository = internalLocatorFn(familiesRepositoryProvider, read);
-    return repository.remoteAdapter.initializeModel(this, save: true);
+    final updatedModel =
+        repository.remoteAdapter.initializeModel(this, save: save);
+    return save ? updatedModel : this;
   }
 }

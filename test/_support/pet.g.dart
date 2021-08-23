@@ -111,9 +111,15 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Dog>>,
     watchDogs(
         {bool? remote,
         Map<String, dynamic>? params,
-        Map<String, String>? headers}) {
-  return _watchDogs(
-      WatchArgs(remote: remote, params: params, headers: headers));
+        Map<String, String>? headers,
+        bool Function(Dog)? filterLocal,
+        bool? syncLocal}) {
+  return _watchDogs(WatchArgs(
+      remote: remote,
+      params: params,
+      headers: headers,
+      filterLocal: filterLocal,
+      syncLocal: syncLocal));
 }
 
 extension DogX on Dog {
@@ -121,9 +127,11 @@ extension DogX on Dog {
   /// [save], [delete] and so on.
   ///
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
-  Dog init(Reader read) {
+  Dog init(Reader read, {bool save = true}) {
     final repository = internalLocatorFn(dogsRepositoryProvider, read);
-    return repository.remoteAdapter.initializeModel(this, save: true);
+    final updatedModel =
+        repository.remoteAdapter.initializeModel(this, save: save);
+    return save ? updatedModel : this;
   }
 }
 
@@ -204,9 +212,15 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Cat>>,
     watchCats(
         {bool? remote,
         Map<String, dynamic>? params,
-        Map<String, String>? headers}) {
-  return _watchCats(
-      WatchArgs(remote: remote, params: params, headers: headers));
+        Map<String, String>? headers,
+        bool Function(Cat)? filterLocal,
+        bool? syncLocal}) {
+  return _watchCats(WatchArgs(
+      remote: remote,
+      params: params,
+      headers: headers,
+      filterLocal: filterLocal,
+      syncLocal: syncLocal));
 }
 
 extension CatX on Cat {
@@ -214,8 +228,10 @@ extension CatX on Cat {
   /// [save], [delete] and so on.
   ///
   /// Can be obtained via `context.read`, `ref.read`, `container.read`
-  Cat init(Reader read) {
+  Cat init(Reader read, {bool save = true}) {
     final repository = internalLocatorFn(catsRepositoryProvider, read);
-    return repository.remoteAdapter.initializeModel(this, save: true);
+    final updatedModel =
+        repository.remoteAdapter.initializeModel(this, save: save);
+    return save ? updatedModel : this;
   }
 }

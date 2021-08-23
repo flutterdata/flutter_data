@@ -125,7 +125,8 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
   @visibleForTesting
   String fieldForKey(String key) {
     if (key.endsWith(identifierSuffix)) {
-      final keyWithoutId = key.substring(0, key.length - 3);
+      final keyWithoutId =
+          key.substring(0, key.length - identifierSuffix.length);
       if (_belongsTos.keys.contains(keyWithoutId)) {
         return keyWithoutId;
       }

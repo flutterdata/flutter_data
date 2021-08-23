@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.1]
+
+- Add filterLocal and syncLocal to watchers
+- Ensure model is persisted even if already initialized
+- Allow bool save in DataModel init()
+- Fix minor issue serialization
+- Improve tests around serialization edge cases
+
 ## [0.8.0] - 2021-06-21
 
 - Migrate to null safety

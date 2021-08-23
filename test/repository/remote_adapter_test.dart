@@ -103,10 +103,10 @@ void main() async {
   });
 
   test('can override type', () {
-    final author = Author(id: 15, name: 'Walter').init(container.read);
+    final author = BookAuthor(id: 15, name: 'Walter').init(container.read);
     final adapter = adapterFor(author)!;
     expect(adapter.type, 'writers');
-    expect(adapter.internalType, 'authors');
+    expect(adapter.internalType, 'bookAuthors');
 
     // check key was correctly assigned
     // ignore: invalid_use_of_protected_member

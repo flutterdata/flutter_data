@@ -22,7 +22,13 @@ abstract class DataModel<T extends DataModel<T>> {
 
   T _initialize(final Map<String, RemoteAdapter> adapters,
       {String? key, bool save = false}) {
-    if (isInitialized) return this as T;
+    if (isInitialized) {
+      if (save) {
+        // ensure model is persisted, no need to notify
+        remoteAdapter.localAdapter.save(_key!, this as T, notify: false);
+      }
+      return this as T;
+    }
 
     _adapters = adapters;
 

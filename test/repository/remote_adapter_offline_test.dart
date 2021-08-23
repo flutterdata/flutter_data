@@ -20,21 +20,22 @@ void main() async {
       throw HandshakeException('Connection terminated during handshake');
     });
 
-    final listener = Listener<DataState<List<Author>>?>();
+    final listener = Listener<DataState<List<BookAuthor>>?>();
 
     // watch
-    final notifier = authorRepository.watchAll(remote: true);
+    final notifier = bookAuthorRepository.watchAll(remote: true);
     dispose = notifier.addListener(listener, fireImmediately: true);
 
     await oneMs();
 
     // the internal findAll should trigger an offline operation
-    expect(authorRepository.offlineOperations.first.offlineKey, 'authors');
-    expect(authorRepository.offlineOperations.first.requestType,
+    expect(
+        bookAuthorRepository.offlineOperations.first.offlineKey, 'bookAuthors');
+    expect(bookAuthorRepository.offlineOperations.first.requestType,
         DataRequestType.findAll);
 
     // now try to findOne
-    await authorRepository.findOne(
+    await bookAuthorRepository.findOne(
       19,
       remote: true,
       // ignore: missing_return
@@ -50,9 +51,9 @@ void main() async {
     ))).called(1); // one call per updateWith(e)
 
     // retry and assert there is one queued operation for findOne
-    await authorRepository.offlineOperations.retry();
+    await bookAuthorRepository.offlineOperations.retry();
     await oneMs();
-    expect(authorRepository.offlineOperations.only(DataRequestType.findOne),
+    expect(bookAuthorRepository.offlineOperations.only(DataRequestType.findOne),
         hasLength(1));
 
     // now make the response a success
@@ -60,12 +61,12 @@ void main() async {
         TestResponse.text('{"id": 19, "name": "Author Saved"}');
 
     // retry and assert queue is empty
-    await authorRepository.offlineOperations.retry();
+    await bookAuthorRepository.offlineOperations.retry();
     await oneMs();
-    expect(authorRepository.offlineOperations, isEmpty);
+    expect(bookAuthorRepository.offlineOperations, isEmpty);
 
     // try findOne again this time without errors
-    final model = await authorRepository.findOne(19, remote: true);
+    final model = await bookAuthorRepository.findOne(19, remote: true);
     expect(model!.name, equals('Author Saved'));
     await oneMs();
     expect(familyRepository.offlineOperations, isEmpty);
