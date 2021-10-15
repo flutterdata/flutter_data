@@ -8,6 +8,9 @@ class DelayedStateNotifier<T> extends StateNotifier<T?> {
   DelayedStateNotifier() : super(null);
 
   @override
+  set state(T? value) => super.state = value;
+
+  @override
   RemoveListener addListener(void Function(T) listener,
       {bool fireImmediately = true}) {
     final _listener = (T? value) {
@@ -21,6 +24,14 @@ class DelayedStateNotifier<T> extends StateNotifier<T?> {
       }
     };
     return super.addListener(_listener, fireImmediately: false);
+  }
+
+  Function? onDispose;
+
+  @override
+  void dispose() {
+    super.dispose();
+    onDispose?.call();
   }
 
   bool _typesEqual<T1, T2>() => T1 == T2;
@@ -64,7 +75,11 @@ class _FunctionalStateNotifier<S, T> extends DelayedStateNotifier<T> {
     return Timer(durationFn(), () {
       if (mounted) {
         if (_bufferedState.isNotEmpty) {
-          super.state = _bufferedState as T; // since T == List<S>;
+          // TODO cloning the bufferedState list to force
+          // calling listeners as workaround (need to figure out
+          // where they are previously updated and why
+          // super.state == _bufferedState -- and thus no update)
+          super.state = [..._bufferedState] as T; // since T == List<S>;
           _bufferedState.clear(); // clear buffer
         }
         _timer = _makeTimer(durationFn); // reset timer

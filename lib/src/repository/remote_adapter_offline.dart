@@ -325,7 +325,8 @@ final _offlineCallbackProvider =
 /// with all pending types (could be none) such that
 /// they can implement their own retry strategy.
 final pendingOfflineTypesProvider =
-    StateNotifierProvider<ValueStateNotifier<Set<String>>, Set<String>>((ref) {
+    StateNotifierProvider<DelayedStateNotifier<Set<String>>, Set<String>?>(
+        (ref) {
   final _graph = ref.read(graphNotifierProvider);
 
   Set<String> _pendingTypes() {
@@ -334,11 +335,11 @@ final pendingOfflineTypesProvider =
     return node.keys.map((m) => m.split(':')[1].split('#')[0]).toSet();
   }
 
-  final notifier = ValueStateNotifier(<String>{});
+  final notifier = DelayedStateNotifier<Set<String>>();
   // emit initial value
   Timer.run(() {
     if (notifier.mounted) {
-      notifier.value = _pendingTypes();
+      notifier.state = _pendingTypes();
     }
   });
 
@@ -351,7 +352,7 @@ final pendingOfflineTypesProvider =
   }).addListener((_) {
     if (notifier.mounted) {
       // recalculate all pending types
-      notifier.value = _pendingTypes();
+      notifier.state = _pendingTypes();
     }
   });
 

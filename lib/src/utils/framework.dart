@@ -35,16 +35,3 @@ abstract class _Lifecycle {
 
   void dispose();
 }
-
-class ValueStateNotifier<T> extends StateNotifier<T> {
-  ValueStateNotifier(T state) : super(state);
-  T get value => super.state;
-  set value(T value) => super.state = value;
-  Function? onDispose;
-
-  @override
-  void dispose() {
-    super.dispose();
-    onDispose?.call();
-  }
-}
