@@ -104,7 +104,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   }) {
     return remoteAdapter.findOne(
       id,
-      remote: remote ?? true,
+      remote: remote,
       params: params,
       headers: headers,
       onError: onError,
@@ -198,7 +198,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     bool Function(T)? filterLocal,
   }) {
     return remoteAdapter.watchAll(
-      remote: remote!,
+      remote: remote,
       params: params,
       headers: headers,
       filterLocal: filterLocal,

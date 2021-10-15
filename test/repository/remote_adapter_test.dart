@@ -19,7 +19,7 @@ void main() async {
 
     await familyRemoteAdapter.save(family1);
     await familyRemoteAdapter.save(family2);
-    final families = await familyRemoteAdapter.findAll();
+    final families = await familyRemoteAdapter.findAll(remote: false);
 
     expect(families, [family1, family2]);
   });
@@ -28,7 +28,7 @@ void main() async {
     final family1 = Family(id: '1', surname: 'Smith');
 
     await familyRemoteAdapter.save(family1); // possible to save without init
-    final family = await familyRemoteAdapter.findOne('1');
+    final family = await familyRemoteAdapter.findOne('1', remote: false);
     expect(family, family1);
   });
 
@@ -62,7 +62,7 @@ void main() async {
     final family = Family(id: '32423', surname: 'Toraine');
     await familyRemoteAdapter.save(family);
 
-    final family2 = await familyRemoteAdapter.findOne('32423');
+    final family2 = await familyRemoteAdapter.findOne('32423', remote: false);
     expect(family, family2);
   });
 

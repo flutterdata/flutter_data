@@ -60,7 +60,7 @@ void setUpFn() async {
 
   familyRepository =
       await container.read(familiesRepositoryProvider).initialize(
-            remote: false,
+            remote: true,
             verbose: false,
             adapters: adapterGraph,
           );

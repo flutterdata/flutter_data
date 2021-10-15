@@ -89,7 +89,6 @@ void main() async {
     // must specify remote=true as repo's default is remote=false
     await familyRepository.save(
       family,
-      remote: true,
       // override headers & params
       headers: {'X-Override-Name': 'Mantego'},
       params: {'overrideSecondName': 'Zorrilla'},
@@ -129,7 +128,7 @@ void main() async {
     // try with family2
     final family2 = Family(id: '2', surname: 'Montewicz');
     try {
-      await familyRepository.save(family2, remote: true);
+      await familyRepository.save(family2);
     } catch (_) {
       // without onError, ignore exception
     }

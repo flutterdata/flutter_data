@@ -28,12 +28,12 @@ void main() async {
     container.read(responseProvider).state = TestResponse.text('''
         [{ "id": "1", "surname": "Smith" }, { "id": "2", "surname": "Jones" }]
       ''');
-    final families = await familyRepository.findAll(remote: true);
+    final families = await familyRepository.findAll();
 
     expect(families, [family1, family2]);
 
     await familyRepository.clear();
-    expect(await familyRepository.findAll(), isEmpty);
+    expect(await familyRepository.findAll(remote: false), isEmpty);
   });
 
   test('findAll with and without syncLocal', () async {
@@ -43,23 +43,21 @@ void main() async {
     container.read(responseProvider).state = TestResponse.text('''
         [{ "id": "1", "surname": "Smith" }, { "id": "2", "surname": "Jones" }]
       ''');
-    final families1 = await familyRepository.findAll(remote: true);
+    final families1 = await familyRepository.findAll();
 
     expect(families1, [family1, family2]);
 
     container.read(responseProvider).state = TestResponse.text('''
         [{ "id": "1", "surname": "Smith" }]
       ''');
-    final families2 =
-        await familyRepository.findAll(remote: true, syncLocal: false);
+    final families2 = await familyRepository.findAll(syncLocal: false);
 
     expect(families2, [family1]);
 
     // since `syncLocal: false` and `family2` was present from an older call, it remains in local storage
     expect(await familyRepository.findAll(remote: false), [family1, family2]);
 
-    final families3 =
-        await familyRepository.findAll(remote: true, syncLocal: true);
+    final families3 = await familyRepository.findAll(syncLocal: true);
 
     expect(families3, [family1]);
 
@@ -72,22 +70,21 @@ void main() async {
       container.read(responseProvider).state = TestResponse(
           text: (_) => '''&*@~&^@^&!(@*(@#{ "id": "1", "surname": "Smith" }''',
           statusCode: 203);
-      await familyRepository.findAll(remote: true);
+      await familyRepository.findAll();
     }, throwsA(isA<DataException>()));
 
     await familyRepository.findAll(
-        remote: true,
         // ignore: missing_return
         onError: (e) {
-          expect(e, isA<DataException>());
-        });
+      expect(e, isA<DataException>());
+    });
   });
 
   test('findOne', () async {
     container.read(responseProvider).state = TestResponse.text('''
         { "id": "1", "surname": "Smith" }
       ''');
-    final family = await familyRepository.findOne('1', remote: true);
+    final family = await familyRepository.findOne('1');
     expect(family, Family(id: '1', surname: 'Smith'));
 
     // and it can be found again locally
@@ -96,7 +93,7 @@ void main() async {
 
   test('findOne with empty response', () async {
     container.read(responseProvider).state = TestResponse.text('');
-    final family = await familyRepository.findOne('1', remote: true);
+    final family = await familyRepository.findOne('1');
     expect(family, isNull);
   });
 
@@ -104,8 +101,8 @@ void main() async {
     container.read(responseProvider).state = TestResponse.text('''
         { "id": "1", "surname": "Smith", "persons": [{"_id": "1", "name": "Stan", "age": 31}] }
       ''');
-    final family = await familyRepository.findOne('1',
-        params: {'include': 'people'}, remote: true);
+    final family =
+        await familyRepository.findOne('1', params: {'include': 'people'});
     expect(family, Family(id: '1', surname: 'Smith'));
 
     // can be found again locally
@@ -125,13 +122,13 @@ void main() async {
       container.read(responseProvider).state = TestResponse(
           text: (_) => '''&*@~&^@^&!(@*(@#{ "id": "1", "surname": "Smith" }''',
           statusCode: 203);
-      await familyRepository.findOne('1', remote: true);
+      await familyRepository.findOne('1');
     }, throwsA(error203));
 
     await oneMs();
 
     // ignore: missing_return
-    await familyRepository.findOne('1', remote: true, onError: (e) {
+    await familyRepository.findOne('1', onError: (e) {
       expect(e, error203);
     });
   });
@@ -140,7 +137,7 @@ void main() async {
     expect(() async {
       container.read(responseProvider).state = TestResponse(
           text: (_) => '{ "error": "not found" }', statusCode: 404);
-      await familyRepository.findOne('2', remote: true);
+      await familyRepository.findOne('2');
     }, returnsNormally);
 
     // no record locally
@@ -151,8 +148,7 @@ void main() async {
     expect(() async {
       container.read(responseProvider).state = TestResponse(
           text: (_) => '{ "error": "not found" }', statusCode: 404);
-      await familyRepository.findOne('2',
-          remote: true, onError: (e) => throw e);
+      await familyRepository.findOne('2', onError: (e) => throw e);
     },
         throwsA(isA<DataException>().having(
           (e) => e.error,
@@ -167,7 +163,7 @@ void main() async {
   test('socket exception does not throw by default', () async {
     container.read(responseProvider).state =
         TestResponse(text: (_) => throw SocketException('unreachable'));
-    await familyRepository.findOne('error', remote: true, onError: (e) {
+    await familyRepository.findOne('error', onError: (e) {
       expect(e, isA<OfflineException>());
       return null;
     });
@@ -175,20 +171,19 @@ void main() async {
 
   test('save', () async {
     // family with id=1 does not exist
-    expect(await familyRepository.findOne('1'), isNull);
+    expect(await familyRepository.findOne('1', remote: false), isNull);
 
     // with empty response
     final family = Family(id: '1', surname: 'Smith');
     container.read(responseProvider).state = TestResponse.text('');
-    await familyRepository.save(family, remote: true);
+    await familyRepository.save(family);
     // and it can be found again locally
     expect(family, await familyRepository.findOne('1', remote: false));
 
     // with non-empty response
     container.read(responseProvider).state =
         TestResponse.text('{"id": "2", "surname": "Jones Saved"}');
-    await familyRepository.save(Family(id: '2', surname: 'Jones'),
-        remote: true);
+    await familyRepository.save(Family(id: '2', surname: 'Jones'));
     // and it can be found again locally
     final family2 = await familyRepository.findOne('2', remote: false);
     expect(family2!.surname, 'Jones Saved');
@@ -207,7 +202,7 @@ void main() async {
     verify(listener(DataState([], isLoading: false))).called(1);
 
     // ignore: missing_return
-    await familyRepository.save(family, remote: true, onError: (e) async {
+    await familyRepository.save(family, onError: (e) async {
       await oneMs();
       notifier.updateWith(exception: e);
     });
@@ -242,7 +237,7 @@ void main() async {
     container.read(responseProvider).state = TestResponse.text('''
         [{ "id": "1", "surname": "Corleone" }, { "id": "2", "surname": "Soprano" }]
       ''');
-    final notifier = familyRepository.watchAll(remote: true);
+    final notifier = familyRepository.watchAll();
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -262,7 +257,7 @@ void main() async {
 
     container.read(responseProvider).state =
         TestResponse(text: (_) => throw Exception('unreachable'));
-    final notifier = familyRepository.watchAll(remote: true);
+    final notifier = familyRepository.watchAll();
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -333,7 +328,7 @@ void main() async {
     container.read(responseProvider).state = TestResponse(
       text: (_) => throw Exception('whatever'),
     );
-    final notifier = familyRepository.watchOne('1', remote: true);
+    final notifier = familyRepository.watchOne('1');
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -407,7 +402,6 @@ void main() async {
         TestResponse.text('''{ "id": "22", "surname": "Paez" }''');
     final notifier = familyRepository.watchOne(
       '22',
-      remote: true,
       alsoWatch: (f) => [f.persons!],
     );
 
@@ -432,7 +426,7 @@ void main() async {
     final listener = Listener<DataState<List<Family>>?>();
 
     container.read(responseProvider).state = TestResponse.text('[]');
-    final notifier = familyRepository.watchAll(remote: true);
+    final notifier = familyRepository.watchAll();
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -454,7 +448,7 @@ void main() async {
 
     container.read(responseProvider).state = TestResponse.text(
         '''[{ "id": "22", "surname": "Paez" }, { "id": "12", "surname": "Brunez" }]''');
-    final notifier = familyRepository.watchAll(remote: true, syncLocal: true);
+    final notifier = familyRepository.watchAll(syncLocal: true);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
     await oneMs();
@@ -489,12 +483,12 @@ void main() async {
     // returns 2, not the requested 1
     container.read(responseProvider).state =
         TestResponse.text('''{"id": "2", "surname": "Oslo"}''');
-    await familyRepository.findOne('1', remote: true);
+    await familyRepository.findOne('1');
     // (no model will show up in a watchOne('1') situation)
 
     // 1 was requested, but finally 2 was updated
-    expect(
-        await familyRepository.findOne('2'), Family(id: '2', surname: 'Oslo'));
+    expect(await familyRepository.findOne('2', remote: false),
+        Family(id: '2', surname: 'Oslo'));
   });
 
   test('reconcile keys under same ID', () async {
@@ -511,7 +505,7 @@ void main() async {
     // it's saved to the server
     container.read(responseProvider).state =
         TestResponse.text('''{"id": "1", "surname": "Oslo"}''');
-    await familyRepository.save(family2, remote: true);
+    await familyRepository.save(family2);
 
     // keys are reconciled and now both keys are equal
     expect(keyFor(family1), keyFor(family2));
