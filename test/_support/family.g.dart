@@ -6,24 +6,23 @@ part of 'family.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-Family _$FamilyFromJson(Map<String, dynamic> json) {
-  return Family(
-    id: json['id'] as String?,
-    surname: json['surname'] as String,
-    persons: json['persons'] == null
-        ? null
-        : HasMany.fromJson(json['persons'] as Map<String, dynamic>),
-    cottage: json['cottage'] == null
-        ? null
-        : BelongsTo.fromJson(json['cottage'] as Map<String, dynamic>),
-    residence: json['residence'] == null
-        ? null
-        : BelongsTo.fromJson(json['residence'] as Map<String, dynamic>),
-    dogs: json['dogs'] == null
-        ? null
-        : HasMany.fromJson(json['dogs'] as Map<String, dynamic>),
-  );
-}
+Family _$FamilyFromJson(Map<String, dynamic> json) => Family(
+      id: json['id'] as String?,
+      surname: json['surname'] as String,
+      persons: json['persons'] == null
+          ? null
+          : HasMany<Person>.fromJson(json['persons'] as Map<String, dynamic>),
+      cottage: json['cottage'] == null
+          ? null
+          : BelongsTo<House>.fromJson(json['cottage'] as Map<String, dynamic>),
+      residence: json['residence'] == null
+          ? null
+          : BelongsTo<House>.fromJson(
+              json['residence'] as Map<String, dynamic>),
+      dogs: json['dogs'] == null
+          ? null
+          : HasMany<Dog>.fromJson(json['dogs'] as Map<String, dynamic>),
+    );
 
 Map<String, dynamic> _$FamilyToJson(Family instance) => <String, dynamic>{
       'id': instance.id,

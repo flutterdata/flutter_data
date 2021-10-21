@@ -6,24 +6,20 @@ part of 'pet.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-Dog _$DogFromJson(Map<String, dynamic> json) {
-  return Dog(
-    id: json['id'] as String?,
-    name: json['name'] as String,
-  );
-}
+Dog _$DogFromJson(Map<String, dynamic> json) => Dog(
+      id: json['id'] as String?,
+      name: json['name'] as String,
+    );
 
 Map<String, dynamic> _$DogToJson(Dog instance) => <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
     };
 
-Cat _$CatFromJson(Map<String, dynamic> json) {
-  return Cat(
-    id: json['id'] as String?,
-    meow: json['meow'] as bool,
-  );
-}
+Cat _$CatFromJson(Map<String, dynamic> json) => Cat(
+      id: json['id'] as String?,
+      meow: json['meow'] as bool,
+    );
 
 Map<String, dynamic> _$CatToJson(Cat instance) => <String, dynamic>{
       'id': instance.id,

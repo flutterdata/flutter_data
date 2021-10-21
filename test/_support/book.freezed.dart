@@ -1,5 +1,6 @@
+// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides
+// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target
 
 part of 'book.dart';
 
@@ -136,7 +137,7 @@ class _$_BookAuthor with DataModel<BookAuthor> implements _BookAuthor {
   _$_BookAuthor({required this.id, this.name, this.books});
 
   factory _$_BookAuthor.fromJson(Map<String, dynamic> json) =>
-      _$_$_BookAuthorFromJson(json);
+      _$$_BookAuthorFromJson(json);
 
   @override
   final int id;
@@ -176,7 +177,7 @@ class _$_BookAuthor with DataModel<BookAuthor> implements _BookAuthor {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$_$_BookAuthorToJson(this);
+    return _$$_BookAuthorToJson(this);
   }
 }
 
@@ -350,8 +351,7 @@ class _$_Book with DataModel<Book> implements _Book {
       this.numberOfSales = 0,
       @JsonKey(name: 'original_author') this.originalAuthor});
 
-  factory _$_Book.fromJson(Map<String, dynamic> json) =>
-      _$_$_BookFromJson(json);
+  factory _$_Book.fromJson(Map<String, dynamic> json) => _$$_BookFromJson(json);
 
   @override
   final int id;
@@ -400,7 +400,7 @@ class _$_Book with DataModel<Book> implements _Book {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$_$_BookToJson(this);
+    return _$$_BookToJson(this);
   }
 }
 

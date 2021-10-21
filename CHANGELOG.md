@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.8.2]
+
+- Throttle workaround, remove value notifier
+- Update dependencies
+
 ## [0.8.1]
 
 - `baseDirFn` for web bugfix

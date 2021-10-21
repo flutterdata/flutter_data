@@ -48,7 +48,7 @@ final _repositoryInitializerProviderFamily =
       final repository = ref.read(repositoryProviders[key]!);
       repository.dispose();
       await repository.initialize(
-        remote: args.remote ?? remotes[key]!,
+        remote: args.remote ?? remotes[key],
         verbose: args.verbose,
         adapters: adapters,
       );

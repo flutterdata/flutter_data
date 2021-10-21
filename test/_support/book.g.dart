@@ -6,35 +6,33 @@ part of 'book.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_BookAuthor _$_$_BookAuthorFromJson(Map<String, dynamic> json) {
-  return _$_BookAuthor(
-    id: json['id'] as int,
-    name: json['name'] as String?,
-    books: json['books'] == null
-        ? null
-        : HasMany.fromJson(json['books'] as Map<String, dynamic>),
-  );
-}
+_$_BookAuthor _$$_BookAuthorFromJson(Map<String, dynamic> json) =>
+    _$_BookAuthor(
+      id: json['id'] as int,
+      name: json['name'] as String?,
+      books: json['books'] == null
+          ? null
+          : HasMany<Book>.fromJson(json['books'] as Map<String, dynamic>),
+    );
 
-Map<String, dynamic> _$_$_BookAuthorToJson(_$_BookAuthor instance) =>
+Map<String, dynamic> _$$_BookAuthorToJson(_$_BookAuthor instance) =>
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
       'books': instance.books,
     };
 
-_$_Book _$_$_BookFromJson(Map<String, dynamic> json) {
-  return _$_Book(
-    id: json['id'] as int,
-    title: json['title'] as String?,
-    numberOfSales: json['number_of_sales'] as int? ?? 0,
-    originalAuthor: json['original_author'] == null
-        ? null
-        : BelongsTo.fromJson(json['original_author'] as Map<String, dynamic>),
-  );
-}
+_$_Book _$$_BookFromJson(Map<String, dynamic> json) => _$_Book(
+      id: json['id'] as int,
+      title: json['title'] as String?,
+      numberOfSales: json['number_of_sales'] as int? ?? 0,
+      originalAuthor: json['original_author'] == null
+          ? null
+          : BelongsTo<BookAuthor>.fromJson(
+              json['original_author'] as Map<String, dynamic>),
+    );
 
-Map<String, dynamic> _$_$_BookToJson(_$_Book instance) {
+Map<String, dynamic> _$$_BookToJson(_$_Book instance) {
   final val = <String, dynamic>{
     'id': instance.id,
   };
