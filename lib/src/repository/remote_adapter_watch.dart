@@ -77,10 +77,11 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       final modelChanged =
           !const DeepCollectionEquality().equals(models, _notifier.data.model);
       // ensure the done signal belongs to this notifier
-      final doneLoading = events.singleWhereOrNull((e) =>
+      final doneLoading = events
+          .where((e) =>
               e.type == DataGraphEventType.doneLoading &&
-              e.keys.first == internalType) !=
-          null;
+              e.keys.first == internalType)
+          .isNotEmpty;
       if (modelChanged || doneLoading) {
         _notifier.updateWith(model: models, isLoading: false, exception: null);
       }

@@ -441,6 +441,27 @@ void main() async {
           .having((s) => s.model, 'empty', isEmpty)
           .having((s) => s.isLoading, 'loading', false),
     ))).called(1);
+
+    // get a new notifier and try again
+
+    final notifier2 = familyRepository.watchAll();
+    final listener2 = Listener<DataState<List<Family>>?>();
+
+    dispose?.call();
+
+    dispose = notifier2.addListener(listener2, fireImmediately: true);
+
+    verify(listener2(argThat(
+      isA<DataState>().having((s) => s.isLoading, 'loading', true),
+    ))).called(1);
+
+    await oneMs();
+
+    verify(listener2(argThat(
+      isA<DataState>()
+          .having((s) => s.model, 'empty', isEmpty)
+          .having((s) => s.isLoading, 'loading', false),
+    ))).called(1);
   });
 
   test('watchAll syncLocal', () async {
