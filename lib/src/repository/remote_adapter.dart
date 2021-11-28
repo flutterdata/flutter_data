@@ -43,18 +43,21 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @protected
   GraphNotifier get graph => localAdapter.graph;
 
+  // None of these fields below can be late finals as they might be re-initialized
+  Map<String, RemoteAdapter>? _adapters;
+  bool? _remote;
+  bool? _verbose;
+  Reader? _read;
+
   /// All adapters for the relationship subgraph of [T] and their relationships.
   ///
   /// This [Map] is typically required when initializing new models, and passed as-is.
   @protected
-  late final Map<String, RemoteAdapter> adapters;
-
-  late final bool _remote;
-  late final bool _verbose;
+  Map<String, RemoteAdapter> get adapters => _adapters!;
 
   /// Give adapter subclasses access to the dependency injection system
-  @nonVirtual
-  late final Reader read;
+  @protected
+  Reader get read => _read!;
 
   /// INTERNAL: DO NOT USE OR ELSE THINGS WILL BREAK
   @visibleForTesting
@@ -163,12 +166,12 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       required Map<String, RemoteAdapter> adapters,
       required Reader read}) async {
     if (isInitialized) return this as RemoteAdapter<T>;
-    this.adapters = adapters;
-    this.read = read;
 
-    // set defaults
+    // initialize attributes
+    _adapters = adapters;
     _remote = remote ?? true;
     _verbose = verbose ?? true;
+    _read = read;
 
     await localAdapter.initialize();
 
@@ -250,7 +253,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     headers = await defaultHeaders & headers;
     filterLocal ??= (_) => true;
 
-    if (!shouldLoadRemoteAll(remote, params, headers)) {
+    if (!shouldLoadRemoteAll(remote!, params, headers)) {
       final models =
           localAdapter.findAll().where(filterLocal).toImmutableList();
       models.map((m) => m._initialize(adapters, save: true));
@@ -301,7 +304,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
     final id = _resolveId(model);
 
-    if (!shouldLoadRemoteOne(id, remote, params, headers)) {
+    if (!shouldLoadRemoteOne(id, remote!, params, headers)) {
       final key = graph.getKeyForId(internalType, id,
           keyIfAbsent: model is T ? model._key : null);
       if (key == null) {
@@ -411,7 +414,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       await localAdapter.delete(key);
     }
 
-    if (remote) {
+    if (remote!) {
       return await sendRequest(
         baseUrl.asUri / urlForDelete(id, params) & params,
         method: methodForDelete(id, params),
@@ -518,7 +521,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
     final code = response?.statusCode;
 
-    if (_verbose) {
+    if (_verbose!) {
       print(
           '[flutter_data] [$internalType] ${method.toShortString()} $uri [HTTP ${code ?? ''}]${body != null ? '\n -> body:\n $body' : ''}');
     }
@@ -529,7 +532,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       final e = DataException(error ?? data!,
           stackTrace: stackTrace, statusCode: code);
 
-      if (_verbose) {
+      if (_verbose!) {
         print('[flutter_data] [$internalType] Error: $e');
       }
       return await onError(e);

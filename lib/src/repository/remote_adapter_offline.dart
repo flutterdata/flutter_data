@@ -206,7 +206,7 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
     if (!adapter.offlineOperations.contains(this)) {
       final node = json.encode(toJson());
 
-      if (adapter._verbose) {
+      if (adapter._verbose!) {
         print(
             '[flutter_data] [${adapter.internalType}] Adding offline operation with metadata: $metadata');
         print('\n\n');
@@ -231,7 +231,7 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
   void remove() {
     if (adapter.graph._hasEdge(_offlineAdapterKey, metadata: metadata)) {
       adapter.graph._removeEdges(_offlineAdapterKey, metadata: metadata);
-      if (adapter._verbose) {
+      if (adapter._verbose!) {
         print(
             '[flutter_data] [${adapter.internalType}] Removing offline operation with metadata: $metadata');
         print('\n\n');

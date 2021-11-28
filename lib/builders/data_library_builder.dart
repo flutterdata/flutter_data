@@ -167,7 +167,6 @@ final _repositoryInitializerProviderFamily =
       for (final repositoryProvider in repositoryProviders.values) {
         ref.watch(repositoryProvider).dispose();
       }
-      ref.watch(graphNotifierProvider).dispose();
     });
 
     return RepositoryInitializer();

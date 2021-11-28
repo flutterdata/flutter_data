@@ -81,7 +81,7 @@ Let's see how to update the user:
 ```dart
 GestureDetector(
   onTap: () =>
-      context.read(usersRepositoryProvider).save(User(id: 1, name: 'Updated')),
+      ref.read(usersRepositoryProvider).save(User(id: 1, name: 'Updated')),
   child: Text('Update'),
 ),
 ```
@@ -95,7 +95,7 @@ In addition to the reactivity, `DataModel`s get extensions and automatic relatio
 ```dart
 GestureDetector(
   onTap: () =>
-      User(id: 1, name: 'Updated').init(context.read).save(),
+      User(id: 1, name: 'Updated').init(ref.read).save(),
   child: Text('Update')
 ),
 ```
@@ -103,7 +103,7 @@ GestureDetector(
 Some other examples:
 
 ```dart
-final todo = await Todo(title: 'Finish docs').init(context.read).save();
+final todo = await Todo(title: 'Finish docs').init(ref.read).save();
 // POST https://my-json-server.typicode.com/flutterdata/demo/todos/
 print(todo.id); // 201
 

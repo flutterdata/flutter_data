@@ -172,10 +172,10 @@ DON'T DO THIS:
 
 DO THIS:
 
-  final ${_internalType.singularize()} = $T(...).init(context.read);
+  final ${_internalType.singularize()} = $T(...).init(ref.read);
   ${_internalType.singularize()}.$method(...);
 
-Call `init(context.read)` on the model first.
+Call `init(ref.read)` on the model first.
 
 This ONLY happens when a model is manually instantiated
 and had no contact with Flutter Data.
@@ -186,7 +186,7 @@ When assigning new models to a relationship, only initialize
 the actual model:
 
 Family(surname: 'Carlson', dogs: {Dog(name: 'Jerry'), Dog(name: 'Zoe')}.asHasMany)
-  .init(context.read);
+  .init(ref.read);
 ''');
   }
 }
