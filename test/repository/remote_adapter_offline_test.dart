@@ -451,4 +451,27 @@ void main() async {
     expect(o1, equals(o2));
     expect(o1.hash, equals(o2.hash));
   });
+
+  test('findOne scenario issue #118', () async {
+    // cause network issue
+    container.read(responseProvider.notifier).state = TestResponse(text: (_) {
+      throw HandshakeException('Connection terminated during handshake');
+    });
+
+    final family1 = await familyRepository.findOne('1', remote: false);
+    expect(family1, isNull);
+
+    container.read(responseProvider.notifier).state = TestResponse.text('''
+        { "id": "1", "surname": "Smith" }
+      ''');
+    await familyRepository.findOne('1', remote: true);
+
+    // cause network issue
+    container.read(responseProvider.notifier).state = TestResponse(text: (_) {
+      throw HandshakeException('Connection terminated during handshake');
+    });
+
+    final family2 = await familyRepository.findOne('1', remote: false);
+    expect(family2, isNotNull);
+  });
 }
