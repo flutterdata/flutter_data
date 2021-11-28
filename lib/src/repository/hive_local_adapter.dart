@@ -4,9 +4,9 @@ part of flutter_data;
 // ignore: must_be_immutable
 abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
     with TypeAdapter<T> {
-  HiveLocalAdapter(ProviderReference _ref)
-      : _hiveLocalStorage = _ref.read(hiveLocalStorageProvider),
-        super(_ref);
+  HiveLocalAdapter(Reader read)
+      : _hiveLocalStorage = read(hiveLocalStorageProvider),
+        super(read);
 
   final HiveLocalStorage _hiveLocalStorage;
 

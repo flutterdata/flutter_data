@@ -16,7 +16,7 @@ void main() async {
 
   test('watchAll/findAll and findOne', () async {
     // cause network issue
-    container.read(responseProvider).state = TestResponse(text: (_) {
+    container.read(responseProvider.notifier).state = TestResponse(text: (_) {
       throw HandshakeException('Connection terminated during handshake');
     });
 
@@ -57,7 +57,7 @@ void main() async {
         hasLength(1));
 
     // now make the response a success
-    container.read(responseProvider).state =
+    container.read(responseProvider.notifier).state =
         TestResponse.text('{"id": 19, "name": "Author Saved"}');
 
     // retry and assert queue is empty
@@ -83,7 +83,7 @@ void main() async {
     final family = Family(id: '1', surname: 'Smith');
 
     // network issue persisting family
-    container.read(responseProvider).state =
+    container.read(responseProvider.notifier).state =
         TestResponse(text: (_) => throw SocketException('unreachable'));
 
     // must specify remote=true as repo's default is remote=false
@@ -153,7 +153,7 @@ void main() async {
         equals([family, family2]));
 
     // change the response to: success for family, failure for family2
-    container.read(responseProvider).state = TestResponse(
+    container.read(responseProvider.notifier).state = TestResponse(
       text: (req) {
         if (req.url.pathSegments.last == '1') {
           return '{"id": "1", "surname": "${req.headers['X-Override-Name']} ${req.url.queryParameters['overrideSecondName']}"}';
@@ -172,7 +172,7 @@ void main() async {
         equals([family2]));
 
     // change response to success for both family and family2
-    container.read(responseProvider).state = TestResponse(text: (req) {
+    container.read(responseProvider.notifier).state = TestResponse(text: (req) {
       return '{"id": "${req.url.pathSegments.last}", "surname": "Jones ${req.url.pathSegments.last}"}';
     });
 
@@ -185,7 +185,7 @@ void main() async {
     expect(familyRepository.offlineOperations.map((o) => o.model), isEmpty);
 
     // simulate a network issue once again for family3
-    container.read(responseProvider).state =
+    container.read(responseProvider.notifier).state =
         TestResponse(text: (_) => throw SocketException('unreachable'));
 
     final family3 = Family(id: '3', surname: 'Zweck').init(container.read);
@@ -231,7 +231,7 @@ void main() async {
     )).called(1);
 
     // network issue deleting family
-    container.read(responseProvider).state = TestResponse(text: (_) {
+    container.read(responseProvider.notifier).state = TestResponse(text: (_) {
       throw SocketException('unreachable');
     });
 
@@ -273,7 +273,7 @@ void main() async {
         ['families#1']);
 
     // change the response to success
-    container.read(responseProvider).state = TestResponse.text('');
+    container.read(responseProvider.notifier).state = TestResponse.text('');
 
     // retry
     await familyRepository.offlineOperations.retry();
@@ -295,7 +295,7 @@ void main() async {
     await oneMs();
 
     // network issues
-    container.read(responseProvider).state = TestResponse(text: (_) {
+    container.read(responseProvider.notifier).state = TestResponse(text: (_) {
       throw SocketException('unreachable');
     });
 
@@ -359,7 +359,7 @@ void main() async {
     expect(familyRepository.offlineOperations, hasLength(2));
 
     // change the response to success
-    container.read(responseProvider).state = TestResponse.text('');
+    container.read(responseProvider.notifier).state = TestResponse.text('');
 
     // retry
     await familyRepository.offlineOperations.retry();
@@ -370,7 +370,7 @@ void main() async {
 
   test('ad-hoc request with body', () async {
     // network issue
-    container.read(responseProvider).state = TestResponse(text: (_) {
+    container.read(responseProvider.notifier).state = TestResponse(text: (_) {
       throw SocketException('unreachable');
     });
 
@@ -393,7 +393,7 @@ void main() async {
     expect(familyRepository.offlineOperations, hasLength(1));
 
     // return a success response
-    container.read(responseProvider).state = TestResponse(
+    container.read(responseProvider.notifier).state = TestResponse(
       text: (req) {
         // assert headers are included in the retry
         expect(req.headers['X-Sats'], equals('9389173717732'));
@@ -411,7 +411,7 @@ void main() async {
 
   test('another non-offline error should resolve the operation', () async {
     // network issue
-    container.read(responseProvider).state = TestResponse(text: (_) {
+    container.read(responseProvider.notifier).state = TestResponse(text: (_) {
       throw SocketException('unreachable');
     });
     familyRepository.remoteAdapter.sendRequest('/fam'.asUri);
@@ -421,7 +421,7 @@ void main() async {
     expect(familyRepository.offlineOperations, hasLength(1));
 
     // return a 404
-    container.read(responseProvider).state =
+    container.read(responseProvider.notifier).state =
         TestResponse(text: (_) => 'not found', statusCode: 404);
 
     // retry

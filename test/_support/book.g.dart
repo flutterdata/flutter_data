@@ -91,20 +91,20 @@ class $BookAuthorRemoteAdapter = RemoteAdapter<BookAuthor>
 //
 
 final bookAuthorsLocalAdapterProvider = Provider<LocalAdapter<BookAuthor>>(
-    (ref) => $BookAuthorHiveLocalAdapter(ref));
+    (ref) => $BookAuthorHiveLocalAdapter(ref.read));
 
 final bookAuthorsRemoteAdapterProvider = Provider<RemoteAdapter<BookAuthor>>(
     (ref) =>
-        $BookAuthorRemoteAdapter(ref.read(bookAuthorsLocalAdapterProvider)));
+        $BookAuthorRemoteAdapter(ref.watch(bookAuthorsLocalAdapterProvider)));
 
 final bookAuthorsRepositoryProvider =
-    Provider<Repository<BookAuthor>>((ref) => Repository<BookAuthor>(ref));
+    Provider<Repository<BookAuthor>>((ref) => Repository<BookAuthor>(ref.read));
 
 final _watchBookAuthor = StateNotifierProvider.autoDispose.family<
     DataStateNotifier<BookAuthor?>,
     DataState<BookAuthor?>,
     WatchArgs<BookAuthor>>((ref, args) {
-  return ref.read(bookAuthorsRepositoryProvider).watchOne(args.id,
+  return ref.watch(bookAuthorsRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -131,7 +131,7 @@ final _watchBookAuthors = StateNotifierProvider.autoDispose.family<
     DataState<List<BookAuthor>>,
     WatchArgs<BookAuthor>>((ref, args) {
   ref.maintainState = false;
-  return ref.read(bookAuthorsRepositoryProvider).watchAll(
+  return ref.watch(bookAuthorsRepositoryProvider).watchAll(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -204,18 +204,18 @@ class $BookRemoteAdapter = RemoteAdapter<Book> with NothingMixin;
 //
 
 final booksLocalAdapterProvider =
-    Provider<LocalAdapter<Book>>((ref) => $BookHiveLocalAdapter(ref));
+    Provider<LocalAdapter<Book>>((ref) => $BookHiveLocalAdapter(ref.read));
 
 final booksRemoteAdapterProvider = Provider<RemoteAdapter<Book>>(
-    (ref) => $BookRemoteAdapter(ref.read(booksLocalAdapterProvider)));
+    (ref) => $BookRemoteAdapter(ref.watch(booksLocalAdapterProvider)));
 
 final booksRepositoryProvider =
-    Provider<Repository<Book>>((ref) => Repository<Book>(ref));
+    Provider<Repository<Book>>((ref) => Repository<Book>(ref.read));
 
 final _watchBook = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Book?>, DataState<Book?>, WatchArgs<Book>>(
         (ref, args) {
-  return ref.read(booksRepositoryProvider).watchOne(args.id,
+  return ref.watch(booksRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -241,7 +241,7 @@ final _watchBooks = StateNotifierProvider.autoDispose.family<
     DataState<List<Book>>,
     WatchArgs<Book>>((ref, args) {
   ref.maintainState = false;
-  return ref.read(booksRepositoryProvider).watchAll(
+  return ref.watch(booksRepositoryProvider).watchAll(
       remote: args.remote,
       params: args.params,
       headers: args.headers,

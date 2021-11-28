@@ -5,8 +5,7 @@ part of flutter_data;
 /// See also: [HiveLocalAdapter]
 abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
   @protected
-  LocalAdapter(ProviderReference _ref)
-      : graph = _ref.read(graphNotifierProvider);
+  LocalAdapter(Reader read) : graph = read(graphNotifierProvider);
 
   @protected
   final GraphNotifier graph;

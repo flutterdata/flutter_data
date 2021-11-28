@@ -215,10 +215,9 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
       adapter.graph._addEdge(_offlineAdapterKey, node, metadata: metadata);
 
       // keep callbacks in memory
-      adapter.ref.read(_offlineCallbackProvider).state[metadata] ??= [];
-      adapter.ref
-          .read(_offlineCallbackProvider)
-          .state[metadata]!
+      adapter.read(_offlineCallbackProvider)[metadata] ??= [];
+      adapter
+          .read(_offlineCallbackProvider)[metadata]!
           .add([onSuccess, onError]);
     } else {
       // trick
@@ -238,13 +237,13 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
         print('\n\n');
       }
 
-      adapter.ref.read(_offlineCallbackProvider).state.remove(metadata);
+      adapter.read(_offlineCallbackProvider).remove(metadata);
     }
   }
 
   Future<void> retry<R>() async {
     // look up callbacks (or provide defaults)
-    final fns = adapter.ref.read(_offlineCallbackProvider).state[metadata] ??
+    final fns = adapter.read(_offlineCallbackProvider)[metadata] ??
         [
           [null, null]
         ];
@@ -307,7 +306,7 @@ extension OfflineOperationsX on Set<OfflineOperation<DataModel>> {
     for (final metadata in (node ?? {}).keys.toImmutableList()) {
       adapter.graph._removeEdges(_offlineAdapterKey, metadata: metadata);
     }
-    adapter.ref.read(_offlineCallbackProvider).state.clear();
+    adapter.read(_offlineCallbackProvider).clear();
   }
 
   /// Filter by [requestType].
@@ -327,7 +326,7 @@ final _offlineCallbackProvider =
 final pendingOfflineTypesProvider =
     StateNotifierProvider<DelayedStateNotifier<Set<String>>, Set<String>?>(
         (ref) {
-  final _graph = ref.read(graphNotifierProvider);
+  final _graph = ref.watch(graphNotifierProvider);
 
   Set<String> _pendingTypes() {
     final node = _graph._getNode(_offlineAdapterKey)!;

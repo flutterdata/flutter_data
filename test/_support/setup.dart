@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter_data/flutter_data.dart';
-import 'package:riverpod/riverpod.dart' hide Family;
 import 'package:http/http.dart' as http;
+import 'package:riverpod/riverpod.dart' hide Family;
 
 import '../mocks.dart';
 import 'book.dart';
@@ -137,52 +137,53 @@ ProviderContainer createContainer() {
   return ProviderContainer(
     overrides: [
       // app-specific
-      mockResponseProvider.overrideWithProvider((ref, req) {
-        final response = ref.read(responseProvider).state;
+      mockResponseProvider.overrideWithProvider(
+          Provider.family<http.Response, http.Request>((ref, req) {
+        final response = ref.watch(responseProvider);
         final text = response.text(req);
         return http.Response(text, response.statusCode);
-      }),
+      })),
 
       // fd infra
 
       hiveLocalStorageProvider
           .overrideWithProvider(Provider((_) => TestHiveLocalStorage())),
       graphNotifierProvider.overrideWithProvider(Provider(
-          (ref) => TestDataGraphNotifier(ref.read(hiveLocalStorageProvider)))),
+          (ref) => TestDataGraphNotifier(ref.watch(hiveLocalStorageProvider)))),
 
       // model-specific
 
       housesLocalAdapterProvider
-          .overrideWithProvider(Provider((ref) => HouseLocalAdapter(ref))),
-      familiesLocalAdapterProvider
-          .overrideWithProvider(Provider((ref) => FamilyLocalAdapter(ref))),
-      peopleLocalAdapterProvider
-          .overrideWithProvider(Provider((ref) => PersonLocalAdapter(ref))),
+          .overrideWithProvider(Provider((ref) => HouseLocalAdapter(ref.read))),
+      familiesLocalAdapterProvider.overrideWithProvider(
+          Provider((ref) => FamilyLocalAdapter(ref.read))),
+      peopleLocalAdapterProvider.overrideWithProvider(
+          Provider((ref) => PersonLocalAdapter(ref.read))),
       dogsLocalAdapterProvider
-          .overrideWithProvider(Provider((ref) => DogLocalAdapter(ref))),
+          .overrideWithProvider(Provider((ref) => DogLocalAdapter(ref.read))),
       nodesLocalAdapterProvider
-          .overrideWithProvider(Provider((ref) => NodeLocalAdapter(ref))),
-      bookAuthorsLocalAdapterProvider
-          .overrideWithProvider(Provider((ref) => BookAuthorLocalAdapter(ref))),
+          .overrideWithProvider(Provider((ref) => NodeLocalAdapter(ref.read))),
+      bookAuthorsLocalAdapterProvider.overrideWithProvider(
+          Provider((ref) => BookAuthorLocalAdapter(ref.read))),
       booksLocalAdapterProvider
-          .overrideWithProvider(Provider((ref) => BookLocalAdapter(ref))),
+          .overrideWithProvider(Provider((ref) => BookLocalAdapter(ref.read))),
 
       //
 
       housesRemoteAdapterProvider.overrideWithProvider(Provider((ref) =>
-          TokenHouseRemoteAdapter(ref.read(housesLocalAdapterProvider)))),
+          TokenHouseRemoteAdapter(ref.watch(housesLocalAdapterProvider)))),
       familiesRemoteAdapterProvider.overrideWithProvider(Provider((ref) =>
-          FamilyRemoteAdapter(ref.read(familiesLocalAdapterProvider)))),
+          FamilyRemoteAdapter(ref.watch(familiesLocalAdapterProvider)))),
       peopleRemoteAdapterProvider.overrideWithProvider(Provider(
-          (ref) => PersonRemoteAdapter(ref.read(peopleLocalAdapterProvider)))),
+          (ref) => PersonRemoteAdapter(ref.watch(peopleLocalAdapterProvider)))),
       dogsRemoteAdapterProvider.overrideWithProvider(Provider(
-          (ref) => DogRemoteAdapter(ref.read(dogsLocalAdapterProvider)))),
+          (ref) => DogRemoteAdapter(ref.watch(dogsLocalAdapterProvider)))),
       nodesRemoteAdapterProvider.overrideWithProvider(Provider(
-          (ref) => $NodeRemoteAdapter(ref.read(nodesLocalAdapterProvider)))),
+          (ref) => $NodeRemoteAdapter(ref.watch(nodesLocalAdapterProvider)))),
       bookAuthorsRemoteAdapterProvider.overrideWithProvider(Provider((ref) =>
-          BookAuthorRemoteAdapter(ref.read(bookAuthorsLocalAdapterProvider)))),
+          BookAuthorRemoteAdapter(ref.watch(bookAuthorsLocalAdapterProvider)))),
       booksRemoteAdapterProvider.overrideWithProvider(Provider(
-          (ref) => $BookRemoteAdapter(ref.read(booksLocalAdapterProvider)))),
+          (ref) => $BookRemoteAdapter(ref.watch(booksLocalAdapterProvider)))),
     ],
   );
 }

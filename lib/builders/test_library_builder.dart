@@ -2,9 +2,9 @@
 
 import 'dart:async';
 
-import 'package:flutter_data/flutter_data.dart';
 import 'package:build/build.dart';
 import 'package:flutter_data/builders/utils.dart';
+import 'package:flutter_data/flutter_data.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as path_helper;
 
@@ -55,9 +55,9 @@ class Test${className}RemoteAdapter = \$${className}RemoteAdapter with TestRemot
       final classType = DataHelpers.getType(className);
       return '''
 ${classType}LocalAdapterProvider.overrideWithProvider(Provider((ref) =>
-    \$Test${className}LocalAdapter(ref))),
+    \$Test${className}LocalAdapter(ref.read))),
 ${classType}RemoteAdapterProvider.overrideWithProvider(Provider((ref) =>
-    Test${className}RemoteAdapter(ref.read(${classType}LocalAdapterProvider)))),
+    Test${className}RemoteAdapter(ref.watch(${classType}LocalAdapterProvider)))),
 ''';
     }).join('\n');
 
@@ -89,7 +89,7 @@ final flutterDataTestOverrides = [
   hiveLocalStorageProvider
     .overrideWithProvider(Provider((_) => TestHiveLocalStorage())),
   graphNotifierProvider.overrideWithProvider(Provider(
-    (ref) => TestDataGraphNotifier(ref.read(hiveLocalStorageProvider)))),
+    (ref) => TestDataGraphNotifier(ref.watch(hiveLocalStorageProvider)))),
   $overrides
 ];
 

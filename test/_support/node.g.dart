@@ -71,18 +71,18 @@ class $NodeRemoteAdapter = RemoteAdapter<Node> with NothingMixin;
 //
 
 final nodesLocalAdapterProvider =
-    Provider<LocalAdapter<Node>>((ref) => $NodeHiveLocalAdapter(ref));
+    Provider<LocalAdapter<Node>>((ref) => $NodeHiveLocalAdapter(ref.read));
 
 final nodesRemoteAdapterProvider = Provider<RemoteAdapter<Node>>(
-    (ref) => $NodeRemoteAdapter(ref.read(nodesLocalAdapterProvider)));
+    (ref) => $NodeRemoteAdapter(ref.watch(nodesLocalAdapterProvider)));
 
 final nodesRepositoryProvider =
-    Provider<Repository<Node>>((ref) => Repository<Node>(ref));
+    Provider<Repository<Node>>((ref) => Repository<Node>(ref.read));
 
 final _watchNode = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Node?>, DataState<Node?>, WatchArgs<Node>>(
         (ref, args) {
-  return ref.read(nodesRepositoryProvider).watchOne(args.id,
+  return ref.watch(nodesRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -108,7 +108,7 @@ final _watchNodes = StateNotifierProvider.autoDispose.family<
     DataState<List<Node>>,
     WatchArgs<Node>>((ref, args) {
   ref.maintainState = false;
-  return ref.read(nodesRepositoryProvider).watchAll(
+  return ref.watch(nodesRepositoryProvider).watchAll(
       remote: args.remote,
       params: args.params,
       headers: args.headers,

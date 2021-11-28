@@ -94,18 +94,18 @@ class $FamilyRemoteAdapter = RemoteAdapter<Family> with NothingMixin;
 //
 
 final familiesLocalAdapterProvider =
-    Provider<LocalAdapter<Family>>((ref) => $FamilyHiveLocalAdapter(ref));
+    Provider<LocalAdapter<Family>>((ref) => $FamilyHiveLocalAdapter(ref.read));
 
 final familiesRemoteAdapterProvider = Provider<RemoteAdapter<Family>>(
-    (ref) => $FamilyRemoteAdapter(ref.read(familiesLocalAdapterProvider)));
+    (ref) => $FamilyRemoteAdapter(ref.watch(familiesLocalAdapterProvider)));
 
 final familiesRepositoryProvider =
-    Provider<Repository<Family>>((ref) => Repository<Family>(ref));
+    Provider<Repository<Family>>((ref) => Repository<Family>(ref.read));
 
 final _watchFamily = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Family?>, DataState<Family?>, WatchArgs<Family>>(
         (ref, args) {
-  return ref.read(familiesRepositoryProvider).watchOne(args.id,
+  return ref.watch(familiesRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -131,7 +131,7 @@ final _watchFamilies = StateNotifierProvider.autoDispose.family<
     DataState<List<Family>>,
     WatchArgs<Family>>((ref, args) {
   ref.maintainState = false;
-  return ref.read(familiesRepositoryProvider).watchAll(
+  return ref.watch(familiesRepositoryProvider).watchAll(
       remote: args.remote,
       params: args.params,
       headers: args.headers,

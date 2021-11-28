@@ -2,13 +2,13 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:source_gen/source_gen.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 
 import 'utils.dart';
 
@@ -204,19 +204,19 @@ class \$${classType}RemoteAdapter = RemoteAdapter<$classType> with ${mixins.join
 //
 
 final ${typeLowerCased}LocalAdapterProvider = Provider<LocalAdapter<$classType>>(
-    (ref) => \$${classType}HiveLocalAdapter(ref));
+    (ref) => \$${classType}HiveLocalAdapter(ref.read));
 
 final ${typeLowerCased}RemoteAdapterProvider =
     Provider<RemoteAdapter<$classType>>(
-        (ref) => \$${classType}RemoteAdapter(ref.read(${typeLowerCased}LocalAdapterProvider)));
+        (ref) => \$${classType}RemoteAdapter(ref.watch(${typeLowerCased}LocalAdapterProvider)));
 
 final ${typeLowerCased}RepositoryProvider =
-    Provider<Repository<$classType>>((ref) => Repository<$classType>(ref));
+    Provider<Repository<$classType>>((ref) => Repository<$classType>(ref.read));
 
 final _watch${classType == classTypePlural ? 'One' : ''}$classType =
     StateNotifierProvider.autoDispose.family<DataStateNotifier<$classType?>, DataState<$classType?>, WatchArgs<$classType>>(
         (ref, args) {
-  return ref.read(${typeLowerCased}RepositoryProvider).watchOne(args.id, remote: args.remote, params: args.params, headers: args.headers, alsoWatch: args.alsoWatch);
+  return ref.watch(${typeLowerCased}RepositoryProvider).watchOne(args.id, remote: args.remote, params: args.params, headers: args.headers, alsoWatch: args.alsoWatch);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<$classType?>, DataState<$classType?>> watch${classType == classTypePlural ? 'One' : ''}$classType(dynamic id,
@@ -228,7 +228,7 @@ final _watch$classTypePlural =
     StateNotifierProvider.autoDispose.family<DataStateNotifier<List<$classType>>, DataState<List<$classType>>, WatchArgs<$classType>>(
         (ref, args) {
   ref.maintainState = false;
-  return ref.read(${typeLowerCased}RepositoryProvider).watchAll(remote: args.remote, params: args.params, headers: args.headers, filterLocal: args.filterLocal, syncLocal: args.syncLocal);
+  return ref.watch(${typeLowerCased}RepositoryProvider).watchAll(remote: args.remote, params: args.params, headers: args.headers, filterLocal: args.filterLocal, syncLocal: args.syncLocal);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<$classType>>, DataState<List<$classType>>> watch$classTypePlural(

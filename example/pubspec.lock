@@ -169,13 +169,6 @@ packages:
       relative: true
     source: path
     version: "0.8.2"
-  freezed_annotation:
-    dependency: transitive
-    description:
-      name: freezed_annotation
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.14.2"
   frontend_server_client:
     dependency: transitive
     description:
@@ -336,7 +329,7 @@ packages:
       name: riverpod
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.14.0+3"
+    version: "1.0.0"
   shelf:
     dependency: transitive
     description:
@@ -457,4 +450,4 @@ packages:
     source: hosted
     version: "3.1.0"
 sdks:
-  dart: ">=2.12.0 <3.0.0"
+  dart: ">=2.14.0 <3.0.0"

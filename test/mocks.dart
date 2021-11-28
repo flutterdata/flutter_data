@@ -1,11 +1,10 @@
 import 'dart:async';
 
-import 'package:hive/hive.dart';
 import 'package:flutter_data/flutter_data.dart';
-import 'package:mockito/mockito.dart';
+import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
-
 import 'package:http/testing.dart';
+import 'package:mockito/mockito.dart';
 
 // EXACT SAME CODE AS THE TEST BUILDER - KEEP IN SYNC FOR NOW
 
@@ -126,7 +125,7 @@ mixin TestRemoteAdapter<T extends DataModel<T>> on RemoteAdapter<T> {
   http.Client get httpClient {
     return MockClient((req) async {
       try {
-        return ref.watch(mockResponseProvider(req));
+        return read(mockResponseProvider(req));
       } on ProviderException catch (e) {
         // unwrap provider exception
         // ignore: only_throw_errors

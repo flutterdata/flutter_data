@@ -47,18 +47,18 @@ class $PersonRemoteAdapter = RemoteAdapter<Person>
 //
 
 final peopleLocalAdapterProvider =
-    Provider<LocalAdapter<Person>>((ref) => $PersonHiveLocalAdapter(ref));
+    Provider<LocalAdapter<Person>>((ref) => $PersonHiveLocalAdapter(ref.read));
 
 final peopleRemoteAdapterProvider = Provider<RemoteAdapter<Person>>(
-    (ref) => $PersonRemoteAdapter(ref.read(peopleLocalAdapterProvider)));
+    (ref) => $PersonRemoteAdapter(ref.watch(peopleLocalAdapterProvider)));
 
 final peopleRepositoryProvider =
-    Provider<Repository<Person>>((ref) => Repository<Person>(ref));
+    Provider<Repository<Person>>((ref) => Repository<Person>(ref.read));
 
 final _watchPerson = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Person?>, DataState<Person?>, WatchArgs<Person>>(
         (ref, args) {
-  return ref.read(peopleRepositoryProvider).watchOne(args.id,
+  return ref.watch(peopleRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -84,7 +84,7 @@ final _watchPeople = StateNotifierProvider.autoDispose.family<
     DataState<List<Person>>,
     WatchArgs<Person>>((ref, args) {
   ref.maintainState = false;
-  return ref.read(peopleRepositoryProvider).watchAll(
+  return ref.watch(peopleRepositoryProvider).watchAll(
       remote: args.remote,
       params: args.params,
       headers: args.headers,

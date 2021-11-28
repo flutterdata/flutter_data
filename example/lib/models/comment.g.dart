@@ -73,20 +73,20 @@ class $CommentRemoteAdapter = RemoteAdapter<Comment>
 
 //
 
-final commentsLocalAdapterProvider =
-    Provider<LocalAdapter<Comment>>((ref) => $CommentHiveLocalAdapter(ref));
+final commentsLocalAdapterProvider = Provider<LocalAdapter<Comment>>(
+    (ref) => $CommentHiveLocalAdapter(ref.read));
 
 final commentsRemoteAdapterProvider = Provider<RemoteAdapter<Comment>>(
-    (ref) => $CommentRemoteAdapter(ref.read(commentsLocalAdapterProvider)));
+    (ref) => $CommentRemoteAdapter(ref.watch(commentsLocalAdapterProvider)));
 
 final commentsRepositoryProvider =
-    Provider<Repository<Comment>>((ref) => Repository<Comment>(ref));
+    Provider<Repository<Comment>>((ref) => Repository<Comment>(ref.read));
 
 final _watchComment = StateNotifierProvider.autoDispose.family<
     DataStateNotifier<Comment?>,
     DataState<Comment?>,
     WatchArgs<Comment>>((ref, args) {
-  return ref.read(commentsRepositoryProvider).watchOne(args.id,
+  return ref.watch(commentsRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -113,7 +113,7 @@ final _watchComments = StateNotifierProvider.autoDispose.family<
     DataState<List<Comment>>,
     WatchArgs<Comment>>((ref, args) {
   ref.maintainState = false;
-  return ref.read(commentsRepositoryProvider).watchAll(
+  return ref.watch(commentsRepositoryProvider).watchAll(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -178,18 +178,18 @@ class $SheepRemoteAdapter = RemoteAdapter<Sheep> with JSONServerAdapter<Sheep>;
 //
 
 final sheepLocalAdapterProvider =
-    Provider<LocalAdapter<Sheep>>((ref) => $SheepHiveLocalAdapter(ref));
+    Provider<LocalAdapter<Sheep>>((ref) => $SheepHiveLocalAdapter(ref.read));
 
 final sheepRemoteAdapterProvider = Provider<RemoteAdapter<Sheep>>(
-    (ref) => $SheepRemoteAdapter(ref.read(sheepLocalAdapterProvider)));
+    (ref) => $SheepRemoteAdapter(ref.watch(sheepLocalAdapterProvider)));
 
 final sheepRepositoryProvider =
-    Provider<Repository<Sheep>>((ref) => Repository<Sheep>(ref));
+    Provider<Repository<Sheep>>((ref) => Repository<Sheep>(ref.read));
 
 final _watchOneSheep = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Sheep?>, DataState<Sheep?>, WatchArgs<Sheep>>(
         (ref, args) {
-  return ref.read(sheepRepositoryProvider).watchOne(args.id,
+  return ref.watch(sheepRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -215,7 +215,7 @@ final _watchSheep = StateNotifierProvider.autoDispose.family<
     DataState<List<Sheep>>,
     WatchArgs<Sheep>>((ref, args) {
   ref.maintainState = false;
-  return ref.read(sheepRepositoryProvider).watchAll(
+  return ref.watch(sheepRepositoryProvider).watchAll(
       remote: args.remote,
       params: args.params,
       headers: args.headers,

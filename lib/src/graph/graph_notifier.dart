@@ -60,7 +60,7 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   ///    (if provided)
   ///  - It associates [keyIfAbsent] with the supplied [type]/[id]
   ///    (if both [keyIfAbsent] & [type]/[id] were provided)
-  String? getKeyForId(String type, dynamic? id, {String? keyIfAbsent}) {
+  String? getKeyForId(String type, dynamic id, {String? keyIfAbsent}) {
     type = DataHelpers.getType(type);
     if (id != null) {
       final namespacedId =
@@ -514,5 +514,5 @@ class DataGraphEvent {
 }
 
 final graphNotifierProvider = Provider<GraphNotifier>((ref) {
-  return GraphNotifier(ref.read(hiveLocalStorageProvider));
+  return GraphNotifier(ref.watch(hiveLocalStorageProvider));
 });

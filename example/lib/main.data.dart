@@ -42,10 +42,10 @@ final _repositoryInitializerProviderFamily =
     final adapters = <String, RemoteAdapter>{'comments': ref.read(commentsRemoteAdapterProvider), 'posts': ref.read(postsRemoteAdapterProvider), 'sheep': ref.read(sheepRemoteAdapterProvider), 'users': ref.read(usersRemoteAdapterProvider)};
     final remotes = <String, bool>{'comments': true, 'posts': true, 'sheep': false, 'users': true};
 
-    await ref.read(graphNotifierProvider).initialize();
+    await ref.watch(graphNotifierProvider).initialize();
 
     for (final key in repositoryProviders.keys) {
-      final repository = ref.read(repositoryProviders[key]!);
+      final repository = ref.watch(repositoryProviders[key]!);
       repository.dispose();
       await repository.initialize(
         remote: args.remote ?? remotes[key],
@@ -55,12 +55,10 @@ final _repositoryInitializerProviderFamily =
     }
 
     ref.onDispose(() {
-      if (ref.mounted) {
-        for (final repositoryProvider in repositoryProviders.values) {
-          ref.read(repositoryProvider).dispose();
-        }
-        ref.read(graphNotifierProvider).dispose();
+      for (final repositoryProvider in repositoryProviders.values) {
+        ref.watch(repositoryProvider).dispose();
       }
+      ref.watch(graphNotifierProvider).dispose();
     });
 
     return RepositoryInitializer();

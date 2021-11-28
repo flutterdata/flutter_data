@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:hive/hive.dart';
-import 'package:riverpod/riverpod.dart';
 import 'package:path/path.dart' as path_helper;
+import 'package:riverpod/riverpod.dart';
 
 class HiveLocalStorage {
   HiveLocalStorage({this.baseDirFn, List<int>? encryptionKey, bool? clear})

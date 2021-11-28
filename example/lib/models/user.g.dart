@@ -50,18 +50,18 @@ class $UserRemoteAdapter = RemoteAdapter<User> with JSONServerAdapter<User>;
 //
 
 final usersLocalAdapterProvider =
-    Provider<LocalAdapter<User>>((ref) => $UserHiveLocalAdapter(ref));
+    Provider<LocalAdapter<User>>((ref) => $UserHiveLocalAdapter(ref.read));
 
 final usersRemoteAdapterProvider = Provider<RemoteAdapter<User>>(
-    (ref) => $UserRemoteAdapter(ref.read(usersLocalAdapterProvider)));
+    (ref) => $UserRemoteAdapter(ref.watch(usersLocalAdapterProvider)));
 
 final usersRepositoryProvider =
-    Provider<Repository<User>>((ref) => Repository<User>(ref));
+    Provider<Repository<User>>((ref) => Repository<User>(ref.read));
 
 final _watchUser = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<User?>, DataState<User?>, WatchArgs<User>>(
         (ref, args) {
-  return ref.read(usersRepositoryProvider).watchOne(args.id,
+  return ref.watch(usersRepositoryProvider).watchOne(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -87,7 +87,7 @@ final _watchUsers = StateNotifierProvider.autoDispose.family<
     DataState<List<User>>,
     WatchArgs<User>>((ref, args) {
   ref.maintainState = false;
-  return ref.read(usersRepositoryProvider).watchAll(
+  return ref.watch(usersRepositoryProvider).watchAll(
       remote: args.remote,
       params: args.params,
       headers: args.headers,

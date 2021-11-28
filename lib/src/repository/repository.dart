@@ -2,8 +2,8 @@ part of flutter_data;
 
 /// Thin wrapper on the [RemoteAdapter] API
 class Repository<T extends DataModel<T>> with _Lifecycle {
-  final ProviderReference _ref;
-  Repository(this._ref);
+  final Reader _read;
+  Repository(this._read);
 
   var _isInit = false;
 
@@ -32,7 +32,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
       remote: remote,
       verbose: verbose,
       adapters: adapters,
-      ref: _ref,
+      read: _read,
     );
     _isInit = true;
     return this;

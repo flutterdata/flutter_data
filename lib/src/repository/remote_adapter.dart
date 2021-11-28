@@ -54,7 +54,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
   /// Give adapter subclasses access to the dependency injection system
   @nonVirtual
-  late final ProviderReference ref;
+  late final Reader read;
 
   /// INTERNAL: DO NOT USE OR ELSE THINGS WILL BREAK
   @visibleForTesting
@@ -161,10 +161,10 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       {bool? remote,
       bool? verbose,
       required Map<String, RemoteAdapter> adapters,
-      required ProviderReference ref}) async {
+      required Reader read}) async {
     if (isInitialized) return this as RemoteAdapter<T>;
     this.adapters = adapters;
-    this.ref = ref;
+    this.read = read;
 
     // set defaults
     _remote = remote ?? true;

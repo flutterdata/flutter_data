@@ -8,8 +8,7 @@ typedef RepositoryInitializerProvider = FutureProvider<RepositoryInitializer>
 
 /// ONLY FOR FLUTTER DATA INTERNAL USE
 var internalLocatorFn =
-    <S extends DataModel<S>>(RootProvider<Object, Repository<S>> provider,
-            Reader reader) =>
+    <S extends DataModel<S>>(Provider<Repository<S>> provider, Reader reader) =>
         reader(provider);
 
 class RepositoryInitializer {}
