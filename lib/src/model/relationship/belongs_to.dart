@@ -41,7 +41,7 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
   }
 
   /// Obtains the single [E] value of this relationship (`null` if not present).
-  E? get value => first;
+  E? get value => safeFirst;
 
   /// Sets the single [E] value of this relationship, replacing any previous [value].
   ///

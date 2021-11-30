@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -55,12 +54,12 @@ void main() async {
     // once p1 exists
     final p1 = Person(id: '1', name: 'Axl', age: 58).init(container.read);
     // it's automatically wired up
-    expect(f1b.persons!.toSet(), {p1});
+    expect(f1b.persons, {p1});
 
     // relationships are omitted - so they remain unchanged
     final f1c = familyRemoteAdapter.localAdapter
         .deserialize({'id': '1', 'surname': 'Rose'}).init(container.read);
-    expect(f1c.persons!.toSet(), {p1});
+    expect(f1c.persons, {p1});
     expect(f1c.residence!.value, isNotNull);
 
     final p2 = Person(id: '2', name: 'Brian', age: 55).init(container.read);
@@ -72,7 +71,7 @@ void main() async {
       'persons': [keyFor(p2)]
     }).init(container.read);
     // persons should be exactly equal to p2 (Brian)
-    expect(f1d.persons!.toSet(), {p2});
+    expect(f1d.persons, {p2});
     // without directly modifying p2, its family should be automatically updated
     expect(p2.family.value, f1d);
     // and by the same token, p1's family should now be null
@@ -167,21 +166,21 @@ void main() async {
     final igor = Person(name: 'Igor', age: 33).init(container.read);
     final f1 = Family(surname: 'Kamchatka', persons: {igor}.asHasMany)
         .init(container.read);
-    expect(f1.persons!.first!.family.value, f1);
+    expect(f1.persons!.first.family.value, f1);
 
     final igor1b =
         Person(name: 'Igor', age: 33, family: BelongsTo()).init(container.read);
 
     final f1b = Family(surname: 'Kamchatka', persons: {igor1b}.asHasMany)
         .init(container.read);
-    expect(f1b.persons!.first!.family.value!.surname, 'Kamchatka');
+    expect(f1b.persons!.first.family.value!.surname, 'Kamchatka');
 
     final f2 =
         Family(surname: 'Kamchatka', persons: HasMany()).init(container.read);
     final igor2 =
         Person(name: 'Igor', age: 33, family: BelongsTo()).init(container.read);
     f2.persons!.add(igor2);
-    expect(f2.persons!.first!.family.value!.surname, 'Kamchatka');
+    expect(f2.persons!.first.family.value!.surname, 'Kamchatka');
 
     f2.persons!.remove(igor2);
     expect(f2.persons, isEmpty);
@@ -240,7 +239,7 @@ void main() async {
 
     graph.getKeyForId('people', '231', keyIfAbsent: 'people#231aaa');
     final axl = Person(id: '231', name: 'Axl', age: 58).init(container.read);
-    expect(family5.persons!.toSet(), {axl});
+    expect(family5.persons, {axl});
   });
 
   test('scenario #5: one-way relationships', () {
@@ -249,7 +248,7 @@ void main() async {
     final zoe = Dog(name: 'Zoe');
     final f1 = Family(surname: 'Carlson', dogs: {jerry, zoe}.asHasMany)
         .init(container.read);
-    expect(f1.dogs!.toSet(), {jerry, zoe});
+    expect(f1.dogs, {jerry, zoe});
   });
 
   test('self-ref with freezed', () {
@@ -293,20 +292,30 @@ void main() async {
     verify(listener(DataState(author2, isLoading: false))).called(1);
     verifyNoMoreInteractions(listener);
 
-    expect(author.books!.first!.originalAuthor!.value,
-        equals(BookAuthor(id: 15, name: 'Steve-O', books: HasMany({book}))));
+    // FD can't possibly know the newly created HasMany's owner
+    // without initializing it
+    expect(
+        author.books!.first.originalAuthor!.value,
+        isNot(equals(
+            BookAuthor(id: 15, name: 'Steve-O', books: HasMany({book})))));
 
-    expect(HasMany({book}), isNot(HasMany<Book>()));
+    // now it does
+    expect(
+        author.books!.first.originalAuthor!.value,
+        equals(BookAuthor(id: 15, name: 'Steve-O', books: HasMany({book}))
+            .init(container.read)));
+
+    // expect(HasMany({book}), isNot(HasMany<Book>()));
+    // equals() will ignore HasMany's ==/hashCode since it's a Set
+    // it will recursively match the elements
+    expect(HasMany<Book>() == HasMany<Book>(), isFalse);
+    // this will pass as book == book
     expect(HasMany({book}), equals(HasMany<Book>({book})));
 
-    final eq =
-        const DeepCollectionEquality().equals(author.books, HasMany({book}));
-    expect(eq, isTrue);
-
-    expect(author.books!.first!.originalAuthor.toString(),
+    expect(author.books!.first.originalAuthor.toString(),
         'BelongsTo<BookAuthor>(15)');
     expect(author.books.toString(), 'HasMany<Book>(23)');
-    expect(author.books!.first!.originalAuthor!.value.toString(),
+    expect(author.books!.first.originalAuthor!.value.toString(),
         'BookAuthor(id: 15, name: Steve-O, books: HasMany<Book>(23))');
   });
 

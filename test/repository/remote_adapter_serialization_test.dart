@@ -154,7 +154,7 @@ void main() async {
     // check included instead
     expect(data.included, [p1, p2, House(id: '1', address: '123 Main St')]);
 
-    expect(f1.persons!.toSet(), {p1, p2});
+    expect(f1.persons, {p1, p2});
   });
 
   test('deserialize with nested embedded relationships', () {

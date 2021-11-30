@@ -2,6 +2,7 @@ library flutter_data;
 
 // import external packages
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:math';
 

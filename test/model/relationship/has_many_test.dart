@@ -25,7 +25,7 @@ void main() async {
     expect(f1.persons!.length, 2);
 
     f1.persons!.remove(anne);
-    expect(f1.persons!.toSet(), {agnes});
+    expect(f1.persons, {agnes});
   });
 
   test('behaves like a collection (with init)', () {
@@ -42,7 +42,7 @@ void main() async {
     expect(f2.persons!.length, 2);
 
     f2.persons!.remove(anne);
-    expect(f2.persons!.toSet(), {pete});
+    expect(f2.persons, {pete});
   });
 
   test('assignment with relationship initialized & uninitialized', () {
@@ -121,7 +121,7 @@ void main() async {
 
     final a2 = a1.copyWith(books: HasMany.remove()).was(a1);
     await a2.save();
-    expect(a2.books!.toSet(), <Book>{});
-    expect(a1.books!.toSet(), <Book>{});
+    expect(a2.books, <Book>{});
+    expect(a1.books, <Book>{});
   });
 }

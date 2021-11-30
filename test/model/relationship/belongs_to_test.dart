@@ -26,14 +26,14 @@ void main() async {
 
     // values are there even if family (and its relationships) are not init'd
     expect(family.residence!.value, house);
-    expect(family.persons!.toSet(), {person});
+    expect(family.persons, {person});
     expect(family.persons, equals(family.persons));
 
     family.init(container.read);
 
     // after init, values remain the same
     expect(family.residence!.value, house);
-    expect(family.persons!.toSet(), {person});
+    expect(family.persons, {person});
     expect(family.persons, equals(family.persons));
 
     // relationships are now associated to a key

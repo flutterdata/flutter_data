@@ -3,7 +3,7 @@ part of flutter_data;
 /// A `Set` that models a relationship between one or more [DataModel] objects
 /// and their a [DataModel] owner. Backed by a [GraphNotifier].
 abstract class Relationship<E extends DataModel<E>, N>
-    with _Lifecycle, EquatableMixin {
+    with SetMixin<E>, _Lifecycle {
   @protected
   Relationship([Set<E>? models])
       : _uninitializedKeys = {},
@@ -92,6 +92,7 @@ abstract class Relationship<E extends DataModel<E>, N>
   /// Add a [value] to this [Relationship]
   ///
   /// Attempting to add an existing [value] has no effect as this is a [Set]
+  @override
   bool add(E value, {bool notify = true}) {
     if (contains(value)) {
       return false;
@@ -110,12 +111,14 @@ abstract class Relationship<E extends DataModel<E>, N>
     return true;
   }
 
-  bool contains(Object element) {
+  @override
+  bool contains(Object? element) {
     return _iterable.contains(element);
   }
 
   /// Removes a [value] from this [Relationship]
-  bool remove(Object value, {bool notify = true}) {
+  @override
+  bool remove(Object? value, {bool notify = true}) {
     assert(value is E);
     final model = value as E;
     if (isInitialized) {
@@ -132,21 +135,17 @@ abstract class Relationship<E extends DataModel<E>, N>
     return _uninitializedModels.remove(model);
   }
 
-  E? get first => _iterable.safeFirst;
+  @override
+  Iterator<E> get iterator => _iterable.iterator;
 
-  int get length => _iterable.length;
+  @override
+  E? lookup(Object? element) => toSet().lookup(element);
 
-  bool get isEmpty => _iterable.isEmpty;
-
-  bool get isNotEmpty => _iterable.isNotEmpty;
-
-  Iterable<E> where(bool Function(E) test) => _iterable.where(test);
-
-  Iterable<T> map<T>(T Function(E) f) => _iterable.map(f);
-
+  @override
   Set<E> toSet() => _iterable.toSet();
 
-  List<E> toList() => _iterable.toList();
+  @override
+  int get length => _iterable.length;
 
   // support methods
 
@@ -196,14 +195,28 @@ abstract class Relationship<E extends DataModel<E>, N>
   dynamic toJson() => this;
 
   @override
-  String toString();
-
-  @override
-  List<Object> get props => [_prop];
-
-  @override
   void dispose() {
     // relationships are not disposed
+  }
+
+  // equality
+
+  @override
+  bool operator ==(dynamic other) =>
+      identical(this, other) ||
+      other is Relationship &&
+          isInitialized &&
+          other.isInitialized &&
+          _ownerKey == other._ownerKey &&
+          _name == other._name;
+
+  @override
+  int get hashCode {
+    if (isInitialized) {
+      return Object.hash(runtimeType, _ownerKey, _name);
+    } else {
+      return runtimeType.hashCode;
+    }
   }
 
   // utils

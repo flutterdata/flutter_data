@@ -123,7 +123,7 @@ void main() async {
     final dog = Dog(id: '2', name: 'Walker').init(container.read);
     final f =
         Family(surname: 'Walker', dogs: {dog}.asHasMany).init(container.read);
-    expect(f.dogs!.first!.name, 'Walker');
+    expect(f.dogs!.first.name, 'Walker');
   });
 
   test('data exception equality', () {
