@@ -29,7 +29,7 @@ class _$BookAuthorTearOff {
     );
   }
 
-  BookAuthor fromJson(Map<String, Object> json) {
+  BookAuthor fromJson(Map<String, Object?> json) {
     return BookAuthor.fromJson(json);
   }
 }
@@ -132,7 +132,7 @@ class __$BookAuthorCopyWithImpl<$Res> extends _$BookAuthorCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-@With.fromString('DataModel<BookAuthor>')
+@With<DataModel<BookAuthor>>()
 class _$_BookAuthor with DataModel<BookAuthor> implements _BookAuthor {
   _$_BookAuthor({required this.id, this.name, this.books});
 
@@ -154,21 +154,15 @@ class _$_BookAuthor with DataModel<BookAuthor> implements _BookAuthor {
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _BookAuthor &&
-            (identical(other.id, id) ||
-                const DeepCollectionEquality().equals(other.id, id)) &&
-            (identical(other.name, name) ||
-                const DeepCollectionEquality().equals(other.name, name)) &&
-            (identical(other.books, books) ||
-                const DeepCollectionEquality().equals(other.books, books)));
+        (other.runtimeType == runtimeType &&
+            other is _BookAuthor &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.books, books) || other.books == books));
   }
 
   @override
-  int get hashCode =>
-      runtimeType.hashCode ^
-      const DeepCollectionEquality().hash(id) ^
-      const DeepCollectionEquality().hash(name) ^
-      const DeepCollectionEquality().hash(books);
+  int get hashCode => Object.hash(runtimeType, id, name, books);
 
   @JsonKey(ignore: true)
   @override
@@ -189,11 +183,11 @@ abstract class _BookAuthor implements BookAuthor, DataModel<BookAuthor> {
       _$_BookAuthor.fromJson;
 
   @override
-  int get id => throw _privateConstructorUsedError;
+  int get id;
   @override
-  String? get name => throw _privateConstructorUsedError;
+  String? get name;
   @override
-  HasMany<Book>? get books => throw _privateConstructorUsedError;
+  HasMany<Book>? get books;
   @override
   @JsonKey(ignore: true)
   _$BookAuthorCopyWith<_BookAuthor> get copyWith =>
@@ -222,7 +216,7 @@ class _$BookTearOff {
     );
   }
 
-  Book fromJson(Map<String, Object> json) {
+  Book fromJson(Map<String, Object?> json) {
     return Book.fromJson(json);
   }
 }
@@ -342,7 +336,7 @@ class __$BookCopyWithImpl<$Res> extends _$BookCopyWithImpl<$Res>
 
 /// @nodoc
 
-@With.fromString('DataModel<Book>')
+@With<DataModel<Book>>()
 @JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
 class _$_Book with DataModel<Book> implements _Book {
   _$_Book(
@@ -372,26 +366,19 @@ class _$_Book with DataModel<Book> implements _Book {
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _Book &&
-            (identical(other.id, id) ||
-                const DeepCollectionEquality().equals(other.id, id)) &&
-            (identical(other.title, title) ||
-                const DeepCollectionEquality().equals(other.title, title)) &&
+        (other.runtimeType == runtimeType &&
+            other is _Book &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.title, title) || other.title == title) &&
             (identical(other.numberOfSales, numberOfSales) ||
-                const DeepCollectionEquality()
-                    .equals(other.numberOfSales, numberOfSales)) &&
+                other.numberOfSales == numberOfSales) &&
             (identical(other.originalAuthor, originalAuthor) ||
-                const DeepCollectionEquality()
-                    .equals(other.originalAuthor, originalAuthor)));
+                other.originalAuthor == originalAuthor));
   }
 
   @override
   int get hashCode =>
-      runtimeType.hashCode ^
-      const DeepCollectionEquality().hash(id) ^
-      const DeepCollectionEquality().hash(title) ^
-      const DeepCollectionEquality().hash(numberOfSales) ^
-      const DeepCollectionEquality().hash(originalAuthor);
+      Object.hash(runtimeType, id, title, numberOfSales, originalAuthor);
 
   @JsonKey(ignore: true)
   @override
@@ -415,15 +402,14 @@ abstract class _Book implements Book, DataModel<Book> {
   factory _Book.fromJson(Map<String, dynamic> json) = _$_Book.fromJson;
 
   @override
-  int get id => throw _privateConstructorUsedError;
+  int get id;
   @override
-  String? get title => throw _privateConstructorUsedError;
+  String? get title;
   @override
-  int get numberOfSales => throw _privateConstructorUsedError;
+  int get numberOfSales;
   @override
   @JsonKey(name: 'original_author')
-  BelongsTo<BookAuthor>? get originalAuthor =>
-      throw _privateConstructorUsedError;
+  BelongsTo<BookAuthor>? get originalAuthor;
   @override
   @JsonKey(ignore: true)
   _$BookCopyWith<_Book> get copyWith => throw _privateConstructorUsedError;

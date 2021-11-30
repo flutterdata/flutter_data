@@ -137,7 +137,7 @@ extension PostX on Post {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
-  /// Can be obtained via `context.read`, `ref.read`, `container.read`
+  /// Can be obtained via `ref.read`, `container.read`
   Post init(Reader read, {bool save = true}) {
     final repository = internalLocatorFn(postsRepositoryProvider, read);
     final updatedModel =

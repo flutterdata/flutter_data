@@ -159,7 +159,7 @@ extension BookAuthorX on BookAuthor {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
-  /// Can be obtained via `context.read`, `ref.read`, `container.read`
+  /// Can be obtained via `ref.read`, `container.read`
   BookAuthor init(Reader read, {bool save = true}) {
     final repository = internalLocatorFn(bookAuthorsRepositoryProvider, read);
     final updatedModel =
@@ -269,7 +269,7 @@ extension BookX on Book {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
-  /// Can be obtained via `context.read`, `ref.read`, `container.read`
+  /// Can be obtained via `ref.read`, `container.read`
   Book init(Reader read, {bool save = true}) {
     final repository = internalLocatorFn(booksRepositoryProvider, read);
     final updatedModel =

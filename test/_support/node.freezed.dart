@@ -34,7 +34,7 @@ class _$NodeTearOff {
     );
   }
 
-  Node fromJson(Map<String, Object> json) {
+  Node fromJson(Map<String, Object?> json) {
     return Node.fromJson(json);
   }
 }
@@ -183,25 +183,17 @@ class _$_Node extends _Node {
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _Node &&
-            (identical(other.id, id) ||
-                const DeepCollectionEquality().equals(other.id, id)) &&
-            (identical(other.name, name) ||
-                const DeepCollectionEquality().equals(other.name, name)) &&
-            (identical(other.parent, parent) ||
-                const DeepCollectionEquality().equals(other.parent, parent)) &&
+        (other.runtimeType == runtimeType &&
+            other is _Node &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.parent, parent) || other.parent == parent) &&
             (identical(other.children, children) ||
-                const DeepCollectionEquality()
-                    .equals(other.children, children)));
+                other.children == children));
   }
 
   @override
-  int get hashCode =>
-      runtimeType.hashCode ^
-      const DeepCollectionEquality().hash(id) ^
-      const DeepCollectionEquality().hash(name) ^
-      const DeepCollectionEquality().hash(parent) ^
-      const DeepCollectionEquality().hash(children);
+  int get hashCode => Object.hash(runtimeType, id, name, parent, children);
 
   @JsonKey(ignore: true)
   @override
@@ -225,15 +217,15 @@ abstract class _Node extends Node {
   factory _Node.fromJson(Map<String, dynamic> json) = _$_Node.fromJson;
 
   @override
-  int? get id => throw _privateConstructorUsedError;
+  int? get id;
   @override
-  String? get name => throw _privateConstructorUsedError;
+  String? get name;
   @override
   @DataRelationship(inverse: 'children')
-  BelongsTo<Node>? get parent => throw _privateConstructorUsedError;
+  BelongsTo<Node>? get parent;
   @override
   @DataRelationship(inverse: 'parent')
-  HasMany<Node>? get children => throw _privateConstructorUsedError;
+  HasMany<Node>? get children;
   @override
   @JsonKey(ignore: true)
   _$NodeCopyWith<_Node> get copyWith => throw _privateConstructorUsedError;

@@ -9,7 +9,7 @@ part 'book.g.dart';
 @freezed
 @DataRepository([BookAuthorAdapter], remote: false)
 class BookAuthor with DataModel<BookAuthor>, _$BookAuthor {
-  @With.fromString('DataModel<BookAuthor>')
+  @With<DataModel<BookAuthor>>()
   factory BookAuthor({
     required int id,
     String? name,
@@ -22,7 +22,7 @@ class BookAuthor with DataModel<BookAuthor>, _$BookAuthor {
 @freezed
 @DataRepository([])
 class Book with DataModel<Book>, _$Book {
-  @With.fromString('DataModel<Book>')
+  @With<DataModel<Book>>()
   @JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
   factory Book({
     required int id,
