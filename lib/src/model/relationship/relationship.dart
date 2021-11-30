@@ -139,7 +139,7 @@ abstract class Relationship<E extends DataModel<E>, N>
   Iterator<E> get iterator => _iterable.iterator;
 
   @override
-  E? lookup(Object? element) => toSet().lookup(element);
+  E? lookup(Object? element) => lookup(element);
 
   @override
   Set<E> toSet() => _iterable.toSet();
@@ -183,7 +183,11 @@ abstract class Relationship<E extends DataModel<E>, N>
 
   DelayedStateNotifier<List<DataGraphEvent>> get _graphEvents {
     return _adapter.throttledGraph.map((events) {
-      return events.where(_appliesToRelationship).toImmutableList();
+      return events.where((event) {
+        return event.type.isEdge &&
+            event.metadata == _name &&
+            event.keys.containsFirst(_ownerKey);
+      }).toImmutableList();
     });
   }
 
@@ -193,11 +197,6 @@ abstract class Relationship<E extends DataModel<E>, N>
   ///
   /// For internal use. Does not return valid JSON.
   dynamic toJson() => this;
-
-  @override
-  void dispose() {
-    // relationships are not disposed
-  }
 
   // equality
 
@@ -219,14 +218,11 @@ abstract class Relationship<E extends DataModel<E>, N>
     }
   }
 
-  // utils
-
   String get _prop => _iterable.map((e) => e.id).join(', ');
 
-  bool _appliesToRelationship(DataGraphEvent event) {
-    return event.type.isEdge &&
-        event.metadata == _name &&
-        event.keys.containsFirst(_ownerKey);
+  @override
+  void dispose() {
+    // relationships are not disposed
   }
 }
 
