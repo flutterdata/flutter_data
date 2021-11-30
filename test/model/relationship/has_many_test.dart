@@ -2,6 +2,7 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
+import '../../_support/book.dart';
 import '../../_support/family.dart';
 import '../../_support/person.dart';
 import '../../_support/setup.dart';
@@ -108,5 +109,19 @@ void main() async {
     await oneMs();
 
     verify(listener({p1, p2})).called(1);
+  });
+
+  test('remove relationship', () async {
+    final b1 = Book(id: 1).init(container.read);
+    await b1.save();
+
+    final a1 = BookAuthor(id: 1, name: 'Walter', books: {b1}.asHasMany)
+        .init(container.read);
+    await a1.save();
+
+    final a2 = a1.copyWith(books: HasMany.remove()).was(a1);
+    await a2.save();
+    expect(a2.books!.toSet(), <Book>{});
+    expect(a1.books!.toSet(), <Book>{});
   });
 }

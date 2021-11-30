@@ -2,6 +2,7 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
+import '../../_support/book.dart';
 import '../../_support/family.dart';
 import '../../_support/house.dart';
 import '../../_support/person.dart';
@@ -130,5 +131,17 @@ void main() async {
     Person(name: 'Walter', age: 55, family: house2.owner).init(container.read);
 
     expect(family.persons!.length, 2);
+  });
+
+  test('remove relationship', () async {
+    final a1 = BookAuthor(id: 1, name: 'Walter').init(container.read);
+    await a1.save();
+    final b1 = Book(id: 1, originalAuthor: a1.asBelongsTo).init(container.read);
+    await b1.save();
+
+    final b2 = b1.copyWith(originalAuthor: BelongsTo.remove()).was(b1);
+    await b2.save();
+    expect(b2.originalAuthor!.value, isNull);
+    expect(b1.originalAuthor!.value, isNull);
   });
 }

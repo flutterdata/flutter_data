@@ -8,11 +8,19 @@ abstract class Relationship<E extends DataModel<E>, N>
   Relationship([Set<E>? models])
       : _uninitializedKeys = {},
         _uninitializedModels = models ?? {},
-        _wasOmitted = models == null;
+        _wasOmitted = models == null,
+        _shouldRemove = false;
 
   Relationship._(Iterable<String> keys, this._wasOmitted)
       : _uninitializedKeys = keys.toSet(),
-        _uninitializedModels = {};
+        _uninitializedModels = {},
+        _shouldRemove = false;
+
+  Relationship._remove()
+      : _uninitializedKeys = {},
+        _uninitializedModels = {},
+        _wasOmitted = false,
+        _shouldRemove = true;
 
   late final String _ownerKey;
   late final String _name;
@@ -24,6 +32,7 @@ abstract class Relationship<E extends DataModel<E>, N>
   final Set<String> _uninitializedKeys;
   final Set<E> _uninitializedModels;
   final bool _wasOmitted;
+  final bool _shouldRemove;
 
   @protected
   String get internalType => DataHelpers.getType<E>();
@@ -44,11 +53,17 @@ abstract class Relationship<E extends DataModel<E>, N>
     _name = name;
     _inverseName = inverseName;
 
-    // initialize uninitialized models and get keys
-    final newKeys = _uninitializedModels.map((model) {
-      return model._initialize(_adapters, save: true)._key!;
-    });
-    _uninitializedKeys.addAll(newKeys);
+    if (_shouldRemove) {
+      _graph._removeEdges(_ownerKey,
+          metadata: _name, inverseMetadata: _inverseName);
+    } else {
+      // initialize uninitialized models and get keys
+      final newKeys = _uninitializedModels.map((model) {
+        return model._initialize(_adapters, save: true)._key!;
+      });
+      _uninitializedKeys.addAll(newKeys);
+    }
+
     _uninitializedModels.clear();
 
     // initialize keys
