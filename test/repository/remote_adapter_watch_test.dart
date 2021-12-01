@@ -283,4 +283,29 @@ void main() async {
     verify(listener(argThat(matcher))).called(1);
     verifyNoMoreInteractions(listener);
   });
+
+  test('watchOne with where/map', () async {
+    final listener = Listener<DataState<Person?>>();
+
+    Person(id: '1', name: 'Zof', age: 23).init(container.read);
+
+    final notifier = personRemoteAdapter
+        .watchOne('1', remote: false)
+        .map((p) => Person(name: p!.name, age: p.age! + 10))
+        .where((p) => p!.age! < 40);
+
+    dispose = notifier.addListener(listener, fireImmediately: true);
+
+    verify(listener(DataState(
+      Person(name: 'Zof', age: 33),
+    ))).called(1);
+    verifyNoMoreInteractions(listener);
+
+    Person(id: '1', name: 'Zof', age: 71).init(container.read);
+    await oneMs();
+
+    // since 71 + 10 > 40, the listener will receive a null
+    verify(listener(DataState(null))).called(1);
+    verifyNoMoreInteractions(listener);
+  });
 }

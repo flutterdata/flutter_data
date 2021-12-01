@@ -102,17 +102,26 @@ class _Stamp {
 
 const stamp = _Stamp();
 
-class _FunctionalDataStateNotifier<T> extends DataStateNotifier<List<T>> {
-  final DataStateNotifier<List<T>> _source;
+class _FunctionalDataStateNotifier<T, W> extends DataStateNotifier<W> {
+  final DataStateNotifier<W> _source;
   late RemoveListener _sourceDisposeFn;
 
   _FunctionalDataStateNotifier(this._source) : super(data: _source.data);
 
-  /// Filters all models of the list (if present) through [test]
-  DataStateNotifier<List<T>> where(bool Function(T) test) {
+  DataStateNotifier<W> where(bool Function(T) test) {
     _sourceDisposeFn = _source.addListener((state) {
       if (state.hasModel) {
-        super.state = DataState(state.model.where(test).toList(),
+        W _model;
+
+        if (_typesEqual<W, List<T>>()) {
+          _model = (state.model as List<T>).where(test).toList() as W;
+        } else if (_typesEqual<W, T?>()) {
+          _model = test(state.model as T) ? state.model : null as W;
+        } else {
+          throw UnsupportedError('W must either be T? or List<T>');
+        }
+
+        super.state = DataState(_model,
             isLoading: state.isLoading,
             exception: state.exception,
             stackTrace: state.stackTrace);
@@ -121,11 +130,20 @@ class _FunctionalDataStateNotifier<T> extends DataStateNotifier<List<T>> {
     return this;
   }
 
-  /// Maps all models of the list (if present) through [convert]
-  DataStateNotifier<List<T>> map(T Function(T) convert) {
+  DataStateNotifier<W> map(T Function(T) convert) {
     _sourceDisposeFn = _source.addListener((state) {
       if (state.hasModel) {
-        super.state = DataState(state.model.map(convert).toList(),
+        W _model;
+
+        if (_typesEqual<W, List<T>>()) {
+          _model = (state.model as List<T>).map(convert).toList() as W;
+        } else if (_typesEqual<W, T>()) {
+          _model = convert(state.model as T) as W;
+        } else {
+          throw UnsupportedError('W must either be T or List<T>');
+        }
+
+        super.state = DataState(_model,
             isLoading: state.isLoading,
             exception: state.exception,
             stackTrace: state.stackTrace);
@@ -133,10 +151,12 @@ class _FunctionalDataStateNotifier<T> extends DataStateNotifier<List<T>> {
     });
     return this;
   }
+
+  bool _typesEqual<T1, T2>() => T1 == T2;
 
   @override
   RemoveListener addListener(
-    Listener<DataState<List<T>>> listener, {
+    Listener<DataState<W>> listener, {
     bool fireImmediately = true,
   }) {
     final dispose =
@@ -157,12 +177,27 @@ class _FunctionalDataStateNotifier<T> extends DataStateNotifier<List<T>> {
 }
 
 /// Functional utilities for [DataStateNotifier]
-extension DataStateNotifierX<T> on DataStateNotifier<List<T>> {
+extension DataStateNotifierListX<T> on DataStateNotifier<List<T>> {
+  /// Filters all models of the list (if present) through [test]
   DataStateNotifier<List<T>> where(bool Function(T) test) {
-    return _FunctionalDataStateNotifier<T>(this).where(test);
+    return _FunctionalDataStateNotifier<T, List<T>>(this).where(test);
   }
 
+  /// Maps all models of the list (if present) through [convert]
   DataStateNotifier<List<T>> map(T Function(T) convert) {
-    return _FunctionalDataStateNotifier<T>(this).map(convert);
+    return _FunctionalDataStateNotifier<T, List<T>>(this).map(convert);
+  }
+}
+
+/// Functional utilities for [DataStateNotifier]
+extension DataStateNotifierX<T> on DataStateNotifier<T> {
+  /// Filters all models of the list (if present) through [test]
+  DataStateNotifier<T> where(bool Function(T) test) {
+    return _FunctionalDataStateNotifier<T, T>(this).where(test);
+  }
+
+  /// Maps all models of the list (if present) through [convert]
+  DataStateNotifier<T> map(T Function(T) convert) {
+    return _FunctionalDataStateNotifier<T, T>(this).map(convert);
   }
 }
