@@ -101,3 +101,53 @@ class _Stamp {
 }
 
 const stamp = _Stamp();
+
+class _FunctionalDataStateNotifier<T> extends DataStateNotifier<List<T>> {
+  final DataStateNotifier<List<T>> _source;
+  late RemoveListener _sourceDisposeFn;
+
+  _FunctionalDataStateNotifier(this._source) : super(data: _source.data);
+
+  /// Filters all models of the list (if present) through [test]
+  DataStateNotifier<List<T>> where(bool Function(T) test) {
+    _sourceDisposeFn = _source.addListener((state) {
+      if (state.hasModel) {
+        super.state = DataState(state.model.where(test).toList(),
+            isLoading: state.isLoading,
+            exception: state.exception,
+            stackTrace: state.stackTrace);
+      }
+    });
+    return this;
+  }
+
+  /// Maps all models of the list (if present) through [convert]
+  DataStateNotifier<List<T>> map(T Function(T) convert) {
+    _sourceDisposeFn = _source.addListener((state) {
+      if (state.hasModel) {
+        super.state = DataState(state.model.map(convert).toList(),
+            isLoading: state.isLoading,
+            exception: state.exception,
+            stackTrace: state.stackTrace);
+      }
+    });
+    return this;
+  }
+
+  @override
+  void dispose() {
+    _sourceDisposeFn.call();
+    super.dispose();
+  }
+}
+
+/// Functional utilities for [DataStateNotifier]
+extension DataStateNotifierX<T> on DataStateNotifier<List<T>> {
+  DataStateNotifier<List<T>> where(bool Function(T) test) {
+    return _FunctionalDataStateNotifier<T>(this).where(test);
+  }
+
+  DataStateNotifier<List<T>> map(T Function(T) convert) {
+    return _FunctionalDataStateNotifier<T>(this).map(convert);
+  }
+}

@@ -18,17 +18,14 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     bool? syncLocal,
-    bool Function(T)? filterLocal,
   }) {
     _assertInit();
     remote ??= _remote;
     syncLocal ??= false;
-    filterLocal ??= (_) => true;
 
     final _notifier = DataStateNotifier<List<T>>(
       data: DataState(localAdapter
           .findAll()
-          .where(filterLocal)
           .map((m) => initializeModel(m, save: true))
           .filterNulls
           .toList()),
@@ -42,7 +39,6 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
             headers: headers,
             remote: remote,
             syncLocal: syncLocal,
-            filterLocal: filterLocal,
           );
           if (remote!) {
             notifier.updateWith(isLoading: true);
@@ -72,8 +68,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         return;
       }
 
-      final models =
-          localAdapter.findAll().where(filterLocal!).toImmutableList();
+      final models = localAdapter.findAll().toImmutableList();
       final modelChanged =
           !const DeepCollectionEquality().equals(models, _notifier.data.model);
       // ensure the done signal belongs to this notifier

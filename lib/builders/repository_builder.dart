@@ -228,12 +228,12 @@ final _watch$classTypePlural =
     StateNotifierProvider.autoDispose.family<DataStateNotifier<List<$classType>>, DataState<List<$classType>>, WatchArgs<$classType>>(
         (ref, args) {
   ref.maintainState = false;
-  return ref.watch(${typeLowerCased}RepositoryProvider).watchAll(remote: args.remote, params: args.params, headers: args.headers, filterLocal: args.filterLocal, syncLocal: args.syncLocal);
+  return ref.watch(${typeLowerCased}RepositoryProvider).watchAll(remote: args.remote, params: args.params, headers: args.headers, syncLocal: args.syncLocal);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<$classType>>, DataState<List<$classType>>> watch$classTypePlural(
-    {bool? remote, Map<String, dynamic>? params, Map<String, String>? headers, bool Function($classType)? filterLocal, bool? syncLocal}) {
-  return _watch$classTypePlural(WatchArgs(remote: remote, params: params, headers: headers, filterLocal: filterLocal, syncLocal: syncLocal));
+    {bool? remote, Map<String, dynamic>? params, Map<String, String>? headers, bool? syncLocal}) {
+  return _watch$classTypePlural(WatchArgs(remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 
 extension ${classType}X on $classType {

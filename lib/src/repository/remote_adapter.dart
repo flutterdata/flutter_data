@@ -242,7 +242,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     bool? syncLocal,
-    bool Function(T)? filterLocal,
     OnData<List<T>>? onSuccess,
     OnDataError<List<T>>? onError,
   }) async {
@@ -251,11 +250,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     syncLocal ??= false;
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
-    filterLocal ??= (_) => true;
 
     if (!shouldLoadRemoteAll(remote!, params, headers)) {
-      final models =
-          localAdapter.findAll().where(filterLocal).toImmutableList();
+      final models = localAdapter.findAll().toImmutableList();
       models.map((m) => m._initialize(adapters, save: true));
       return models;
     }
@@ -271,10 +268,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
           await localAdapter.clear();
         }
         final models = data != null
-            ? deserialize(data as Object)
-                .models
-                .where(filterLocal!)
-                .toImmutableList()
+            ? deserialize(data as Object).models.toImmutableList()
             : <T>[];
         return onSuccess?.call(models) ?? models;
       },

@@ -88,7 +88,6 @@ final _watchPeople = StateNotifierProvider.autoDispose.family<
       remote: args.remote,
       params: args.params,
       headers: args.headers,
-      filterLocal: args.filterLocal,
       syncLocal: args.syncLocal);
 });
 
@@ -98,14 +97,9 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Person>>,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
-        bool Function(Person)? filterLocal,
         bool? syncLocal}) {
   return _watchPeople(WatchArgs(
-      remote: remote,
-      params: params,
-      headers: headers,
-      filterLocal: filterLocal,
-      syncLocal: syncLocal));
+      remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 
 extension PersonX on Person {

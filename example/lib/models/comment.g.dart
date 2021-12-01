@@ -117,7 +117,6 @@ final _watchComments = StateNotifierProvider.autoDispose.family<
       remote: args.remote,
       params: args.params,
       headers: args.headers,
-      filterLocal: args.filterLocal,
       syncLocal: args.syncLocal);
 });
 
@@ -127,14 +126,9 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Comment>>,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
-        bool Function(Comment)? filterLocal,
         bool? syncLocal}) {
   return _watchComments(WatchArgs(
-      remote: remote,
-      params: params,
-      headers: headers,
-      filterLocal: filterLocal,
-      syncLocal: syncLocal));
+      remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 
 extension CommentX on Comment {
@@ -219,7 +213,6 @@ final _watchSheep = StateNotifierProvider.autoDispose.family<
       remote: args.remote,
       params: args.params,
       headers: args.headers,
-      filterLocal: args.filterLocal,
       syncLocal: args.syncLocal);
 });
 
@@ -229,14 +222,9 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Sheep>>,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
-        bool Function(Sheep)? filterLocal,
         bool? syncLocal}) {
   return _watchSheep(WatchArgs(
-      remote: remote,
-      params: params,
-      headers: headers,
-      filterLocal: filterLocal,
-      syncLocal: syncLocal));
+      remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 
 extension SheepX on Sheep {

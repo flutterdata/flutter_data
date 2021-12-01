@@ -135,7 +135,6 @@ final _watchBookAuthors = StateNotifierProvider.autoDispose.family<
       remote: args.remote,
       params: args.params,
       headers: args.headers,
-      filterLocal: args.filterLocal,
       syncLocal: args.syncLocal);
 });
 
@@ -145,14 +144,9 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<BookAuthor>>,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
-        bool Function(BookAuthor)? filterLocal,
         bool? syncLocal}) {
   return _watchBookAuthors(WatchArgs(
-      remote: remote,
-      params: params,
-      headers: headers,
-      filterLocal: filterLocal,
-      syncLocal: syncLocal));
+      remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 
 extension BookAuthorX on BookAuthor {
@@ -245,7 +239,6 @@ final _watchBooks = StateNotifierProvider.autoDispose.family<
       remote: args.remote,
       params: args.params,
       headers: args.headers,
-      filterLocal: args.filterLocal,
       syncLocal: args.syncLocal);
 });
 
@@ -255,14 +248,9 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Book>>,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
-        bool Function(Book)? filterLocal,
         bool? syncLocal}) {
   return _watchBooks(WatchArgs(
-      remote: remote,
-      params: params,
-      headers: headers,
-      filterLocal: filterLocal,
-      syncLocal: syncLocal));
+      remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 
 extension BookX on Book {

@@ -35,7 +35,6 @@ class WatchArgs<T> with EquatableMixin {
     this.params,
     this.headers,
     this.syncLocal,
-    this.filterLocal,
     this.alsoWatch,
   });
 
@@ -44,7 +43,6 @@ class WatchArgs<T> with EquatableMixin {
   final Map<String, dynamic>? params;
   final Map<String, String>? headers;
   final bool? syncLocal;
-  final bool Function(T)? filterLocal;
   final AlsoWatch<T>? alsoWatch;
 
   @override

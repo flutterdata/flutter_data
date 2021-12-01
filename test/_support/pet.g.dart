@@ -98,7 +98,6 @@ final _watchDogs = StateNotifierProvider.autoDispose
       remote: args.remote,
       params: args.params,
       headers: args.headers,
-      filterLocal: args.filterLocal,
       syncLocal: args.syncLocal);
 });
 
@@ -108,14 +107,9 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Dog>>,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
-        bool Function(Dog)? filterLocal,
         bool? syncLocal}) {
   return _watchDogs(WatchArgs(
-      remote: remote,
-      params: params,
-      headers: headers,
-      filterLocal: filterLocal,
-      syncLocal: syncLocal));
+      remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 
 extension DogX on Dog {
@@ -199,7 +193,6 @@ final _watchCats = StateNotifierProvider.autoDispose
       remote: args.remote,
       params: args.params,
       headers: args.headers,
-      filterLocal: args.filterLocal,
       syncLocal: args.syncLocal);
 });
 
@@ -209,14 +202,9 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Cat>>,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
-        bool Function(Cat)? filterLocal,
         bool? syncLocal}) {
   return _watchCats(WatchArgs(
-      remote: remote,
-      params: params,
-      headers: headers,
-      filterLocal: filterLocal,
-      syncLocal: syncLocal));
+      remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 
 extension CatX on Cat {

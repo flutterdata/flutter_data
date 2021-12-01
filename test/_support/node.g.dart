@@ -112,7 +112,6 @@ final _watchNodes = StateNotifierProvider.autoDispose.family<
       remote: args.remote,
       params: args.params,
       headers: args.headers,
-      filterLocal: args.filterLocal,
       syncLocal: args.syncLocal);
 });
 
@@ -122,14 +121,9 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Node>>,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
-        bool Function(Node)? filterLocal,
         bool? syncLocal}) {
   return _watchNodes(WatchArgs(
-      remote: remote,
-      params: params,
-      headers: headers,
-      filterLocal: filterLocal,
-      syncLocal: syncLocal));
+      remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 
 extension NodeX on Node {

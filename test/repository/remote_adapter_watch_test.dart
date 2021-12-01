@@ -101,17 +101,24 @@ void main() async {
     verifyNoMoreInteractions(listener);
   });
 
-  test('watchAll with filterLocal', () async {
+  test('watchAll with where/map', () async {
     final listener = Listener<DataState<List<Person>>>();
 
-    final p1 = Person(id: '1', name: 'Zof', age: 23).init(container.read);
+    Person(id: '1', name: 'Zof', age: 23).init(container.read);
     Person(id: '2', name: 'Sarah', age: 50).init(container.read);
-    final notifier = personRemoteAdapter.watchAll(
-        remote: false, filterLocal: (Person person) => person.age! < 40);
+    Person(id: '3', name: 'Walter', age: 11).init(container.read);
+    Person(id: '4', name: 'Koen', age: 92).init(container.read);
+
+    final notifier = personRemoteAdapter
+        .watchAll(remote: false)
+        .where((p) => p.age! < 40)
+        .map((p) => Person(name: p.name, age: p.age! + 10));
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
-    verify(listener(DataState([p1]))).called(1);
+    verify(listener(DataState(
+      [Person(name: 'Zof', age: 33), Person(name: 'Walter', age: 21)],
+    ))).called(1);
     verifyNoMoreInteractions(listener);
   });
 
