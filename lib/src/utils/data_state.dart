@@ -135,9 +135,24 @@ class _FunctionalDataStateNotifier<T> extends DataStateNotifier<List<T>> {
   }
 
   @override
+  RemoveListener addListener(
+    Listener<DataState<List<T>>> listener, {
+    bool fireImmediately = true,
+  }) {
+    final dispose =
+        super.addListener(listener, fireImmediately: fireImmediately);
+    return () {
+      dispose.call();
+      _sourceDisposeFn.call();
+    };
+  }
+
+  @override
   void dispose() {
-    _sourceDisposeFn.call();
-    super.dispose();
+    if (mounted) {
+      super.dispose();
+    }
+    _source.dispose();
   }
 }
 
