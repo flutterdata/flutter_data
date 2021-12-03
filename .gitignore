@@ -1,5 +1,5 @@
 example/tmp
-.vscode/
+# .vscode/
 TO-DO.md
 
 test/.test_cov.dart

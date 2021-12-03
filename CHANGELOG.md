@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.0]
+
+- Add syntax sugar for repository methods and watchers accessible via `ref.$type`
+- Add `where`/`map` functional extensions on `DataStateNotifier` (can use instead of `filterLocal` which was removed)
+- Make `Relationship` a `Set` again, all `Iterable` methods available on it
+- Improve relationship removal via `BelongsTo.remove()` and `HasMany.remove()`
+- Upgrade Riverpod to 1.0.0 and Freezed to 1.0.0
+- Fix for multiple `doneLoading` events
+
 ## [0.8.2]
 
 - Throttle workaround, remove value notifier
