@@ -63,13 +63,13 @@ final dogsLocalAdapterProvider =
 final dogsRemoteAdapterProvider = Provider<RemoteAdapter<Dog>>(
     (ref) => $DogRemoteAdapter(ref.watch(dogsLocalAdapterProvider)));
 
-final dogsRepositoryProvider =
-    Provider<Repository<Dog>>((ref) => Repository<Dog>(ref.read));
+final dogsRepositoryProvider = Provider<Repository<Dog>>(
+    (ref) => Repository<Dog>(ref.read, dogProvider, dogsProvider));
 
-final _watchDog = StateNotifierProvider.autoDispose
+final _dogProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Dog?>, DataState<Dog?>, WatchArgs<Dog>>(
         (ref, args) {
-  return ref.watch(dogsRepositoryProvider).watchOne(args.id,
+  return ref.watch(dogsRepositoryProvider).watchOneNotifier(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -77,12 +77,12 @@ final _watchDog = StateNotifierProvider.autoDispose
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Dog?>, DataState<Dog?>>
-    watchDog(dynamic id,
+    dogProvider(dynamic id,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         AlsoWatch<Dog>? alsoWatch}) {
-  return _watchDog(WatchArgs(
+  return _dogProvider(WatchArgs(
       id: id,
       remote: remote,
       params: params,
@@ -90,11 +90,10 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Dog?>, DataState<Dog?>>
       alsoWatch: alsoWatch));
 }
 
-final _watchDogs = StateNotifierProvider.autoDispose
+final _dogsProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Dog>>, DataState<List<Dog>>, WatchArgs<Dog>>(
         (ref, args) {
-  ref.maintainState = false;
-  return ref.watch(dogsRepositoryProvider).watchAll(
+  return ref.watch(dogsRepositoryProvider).watchAllNotifier(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -103,12 +102,12 @@ final _watchDogs = StateNotifierProvider.autoDispose
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<Dog>>,
         DataState<List<Dog>>>
-    watchDogs(
+    dogsProvider(
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         bool? syncLocal}) {
-  return _watchDogs(WatchArgs(
+  return _dogsProvider(WatchArgs(
       remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 
@@ -158,13 +157,13 @@ final catsLocalAdapterProvider =
 final catsRemoteAdapterProvider = Provider<RemoteAdapter<Cat>>(
     (ref) => $CatRemoteAdapter(ref.watch(catsLocalAdapterProvider)));
 
-final catsRepositoryProvider =
-    Provider<Repository<Cat>>((ref) => Repository<Cat>(ref.read));
+final catsRepositoryProvider = Provider<Repository<Cat>>(
+    (ref) => Repository<Cat>(ref.read, catProvider, catsProvider));
 
-final _watchCat = StateNotifierProvider.autoDispose
+final _catProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Cat?>, DataState<Cat?>, WatchArgs<Cat>>(
         (ref, args) {
-  return ref.watch(catsRepositoryProvider).watchOne(args.id,
+  return ref.watch(catsRepositoryProvider).watchOneNotifier(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -172,12 +171,12 @@ final _watchCat = StateNotifierProvider.autoDispose
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Cat?>, DataState<Cat?>>
-    watchCat(dynamic id,
+    catProvider(dynamic id,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         AlsoWatch<Cat>? alsoWatch}) {
-  return _watchCat(WatchArgs(
+  return _catProvider(WatchArgs(
       id: id,
       remote: remote,
       params: params,
@@ -185,11 +184,10 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Cat?>, DataState<Cat?>>
       alsoWatch: alsoWatch));
 }
 
-final _watchCats = StateNotifierProvider.autoDispose
+final _catsProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<List<Cat>>, DataState<List<Cat>>, WatchArgs<Cat>>(
         (ref, args) {
-  ref.maintainState = false;
-  return ref.watch(catsRepositoryProvider).watchAll(
+  return ref.watch(catsRepositoryProvider).watchAllNotifier(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -198,12 +196,12 @@ final _watchCats = StateNotifierProvider.autoDispose
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<Cat>>,
         DataState<List<Cat>>>
-    watchCats(
+    catsProvider(
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         bool? syncLocal}) {
-  return _watchCats(WatchArgs(
+  return _catsProvider(WatchArgs(
       remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 

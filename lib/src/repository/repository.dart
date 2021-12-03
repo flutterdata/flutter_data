@@ -3,7 +3,9 @@ part of flutter_data;
 /// Thin wrapper on the [RemoteAdapter] API
 class Repository<T extends DataModel<T>> with _Lifecycle {
   final Reader _read;
-  Repository(this._read);
+  final OneProvider<T>? _oneProvider;
+  final AllProvider<T>? _allProvider;
+  Repository(this._read, [this._oneProvider, this._allProvider]);
 
   var _isInit = false;
 
@@ -18,6 +20,26 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   /// Type for the [RemoteAdapter]
   @nonVirtual
   String get type => remoteAdapter.type;
+
+  //
+
+  Watcher? internalWatch;
+
+  DataState<List<T>> watchAll() {
+    if (internalWatch == null || _allProvider == null) {
+      throw UnsupportedError(
+          'Should only be used via ref.$type.watchAll. Alternatively use watchTodos()');
+    }
+    return internalWatch!(_allProvider!());
+  }
+
+  DataState<T?> watchOne(id) {
+    if (internalWatch == null || _oneProvider == null) {
+      throw UnsupportedError(
+          'Should only be used via ref.$type.watchOne. Alternatively use watchTodo()');
+    }
+    return internalWatch!(_oneProvider!(id));
+  }
 
   /// Initializes this [Repository]. Nothing will work without this.
   /// In standard scenarios this initialization is done by the framework.
@@ -187,13 +209,13 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   ///
   /// When called, will in turn call [findAll] with [remote], [params],
   /// [headers], [syncLocal].
-  DataStateNotifier<List<T>> watchAll({
+  DataStateNotifier<List<T>> watchAllNotifier({
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     bool? syncLocal,
   }) {
-    return remoteAdapter.watchAll(
+    return remoteAdapter.watchAllNotifier(
       remote: remote,
       params: params,
       headers: headers,
@@ -212,14 +234,14 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   /// ```
   ///
   /// When called, will in turn call [findAll] with [remote], [params], [headers].
-  DataStateNotifier<T?> watchOne(
+  DataStateNotifier<T?> watchOneNotifier(
     dynamic id, {
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     AlsoWatch<T>? alsoWatch,
   }) {
-    return remoteAdapter.watchOne(
+    return remoteAdapter.watchOneNotifier(
       id,
       remote: remote,
       params: params,
@@ -229,31 +251,22 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   }
 }
 
-class RepositoryWatcher<T extends DataModel<T>> {
-  final W Function<W>(ProviderListenable<W> provider) _watch;
-  final Provider<Repository<T>> _repositoryProvider;
-  final AutoDisposeStateNotifierProvider<DataStateNotifier<T?>, DataState<T?>>
-      Function(dynamic) _oneProvider;
-  final AutoDisposeStateNotifierProvider<DataStateNotifier<List<T>>,
-          DataState<List<T>>>
-      Function() _allProvider;
+// class RepositoryWatcher<T extends DataModel<T>> extends Repository<T> {
+//   final W Function<W>(ProviderListenable<W> provider) _watch;
+//   final AutoDisposeStateNotifierProvider<DataStateNotifier<T?>, DataState<T?>>
+//       Function(dynamic) _oneProvider;
+//   final AutoDisposeStateNotifierProvider<DataStateNotifier<List<T>>,
+//           DataState<List<T>>>
+//       Function() _allProvider;
 
-  RepositoryWatcher(this._watch, this._repositoryProvider, this._oneProvider,
-      this._allProvider);
+//   RepositoryWatcher(
+//       Reader _read, this._watch, this._oneProvider, this._allProvider)
+//       : super(_read);
 
-  Future<List<T>> findAll() => _watch(_repositoryProvider).findAll();
+//   DataState<T?> watchOne(id) => _watch(_oneProvider(id));
 
-  Future<T?> findOne(id) => _watch(_repositoryProvider).findOne(id);
-
-  Future<void> clear() => _watch(_repositoryProvider).clear();
-
-  Set<OfflineOperation<T>> get offlineOperations =>
-      _watch(_repositoryProvider).offlineOperations;
-
-  DataState<T?> watchOne(id) => _watch(_oneProvider(id));
-
-  DataState<List<T>> watchAll() => _watch(_allProvider());
-}
+//   DataState<List<T>> watchAll() => _watch(_allProvider());
+// }
 
 /// Annotation on a [DataModel] model to request a [Repository] be generated for it.
 ///

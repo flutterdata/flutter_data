@@ -7,6 +7,7 @@ import 'package:flutter_data/flutter_data.dart';
 
 
 
+
 import 'package:jsonplaceholder_example/models/comment.dart';
 import 'package:jsonplaceholder_example/models/post.dart';
 import 'package:jsonplaceholder_example/models/user.dart';
@@ -39,7 +40,7 @@ final repositoryProviders = <String, Provider<Repository<DataModel>>>{
 
 final _repositoryInitializerProviderFamily =
   FutureProvider.family<RepositoryInitializer, RepositoryInitializerArgs>((ref, args) async {
-    final adapters = <String, RemoteAdapter>{'comments': ref.read(commentsRemoteAdapterProvider), 'posts': ref.read(postsRemoteAdapterProvider), 'sheep': ref.read(sheepRemoteAdapterProvider), 'users': ref.read(usersRemoteAdapterProvider)};
+    final adapters = <String, RemoteAdapter>{'comments': ref.watch(commentsRemoteAdapterProvider), 'posts': ref.watch(postsRemoteAdapterProvider), 'sheep': ref.watch(sheepRemoteAdapterProvider), 'users': ref.watch(usersRemoteAdapterProvider)};
     final remotes = <String, bool>{'comments': true, 'posts': true, 'sheep': false, 'users': true};
 
     await ref.watch(graphNotifierProvider).initialize();

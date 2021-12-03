@@ -52,13 +52,13 @@ final peopleLocalAdapterProvider =
 final peopleRemoteAdapterProvider = Provider<RemoteAdapter<Person>>(
     (ref) => $PersonRemoteAdapter(ref.watch(peopleLocalAdapterProvider)));
 
-final peopleRepositoryProvider =
-    Provider<Repository<Person>>((ref) => Repository<Person>(ref.read));
+final peopleRepositoryProvider = Provider<Repository<Person>>(
+    (ref) => Repository<Person>(ref.read, personProvider, peopleProvider));
 
-final _watchPerson = StateNotifierProvider.autoDispose
+final _personProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Person?>, DataState<Person?>, WatchArgs<Person>>(
         (ref, args) {
-  return ref.watch(peopleRepositoryProvider).watchOne(args.id,
+  return ref.watch(peopleRepositoryProvider).watchOneNotifier(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -66,12 +66,12 @@ final _watchPerson = StateNotifierProvider.autoDispose
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Person?>, DataState<Person?>>
-    watchPerson(dynamic id,
+    personProvider(dynamic id,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         AlsoWatch<Person>? alsoWatch}) {
-  return _watchPerson(WatchArgs(
+  return _personProvider(WatchArgs(
       id: id,
       remote: remote,
       params: params,
@@ -79,12 +79,11 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Person?>, DataState<Person?>>
       alsoWatch: alsoWatch));
 }
 
-final _watchPeople = StateNotifierProvider.autoDispose.family<
+final _peopleProvider = StateNotifierProvider.autoDispose.family<
     DataStateNotifier<List<Person>>,
     DataState<List<Person>>,
     WatchArgs<Person>>((ref, args) {
-  ref.maintainState = false;
-  return ref.watch(peopleRepositoryProvider).watchAll(
+  return ref.watch(peopleRepositoryProvider).watchAllNotifier(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -93,12 +92,12 @@ final _watchPeople = StateNotifierProvider.autoDispose.family<
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<Person>>,
         DataState<List<Person>>>
-    watchPeople(
+    peopleProvider(
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         bool? syncLocal}) {
-  return _watchPeople(WatchArgs(
+  return _peopleProvider(WatchArgs(
       remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 

@@ -138,7 +138,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     );
   }
 
-  /// Watch this model through a call equivalent to [Repository.watchOne].
+  /// Watch this model through a call equivalent to [Repository.watchOneNotifier].
   /// with the current object/[id].
   ///
   /// **Requires this model to be initialized.**
@@ -149,7 +149,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     AlsoWatch<T>? alsoWatch,
   }) {
     _assertInit('watch');
-    return remoteAdapter.watchOne(
+    return remoteAdapter.watchOneNotifier(
       this,
       remote: remote,
       params: params,

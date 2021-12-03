@@ -77,13 +77,13 @@ final postsLocalAdapterProvider =
 final postsRemoteAdapterProvider = Provider<RemoteAdapter<Post>>(
     (ref) => $PostRemoteAdapter(ref.watch(postsLocalAdapterProvider)));
 
-final postsRepositoryProvider =
-    Provider<Repository<Post>>((ref) => Repository<Post>(ref.read));
+final postsRepositoryProvider = Provider<Repository<Post>>(
+    (ref) => Repository<Post>(ref.read, postProvider, postsProvider));
 
-final _watchPost = StateNotifierProvider.autoDispose
+final _postProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Post?>, DataState<Post?>, WatchArgs<Post>>(
         (ref, args) {
-  return ref.watch(postsRepositoryProvider).watchOne(args.id,
+  return ref.watch(postsRepositoryProvider).watchOneNotifier(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -91,12 +91,12 @@ final _watchPost = StateNotifierProvider.autoDispose
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Post?>, DataState<Post?>>
-    watchPost(dynamic id,
+    postProvider(dynamic id,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         AlsoWatch<Post>? alsoWatch}) {
-  return _watchPost(WatchArgs(
+  return _postProvider(WatchArgs(
       id: id,
       remote: remote,
       params: params,
@@ -104,12 +104,11 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Post?>, DataState<Post?>>
       alsoWatch: alsoWatch));
 }
 
-final _watchPosts = StateNotifierProvider.autoDispose.family<
+final _postsProvider = StateNotifierProvider.autoDispose.family<
     DataStateNotifier<List<Post>>,
     DataState<List<Post>>,
     WatchArgs<Post>>((ref, args) {
-  ref.maintainState = false;
-  return ref.watch(postsRepositoryProvider).watchAll(
+  return ref.watch(postsRepositoryProvider).watchAllNotifier(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -118,12 +117,12 @@ final _watchPosts = StateNotifierProvider.autoDispose.family<
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<Post>>,
         DataState<List<Post>>>
-    watchPosts(
+    postsProvider(
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         bool? syncLocal}) {
-  return _watchPosts(WatchArgs(
+  return _postsProvider(WatchArgs(
       remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 

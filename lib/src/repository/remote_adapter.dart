@@ -7,7 +7,7 @@ part of flutter_data;
 ///  - Remote methods such as [_RemoteAdapter.findAll] or [_RemoteAdapter.save]
 ///  - Configuration methods and getters like [_RemoteAdapter.baseUrl] or [_RemoteAdapter.urlForFindAll]
 ///  - Serialization methods like [_RemoteAdapterSerialization.serialize]
-///  - Watch methods such as [_RemoteAdapterWatch.watchOne]
+///  - Watch methods such as [_RemoteAdapterWatch.watchOneNotifier]
 ///  - Access to the [_RemoteAdapter.graph] for subclasses or mixins
 ///
 /// This class is meant to be extended via mixing in new adapters.

@@ -76,13 +76,13 @@ final nodesLocalAdapterProvider =
 final nodesRemoteAdapterProvider = Provider<RemoteAdapter<Node>>(
     (ref) => $NodeRemoteAdapter(ref.watch(nodesLocalAdapterProvider)));
 
-final nodesRepositoryProvider =
-    Provider<Repository<Node>>((ref) => Repository<Node>(ref.read));
+final nodesRepositoryProvider = Provider<Repository<Node>>(
+    (ref) => Repository<Node>(ref.read, nodeProvider, nodesProvider));
 
-final _watchNode = StateNotifierProvider.autoDispose
+final _nodeProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Node?>, DataState<Node?>, WatchArgs<Node>>(
         (ref, args) {
-  return ref.watch(nodesRepositoryProvider).watchOne(args.id,
+  return ref.watch(nodesRepositoryProvider).watchOneNotifier(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -90,12 +90,12 @@ final _watchNode = StateNotifierProvider.autoDispose
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Node?>, DataState<Node?>>
-    watchNode(dynamic id,
+    nodeProvider(dynamic id,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         AlsoWatch<Node>? alsoWatch}) {
-  return _watchNode(WatchArgs(
+  return _nodeProvider(WatchArgs(
       id: id,
       remote: remote,
       params: params,
@@ -103,12 +103,11 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Node?>, DataState<Node?>>
       alsoWatch: alsoWatch));
 }
 
-final _watchNodes = StateNotifierProvider.autoDispose.family<
+final _nodesProvider = StateNotifierProvider.autoDispose.family<
     DataStateNotifier<List<Node>>,
     DataState<List<Node>>,
     WatchArgs<Node>>((ref, args) {
-  ref.maintainState = false;
-  return ref.watch(nodesRepositoryProvider).watchAll(
+  return ref.watch(nodesRepositoryProvider).watchAllNotifier(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -117,12 +116,12 @@ final _watchNodes = StateNotifierProvider.autoDispose.family<
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<Node>>,
         DataState<List<Node>>>
-    watchNodes(
+    nodesProvider(
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         bool? syncLocal}) {
-  return _watchNodes(WatchArgs(
+  return _nodesProvider(WatchArgs(
       remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 

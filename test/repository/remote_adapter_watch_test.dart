@@ -15,15 +15,15 @@ void main() async {
   tearDown(tearDownFn);
 
   test('should be able to watch, dispose and watch again', () async {
-    final notifier = personRemoteAdapter.watchAll();
+    final notifier = personRemoteAdapter.watchAllNotifier();
     dispose = notifier.addListener((_) {});
     dispose!();
-    final notifier2 = personRemoteAdapter.watchAll();
+    final notifier2 = personRemoteAdapter.watchAllNotifier();
     dispose = notifier2.addListener((_) {});
   });
 
-  test('watchAll', () async {
-    final notifier = personRemoteAdapter.watchAll();
+  test('watchAllNotifier', () async {
+    final notifier = personRemoteAdapter.watchAllNotifier();
 
     final matcher = predicate((p) {
       return p is Person && p.name.startsWith('Person Number') && p.age! < 19;
@@ -59,7 +59,7 @@ void main() async {
       fireImmediately: false,
     );
 
-    // this whole thing below emits count + 1 (watchAll-relevant) states
+    // this whole thing below emits count + 1 (watchAllNotifier-relevant) states
     Person person;
     for (var j = 0; j < count; j++) {
       await (() async {
@@ -76,11 +76,11 @@ void main() async {
     }
   });
 
-  test('watchAll updates', () async {
+  test('watchAllNotifier updates', () async {
     final listener = Listener<DataState<List<Person>>>();
 
     final p1 = Person(id: '1', name: 'Zof', age: 23).init(container.read);
-    final notifier = personRemoteAdapter.watchAll(remote: true);
+    final notifier = personRemoteAdapter.watchAllNotifier(remote: true);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -93,7 +93,7 @@ void main() async {
     verify(listener(DataState([p2], isLoading: false))).called(1);
     verifyNoMoreInteractions(listener);
 
-    // since p3 is not init() it won't show up thru watchAll
+    // since p3 is not init() it won't show up thru watchAllNotifier
     final p3 = Person(id: '1', name: 'Zofien', age: 23);
     await oneMs();
 
@@ -101,7 +101,7 @@ void main() async {
     verifyNoMoreInteractions(listener);
   });
 
-  test('watchAll with where/map', () async {
+  test('watchAllNotifier with where/map', () async {
     final listener = Listener<DataState<List<Person>>>();
 
     Person(id: '1', name: 'Zof', age: 23).init(container.read);
@@ -110,7 +110,7 @@ void main() async {
     Person(id: '4', name: 'Koen', age: 92).init(container.read);
 
     final notifier = personRemoteAdapter
-        .watchAll(remote: false)
+        .watchAllNotifier(remote: false)
         .where((p) => p.age! < 40)
         .map((p) => Person(name: p.name, age: p.age! + 10));
 
@@ -122,10 +122,10 @@ void main() async {
     verifyNoMoreInteractions(listener);
   });
 
-  test('watchOne', () async {
+  test('watchOneNotifier', () async {
     final listener = Listener<DataState<Person?>?>();
 
-    final notifier = personRemoteAdapter.watchOne('1');
+    final notifier = personRemoteAdapter.watchOneNotifier('1');
 
     final matcher = (name) => isA<DataState>()
         .having((s) => s.model.id, 'id', '1')
@@ -159,18 +159,18 @@ void main() async {
     verifyNoMoreInteractions(listener);
   });
 
-  test('watchOne reads latest version', () async {
+  test('watchOneNotifier reads latest version', () async {
     Person(id: '345', name: 'Frank', age: 30).init(container.read);
     Person(id: '345', name: 'Steve-O', age: 34).init(container.read);
 
-    final notifier = personRemoteAdapter.watchOne('345');
+    final notifier = personRemoteAdapter.watchOneNotifier('345');
 
     dispose = notifier.addListener(expectAsync1((state) {
       expect(state.model!.name, 'Steve-O');
     }), fireImmediately: true);
   });
 
-  test('watchOne with alsoWatch relationships', () async {
+  test('watchOneNotifier with alsoWatch relationships', () async {
     final f1 = Family(
       id: '22',
       surname: 'Abagnale',
@@ -179,7 +179,7 @@ void main() async {
       cottage: BelongsTo(),
     );
 
-    final notifier = familyRemoteAdapter.watchOne('22',
+    final notifier = familyRemoteAdapter.watchOneNotifier('22',
         alsoWatch: (family) => [family.persons!, family.residence!],
         remote: true);
 
@@ -248,7 +248,7 @@ void main() async {
     verifyNoMoreInteractions(listener);
   });
 
-  test('watchOne without ID and alsoWatch', () async {
+  test('watchOneNotifier without ID and alsoWatch', () async {
     final frank = Person(name: 'Frank', age: 30).init(container.read);
 
     final notifier = frank.watch(alsoWatch: (p) => [p.family]);
@@ -284,13 +284,13 @@ void main() async {
     verifyNoMoreInteractions(listener);
   });
 
-  test('watchOne with where/map', () async {
+  test('watchOneNotifier with where/map', () async {
     final listener = Listener<DataState<Person?>>();
 
     Person(id: '1', name: 'Zof', age: 23).init(container.read);
 
     final notifier = personRemoteAdapter
-        .watchOne('1', remote: false)
+        .watchOneNotifier('1', remote: false)
         .map((p) => Person(name: p!.name, age: p.age! + 10))
         .where((p) => p!.age! < 40);
 

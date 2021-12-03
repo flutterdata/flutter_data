@@ -194,7 +194,7 @@ void main() async {
 
     // overrides error handling with notifier
     final listener = Listener<DataState<List<Family>>?>();
-    final notifier = familyRepository.watchAll(remote: false);
+    final notifier = familyRepository.watchAllNotifier(remote: false);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -230,13 +230,13 @@ void main() async {
     expect(await personRepository.findOne(person.id), isNull);
   });
 
-  test('watchAll', () async {
+  test('watchAllNotifier', () async {
     final listener = Listener<DataState<List<Family>>>();
 
     container.read(responseProvider.notifier).state = TestResponse.text('''
         [{ "id": "1", "surname": "Corleone" }, { "id": "2", "surname": "Soprano" }]
       ''');
-    final notifier = familyRepository.watchAll();
+    final notifier = familyRepository.watchAllNotifier();
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -251,12 +251,12 @@ void main() async {
     verifyNoMoreInteractions(listener);
   });
 
-  test('watchAll with error', () async {
+  test('watchAllNotifier with error', () async {
     final listener = Listener<DataState<List<Family>>?>();
 
     container.read(responseProvider.notifier).state =
         TestResponse(text: (_) => throw Exception('unreachable'));
-    final notifier = familyRepository.watchAll();
+    final notifier = familyRepository.watchAllNotifier();
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -294,13 +294,13 @@ void main() async {
     verifyNoMoreInteractions(listener);
   });
 
-  test('watchOne', () async {
+  test('watchOneNotifier', () async {
     final listener = Listener<DataState<Person?>?>();
 
     container.read(responseProvider.notifier).state = TestResponse.text(
       '''{ "_id": "1", "name": "Charlie", "age": 23 }''',
     );
-    final notifier = personRepository.watchOne('1', remote: true);
+    final notifier = personRepository.watchOneNotifier('1', remote: true);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -321,13 +321,13 @@ void main() async {
     verifyNoMoreInteractions(listener);
   });
 
-  test('watchOne with error', () async {
+  test('watchOneNotifier with error', () async {
     final listener = Listener<DataState<Family?>?>();
 
     container.read(responseProvider.notifier).state = TestResponse(
       text: (_) => throw Exception('whatever'),
     );
-    final notifier = familyRepository.watchOne('1');
+    final notifier = familyRepository.watchOneNotifier('1');
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -386,7 +386,7 @@ void main() async {
     verifyNoMoreInteractions(listener);
   });
 
-  test('watchOne with alsoWatch relationships', () async {
+  test('watchOneNotifier with alsoWatch relationships', () async {
     // simulate Family that exists in local storage
     // important to keep to test `alsoWatch` assignment order
     final family = Family(id: '22', surname: 'Paez', persons: HasMany());
@@ -399,7 +399,7 @@ void main() async {
 
     container.read(responseProvider.notifier).state =
         TestResponse.text('''{ "id": "22", "surname": "Paez" }''');
-    final notifier = familyRepository.watchOne(
+    final notifier = familyRepository.watchOneNotifier(
       '22',
       alsoWatch: (f) => [f.persons!],
     );
@@ -421,11 +421,12 @@ void main() async {
     verifyNoMoreInteractions(listener);
   });
 
-  test('watchAll updates isLoading even in an empty response', () async {
+  test('watchAllNotifier updates isLoading even in an empty response',
+      () async {
     final listener = Listener<DataState<List<Family>>?>();
 
     container.read(responseProvider.notifier).state = TestResponse.text('[]');
-    final notifier = familyRepository.watchAll();
+    final notifier = familyRepository.watchAllNotifier();
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -443,7 +444,7 @@ void main() async {
 
     // get a new notifier and try again
 
-    final notifier2 = familyRepository.watchAll();
+    final notifier2 = familyRepository.watchAllNotifier();
     final listener2 = Listener<DataState<List<Family>>?>();
 
     dispose?.call();
@@ -463,12 +464,12 @@ void main() async {
     ))).called(1);
   });
 
-  test('watchAll syncLocal', () async {
+  test('watchAllNotifier syncLocal', () async {
     final listener = Listener<DataState<List<Family>>>();
 
     container.read(responseProvider.notifier).state = TestResponse.text(
         '''[{ "id": "22", "surname": "Paez" }, { "id": "12", "surname": "Brunez" }]''');
-    final notifier = familyRepository.watchAll(syncLocal: true);
+    final notifier = familyRepository.watchAllNotifier(syncLocal: true);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
     await oneMs();
@@ -504,7 +505,7 @@ void main() async {
     container.read(responseProvider.notifier).state =
         TestResponse.text('''{"id": "2", "surname": "Oslo"}''');
     await familyRepository.findOne('1');
-    // (no model will show up in a watchOne('1') situation)
+    // (no model will show up in a watchOneNotifier('1') situation)
 
     // 1 was requested, but finally 2 was updated
     expect(await familyRepository.findOne('2', remote: false),

@@ -13,7 +13,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
   @protected
   @visibleForTesting
-  DataStateNotifier<List<T>> watchAll({
+  DataStateNotifier<List<T>> watchAllNotifier({
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
@@ -88,7 +88,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
   @protected
   @visibleForTesting
-  DataStateNotifier<T?> watchOne(
+  DataStateNotifier<T?> watchOneNotifier(
     dynamic model, {
     bool? remote,
     Map<String, dynamic>? params,

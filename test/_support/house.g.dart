@@ -65,13 +65,13 @@ final housesLocalAdapterProvider =
 final housesRemoteAdapterProvider = Provider<RemoteAdapter<House>>(
     (ref) => $HouseRemoteAdapter(ref.watch(housesLocalAdapterProvider)));
 
-final housesRepositoryProvider =
-    Provider<Repository<House>>((ref) => Repository<House>(ref.read));
+final housesRepositoryProvider = Provider<Repository<House>>(
+    (ref) => Repository<House>(ref.read, houseProvider, housesProvider));
 
-final _watchHouse = StateNotifierProvider.autoDispose
+final _houseProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<House?>, DataState<House?>, WatchArgs<House>>(
         (ref, args) {
-  return ref.watch(housesRepositoryProvider).watchOne(args.id,
+  return ref.watch(housesRepositoryProvider).watchOneNotifier(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -79,12 +79,12 @@ final _watchHouse = StateNotifierProvider.autoDispose
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<House?>, DataState<House?>>
-    watchHouse(dynamic id,
+    houseProvider(dynamic id,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         AlsoWatch<House>? alsoWatch}) {
-  return _watchHouse(WatchArgs(
+  return _houseProvider(WatchArgs(
       id: id,
       remote: remote,
       params: params,
@@ -92,12 +92,11 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<House?>, DataState<House?>>
       alsoWatch: alsoWatch));
 }
 
-final _watchHouses = StateNotifierProvider.autoDispose.family<
+final _housesProvider = StateNotifierProvider.autoDispose.family<
     DataStateNotifier<List<House>>,
     DataState<List<House>>,
     WatchArgs<House>>((ref, args) {
-  ref.maintainState = false;
-  return ref.watch(housesRepositoryProvider).watchAll(
+  return ref.watch(housesRepositoryProvider).watchAllNotifier(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -106,12 +105,12 @@ final _watchHouses = StateNotifierProvider.autoDispose.family<
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<House>>,
         DataState<List<House>>>
-    watchHouses(
+    housesProvider(
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         bool? syncLocal}) {
-  return _watchHouses(WatchArgs(
+  return _housesProvider(WatchArgs(
       remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 

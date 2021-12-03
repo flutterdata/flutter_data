@@ -213,12 +213,12 @@ final ${typeLowerCased}RemoteAdapterProvider =
         (ref) => \$${classType}RemoteAdapter(ref.watch(${typeLowerCased}LocalAdapterProvider)));
 
 final ${typeLowerCased}RepositoryProvider =
-    Provider<Repository<$classType>>((ref) => Repository<$classType>(ref.read));
+    Provider<Repository<$classType>>((ref) => Repository<$classType>(ref.read, $providerStringSingular, $providerStringPlural));
 
 final _$providerStringSingular =
     StateNotifierProvider.autoDispose.family<DataStateNotifier<$classType?>, DataState<$classType?>, WatchArgs<$classType>>(
         (ref, args) {
-  return ref.watch(${typeLowerCased}RepositoryProvider).watchOne(args.id, remote: args.remote, params: args.params, headers: args.headers, alsoWatch: args.alsoWatch);
+  return ref.watch(${typeLowerCased}RepositoryProvider).watchOneNotifier(args.id, remote: args.remote, params: args.params, headers: args.headers, alsoWatch: args.alsoWatch);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<$classType?>, DataState<$classType?>> $providerStringSingular(dynamic id,
@@ -229,7 +229,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<$classType?>, DataState<$clas
 final _$providerStringPlural =
     StateNotifierProvider.autoDispose.family<DataStateNotifier<List<$classType>>, DataState<List<$classType>>, WatchArgs<$classType>>(
         (ref, args) {
-  return ref.watch(${typeLowerCased}RepositoryProvider).watchAll(remote: args.remote, params: args.params, headers: args.headers, syncLocal: args.syncLocal);
+  return ref.watch(${typeLowerCased}RepositoryProvider).watchAllNotifier(remote: args.remote, params: args.params, headers: args.headers, syncLocal: args.syncLocal);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<$classType>>, DataState<List<$classType>>> $providerStringPlural(

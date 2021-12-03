@@ -118,10 +118,10 @@ class DataExtensionBuilder implements Builder {
 
     //
 
-    String widgetRefExtension(List<Map<String, String>> classes) {
+    String repositoryWatcherRefExtension(List<Map<String, String>> classes) {
       return '''
-extension RepositoryRefX on WidgetRef {
-${classes.map((clazz) => '  RepositoryWatcher<${clazz['name']}> get ${clazz['type']} => RepositoryWatcher(watch, ${clazz['type']}RepositoryProvider, ${getProviderStringSingular(clazz['type']!)}, ${getProviderStringPlural(clazz['type']!)});').join('\n')}
+extension RepositoryWidgetRefX on WidgetRef {
+${classes.map((clazz) => '  Repository<${clazz['name']}> get ${clazz['type']} => watch(todosRepositoryProvider)..internalWatch = watch;').join('\n')}
 }
       ''';
     }
@@ -190,6 +190,6 @@ final _repositoryInitializerProviderFamily =
     return RepositoryInitializer();
 });
 ''' +
-            (isFlutterRiverpod ? widgetRefExtension(classes) : ''));
+            (isFlutterRiverpod ? repositoryWatcherRefExtension(classes) : ''));
   }
 }

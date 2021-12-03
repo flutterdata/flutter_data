@@ -79,14 +79,14 @@ final commentsLocalAdapterProvider = Provider<LocalAdapter<Comment>>(
 final commentsRemoteAdapterProvider = Provider<RemoteAdapter<Comment>>(
     (ref) => $CommentRemoteAdapter(ref.watch(commentsLocalAdapterProvider)));
 
-final commentsRepositoryProvider =
-    Provider<Repository<Comment>>((ref) => Repository<Comment>(ref.read));
+final commentsRepositoryProvider = Provider<Repository<Comment>>(
+    (ref) => Repository<Comment>(ref.read, commentProvider, commentsProvider));
 
-final _watchComment = StateNotifierProvider.autoDispose.family<
+final _commentProvider = StateNotifierProvider.autoDispose.family<
     DataStateNotifier<Comment?>,
     DataState<Comment?>,
     WatchArgs<Comment>>((ref, args) {
-  return ref.watch(commentsRepositoryProvider).watchOne(args.id,
+  return ref.watch(commentsRepositoryProvider).watchOneNotifier(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -95,12 +95,12 @@ final _watchComment = StateNotifierProvider.autoDispose.family<
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Comment?>,
         DataState<Comment?>>
-    watchComment(dynamic id,
+    commentProvider(dynamic id,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         AlsoWatch<Comment>? alsoWatch}) {
-  return _watchComment(WatchArgs(
+  return _commentProvider(WatchArgs(
       id: id,
       remote: remote,
       params: params,
@@ -108,12 +108,11 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Comment?>,
       alsoWatch: alsoWatch));
 }
 
-final _watchComments = StateNotifierProvider.autoDispose.family<
+final _commentsProvider = StateNotifierProvider.autoDispose.family<
     DataStateNotifier<List<Comment>>,
     DataState<List<Comment>>,
     WatchArgs<Comment>>((ref, args) {
-  ref.maintainState = false;
-  return ref.watch(commentsRepositoryProvider).watchAll(
+  return ref.watch(commentsRepositoryProvider).watchAllNotifier(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -122,12 +121,12 @@ final _watchComments = StateNotifierProvider.autoDispose.family<
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<Comment>>,
         DataState<List<Comment>>>
-    watchComments(
+    commentsProvider(
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         bool? syncLocal}) {
-  return _watchComments(WatchArgs(
+  return _commentsProvider(WatchArgs(
       remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 
@@ -177,13 +176,13 @@ final sheepLocalAdapterProvider =
 final sheepRemoteAdapterProvider = Provider<RemoteAdapter<Sheep>>(
     (ref) => $SheepRemoteAdapter(ref.watch(sheepLocalAdapterProvider)));
 
-final sheepRepositoryProvider =
-    Provider<Repository<Sheep>>((ref) => Repository<Sheep>(ref.read));
+final sheepRepositoryProvider = Provider<Repository<Sheep>>(
+    (ref) => Repository<Sheep>(ref.read, sheepOneProvider, sheepProvider));
 
-final _watchOneSheep = StateNotifierProvider.autoDispose
+final _sheepOneProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Sheep?>, DataState<Sheep?>, WatchArgs<Sheep>>(
         (ref, args) {
-  return ref.watch(sheepRepositoryProvider).watchOne(args.id,
+  return ref.watch(sheepRepositoryProvider).watchOneNotifier(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -191,12 +190,12 @@ final _watchOneSheep = StateNotifierProvider.autoDispose
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Sheep?>, DataState<Sheep?>>
-    watchOneSheep(dynamic id,
+    sheepOneProvider(dynamic id,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         AlsoWatch<Sheep>? alsoWatch}) {
-  return _watchOneSheep(WatchArgs(
+  return _sheepOneProvider(WatchArgs(
       id: id,
       remote: remote,
       params: params,
@@ -204,12 +203,11 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Sheep?>, DataState<Sheep?>>
       alsoWatch: alsoWatch));
 }
 
-final _watchSheep = StateNotifierProvider.autoDispose.family<
+final _sheepProvider = StateNotifierProvider.autoDispose.family<
     DataStateNotifier<List<Sheep>>,
     DataState<List<Sheep>>,
     WatchArgs<Sheep>>((ref, args) {
-  ref.maintainState = false;
-  return ref.watch(sheepRepositoryProvider).watchAll(
+  return ref.watch(sheepRepositoryProvider).watchAllNotifier(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -218,12 +216,12 @@ final _watchSheep = StateNotifierProvider.autoDispose.family<
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<Sheep>>,
         DataState<List<Sheep>>>
-    watchSheep(
+    sheepProvider(
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         bool? syncLocal}) {
-  return _watchSheep(WatchArgs(
+  return _sheepProvider(WatchArgs(
       remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 

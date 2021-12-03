@@ -14,7 +14,7 @@ void main() async {
   setUp(setUpFn);
   tearDown(tearDownFn);
 
-  test('watchAll/findAll and findOne', () async {
+  test('watchAllNotifier/findAll and findOne', () async {
     // cause network issue
     container.read(responseProvider.notifier).state = TestResponse(text: (_) {
       throw HandshakeException('Connection terminated during handshake');
@@ -23,7 +23,7 @@ void main() async {
     final listener = Listener<DataState<List<BookAuthor>>?>();
 
     // watch
-    final notifier = bookAuthorRepository.watchAll(remote: true);
+    final notifier = bookAuthorRepository.watchAllNotifier(remote: true);
     dispose = notifier.addListener(listener, fireImmediately: true);
 
     await oneMs();
@@ -75,7 +75,7 @@ void main() async {
   test('save', () async {
     final listener = Listener<DataState<List<Family>>?>();
     // listening to local changes enough
-    final notifier = familyRepository.watchAll(remote: false);
+    final notifier = familyRepository.watchAllNotifier(remote: false);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -217,7 +217,7 @@ void main() async {
   test('delete', () async {
     final listener = Listener<DataState<List<Family>>?>();
     // listening to local changes enough
-    final notifier = familyRepository.watchAll(remote: false);
+    final notifier = familyRepository.watchAllNotifier(remote: false);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -225,7 +225,7 @@ void main() async {
     final family = Family(id: '1', surname: 'Smith').init(container.read);
     await oneMs();
 
-    // should show up through watchAll
+    // should show up through watchAllNotifier
     verify(listener(
       argThat(isA<DataState>().having((s) => s.model, 'model', [family])),
     )).called(1);
@@ -286,7 +286,7 @@ void main() async {
   test('save & delete combined', () async {
     final listener = Listener<DataState<List<Family>>?>();
     // listening to local changes enough
-    final notifier = familyRepository.watchAll(remote: false);
+    final notifier = familyRepository.watchAllNotifier(remote: false);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 

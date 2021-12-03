@@ -55,13 +55,13 @@ final usersLocalAdapterProvider =
 final usersRemoteAdapterProvider = Provider<RemoteAdapter<User>>(
     (ref) => $UserRemoteAdapter(ref.watch(usersLocalAdapterProvider)));
 
-final usersRepositoryProvider =
-    Provider<Repository<User>>((ref) => Repository<User>(ref.read));
+final usersRepositoryProvider = Provider<Repository<User>>(
+    (ref) => Repository<User>(ref.read, userProvider, usersProvider));
 
-final _watchUser = StateNotifierProvider.autoDispose
+final _userProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<User?>, DataState<User?>, WatchArgs<User>>(
         (ref, args) {
-  return ref.watch(usersRepositoryProvider).watchOne(args.id,
+  return ref.watch(usersRepositoryProvider).watchOneNotifier(args.id,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -69,12 +69,12 @@ final _watchUser = StateNotifierProvider.autoDispose
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<User?>, DataState<User?>>
-    watchUser(dynamic id,
+    userProvider(dynamic id,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         AlsoWatch<User>? alsoWatch}) {
-  return _watchUser(WatchArgs(
+  return _userProvider(WatchArgs(
       id: id,
       remote: remote,
       params: params,
@@ -82,12 +82,11 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<User?>, DataState<User?>>
       alsoWatch: alsoWatch));
 }
 
-final _watchUsers = StateNotifierProvider.autoDispose.family<
+final _usersProvider = StateNotifierProvider.autoDispose.family<
     DataStateNotifier<List<User>>,
     DataState<List<User>>,
     WatchArgs<User>>((ref, args) {
-  ref.maintainState = false;
-  return ref.watch(usersRepositoryProvider).watchAll(
+  return ref.watch(usersRepositoryProvider).watchAllNotifier(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -96,12 +95,12 @@ final _watchUsers = StateNotifierProvider.autoDispose.family<
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<User>>,
         DataState<List<User>>>
-    watchUsers(
+    usersProvider(
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         bool? syncLocal}) {
-  return _watchUsers(WatchArgs(
+  return _usersProvider(WatchArgs(
       remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 

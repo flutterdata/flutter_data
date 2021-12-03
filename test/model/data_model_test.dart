@@ -103,7 +103,7 @@ void main() async {
 
     final listener = Listener<DataState<Dog?>?>();
 
-    final notifier = dogRepository.watchOne('2', remote: false);
+    final notifier = dogRepository.watchOneNotifier('2', remote: false);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
