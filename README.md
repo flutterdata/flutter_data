@@ -79,8 +79,8 @@ Widget build(BuildContext context, WidgetRef ref) {
 Let's see how to update the user:
 
 ```dart
-GestureDetector(
-  onTap: () => ref.users.save(User(id: 1, name: 'Updated')),
+TextButton(
+  onPressed: () => ref.users.save(User(id: 1, name: 'Updated')),
   child: Text('Update'),
 ),
 ```
