@@ -40,8 +40,19 @@ typedef Watcher = W Function<W>(ProviderListenable<W> provider);
 
 typedef OneProvider<T extends DataModel<T>>
     = AutoDisposeStateNotifierProvider<DataStateNotifier<T?>, DataState<T?>>
-        Function(dynamic);
+        Function(
+  dynamic id, {
+  bool? remote,
+  Map<String, dynamic>? params,
+  Map<String, String>? headers,
+  AlsoWatch<T>? alsoWatch,
+});
 
 typedef AllProvider<T extends DataModel<T>> = AutoDisposeStateNotifierProvider<
         DataStateNotifier<List<T>>, DataState<List<T>>>
-    Function();
+    Function({
+  bool? remote,
+  Map<String, dynamic>? params,
+  Map<String, String>? headers,
+  bool? syncLocal,
+});

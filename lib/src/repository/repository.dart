@@ -9,6 +9,9 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
 
   var _isInit = false;
 
+  /// ONLY FOR FLUTTER DATA INTERNAL USE
+  Watcher? internalWatch;
+
   String get _internalType => DataHelpers.getType<T>();
 
   final _adapters = <String, RemoteAdapter>{};
@@ -20,26 +23,6 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   /// Type for the [RemoteAdapter]
   @nonVirtual
   String get type => remoteAdapter.type;
-
-  //
-
-  Watcher? internalWatch;
-
-  DataState<List<T>> watchAll() {
-    if (internalWatch == null || _allProvider == null) {
-      throw UnsupportedError(
-          'Should only be used via ref.$type.watchAll. Alternatively use watchTodos()');
-    }
-    return internalWatch!(_allProvider!());
-  }
-
-  DataState<T?> watchOne(id) {
-    if (internalWatch == null || _oneProvider == null) {
-      throw UnsupportedError(
-          'Should only be used via ref.$type.watchOne. Alternatively use watchTodo()');
-    }
-    return internalWatch!(_oneProvider!(id));
-  }
 
   /// Initializes this [Repository]. Nothing will work without this.
   /// In standard scenarios this initialization is done by the framework.
@@ -223,17 +206,41 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     );
   }
 
-  /// Watches changes on model of type [T] by [id] in local storage.
+  /// Watches a provider wrapping [watchAllNotifier]
+  /// which allows the watcher to be notified of changes
+  /// on any model of this [type].
   ///
-  /// Optionally [alsoWatch]es selected relationships of this model.
-  ///
-  /// Example: Watch `Book` with `id=1` and its `Author` relationship.
+  /// Example: Watch all models of type `books` on a Riverpod hook-enabled app.
   ///
   /// ```
-  /// bookRepository.watchOne('1', alsoWatch: (book) => [book.author]);
+  /// ref.books.watchAll();
   /// ```
+  DataState<List<T>> watchAll({
+    bool? remote,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    bool? syncLocal,
+  }) {
+    if (internalWatch == null || _allProvider == null) {
+      throw UnsupportedError(_watchAllError);
+    }
+    return internalWatch!(_allProvider!(
+      remote: remote,
+      params: params,
+      headers: headers,
+      syncLocal: syncLocal,
+    ));
+  }
+
+  String get _watchAllError =>
+      'Should only be used via `ref.$type.watchAll`. Alternatively use `watch${type.capitalize()}()`.';
+
+  /// Returns a [DataState] notifier with changes on model of
+  /// type [T] by [id] in local storage.
   ///
-  /// When called, will in turn call [findAll] with [remote], [params], [headers].
+  /// Optionally reacts to selected relationships of this model via [alsoWatch].
+  ///
+  /// Will invoke [findAll] with [remote], [params], [headers].
   DataStateNotifier<T?> watchOneNotifier(
     dynamic id, {
     bool? remote,
@@ -249,24 +256,40 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
       alsoWatch: alsoWatch,
     );
   }
+
+  /// Watches a provider wrapping [watchOneNotifier]
+  /// which allows the watcher to be notified of changes
+  /// on a specific model of this [type], optionally reacting
+  /// to selected relationships of this model via [alsoWatch].
+  ///
+  /// Example: Watch model of type `books` and `id=1` along
+  /// with its `author` relationship on a Riverpod hook-enabled app.
+  ///
+  /// ```
+  /// ref.books.watchOne(1, alsoWatch: (book) => [book.author]);
+  /// ```
+  DataState<T?> watchOne(
+    dynamic id, {
+    bool? remote,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    AlsoWatch<T>? alsoWatch,
+  }) {
+    if (internalWatch == null || _oneProvider == null) {
+      throw UnsupportedError(_watchOneError);
+    }
+    return internalWatch!(_oneProvider!(
+      id,
+      remote: remote,
+      params: params,
+      headers: headers,
+      alsoWatch: alsoWatch,
+    ));
+  }
+
+  String get _watchOneError =>
+      'Should only be used via `ref.$type.watchOne`. Alternatively use `watch${type.singularize().capitalize()}()`.';
 }
-
-// class RepositoryWatcher<T extends DataModel<T>> extends Repository<T> {
-//   final W Function<W>(ProviderListenable<W> provider) _watch;
-//   final AutoDisposeStateNotifierProvider<DataStateNotifier<T?>, DataState<T?>>
-//       Function(dynamic) _oneProvider;
-//   final AutoDisposeStateNotifierProvider<DataStateNotifier<List<T>>,
-//           DataState<List<T>>>
-//       Function() _allProvider;
-
-//   RepositoryWatcher(
-//       Reader _read, this._watch, this._oneProvider, this._allProvider)
-//       : super(_read);
-
-//   DataState<T?> watchOne(id) => _watch(_oneProvider(id));
-
-//   DataState<List<T>> watchAll() => _watch(_allProvider());
-// }
 
 /// Annotation on a [DataModel] model to request a [Repository] be generated for it.
 ///

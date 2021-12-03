@@ -34,7 +34,7 @@ Heavily inspired by [Ember Data](https://github.com/emberjs/data) and [ActiveRec
 
 ## Set up
 
-See the [quickstart guide](https://flutterdata.dev/quickstart) for setup and boot configuration.
+See the [quickstart guide](https://flutterdata.dev/docs/quickstart/) for setup and boot configuration.
 
 Prefer an example? Here's the Flutter Data [sample setup app](https://github.com/flutterdata/flutter_data_setup_app) with support for Riverpod, Provider and get_it.
 
@@ -60,12 +60,12 @@ mixin MyJSONServerAdapter on RemoteAdapter<User> {
 ```
 
 After a code-gen build, Flutter Data will generate a `Repository<User>`
-and utilities such as `watchUser`:
+and utilities such as `watchUser` and `ref.users.watchOne` (Riverpod only):
 
 ```dart
 @override
-Widget build(BuildContext context) {
-  final state = useProvider(watchUser(1));
+Widget build(BuildContext context, WidgetRef ref) {
+  final state = ref.users.watchOne(1);
   if (state.isLoading) {
     return Center(child: const CircularProgressIndicator());
   }
@@ -74,21 +74,20 @@ Widget build(BuildContext context) {
 }
 ```
 
-`watchUser(1)` is a shortcut to `repository.watchOne(1)`.
+`ref.users.watchOne(1)` is a handy shortcut to the `userProvider` which provides `ref.watch(usersRepositoryProvider).watchOneNotifier(1)`.
 
 Let's see how to update the user:
 
 ```dart
 GestureDetector(
-  onTap: () =>
-      ref.read(usersRepositoryProvider).save(User(id: 1, name: 'Updated')),
+  onTap: () => ref.users.save(User(id: 1, name: 'Updated')),
   child: Text('Update'),
 ),
 ```
 
-`repository.watchOne(1)` will make an HTTP request (to `https://my-json-server.typicode.com/flutterdata/demo/users/1` in this case), parse the incoming JSON and listen for any further changes to the `User` – whether those are local or remote!
+`ref.users.watchOne(1)` will make an HTTP request (to `https://my-json-server.typicode.com/flutterdata/demo/users/1` in this case), parse the incoming JSON and listen for any further changes to the `User` – whether those are local or remote!
 
-`state` is of type `DataState` which has loading, error and data substates. Moreover, the `watchOne` notifier has a `reload()` function available, useful for the classic "pull-to-refresh" scenario.
+`state` is of type `DataState` which has loading, error and data substates.
 
 In addition to the reactivity, `DataModel`s get extensions and automatic relationships, ActiveRecord-style, so the above becomes:
 
@@ -104,17 +103,20 @@ Some other examples:
 
 ```dart
 final todo = await Todo(title: 'Finish docs').init(ref.read).save();
+// or its equivalent:
+final todo = await ref.todos.save(Todo(title: 'Finish docs'));
 // POST https://my-json-server.typicode.com/flutterdata/demo/todos/
 print(todo.id); // 201
 
 final user = await repository.findOne(1, params: { '_embed': 'todos' });
+// (remember repository can be accessed via ref.users)
 // GET https://my-json-server.typicode.com/flutterdata/demo/users/1?_embed=todos
 print(user.todos.length); // 20
 
 await user.todos.last.delete();
 ```
 
-For an in-depth example check out the **[Tutorial](https://flutterdata.dev/tutorial)**.
+**Explore the [Documentation](https://flutterdata.dev/docs/).**
 
 Fully functional app built with Flutter Data? See the code for the finished **[Flutter Data TO-DOs Sample App](https://github.com/flutterdata/flutter_data_todos)**.
 
