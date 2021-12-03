@@ -88,7 +88,7 @@ class DataExtensionBuilder implements Builder {
     final adaptersMap = {
       for (final clazz in classes)
         '\'${clazz['type']}\'':
-            'ref.read(${clazz['type']}RemoteAdapterProvider)'
+            'ref.watch(${clazz['type']}RemoteAdapterProvider)'
     };
 
     final remotesMap = {
@@ -99,12 +99,17 @@ class DataExtensionBuilder implements Builder {
 
     final isFlutter = await isDependency('flutter', b);
     final hasPathProvider = await isDependency('path_provider', b);
+    final isFlutterRiverpod = await isDependency('flutter_riverpod', b) ||
+        await isDependency('hooks_riverpod', b);
 
     final flutterFoundationImport = isFlutter
         ? "import 'package:flutter/foundation.dart' show kIsWeb;"
         : '';
     final pathProviderImport = hasPathProvider
         ? "import 'package:path_provider/path_provider.dart';"
+        : '';
+    final riverpodFlutterImport = isFlutterRiverpod
+        ? "import 'package:flutter_riverpod/flutter_riverpod.dart';"
         : '';
 
     final autoBaseDirFn = hasPathProvider
@@ -113,13 +118,26 @@ class DataExtensionBuilder implements Builder {
 
     //
 
-    await b.writeAsString(finalAssetId, '''\n
+    String widgetRefExtension(List<Map<String, String>> classes) {
+      return '''
+extension RepositoryRefX on WidgetRef {
+${classes.map((clazz) => '  RepositoryWatcher<${clazz['name']}> get ${clazz['type']} => RepositoryWatcher(watch, ${clazz['type']}RepositoryProvider, ${getProviderStringSingular(clazz['type']!)}, ${getProviderStringPlural(clazz['type']!)});').join('\n')}
+}
+      ''';
+    }
+
+    //
+
+    await b.writeAsString(
+        finalAssetId,
+        '''\n
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: directives_ordering, top_level_function_literal_block
 
 import 'package:flutter_data/flutter_data.dart';
 $flutterFoundationImport
 $pathProviderImport
+$riverpodFlutterImport
 
 $modelImports
 
@@ -171,6 +189,7 @@ final _repositoryInitializerProviderFamily =
 
     return RepositoryInitializer();
 });
-''');
+''' +
+            (isFlutterRiverpod ? widgetRefExtension(classes) : ''));
   }
 }

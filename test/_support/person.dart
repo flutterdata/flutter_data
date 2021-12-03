@@ -51,6 +51,11 @@ class Person with DataModel<Person> {
   int get hashCode =>
       runtimeType.hashCode ^ id.hashCode ^ name.hashCode ^ age.hashCode;
 
+  @override
+  String toString() {
+    return 'Person $name ($age)';
+  }
+
   //
 
   factory Person.generate(ProviderContainer container, {String? withId}) {

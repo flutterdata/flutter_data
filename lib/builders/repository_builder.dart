@@ -20,7 +20,6 @@ class RepositoryGenerator extends GeneratorForAnnotation<DataRepository> {
   Future<String> generateForAnnotatedElement(
       Element element, ConstantReader annotation, BuildStep buildStep) async {
     final classType = element.name;
-    final classTypePlural = element.name?.pluralize();
     final typeLowerCased = DataHelpers.getType(classType);
     ClassElement classElement;
 
@@ -172,6 +171,9 @@ and execute a code generation build again.
       mixins.add('NothingMixin');
     }
 
+    final providerStringPlural = getProviderStringPlural(typeLowerCased);
+    final providerStringSingular = getProviderStringSingular(typeLowerCased);
+
     // template
 
     return '''
@@ -213,27 +215,26 @@ final ${typeLowerCased}RemoteAdapterProvider =
 final ${typeLowerCased}RepositoryProvider =
     Provider<Repository<$classType>>((ref) => Repository<$classType>(ref.read));
 
-final _watch${classType == classTypePlural ? 'One' : ''}$classType =
+final _$providerStringSingular =
     StateNotifierProvider.autoDispose.family<DataStateNotifier<$classType?>, DataState<$classType?>, WatchArgs<$classType>>(
         (ref, args) {
   return ref.watch(${typeLowerCased}RepositoryProvider).watchOne(args.id, remote: args.remote, params: args.params, headers: args.headers, alsoWatch: args.alsoWatch);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<$classType?>, DataState<$classType?>> watch${classType == classTypePlural ? 'One' : ''}$classType(dynamic id,
+AutoDisposeStateNotifierProvider<DataStateNotifier<$classType?>, DataState<$classType?>> $providerStringSingular(dynamic id,
     {bool? remote, Map<String, dynamic>? params, Map<String, String>? headers, AlsoWatch<$classType>? alsoWatch}) {
-  return _watch${classType == classTypePlural ? 'One' : ''}$classType(WatchArgs(id: id, remote: remote, params: params, headers: headers, alsoWatch: alsoWatch));
+  return _$providerStringSingular(WatchArgs(id: id, remote: remote, params: params, headers: headers, alsoWatch: alsoWatch));
 }
 
-final _watch$classTypePlural =
+final _$providerStringPlural =
     StateNotifierProvider.autoDispose.family<DataStateNotifier<List<$classType>>, DataState<List<$classType>>, WatchArgs<$classType>>(
         (ref, args) {
-  ref.maintainState = false;
   return ref.watch(${typeLowerCased}RepositoryProvider).watchAll(remote: args.remote, params: args.params, headers: args.headers, syncLocal: args.syncLocal);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<List<$classType>>, DataState<List<$classType>>> watch$classTypePlural(
+AutoDisposeStateNotifierProvider<DataStateNotifier<List<$classType>>, DataState<List<$classType>>> $providerStringPlural(
     {bool? remote, Map<String, dynamic>? params, Map<String, String>? headers, bool? syncLocal}) {
-  return _watch$classTypePlural(WatchArgs(remote: remote, params: params, headers: headers, syncLocal: syncLocal));
+  return _$providerStringPlural(WatchArgs(remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 
 extension ${classType}X on $classType {

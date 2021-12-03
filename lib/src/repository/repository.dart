@@ -229,6 +229,32 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   }
 }
 
+class RepositoryWatcher<T extends DataModel<T>> {
+  final W Function<W>(ProviderListenable<W> provider) _watch;
+  final Provider<Repository<T>> _repositoryProvider;
+  final AutoDisposeStateNotifierProvider<DataStateNotifier<T?>, DataState<T?>>
+      Function(dynamic) _oneProvider;
+  final AutoDisposeStateNotifierProvider<DataStateNotifier<List<T>>,
+          DataState<List<T>>>
+      Function() _allProvider;
+
+  RepositoryWatcher(this._watch, this._repositoryProvider, this._oneProvider,
+      this._allProvider);
+
+  Future<List<T>> findAll() => _watch(_repositoryProvider).findAll();
+
+  Future<T?> findOne(id) => _watch(_repositoryProvider).findOne(id);
+
+  Future<void> clear() => _watch(_repositoryProvider).clear();
+
+  Set<OfflineOperation<T>> get offlineOperations =>
+      _watch(_repositoryProvider).offlineOperations;
+
+  DataState<T?> watchOne(id) => _watch(_oneProvider(id));
+
+  DataState<List<T>> watchAll() => _watch(_allProvider());
+}
+
 /// Annotation on a [DataModel] model to request a [Repository] be generated for it.
 ///
 /// Takes a list of [adapters] to be mixed into this [Repository].

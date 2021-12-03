@@ -75,7 +75,7 @@ class _FunctionalStateNotifier<S, T> extends DelayedStateNotifier<T> {
     return Timer(durationFn(), () {
       if (mounted) {
         if (_bufferedState.isNotEmpty) {
-          // TODO cloning the bufferedState list to force
+          // Cloning the bufferedState list to force
           // calling listeners as workaround (need to figure out
           // where they are previously updated and why
           // super.state == _bufferedState -- and thus no update)

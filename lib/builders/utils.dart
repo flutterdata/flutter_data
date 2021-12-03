@@ -59,3 +59,7 @@ Future<bool> isDependency(String package, BuildStep buildStep,
   }
   return deps.keys.any((key) => key == package);
 }
+
+String getProviderStringPlural(String type) => '${type}Provider';
+String getProviderStringSingular(String type) =>
+    '${type.singularize()}${(type.singularize() == type.pluralize() ? 'One' : '')}Provider';
