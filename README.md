@@ -60,7 +60,7 @@ mixin MyJSONServerAdapter on RemoteAdapter<User> {
 ```
 
 After a code-gen build, Flutter Data will generate a `Repository<User>`
-and utilities such as `watchUser` and `ref.users.watchOne` (Riverpod only):
+and utilities such as `userProvider` and `ref.users.watchOne` (Riverpod only):
 
 ```dart
 @override

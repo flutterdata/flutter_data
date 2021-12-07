@@ -89,6 +89,28 @@ void main() async {
     expect(family, await familyRepository.findOne('1', remote: false));
   });
 
+  test('findOne with empty (non-null) ID works', () async {
+    container.read(responseProvider.notifier).state = TestResponse.text('''
+        { "id": "", "surname": "Smith" }
+      ''');
+    final family = await familyRepository.findOne('');
+    expect(family, isNotNull);
+
+    // and it can be found again locally
+    expect(family, await familyRepository.findOne('', remote: false));
+  });
+
+  test('findOne with changing IDs works', () async {
+    container.read(responseProvider.notifier).state = TestResponse.text('''
+        { "id": "new", "surname": "Smith" }
+      ''');
+    final family = await familyRepository.findOne('');
+    expect(family, isNotNull);
+
+    // and it can be found again locally with its new ID
+    expect(family, await familyRepository.findOne('new', remote: false));
+  });
+
   test('findOne with empty response', () async {
     container.read(responseProvider.notifier).state = TestResponse.text('');
     final family = await familyRepository.findOne('1');

@@ -108,6 +108,13 @@ void main() async {
     expect(p1.family.value, p2.family.value);
   });
 
+  test('deserialize returns null if no ID is present', () async {
+    final family = familyRemoteAdapter.deserialize([
+      {'surname': 'Ko'}
+    ]).model;
+    expect(family, isNull);
+  });
+
   test('deserialize with HasMany ids (including nulls)', () {
     final f = familyRemoteAdapter.deserialize([
       {

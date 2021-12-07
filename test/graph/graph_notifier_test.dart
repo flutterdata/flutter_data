@@ -72,6 +72,12 @@ void main() async {
     expect(key, startsWith('people#'));
   });
 
+  test('produces a key for empty string', () {
+    final key = graph.getKeyForId('people', '',
+        keyIfAbsent: DataHelpers.generateKey<Person>());
+    expect(key, startsWith('people#'));
+  });
+
   test('deletes a new key', () {
     final key = graph.getKeyForId('people', '1',
         keyIfAbsent: DataHelpers.generateKey<Person>())!;
