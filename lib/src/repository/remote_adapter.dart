@@ -18,11 +18,11 @@ part of flutter_data;
 /// @DataRepository([MyAppAdapter])
 /// class Todo with DataModel<Todo> {
 ///   @override
-///   final int id;
+///   final int? id;
 ///   final String title;
 ///   final bool completed;
 ///
-///   Todo({this.id, this.title, this.completed = false});
+///   Todo({this.id, required this.title, this.completed = false});
 /// }
 /// ```
 class RemoteAdapter<T extends DataModel<T>> = _RemoteAdapter<T>
@@ -37,10 +37,12 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
   @protected
   @visibleForTesting
+  @nonVirtual
   final LocalAdapter<T> localAdapter;
 
   /// A [GraphNotifier] instance also available to adapters
   @protected
+  @nonVirtual
   GraphNotifier get graph => localAdapter.graph;
 
   // None of these fields below can be late finals as they might be re-initialized
@@ -53,15 +55,18 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   ///
   /// This [Map] is typically required when initializing new models, and passed as-is.
   @protected
+  @nonVirtual
   Map<String, RemoteAdapter> get adapters => _adapters!;
 
   /// Give adapter subclasses access to the dependency injection system
   @protected
+  @nonVirtual
   Reader get read => _read!;
 
-  /// INTERNAL: DO NOT USE OR ELSE THINGS WILL BREAK
+  /// INTERNAL: DO NOT USE
   @visibleForTesting
   @protected
+  @nonVirtual
   String get internalType => DataHelpers.getType<T>();
 
   /// The pluralized and downcased [DataHelpers.getType<T>] version of type [T]
@@ -160,6 +165,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   Future<void> onInitialized() async {}
 
   @mustCallSuper
+  @nonVirtual
   Future<RemoteAdapter<T>> initialize(
       {bool? remote,
       bool? verbose,
@@ -554,6 +560,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   /// Optionally provide [key]. Use [save] to persist in local storage.
   @protected
   @visibleForTesting
+  @nonVirtual
   T initializeModel(T model, {String? key, bool save = false}) {
     return model._initialize(adapters, key: key, save: save);
   }

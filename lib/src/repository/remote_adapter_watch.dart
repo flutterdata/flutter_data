@@ -8,6 +8,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
   @protected
   @visibleForTesting
+  @nonVirtual
   DelayedStateNotifier<List<DataGraphEvent>> get throttledGraph =>
       graph.throttle(() => throttleDuration);
 

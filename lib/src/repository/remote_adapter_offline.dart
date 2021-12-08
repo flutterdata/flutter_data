@@ -128,6 +128,7 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
 
   @protected
   @visibleForTesting
+  @nonVirtual
   Set<OfflineOperation<T>> get offlineOperations {
     final node = graph._getNode(_offlineAdapterKey);
     return (node ?? {}).entries.where((e) {
