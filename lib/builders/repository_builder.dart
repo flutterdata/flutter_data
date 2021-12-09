@@ -138,34 +138,37 @@ and execute a code generation build again.
     final remoteAdapterTypeChecker = TypeChecker.fromRuntime(RemoteAdapter);
 
     final mixins = annotation.read('adapters').listValue.map((obj) {
-      final mixinType = obj.toTypeValue();
+      final mixinType = obj.toTypeValue() as ParameterizedType;
       final mixinMethods = <MethodElement>[];
-      String? displayName;
+      String displayName;
 
-      if (mixinType is ParameterizedType) {
-        final args = mixinType.typeArguments;
+      final args = mixinType.typeArguments;
 
-        if (args.length > 1) {
-          throw UnsupportedError(
-              'Adapter `$mixinType` MUST have at most one type argument (T extends DataModel<T>) is supported for $mixinType');
-        }
-
-        if (!remoteAdapterTypeChecker.isAssignableFromType(mixinType)) {
-          throw UnsupportedError(
-              'Adapter `$mixinType` MUST have a constraint `on` RemoteAdapter<$classType>');
-        }
-
-        final instantiatedMixinType = (mixinType.element as ClassElement)
-            .instantiate(
-                typeArguments: [if (args.isNotEmpty) classElement.thisType],
-                nullabilitySuffix: NullabilitySuffix.none);
-        mixinMethods.addAll(instantiatedMixinType.methods);
-        displayName =
-            instantiatedMixinType.getDisplayString(withNullability: false);
+      if (args.length > 1) {
+        throw UnsupportedError(
+            'Adapter `$mixinType` MUST have at most one type argument (T extends DataModel<T>) is supported for $mixinType');
       }
+
+      if (!remoteAdapterTypeChecker.isAssignableFromType(mixinType)) {
+        throw UnsupportedError(
+            'Adapter `$mixinType` MUST have a constraint `on` RemoteAdapter<$classType>');
+      }
+
+      final instantiatedMixinType = (mixinType.element as ClassElement)
+          .instantiate(
+              typeArguments: [if (args.isNotEmpty) classElement.thisType],
+              nullabilitySuffix: NullabilitySuffix.none);
+      mixinMethods.addAll(instantiatedMixinType.methods);
+      displayName =
+          instantiatedMixinType.getDisplayString(withNullability: false);
 
       return displayName;
     }).toSet();
+
+    final mixinShortcuts = mixins.map((mixin) {
+      final mixinB = mixin.replaceAll(RegExp('\<.*?\>'), '').decapitalize();
+      return '$mixin get $mixinB => remoteAdapter as $mixin;';
+    }).join('\n');
 
     if (mixins.isEmpty) {
       mixins.add('NothingMixin');
@@ -237,7 +240,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<$classType>>, DataState<
   return _$providerStringPlural(WatchArgs(remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 
-extension ${classType}X on $classType {
+extension ${classType}DataX on $classType {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   /// 
@@ -247,6 +250,10 @@ extension ${classType}X on $classType {
     final updatedModel = repository.remoteAdapter.initializeModel(this, save: save);
     return save ? updatedModel : this;
   }
+}
+
+extension ${classType}DataRepositoryX on Repository<$classType> {
+$mixinShortcuts
 }
 ''';
   }

@@ -131,7 +131,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Comment>>,
       remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 
-extension CommentX on Comment {
+extension CommentDataX on Comment {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
@@ -142,6 +142,11 @@ extension CommentX on Comment {
         repository.remoteAdapter.initializeModel(this, save: save);
     return save ? updatedModel : this;
   }
+}
+
+extension CommentDataRepositoryX on Repository<Comment> {
+  JSONServerAdapter<Comment> get jSONServerAdapter =>
+      remoteAdapter as JSONServerAdapter<Comment>;
 }
 
 // ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member, non_constant_identifier_names
@@ -227,7 +232,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Sheep>>,
       remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 
-extension SheepX on Sheep {
+extension SheepDataX on Sheep {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
@@ -238,4 +243,9 @@ extension SheepX on Sheep {
         repository.remoteAdapter.initializeModel(this, save: save);
     return save ? updatedModel : this;
   }
+}
+
+extension SheepDataRepositoryX on Repository<Sheep> {
+  JSONServerAdapter<Sheep> get jSONServerAdapter =>
+      remoteAdapter as JSONServerAdapter<Sheep>;
 }

@@ -102,7 +102,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Person>>,
       remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 
-extension PersonX on Person {
+extension PersonDataX on Person {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
@@ -113,4 +113,13 @@ extension PersonX on Person {
         repository.remoteAdapter.initializeModel(this, save: save);
     return save ? updatedModel : this;
   }
+}
+
+extension PersonDataRepositoryX on Repository<Person> {
+  PersonLoginAdapter get personLoginAdapter =>
+      remoteAdapter as PersonLoginAdapter;
+  GenericDoesNothingAdapter<Person> get genericDoesNothingAdapter =>
+      remoteAdapter as GenericDoesNothingAdapter<Person>;
+  YetAnotherLoginAdapter get yetAnotherLoginAdapter =>
+      remoteAdapter as YetAnotherLoginAdapter;
 }

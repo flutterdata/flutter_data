@@ -126,7 +126,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Node>>,
       remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 
-extension NodeX on Node {
+extension NodeDataX on Node {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
@@ -138,3 +138,5 @@ extension NodeX on Node {
     return save ? updatedModel : this;
   }
 }
+
+extension NodeDataRepositoryX on Repository<Node> {}

@@ -115,7 +115,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<House>>,
       remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 
-extension HouseX on House {
+extension HouseDataX on House {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
@@ -127,3 +127,5 @@ extension HouseX on House {
     return save ? updatedModel : this;
   }
 }
+
+extension HouseDataRepositoryX on Repository<House> {}

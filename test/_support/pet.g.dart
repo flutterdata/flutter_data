@@ -112,7 +112,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Dog>>,
       remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 
-extension DogX on Dog {
+extension DogDataX on Dog {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
@@ -124,6 +124,8 @@ extension DogX on Dog {
     return save ? updatedModel : this;
   }
 }
+
+extension DogDataRepositoryX on Repository<Dog> {}
 
 // ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member, non_constant_identifier_names
 
@@ -207,7 +209,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Cat>>,
       remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 
-extension CatX on Cat {
+extension CatDataX on Cat {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
@@ -219,3 +221,5 @@ extension CatX on Cat {
     return save ? updatedModel : this;
   }
 }
+
+extension CatDataRepositoryX on Repository<Cat> {}

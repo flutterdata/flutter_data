@@ -559,7 +559,8 @@ void main() async {
     container.read(responseProvider.notifier).state =
         TestResponse.text('''{ "token": "zzz1" }''');
 
-    final token = await personRepository.login('email@email.com', 'zzz1');
+    final token = await personRepository.personLoginAdapter
+        .login('email@email.com', 'zzz1');
     expect(token, 'zzz1');
   });
 
@@ -570,10 +571,10 @@ void main() async {
     expect(() async {
       container.read(responseProvider.notifier).state =
           TestResponse.text('''&*@%%*#@!''');
-      await personRepository.login(null, null);
+      await personRepository.personLoginAdapter.login(null, null);
     }, throwsA(isA<UnsupportedError>()));
 
-    await personRepository.doNothing(null, 1);
+    await personRepository.genericDoesNothingAdapter.doNothing(null, 1);
   });
 
   test('verbose', overridePrint(() async {

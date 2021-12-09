@@ -150,7 +150,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<BookAuthor>>,
       remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 
-extension BookAuthorX on BookAuthor {
+extension BookAuthorDataX on BookAuthor {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
@@ -161,6 +161,10 @@ extension BookAuthorX on BookAuthor {
         repository.remoteAdapter.initializeModel(this, save: save);
     return save ? updatedModel : this;
   }
+}
+
+extension BookAuthorDataRepositoryX on Repository<BookAuthor> {
+  BookAuthorAdapter get bookAuthorAdapter => remoteAdapter as BookAuthorAdapter;
 }
 
 // ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member, non_constant_identifier_names
@@ -254,7 +258,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Book>>,
       remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 
-extension BookX on Book {
+extension BookDataX on Book {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
@@ -266,3 +270,5 @@ extension BookX on Book {
     return save ? updatedModel : this;
   }
 }
+
+extension BookDataRepositoryX on Repository<Book> {}

@@ -105,7 +105,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<User>>,
       remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 
-extension UserX on User {
+extension UserDataX on User {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
@@ -116,4 +116,9 @@ extension UserX on User {
         repository.remoteAdapter.initializeModel(this, save: save);
     return save ? updatedModel : this;
   }
+}
+
+extension UserDataRepositoryX on Repository<User> {
+  JSONServerAdapter<User> get jSONServerAdapter =>
+      remoteAdapter as JSONServerAdapter<User>;
 }

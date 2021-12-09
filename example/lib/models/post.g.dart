@@ -127,7 +127,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Post>>,
       remote: remote, params: params, headers: headers, syncLocal: syncLocal));
 }
 
-extension PostX on Post {
+extension PostDataX on Post {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
@@ -138,4 +138,9 @@ extension PostX on Post {
         repository.remoteAdapter.initializeModel(this, save: save);
     return save ? updatedModel : this;
   }
+}
+
+extension PostDataRepositoryX on Repository<Post> {
+  JSONServerAdapter<Post> get jSONServerAdapter =>
+      remoteAdapter as JSONServerAdapter<Post>;
 }
