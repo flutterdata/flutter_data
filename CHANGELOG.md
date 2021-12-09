@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.1]
+
+- Add adapter shortcuts
+- Remove DataModel#watch
+- Improve null deserialization handling
+
 ## [1.0.0]
 
 - Add syntax sugar for repository methods and watchers accessible via `ref.$type`

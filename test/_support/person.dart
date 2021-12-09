@@ -117,20 +117,3 @@ mixin YetAnotherLoginAdapter on PersonLoginAdapter {
     return super.login(email, password);
   }
 }
-
-// extension PersonRepositoryX on Repository<Person> {
-//   Future<String?> login(String? email, String? password) =>
-//       (remoteAdapter as YetAnotherLoginAdapter).login(email, password);
-
-//   Future<String?> hello({bool useDefaultHeaders = false}) =>
-//       (remoteAdapter as PersonLoginAdapter)
-//           .hello(useDefaultHeaders: useDefaultHeaders);
-
-//   Future<String?> url(Map<String, dynamic> params,
-//           {bool useDefaultParams = false}) =>
-//       (remoteAdapter as PersonLoginAdapter)
-//           .url(params, useDefaultParams: useDefaultParams);
-
-//   Future<Person?> doNothing(Person? model, int n) =>
-//       (remoteAdapter as GenericDoesNothingAdapter<Person>).doNothing(model, n);
-// }
