@@ -74,11 +74,12 @@ class $PostRemoteAdapter = RemoteAdapter<Post> with JSONServerAdapter<Post>;
 final postsLocalAdapterProvider =
     Provider<LocalAdapter<Post>>((ref) => $PostHiveLocalAdapter(ref.read));
 
-final postsRemoteAdapterProvider = Provider<RemoteAdapter<Post>>(
-    (ref) => $PostRemoteAdapter(ref.watch(postsLocalAdapterProvider)));
+final postsRemoteAdapterProvider = Provider<RemoteAdapter<Post>>((ref) =>
+    $PostRemoteAdapter(
+        ref.watch(postsLocalAdapterProvider), postProvider, postsProvider));
 
-final postsRepositoryProvider = Provider<Repository<Post>>(
-    (ref) => Repository<Post>(ref.read, postProvider, postsProvider));
+final postsRepositoryProvider =
+    Provider<Repository<Post>>((ref) => Repository<Post>(ref.read));
 
 final _postProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Post?>, DataState<Post?>, WatchArgs<Post>>(

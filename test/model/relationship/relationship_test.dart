@@ -276,7 +276,8 @@ void main() async {
         .init(container.read);
 
     final listener = Listener<DataState<BookAuthor?>>();
-    final notifier = author.watch(remote: false);
+    final notifier =
+        bookAuthorRepository.watchOneNotifier(author, remote: false);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 

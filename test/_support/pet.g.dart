@@ -60,11 +60,12 @@ class $DogRemoteAdapter = RemoteAdapter<Dog> with NothingMixin;
 final dogsLocalAdapterProvider =
     Provider<LocalAdapter<Dog>>((ref) => $DogHiveLocalAdapter(ref.read));
 
-final dogsRemoteAdapterProvider = Provider<RemoteAdapter<Dog>>(
-    (ref) => $DogRemoteAdapter(ref.watch(dogsLocalAdapterProvider)));
+final dogsRemoteAdapterProvider = Provider<RemoteAdapter<Dog>>((ref) =>
+    $DogRemoteAdapter(
+        ref.watch(dogsLocalAdapterProvider), dogProvider, dogsProvider));
 
-final dogsRepositoryProvider = Provider<Repository<Dog>>(
-    (ref) => Repository<Dog>(ref.read, dogProvider, dogsProvider));
+final dogsRepositoryProvider =
+    Provider<Repository<Dog>>((ref) => Repository<Dog>(ref.read));
 
 final _dogProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Dog?>, DataState<Dog?>, WatchArgs<Dog>>(
@@ -154,11 +155,12 @@ class $CatRemoteAdapter = RemoteAdapter<Cat> with NothingMixin;
 final catsLocalAdapterProvider =
     Provider<LocalAdapter<Cat>>((ref) => $CatHiveLocalAdapter(ref.read));
 
-final catsRemoteAdapterProvider = Provider<RemoteAdapter<Cat>>(
-    (ref) => $CatRemoteAdapter(ref.watch(catsLocalAdapterProvider)));
+final catsRemoteAdapterProvider = Provider<RemoteAdapter<Cat>>((ref) =>
+    $CatRemoteAdapter(
+        ref.watch(catsLocalAdapterProvider), catProvider, catsProvider));
 
-final catsRepositoryProvider = Provider<Repository<Cat>>(
-    (ref) => Repository<Cat>(ref.read, catProvider, catsProvider));
+final catsRepositoryProvider =
+    Provider<Repository<Cat>>((ref) => Repository<Cat>(ref.read));
 
 final _catProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Cat?>, DataState<Cat?>, WatchArgs<Cat>>(

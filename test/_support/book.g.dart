@@ -94,11 +94,13 @@ final bookAuthorsLocalAdapterProvider = Provider<LocalAdapter<BookAuthor>>(
     (ref) => $BookAuthorHiveLocalAdapter(ref.read));
 
 final bookAuthorsRemoteAdapterProvider = Provider<RemoteAdapter<BookAuthor>>(
-    (ref) =>
-        $BookAuthorRemoteAdapter(ref.watch(bookAuthorsLocalAdapterProvider)));
+    (ref) => $BookAuthorRemoteAdapter(
+        ref.watch(bookAuthorsLocalAdapterProvider),
+        bookAuthorProvider,
+        bookAuthorsProvider));
 
-final bookAuthorsRepositoryProvider = Provider<Repository<BookAuthor>>((ref) =>
-    Repository<BookAuthor>(ref.read, bookAuthorProvider, bookAuthorsProvider));
+final bookAuthorsRepositoryProvider =
+    Provider<Repository<BookAuthor>>((ref) => Repository<BookAuthor>(ref.read));
 
 final _bookAuthorProvider = StateNotifierProvider.autoDispose.family<
     DataStateNotifier<BookAuthor?>,
@@ -199,11 +201,12 @@ class $BookRemoteAdapter = RemoteAdapter<Book> with NothingMixin;
 final booksLocalAdapterProvider =
     Provider<LocalAdapter<Book>>((ref) => $BookHiveLocalAdapter(ref.read));
 
-final booksRemoteAdapterProvider = Provider<RemoteAdapter<Book>>(
-    (ref) => $BookRemoteAdapter(ref.watch(booksLocalAdapterProvider)));
+final booksRemoteAdapterProvider = Provider<RemoteAdapter<Book>>((ref) =>
+    $BookRemoteAdapter(
+        ref.watch(booksLocalAdapterProvider), bookProvider, booksProvider));
 
-final booksRepositoryProvider = Provider<Repository<Book>>(
-    (ref) => Repository<Book>(ref.read, bookProvider, booksProvider));
+final booksRepositoryProvider =
+    Provider<Repository<Book>>((ref) => Repository<Book>(ref.read));
 
 final _bookProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Book?>, DataState<Book?>, WatchArgs<Book>>(

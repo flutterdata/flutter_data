@@ -73,11 +73,12 @@ class $NodeRemoteAdapter = RemoteAdapter<Node> with NothingMixin;
 final nodesLocalAdapterProvider =
     Provider<LocalAdapter<Node>>((ref) => $NodeHiveLocalAdapter(ref.read));
 
-final nodesRemoteAdapterProvider = Provider<RemoteAdapter<Node>>(
-    (ref) => $NodeRemoteAdapter(ref.watch(nodesLocalAdapterProvider)));
+final nodesRemoteAdapterProvider = Provider<RemoteAdapter<Node>>((ref) =>
+    $NodeRemoteAdapter(
+        ref.watch(nodesLocalAdapterProvider), nodeProvider, nodesProvider));
 
-final nodesRepositoryProvider = Provider<Repository<Node>>(
-    (ref) => Repository<Node>(ref.read, nodeProvider, nodesProvider));
+final nodesRepositoryProvider =
+    Provider<Repository<Node>>((ref) => Repository<Node>(ref.read));
 
 final _nodeProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Node?>, DataState<Node?>, WatchArgs<Node>>(

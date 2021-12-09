@@ -3,14 +3,9 @@ part of flutter_data;
 /// Thin wrapper on the [RemoteAdapter] API
 class Repository<T extends DataModel<T>> with _Lifecycle {
   final Reader _read;
-  final OneProvider<T>? _oneProvider;
-  final AllProvider<T>? _allProvider;
-  Repository(this._read, [this._oneProvider, this._allProvider]);
+  Repository(this._read);
 
   var _isInit = false;
-
-  /// ONLY FOR FLUTTER DATA INTERNAL USE
-  Watcher? internalWatch;
 
   String get _internalType => DataHelpers.getType<T>();
 
@@ -221,19 +216,13 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     Map<String, String>? headers,
     bool? syncLocal,
   }) {
-    if (internalWatch == null || _allProvider == null) {
-      throw UnsupportedError(_watchAllError);
-    }
-    return internalWatch!(_allProvider!(
+    return remoteAdapter.watchAll(
       remote: remote,
       params: params,
       headers: headers,
       syncLocal: syncLocal,
-    ));
+    );
   }
-
-  String get _watchAllError =>
-      'Should only be used via `ref.$type.watchAll`. Alternatively use `watch${type.capitalize()}()`.';
 
   /// Returns a [DataState] notifier with changes on model of
   /// type [T] by [id] in local storage.
@@ -275,20 +264,14 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     Map<String, String>? headers,
     AlsoWatch<T>? alsoWatch,
   }) {
-    if (internalWatch == null || _oneProvider == null) {
-      throw UnsupportedError(_watchOneError);
-    }
-    return internalWatch!(_oneProvider!(
+    return remoteAdapter.watchOne(
       id,
       remote: remote,
       params: params,
       headers: headers,
       alsoWatch: alsoWatch,
-    ));
+    );
   }
-
-  String get _watchOneError =>
-      'Should only be used via `ref.$type.watchOne`. Alternatively use `watch${type.singularize().capitalize()}()`.';
 }
 
 /// Annotation on a [DataModel] model to request a [Repository] be generated for it.

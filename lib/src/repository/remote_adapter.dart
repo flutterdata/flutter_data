@@ -33,7 +33,7 @@ class RemoteAdapter<T extends DataModel<T>> = _RemoteAdapter<T>
 
 abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @protected
-  _RemoteAdapter(this.localAdapter);
+  _RemoteAdapter(this.localAdapter, [this._oneProvider, this._allProvider]);
 
   @protected
   @visibleForTesting
@@ -76,6 +76,12 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @visibleForTesting
   @protected
   String get type => internalType;
+
+  /// ONLY FOR FLUTTER DATA INTERNAL USE
+  Watcher? internalWatch;
+
+  final OneProvider<T>? _oneProvider;
+  final AllProvider<T>? _allProvider;
 
   /// Returns the base URL for this type [T].
   ///

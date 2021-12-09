@@ -49,11 +49,12 @@ class $PersonRemoteAdapter = RemoteAdapter<Person>
 final peopleLocalAdapterProvider =
     Provider<LocalAdapter<Person>>((ref) => $PersonHiveLocalAdapter(ref.read));
 
-final peopleRemoteAdapterProvider = Provider<RemoteAdapter<Person>>(
-    (ref) => $PersonRemoteAdapter(ref.watch(peopleLocalAdapterProvider)));
+final peopleRemoteAdapterProvider = Provider<RemoteAdapter<Person>>((ref) =>
+    $PersonRemoteAdapter(
+        ref.watch(peopleLocalAdapterProvider), personProvider, peopleProvider));
 
-final peopleRepositoryProvider = Provider<Repository<Person>>(
-    (ref) => Repository<Person>(ref.read, personProvider, peopleProvider));
+final peopleRepositoryProvider =
+    Provider<Repository<Person>>((ref) => Repository<Person>(ref.read));
 
 final _personProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Person?>, DataState<Person?>, WatchArgs<Person>>(

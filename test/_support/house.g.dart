@@ -62,11 +62,12 @@ class $HouseRemoteAdapter = RemoteAdapter<House> with NothingMixin;
 final housesLocalAdapterProvider =
     Provider<LocalAdapter<House>>((ref) => $HouseHiveLocalAdapter(ref.read));
 
-final housesRemoteAdapterProvider = Provider<RemoteAdapter<House>>(
-    (ref) => $HouseRemoteAdapter(ref.watch(housesLocalAdapterProvider)));
+final housesRemoteAdapterProvider = Provider<RemoteAdapter<House>>((ref) =>
+    $HouseRemoteAdapter(
+        ref.watch(housesLocalAdapterProvider), houseProvider, housesProvider));
 
-final housesRepositoryProvider = Provider<Repository<House>>(
-    (ref) => Repository<House>(ref.read, houseProvider, housesProvider));
+final housesRepositoryProvider =
+    Provider<Repository<House>>((ref) => Repository<House>(ref.read));
 
 final _houseProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<House?>, DataState<House?>, WatchArgs<House>>(

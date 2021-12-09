@@ -76,11 +76,12 @@ class $CommentRemoteAdapter = RemoteAdapter<Comment>
 final commentsLocalAdapterProvider = Provider<LocalAdapter<Comment>>(
     (ref) => $CommentHiveLocalAdapter(ref.read));
 
-final commentsRemoteAdapterProvider = Provider<RemoteAdapter<Comment>>(
-    (ref) => $CommentRemoteAdapter(ref.watch(commentsLocalAdapterProvider)));
+final commentsRemoteAdapterProvider = Provider<RemoteAdapter<Comment>>((ref) =>
+    $CommentRemoteAdapter(ref.watch(commentsLocalAdapterProvider),
+        commentProvider, commentsProvider));
 
-final commentsRepositoryProvider = Provider<Repository<Comment>>(
-    (ref) => Repository<Comment>(ref.read, commentProvider, commentsProvider));
+final commentsRepositoryProvider =
+    Provider<Repository<Comment>>((ref) => Repository<Comment>(ref.read));
 
 final _commentProvider = StateNotifierProvider.autoDispose.family<
     DataStateNotifier<Comment?>,
@@ -173,11 +174,12 @@ class $SheepRemoteAdapter = RemoteAdapter<Sheep> with JSONServerAdapter<Sheep>;
 final sheepLocalAdapterProvider =
     Provider<LocalAdapter<Sheep>>((ref) => $SheepHiveLocalAdapter(ref.read));
 
-final sheepRemoteAdapterProvider = Provider<RemoteAdapter<Sheep>>(
-    (ref) => $SheepRemoteAdapter(ref.watch(sheepLocalAdapterProvider)));
+final sheepRemoteAdapterProvider = Provider<RemoteAdapter<Sheep>>((ref) =>
+    $SheepRemoteAdapter(
+        ref.watch(sheepLocalAdapterProvider), sheepOneProvider, sheepProvider));
 
-final sheepRepositoryProvider = Provider<Repository<Sheep>>(
-    (ref) => Repository<Sheep>(ref.read, sheepOneProvider, sheepProvider));
+final sheepRepositoryProvider =
+    Provider<Repository<Sheep>>((ref) => Repository<Sheep>(ref.read));
 
 final _sheepOneProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Sheep?>, DataState<Sheep?>, WatchArgs<Sheep>>(

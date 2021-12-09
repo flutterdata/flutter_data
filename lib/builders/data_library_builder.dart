@@ -121,11 +121,11 @@ class DataExtensionBuilder implements Builder {
     String repositoryWatcherRefExtension(List<Map<String, String>> classes) {
       return '''
 extension RepositoryWidgetRefX on WidgetRef {
-${classes.map((clazz) => '  Repository<${clazz['name']}> get ${clazz['type']} => watch(${clazz['type']}RepositoryProvider)..internalWatch = watch;').join('\n')}
+${classes.map((clazz) => '  Repository<${clazz['name']}> get ${clazz['type']} => watch(${clazz['type']}RepositoryProvider)..remoteAdapter.internalWatch = watch;').join('\n')}
 }
 
 extension RepositoryRefX on Ref {
-${classes.map((clazz) => '  Repository<${clazz['name']}> get ${clazz['type']} => watch(${clazz['type']}RepositoryProvider)..internalWatch = watch as Watcher;').join('\n')}
+${classes.map((clazz) => '  Repository<${clazz['name']}> get ${clazz['type']} => watch(${clazz['type']}RepositoryProvider)..remoteAdapter.internalWatch = watch as Watcher;').join('\n')}
 }''';
     }
 

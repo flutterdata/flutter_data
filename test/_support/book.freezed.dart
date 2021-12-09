@@ -132,9 +132,8 @@ class __$BookAuthorCopyWithImpl<$Res> extends _$BookAuthorCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-@With<DataModel<BookAuthor>>()
-class _$_BookAuthor with DataModel<BookAuthor> implements _BookAuthor {
-  _$_BookAuthor({required this.id, this.name, this.books});
+class _$_BookAuthor extends _BookAuthor {
+  _$_BookAuthor({required this.id, this.name, this.books}) : super._();
 
   factory _$_BookAuthor.fromJson(Map<String, dynamic> json) =>
       _$$_BookAuthorFromJson(json);
@@ -175,9 +174,10 @@ class _$_BookAuthor with DataModel<BookAuthor> implements _BookAuthor {
   }
 }
 
-abstract class _BookAuthor implements BookAuthor, DataModel<BookAuthor> {
+abstract class _BookAuthor extends BookAuthor {
   factory _BookAuthor({required int id, String? name, HasMany<Book>? books}) =
       _$_BookAuthor;
+  _BookAuthor._() : super._();
 
   factory _BookAuthor.fromJson(Map<String, dynamic> json) =
       _$_BookAuthor.fromJson;
@@ -336,14 +336,14 @@ class __$BookCopyWithImpl<$Res> extends _$BookCopyWithImpl<$Res>
 
 /// @nodoc
 
-@With<DataModel<Book>>()
 @JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
-class _$_Book with DataModel<Book> implements _Book {
+class _$_Book extends _Book {
   _$_Book(
       {required this.id,
       this.title,
       this.numberOfSales = 0,
-      @JsonKey(name: 'original_author') this.originalAuthor});
+      @JsonKey(name: 'original_author') this.originalAuthor})
+      : super._();
 
   factory _$_Book.fromJson(Map<String, dynamic> json) => _$$_BookFromJson(json);
 
@@ -391,13 +391,14 @@ class _$_Book with DataModel<Book> implements _Book {
   }
 }
 
-abstract class _Book implements Book, DataModel<Book> {
+abstract class _Book extends Book {
   factory _Book(
       {required int id,
       String? title,
       int numberOfSales,
       @JsonKey(name: 'original_author')
           BelongsTo<BookAuthor>? originalAuthor}) = _$_Book;
+  _Book._() : super._();
 
   factory _Book.fromJson(Map<String, dynamic> json) = _$_Book.fromJson;
 

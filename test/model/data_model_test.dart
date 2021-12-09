@@ -17,7 +17,6 @@ void main() async {
     expectLater(family.save, throwsA(isA<AssertionError>()));
     expectLater(family.delete, throwsA(isA<AssertionError>()));
     expectLater(family.reload, throwsA(isA<AssertionError>()));
-    expectLater(family.watch, throwsA(isA<AssertionError>()));
   });
 
   test('init', () async {

@@ -87,6 +87,26 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     return _notifier;
   }
 
+  DataState<List<T>> watchAll({
+    bool? remote,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    bool? syncLocal,
+  }) {
+    if (internalWatch == null || _allProvider == null) {
+      throw UnsupportedError(_watchAllError);
+    }
+    return internalWatch!(_allProvider!(
+      remote: remote,
+      params: params,
+      headers: headers,
+      syncLocal: syncLocal,
+    ));
+  }
+
+  String get _watchAllError =>
+      'Should only be used via `ref.$type.watchAll`. Alternatively use `watch${type.capitalize()}()`.';
+
   @protected
   @visibleForTesting
   DataStateNotifier<T?> watchOneNotifier(
@@ -238,6 +258,28 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     _notifier.onDispose = _dispose;
     return _notifier;
   }
+
+  DataState<T?> watchOne(
+    dynamic id, {
+    bool? remote,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    AlsoWatch<T>? alsoWatch,
+  }) {
+    if (internalWatch == null || _oneProvider == null) {
+      throw UnsupportedError(_watchOneError);
+    }
+    return internalWatch!(_oneProvider!(
+      id,
+      remote: remote,
+      params: params,
+      headers: headers,
+      alsoWatch: alsoWatch,
+    ));
+  }
+
+  String get _watchOneError =>
+      'Should only be used via `ref.$type.watchOne`. Alternatively use `watch${type.singularize().capitalize()}()`.';
 
   Set<String> _relatedKeys(T model) {
     return localAdapter

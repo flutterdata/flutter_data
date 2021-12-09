@@ -210,10 +210,10 @@ final ${typeLowerCased}LocalAdapterProvider = Provider<LocalAdapter<$classType>>
 
 final ${typeLowerCased}RemoteAdapterProvider =
     Provider<RemoteAdapter<$classType>>(
-        (ref) => \$${classType}RemoteAdapter(ref.watch(${typeLowerCased}LocalAdapterProvider)));
+        (ref) => \$${classType}RemoteAdapter(ref.watch(${typeLowerCased}LocalAdapterProvider), $providerStringSingular, $providerStringPlural));
 
 final ${typeLowerCased}RepositoryProvider =
-    Provider<Repository<$classType>>((ref) => Repository<$classType>(ref.read, $providerStringSingular, $providerStringPlural));
+    Provider<Repository<$classType>>((ref) => Repository<$classType>(ref.read));
 
 final _$providerStringSingular =
     StateNotifierProvider.autoDispose.family<DataStateNotifier<$classType?>, DataState<$classType?>, WatchArgs<$classType>>(
