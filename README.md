@@ -118,7 +118,7 @@ await user.todos.last.delete();
 
 **Explore the [Documentation](https://flutterdata.dev/docs/).**
 
-Fully functional app built with Flutter Data? See the code for the finished **[Flutter Data TO-DOs Sample App](https://github.com/flutterdata/flutter_data_todos)**.
+Fully functional app built with Flutter Data? See the code for the finished **[Flutter Data Tasks App](https://github.com/flutterdata/tutorial)**.
 
 ## Compatibility
 

@@ -212,7 +212,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   /// [key] can be used to supply a specific `key` when deserializing ONE model.
   @protected
   @visibleForTesting
-  DeserializedData<T, DataModel> deserialize(Object data, {String key});
+  DeserializedData<T, DataModel> deserialize(Object? data, {String key});
 
   /// Returns a serialized version of a model of [T],
   /// as a [Map<String, dynamic>] ready to be JSON-encoded.
@@ -275,13 +275,11 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       headers: headers,
       requestType: DataRequestType.findAll,
       key: internalType,
-      onSuccess: (data) async {
+      onSuccess: (Object? data) async {
         if (syncLocal!) {
           await localAdapter.clear();
         }
-        final models = data != null
-            ? deserialize(data as Object).models.toImmutableList()
-            : <T>[];
+        final models = deserialize(data).models.toImmutableList();
         return onSuccess?.call(models) ?? models;
       },
       onError: onError,
@@ -328,9 +326,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       requestType: DataRequestType.findOne,
       key: StringUtils.typify(internalType, id),
       onSuccess: (data) {
-        final model = data != null
-            ? deserialize(data as Map<String, dynamic>).model
-            : null;
+        final model = deserialize(data).model;
         return onSuccess?.call(model) ?? model;
       },
       onError: onError,
@@ -483,14 +479,13 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     Map<String, String>? headers,
     String? body,
     String? key,
-    OnRawData<R>? onSuccess,
+    OnData<R>? onSuccess,
     OnDataError<R>? onError,
     DataRequestType requestType = DataRequestType.adhoc,
     bool omitDefaultParams = false,
   }) async {
-    // callbacks
+    // defaults
     onError ??= this.onError as OnDataError<R>;
-
     headers ??= await defaultHeaders;
     final _params =
         omitDefaultParams ? <String, dynamic>{} : await defaultParams;
@@ -598,9 +593,8 @@ extension _ToStringX on DataRequestMethod {
   String toShortString() => toString().split('.').last;
 }
 
-typedef OnData<R> = FutureOr<R> Function(R);
-typedef OnRawData<R> = FutureOr<R?> Function(dynamic);
-typedef OnDataError<R> = FutureOr<R?> Function(DataException);
+typedef OnData<T> = FutureOr<T?> Function(Object?);
+typedef OnDataError<T> = FutureOr<T?> Function(DataException);
 
 // ignore: constant_identifier_names
 enum DataRequestType {

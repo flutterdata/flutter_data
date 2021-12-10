@@ -24,7 +24,7 @@ mixin _RemoteAdapterOffline<T extends DataModel<T>> on _RemoteAdapter<T> {
     DataRequestType requestType = DataRequestType.adhoc,
     String? key,
     String? body,
-    OnRawData<R>? onSuccess,
+    OnData<R>? onSuccess,
     OnDataError<R>? onError,
   }) async {
     // default key to type#s3mth1ng
@@ -149,7 +149,7 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
   final String request;
   final Map<String, String>? headers;
   final String? body;
-  final OnRawData? onSuccess;
+  final OnData? onSuccess;
   final OnDataError? onError;
   final _RemoteAdapterOffline<T> adapter;
 
@@ -257,7 +257,7 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
         requestType: requestType,
         key: offlineKey,
         body: body,
-        onSuccess: pair.first as OnRawData<R>?,
+        onSuccess: pair.first as OnData<R>?,
         onError: pair.last as OnDataError<R>?,
       );
     }

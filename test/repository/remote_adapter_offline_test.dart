@@ -102,7 +102,7 @@ void main() async {
         // the surname follows `X-Override-Name` + `overrideSecondName`
         // as the save has been replayed with the original headers/params
         expect(model, equals(Family(id: '1', surname: 'Mantego Zorrilla')));
-        return model;
+        return model as Family;
       },
     );
     await oneMs();

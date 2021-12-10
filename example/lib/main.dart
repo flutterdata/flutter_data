@@ -7,7 +7,7 @@ import 'models/post.dart';
 import 'models/user.dart';
 
 // NOTE: FOR AN UPDATED AND COMPLETE FLUTTER EXAMPLE FOLLOW
-// https://github.com/flutterdata/flutter_data_todos
+// https://github.com/flutterdata/tutorial
 
 void main() async {
   late final Directory _dir;
