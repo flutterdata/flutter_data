@@ -15,6 +15,7 @@ Iterable<VariableElement> relationshipFields(ClassElement elem) {
   map = {
     for (final field in elem.fields)
       if (field.type.element is ClassElement &&
+          field.isPublic &&
           (field.type.element as ClassElement).supertype != null &&
           relationshipTypeChecker.isSuperOf(field.type.element!))
         field.name: field,
