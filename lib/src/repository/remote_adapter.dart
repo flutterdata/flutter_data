@@ -212,7 +212,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   /// [key] can be used to supply a specific `key` when deserializing ONE model.
   @protected
   @visibleForTesting
-  DeserializedData<T, DataModel> deserialize(Object? data, {String key});
+  DeserializedData<T> deserialize(Object? data, {String key});
 
   /// Returns a serialized version of a model of [T],
   /// as a [Map<String, dynamic>] ready to be JSON-encoded.
@@ -579,10 +579,10 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 }
 
 /// A utility class used to return deserialized main [models] AND [included] models.
-class DeserializedData<T, I> {
+class DeserializedData<T> {
   const DeserializedData(this.models, {this.included = const []});
   final List<T> models;
-  final List<I> included;
+  final List<DataModel> included;
   T? get model => models.singleOrNull;
 }
 
