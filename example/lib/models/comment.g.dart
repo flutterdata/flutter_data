@@ -3,6 +3,36 @@
 part of 'comment.dart';
 
 // **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+Comment _$CommentFromJson(Map<String, dynamic> json) => Comment(
+      id: json['id'] as int,
+      body: json['body'] as String?,
+      approved: json['approved'] as bool? ?? false,
+      post: json['post'] == null
+          ? null
+          : BelongsTo<Post>.fromJson(json['post'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$CommentToJson(Comment instance) => <String, dynamic>{
+      'id': instance.id,
+      'body': instance.body,
+      'approved': instance.approved,
+      'post': instance.post,
+    };
+
+Sheep _$SheepFromJson(Map<String, dynamic> json) => Sheep(
+      id: json['id'] as int,
+      name: json['name'] as String,
+    );
+
+Map<String, dynamic> _$SheepToJson(Sheep instance) => <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+    };
+
+// **************************************************************************
 // RepositoryGenerator
 // **************************************************************************
 
@@ -38,7 +68,8 @@ mixin $CommentLocalAdapter on LocalAdapter<Comment> {
 class $CommentHiveLocalAdapter = HiveLocalAdapter<Comment>
     with $CommentLocalAdapter;
 
-class $CommentRemoteAdapter = RemoteAdapter<Comment> with NothingMixin;
+class $CommentRemoteAdapter = RemoteAdapter<Comment>
+    with JSONServerAdapter<Comment>;
 
 //
 
@@ -113,7 +144,10 @@ extension CommentDataX on Comment {
   }
 }
 
-extension CommentDataRepositoryX on Repository<Comment> {}
+extension CommentDataRepositoryX on Repository<Comment> {
+  JSONServerAdapter<Comment> get jSONServerAdapter =>
+      remoteAdapter as JSONServerAdapter<Comment>;
+}
 
 // ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member, non_constant_identifier_names
 
@@ -138,7 +172,7 @@ mixin $SheepLocalAdapter on LocalAdapter<Sheep> {
 // ignore: must_be_immutable
 class $SheepHiveLocalAdapter = HiveLocalAdapter<Sheep> with $SheepLocalAdapter;
 
-class $SheepRemoteAdapter = RemoteAdapter<Sheep> with NothingMixin;
+class $SheepRemoteAdapter = RemoteAdapter<Sheep> with JSONServerAdapter<Sheep>;
 
 //
 
@@ -211,4 +245,7 @@ extension SheepDataX on Sheep {
   }
 }
 
-extension SheepDataRepositoryX on Repository<Sheep> {}
+extension SheepDataRepositoryX on Repository<Sheep> {
+  JSONServerAdapter<Sheep> get jSONServerAdapter =>
+      remoteAdapter as JSONServerAdapter<Sheep>;
+}

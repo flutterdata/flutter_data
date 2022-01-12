@@ -8,11 +8,16 @@ environment:
 
 dependencies:
   flutter_data:
-    path: ../../flutter_data
   json_annotation: ^4.3.0
   proto_annotations: ^2.0.0
 
 dev_dependencies:
   build_runner: ^2.0.4
-  # json_serializable: ^6.0.1
-  proto_generator: ^3.0.0
+  json_serializable:
+  flutter_data_generator:
+
+dependency_overrides:
+  flutter_data:
+    path: ../packages/flutter_data
+  flutter_data_generator:
+     path: ../packages/flutter_data_generator

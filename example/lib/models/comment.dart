@@ -6,8 +6,8 @@ import 'post.dart';
 
 part 'comment.g.dart';
 
-// @JsonSerializable()
-@DataRepository([])
+@JsonSerializable()
+@DataRepository([JSONServerAdapter])
 class Comment with DataModel<Comment> {
   @override
   final int id;
@@ -23,8 +23,8 @@ class Comment with DataModel<Comment> {
   }) : post = post ?? BelongsTo<Post>();
 }
 
-// @JsonSerializable()
-@DataRepository([], remote: false)
+@JsonSerializable()
+@DataRepository([JSONServerAdapter], remote: false)
 class Sheep with DataModel<Sheep> {
   @override
   final int id;

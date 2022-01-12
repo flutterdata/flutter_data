@@ -26,8 +26,8 @@ class RepositoryInitializer {}
 class RepositoryInitializerArgs with EquatableMixin {
   RepositoryInitializerArgs(this.remote, this.verbose);
 
-  bool remote;
-  bool verbose;
+  bool? remote;
+  bool? verbose;
 
   @override
   List<Object?> get props => [remote, verbose];

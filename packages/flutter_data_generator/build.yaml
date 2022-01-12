@@ -1,0 +1,40 @@
+targets:
+  $default:
+    builders:
+      flutter_data_generator_generator|data_repository_builder:
+        generate_for:
+          - test/_support/*.dart
+
+builders:
+  data_repository_builder:
+    import: "package:flutter_data_generator/flutter_data_generator.dart"
+    builder_factories: ["repositoryBuilder"]
+    build_extensions: { ".dart": [".repository.g.part"] }
+    auto_apply: dependents
+    build_to: cache
+    applies_builders: ["source_gen|combining_builder"]
+    required_inputs: [".freezed.dart"]
+
+  data_extension_intermediate_builder:
+    import: "package:flutter_data_generator/flutter_data_generator.dart"
+    builder_factories: ["dataExtensionIntermediateBuilder"]
+    build_extensions: { ".dart": [".info"] }
+    auto_apply: dependents
+    build_to: cache
+    runs_before: ["data_extension_builder"]
+
+  data_extension_builder:
+    import: "package:flutter_data_generator/flutter_data_generator.dart"
+    builder_factories: ["dataExtensionBuilder"]
+    build_extensions: { ".info": [".dart"] }
+    auto_apply: dependents
+    required_inputs: [".info"]
+    build_to: source
+
+  test_extension_builder:
+    import: "package:flutter_data_generator/flutter_data_generator.dart"
+    builder_factories: ["testExtensionBuilder"]
+    build_extensions: { ".info": [".dart"] }
+    auto_apply: dependents
+    required_inputs: [".info"]
+    build_to: source

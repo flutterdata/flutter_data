@@ -5,8 +5,8 @@ import 'adapters.dart';
 
 part 'user.g.dart';
 
-// @JsonSerializable()
-@DataRepository([])
+@JsonSerializable()
+@DataRepository([JSONServerAdapter])
 class User with DataModel<User> {
   @override
   final int id;

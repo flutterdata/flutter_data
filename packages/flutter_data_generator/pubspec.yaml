@@ -12,6 +12,7 @@ dependencies:
   build_resolvers: ^2.0.3
   flutter_data: ^1.0.0
   glob: ^2.0.0
+  json_annotation: 
   pubspec_parse: ^1.0.0
   source_gen: ^1.2.1
 dependency_overrides:
