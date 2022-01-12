@@ -15,7 +15,8 @@ const _kGraphBoxName = '_graph';
 ///
 /// Its public API requires all keys and metadata to be namespaced
 /// i.e. `manager:key`
-class GraphNotifier extends DelayedStateNotifier<DataGraphEvent> with _Lifecycle {
+class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
+    with _Lifecycle {
   @protected
   GraphNotifier(this._hiveLocalStorage);
 
@@ -64,7 +65,8 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent> with _Lifecycle
   String? getKeyForId(String type, dynamic id, {String? keyIfAbsent}) {
     type = DataHelpers.getTypeFromString(type);
     if (id != null) {
-      final namespacedId = StringUtils.namespace('id', StringUtils.typify(type, id));
+      final namespacedId =
+          StringUtils.namespace('id', StringUtils.typify(type, id));
 
       if (_getNode(namespacedId) != null) {
         final tos = _getEdge(namespacedId, metadata: 'key');
@@ -84,8 +86,10 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent> with _Lifecycle
         if (!_hasNode(namespacedId)) {
           _addNode(namespacedId, notify: false);
         }
-        _removeEdges(keyIfAbsent, metadata: 'id', inverseMetadata: 'key', notify: false);
-        _addEdge(keyIfAbsent, namespacedId, metadata: 'id', inverseMetadata: 'key', notify: false);
+        _removeEdges(keyIfAbsent,
+            metadata: 'id', inverseMetadata: 'key', notify: false);
+        _addEdge(keyIfAbsent, namespacedId,
+            metadata: 'id', inverseMetadata: 'key', notify: false);
         return keyIfAbsent;
       }
     } else if (keyIfAbsent != null) {
@@ -108,7 +112,8 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent> with _Lifecycle
   }
 
   /// Removes [type]/[id] (and its edges) from graph
-  void removeId(String type, dynamic id) => _removeNode(StringUtils.namespace('id', StringUtils.typify(type, id)));
+  void removeId(String type, dynamic id) =>
+      _removeNode(StringUtils.namespace('id', StringUtils.typify(type, id)));
 
   // nodes
 
@@ -169,7 +174,8 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent> with _Lifecycle
     if (inverseMetadata != null) {
       _assertKey(inverseMetadata);
     }
-    _addEdges(from, metadata: metadata, tos: tos, inverseMetadata: inverseMetadata);
+    _addEdges(from,
+        metadata: metadata, tos: tos, inverseMetadata: inverseMetadata);
   }
 
   /// Returns edge by [metadata]
@@ -357,7 +363,11 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent> with _Lifecycle
     String? inverseMetadata,
     bool notify = true,
   }) {
-    _addEdges(from, tos: [to], metadata: metadata, inverseMetadata: inverseMetadata, notify: notify);
+    _addEdges(from,
+        tos: [to],
+        metadata: metadata,
+        inverseMetadata: inverseMetadata,
+        notify: notify);
   }
 
   void _addEdges(
@@ -389,7 +399,8 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent> with _Lifecycle
     if (inverseMetadata != null) {
       for (final to in tos) {
         // get or create toNode
-        final toNode = _hasNode(to) ? _getNode(to)! : (this.._addNode(to))._getNode(to)!;
+        final toNode =
+            _hasNode(to) ? _getNode(to)! : (this.._addNode(to))._getNode(to)!;
 
         // use a set to ensure resulting list elements are unique
         toNode[inverseMetadata] = {...?toNode[inverseMetadata], from}.toList();
@@ -414,7 +425,11 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent> with _Lifecycle
     String? inverseMetadata,
     bool notify = true,
   }) {
-    _removeEdges(from, tos: [to], metadata: metadata, inverseMetadata: inverseMetadata, notify: notify);
+    _removeEdges(from,
+        tos: [to],
+        metadata: metadata,
+        inverseMetadata: inverseMetadata,
+        notify: notify);
   }
 
   void _removeEdges(
@@ -456,7 +471,9 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent> with _Lifecycle
     if (tos != null) {
       for (final to in tos) {
         final toNode = _getNode(to);
-        if (toNode != null && inverseMetadata != null && toNode[inverseMetadata] != null) {
+        if (toNode != null &&
+            inverseMetadata != null &&
+            toNode[inverseMetadata] != null) {
           toNode[inverseMetadata]?.remove(from);
           if (toNode[inverseMetadata]?.isEmpty ?? false) {
             toNode.remove(inverseMetadata);

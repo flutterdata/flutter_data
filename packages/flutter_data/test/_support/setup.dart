@@ -57,11 +57,12 @@ void setUpFn() async {
         adapters: adapterGraph,
       );
 
-  familyRepository = await container.read(familiesRepositoryProvider).initialize(
-        remote: true,
-        verbose: false,
-        adapters: adapterGraph,
-      );
+  familyRepository =
+      await container.read(familiesRepositoryProvider).initialize(
+            remote: true,
+            verbose: false,
+            adapters: adapterGraph,
+          );
 
   personRepository = await container.read(peopleRepositoryProvider).initialize(
         remote: false,
@@ -83,7 +84,8 @@ void setUpFn() async {
     },
   );
 
-  bookAuthorRepository = await container.read(bookAuthorsRepositoryProvider).initialize(
+  bookAuthorRepository =
+      await container.read(bookAuthorsRepositoryProvider).initialize(
     remote: false,
     verbose: false,
     adapters: {
@@ -126,14 +128,16 @@ class TestResponse {
   }
 }
 
-final responseProvider = StateProvider<TestResponse>((_) => TestResponse.text(''));
+final responseProvider =
+    StateProvider<TestResponse>((_) => TestResponse.text(''));
 
 ProviderContainer createContainer() {
   // when testing in Flutter use ProviderScope
   return ProviderContainer(
     overrides: [
       // app-specific
-      mockResponseProvider.overrideWithProvider(Provider.family<http.Response, http.Request>((ref, req) {
+      mockResponseProvider.overrideWithProvider(
+          Provider.family<http.Response, http.Request>((ref, req) {
         final response = ref.watch(responseProvider);
         final text = response.text(req);
         return http.Response(text, response.statusCode);
@@ -141,36 +145,44 @@ ProviderContainer createContainer() {
 
       // fd infra
 
-      hiveLocalStorageProvider.overrideWithProvider(Provider((_) => TestHiveLocalStorage())),
-      graphNotifierProvider
-          .overrideWithProvider(Provider((ref) => TestDataGraphNotifier(ref.watch(hiveLocalStorageProvider)))),
+      hiveLocalStorageProvider
+          .overrideWithProvider(Provider((_) => TestHiveLocalStorage())),
+      graphNotifierProvider.overrideWithProvider(Provider(
+          (ref) => TestDataGraphNotifier(ref.watch(hiveLocalStorageProvider)))),
 
       // model-specific
 
-      housesLocalAdapterProvider.overrideWithProvider(Provider((ref) => HouseLocalAdapter(ref.read))),
-      familiesLocalAdapterProvider.overrideWithProvider(Provider((ref) => FamilyLocalAdapter(ref.read))),
-      peopleLocalAdapterProvider.overrideWithProvider(Provider((ref) => PersonLocalAdapter(ref.read))),
-      dogsLocalAdapterProvider.overrideWithProvider(Provider((ref) => DogLocalAdapter(ref.read))),
-      nodesLocalAdapterProvider.overrideWithProvider(Provider((ref) => NodeLocalAdapter(ref.read))),
-      bookAuthorsLocalAdapterProvider.overrideWithProvider(Provider((ref) => BookAuthorLocalAdapter(ref.read))),
-      booksLocalAdapterProvider.overrideWithProvider(Provider((ref) => BookLocalAdapter(ref.read))),
+      housesLocalAdapterProvider
+          .overrideWithProvider(Provider((ref) => HouseLocalAdapter(ref.read))),
+      familiesLocalAdapterProvider.overrideWithProvider(
+          Provider((ref) => FamilyLocalAdapter(ref.read))),
+      peopleLocalAdapterProvider.overrideWithProvider(
+          Provider((ref) => PersonLocalAdapter(ref.read))),
+      dogsLocalAdapterProvider
+          .overrideWithProvider(Provider((ref) => DogLocalAdapter(ref.read))),
+      nodesLocalAdapterProvider
+          .overrideWithProvider(Provider((ref) => NodeLocalAdapter(ref.read))),
+      bookAuthorsLocalAdapterProvider.overrideWithProvider(
+          Provider((ref) => BookAuthorLocalAdapter(ref.read))),
+      booksLocalAdapterProvider
+          .overrideWithProvider(Provider((ref) => BookLocalAdapter(ref.read))),
 
       //
 
-      housesRemoteAdapterProvider
-          .overrideWithProvider(Provider((ref) => TokenHouseRemoteAdapter(ref.watch(housesLocalAdapterProvider)))),
-      familiesRemoteAdapterProvider
-          .overrideWithProvider(Provider((ref) => FamilyRemoteAdapter(ref.watch(familiesLocalAdapterProvider)))),
-      peopleRemoteAdapterProvider
-          .overrideWithProvider(Provider((ref) => PersonRemoteAdapter(ref.watch(peopleLocalAdapterProvider)))),
-      dogsRemoteAdapterProvider
-          .overrideWithProvider(Provider((ref) => DogRemoteAdapter(ref.watch(dogsLocalAdapterProvider)))),
-      nodesRemoteAdapterProvider
-          .overrideWithProvider(Provider((ref) => $NodeRemoteAdapter(ref.watch(nodesLocalAdapterProvider)))),
-      bookAuthorsRemoteAdapterProvider
-          .overrideWithProvider(Provider((ref) => BookAuthorRemoteAdapter(ref.watch(bookAuthorsLocalAdapterProvider)))),
-      booksRemoteAdapterProvider
-          .overrideWithProvider(Provider((ref) => $BookRemoteAdapter(ref.watch(booksLocalAdapterProvider)))),
+      housesRemoteAdapterProvider.overrideWithProvider(Provider((ref) =>
+          TokenHouseRemoteAdapter(ref.watch(housesLocalAdapterProvider)))),
+      familiesRemoteAdapterProvider.overrideWithProvider(Provider((ref) =>
+          FamilyRemoteAdapter(ref.watch(familiesLocalAdapterProvider)))),
+      peopleRemoteAdapterProvider.overrideWithProvider(Provider(
+          (ref) => PersonRemoteAdapter(ref.watch(peopleLocalAdapterProvider)))),
+      dogsRemoteAdapterProvider.overrideWithProvider(Provider(
+          (ref) => DogRemoteAdapter(ref.watch(dogsLocalAdapterProvider)))),
+      nodesRemoteAdapterProvider.overrideWithProvider(Provider(
+          (ref) => $NodeRemoteAdapter(ref.watch(nodesLocalAdapterProvider)))),
+      bookAuthorsRemoteAdapterProvider.overrideWithProvider(Provider((ref) =>
+          BookAuthorRemoteAdapter(ref.watch(bookAuthorsLocalAdapterProvider)))),
+      booksRemoteAdapterProvider.overrideWithProvider(Provider(
+          (ref) => $BookRemoteAdapter(ref.watch(booksLocalAdapterProvider)))),
     ],
   );
 }
@@ -178,15 +190,18 @@ ProviderContainer createContainer() {
 //
 
 // ignore: must_be_immutable
-class HouseLocalAdapter = $HouseHiveLocalAdapter with TestHiveLocalAdapter<House>;
+class HouseLocalAdapter = $HouseHiveLocalAdapter
+    with TestHiveLocalAdapter<House>;
 class HouseRemoteAdapter = $HouseRemoteAdapter with TestRemoteAdapter;
 
 // ignore: must_be_immutable
-class FamilyLocalAdapter = $FamilyHiveLocalAdapter with TestHiveLocalAdapter<Family>;
+class FamilyLocalAdapter = $FamilyHiveLocalAdapter
+    with TestHiveLocalAdapter<Family>;
 class FamilyRemoteAdapter = $FamilyRemoteAdapter with TestRemoteAdapter;
 
 // ignore: must_be_immutable
-class PersonLocalAdapter = $PersonHiveLocalAdapter with TestHiveLocalAdapter<Person>;
+class PersonLocalAdapter = $PersonHiveLocalAdapter
+    with TestHiveLocalAdapter<Person>;
 class PersonRemoteAdapter = $PersonRemoteAdapter with TestRemoteAdapter;
 
 // ignore: must_be_immutable
@@ -197,7 +212,8 @@ class DogRemoteAdapter = $DogRemoteAdapter with TestRemoteAdapter;
 class NodeLocalAdapter = $NodeHiveLocalAdapter with TestHiveLocalAdapter<Node>;
 
 // ignore: must_be_immutable
-class BookAuthorLocalAdapter = $BookAuthorHiveLocalAdapter with TestHiveLocalAdapter<BookAuthor>;
+class BookAuthorLocalAdapter = $BookAuthorHiveLocalAdapter
+    with TestHiveLocalAdapter<BookAuthor>;
 class BookAuthorRemoteAdapter = $BookAuthorRemoteAdapter with TestRemoteAdapter;
 
 // ignore: must_be_immutable

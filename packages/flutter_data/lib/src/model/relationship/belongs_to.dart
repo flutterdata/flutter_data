@@ -25,7 +25,8 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
   /// See also: [DataModelRelationshipExtension<E>.asBelongsTo]
   BelongsTo([final E? model]) : super(model != null ? {model} : null);
 
-  BelongsTo._(String? key, bool _wasOmitted) : super._(key != null ? {key} : {}, _wasOmitted);
+  BelongsTo._(String? key, bool _wasOmitted)
+      : super._(key != null ? {key} : {}, _wasOmitted);
 
   BelongsTo.remove() : super._remove();
 
@@ -73,7 +74,8 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
     if (isInitialized && inverseName != null) {
       addInverse(inverseName, owner);
     }
-    final obj = await super.initialize(adapters: adapters, owner: owner, name: name, inverseName: inverseName);
+    final obj = await super.initialize(
+        adapters: adapters, owner: owner, name: name, inverseName: inverseName);
     return obj;
   }
 
@@ -82,7 +84,10 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
   @override
   DelayedStateNotifier<E?> watch() {
     return _graphEvents.where((e) => e.isNotEmpty).map((e) {
-      return [DataGraphEventType.removeNode, DataGraphEventType.removeEdge].contains(e.last.type) ? null : value;
+      return [DataGraphEventType.removeNode, DataGraphEventType.removeEdge]
+              .contains(e.last.type)
+          ? null
+          : value;
     });
   }
 
@@ -100,7 +105,8 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
   String toString() => 'BelongsTo<$E>($_prop)';
 }
 
-extension DataModelRelationshipExtension<T extends DataModel<T>> on DataModel<T> {
+extension DataModelRelationshipExtension<T extends DataModel<T>>
+    on DataModel<T> {
   /// Converts a [DataModel<T>] into a [BelongsTo<T>].
   ///
   /// Equivalent to using the constructor as `BelongsTo(model)`.

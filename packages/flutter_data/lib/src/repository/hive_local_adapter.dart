@@ -2,7 +2,8 @@ part of flutter_data;
 
 /// Hive implementation of [LocalAdapter] and Hive's [TypeAdapter].
 // ignore: must_be_immutable
-abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T> with TypeAdapter<T> {
+abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
+    with TypeAdapter<T> {
   HiveLocalAdapter(Reader read)
       : _hiveLocalStorage = read(hiveLocalStorageProvider),
         super(read);
@@ -102,7 +103,8 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T> 
 
     final _typesNode = graph._getNode(_hiveAdapterKey)!;
 
-    final edge = _typesNode[StringUtils.namespace(_hiveAdapterNs, _internalType)];
+    final edge =
+        _typesNode[StringUtils.namespace(_hiveAdapterNs, _internalType)];
 
     if (edge != null && edge.isNotEmpty) {
       // first is of format: _adapter_hive:1
@@ -141,7 +143,8 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T> 
       // entry keys are the name of relationships => metadata
       final name = entry.key;
       final relKeys = graph._getEdge(key, metadata: name);
-      map[name] = entry.value['kind'] == 'BelongsTo' ? relKeys.safeFirst : relKeys;
+      map[name] =
+          entry.value['kind'] == 'BelongsTo' ? relKeys.safeFirst : relKeys;
     }
 
     return deserialize(map);

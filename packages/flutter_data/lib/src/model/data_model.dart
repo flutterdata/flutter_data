@@ -13,13 +13,15 @@ abstract class DataModel<T extends DataModel<T>> {
 
   // computed
   String get _internalType => DataHelpers.getTypeFromClass<T>();
-  RemoteAdapter<T> get remoteAdapter => _adapters![_internalType]! as RemoteAdapter<T>;
+  RemoteAdapter<T> get remoteAdapter =>
+      _adapters![_internalType]! as RemoteAdapter<T>;
 
   bool get isInitialized => _key != null && _adapters != null;
 
   // initializers
 
-  T _initialize(final Map<String, RemoteAdapter> adapters, {String? key, bool save = false}) {
+  T _initialize(final Map<String, RemoteAdapter> adapters,
+      {String? key, bool save = false}) {
     if (isInitialized) {
       if (save) {
         // ensure model is persisted, no need to notify
@@ -73,7 +75,8 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   /// newPost.was(post); // new is now initialized with same key as post
   /// ```
   T was(T model) {
-    assert(model.isInitialized, 'Please initialize model before passing it to `was`');
+    assert(model.isInitialized,
+        'Please initialize model before passing it to `was`');
     return _initialize(model._adapters!, key: model._key, save: true);
   }
 
@@ -184,4 +187,5 @@ String? keyFor<T extends DataModel<T>>(T model) => model._key;
 
 @visibleForTesting
 @protected
-RemoteAdapter? adapterFor<T extends DataModel<T>>(T model) => model.remoteAdapter;
+RemoteAdapter? adapterFor<T extends DataModel<T>>(T model) =>
+    model.remoteAdapter;

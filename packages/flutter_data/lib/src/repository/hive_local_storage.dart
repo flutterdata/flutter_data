@@ -6,7 +6,8 @@ import 'package:riverpod/riverpod.dart';
 
 class HiveLocalStorage {
   HiveLocalStorage({this.baseDirFn, List<int>? encryptionKey, bool? clear})
-      : encryptionCipher = encryptionKey != null ? HiveAesCipher(encryptionKey) : null,
+      : encryptionCipher =
+            encryptionKey != null ? HiveAesCipher(encryptionKey) : null,
         clear = clear ?? false;
 
   HiveInterface get hive => Hive;
@@ -71,4 +72,5 @@ Widget build(context) {
   }
 }
 
-final hiveLocalStorageProvider = Provider<HiveLocalStorage>((ref) => HiveLocalStorage(baseDirFn: () => ''));
+final hiveLocalStorageProvider =
+    Provider<HiveLocalStorage>((ref) => HiveLocalStorage(baseDirFn: () => ''));

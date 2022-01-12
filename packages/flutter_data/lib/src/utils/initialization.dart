@@ -9,7 +9,8 @@ typedef ConfigureRepositoryLocalStorage = Override Function({
   bool? clear,
 });
 
-typedef RepositoryInitializerProvider = FutureProvider<RepositoryInitializer> Function({
+typedef RepositoryInitializerProvider = FutureProvider<RepositoryInitializer>
+    Function({
   bool? remote,
   bool? verbose,
 });

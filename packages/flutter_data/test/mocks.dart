@@ -135,6 +135,7 @@ mixin TestRemoteAdapter<T extends DataModel<T>> on RemoteAdapter<T> {
   }
 }
 
-final mockResponseProvider = Provider.family<http.Response, http.Request>((ref, req) {
+final mockResponseProvider =
+    Provider.family<http.Response, http.Request>((ref, req) {
   throw UnsupportedError('Please override mockResponseProvider!');
 });

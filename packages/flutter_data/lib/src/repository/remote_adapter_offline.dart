@@ -157,13 +157,15 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
     required this.adapter,
   });
 
-  factory OfflineOperation.fromJson(Map<String, dynamic> json, _RemoteAdapterOffline<T> adapter) {
+  factory OfflineOperation.fromJson(
+      Map<String, dynamic> json, _RemoteAdapterOffline<T> adapter) {
     return OfflineOperation(
       requestType: _getDataRequestType(json['t'] as String),
       request: json['r'] as String,
       offlineKey: json['k'] as String,
       body: json['b'] as String?,
-      headers: json['h'] == null ? null : Map<String, String>.from(json['h'] as Map),
+      headers:
+          json['h'] == null ? null : Map<String, String>.from(json['h'] as Map),
       adapter: adapter,
     );
   }
@@ -196,7 +198,8 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
   }
 
   DataRequestMethod get method {
-    return DataRequestMethod.values.singleWhere((m) => m.toShortString() == request.split(' ').first);
+    return DataRequestMethod.values
+        .singleWhere((m) => m.toShortString() == request.split(' ').first);
   }
 
   /// Adds an edge from the `_offlineAdapterKey` to the `key` for save/delete
@@ -207,7 +210,8 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
       final node = json.encode(toJson());
 
       if (adapter._verbose) {
-        print('[flutter_data] [${adapter.internalType}] Adding offline operation with metadata: $metadata');
+        print(
+            '[flutter_data] [${adapter.internalType}] Adding offline operation with metadata: $metadata');
         print('\n\n');
       }
 
@@ -215,10 +219,13 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
 
       // keep callbacks in memory
       adapter.read(_offlineCallbackProvider)[metadata] ??= [];
-      adapter.read(_offlineCallbackProvider)[metadata]!.add([onSuccess, onError]);
+      adapter
+          .read(_offlineCallbackProvider)[metadata]!
+          .add([onSuccess, onError]);
     } else {
       // trick
-      adapter.graph._notify([_offlineAdapterKey, ''], DataGraphEventType.addEdge);
+      adapter.graph
+          ._notify([_offlineAdapterKey, ''], DataGraphEventType.addEdge);
     }
   }
 
@@ -228,7 +235,8 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
     if (adapter.graph._hasEdge(_offlineAdapterKey, metadata: metadata)) {
       adapter.graph._removeEdges(_offlineAdapterKey, metadata: metadata);
       if (adapter._verbose) {
-        print('[flutter_data] [${adapter.internalType}] Removing offline operation with metadata: $metadata');
+        print(
+            '[flutter_data] [${adapter.internalType}] Removing offline operation with metadata: $metadata');
         print('\n\n');
       }
 
@@ -261,7 +269,8 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
   T? get model {
     switch (requestType) {
       case DataRequestType.findOne:
-        return adapter.localAdapter.findOne(adapter.graph.getKeyForId(adapter.internalType, offlineKey.detypify())!);
+        return adapter.localAdapter.findOne(adapter.graph
+            .getKeyForId(adapter.internalType, offlineKey.detypify())!);
       case DataRequestType.save:
         return adapter.localAdapter.findOne(offlineKey);
 
@@ -317,13 +326,16 @@ extension OfflineOperationsX on Set<OfflineOperation<DataModel>> {
 }
 
 // stores onSuccess/onError function combos
-final _offlineCallbackProvider = StateProvider<Map<String, List<List<Function?>>>>((_) => {});
+final _offlineCallbackProvider =
+    StateProvider<Map<String, List<List<Function?>>>>((_) => {});
 
 /// Every time there is an offline operation added to/
 /// removed from the queue, this will notify clients
 /// with all pending types (could be none) such that
 /// they can implement their own retry strategy.
-final pendingOfflineTypesProvider = StateNotifierProvider<DelayedStateNotifier<Set<String>>, Set<String>?>((ref) {
+final pendingOfflineTypesProvider =
+    StateNotifierProvider<DelayedStateNotifier<Set<String>>, Set<String>?>(
+        (ref) {
   final _graph = ref.watch(graphNotifierProvider);
 
   Set<String> _pendingTypes() {
@@ -342,7 +354,8 @@ final pendingOfflineTypesProvider = StateNotifierProvider<DelayedStateNotifier<S
 
   final _dispose = _graph.where((event) {
     // filter the right events
-    return [DataGraphEventType.addEdge, DataGraphEventType.removeEdge].contains(event.type) &&
+    return [DataGraphEventType.addEdge, DataGraphEventType.removeEdge]
+            .contains(event.type) &&
         event.keys.length == 2 &&
         event.keys.containsFirst(_offlineAdapterKey);
   }).addListener((_) {

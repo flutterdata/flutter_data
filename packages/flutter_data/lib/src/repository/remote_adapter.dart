@@ -26,7 +26,10 @@ part of flutter_data;
 /// }
 /// ```
 class RemoteAdapter<T extends DataModel<T>> = _RemoteAdapter<T>
-    with _RemoteAdapterSerialization<T>, _RemoteAdapterOffline<T>, _RemoteAdapterWatch<T>;
+    with
+        _RemoteAdapterSerialization<T>,
+        _RemoteAdapterOffline<T>,
+        _RemoteAdapterWatch<T>;
 
 abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @protected
@@ -118,7 +121,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
   /// Returns URL for [save]. Defaults to [type]/[id] (if [id] is present).
   @protected
-  String urlForSave([Object? id, Map<String, dynamic>? params]) => id != null ? '$type/$id' : type;
+  String urlForSave([Object? id, Map<String, dynamic>? params]) =>
+      id != null ? '$type/$id' : type;
 
   /// Returns HTTP method for [save]. Defaults to `PATCH` if [id] is present,
   /// or `POST` otherwise.
@@ -132,7 +136,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
   /// Returns HTTP method for [delete]. Defaults to `DELETE`.
   @protected
-  DataRequestMethod methodForDelete(String id, Map<String, dynamic> params) => DataRequestMethod.DELETE;
+  DataRequestMethod methodForDelete(String id, Map<String, dynamic> params) =>
+      DataRequestMethod.DELETE;
 
   /// A [Map] representing default HTTP query parameters. Defaults to empty.
   ///
@@ -166,7 +171,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   /// }
   /// ```
   @protected
-  FutureOr<Map<String, String>> get defaultHeaders => {'Content-Type': 'application/json'};
+  FutureOr<Map<String, String>> get defaultHeaders =>
+      {'Content-Type': 'application/json'};
 
   // lifecycle methods
 
@@ -287,7 +293,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
         if (syncLocal!) {
           await localAdapter.clear();
         }
-        final models = data != null ? deserialize(data as Object).models.toImmutableList() : <T>[];
+        final models = data != null
+            ? deserialize(data as Object).models.toImmutableList()
+            : <T>[];
         return onSuccess?.call(models) ?? models;
       },
       onError: onError,
@@ -337,7 +345,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       requestType: DataRequestType.findOne,
       key: StringUtils.typify(internalType, id),
       onSuccess: (dynamic data) {
-        final model = data != null ? deserialize(data as Map<String, dynamic>).model : null;
+        final model = data != null
+            ? deserialize(data as Map<String, dynamic>).model
+            : null;
         return onSuccess?.call(model) ?? model;
       },
       onError: onError,
@@ -385,7 +395,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
         } else {
           // deserialize already inits models
           // if model had a key already, reuse it
-          final _newModel = deserialize(data as Map<String, dynamic>, key: model._key!).model!;
+          final _newModel =
+              deserialize(data as Map<String, dynamic>, key: model._key!)
+                  .model!;
 
           // in the unlikely case where supplied key couldn't be used
           // ensure "old" copy of model carries the updated key
@@ -497,7 +509,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     onError ??= this.onError as OnDataError<R>;
 
     headers ??= await defaultHeaders;
-    final _params = omitDefaultParams ? <String, dynamic>{} : await defaultParams;
+    final _params =
+        omitDefaultParams ? <String, dynamic>{} : await defaultParams;
 
     http.Response? response;
     Object? data;
@@ -541,7 +554,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     if (error == null && code != null && code >= 200 && code < 300) {
       return await onSuccess?.call(data);
     } else {
-      final e = DataException(error ?? data!, stackTrace: stackTrace, statusCode: code);
+      final e = DataException(error ?? data!,
+          stackTrace: stackTrace, statusCode: code);
 
       if (_verbose) {
         print('[flutter_data] [$internalType] Error: $e');
@@ -582,7 +596,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
   String? _keyForModel(dynamic model) {
     final id = _resolveId(model);
-    return graph.getKeyForId(internalType, id, keyIfAbsent: model is T ? model._key : null);
+    return graph.getKeyForId(internalType, id,
+        keyIfAbsent: model is T ? model._key : null);
   }
 }
 

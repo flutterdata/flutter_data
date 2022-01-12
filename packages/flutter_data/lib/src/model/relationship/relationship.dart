@@ -2,7 +2,8 @@ part of flutter_data;
 
 /// A `Set` that models a relationship between one or more [DataModel] objects
 /// and their a [DataModel] owner. Backed by a [GraphNotifier].
-abstract class Relationship<E extends DataModel<E>, N> with SetMixin<E>, _Lifecycle {
+abstract class Relationship<E extends DataModel<E>, N>
+    with SetMixin<E>, _Lifecycle {
   @protected
   Relationship([Set<E>? models])
       : _uninitializedKeys = {},
@@ -54,7 +55,8 @@ abstract class Relationship<E extends DataModel<E>, N> with SetMixin<E>, _Lifecy
     _inverseName = inverseName;
 
     if (_shouldRemove) {
-      _graph._removeEdges(_ownerKey, metadata: _name, inverseMetadata: _inverseName);
+      _graph._removeEdges(_ownerKey,
+          metadata: _name, inverseMetadata: _inverseName);
     } else {
       // initialize uninitialized models and get keys
       final newKeys = _uninitializedModels.map((model) {
@@ -69,7 +71,8 @@ abstract class Relationship<E extends DataModel<E>, N> with SetMixin<E>, _Lifecy
     if (!_wasOmitted) {
       // if it wasn't omitted, we overwrite
       _graph
-        .._removeEdges(_ownerKey, metadata: _name, inverseMetadata: _inverseName)
+        .._removeEdges(_ownerKey,
+            metadata: _name, inverseMetadata: _inverseName)
         .._addEdges(
           _ownerKey,
           tos: _uninitializedKeys,
@@ -99,7 +102,8 @@ abstract class Relationship<E extends DataModel<E>, N> with SetMixin<E>, _Lifecy
     _ensureModelIsInitialized(value);
 
     if (value.isInitialized && isInitialized) {
-      _graph._addEdge(_ownerKey, value._key!, metadata: _name, inverseMetadata: _inverseName);
+      _graph._addEdge(_ownerKey, value._key!,
+          metadata: _name, inverseMetadata: _inverseName);
     } else {
       // if it can't be initialized, add to the models queue
       _uninitializedModels.add(value);
@@ -147,7 +151,11 @@ abstract class Relationship<E extends DataModel<E>, N> with SetMixin<E>, _Lifecy
 
   Iterable<E> get _iterable {
     if (isInitialized) {
-      return keys.map((key) => _adapter.localAdapter.findOne(key)?._initialize(_adapters, key: key)).filterNulls;
+      return keys
+          .map((key) => _adapter.localAdapter
+              .findOne(key)
+              ?._initialize(_adapters, key: key))
+          .filterNulls;
     }
     return _uninitializedModels;
   }
@@ -176,7 +184,9 @@ abstract class Relationship<E extends DataModel<E>, N> with SetMixin<E>, _Lifecy
   DelayedStateNotifier<List<DataGraphEvent>> get _graphEvents {
     return _adapter.throttledGraph.map((events) {
       return events.where((event) {
-        return event.type.isEdge && event.metadata == _name && event.keys.containsFirst(_ownerKey);
+        return event.type.isEdge &&
+            event.metadata == _name &&
+            event.keys.containsFirst(_ownerKey);
       }).toImmutableList();
     });
   }

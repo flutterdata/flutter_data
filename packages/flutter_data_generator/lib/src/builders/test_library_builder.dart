@@ -22,13 +22,17 @@ class TestExtensionBuilder implements Builder {
     final finalAssetId = AssetId(b.inputId.package, '$testDir/test.data.dart');
     final testPath = path_helper.join(b.inputId.package, testDir);
 
-    final _classes = [await for (final file in b.findAssets(Glob('**/*.info'))) await b.readAsString(file)];
+    final _classes = [
+      await for (final file in b.findAssets(Glob('**/*.info')))
+        await b.readAsString(file)
+    ];
 
     final imports = _classes
         .map((s) {
           final assetUri = Uri.parse(s.split('#')[1]);
           if (assetUri.scheme == 'asset') {
-            final relativePath = path_helper.relative(assetUri.path, from: testPath);
+            final relativePath =
+                path_helper.relative(assetUri.path, from: testPath);
             return 'import \'$relativePath\';';
           }
           return 'import \'$assetUri\';';

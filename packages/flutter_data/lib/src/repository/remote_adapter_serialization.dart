@@ -12,7 +12,8 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
 
       if (map[field] != null) {
         if (map[field] is HasMany) {
-          relationships[key] = (map[field] as HasMany).map((e) => e.id).toList();
+          relationships[key] =
+              (map[field] as HasMany).map((e) => e.id).toList();
         }
         if (map[field] is BelongsTo) {
           relationships[key] = (map[field] as BelongsTo).value?.id;
@@ -48,7 +49,8 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
     }
 
     if (data is Iterable) {
-      for (final mapIn in data.filterNulls.map((e) => e as Map<String, dynamic>)) {
+      for (final mapIn
+          in data.filterNulls.map((e) => e as Map<String, dynamic>)) {
         final mapOut = <String, dynamic>{};
 
         final relationships = localAdapter.relationshipsFor();
@@ -61,8 +63,10 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
             final _type = metadata['type']! as String;
 
             if (metadata['kind'] == 'BelongsTo') {
-              final id = addIncluded(mapIn[mapInKey] as Object, adapters[_type]);
-              mapOut[mapOutKey] = graph.getKeyForId(_type, id, keyIfAbsent: DataHelpers.generateKeyFromString(_type));
+              final id =
+                  addIncluded(mapIn[mapInKey] as Object, adapters[_type]);
+              mapOut[mapOutKey] = graph.getKeyForId(_type, id,
+                  keyIfAbsent: DataHelpers.generateKeyFromString(_type));
             }
 
             if (metadata['kind'] == 'HasMany') {
@@ -70,7 +74,8 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
                   .filterNulls
                   .map((id) {
                     id = addIncluded(id, adapters[_type]);
-                    return graph.getKeyForId(_type, id, keyIfAbsent: DataHelpers.generateKeyFromString(_type));
+                    return graph.getKeyForId(_type, id,
+                        keyIfAbsent: DataHelpers.generateKeyFromString(_type));
                   })
                   .filterNulls
                   .toImmutableList();
@@ -108,7 +113,10 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
   String get identifierSuffix => '_id';
 
   Map<String, Map<String, Object?>> get _belongsTos => Map.fromEntries(
-        localAdapter.relationshipsFor().entries.where((e) => e.value['kind'] == 'BelongsTo'),
+        localAdapter
+            .relationshipsFor()
+            .entries
+            .where((e) => e.value['kind'] == 'BelongsTo'),
       );
 
   /// Transforms a [key] into a model's field.
@@ -120,7 +128,8 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
   @visibleForTesting
   String fieldForKey(String key) {
     if (key.endsWith(identifierSuffix)) {
-      final keyWithoutId = key.substring(0, key.length - identifierSuffix.length);
+      final keyWithoutId =
+          key.substring(0, key.length - identifierSuffix.length);
       if (_belongsTos.keys.contains(keyWithoutId)) {
         return keyWithoutId;
       }

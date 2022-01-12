@@ -18,7 +18,8 @@ class DataHelpers {
   }
 
   static String generateKeyFromString(String type) {
-    return StringUtils.typify(getTypeFromString(type), uuid.v1().substring(0, 8));
+    return StringUtils.typify(
+        getTypeFromString(type), uuid.v1().substring(0, 8));
   }
 }
 
@@ -40,8 +41,9 @@ abstract class _Lifecycle {
 
 typedef Watcher = W Function<W>(ProviderListenable<W> provider);
 
-typedef OneProvider<T extends DataModel<T>> = AutoDisposeStateNotifierProvider<DataStateNotifier<T?>, DataState<T?>>
-    Function(
+typedef OneProvider<T extends DataModel<T>>
+    = AutoDisposeStateNotifierProvider<DataStateNotifier<T?>, DataState<T?>>
+        Function(
   dynamic id, {
   bool? remote,
   Map<String, dynamic>? params,
@@ -49,8 +51,9 @@ typedef OneProvider<T extends DataModel<T>> = AutoDisposeStateNotifierProvider<D
   AlsoWatch<T>? alsoWatch,
 });
 
-typedef AllProvider<T extends DataModel<T>>
-    = AutoDisposeStateNotifierProvider<DataStateNotifier<List<T>>, DataState<List<T>>> Function({
+typedef AllProvider<T extends DataModel<T>> = AutoDisposeStateNotifierProvider<
+        DataStateNotifier<List<T>>, DataState<List<T>>>
+    Function({
   bool? remote,
   Map<String, dynamic>? params,
   Map<String, String>? headers,

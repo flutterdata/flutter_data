@@ -64,8 +64,10 @@ class DataStateNotifier<T> extends StateNotifier<DataState<T>> {
     super.state = DataState<T>(
       model == stamp ? state.model : model as T,
       isLoading: isLoading ?? state.isLoading,
-      exception: exception == stamp ? state.exception : exception as DataException?,
-      stackTrace: stackTrace == stamp ? state.stackTrace : stackTrace as StackTrace?,
+      exception:
+          exception == stamp ? state.exception : exception as DataException?,
+      stackTrace:
+          stackTrace == stamp ? state.stackTrace : stackTrace as StackTrace?,
     );
   }
 
@@ -78,7 +80,8 @@ class DataStateNotifier<T> extends StateNotifier<DataState<T>> {
     Listener<DataState<T>> listener, {
     bool fireImmediately = true,
   }) {
-    final dispose = super.addListener(listener, fireImmediately: fireImmediately);
+    final dispose =
+        super.addListener(listener, fireImmediately: fireImmediately);
     return () {
       dispose();
       onDispose?.call();
@@ -118,8 +121,10 @@ class _FunctionalDataStateNotifier<T, W> extends DataStateNotifier<W> {
           throw UnsupportedError('W must either be T? or List<T>');
         }
 
-        super.state =
-            DataState(_model, isLoading: state.isLoading, exception: state.exception, stackTrace: state.stackTrace);
+        super.state = DataState(_model,
+            isLoading: state.isLoading,
+            exception: state.exception,
+            stackTrace: state.stackTrace);
       }
     });
     return this;
@@ -156,7 +161,8 @@ class _FunctionalDataStateNotifier<T, W> extends DataStateNotifier<W> {
     Listener<DataState<W>> listener, {
     bool fireImmediately = true,
   }) {
-    final dispose = super.addListener(listener, fireImmediately: fireImmediately);
+    final dispose =
+        super.addListener(listener, fireImmediately: fireImmediately);
     return () {
       dispose.call();
       _sourceDisposeFn.call();

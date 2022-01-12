@@ -3,12 +3,14 @@ part of flutter_data;
 mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
   @protected
   @visibleForTesting
-  Duration get throttleDuration => const Duration(milliseconds: 16); // 1 frame at 60fps
+  Duration get throttleDuration =>
+      const Duration(milliseconds: 16); // 1 frame at 60fps
 
   @protected
   @visibleForTesting
   @nonVirtual
-  DelayedStateNotifier<List<DataGraphEvent>> get throttledGraph => graph.throttle(() => throttleDuration);
+  DelayedStateNotifier<List<DataGraphEvent>> get throttledGraph =>
+      graph.throttle(() => throttleDuration);
 
   @protected
   @visibleForTesting
@@ -23,7 +25,11 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     syncLocal ??= false;
 
     final _notifier = DataStateNotifier<List<T>>(
-      data: DataState(localAdapter.findAll().map((m) => initializeModel(m, save: true)).filterNulls.toList()),
+      data: DataState(localAdapter
+          .findAll()
+          .map((m) => initializeModel(m, save: true))
+          .filterNulls
+          .toList()),
       reload: (notifier) async {
         if (!notifier.mounted) {
           return;
@@ -61,10 +67,14 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       }
 
       final models = localAdapter.findAll().toImmutableList();
-      final modelChanged = !const DeepCollectionEquality().equals(models, _notifier.data.model);
+      final modelChanged =
+          !const DeepCollectionEquality().equals(models, _notifier.data.model);
       // ensure the done signal belongs to this notifier
-      final doneLoading =
-          events.where((e) => e.type == DataGraphEventType.doneLoading && e.keys.first == internalType).isNotEmpty;
+      final doneLoading = events
+          .where((e) =>
+              e.type == DataGraphEventType.doneLoading &&
+              e.keys.first == internalType)
+          .isNotEmpty;
       if (modelChanged || doneLoading) {
         _notifier.updateWith(model: models, isLoading: false, exception: null);
       }
@@ -122,7 +132,8 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
     final localModel = _key != null ? localAdapter.findOne(_key) : null;
     final _notifier = DataStateNotifier<T?>(
-      data: DataState(localModel == null ? null : initializeModel(localModel, save: true)),
+      data: DataState(
+          localModel == null ? null : initializeModel(localModel, save: true)),
       reload: (notifier) async {
         if (!notifier.mounted) {
           return;
@@ -161,7 +172,10 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     );
 
     void _initializeRelationshipsToWatch(T? model) {
-      if (alsoWatch != null && _alsoWatchFilters.isEmpty && model != null && model.isInitialized) {
+      if (alsoWatch != null &&
+          _alsoWatchFilters.isEmpty &&
+          model != null &&
+          model.isInitialized) {
         _alsoWatchFilters.addAll(
           alsoWatch(model).map((rel) {
             return rel._name;
@@ -192,7 +206,8 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         _key ??= key();
         if (_key != null && event.keys.containsFirst(_key!)) {
           // add/update
-          if (event.type == DataGraphEventType.addNode || event.type == DataGraphEventType.updateNode) {
+          if (event.type == DataGraphEventType.addNode ||
+              event.type == DataGraphEventType.updateNode) {
             final model = localAdapter.findOne(_key!);
             if (model != null) {
               initializeModel(model, save: true);
@@ -202,12 +217,15 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           }
 
           // remove
-          if (event.type == DataGraphEventType.removeNode && _notifier.data.model != null) {
+          if (event.type == DataGraphEventType.removeNode &&
+              _notifier.data.model != null) {
             modelBuffer = null;
           }
 
           // changes on specific relationships of this model
-          if (_notifier.data.model != null && event.type.isEdge && _alsoWatchFilters.contains(event.metadata)) {
+          if (_notifier.data.model != null &&
+              event.type.isEdge &&
+              _alsoWatchFilters.contains(event.metadata)) {
             // calculate currently related models
             refresh = true;
           }
@@ -230,7 +248,8 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       // NOTE: because of this comparison, use field equality
       // rather than key equality (which wouldn't update)
       if (modelBuffer != _notifier.data.model || refresh) {
-        _notifier.updateWith(model: modelBuffer, isLoading: false, exception: null);
+        _notifier.updateWith(
+            model: modelBuffer, isLoading: false, exception: null);
       }
     });
 

@@ -13,7 +13,8 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   final _adapters = <String, RemoteAdapter>{};
 
   /// Obtain the [RemoteAdapter] for this type.
-  RemoteAdapter<T> get remoteAdapter => _adapters[_internalType]! as RemoteAdapter<T>;
+  RemoteAdapter<T> get remoteAdapter =>
+      _adapters[_internalType]! as RemoteAdapter<T>;
 
   /// Type for the [RemoteAdapter]
   @nonVirtual
@@ -179,7 +180,8 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   // offline
 
   /// Gets a list of all pending [OfflineOperation]s for this type.
-  Set<OfflineOperation<T>> get offlineOperations => remoteAdapter.offlineOperations;
+  Set<OfflineOperation<T>> get offlineOperations =>
+      remoteAdapter.offlineOperations;
 
   // watchers
 

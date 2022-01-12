@@ -8,7 +8,8 @@ void main() async {
     // expect(() => DataHelpers.getTypeFromString(), throwsA(isA<UnsupportedError>()));
     expect(DataHelpers.getTypeFromClass<Person>(), 'people');
     expect(DataHelpers.getTypeFromString('CreditCard'), 'creditCards');
-    expect(DataHelpers.getTypeFromString('Inameclasseslikeshit'), 'inameclasseslikeshits');
+    expect(DataHelpers.getTypeFromString('Inameclasseslikeshit'),
+        'inameclasseslikeshits');
     expect(DataHelpers.getTypeFromString('Sheep'), 'sheep');
     expect(DataHelpers.getTypeFromString('Family'), 'families');
     // `type` argument takes precedence
@@ -22,11 +23,12 @@ void main() async {
   });
 
   test('uri helpers', () {
-    final uri = 'http://example.com/namespace/'.asUri / 'path/' / '../path' / '/./sub' &
-        {
-          'a': 1,
-          'b': {'c': 3}
-        };
+    final uri =
+        'http://example.com/namespace/'.asUri / 'path/' / '../path' / '/./sub' &
+            {
+              'a': 1,
+              'b': {'c': 3}
+            };
 
     expect(uri.host, 'example.com');
     expect(uri.path, '/namespace/path/sub');

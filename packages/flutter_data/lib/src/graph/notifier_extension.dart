@@ -11,7 +11,8 @@ class DelayedStateNotifier<T> extends StateNotifier<T?> {
   set state(T? value) => super.state = value;
 
   @override
-  RemoveListener addListener(void Function(T) listener, {bool fireImmediately = true}) {
+  RemoveListener addListener(void Function(T) listener,
+      {bool fireImmediately = true}) {
     void _listener(T? value) {
       // if `value` is `null` and `T` is actually a nullable
       // type, then the listener MUST be called with `null`
@@ -99,7 +100,8 @@ class _FunctionalStateNotifier<S, T> extends DelayedStateNotifier<T> {
     Listener<T> listener, {
     bool fireImmediately = true,
   }) {
-    final dispose = super.addListener(listener, fireImmediately: fireImmediately);
+    final dispose =
+        super.addListener(listener, fireImmediately: fireImmediately);
     return () {
       dispose.call();
       _timer?.cancel();
@@ -132,6 +134,7 @@ extension StateNotifierX<T> on DelayedStateNotifier<T> {
   /// Buffers all incoming [T] events for a duration obtained via
   /// [durationFn] and emits them as a [List<T>] (unless there were none)
   DelayedStateNotifier<List<T>> throttle(Duration Function() durationFn) {
-    return _FunctionalStateNotifier<T, List<T>>(this, name: 'throttle').throttle(durationFn);
+    return _FunctionalStateNotifier<T, List<T>>(this, name: 'throttle')
+        .throttle(durationFn);
   }
 }
