@@ -1,0 +1,19 @@
+include: package:very_good_analysis/analysis_options.yaml
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+  strong-mode:
+    implicit-casts: false
+  errors:
+    invalid_use_of_protected_member: error
+    always_declare_return_types: error
+linter:
+  rules:
+    public_member_api_docs: false
+    lines_longer_than_80_chars: false
+    avoid_print: false
+    avoid_positional_boolean_parameters: false
+    prefer_asserts_with_message: false
+    library_private_types_in_public_api: false
+    prefer_function_declarations_over_variables: false

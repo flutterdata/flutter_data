@@ -3,30 +3,6 @@
 part of 'post.dart';
 
 // **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-Post _$PostFromJson(Map<String, dynamic> json) => Post(
-      id: json['id'] as int,
-      title: json['title'] as String?,
-      body: json['body'] as String?,
-      comments: json['comments'] == null
-          ? null
-          : HasMany<Comment>.fromJson(json['comments'] as Map<String, dynamic>),
-      user: json['user'] == null
-          ? null
-          : BelongsTo<User>.fromJson(json['user'] as Map<String, dynamic>),
-    );
-
-Map<String, dynamic> _$PostToJson(Post instance) => <String, dynamic>{
-      'id': instance.id,
-      'title': instance.title,
-      'body': instance.body,
-      'comments': instance.comments,
-      'user': instance.user,
-    };
-
-// **************************************************************************
 // RepositoryGenerator
 // **************************************************************************
 
@@ -67,7 +43,7 @@ mixin $PostLocalAdapter on LocalAdapter<Post> {
 // ignore: must_be_immutable
 class $PostHiveLocalAdapter = HiveLocalAdapter<Post> with $PostLocalAdapter;
 
-class $PostRemoteAdapter = RemoteAdapter<Post> with JSONServerAdapter<Post>;
+class $PostRemoteAdapter = RemoteAdapter<Post> with NothingMixin;
 
 //
 
@@ -140,7 +116,4 @@ extension PostDataX on Post {
   }
 }
 
-extension PostDataRepositoryX on Repository<Post> {
-  JSONServerAdapter<Post> get jSONServerAdapter =>
-      remoteAdapter as JSONServerAdapter<Post>;
-}
+extension PostDataRepositoryX on Repository<Post> {}

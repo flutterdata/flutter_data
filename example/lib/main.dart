@@ -39,8 +39,7 @@ void main() async {
       }
     }
 
-    final user2 = User(id: 1, name: 'new name', email: 'new@fasd.io')
-        .init(container.read);
+    final user2 = User(id: 1, name: 'new name', email: 'new@fasd.io').init(container.read);
     await user2.save();
 
     var p3 = Post(
@@ -57,11 +56,7 @@ void main() async {
     final post = await postsRepo.findOne(1, params: {'_embed': 'comments'});
     final comments = await commentsRepo.findAll(params: {'postId': 1});
 
-    assert(comments
-        .map((c) => c.id)
-        .toSet()
-        .difference(post!.comments!.toSet().map((c) => c.id).toSet())
-        .isEmpty);
+    assert(comments.map((c) => c.id).toSet().difference(post!.comments!.toSet().map((c) => c.id).toSet()).isEmpty);
 
     final molly = Sheep(id: 1, name: 'Molly');
     await sheepRepo.save(molly);

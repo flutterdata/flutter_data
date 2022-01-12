@@ -9,19 +9,12 @@ packages:
     source: hosted
     version: "32.0.0"
   analyzer:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: analyzer
       url: "https://pub.dev"
     source: hosted
     version: "3.0.0"
-  archive:
-    dependency: transitive
-    description:
-      name: archive
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.1.8"
   args:
     dependency: transitive
     description:
@@ -30,7 +23,7 @@ packages:
     source: hosted
     version: "2.3.0"
   async:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: async
       url: "https://pub.dev"
@@ -44,7 +37,7 @@ packages:
     source: hosted
     version: "2.1.0"
   build:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: build
       url: "https://pub.dev"
@@ -65,7 +58,7 @@ packages:
     source: hosted
     version: "3.0.1"
   build_resolvers:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: build_resolvers
       url: "https://pub.dev"
@@ -86,7 +79,7 @@ packages:
     source: hosted
     version: "7.2.3"
   build_test:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: build_test
       url: "https://pub.dev"
@@ -135,7 +128,7 @@ packages:
     source: hosted
     version: "4.1.0"
   collection:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: collection
       url: "https://pub.dev"
@@ -156,7 +149,7 @@ packages:
     source: hosted
     version: "1.0.4"
   crypto:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: crypto
       url: "https://pub.dev"
@@ -176,15 +169,8 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.1"
-  decimal:
-    dependency: transitive
-    description:
-      name: decimal
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.1.0"
   equatable:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: equatable
       url: "https://pub.dev"
@@ -204,13 +190,20 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
-  flutter_data:
-    dependency: "direct main"
+  freezed:
+    dependency: "direct dev"
     description:
-      path: ".."
-      relative: true
-    source: path
-    version: "1.0.1"
+      name: freezed
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.1"
+  freezed_annotation:
+    dependency: "direct dev"
+    description:
+      name: freezed_annotation
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
   frontend_server_client:
     dependency: transitive
     description:
@@ -219,19 +212,12 @@ packages:
     source: hosted
     version: "2.1.2"
   glob:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: glob
       url: "https://pub.dev"
     source: hosted
     version: "2.0.2"
-  googleapis_auth:
-    dependency: transitive
-    description:
-      name: googleapis_auth
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.3.0"
   graphs:
     dependency: transitive
     description:
@@ -239,15 +225,8 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
-  grpc:
-    dependency: transitive
-    description:
-      name: grpc
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.2"
   hive:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: hive
       url: "https://pub.dev"
@@ -261,19 +240,12 @@ packages:
     source: hosted
     version: "0.15.0"
   http:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: http
       url: "https://pub.dev"
     source: hosted
     version: "0.13.4"
-  http2:
-    dependency: transitive
-    description:
-      name: http2
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.0"
   http_multi_server:
     dependency: transitive
     description:
@@ -289,7 +261,7 @@ packages:
     source: hosted
     version: "4.0.0"
   inflection3:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: inflection3
       url: "https://pub.dev"
@@ -310,12 +282,19 @@ packages:
     source: hosted
     version: "0.6.3"
   json_annotation:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: json_annotation
       url: "https://pub.dev"
     source: hosted
-    version: "4.3.0"
+    version: "4.4.0"
+  json_serializable:
+    dependency: "direct dev"
+    description:
+      name: json_serializable
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.1.3"
   logging:
     dependency: transitive
     description:
@@ -324,14 +303,14 @@ packages:
     source: hosted
     version: "1.0.2"
   matcher:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: matcher
       url: "https://pub.dev"
     source: hosted
     version: "0.12.11"
   meta:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: meta
       url: "https://pub.dev"
@@ -344,6 +323,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.1"
+  mockito:
+    dependency: "direct dev"
+    description:
+      name: mockito
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.0.17"
   node_preamble:
     dependency: transitive
     description:
@@ -359,7 +345,7 @@ packages:
     source: hosted
     version: "2.0.2"
   path:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: path
       url: "https://pub.dev"
@@ -372,27 +358,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.0"
-  proto_annotations:
-    dependency: "direct main"
-    description:
-      name: proto_annotations
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.4"
-  proto_generator:
-    dependency: "direct dev"
-    description:
-      name: proto_generator
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.1"
-  protobuf:
-    dependency: transitive
-    description:
-      name: protobuf
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.1"
   pub_semver:
     dependency: transitive
     description:
@@ -401,28 +366,14 @@ packages:
     source: hosted
     version: "2.1.0"
   pubspec_parse:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: pubspec_parse
       url: "https://pub.dev"
     source: hosted
     version: "1.2.0"
-  rational:
-    dependency: transitive
-    description:
-      name: rational
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.0"
-  recase:
-    dependency: transitive
-    description:
-      name: recase
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.0.0"
   riverpod:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: riverpod
       url: "https://pub.dev"
@@ -457,12 +408,26 @@ packages:
     source: hosted
     version: "1.0.1"
   source_gen:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: source_gen
       url: "https://pub.dev"
     source: hosted
     version: "1.2.1"
+  source_gen_test:
+    dependency: "direct dev"
+    description:
+      name: source_gen_test
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.2"
+  source_helper:
+    dependency: transitive
+    description:
+      name: source_helper
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.3.1"
   source_map_stack_trace:
     dependency: transitive
     description:
@@ -484,20 +449,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.8.1"
-  squarealfa_common_types:
-    dependency: transitive
-    description:
-      name: squarealfa_common_types
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.0"
-  squarealfa_generators_common:
-    dependency: transitive
-    description:
-      name: squarealfa_generators_common
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.1.0"
   stack_trace:
     dependency: transitive
     description:
@@ -506,7 +457,7 @@ packages:
     source: hosted
     version: "1.10.0"
   state_notifier:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: state_notifier
       url: "https://pub.dev"
@@ -541,7 +492,7 @@ packages:
     source: hosted
     version: "1.2.0"
   test:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: test
       url: "https://pub.dev"
@@ -561,6 +512,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.4.11"
+  test_cov:
+    dependency: "direct dev"
+    description:
+      name: test_cov
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   timing:
     dependency: transitive
     description:
@@ -576,12 +534,19 @@ packages:
     source: hosted
     version: "1.3.0"
   uuid:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: uuid
       url: "https://pub.dev"
     source: hosted
     version: "3.0.5"
+  very_good_analysis:
+    dependency: "direct dev"
+    description:
+      name: very_good_analysis
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.0"
   vm_service:
     dependency: transitive
     description:
@@ -618,4 +583,4 @@ packages:
     source: hosted
     version: "3.1.0"
 sdks:
-  dart: ">=2.15.1 <3.0.0"
+  dart: ">=2.14.0 <3.0.0"

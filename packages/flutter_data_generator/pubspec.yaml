@@ -1,0 +1,14 @@
+name: flutter_data_generator
+description: Code generation of flutter_data
+version: 1.0.1
+homepage: https://github.com/flutterdata/flutter_data
+documentation: https://flutterdata.dev/
+
+environment:
+  sdk: ">=2.14.0 <3.0.0"
+dependencies:
+  source_gen: ^1.2.1
+  analyzer: ^3.0.0
+  build: ^2.0.0
+  flutter_data: ^1.0.0
+  glob: ^2.0.0

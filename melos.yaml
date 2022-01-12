@@ -1,0 +1,9 @@
+name: flutter_data_melos
+
+packages:
+  - packages/**
+  - examples/**
+
+ide:
+  intellij:
+    false

@@ -3,22 +3,6 @@
 part of 'user.dart';
 
 // **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-User _$UserFromJson(Map<String, dynamic> json) => User(
-      id: json['id'] as int,
-      name: json['name'] as String,
-      email: json['email'] as String,
-    );
-
-Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
-      'email': instance.email,
-    };
-
-// **************************************************************************
 // RepositoryGenerator
 // **************************************************************************
 
@@ -45,7 +29,7 @@ mixin $UserLocalAdapter on LocalAdapter<User> {
 // ignore: must_be_immutable
 class $UserHiveLocalAdapter = HiveLocalAdapter<User> with $UserLocalAdapter;
 
-class $UserRemoteAdapter = RemoteAdapter<User> with JSONServerAdapter<User>;
+class $UserRemoteAdapter = RemoteAdapter<User> with NothingMixin;
 
 //
 
@@ -118,7 +102,4 @@ extension UserDataX on User {
   }
 }
 
-extension UserDataRepositoryX on Repository<User> {
-  JSONServerAdapter<User> get jSONServerAdapter =>
-      remoteAdapter as JSONServerAdapter<User>;
-}
+extension UserDataRepositoryX on Repository<User> {}
