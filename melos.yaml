@@ -4,6 +4,11 @@ packages:
   - packages/**
   - examples/**
 
+scripts:
+  nullsafe_dep: |
+    melos exec dart pub outdated --mode=null-safety
+  nullsafe_update: |
+    melos exec dart pub upgrade --null-safety
 ide:
   intellij:
     false

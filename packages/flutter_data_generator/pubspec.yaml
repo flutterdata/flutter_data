@@ -8,12 +8,12 @@ environment:
   sdk: ">=2.14.0 <3.0.0"
 dependencies:
   analyzer: ^3.0.0
-  build: ^2.0.2
-  build_resolvers: ^2.0.3
-  flutter_data: ^1.0.0
-  glob: ^2.0.0
-  json_annotation: 
-  pubspec_parse: ^1.0.0
+  build: ^2.2.1
+  build_resolvers: ^2.0.6
+  flutter_data: ^1.0.1
+  glob: ^2.0.2
+  json_annotation: ^4.4.0 
+  pubspec_parse: ^1.2.0
   source_gen: ^1.2.1
 dependency_overrides:
   flutter_data:
