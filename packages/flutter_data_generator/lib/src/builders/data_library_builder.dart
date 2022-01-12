@@ -9,8 +9,7 @@ import 'package:source_gen/source_gen.dart';
 
 import 'utils.dart';
 
-Builder dataExtensionIntermediateBuilder(options) =>
-    DataExtensionIntermediateBuilder();
+Builder dataExtensionIntermediateBuilder(options) => DataExtensionIntermediateBuilder();
 
 class DataExtensionIntermediateBuilder implements Builder {
   @override
@@ -55,15 +54,12 @@ class DataExtensionBuilder implements Builder {
   Future<void> build(BuildStep b) async {
     final finalAssetId = AssetId(b.inputId.package, 'lib/main.data.dart');
 
-    final _classes = [
-      await for (final file in b.findAssets(Glob('**/*.info')))
-        await b.readAsString(file)
-    ];
+    final _classes = [await for (final file in b.findAssets(Glob('**/*.info'))) await b.readAsString(file)];
 
     final classes = _classes.fold<List<Map<String, String>>>([], (acc, line) {
       for (final e in line.split(';')) {
         final parts = e.split('#');
-        final type = DataHelpers.getType(parts[0]);
+        final type = DataHelpers.getTypeFromString(parts[0]);
         acc.add({
           'name': parts[0],
           'type': type,
@@ -80,41 +76,26 @@ class DataExtensionBuilder implements Builder {
       return null;
     }
 
-    final modelImports = classes
-        .map((clazz) => 'import \'${clazz['path']}\';')
-        .toSet()
-        .join('\n');
+    final modelImports = classes.map((clazz) => 'import \'${clazz['path']}\';').toSet().join('\n');
 
     final adaptersMap = {
-      for (final clazz in classes)
-        '\'${clazz['type']}\'':
-            'ref.watch(${clazz['type']}RemoteAdapterProvider)'
+      for (final clazz in classes) '\'${clazz['type']}\'': 'ref.watch(${clazz['type']}RemoteAdapterProvider)'
     };
 
-    final remotesMap = {
-      for (final clazz in classes) '\'${clazz['type']}\'': clazz['remote']
-    };
+    final remotesMap = {for (final clazz in classes) '\'${clazz['type']}\'': clazz['remote']};
 
     // imports
 
     final isFlutter = await isDependency('flutter', b);
     final hasPathProvider = await isDependency('path_provider', b);
-    final isFlutterRiverpod = await isDependency('flutter_riverpod', b) ||
-        await isDependency('hooks_riverpod', b);
+    final isFlutterRiverpod = await isDependency('flutter_riverpod', b) || await isDependency('hooks_riverpod', b);
 
-    final flutterFoundationImport = isFlutter
-        ? "import 'package:flutter/foundation.dart' show kIsWeb;"
-        : '';
-    final pathProviderImport = hasPathProvider
-        ? "import 'package:path_provider/path_provider.dart';"
-        : '';
-    final riverpodFlutterImport = isFlutterRiverpod
-        ? "import 'package:flutter_riverpod/flutter_riverpod.dart';"
-        : '';
+    final flutterFoundationImport = isFlutter ? "import 'package:flutter/foundation.dart' show kIsWeb;" : '';
+    final pathProviderImport = hasPathProvider ? "import 'package:path_provider/path_provider.dart';" : '';
+    final riverpodFlutterImport = isFlutterRiverpod ? "import 'package:flutter_riverpod/flutter_riverpod.dart';" : '';
 
-    final autoBaseDirFn = hasPathProvider
-        ? 'baseDirFn ??= () => getApplicationDocumentsDirectory().then((dir) => dir.path);'
-        : '';
+    final autoBaseDirFn =
+        hasPathProvider ? 'baseDirFn ??= () => getApplicationDocumentsDirectory().then((dir) => dir.path);' : '';
 
     //
 

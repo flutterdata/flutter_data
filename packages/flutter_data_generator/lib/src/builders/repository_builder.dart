@@ -12,29 +12,25 @@ import 'package:source_gen/source_gen.dart';
 
 import 'utils.dart';
 
-Builder repositoryBuilder(options) =>
-    SharedPartBuilder([RepositoryGenerator()], 'repository');
+Builder repositoryBuilder(options) => SharedPartBuilder([RepositoryGenerator()], 'repository');
 
 class RepositoryGenerator extends GeneratorForAnnotation<DataRepository> {
   @override
-  Future<String> generateForAnnotatedElement(
-      Element element, ConstantReader annotation, BuildStep buildStep) async {
+  Future<String> generateForAnnotatedElement(Element element, ConstantReader annotation, BuildStep buildStep) async {
     final classType = element.name;
-    final typeLowerCased = DataHelpers.getType(classType);
+    final typeLowerCased = DataHelpers.getTypeFromString(classType ?? '');
     ClassElement classElement;
 
     try {
       classElement = element as ClassElement;
     } catch (e) {
-      throw UnsupportedError(
-          "Can't generate repository for $classType. Please use @DataRepository on a class.");
+      throw UnsupportedError("Can't generate repository for $classType. Please use @DataRepository on a class.");
     }
 
     void _checkIsFinal(final ClassElement? element, String? name) {
       if (element != null) {
         if (name != null && element.getSetter(name) != null) {
-          throw UnsupportedError(
-              "Can't generate repository for $classType. The `$name` field MUST be final");
+          throw UnsupportedError("Can't generate repository for $classType. The `$name` field MUST be final");
         }
         _checkIsFinal(element.supertype?.element, name);
       }
@@ -48,26 +44,19 @@ class RepositoryGenerator extends GeneratorForAnnotation<DataRepository> {
 
     // relationship-related
 
-    final relationships = relationshipFields(classElement)
-        .fold<Set<Map<String, String?>>>({}, (result, field) {
+    final relationships = relationshipFields(classElement).fold<Set<Map<String, String?>>>({}, (result, field) {
       final relationshipClassElement = field.typeElement;
 
       // define inverse
 
-      final relationshipAnnotation = TypeChecker.fromRuntime(DataRelationship)
-          .firstAnnotationOfExact(field, throwOnUnresolved: false);
+      final relationshipAnnotation =
+          TypeChecker.fromRuntime(DataRelationship).firstAnnotationOfExact(field, throwOnUnresolved: false);
 
-      var inverse =
-          relationshipAnnotation?.getField('inverse')?.toStringValue();
+      var inverse = relationshipAnnotation?.getField('inverse')?.toStringValue();
 
       if (inverse == null) {
-        final possibleInverseElements =
-            relationshipFields(relationshipClassElement).where((elem) {
-          return (elem.type as ParameterizedType)
-                  .typeArguments
-                  .single
-                  .element ==
-              classElement;
+        final possibleInverseElements = relationshipFields(relationshipClassElement).where((elem) {
+          return (elem.type as ParameterizedType).typeArguments.single.element == classElement;
         });
 
         if (possibleInverseElements.length > 1) {
@@ -89,8 +78,8 @@ and execute a code generation build again.
 
       // prepare metadata
 
-      final jsonKeyAnnotation = TypeChecker.fromRuntime(JsonKey)
-          .firstAnnotationOfExact(field, throwOnUnresolved: false);
+      final jsonKeyAnnotation =
+          TypeChecker.fromRuntime(JsonKey).firstAnnotationOfExact(field, throwOnUnresolved: false);
 
       final keyName = jsonKeyAnnotation?.getField('name')?.toStringValue();
 
@@ -99,7 +88,7 @@ and execute a code generation build again.
         'name': field.name,
         'inverse': inverse,
         'kind': field.type.element?.name,
-        'type': DataHelpers.getType(relationshipClassElement.name),
+        'type': DataHelpers.getTypeFromString(relationshipClassElement.name),
       });
 
       return result;
@@ -118,11 +107,8 @@ and execute a code generation build again.
 
     // serialization-related
 
-    final hasFromJson =
-        classElement.constructors.any((c) => c.name == 'fromJson');
-    final fromJson = hasFromJson
-        ? '$classType.fromJson(map)'
-        : '_\$${classType}FromJson(map)';
+    final hasFromJson = classElement.constructors.any((c) => c.name == 'fromJson');
+    final fromJson = hasFromJson ? '$classType.fromJson(map)' : '_\$${classType}FromJson(map)';
 
     final methods = [
       ...classElement.methods,
@@ -130,8 +116,7 @@ and execute a code generation build again.
       ...classElement.mixins.map((i) => i.methods).expand((i) => i)
     ];
     final hasToJson = methods.any((c) => c.name == 'toJson');
-    final toJson =
-        hasToJson ? 'model.toJson()' : '_\$${classType}ToJson(model)';
+    final toJson = hasToJson ? 'model.toJson()' : '_\$${classType}ToJson(model)';
 
     // additional adapters
 
@@ -150,17 +135,13 @@ and execute a code generation build again.
       }
 
       if (!remoteAdapterTypeChecker.isAssignableFromType(mixinType)) {
-        throw UnsupportedError(
-            'Adapter `$mixinType` MUST have a constraint `on` RemoteAdapter<$classType>');
+        throw UnsupportedError('Adapter `$mixinType` MUST have a constraint `on` RemoteAdapter<$classType>');
       }
 
-      final instantiatedMixinType = (mixinType.element as ClassElement)
-          .instantiate(
-              typeArguments: [if (args.isNotEmpty) classElement.thisType],
-              nullabilitySuffix: NullabilitySuffix.none);
+      final instantiatedMixinType = (mixinType.element as ClassElement).instantiate(
+          typeArguments: [if (args.isNotEmpty) classElement.thisType], nullabilitySuffix: NullabilitySuffix.none);
       mixinMethods.addAll(instantiatedMixinType.methods);
-      displayName =
-          instantiatedMixinType.getDisplayString(withNullability: false);
+      displayName = instantiatedMixinType.getDisplayString(withNullability: false);
 
       return displayName;
     }).toSet();

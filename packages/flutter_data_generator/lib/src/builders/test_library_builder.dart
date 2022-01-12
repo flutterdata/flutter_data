@@ -3,8 +3,8 @@
 import 'dart:async';
 
 import 'package:build/build.dart';
-import 'package:flutter_data/builders/utils.dart';
 import 'package:flutter_data/flutter_data.dart';
+import 'package:flutter_data_generator/src/builders/utils.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as path_helper;
 
@@ -22,17 +22,13 @@ class TestExtensionBuilder implements Builder {
     final finalAssetId = AssetId(b.inputId.package, '$testDir/test.data.dart');
     final testPath = path_helper.join(b.inputId.package, testDir);
 
-    final _classes = [
-      await for (final file in b.findAssets(Glob('**/*.info')))
-        await b.readAsString(file)
-    ];
+    final _classes = [await for (final file in b.findAssets(Glob('**/*.info'))) await b.readAsString(file)];
 
     final imports = _classes
         .map((s) {
           final assetUri = Uri.parse(s.split('#')[1]);
           if (assetUri.scheme == 'asset') {
-            final relativePath =
-                path_helper.relative(assetUri.path, from: testPath);
+            final relativePath = path_helper.relative(assetUri.path, from: testPath);
             return 'import \'$relativePath\';';
           }
           return 'import \'$assetUri\';';
@@ -52,7 +48,7 @@ class Test${className}RemoteAdapter = \$${className}RemoteAdapter with TestRemot
 
     final overrides = _classes.map((s) {
       final className = s.split('#')[0];
-      final classType = DataHelpers.getType(className);
+      final classType = DataHelpers.getTypeFromString(className);
       return '''
 ${classType}LocalAdapterProvider.overrideWithProvider(Provider((ref) =>
     \$Test${className}LocalAdapter(ref.read))),
