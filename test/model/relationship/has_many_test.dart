@@ -16,16 +16,16 @@ void main() async {
     final anne = Person(name: 'Anne', age: 59);
     final f1 = Family(surname: 'Mayer', persons: {anne}.asHasMany);
 
-    f1.persons!.add(anne);
-    f1.persons!.add(anne);
-    expect(f1.persons!.length, 1);
+    f1.persons.add(anne);
+    f1.persons.add(anne);
+    expect(f1.persons.length, 1);
 
     final agnes = Person(name: 'Agnes', age: 29);
-    f1.persons!.add(agnes);
-    expect(f1.persons!.length, 2);
+    f1.persons.add(agnes);
+    expect(f1.persons.length, 2);
 
-    f1.persons!.remove(anne);
-    expect(f1.persons, {agnes});
+    f1.persons.remove(anne);
+    expect(f1.persons.toSet(), {agnes});
   });
 
   test('behaves like a collection (with init)', () {
@@ -34,28 +34,28 @@ void main() async {
     final f2 = Family(surname: 'Sumberg', persons: {pete}.asHasMany)
         .init(container.read);
 
-    f2.persons!.add(pete);
-    f2.persons!.add(pete);
-    expect(f2.persons!.length, 1);
+    f2.persons.add(pete);
+    f2.persons.add(pete);
+    expect(f2.persons.length, 1);
 
-    f2.persons!.add(anne);
-    expect(f2.persons!.length, 2);
+    f2.persons.add(anne);
+    expect(f2.persons.length, 2);
 
-    f2.persons!.remove(anne);
-    expect(f2.persons, {pete});
+    f2.persons.remove(anne);
+    expect(f2.persons.toSet(), {pete});
   });
 
   test('assignment with relationship initialized & uninitialized', () {
     final family = Family(id: '1', surname: 'Smith', persons: HasMany());
     final person = Person(id: '1', name: 'Flavio', age: 12);
 
-    family.persons!.add(person);
-    expect(family.persons!.contains(person), isTrue);
+    family.persons.add(person);
+    expect(family.persons.contains(person), isTrue);
 
     family.init(container.read);
 
-    family.persons!.add(person);
-    expect(family.persons!.contains(person), isTrue);
+    family.persons.add(person);
+    expect(family.persons.contains(person), isTrue);
   });
 
   test('use fromJson constructor without initialization', () {
@@ -77,35 +77,35 @@ void main() async {
       persons: HasMany<Person>(),
     ).init(container.read);
 
-    final notifier = family.persons!.watch();
+    final notifier = family.persons.watch();
     final listener = Listener<Set<Person>>();
     dispose = notifier.addListener(listener, fireImmediately: false);
 
     final p1 = Person(name: 'a', age: 1);
     final p2 = Person(name: 'b', age: 2);
 
-    family.persons!.add(p1);
+    family.persons.add(p1);
     await oneMs();
 
     verify(listener({p1})).called(1);
 
-    family.persons!.add(p2);
+    family.persons.add(p2);
     await oneMs();
 
     verify(listener({p1, p2})).called(1);
 
-    family.persons!.add(p2);
+    family.persons.add(p2);
     await oneMs();
 
     // doesn't show up as p2 was already present!
     verifyNever(listener({p1, p2}));
 
-    family.persons!.remove(p1);
+    family.persons.remove(p1);
     await oneMs();
 
     verify(listener({p2})).called(1);
 
-    family.persons!.add(p1);
+    family.persons.add(p1);
     await oneMs();
 
     verify(listener({p1, p2})).called(1);
@@ -121,7 +121,7 @@ void main() async {
 
     final a2 = a1.copyWith(books: HasMany.remove()).was(a1);
     await a2.save();
-    expect(a2.books, <Book>{});
-    expect(a1.books, <Book>{});
+    expect(a2.books!.toSet(), <Book>{});
+    expect(a1.books!.toSet(), <Book>{});
   });
 }

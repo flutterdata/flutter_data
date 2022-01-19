@@ -174,19 +174,24 @@ final _repositoryInitializerProviderFamily =
 
     await ref.watch(graphNotifierProvider).initialize();
 
-    for (final key in repositoryProviders.keys) {
-      final repository = ref.watch(repositoryProviders[key]!);
+    final _repoMap = {
+      for (final type in repositoryProviders.keys)
+        [type]: ref.watch(repositoryProviders[type]!)
+    };
+
+    for (final type in _repoMap.keys) {
+      final repository = _repoMap[type]!;
       repository.dispose();
       await repository.initialize(
-        remote: args.remote ?? remotes[key],
+        remote: args.remote ?? remotes[type],
         verbose: args.verbose,
         adapters: adapters,
       );
     }
 
     ref.onDispose(() {
-      for (final repositoryProvider in repositoryProviders.values) {
-        ref.watch(repositoryProvider).dispose();
+      for (final repository in _repoMap.values) {
+        repository.dispose();
       }
     });
 

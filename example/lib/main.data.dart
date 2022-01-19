@@ -8,8 +8,7 @@ import 'package:flutter_data/flutter_data.dart';
 
 
 
-import 'package:jsonplaceholder_example/models/comment.dart';
-import 'package:jsonplaceholder_example/models/post.dart';
+import 'package:jsonplaceholder_example/models/task.dart';
 import 'package:jsonplaceholder_example/models/user.dart';
 
 // ignore: prefer_function_declarations_over_variables
@@ -32,32 +31,35 @@ RepositoryInitializerProvider repositoryInitializerProvider = (
 };
 
 final repositoryProviders = <String, Provider<Repository<DataModel>>>{
-  'comments': commentsRepositoryProvider,
-'posts': postsRepositoryProvider,
-'sheep': sheepRepositoryProvider,
+  'tasks': tasksRepositoryProvider,
 'users': usersRepositoryProvider
 };
 
 final _repositoryInitializerProviderFamily =
   FutureProvider.family<RepositoryInitializer, RepositoryInitializerArgs>((ref, args) async {
-    final adapters = <String, RemoteAdapter>{'comments': ref.watch(commentsRemoteAdapterProvider), 'posts': ref.watch(postsRemoteAdapterProvider), 'sheep': ref.watch(sheepRemoteAdapterProvider), 'users': ref.watch(usersRemoteAdapterProvider)};
-    final remotes = <String, bool>{'comments': true, 'posts': true, 'sheep': false, 'users': true};
+    final adapters = <String, RemoteAdapter>{'tasks': ref.watch(tasksRemoteAdapterProvider), 'users': ref.watch(usersRemoteAdapterProvider)};
+    final remotes = <String, bool>{'tasks': true, 'users': true};
 
     await ref.watch(graphNotifierProvider).initialize();
 
-    for (final key in repositoryProviders.keys) {
-      final repository = ref.watch(repositoryProviders[key]!);
+    final _repoMap = {
+      for (final type in repositoryProviders.keys)
+        [type]: ref.watch(repositoryProviders[type]!)
+    };
+
+    for (final type in _repoMap.keys) {
+      final repository = _repoMap[type]!;
       repository.dispose();
       await repository.initialize(
-        remote: args.remote ?? remotes[key],
+        remote: args.remote ?? remotes[type],
         verbose: args.verbose,
         adapters: adapters,
       );
     }
 
     ref.onDispose(() {
-      for (final repositoryProvider in repositoryProviders.values) {
-        ref.watch(repositoryProvider).dispose();
+      for (final repository in _repoMap.values) {
+        repository.dispose();
       }
     });
 

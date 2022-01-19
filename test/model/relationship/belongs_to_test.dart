@@ -26,22 +26,22 @@ void main() async {
 
     // values are there even if family (and its relationships) are not init'd
     expect(family.residence!.value, house);
-    expect(family.persons, {person});
+    expect(family.persons.toSet(), {person});
     expect(family.persons, equals(family.persons));
 
     family.init(container.read);
 
     // after init, values remain the same
     expect(family.residence!.value, house);
-    expect(family.persons, {person});
+    expect(family.persons.toSet(), {person});
     expect(family.persons, equals(family.persons));
 
     // relationships are now associated to a key
     expect(family.residence!.key, isNotNull);
     expect(family.residence!.key, graph.getKeyForId('houses', '31'));
     expect(family.residence!.id, '31');
-    expect(family.persons!.keys.first, isNotNull);
-    expect(family.persons!.keys.first, graph.getKeyForId('people', '1'));
+    expect(family.persons.keys.first, isNotNull);
+    expect(family.persons.keys.first, graph.getKeyForId('people', '1'));
 
     // ensure there are not more than 1 key
     family.residence!.value = house2;
@@ -118,9 +118,9 @@ void main() async {
 
     // reusing a BelongsTo<Family> (`house.owner`) to add a person
     // adds the inverse relationship
-    expect(family.persons!.length, 1);
+    expect(family.persons.length, 1);
     Person(name: 'Junior', age: 12, family: house.owner).init(container.read);
-    expect(family.persons!.length, 2);
+    expect(family.persons.length, 2);
 
     // an empty reused relationship should not fail
     final house2 =
@@ -130,7 +130,7 @@ void main() async {
     // trying to add walter to a null family does nothing
     Person(name: 'Walter', age: 55, family: house2.owner).init(container.read);
 
-    expect(family.persons!.length, 2);
+    expect(family.persons.length, 2);
   });
 
   test('remove relationship', () async {

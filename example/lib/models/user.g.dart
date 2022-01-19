@@ -7,15 +7,17 @@ part of 'user.dart';
 // **************************************************************************
 
 User _$UserFromJson(Map<String, dynamic> json) => User(
-      id: json['id'] as int,
+      id: json['id'] as int?,
       name: json['name'] as String,
-      email: json['email'] as String,
+      tasks: json['tasks'] == null
+          ? null
+          : HasMany<Task>.fromJson(json['tasks'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
-      'email': instance.email,
+      'tasks': instance.tasks,
     };
 
 // **************************************************************************
@@ -26,7 +28,15 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
 
 mixin $UserLocalAdapter on LocalAdapter<User> {
   @override
-  Map<String, Map<String, Object?>> relationshipsFor([User? model]) => {};
+  Map<String, Map<String, Object?>> relationshipsFor([User? model]) => {
+        'tasks': {
+          'name': 'tasks',
+          'inverse': 'user',
+          'type': 'tasks',
+          'kind': 'HasMany',
+          'instance': model?.tasks
+        }
+      };
 
   @override
   User deserialize(map) {

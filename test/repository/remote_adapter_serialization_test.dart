@@ -42,6 +42,8 @@ void main() async {
     expect(serialized, {
       'id': '334',
       'surname': 'Zhan',
+      // we expect persons: [] as it's default in the Family class
+      'persons': [],
       'residence_id': '1',
       'dogs': ['1', '2']
     });
@@ -125,7 +127,7 @@ void main() async {
     ]).model!;
 
     expect(
-        f.persons!.keys,
+        f.persons.keys,
         unorderedEquals([
           graph.getKeyForId('people', '1'),
           graph.getKeyForId('people', '2'),
@@ -161,7 +163,7 @@ void main() async {
     // check included instead
     expect(data.included, [p1, p2, House(id: '1', address: '123 Main St')]);
 
-    expect(f1.persons, {p1, p2});
+    expect(f1.persons.toSet(), {p1, p2});
   });
 
   test('deserialize with nested embedded relationships', () {

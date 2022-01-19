@@ -423,7 +423,7 @@ void main() async {
         TestResponse.text('''{ "id": "22", "surname": "Paez" }''');
     final notifier = familyRepository.watchOneNotifier(
       '22',
-      alsoWatch: (f) => [f.persons!],
+      alsoWatch: (f) => [f.persons],
     );
 
     dispose = notifier.addListener(listener, fireImmediately: true);
@@ -433,7 +433,7 @@ void main() async {
     verifyNoMoreInteractions(listener);
 
     final f1 = await familyRepository.findOne('22', remote: false);
-    f1!.persons!.add(Person(name: 'Martin', age: 44)); // this time without init
+    f1!.persons.add(Person(name: 'Martin', age: 44)); // this time without init
     await oneMs();
 
     verify(listener(argThat(isA<DataState>()

@@ -104,7 +104,7 @@ void main() async {
 
     expect(family, Family(id: '1', surname: 'Smith'));
     expect(family.residence!.value!.address, '123 Main St');
-    expect(family.persons!.first.age, 21);
+    expect(family.persons.first.age, 21);
   });
 
   test('hive adapter typeId', () {

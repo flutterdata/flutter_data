@@ -27,7 +27,7 @@ Family _$FamilyFromJson(Map<String, dynamic> json) => Family(
 Map<String, dynamic> _$FamilyToJson(Family instance) => <String, dynamic>{
       'id': instance.id,
       'surname': instance.surname,
-      'persons': instance.persons?.toJson(),
+      'persons': instance.persons.toJson(),
       'cottage': instance.cottage?.toJson(),
       'residence': instance.residence?.toJson(),
       'dogs': instance.dogs?.toJson(),

@@ -177,7 +177,7 @@ void main() async {
 
       // add some people
       if (i % div == 0) {
-        family.persons!
+        family.persons
             .add(Person(name: 'new kid #$i', age: i).init(container.read));
       }
 

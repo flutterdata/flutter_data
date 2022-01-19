@@ -180,7 +180,7 @@ void main() async {
     );
 
     final notifier = familyRemoteAdapter.watchOneNotifier('22',
-        alsoWatch: (family) => [family.persons!, family.residence!],
+        alsoWatch: (family) => [family.persons, family.residence!],
         remote: true);
 
     final listener = Listener<DataState<Family?>?>();
@@ -206,7 +206,7 @@ void main() async {
 
     verify(listener(argThat(matcher))).called(1);
 
-    f1.persons!.add(Person(name: 'Martin', age: 44)); // this time without init
+    f1.persons.add(Person(name: 'Martin', age: 44)); // this time without init
     await oneMs();
 
     verify(listener(argThat(
@@ -223,7 +223,7 @@ void main() async {
     ))).called(1);
     verifyNoMoreInteractions(listener);
 
-    f1.persons!.remove(p1);
+    f1.persons.remove(p1);
     await oneMs();
 
     verify(listener(argThat(

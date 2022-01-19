@@ -13,7 +13,7 @@ class Family with DataModel<Family> {
   @override
   final String? id;
   final String surname;
-  final HasMany<Person>? persons;
+  late final HasMany<Person> persons;
   final BelongsTo<House>? cottage;
   final BelongsTo<House>? residence;
   final HasMany<Dog>? dogs;
@@ -21,11 +21,11 @@ class Family with DataModel<Family> {
   Family({
     this.id,
     required this.surname,
-    this.persons,
+    HasMany<Person>? persons,
     this.cottage,
     this.residence,
     this.dogs,
-  });
+  }) : persons = persons ?? HasMany();
 
   // no fromJson or toJson on purpose (testing codegen)
 

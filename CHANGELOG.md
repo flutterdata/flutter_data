@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0]
+
+- Upgrade dependencies to latest
+- Simplify example app
+- Fixed #125: Error when disposing repositories during tests
+- Fixed #131: Allow late final relationships in models for better defaults
+- Relationships are no longer collections due to upgrade in Freezed
+
 ## [1.0.1]
 
 - Add adapter shortcuts

@@ -32,7 +32,9 @@ class RepositoryGenerator extends GeneratorForAnnotation<DataRepository> {
 
     void _checkIsFinal(final ClassElement? element, String? name) {
       if (element != null) {
-        if (name != null && element.getSetter(name) != null) {
+        if (name != null &&
+            element.getSetter(name) != null &&
+            !element.getField(name)!.isLate) {
           throw UnsupportedError(
               "Can't generate repository for $classType. The `$name` field MUST be final");
         }
