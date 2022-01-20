@@ -57,7 +57,7 @@ class Test${className}RemoteAdapter = \$${className}RemoteAdapter with TestRemot
 ${classType}LocalAdapterProvider.overrideWithProvider(Provider((ref) =>
     \$Test${className}LocalAdapter(ref.read))),
 ${classType}RemoteAdapterProvider.overrideWithProvider(Provider((ref) =>
-    Test${className}RemoteAdapter(ref.watch(${classType}LocalAdapterProvider)))),
+    Test${className}RemoteAdapter(ref.watch(${classType}LocalAdapterProvider), ${getProviderStringSingular(DataHelpers.getType(classType))}, ${getProviderStringPlural(DataHelpers.getType(classType))}))),
 ''';
     }).join('\n');
 

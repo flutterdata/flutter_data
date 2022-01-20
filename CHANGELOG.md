@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.1]
+
+- Fix providers omission in test.data.dart
+
 ## [1.1.0]
 
 - Upgrade dependencies to latest
