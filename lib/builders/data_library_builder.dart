@@ -176,7 +176,7 @@ final _repositoryInitializerProviderFamily =
 
     final _repoMap = {
       for (final type in repositoryProviders.keys)
-        [type]: ref.watch(repositoryProviders[type]!)
+        type: ref.watch(repositoryProviders[type]!)
     };
 
     for (final type in _repoMap.keys) {
