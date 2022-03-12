@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.0]
+
+- Fix issue #141 with `remote=false` by default
+- Allow nullable relationships in `alsoWatch`
+- Replace `dynamic` for `Object?`
+- Make some `RemoteAdapter` methods public
+- Notify in graph if saving with `remote=false`
+- Fix issue with inverse relationships in Freezed
+- Add experimental model watch API
+
 ## [1.1.1]
 
 - Fix providers omission in test.data.dart
