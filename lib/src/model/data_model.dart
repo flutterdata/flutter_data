@@ -138,6 +138,20 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     );
   }
 
+  /// EXPERIMENTAL! Watch this model.
+  ///
+  /// **ONLY use this shortcut when the model is non-null.*
+  T watch({
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    AlsoWatch<T>? alsoWatch,
+  }) {
+    _assertInit('watch');
+    return remoteAdapter
+        .watchOne(this, remote: false, alsoWatch: alsoWatch)
+        .model!;
+  }
+
   void _assertInit(String method) {
     if (isInitialized) {
       return;
