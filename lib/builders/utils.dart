@@ -16,33 +16,20 @@ Iterable<VariableElement> relationshipFields(ClassElement elem) {
     for (final field in elem.fields)
       if (field.type.element is ClassElement &&
           field.isPublic &&
+          !(field.getter?.declaration.hasOverride ?? false) &&
           (field.type.element as ClassElement).supertype != null &&
           relationshipTypeChecker.isSuperOf(field.type.element!))
         field.name: field,
+    // also check factory constructors (used with freezed)
+    for (final constructor in elem.constructors)
+      if (constructor.isFactory)
+        for (final param in constructor.parameters)
+          if (param.type.element != null &&
+              relationshipTypeChecker.isSuperOf(param.type.element!))
+            param.name: param,
   };
 
-  // if no relationships were found, we might be in presence
-  // of a Freezed object, so check factory constructors
-  if (map.isEmpty) {
-    map = {
-      for (final constructor in elem.constructors)
-        if (constructor.isFactory)
-          for (final param in constructor.parameters)
-            if (param.type.element != null &&
-                relationshipTypeChecker.isSuperOf(param.type.element!))
-              param.name: param,
-    };
-  }
-
-  final out = map.values.toList();
-
-  // if parent mixes DataModel in, also include its relationships
-  if (elem.supertype != null &&
-      dataModelTypeChecker.isAssignableFrom(elem.supertype!.element)) {
-    out.addAll(relationshipFields(elem.supertype!.element));
-  }
-
-  return out;
+  return map.values.toList();
 }
 
 extension VariableElementX on VariableElement {
