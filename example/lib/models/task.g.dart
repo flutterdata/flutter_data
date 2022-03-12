@@ -74,7 +74,7 @@ final tasksRepositoryProvider =
 final _taskProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Task?>, DataState<Task?>, WatchArgs<Task>>(
         (ref, args) {
-  return ref.watch(tasksRepositoryProvider).watchOneNotifier(args.id,
+  return ref.watch(tasksRepositoryProvider).watchOneNotifier(args.id!,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -82,7 +82,7 @@ final _taskProvider = StateNotifierProvider.autoDispose
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Task?>, DataState<Task?>>
-    taskProvider(dynamic id,
+    taskProvider(Object? id,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
