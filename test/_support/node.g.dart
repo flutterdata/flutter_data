@@ -83,7 +83,7 @@ final nodesRepositoryProvider =
 final _nodeProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Node?>, DataState<Node?>, WatchArgs<Node>>(
         (ref, args) {
-  return ref.watch(nodesRepositoryProvider).watchOneNotifier(args.id,
+  return ref.watch(nodesRepositoryProvider).watchOneNotifier(args.id!,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -91,7 +91,7 @@ final _nodeProvider = StateNotifierProvider.autoDispose
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Node?>, DataState<Node?>>
-    nodeProvider(dynamic id,
+    nodeProvider(Object? id,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,

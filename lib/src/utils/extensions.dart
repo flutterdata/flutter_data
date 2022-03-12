@@ -52,7 +52,7 @@ class StringUtils {
 
   @protected
   @visibleForTesting
-  static String typify(String type, dynamic id) {
+  static String typify(String type, Object id) {
     assert(!type.contains('#'));
     return '$type#$id';
   }

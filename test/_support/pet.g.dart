@@ -70,7 +70,7 @@ final dogsRepositoryProvider =
 final _dogProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Dog?>, DataState<Dog?>, WatchArgs<Dog>>(
         (ref, args) {
-  return ref.watch(dogsRepositoryProvider).watchOneNotifier(args.id,
+  return ref.watch(dogsRepositoryProvider).watchOneNotifier(args.id!,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -78,7 +78,7 @@ final _dogProvider = StateNotifierProvider.autoDispose
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Dog?>, DataState<Dog?>>
-    dogProvider(dynamic id,
+    dogProvider(Object? id,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
@@ -167,7 +167,7 @@ final catsRepositoryProvider =
 final _catProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Cat?>, DataState<Cat?>, WatchArgs<Cat>>(
         (ref, args) {
-  return ref.watch(catsRepositoryProvider).watchOneNotifier(args.id,
+  return ref.watch(catsRepositoryProvider).watchOneNotifier(args.id!,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -175,7 +175,7 @@ final _catProvider = StateNotifierProvider.autoDispose
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Cat?>, DataState<Cat?>>
-    catProvider(dynamic id,
+    catProvider(Object? id,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,

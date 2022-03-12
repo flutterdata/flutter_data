@@ -246,10 +246,10 @@ void main() async {
 
     // now delete
     container.read(responseProvider.notifier).state = TestResponse.text('');
-    await personRepository.delete(person.id, remote: true);
+    await personRepository.delete(person.id!, remote: true);
 
     // so fetching by id again is null
-    expect(await personRepository.findOne(person.id), isNull);
+    expect(await personRepository.findOne(person.id!), isNull);
   });
 
   test('watchAllNotifier', () async {

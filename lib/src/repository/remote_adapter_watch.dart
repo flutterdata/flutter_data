@@ -110,16 +110,14 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
   @protected
   @visibleForTesting
   DataStateNotifier<T?> watchOneNotifier(
-    dynamic model, {
+    Object model, {
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     AlsoWatch<T>? alsoWatch,
   }) {
     _assertInit();
-    if (model == null) {
-      throw AssertionError();
-    }
+
     remote ??= _remote;
 
     final id = _resolveId(model);
@@ -180,8 +178,9 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           _alsoWatchFilters.isEmpty &&
           model != null &&
           model.isInitialized) {
-        _alsoWatchFilters.addAll(alsoWatch(model).map((rel) {
-          return rel._name;
+        _alsoWatchFilters
+            .addAll(alsoWatch(model).where((rel) => rel != null).map((rel) {
+          return rel!._name;
         }));
       }
     }
@@ -260,7 +259,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
   }
 
   DataState<T?> watchOne(
-    dynamic id, {
+    Object model, {
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
@@ -270,7 +269,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       throw UnsupportedError(_watchOneError);
     }
     return internalWatch!(_oneProvider!(
-      id,
+      model,
       remote: remote,
       params: params,
       headers: headers,
@@ -292,4 +291,4 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
   }
 }
 
-typedef AlsoWatch<T> = List<Relationship> Function(T);
+typedef AlsoWatch<T> = List<Relationship?> Function(T);

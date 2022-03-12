@@ -32,11 +32,6 @@ void main() async {
     expect(family, family1);
   });
 
-  test('findOne with null', () {
-    expectLater(
-        familyRemoteAdapter.findOne(null), throwsA(isA<AssertionError>()));
-  });
-
   test('findOne with includes', () async {
     final data = familyRemoteAdapter.deserialize(json.decode('''
       { "id": "1", "surname": "Smith", "persons": [{"_id": "1", "name": "Stan", "age": 31}] }
@@ -49,13 +44,13 @@ void main() async {
     final house = House(id: '25', address: '12 Lincoln Rd');
 
     // the house is not initialized, so we shouldn't be able to find it
-    expect(await houseRemoteAdapter.findOne(house.id), isNull);
+    expect(await houseRemoteAdapter.findOne(house.id!), isNull);
 
     // now initialize
     house.init(container.read);
 
     // repo.findOne works because the House repo is remote=false
-    expect(await houseRemoteAdapter.findOne(house.id), house);
+    expect(await houseRemoteAdapter.findOne(house.id!), house);
   });
 
   test('save and find', () async {
@@ -73,10 +68,10 @@ void main() async {
     expect(graph.getKeyForId('people', person.id), isNotNull);
 
     // now delete
-    await personRemoteAdapter.delete(person.id);
+    await personRemoteAdapter.delete(person.id!);
 
     // so fetching by id again is null
-    expect(await personRemoteAdapter.findOne(person.id), isNull);
+    expect(await personRemoteAdapter.findOne(person.id!), isNull);
 
     // and now key & id are both non-existent
     expect(graph.getNode(keyFor(person)!), isNull);

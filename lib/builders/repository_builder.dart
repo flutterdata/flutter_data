@@ -223,10 +223,10 @@ final ${typeLowerCased}RepositoryProvider =
 final _$providerStringSingular =
     StateNotifierProvider.autoDispose.family<DataStateNotifier<$classType?>, DataState<$classType?>, WatchArgs<$classType>>(
         (ref, args) {
-  return ref.watch(${typeLowerCased}RepositoryProvider).watchOneNotifier(args.id, remote: args.remote, params: args.params, headers: args.headers, alsoWatch: args.alsoWatch);
+  return ref.watch(${typeLowerCased}RepositoryProvider).watchOneNotifier(args.id!, remote: args.remote, params: args.params, headers: args.headers, alsoWatch: args.alsoWatch);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<$classType?>, DataState<$classType?>> $providerStringSingular(dynamic id,
+AutoDisposeStateNotifierProvider<DataStateNotifier<$classType?>, DataState<$classType?>> $providerStringSingular(Object? id,
     {bool? remote, Map<String, dynamic>? params, Map<String, String>? headers, AlsoWatch<$classType>? alsoWatch}) {
   return _$providerStringSingular(WatchArgs(id: id, remote: remote, params: params, headers: headers, alsoWatch: alsoWatch));
 }

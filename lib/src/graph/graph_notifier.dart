@@ -60,7 +60,7 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   ///    (if provided)
   ///  - It associates [keyIfAbsent] with the supplied [type]/[id]
   ///    (if both [keyIfAbsent] & [type]/[id] were provided)
-  String? getKeyForId(String type, dynamic id, {String? keyIfAbsent}) {
+  String? getKeyForId(String type, Object? id, {String? keyIfAbsent}) {
     type = DataHelpers.getType(type);
     if (id != null) {
       final namespacedId =
@@ -110,7 +110,7 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   }
 
   /// Removes [type]/[id] (and its edges) from graph
-  void removeId(String type, dynamic id) =>
+  void removeId(String type, Object id) =>
       _removeNode(StringUtils.namespace('id', StringUtils.typify(type, id)));
 
   // nodes

@@ -29,7 +29,7 @@ void main() async {
     expect(model.family.key, graph.getKeyForId('families', '55'));
 
     // (2) it saves the model locally
-    expect(model, await personRepository.findOne(model.id, remote: false));
+    expect(model, await personRepository.findOne(model.id!, remote: false));
   });
 
   test('findOne (reload) without ID', () async {

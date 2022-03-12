@@ -106,7 +106,7 @@ final _bookAuthorProvider = StateNotifierProvider.autoDispose.family<
     DataStateNotifier<BookAuthor?>,
     DataState<BookAuthor?>,
     WatchArgs<BookAuthor>>((ref, args) {
-  return ref.watch(bookAuthorsRepositoryProvider).watchOneNotifier(args.id,
+  return ref.watch(bookAuthorsRepositoryProvider).watchOneNotifier(args.id!,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -115,7 +115,7 @@ final _bookAuthorProvider = StateNotifierProvider.autoDispose.family<
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<BookAuthor?>,
         DataState<BookAuthor?>>
-    bookAuthorProvider(dynamic id,
+    bookAuthorProvider(Object? id,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
@@ -215,7 +215,7 @@ final booksRepositoryProvider =
 final _bookProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Book?>, DataState<Book?>, WatchArgs<Book>>(
         (ref, args) {
-  return ref.watch(booksRepositoryProvider).watchOneNotifier(args.id,
+  return ref.watch(booksRepositoryProvider).watchOneNotifier(args.id!,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -223,7 +223,7 @@ final _bookProvider = StateNotifierProvider.autoDispose
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Book?>, DataState<Book?>>
-    bookProvider(dynamic id,
+    bookProvider(Object? id,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,

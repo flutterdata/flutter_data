@@ -96,7 +96,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   ///
   /// See also: [_RemoteAdapter.urlForFindOne], [_RemoteAdapter.methodForFindOne].
   Future<T?> findOne(
-    final dynamic id, {
+    Object id, {
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
@@ -150,7 +150,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   ///
   /// See also: [_RemoteAdapter.urlForDelete], [_RemoteAdapter.methodForDelete].
   Future<void> delete(
-    dynamic model, {
+    Object model, {
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
@@ -231,7 +231,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   ///
   /// Will invoke [findAll] with [remote], [params], [headers].
   DataStateNotifier<T?> watchOneNotifier(
-    dynamic id, {
+    Object id, {
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
@@ -258,14 +258,14 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   /// ref.books.watchOne(1, alsoWatch: (book) => [book.author]);
   /// ```
   DataState<T?> watchOne(
-    dynamic id, {
+    Object model, {
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     AlsoWatch<T>? alsoWatch,
   }) {
     return remoteAdapter.watchOne(
-      id,
+      model,
       remote: remote,
       params: params,
       headers: headers,

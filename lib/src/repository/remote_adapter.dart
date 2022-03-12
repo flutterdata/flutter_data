@@ -58,8 +58,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @nonVirtual
   Map<String, RemoteAdapter> get adapters => _adapters!;
 
-  /// Give adapter subclasses access to the dependency injection system
-  @protected
+  /// Give access to the dependency injection system
   @nonVirtual
   Reader get read => _read!;
 
@@ -238,7 +237,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   /// Meant to be overriden. Defaults to [remote].
   @protected
   bool shouldLoadRemoteOne(
-    dynamic id,
+    Object? id,
     bool remote,
     Map<String, dynamic> params,
     Map<String, String> headers,
@@ -247,8 +246,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
   // remote implementation
 
-  @protected
-  @visibleForTesting
   Future<List<T>> findAll({
     bool? remote,
     Map<String, dynamic>? params,
@@ -287,10 +284,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     return result ?? <T>[];
   }
 
-  @protected
-  @visibleForTesting
   Future<T?> findOne(
-    final dynamic model, {
+    Object model, {
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
@@ -298,9 +293,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     OnDataError<T?>? onError,
   }) async {
     _assertInit();
-    if (model == null) {
-      throw AssertionError('Model must be not null');
-    }
     remote ??= _remote;
 
     params = await defaultParams & params;
@@ -324,7 +316,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       method: methodForFindOne(id, params),
       headers: headers,
       requestType: DataRequestType.findOne,
-      key: StringUtils.typify(internalType, id),
+      key: StringUtils.typify(internalType, id!),
       onSuccess: (data) {
         final model = deserialize(data).model;
         return onSuccess?.call(model) ?? model;
@@ -333,8 +325,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     );
   }
 
-  @protected
-  @visibleForTesting
   Future<T> save(
     T model, {
     bool? remote,
@@ -349,12 +339,12 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
 
-    // we ignore the `init` argument here as
-    // saving locally requires initializing
+    // ensure model is initialized
     model._initialize(adapters, save: true);
 
     if (remote == false) {
-      return model;
+      // if not remote, notify now
+      return localAdapter.save(model._key!, model, notify: true);
     }
 
     final body = json.encode(serialize(model));
@@ -393,10 +383,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     return result ?? model;
   }
 
-  @protected
-  @visibleForTesting
   Future<void> delete(
-    dynamic model, {
+    Object model, {
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
@@ -416,7 +404,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       await localAdapter.delete(key);
     }
 
-    if (remote!) {
+    if (remote! && id != null) {
       return await sendRequest(
         baseUrl.asUri / urlForDelete(id, params) & params,
         method: methodForDelete(id, params),
@@ -429,8 +417,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     }
   }
 
-  @protected
-  @visibleForTesting
   Future<void> clear() => localAdapter.clear();
 
   // http
@@ -559,19 +545,16 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   /// Initializes [model] making it ready to use with [DataModel] extensions.
   ///
   /// Optionally provide [key]. Use [save] to persist in local storage.
-  @protected
-  @visibleForTesting
   @nonVirtual
   T initializeModel(T model, {String? key, bool save = false}) {
     return model._initialize(adapters, key: key, save: save);
   }
 
-  String? _resolveId(dynamic model) {
-    final id = model is T ? model.id : model;
-    return id?.toString();
+  Object? _resolveId(Object? obj) {
+    return obj is T ? obj.id : obj;
   }
 
-  String? _keyForModel(dynamic model) {
+  String? _keyForModel(Object model) {
     final id = _resolveId(model);
     return graph.getKeyForId(internalType, id,
         keyIfAbsent: model is T ? model._key : null);
