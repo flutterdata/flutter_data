@@ -205,26 +205,6 @@ abstract class Relationship<E extends DataModel<E>, N>
   /// For internal use. Does not return valid JSON.
   dynamic toJson() => this;
 
-  // equality
-
-  // @override
-  // bool operator ==(dynamic other) =>
-  //     identical(this, other) ||
-  //     other is Relationship &&
-  //         isInitialized &&
-  //         other.isInitialized &&
-  //         _ownerKey == other._ownerKey &&
-  //         _name == other._name;
-
-  // @override
-  // int get hashCode {
-  //   if (isInitialized) {
-  //     return Object.hash(runtimeType, _ownerKey, _name);
-  //   } else {
-  //     return runtimeType.hashCode;
-  //   }
-  // }
-
   @override
   List<Object?> get props => [isInitialized, _ownerKey, _name];
 
