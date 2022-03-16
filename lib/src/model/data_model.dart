@@ -138,6 +138,22 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     );
   }
 
+  /// Get all non-null [Relationship]s for this model.
+  Iterable<Relationship> relationships({bool withValue = false}) {
+    _assertInit('relationships');
+    var rels = remoteAdapter.localAdapter
+        .relationshipsFor(this as T)
+        .values
+        .map((e) => e['instance'] as Relationship?)
+        .filterNulls;
+
+    if (withValue) {
+      rels = rels.where((r) => r is BelongsTo ? r.value != null : true);
+    }
+
+    return rels;
+  }
+
   /// EXPERIMENTAL! Watch this model.
   ///
   /// **ONLY use this shortcut when the model is non-null.*
@@ -148,7 +164,11 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   }) {
     _assertInit('watch');
     return remoteAdapter
-        .watchOne(this, remote: false, alsoWatch: alsoWatch)
+        .watchOne(this,
+            remote: false,
+            params: params,
+            headers: headers,
+            alsoWatch: alsoWatch)
         .model!;
   }
 

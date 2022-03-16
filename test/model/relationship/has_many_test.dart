@@ -4,6 +4,7 @@ import 'package:test/test.dart';
 
 import '../../_support/book.dart';
 import '../../_support/family.dart';
+import '../../_support/house.dart';
 import '../../_support/person.dart';
 import '../../_support/setup.dart';
 import '../../mocks.dart';
@@ -31,8 +32,13 @@ void main() async {
   test('behaves like a collection (with init)', () {
     final pete = Person(name: 'Pete', age: 29);
     final anne = Person(name: 'Anne', age: 59);
-    final f2 = Family(surname: 'Sumberg', persons: {pete}.asHasMany)
-        .init(container.read);
+    final residence = House(address: '1322 Hill Rd');
+    final f2 = Family(
+      surname: 'Sumberg',
+      persons: {pete}.asHasMany,
+      cottage: BelongsTo(),
+      residence: residence.asBelongsTo,
+    ).init(container.read);
 
     f2.persons.add(pete);
     f2.persons.add(pete);
@@ -43,6 +49,12 @@ void main() async {
 
     f2.persons.remove(anne);
     expect(f2.persons.toSet(), {pete});
+
+    expect(f2.relationships(),
+        unorderedEquals([f2.persons, f2.residence, f2.cottage]));
+    expect(f2.relationships().whereType<HasMany>(), [f2.persons]);
+    expect(f2.relationships(withValue: true),
+        unorderedEquals([f2.residence, f2.persons]));
   });
 
   test('assignment with relationship initialized & uninitialized', () {
