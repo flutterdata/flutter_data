@@ -139,7 +139,7 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
     // reconstruct relationship information from graph
     for (final entry in relationshipsFor().entries) {
       // entry keys are the name of relationships => metadata
-      final name = entry.key;
+      final name = entry.value['name']! as String;
       final relKeys = graph._getEdge(key, metadata: name);
       map[name] =
           entry.value['kind'] == 'BelongsTo' ? relKeys.safeFirst : relKeys;
