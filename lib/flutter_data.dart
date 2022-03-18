@@ -14,7 +14,6 @@ import 'package:inflection3/inflection3.dart' as inflection;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path_helper;
 import 'package:riverpod/riverpod.dart';
-import 'package:state_notifier/state_notifier.dart';
 import 'package:uuid/uuid.dart';
 
 // import internal packages

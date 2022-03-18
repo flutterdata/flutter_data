@@ -72,10 +72,12 @@ void main() async {
     }, throwsA(isA<DataException>()));
 
     await familyRepository.findAll(
-        // ignore: missing_return
-        onError: (e) {
-      expect(e, isA<DataException>());
-    });
+      // ignore: missing_return
+      onError: (e) {
+        expect(e, isA<DataException>());
+        return null;
+      },
+    );
   });
 
   test('findOne', () async {
@@ -150,6 +152,7 @@ void main() async {
     // ignore: missing_return
     await familyRepository.findOne('1', onError: (e) {
       expect(e, error203);
+      return null;
     });
   });
 
@@ -226,6 +229,7 @@ void main() async {
     await familyRepository.save(family, onError: (e) async {
       await oneMs();
       notifier.updateWith(exception: e);
+      return null;
     });
     await oneMs();
 

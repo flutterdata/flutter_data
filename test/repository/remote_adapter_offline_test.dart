@@ -41,6 +41,7 @@ void main() async {
       // ignore: missing_return
       onError: (e) async {
         notifier.updateWith(exception: e);
+        return null;
       },
     );
 
@@ -97,6 +98,7 @@ void main() async {
         // supply onError for exception to show up in notifier
         await oneMs();
         notifier.updateWith(exception: e);
+        return null;
       },
       onSuccess: (model) {
         // the surname follows `X-Override-Name` + `overrideSecondName`
@@ -306,6 +308,7 @@ void main() async {
       // ignore: missing_return
       onError: (e) async {
         notifier.updateWith(exception: e);
+        return null;
       },
     );
 

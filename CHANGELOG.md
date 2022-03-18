@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.2.1]
+
+- Fix using wrong name for relationships with multiple words in local storage
+- Add `relationships()` API; fix `watch()`
+
 ## [1.2.0]
 
 - Fix issue #141 with `remote=false` by default
