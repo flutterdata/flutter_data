@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:hive/hive.dart';
 import 'package:path/path.dart' as path_helper;
+import 'package:recase/recase.dart';
 import 'package:riverpod/riverpod.dart';
 
 class HiveLocalStorage {
@@ -48,12 +49,28 @@ Widget build(context) {
   }
 
   Future<Box<B>> openBox<B>(String name) async {
+    // start using snake_case name only if box
+    // does not exist in order not to break present boxes
+    if (!await hive.boxExists(name)) {
+      // since the snakeCase function strips leading _'s
+      // we capture them restore them afterwards
+      final matches = RegExp(r'^(_+)[a-z]').allMatches(name);
+      name = ReCase(name).snakeCase;
+      if (matches.isNotEmpty) {
+        name = matches.first.group(1)! + name;
+      }
+    }
     return await hive.openBox<B>(name, encryptionCipher: encryptionCipher);
   }
 
   Future<void> deleteBox(String name) async {
     // if hard clear, remove box
     try {
+      if (await hive.boxExists(name)) {
+        await hive.deleteBoxFromDisk(name);
+      }
+      // now try with the new snake_case name
+      name = ReCase(name).snakeCase;
       if (await hive.boxExists(name)) {
         await hive.deleteBoxFromDisk(name);
       }
