@@ -251,8 +251,8 @@ void main() async {
   test('watchOneNotifier without ID and alsoWatch', () async {
     final frank = Person(name: 'Frank', age: 30).init(container.read);
 
-    final notifier =
-        personRepository.watchOneNotifier(frank, alsoWatch: (p) => [p.family]);
+    final notifier = personRepository.remoteAdapter
+        .watchOneNotifier(frank, alsoWatch: (p) => [p.family]);
 
     final listener = Listener<DataState<Person?>?>();
     dispose = notifier.addListener(listener, fireImmediately: false);

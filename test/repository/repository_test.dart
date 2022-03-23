@@ -219,7 +219,8 @@ void main() async {
 
     // overrides error handling with notifier
     final listener = Listener<DataState<List<Family>>?>();
-    final notifier = familyRepository.watchAllNotifier(remote: false);
+    final notifier =
+        familyRepository.remoteAdapter.watchAllNotifier(remote: false);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -262,7 +263,7 @@ void main() async {
     container.read(responseProvider.notifier).state = TestResponse.text('''
         [{ "id": "1", "surname": "Corleone" }, { "id": "2", "surname": "Soprano" }]
       ''');
-    final notifier = familyRepository.watchAllNotifier();
+    final notifier = familyRepository.remoteAdapter.watchAllNotifier();
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -282,7 +283,7 @@ void main() async {
 
     container.read(responseProvider.notifier).state =
         TestResponse(text: (_) => throw Exception('unreachable'));
-    final notifier = familyRepository.watchAllNotifier();
+    final notifier = familyRepository.remoteAdapter.watchAllNotifier();
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -326,7 +327,8 @@ void main() async {
     container.read(responseProvider.notifier).state = TestResponse.text(
       '''{ "_id": "1", "name": "Charlie", "age": 23 }''',
     );
-    final notifier = personRepository.watchOneNotifier('1', remote: true);
+    final notifier =
+        personRepository.remoteAdapter.watchOneNotifier('1', remote: true);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -353,7 +355,7 @@ void main() async {
     container.read(responseProvider.notifier).state = TestResponse(
       text: (_) => throw Exception('whatever'),
     );
-    final notifier = familyRepository.watchOneNotifier('1');
+    final notifier = familyRepository.remoteAdapter.watchOneNotifier('1');
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -425,7 +427,7 @@ void main() async {
 
     container.read(responseProvider.notifier).state =
         TestResponse.text('''{ "id": "22", "surname": "Paez" }''');
-    final notifier = familyRepository.watchOneNotifier(
+    final notifier = familyRepository.remoteAdapter.watchOneNotifier(
       '22',
       alsoWatch: (f) => [f.persons],
     );
@@ -452,7 +454,7 @@ void main() async {
     final listener = Listener<DataState<List<Family>>?>();
 
     container.read(responseProvider.notifier).state = TestResponse.text('[]');
-    final notifier = familyRepository.watchAllNotifier();
+    final notifier = familyRepository.remoteAdapter.watchAllNotifier();
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -470,7 +472,7 @@ void main() async {
 
     // get a new notifier and try again
 
-    final notifier2 = familyRepository.watchAllNotifier();
+    final notifier2 = familyRepository.remoteAdapter.watchAllNotifier();
     final listener2 = Listener<DataState<List<Family>>?>();
 
     dispose?.call();
@@ -495,7 +497,8 @@ void main() async {
 
     container.read(responseProvider.notifier).state = TestResponse.text(
         '''[{ "id": "22", "surname": "Paez" }, { "id": "12", "surname": "Brunez" }]''');
-    final notifier = familyRepository.watchAllNotifier(syncLocal: true);
+    final notifier =
+        familyRepository.remoteAdapter.watchAllNotifier(syncLocal: true);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
     await oneMs();

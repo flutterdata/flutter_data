@@ -19,10 +19,12 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     bool? syncLocal,
+    String? findStrategy,
   }) {
     _assertInit();
     remote ??= _remote;
     syncLocal ??= false;
+    final _findStrategy = findAllStrategies[findStrategy] ?? findAll;
 
     final _notifier = DataStateNotifier<List<T>>(
       data: DataState(localAdapter
@@ -35,7 +37,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           return;
         }
         try {
-          final _future = findAll(
+          final _future = _findStrategy(
             params: params,
             headers: headers,
             remote: remote,
@@ -87,6 +89,10 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     return _notifier;
   }
 
+  Map<String, FindAllStrategy<T>> get findAllStrategies {
+    return {};
+  }
+
   DataState<List<T>> watchAll({
     bool? remote,
     Map<String, dynamic>? params,
@@ -115,10 +121,13 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     AlsoWatch<T>? alsoWatch,
+    String? findStrategy,
   }) {
     _assertInit();
 
     remote ??= _remote;
+
+    final _findStrategy = findOneStrategies[findStrategy] ?? findOne;
 
     final id = _resolveId(model);
 
@@ -142,11 +151,11 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         }
         try {
           if (id != null) {
-            final _future = findOne(
+            final _future = _findStrategy(
               id,
+              remote: remote,
               params: params,
               headers: headers,
-              remote: remote,
             );
             if (remote!) {
               notifier.updateWith(isLoading: true);
@@ -258,6 +267,10 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     return _notifier;
   }
 
+  Map<String, FindOneStrategy<T>> get findOneStrategies {
+    return {};
+  }
+
   DataState<T?> watchOne(
     Object model, {
     bool? remote,
@@ -291,4 +304,4 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
   }
 }
 
-typedef AlsoWatch<T> = List<Relationship?> Function(T);
+typedef AlsoWatch<T extends DataModel<T>> = List<Relationship?> Function(T);

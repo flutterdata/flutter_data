@@ -23,7 +23,8 @@ void main() async {
     final listener = Listener<DataState<List<BookAuthor>>?>();
 
     // watch
-    final notifier = bookAuthorRepository.watchAllNotifier(remote: true);
+    final notifier =
+        bookAuthorRepository.remoteAdapter.watchAllNotifier(remote: true);
     dispose = notifier.addListener(listener, fireImmediately: true);
 
     await oneMs();
@@ -76,7 +77,8 @@ void main() async {
   test('save', () async {
     final listener = Listener<DataState<List<Family>>?>();
     // listening to local changes enough
-    final notifier = familyRepository.watchAllNotifier(remote: false);
+    final notifier =
+        familyRepository.remoteAdapter.watchAllNotifier(remote: false);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -219,7 +221,8 @@ void main() async {
   test('delete', () async {
     final listener = Listener<DataState<List<Family>>?>();
     // listening to local changes enough
-    final notifier = familyRepository.watchAllNotifier(remote: false);
+    final notifier =
+        familyRepository.remoteAdapter.watchAllNotifier(remote: false);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -288,7 +291,8 @@ void main() async {
   test('save & delete combined', () async {
     final listener = Listener<DataState<List<Family>>?>();
     // listening to local changes enough
-    final notifier = familyRepository.watchAllNotifier(remote: false);
+    final notifier =
+        familyRepository.remoteAdapter.watchAllNotifier(remote: false);
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 

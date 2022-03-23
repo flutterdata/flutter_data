@@ -2,6 +2,7 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
 import '../_support/person.dart';
+import '../_support/pet.dart';
 
 void main() async {
   test('getType', () {
@@ -51,11 +52,11 @@ void main() async {
   });
 
   test('repo watch args', () {
-    final args = WatchArgs(id: 1, remote: true, params: {'a': 1});
+    final args = WatchArgs<Dog>(id: 1, remote: true, params: {'a': 1});
     expect(args.id, 1);
     expect(args.remote, true);
     expect(args.params, {'a': 1});
-    expect(args, equals(WatchArgs(id: 1, remote: true, params: {'a': 1})));
+    expect(args, equals(WatchArgs<Dog>(id: 1, remote: true, params: {'a': 1})));
   });
 
   test('iterable utils', () {

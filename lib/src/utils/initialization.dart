@@ -28,7 +28,7 @@ mixin NothingMixin {}
 
 /// This argument holder class is used internally with
 /// Riverpod `family`s.
-class WatchArgs<T> with EquatableMixin {
+class WatchArgs<T extends DataModel<T>> with EquatableMixin {
   WatchArgs({
     this.id,
     this.remote,
@@ -36,6 +36,7 @@ class WatchArgs<T> with EquatableMixin {
     this.headers,
     this.syncLocal,
     this.alsoWatch,
+    this.findStrategy,
   });
 
   final Object? id;
@@ -44,7 +45,8 @@ class WatchArgs<T> with EquatableMixin {
   final Map<String, String>? headers;
   final bool? syncLocal;
   final AlsoWatch<T>? alsoWatch;
+  final String? findStrategy;
 
   @override
-  List<Object?> get props => [id, remote, params, headers];
+  List<Object?> get props => [id, remote, params, headers, findStrategy];
 }

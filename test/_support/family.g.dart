@@ -106,11 +106,12 @@ final familiesRepositoryProvider =
 final _familyProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Family?>, DataState<Family?>, WatchArgs<Family>>(
         (ref, args) {
-  return ref.watch(familiesRepositoryProvider).watchOneNotifier(args.id!,
+  return ref.watch(familiesRemoteAdapterProvider).watchOneNotifier(args.id!,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
-      alsoWatch: args.alsoWatch);
+      alsoWatch: args.alsoWatch,
+      findStrategy: args.findStrategy);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Family?>, DataState<Family?>>
@@ -118,24 +119,27 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Family?>, DataState<Family?>>
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
-        AlsoWatch<Family>? alsoWatch}) {
+        AlsoWatch<Family>? alsoWatch,
+        String? findStrategy}) {
   return _familyProvider(WatchArgs(
       id: id,
       remote: remote,
       params: params,
       headers: headers,
-      alsoWatch: alsoWatch));
+      alsoWatch: alsoWatch,
+      findStrategy: findStrategy));
 }
 
 final _familiesProvider = StateNotifierProvider.autoDispose.family<
     DataStateNotifier<List<Family>>,
     DataState<List<Family>>,
     WatchArgs<Family>>((ref, args) {
-  return ref.watch(familiesRepositoryProvider).watchAllNotifier(
+  return ref.watch(familiesRemoteAdapterProvider).watchAllNotifier(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
-      syncLocal: args.syncLocal);
+      syncLocal: args.syncLocal,
+      findStrategy: args.findStrategy);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<Family>>,
@@ -144,9 +148,14 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Family>>,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
-        bool? syncLocal}) {
+        bool? syncLocal,
+        String? findStrategy}) {
   return _familiesProvider(WatchArgs(
-      remote: remote, params: params, headers: headers, syncLocal: syncLocal));
+      remote: remote,
+      params: params,
+      headers: headers,
+      syncLocal: syncLocal,
+      findStrategy: findStrategy));
 }
 
 extension FamilyDataX on Family {

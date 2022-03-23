@@ -59,11 +59,12 @@ final peopleRepositoryProvider =
 final _personProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Person?>, DataState<Person?>, WatchArgs<Person>>(
         (ref, args) {
-  return ref.watch(peopleRepositoryProvider).watchOneNotifier(args.id!,
+  return ref.watch(peopleRemoteAdapterProvider).watchOneNotifier(args.id!,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
-      alsoWatch: args.alsoWatch);
+      alsoWatch: args.alsoWatch,
+      findStrategy: args.findStrategy);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Person?>, DataState<Person?>>
@@ -71,24 +72,27 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Person?>, DataState<Person?>>
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
-        AlsoWatch<Person>? alsoWatch}) {
+        AlsoWatch<Person>? alsoWatch,
+        String? findStrategy}) {
   return _personProvider(WatchArgs(
       id: id,
       remote: remote,
       params: params,
       headers: headers,
-      alsoWatch: alsoWatch));
+      alsoWatch: alsoWatch,
+      findStrategy: findStrategy));
 }
 
 final _peopleProvider = StateNotifierProvider.autoDispose.family<
     DataStateNotifier<List<Person>>,
     DataState<List<Person>>,
     WatchArgs<Person>>((ref, args) {
-  return ref.watch(peopleRepositoryProvider).watchAllNotifier(
+  return ref.watch(peopleRemoteAdapterProvider).watchAllNotifier(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
-      syncLocal: args.syncLocal);
+      syncLocal: args.syncLocal,
+      findStrategy: args.findStrategy);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<Person>>,
@@ -97,9 +101,14 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Person>>,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
-        bool? syncLocal}) {
+        bool? syncLocal,
+        String? findStrategy}) {
   return _peopleProvider(WatchArgs(
-      remote: remote, params: params, headers: headers, syncLocal: syncLocal));
+      remote: remote,
+      params: params,
+      headers: headers,
+      syncLocal: syncLocal,
+      findStrategy: findStrategy));
 }
 
 extension PersonDataX on Person {

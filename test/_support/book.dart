@@ -36,4 +36,11 @@ class Book with DataModel<Book>, _$Book {
 mixin BookAuthorAdapter on RemoteAdapter<BookAuthor> {
   @override
   String get type => 'writers';
+
+  @override
+  Map<String, FindOneStrategy<BookAuthor>> get findOneStrategies {
+    return {...super.findOneStrategies, 'dashboard': dashboard};
+  }
+
+  FindOneStrategy<BookAuthor> get dashboard => findOne;
 }

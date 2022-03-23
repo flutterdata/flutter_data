@@ -102,7 +102,8 @@ void main() async {
 
     final listener = Listener<DataState<Dog?>?>();
 
-    final notifier = dogRepository.watchOneNotifier('2', remote: false);
+    final notifier = dogRepository.remoteAdapter
+        .watchOneNotifier('2', remote: false, findStrategy: 'dashboard');
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 

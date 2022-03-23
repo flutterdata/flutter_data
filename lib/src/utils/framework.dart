@@ -36,6 +36,22 @@ abstract class _Lifecycle {
   void dispose();
 }
 
+typedef FindOneStrategy<T extends DataModel<T>> = Future<T?> Function(
+  Object model, {
+  bool? remote,
+  Map<String, dynamic>? params,
+  Map<String, String>? headers,
+  OnDataError<T?>? onError,
+});
+
+typedef FindAllStrategy<T extends DataModel<T>> = Future<List<T>> Function({
+  bool? remote,
+  Map<String, dynamic>? params,
+  Map<String, String>? headers,
+  bool? syncLocal,
+  OnDataError<List<T>>? onError,
+});
+
 typedef Watcher = W Function<W>(ProviderListenable<W> provider);
 
 typedef OneProvider<T extends DataModel<T>>

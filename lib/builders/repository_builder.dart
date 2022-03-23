@@ -223,23 +223,23 @@ final ${typeLowerCased}RepositoryProvider =
 final _$providerStringSingular =
     StateNotifierProvider.autoDispose.family<DataStateNotifier<$classType?>, DataState<$classType?>, WatchArgs<$classType>>(
         (ref, args) {
-  return ref.watch(${typeLowerCased}RepositoryProvider).watchOneNotifier(args.id!, remote: args.remote, params: args.params, headers: args.headers, alsoWatch: args.alsoWatch);
+  return ref.watch(${typeLowerCased}RemoteAdapterProvider).watchOneNotifier(args.id!, remote: args.remote, params: args.params, headers: args.headers, alsoWatch: args.alsoWatch, findStrategy: args.findStrategy);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<$classType?>, DataState<$classType?>> $providerStringSingular(Object? id,
-    {bool? remote, Map<String, dynamic>? params, Map<String, String>? headers, AlsoWatch<$classType>? alsoWatch}) {
-  return _$providerStringSingular(WatchArgs(id: id, remote: remote, params: params, headers: headers, alsoWatch: alsoWatch));
+    {bool? remote, Map<String, dynamic>? params, Map<String, String>? headers, AlsoWatch<$classType>? alsoWatch, String? findStrategy}) {
+  return _$providerStringSingular(WatchArgs(id: id, remote: remote, params: params, headers: headers, alsoWatch: alsoWatch, findStrategy: findStrategy));
 }
 
 final _$providerStringPlural =
     StateNotifierProvider.autoDispose.family<DataStateNotifier<List<$classType>>, DataState<List<$classType>>, WatchArgs<$classType>>(
         (ref, args) {
-  return ref.watch(${typeLowerCased}RepositoryProvider).watchAllNotifier(remote: args.remote, params: args.params, headers: args.headers, syncLocal: args.syncLocal);
+  return ref.watch(${typeLowerCased}RemoteAdapterProvider).watchAllNotifier(remote: args.remote, params: args.params, headers: args.headers, syncLocal: args.syncLocal, findStrategy: args.findStrategy);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<$classType>>, DataState<List<$classType>>> $providerStringPlural(
-    {bool? remote, Map<String, dynamic>? params, Map<String, String>? headers, bool? syncLocal}) {
-  return _$providerStringPlural(WatchArgs(remote: remote, params: params, headers: headers, syncLocal: syncLocal));
+    {bool? remote, Map<String, dynamic>? params, Map<String, String>? headers, bool? syncLocal, String? findStrategy}) {
+  return _$providerStringPlural(WatchArgs(remote: remote, params: params, headers: headers, syncLocal: syncLocal, findStrategy: findStrategy));
 }
 
 extension ${classType}DataX on $classType {

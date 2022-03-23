@@ -83,11 +83,12 @@ final nodesRepositoryProvider =
 final _nodeProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Node?>, DataState<Node?>, WatchArgs<Node>>(
         (ref, args) {
-  return ref.watch(nodesRepositoryProvider).watchOneNotifier(args.id!,
+  return ref.watch(nodesRemoteAdapterProvider).watchOneNotifier(args.id!,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
-      alsoWatch: args.alsoWatch);
+      alsoWatch: args.alsoWatch,
+      findStrategy: args.findStrategy);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Node?>, DataState<Node?>>
@@ -95,24 +96,27 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Node?>, DataState<Node?>>
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
-        AlsoWatch<Node>? alsoWatch}) {
+        AlsoWatch<Node>? alsoWatch,
+        String? findStrategy}) {
   return _nodeProvider(WatchArgs(
       id: id,
       remote: remote,
       params: params,
       headers: headers,
-      alsoWatch: alsoWatch));
+      alsoWatch: alsoWatch,
+      findStrategy: findStrategy));
 }
 
 final _nodesProvider = StateNotifierProvider.autoDispose.family<
     DataStateNotifier<List<Node>>,
     DataState<List<Node>>,
     WatchArgs<Node>>((ref, args) {
-  return ref.watch(nodesRepositoryProvider).watchAllNotifier(
+  return ref.watch(nodesRemoteAdapterProvider).watchAllNotifier(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
-      syncLocal: args.syncLocal);
+      syncLocal: args.syncLocal,
+      findStrategy: args.findStrategy);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<Node>>,
@@ -121,9 +125,14 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Node>>,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
-        bool? syncLocal}) {
+        bool? syncLocal,
+        String? findStrategy}) {
   return _nodesProvider(WatchArgs(
-      remote: remote, params: params, headers: headers, syncLocal: syncLocal));
+      remote: remote,
+      params: params,
+      headers: headers,
+      syncLocal: syncLocal,
+      findStrategy: findStrategy));
 }
 
 extension NodeDataX on Node {

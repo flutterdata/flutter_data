@@ -72,11 +72,12 @@ final housesRepositoryProvider =
 final _houseProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<House?>, DataState<House?>, WatchArgs<House>>(
         (ref, args) {
-  return ref.watch(housesRepositoryProvider).watchOneNotifier(args.id!,
+  return ref.watch(housesRemoteAdapterProvider).watchOneNotifier(args.id!,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
-      alsoWatch: args.alsoWatch);
+      alsoWatch: args.alsoWatch,
+      findStrategy: args.findStrategy);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<House?>, DataState<House?>>
@@ -84,24 +85,27 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<House?>, DataState<House?>>
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
-        AlsoWatch<House>? alsoWatch}) {
+        AlsoWatch<House>? alsoWatch,
+        String? findStrategy}) {
   return _houseProvider(WatchArgs(
       id: id,
       remote: remote,
       params: params,
       headers: headers,
-      alsoWatch: alsoWatch));
+      alsoWatch: alsoWatch,
+      findStrategy: findStrategy));
 }
 
 final _housesProvider = StateNotifierProvider.autoDispose.family<
     DataStateNotifier<List<House>>,
     DataState<List<House>>,
     WatchArgs<House>>((ref, args) {
-  return ref.watch(housesRepositoryProvider).watchAllNotifier(
+  return ref.watch(housesRemoteAdapterProvider).watchAllNotifier(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
-      syncLocal: args.syncLocal);
+      syncLocal: args.syncLocal,
+      findStrategy: args.findStrategy);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<House>>,
@@ -110,9 +114,14 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<House>>,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
-        bool? syncLocal}) {
+        bool? syncLocal,
+        String? findStrategy}) {
   return _housesProvider(WatchArgs(
-      remote: remote, params: params, headers: headers, syncLocal: syncLocal));
+      remote: remote,
+      params: params,
+      headers: headers,
+      syncLocal: syncLocal,
+      findStrategy: findStrategy));
 }
 
 extension HouseDataX on House {

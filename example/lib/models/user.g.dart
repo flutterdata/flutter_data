@@ -72,11 +72,12 @@ final usersRepositoryProvider =
 final _userProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<User?>, DataState<User?>, WatchArgs<User>>(
         (ref, args) {
-  return ref.watch(usersRepositoryProvider).watchOneNotifier(args.id!,
+  return ref.watch(usersRemoteAdapterProvider).watchOneNotifier(args.id!,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
-      alsoWatch: args.alsoWatch);
+      alsoWatch: args.alsoWatch,
+      findStrategy: args.findStrategy);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<User?>, DataState<User?>>
@@ -84,24 +85,27 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<User?>, DataState<User?>>
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
-        AlsoWatch<User>? alsoWatch}) {
+        AlsoWatch<User>? alsoWatch,
+        String? findStrategy}) {
   return _userProvider(WatchArgs(
       id: id,
       remote: remote,
       params: params,
       headers: headers,
-      alsoWatch: alsoWatch));
+      alsoWatch: alsoWatch,
+      findStrategy: findStrategy));
 }
 
 final _usersProvider = StateNotifierProvider.autoDispose.family<
     DataStateNotifier<List<User>>,
     DataState<List<User>>,
     WatchArgs<User>>((ref, args) {
-  return ref.watch(usersRepositoryProvider).watchAllNotifier(
+  return ref.watch(usersRemoteAdapterProvider).watchAllNotifier(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
-      syncLocal: args.syncLocal);
+      syncLocal: args.syncLocal,
+      findStrategy: args.findStrategy);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<User>>,
@@ -110,9 +114,14 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<User>>,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
-        bool? syncLocal}) {
+        bool? syncLocal,
+        String? findStrategy}) {
   return _usersProvider(WatchArgs(
-      remote: remote, params: params, headers: headers, syncLocal: syncLocal));
+      remote: remote,
+      params: params,
+      headers: headers,
+      syncLocal: syncLocal,
+      findStrategy: findStrategy));
 }
 
 extension UserDataX on User {

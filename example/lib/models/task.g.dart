@@ -74,11 +74,12 @@ final tasksRepositoryProvider =
 final _taskProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Task?>, DataState<Task?>, WatchArgs<Task>>(
         (ref, args) {
-  return ref.watch(tasksRepositoryProvider).watchOneNotifier(args.id!,
+  return ref.watch(tasksRemoteAdapterProvider).watchOneNotifier(args.id!,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
-      alsoWatch: args.alsoWatch);
+      alsoWatch: args.alsoWatch,
+      findStrategy: args.findStrategy);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Task?>, DataState<Task?>>
@@ -86,24 +87,27 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Task?>, DataState<Task?>>
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
-        AlsoWatch<Task>? alsoWatch}) {
+        AlsoWatch<Task>? alsoWatch,
+        String? findStrategy}) {
   return _taskProvider(WatchArgs(
       id: id,
       remote: remote,
       params: params,
       headers: headers,
-      alsoWatch: alsoWatch));
+      alsoWatch: alsoWatch,
+      findStrategy: findStrategy));
 }
 
 final _tasksProvider = StateNotifierProvider.autoDispose.family<
     DataStateNotifier<List<Task>>,
     DataState<List<Task>>,
     WatchArgs<Task>>((ref, args) {
-  return ref.watch(tasksRepositoryProvider).watchAllNotifier(
+  return ref.watch(tasksRemoteAdapterProvider).watchAllNotifier(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
-      syncLocal: args.syncLocal);
+      syncLocal: args.syncLocal,
+      findStrategy: args.findStrategy);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<Task>>,
@@ -112,9 +116,14 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Task>>,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
-        bool? syncLocal}) {
+        bool? syncLocal,
+        String? findStrategy}) {
   return _tasksProvider(WatchArgs(
-      remote: remote, params: params, headers: headers, syncLocal: syncLocal));
+      remote: remote,
+      params: params,
+      headers: headers,
+      syncLocal: syncLocal,
+      findStrategy: findStrategy));
 }
 
 extension TaskDataX on Task {
