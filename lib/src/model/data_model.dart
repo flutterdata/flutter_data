@@ -150,22 +150,14 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     return rels;
   }
 
-  /// EXPERIMENTAL! Watch this model.
-  ///
-  /// **ONLY use this shortcut when the model is non-null.*
-  T watch({
-    Map<String, dynamic>? params,
-    Map<String, String>? headers,
-    AlsoWatch<T>? alsoWatch,
-  }) {
-    _assertInit('watch');
-    return remoteAdapter
-        .watchOne(this,
-            remote: false,
-            params: params,
-            headers: headers,
-            alsoWatch: alsoWatch)
-        .model!;
+  /// Get this model's notifier (watchOne)
+  DataStateNotifier<T?> get notifier {
+    _assertInit('notifier');
+    if (remoteAdapter.internalWatch == null ||
+        remoteAdapter._oneProvider == null) {
+      throw UnsupportedError(remoteAdapter._watchOneError);
+    }
+    return remoteAdapter.read(remoteAdapter._oneProvider!(this).notifier);
   }
 
   void _assertInit(String method) {
