@@ -25,6 +25,7 @@ dependencies:
   meta: ^1.7.0
   path: ^1.8.0
   pubspec_parse: ^1.0.0
+  recase: ^4.0.0
   riverpod: ^1.0.0
   source_gen: ^1.0.1
   state_notifier: ^0.7.0
