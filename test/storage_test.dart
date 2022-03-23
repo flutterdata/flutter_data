@@ -1,3 +1,7 @@
+@OnPlatform({
+  'js': Skip(),
+})
+
 import 'dart:io';
 
 import 'package:flutter_data/flutter_data.dart';
