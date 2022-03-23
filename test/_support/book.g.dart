@@ -106,12 +106,15 @@ final _bookAuthorProvider = StateNotifierProvider.autoDispose.family<
     DataStateNotifier<BookAuthor?>,
     DataState<BookAuthor?>,
     WatchArgs<BookAuthor>>((ref, args) {
-  return ref.watch(bookAuthorsRemoteAdapterProvider).watchOneNotifier(args.id!,
+  final adapter = ref.watch(bookAuthorsRemoteAdapterProvider);
+  final notifier =
+      adapter.oneWatchers[args.watcher] ?? adapter.watchOneNotifier;
+  return notifier(args.id!,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
       alsoWatch: args.alsoWatch,
-      findStrategy: args.findStrategy);
+      finder: args.finder);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<BookAuthor?>,
@@ -121,26 +124,31 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<BookAuthor?>,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         AlsoWatch<BookAuthor>? alsoWatch,
-        String? findStrategy}) {
+        String? finder,
+        String? watcher}) {
   return _bookAuthorProvider(WatchArgs(
       id: id,
       remote: remote,
       params: params,
       headers: headers,
       alsoWatch: alsoWatch,
-      findStrategy: findStrategy));
+      finder: finder,
+      watcher: watcher));
 }
 
 final _bookAuthorsProvider = StateNotifierProvider.autoDispose.family<
     DataStateNotifier<List<BookAuthor>>,
     DataState<List<BookAuthor>>,
     WatchArgs<BookAuthor>>((ref, args) {
-  return ref.watch(bookAuthorsRemoteAdapterProvider).watchAllNotifier(
+  final adapter = ref.watch(bookAuthorsRemoteAdapterProvider);
+  final notifier =
+      adapter.allWatchers[args.watcher] ?? adapter.watchAllNotifier;
+  return notifier(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
       syncLocal: args.syncLocal,
-      findStrategy: args.findStrategy);
+      finder: args.finder);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<BookAuthor>>,
@@ -150,13 +158,15 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<BookAuthor>>,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         bool? syncLocal,
-        String? findStrategy}) {
+        String? finder,
+        String? watcher}) {
   return _bookAuthorsProvider(WatchArgs(
       remote: remote,
       params: params,
       headers: headers,
       syncLocal: syncLocal,
-      findStrategy: findStrategy));
+      finder: finder,
+      watcher: watcher));
 }
 
 extension BookAuthorDataX on BookAuthor {
@@ -224,12 +234,15 @@ final booksRepositoryProvider =
 final _bookProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Book?>, DataState<Book?>, WatchArgs<Book>>(
         (ref, args) {
-  return ref.watch(booksRemoteAdapterProvider).watchOneNotifier(args.id!,
+  final adapter = ref.watch(booksRemoteAdapterProvider);
+  final notifier =
+      adapter.oneWatchers[args.watcher] ?? adapter.watchOneNotifier;
+  return notifier(args.id!,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
       alsoWatch: args.alsoWatch,
-      findStrategy: args.findStrategy);
+      finder: args.finder);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Book?>, DataState<Book?>>
@@ -238,26 +251,31 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Book?>, DataState<Book?>>
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         AlsoWatch<Book>? alsoWatch,
-        String? findStrategy}) {
+        String? finder,
+        String? watcher}) {
   return _bookProvider(WatchArgs(
       id: id,
       remote: remote,
       params: params,
       headers: headers,
       alsoWatch: alsoWatch,
-      findStrategy: findStrategy));
+      finder: finder,
+      watcher: watcher));
 }
 
 final _booksProvider = StateNotifierProvider.autoDispose.family<
     DataStateNotifier<List<Book>>,
     DataState<List<Book>>,
     WatchArgs<Book>>((ref, args) {
-  return ref.watch(booksRemoteAdapterProvider).watchAllNotifier(
+  final adapter = ref.watch(booksRemoteAdapterProvider);
+  final notifier =
+      adapter.allWatchers[args.watcher] ?? adapter.watchAllNotifier;
+  return notifier(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
       syncLocal: args.syncLocal,
-      findStrategy: args.findStrategy);
+      finder: args.finder);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<Book>>,
@@ -267,13 +285,15 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Book>>,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         bool? syncLocal,
-        String? findStrategy}) {
+        String? finder,
+        String? watcher}) {
   return _booksProvider(WatchArgs(
       remote: remote,
       params: params,
       headers: headers,
       syncLocal: syncLocal,
-      findStrategy: findStrategy));
+      finder: finder,
+      watcher: watcher));
 }
 
 extension BookDataX on Book {

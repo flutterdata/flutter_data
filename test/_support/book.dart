@@ -38,9 +38,9 @@ mixin BookAuthorAdapter on RemoteAdapter<BookAuthor> {
   String get type => 'writers';
 
   @override
-  Map<String, FindOneStrategy<BookAuthor>> get findOneStrategies {
-    return {...super.findOneStrategies, 'dashboard': dashboard};
+  Map<String, OneFinder<BookAuthor>> get oneFinders {
+    return {...super.oneFinders, 'dashboard': dashboard};
   }
 
-  FindOneStrategy<BookAuthor> get dashboard => findOne;
+  OneFinder<BookAuthor> get dashboard => findOne;
 }

@@ -19,12 +19,12 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     bool? syncLocal,
-    String? findStrategy,
+    String? finder,
   }) {
     _assertInit();
     remote ??= _remote;
     syncLocal ??= false;
-    final _findStrategy = findAllStrategies[findStrategy] ?? findAll;
+    final _finder = allFinders[finder] ?? findAll;
 
     final _notifier = DataStateNotifier<List<T>>(
       data: DataState(localAdapter
@@ -37,7 +37,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           return;
         }
         try {
-          final _future = _findStrategy(
+          final _future = _finder(
             params: params,
             headers: headers,
             remote: remote,
@@ -89,7 +89,11 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     return _notifier;
   }
 
-  Map<String, FindAllStrategy<T>> get findAllStrategies {
+  Map<String, AllFinder<T>> get allFinders {
+    return {};
+  }
+
+  Map<String, AllWatcher<T>> get allWatchers {
     return {};
   }
 
@@ -113,6 +117,8 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
   String get _watchAllError =>
       'Should only be used via `ref.$type.watchAll`. Alternatively use `watch${type.capitalize()}()`.';
 
+  // one
+
   @protected
   @visibleForTesting
   DataStateNotifier<T?> watchOneNotifier(
@@ -121,13 +127,13 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     AlsoWatch<T>? alsoWatch,
-    String? findStrategy,
+    String? finder,
   }) {
     _assertInit();
 
     remote ??= _remote;
 
-    final _findStrategy = findOneStrategies[findStrategy] ?? findOne;
+    final _finder = oneFinders[finder] ?? findOne;
 
     final id = _resolveId(model);
 
@@ -151,7 +157,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         }
         try {
           if (id != null) {
-            final _future = _findStrategy(
+            final _future = _finder(
               id,
               remote: remote,
               params: params,
@@ -267,7 +273,11 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     return _notifier;
   }
 
-  Map<String, FindOneStrategy<T>> get findOneStrategies {
+  Map<String, OneFinder<T>> get oneFinders {
+    return {};
+  }
+
+  Map<String, OneWatcher<T>> get oneWatchers {
     return {};
   }
 

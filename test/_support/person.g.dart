@@ -59,12 +59,15 @@ final peopleRepositoryProvider =
 final _personProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Person?>, DataState<Person?>, WatchArgs<Person>>(
         (ref, args) {
-  return ref.watch(peopleRemoteAdapterProvider).watchOneNotifier(args.id!,
+  final adapter = ref.watch(peopleRemoteAdapterProvider);
+  final notifier =
+      adapter.oneWatchers[args.watcher] ?? adapter.watchOneNotifier;
+  return notifier(args.id!,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
       alsoWatch: args.alsoWatch,
-      findStrategy: args.findStrategy);
+      finder: args.finder);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Person?>, DataState<Person?>>
@@ -73,26 +76,31 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Person?>, DataState<Person?>>
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         AlsoWatch<Person>? alsoWatch,
-        String? findStrategy}) {
+        String? finder,
+        String? watcher}) {
   return _personProvider(WatchArgs(
       id: id,
       remote: remote,
       params: params,
       headers: headers,
       alsoWatch: alsoWatch,
-      findStrategy: findStrategy));
+      finder: finder,
+      watcher: watcher));
 }
 
 final _peopleProvider = StateNotifierProvider.autoDispose.family<
     DataStateNotifier<List<Person>>,
     DataState<List<Person>>,
     WatchArgs<Person>>((ref, args) {
-  return ref.watch(peopleRemoteAdapterProvider).watchAllNotifier(
+  final adapter = ref.watch(peopleRemoteAdapterProvider);
+  final notifier =
+      adapter.allWatchers[args.watcher] ?? adapter.watchAllNotifier;
+  return notifier(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
       syncLocal: args.syncLocal,
-      findStrategy: args.findStrategy);
+      finder: args.finder);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<Person>>,
@@ -102,13 +110,15 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Person>>,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         bool? syncLocal,
-        String? findStrategy}) {
+        String? finder,
+        String? watcher}) {
   return _peopleProvider(WatchArgs(
       remote: remote,
       params: params,
       headers: headers,
       syncLocal: syncLocal,
-      findStrategy: findStrategy));
+      finder: finder,
+      watcher: watcher));
 }
 
 extension PersonDataX on Person {

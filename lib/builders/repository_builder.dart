@@ -223,23 +223,29 @@ final ${typeLowerCased}RepositoryProvider =
 final _$providerStringSingular =
     StateNotifierProvider.autoDispose.family<DataStateNotifier<$classType?>, DataState<$classType?>, WatchArgs<$classType>>(
         (ref, args) {
-  return ref.watch(${typeLowerCased}RemoteAdapterProvider).watchOneNotifier(args.id!, remote: args.remote, params: args.params, headers: args.headers, alsoWatch: args.alsoWatch, findStrategy: args.findStrategy);
+  final adapter = ref.watch(${typeLowerCased}RemoteAdapterProvider);
+  final notifier = adapter.oneWatchers[args.watcher] ??
+adapter.watchOneNotifier;
+  return notifier(args.id!, remote: args.remote, params: args.params, headers: args.headers, alsoWatch: args.alsoWatch, finder: args.finder);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<$classType?>, DataState<$classType?>> $providerStringSingular(Object? id,
-    {bool? remote, Map<String, dynamic>? params, Map<String, String>? headers, AlsoWatch<$classType>? alsoWatch, String? findStrategy}) {
-  return _$providerStringSingular(WatchArgs(id: id, remote: remote, params: params, headers: headers, alsoWatch: alsoWatch, findStrategy: findStrategy));
+    {bool? remote, Map<String, dynamic>? params, Map<String, String>? headers, AlsoWatch<$classType>? alsoWatch, String? finder, String? watcher}) {
+  return _$providerStringSingular(WatchArgs(id: id, remote: remote, params: params, headers: headers, alsoWatch: alsoWatch, finder: finder, watcher: watcher));
 }
 
 final _$providerStringPlural =
     StateNotifierProvider.autoDispose.family<DataStateNotifier<List<$classType>>, DataState<List<$classType>>, WatchArgs<$classType>>(
         (ref, args) {
-  return ref.watch(${typeLowerCased}RemoteAdapterProvider).watchAllNotifier(remote: args.remote, params: args.params, headers: args.headers, syncLocal: args.syncLocal, findStrategy: args.findStrategy);
+  final adapter = ref.watch(${typeLowerCased}RemoteAdapterProvider);
+  final notifier = adapter.allWatchers[args.watcher] ??
+adapter.watchAllNotifier;
+  return notifier(remote: args.remote, params: args.params, headers: args.headers, syncLocal: args.syncLocal, finder: args.finder);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<$classType>>, DataState<List<$classType>>> $providerStringPlural(
-    {bool? remote, Map<String, dynamic>? params, Map<String, String>? headers, bool? syncLocal, String? findStrategy}) {
-  return _$providerStringPlural(WatchArgs(remote: remote, params: params, headers: headers, syncLocal: syncLocal, findStrategy: findStrategy));
+    {bool? remote, Map<String, dynamic>? params, Map<String, String>? headers, bool? syncLocal, String? finder, String? watcher}) {
+  return _$providerStringPlural(WatchArgs(remote: remote, params: params, headers: headers, syncLocal: syncLocal, finder: finder, watcher: watcher));
 }
 
 extension ${classType}DataX on $classType {

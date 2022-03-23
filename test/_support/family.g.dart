@@ -106,12 +106,15 @@ final familiesRepositoryProvider =
 final _familyProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Family?>, DataState<Family?>, WatchArgs<Family>>(
         (ref, args) {
-  return ref.watch(familiesRemoteAdapterProvider).watchOneNotifier(args.id!,
+  final adapter = ref.watch(familiesRemoteAdapterProvider);
+  final notifier =
+      adapter.oneWatchers[args.watcher] ?? adapter.watchOneNotifier;
+  return notifier(args.id!,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
       alsoWatch: args.alsoWatch,
-      findStrategy: args.findStrategy);
+      finder: args.finder);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Family?>, DataState<Family?>>
@@ -120,26 +123,31 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Family?>, DataState<Family?>>
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         AlsoWatch<Family>? alsoWatch,
-        String? findStrategy}) {
+        String? finder,
+        String? watcher}) {
   return _familyProvider(WatchArgs(
       id: id,
       remote: remote,
       params: params,
       headers: headers,
       alsoWatch: alsoWatch,
-      findStrategy: findStrategy));
+      finder: finder,
+      watcher: watcher));
 }
 
 final _familiesProvider = StateNotifierProvider.autoDispose.family<
     DataStateNotifier<List<Family>>,
     DataState<List<Family>>,
     WatchArgs<Family>>((ref, args) {
-  return ref.watch(familiesRemoteAdapterProvider).watchAllNotifier(
+  final adapter = ref.watch(familiesRemoteAdapterProvider);
+  final notifier =
+      adapter.allWatchers[args.watcher] ?? adapter.watchAllNotifier;
+  return notifier(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
       syncLocal: args.syncLocal,
-      findStrategy: args.findStrategy);
+      finder: args.finder);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<Family>>,
@@ -149,13 +157,15 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Family>>,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         bool? syncLocal,
-        String? findStrategy}) {
+        String? finder,
+        String? watcher}) {
   return _familiesProvider(WatchArgs(
       remote: remote,
       params: params,
       headers: headers,
       syncLocal: syncLocal,
-      findStrategy: findStrategy));
+      finder: finder,
+      watcher: watcher));
 }
 
 extension FamilyDataX on Family {

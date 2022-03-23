@@ -83,12 +83,15 @@ final nodesRepositoryProvider =
 final _nodeProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Node?>, DataState<Node?>, WatchArgs<Node>>(
         (ref, args) {
-  return ref.watch(nodesRemoteAdapterProvider).watchOneNotifier(args.id!,
+  final adapter = ref.watch(nodesRemoteAdapterProvider);
+  final notifier =
+      adapter.oneWatchers[args.watcher] ?? adapter.watchOneNotifier;
+  return notifier(args.id!,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
       alsoWatch: args.alsoWatch,
-      findStrategy: args.findStrategy);
+      finder: args.finder);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Node?>, DataState<Node?>>
@@ -97,26 +100,31 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Node?>, DataState<Node?>>
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         AlsoWatch<Node>? alsoWatch,
-        String? findStrategy}) {
+        String? finder,
+        String? watcher}) {
   return _nodeProvider(WatchArgs(
       id: id,
       remote: remote,
       params: params,
       headers: headers,
       alsoWatch: alsoWatch,
-      findStrategy: findStrategy));
+      finder: finder,
+      watcher: watcher));
 }
 
 final _nodesProvider = StateNotifierProvider.autoDispose.family<
     DataStateNotifier<List<Node>>,
     DataState<List<Node>>,
     WatchArgs<Node>>((ref, args) {
-  return ref.watch(nodesRemoteAdapterProvider).watchAllNotifier(
+  final adapter = ref.watch(nodesRemoteAdapterProvider);
+  final notifier =
+      adapter.allWatchers[args.watcher] ?? adapter.watchAllNotifier;
+  return notifier(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
       syncLocal: args.syncLocal,
-      findStrategy: args.findStrategy);
+      finder: args.finder);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<Node>>,
@@ -126,13 +134,15 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Node>>,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         bool? syncLocal,
-        String? findStrategy}) {
+        String? finder,
+        String? watcher}) {
   return _nodesProvider(WatchArgs(
       remote: remote,
       params: params,
       headers: headers,
       syncLocal: syncLocal,
-      findStrategy: findStrategy));
+      finder: finder,
+      watcher: watcher));
 }
 
 extension NodeDataX on Node {

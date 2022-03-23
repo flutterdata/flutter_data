@@ -74,12 +74,15 @@ final tasksRepositoryProvider =
 final _taskProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Task?>, DataState<Task?>, WatchArgs<Task>>(
         (ref, args) {
-  return ref.watch(tasksRemoteAdapterProvider).watchOneNotifier(args.id!,
+  final adapter = ref.watch(tasksRemoteAdapterProvider);
+  final notifier =
+      adapter.oneWatchers[args.watcher] ?? adapter.watchOneNotifier;
+  return notifier(args.id!,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
       alsoWatch: args.alsoWatch,
-      findStrategy: args.findStrategy);
+      finder: args.finder);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Task?>, DataState<Task?>>
@@ -88,26 +91,31 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Task?>, DataState<Task?>>
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         AlsoWatch<Task>? alsoWatch,
-        String? findStrategy}) {
+        String? finder,
+        String? watcher}) {
   return _taskProvider(WatchArgs(
       id: id,
       remote: remote,
       params: params,
       headers: headers,
       alsoWatch: alsoWatch,
-      findStrategy: findStrategy));
+      finder: finder,
+      watcher: watcher));
 }
 
 final _tasksProvider = StateNotifierProvider.autoDispose.family<
     DataStateNotifier<List<Task>>,
     DataState<List<Task>>,
     WatchArgs<Task>>((ref, args) {
-  return ref.watch(tasksRemoteAdapterProvider).watchAllNotifier(
+  final adapter = ref.watch(tasksRemoteAdapterProvider);
+  final notifier =
+      adapter.allWatchers[args.watcher] ?? adapter.watchAllNotifier;
+  return notifier(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
       syncLocal: args.syncLocal,
-      findStrategy: args.findStrategy);
+      finder: args.finder);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<Task>>,
@@ -117,13 +125,15 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Task>>,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         bool? syncLocal,
-        String? findStrategy}) {
+        String? finder,
+        String? watcher}) {
   return _tasksProvider(WatchArgs(
       remote: remote,
       params: params,
       headers: headers,
       syncLocal: syncLocal,
-      findStrategy: findStrategy));
+      finder: finder,
+      watcher: watcher));
 }
 
 extension TaskDataX on Task {

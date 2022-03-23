@@ -72,12 +72,15 @@ final housesRepositoryProvider =
 final _houseProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<House?>, DataState<House?>, WatchArgs<House>>(
         (ref, args) {
-  return ref.watch(housesRemoteAdapterProvider).watchOneNotifier(args.id!,
+  final adapter = ref.watch(housesRemoteAdapterProvider);
+  final notifier =
+      adapter.oneWatchers[args.watcher] ?? adapter.watchOneNotifier;
+  return notifier(args.id!,
       remote: args.remote,
       params: args.params,
       headers: args.headers,
       alsoWatch: args.alsoWatch,
-      findStrategy: args.findStrategy);
+      finder: args.finder);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<House?>, DataState<House?>>
@@ -86,26 +89,31 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<House?>, DataState<House?>>
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         AlsoWatch<House>? alsoWatch,
-        String? findStrategy}) {
+        String? finder,
+        String? watcher}) {
   return _houseProvider(WatchArgs(
       id: id,
       remote: remote,
       params: params,
       headers: headers,
       alsoWatch: alsoWatch,
-      findStrategy: findStrategy));
+      finder: finder,
+      watcher: watcher));
 }
 
 final _housesProvider = StateNotifierProvider.autoDispose.family<
     DataStateNotifier<List<House>>,
     DataState<List<House>>,
     WatchArgs<House>>((ref, args) {
-  return ref.watch(housesRemoteAdapterProvider).watchAllNotifier(
+  final adapter = ref.watch(housesRemoteAdapterProvider);
+  final notifier =
+      adapter.allWatchers[args.watcher] ?? adapter.watchAllNotifier;
+  return notifier(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
       syncLocal: args.syncLocal,
-      findStrategy: args.findStrategy);
+      finder: args.finder);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<House>>,
@@ -115,13 +123,15 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<House>>,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         bool? syncLocal,
-        String? findStrategy}) {
+        String? finder,
+        String? watcher}) {
   return _housesProvider(WatchArgs(
       remote: remote,
       params: params,
       headers: headers,
       syncLocal: syncLocal,
-      findStrategy: findStrategy));
+      finder: finder,
+      watcher: watcher));
 }
 
 extension HouseDataX on House {
