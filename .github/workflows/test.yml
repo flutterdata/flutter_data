@@ -8,20 +8,39 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - linux
+          - windows
+          - macos
+          - web
+        include:
+          - platform: linux
+            os: ubuntu-latest
+          - platform: windows
+            os: windows-latest
+          - platform: macos
+            os: macos-latest
+          - platform: web
+            os: ubuntu-latest
+            dartTestArgs: -p chrome
 
-    container:
-      image: google/dart:latest
+    runs-on: ${{ matrix.os }}
 
     steps:
+      - uses: dart-lang/setup-dart@v1.3
       - uses: actions/checkout@v2
       - name: Install dependencies
-        run: pub get
+        run: dart pub get
       - name: Run tests
-        run: pub run test
+        run: dart test --reporter expanded ${{ matrix.dartTestArgs }}
       - name: Generate coverage
-        run: pub run test_cov
+        if: runner.os == 'Linux'
+        run: dart run test_cov
       - name: Send coverage report to codecov
+        if: runner.os == 'Linux'
         uses: codecov/codecov-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
