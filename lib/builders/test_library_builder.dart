@@ -95,16 +95,11 @@ final flutterDataTestOverrides = [
 
 // fakes, mocks & mixins
 
-class FakeBox<T> extends Fake implements Box<T> {
+class FakeBoxBase<T> extends Fake implements BoxBase<T> {
   final _map = <dynamic, T>{};
 
   @override
   bool isOpen = true;
-
-  @override
-  T? get(key, {T? defaultValue}) {
-    return _map[key] ?? defaultValue;
-  }
 
   @override
   Future<void> put(key, T value) async {
@@ -117,13 +112,7 @@ class FakeBox<T> extends Fake implements Box<T> {
   }
 
   @override
-  Map<dynamic, T> toMap() => _map;
-
-  @override
   Iterable get keys => _map.keys;
-
-  @override
-  Iterable<T> get values => _map.values;
 
   @override
   bool containsKey(key) => _map.containsKey(key);
@@ -154,6 +143,21 @@ class FakeBox<T> extends Fake implements Box<T> {
   }
 }
 
+class FakeBox<T> extends FakeBoxBase<T> implements Box<T> {
+  @override
+  T? get(key, {T? defaultValue}) {
+    return _map[key] ?? defaultValue;
+  }
+
+  @override
+  Map<dynamic, T> toMap() => _map;
+
+  @override
+  Iterable<T> get values => _map.values;
+}
+
+class FakeLazyBox<T> extends FakeBoxBase<T> implements LazyBox<T> {}
+
 class HiveMock extends Mock implements HiveInterface {
   @override
   bool isBoxOpen(String name) => true;
@@ -161,6 +165,17 @@ class HiveMock extends Mock implements HiveInterface {
   @override
   void init(String path) {
     return;
+  }
+
+  @override
+  Future<LazyBox<E>> openLazyBox<E>(String name,
+      {HiveCipher? encryptionCipher,
+      KeyComparator keyComparator = defaultKeyComparator,
+      CompactionStrategy compactionStrategy = defaultCompactionStrategy,
+      bool crashRecovery = true,
+      String? path,
+      List<int>? encryptionKey}) async {
+    return FakeLazyBox<E>();
   }
 }
 
