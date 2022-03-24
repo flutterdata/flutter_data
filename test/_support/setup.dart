@@ -12,6 +12,9 @@ import 'node.dart';
 import 'person.dart';
 import 'pet.dart';
 
+// copied from https://api.flutter.dev/flutter/foundation/kIsWeb-constant.html
+const _kIsWeb = identical(0, 0.0);
+
 //
 
 late ProviderContainer container;
@@ -78,11 +81,12 @@ void setUpFn() async {
         adapters: adapterGraph,
       );
 
+  const nodesKey = _kIsWeb ? 'node1s' : 'nodes';
   nodeRepository = await container.read(nodesRepositoryProvider).initialize(
     remote: false,
     verbose: false,
     adapters: {
-      'nodes': container.read(nodesRemoteAdapterProvider),
+      nodesKey: container.read(nodesRemoteAdapterProvider),
     },
   );
 
