@@ -106,7 +106,8 @@ class _FunctionalDataStateNotifier<T, W> extends DataStateNotifier<W> {
   final DataStateNotifier<W> _source;
   late RemoveListener _sourceDisposeFn;
 
-  _FunctionalDataStateNotifier(this._source) : super(data: _source.data);
+  _FunctionalDataStateNotifier(this._source)
+      : super(data: _source.data, reload: _source._reloadFn);
 
   DataStateNotifier<W> where(bool Function(T) test) {
     _sourceDisposeFn = _source.addListener((state) {
