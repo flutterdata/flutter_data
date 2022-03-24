@@ -50,5 +50,6 @@ class WatchArgs<T extends DataModel<T>> with EquatableMixin {
   final String? watcher;
 
   @override
-  List<Object?> get props => [id, remote, params, headers, finder, watcher];
+  List<Object?> get props =>
+      [id, remote, params, headers, syncLocal, finder, watcher];
 }
