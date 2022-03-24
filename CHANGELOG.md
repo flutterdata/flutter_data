@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.0]
+
+- Introduce API to create custom fetching and watching strategies in order to develop and reuse providers within adapters; and in this spirit, remove `Repository#watchOneNotifier` and `Repository#watchAllNotifier`
+- Fix broken reload when using functional notifier extensions
+- Snake case box names without breaking existing
+- Ability for a model to access its `notifier`
+- Fix path on Windows
+
 ## [1.2.1]
 
 - Fix using wrong name for relationships with multiple words in local storage
