@@ -181,27 +181,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   Set<OfflineOperation<T>> get offlineOperations =>
       remoteAdapter.offlineOperations;
 
-  // watchers
-
-  /// Watches changes on all models of type [T] in local storage.
-  ///
-  /// When called, will in turn call [findAll] with [remote], [params],
-  /// [headers], [syncLocal].
-  DataStateNotifier<List<T>> watchAllNotifier({
-    bool? remote,
-    Map<String, dynamic>? params,
-    Map<String, String>? headers,
-    bool? syncLocal,
-  }) {
-    return remoteAdapter.watchAllNotifier(
-      remote: remote,
-      params: params,
-      headers: headers,
-      syncLocal: syncLocal,
-    );
-  }
-
-  /// Watches a provider wrapping [watchAllNotifier]
+  /// Watches a provider wrapping [_RemoteAdapterWatch.watchAllNotifier]
   /// which allows the watcher to be notified of changes
   /// on any model of this [type].
   ///
@@ -224,29 +204,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     );
   }
 
-  /// Returns a [DataState] notifier with changes on model of
-  /// type [T] by [id] in local storage.
-  ///
-  /// Optionally reacts to selected relationships of this model via [alsoWatch].
-  ///
-  /// Will invoke [findAll] with [remote], [params], [headers].
-  DataStateNotifier<T?> watchOneNotifier(
-    Object id, {
-    bool? remote,
-    Map<String, dynamic>? params,
-    Map<String, String>? headers,
-    AlsoWatch<T>? alsoWatch,
-  }) {
-    return remoteAdapter.watchOneNotifier(
-      id,
-      remote: remote,
-      params: params,
-      headers: headers,
-      alsoWatch: alsoWatch,
-    );
-  }
-
-  /// Watches a provider wrapping [watchOneNotifier]
+  /// Watches a provider wrapping [_RemoteAdapterWatch.watchOneNotifier]
   /// which allows the watcher to be notified of changes
   /// on a specific model of this [type], optionally reacting
   /// to selected relationships of this model via [alsoWatch].

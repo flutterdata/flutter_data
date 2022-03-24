@@ -224,7 +224,7 @@ final _$providerStringSingular =
     StateNotifierProvider.autoDispose.family<DataStateNotifier<$classType?>, DataState<$classType?>, WatchArgs<$classType>>(
         (ref, args) {
   final adapter = ref.watch(${typeLowerCased}RemoteAdapterProvider);
-  final notifier = adapter.oneWatchers[args.watcher] ??
+  final notifier = adapter.strategies.watchersOne[args.watcher] ??
 adapter.watchOneNotifier;
   return notifier(args.id!, remote: args.remote, params: args.params, headers: args.headers, alsoWatch: args.alsoWatch, finder: args.finder);
 });
@@ -238,7 +238,7 @@ final _$providerStringPlural =
     StateNotifierProvider.autoDispose.family<DataStateNotifier<List<$classType>>, DataState<List<$classType>>, WatchArgs<$classType>>(
         (ref, args) {
   final adapter = ref.watch(${typeLowerCased}RemoteAdapterProvider);
-  final notifier = adapter.allWatchers[args.watcher] ??
+  final notifier = adapter.strategies.watchersAll[args.watcher] ??
 adapter.watchAllNotifier;
   return notifier(remote: args.remote, params: args.params, headers: args.headers, syncLocal: args.syncLocal, finder: args.finder);
 });

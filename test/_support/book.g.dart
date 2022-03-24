@@ -108,7 +108,7 @@ final _bookAuthorProvider = StateNotifierProvider.autoDispose.family<
     WatchArgs<BookAuthor>>((ref, args) {
   final adapter = ref.watch(bookAuthorsRemoteAdapterProvider);
   final notifier =
-      adapter.oneWatchers[args.watcher] ?? adapter.watchOneNotifier;
+      adapter.strategies.watchersOne[args.watcher] ?? adapter.watchOneNotifier;
   return notifier(args.id!,
       remote: args.remote,
       params: args.params,
@@ -142,7 +142,7 @@ final _bookAuthorsProvider = StateNotifierProvider.autoDispose.family<
     WatchArgs<BookAuthor>>((ref, args) {
   final adapter = ref.watch(bookAuthorsRemoteAdapterProvider);
   final notifier =
-      adapter.allWatchers[args.watcher] ?? adapter.watchAllNotifier;
+      adapter.strategies.watchersAll[args.watcher] ?? adapter.watchAllNotifier;
   return notifier(
       remote: args.remote,
       params: args.params,
@@ -236,7 +236,7 @@ final _bookProvider = StateNotifierProvider.autoDispose
         (ref, args) {
   final adapter = ref.watch(booksRemoteAdapterProvider);
   final notifier =
-      adapter.oneWatchers[args.watcher] ?? adapter.watchOneNotifier;
+      adapter.strategies.watchersOne[args.watcher] ?? adapter.watchOneNotifier;
   return notifier(args.id!,
       remote: args.remote,
       params: args.params,
@@ -269,7 +269,7 @@ final _booksProvider = StateNotifierProvider.autoDispose.family<
     WatchArgs<Book>>((ref, args) {
   final adapter = ref.watch(booksRemoteAdapterProvider);
   final notifier =
-      adapter.allWatchers[args.watcher] ?? adapter.watchAllNotifier;
+      adapter.strategies.watchersAll[args.watcher] ?? adapter.watchAllNotifier;
   return notifier(
       remote: args.remote,
       params: args.params,

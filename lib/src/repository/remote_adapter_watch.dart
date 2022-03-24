@@ -24,7 +24,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     _assertInit();
     remote ??= _remote;
     syncLocal ??= false;
-    final _finder = allFinders[finder] ?? findAll;
+    final _finder = strategies._findersAll[finder] ?? findAll;
 
     final _notifier = DataStateNotifier<List<T>>(
       data: DataState(localAdapter
@@ -89,14 +89,6 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     return _notifier;
   }
 
-  Map<String, AllFinder<T>> get allFinders {
-    return {};
-  }
-
-  Map<String, AllWatcher<T>> get allWatchers {
-    return {};
-  }
-
   DataState<List<T>> watchAll({
     bool? remote,
     Map<String, dynamic>? params,
@@ -133,7 +125,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
     remote ??= _remote;
 
-    final _finder = oneFinders[finder] ?? findOne;
+    final _finder = strategies._findersOne[finder] ?? findOne;
 
     final id = _resolveId(model);
 
@@ -271,14 +263,6 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
     _notifier.onDispose = _dispose;
     return _notifier;
-  }
-
-  Map<String, OneFinder<T>> get oneFinders {
-    return {};
-  }
-
-  Map<String, OneWatcher<T>> get oneWatchers {
-    return {};
   }
 
   DataState<T?> watchOne(

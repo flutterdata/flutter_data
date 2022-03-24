@@ -129,6 +129,20 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   DataRequestMethod methodForDelete(id, Map<String, dynamic> params) =>
       DataRequestMethod.DELETE;
 
+  /// Use to specify any alternative finder and watcher strategies.
+  ///
+  /// Example:
+  ///
+  /// ```
+  /// @override
+  /// DataStrategies<Book> get strategies {
+  ///   return super.strategies
+  ///     .add(finderOne: prefetchDependants, name: 'withDependants')
+  ///     .add(watcherAll: watchAllVisible, name: 'visible');
+  /// }
+  /// ```
+  DataStrategies<T> get strategies => DataStrategies<T>._();
+
   /// A [Map] representing default HTTP query parameters. Defaults to empty.
   ///
   /// It can return a [Future], so that adapters overriding this method

@@ -72,7 +72,7 @@ final _dogProvider = StateNotifierProvider.autoDispose
         (ref, args) {
   final adapter = ref.watch(dogsRemoteAdapterProvider);
   final notifier =
-      adapter.oneWatchers[args.watcher] ?? adapter.watchOneNotifier;
+      adapter.strategies.watchersOne[args.watcher] ?? adapter.watchOneNotifier;
   return notifier(args.id!,
       remote: args.remote,
       params: args.params,
@@ -104,7 +104,7 @@ final _dogsProvider = StateNotifierProvider.autoDispose
         (ref, args) {
   final adapter = ref.watch(dogsRemoteAdapterProvider);
   final notifier =
-      adapter.allWatchers[args.watcher] ?? adapter.watchAllNotifier;
+      adapter.strategies.watchersAll[args.watcher] ?? adapter.watchAllNotifier;
   return notifier(
       remote: args.remote,
       params: args.params,
@@ -188,7 +188,7 @@ final _catProvider = StateNotifierProvider.autoDispose
         (ref, args) {
   final adapter = ref.watch(catsRemoteAdapterProvider);
   final notifier =
-      adapter.oneWatchers[args.watcher] ?? adapter.watchOneNotifier;
+      adapter.strategies.watchersOne[args.watcher] ?? adapter.watchOneNotifier;
   return notifier(args.id!,
       remote: args.remote,
       params: args.params,
@@ -220,7 +220,7 @@ final _catsProvider = StateNotifierProvider.autoDispose
         (ref, args) {
   final adapter = ref.watch(catsRemoteAdapterProvider);
   final notifier =
-      adapter.allWatchers[args.watcher] ?? adapter.watchAllNotifier;
+      adapter.strategies.watchersAll[args.watcher] ?? adapter.watchAllNotifier;
   return notifier(
       remote: args.remote,
       params: args.params,

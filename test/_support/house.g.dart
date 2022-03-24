@@ -74,7 +74,7 @@ final _houseProvider = StateNotifierProvider.autoDispose
         (ref, args) {
   final adapter = ref.watch(housesRemoteAdapterProvider);
   final notifier =
-      adapter.oneWatchers[args.watcher] ?? adapter.watchOneNotifier;
+      adapter.strategies.watchersOne[args.watcher] ?? adapter.watchOneNotifier;
   return notifier(args.id!,
       remote: args.remote,
       params: args.params,
@@ -107,7 +107,7 @@ final _housesProvider = StateNotifierProvider.autoDispose.family<
     WatchArgs<House>>((ref, args) {
   final adapter = ref.watch(housesRemoteAdapterProvider);
   final notifier =
-      adapter.allWatchers[args.watcher] ?? adapter.watchAllNotifier;
+      adapter.strategies.watchersAll[args.watcher] ?? adapter.watchAllNotifier;
   return notifier(
       remote: args.remote,
       params: args.params,

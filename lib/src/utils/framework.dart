@@ -36,40 +36,6 @@ abstract class _Lifecycle {
   void dispose();
 }
 
-typedef OneFinder<T extends DataModel<T>> = Future<T?> Function(
-  Object model, {
-  bool? remote,
-  Map<String, dynamic>? params,
-  Map<String, String>? headers,
-  OnDataError<T?>? onError,
-});
-
-typedef AllFinder<T extends DataModel<T>> = Future<List<T>> Function({
-  bool? remote,
-  Map<String, dynamic>? params,
-  Map<String, String>? headers,
-  bool? syncLocal,
-  OnDataError<List<T>>? onError,
-});
-
-typedef OneWatcher<T extends DataModel<T>> = DataStateNotifier<T?> Function(
-  Object model, {
-  bool? remote,
-  Map<String, dynamic>? params,
-  Map<String, String>? headers,
-  AlsoWatch<T>? alsoWatch,
-  String? finder,
-});
-
-typedef AllWatcher<T extends DataModel<T>> = DataStateNotifier<List<T>>
-    Function({
-  bool? remote,
-  Map<String, dynamic>? params,
-  Map<String, String>? headers,
-  bool? syncLocal,
-  String? finder,
-});
-
 typedef Watcher = W Function<W>(ProviderListenable<W> provider);
 
 typedef OneProvider<T extends DataModel<T>>
@@ -89,4 +55,63 @@ typedef AllProvider<T extends DataModel<T>> = AutoDisposeStateNotifierProvider<
   Map<String, dynamic>? params,
   Map<String, String>? headers,
   bool? syncLocal,
+});
+
+// strategies
+
+class DataStrategies<T extends DataModel<T>> {
+  DataStrategies._();
+
+  final Map<String, DataFinderAll<T>> _findersAll = {};
+  final Map<String, DataFinderOne<T>> _findersOne = {};
+  final Map<String, DataWatcherAll<T>> watchersAll = {};
+  final Map<String, DataWatcherOne<T>> watchersOne = {};
+
+  DataStrategies<T> add({
+    DataFinderOne<T>? finderOne,
+    DataFinderAll<T>? finderAll,
+    DataWatcherAll<T>? watcherAll,
+    DataWatcherOne<T>? watcherOne,
+    required String name,
+  }) {
+    if (finderOne != null) _findersOne[name] = finderOne;
+    if (finderAll != null) _findersAll[name] = finderAll;
+    if (watcherAll != null) watchersAll[name] = watcherAll;
+    if (watcherOne != null) watchersOne[name] = watcherOne;
+    return this;
+  }
+}
+
+typedef DataFinderAll<T extends DataModel<T>> = Future<List<T>> Function({
+  bool? remote,
+  Map<String, dynamic>? params,
+  Map<String, String>? headers,
+  bool? syncLocal,
+  OnDataError<List<T>>? onError,
+});
+
+typedef DataFinderOne<T extends DataModel<T>> = Future<T?> Function(
+  Object model, {
+  bool? remote,
+  Map<String, dynamic>? params,
+  Map<String, String>? headers,
+  OnDataError<T?>? onError,
+});
+
+typedef DataWatcherAll<T extends DataModel<T>> = DataStateNotifier<List<T>>
+    Function({
+  bool? remote,
+  Map<String, dynamic>? params,
+  Map<String, String>? headers,
+  bool? syncLocal,
+  String? finder,
+});
+
+typedef DataWatcherOne<T extends DataModel<T>> = DataStateNotifier<T?> Function(
+  Object model, {
+  bool? remote,
+  Map<String, dynamic>? params,
+  Map<String, String>? headers,
+  AlsoWatch<T>? alsoWatch,
+  String? finder,
 });
