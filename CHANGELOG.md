@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.3.2]
+
+- Support Hive `LazyBox` fake in `test.data.dart`
+
 ## [1.3.0]
 
 - Introduce API to create custom fetching and watching strategies in order to develop and reuse providers within adapters; and in this spirit, remove `Repository#watchOneNotifier` and `Repository#watchAllNotifier`

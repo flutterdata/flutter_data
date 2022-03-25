@@ -74,7 +74,11 @@ ${classType}RemoteAdapterProvider.overrideWithProvider(Provider((ref) =>
 import 'dart:async';
 
 import 'package:flutter_data/flutter_data.dart';
+
 import 'package:hive/hive.dart';
+import 'package:hive/src/box/default_compaction_strategy.dart';
+import 'package:hive/src/box/default_key_comparator.dart';
+
 import 'package:http/testing.dart';
 import 'package:mockito/mockito.dart';
 import 'package:http/http.dart' as http;
