@@ -276,8 +276,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
     if (!shouldLoadRemoteAll(remote!, params, headers)) {
       final models = localAdapter.findAll().toImmutableList();
-      models.map((m) => m._initialize(adapters, save: true));
-      return models;
+      return models.map((m) => m._initialize(adapters)).toList();
     }
 
     final result = await sendRequest(

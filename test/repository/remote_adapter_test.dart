@@ -108,4 +108,48 @@ void main() async {
     final key = adapter.graph.getKeyForId(adapter.internalType, 15);
     expect(keyFor(author), equals(key));
   });
+
+  test('issue 148', () async {
+    container.read(responseProvider.notifier).state = TestResponse.text('''[
+          {"id": "1", "surname": "Smith", "persons": [
+              {
+                "_id": "1",
+                "name": "Peter",
+                "age": 10
+              },
+              {
+                "_id": "2",
+                "name": "John",
+                "age": 44
+              }
+            ]
+          }
+        ]''');
+
+    // remote comes back with relationships
+    final models = await familyRepository.findAll(remote: true);
+    expect(models.first.persons.toList(), [
+      Person(id: '1', name: 'Peter', age: 10),
+      Person(id: '2', name: 'John', age: 44)
+    ]);
+
+    final originalKey = keyFor(models.first)!;
+
+    // simulate app restart
+    familyRepository.dispose();
+    familyRepository =
+        await container.read(familiesRepositoryProvider).initialize(
+              // ignore: invalid_use_of_protected_member
+              adapters: familyRemoteAdapter.adapters,
+            );
+    await familyRemoteAdapter.localAdapter
+        .save(originalKey, Family(id: '1', surname: 'Smith'), notify: false);
+
+    // local storage still comes back with relationships
+    final models2 = await familyRepository.findAll(remote: false);
+    expect(models2.first.persons.toList(), [
+      Person(id: '1', name: 'Peter', age: 10),
+      Person(id: '2', name: 'John', age: 44)
+    ]);
+  });
 }
