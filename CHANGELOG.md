@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.3.3]
+
+- Fix `DataModel#notifier` getter
+- Fix #148 where models from local storage would be returned without relationships
+
 ## [1.3.2]
 
 - Support Hive `LazyBox` fake in `test.data.dart`
