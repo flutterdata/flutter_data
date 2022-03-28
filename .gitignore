@@ -1,6 +1,5 @@
 example/tmp
-# .vscode/
-TO-DO.md
+.vscode/
 
 test/.test_cov.dart
 coverage/
