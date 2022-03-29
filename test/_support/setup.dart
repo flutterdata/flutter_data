@@ -126,8 +126,13 @@ void tearDownFn() async {
 class TestResponse {
   final String Function(http.Request) text;
   final int statusCode;
+  final Map<String, String> headers;
 
-  const TestResponse({required this.text, this.statusCode = 200});
+  const TestResponse({
+    required this.text,
+    this.statusCode = 200,
+    this.headers = const {},
+  });
 
   factory TestResponse.text(String text) {
     return TestResponse(text: (_) => text);
@@ -146,7 +151,8 @@ ProviderContainer createContainer() {
           Provider.family<http.Response, http.Request>((ref, req) {
         final response = ref.watch(responseProvider);
         final text = response.text(req);
-        return http.Response(text, response.statusCode);
+        return http.Response(text, response.statusCode,
+            headers: response.headers);
       })),
 
       // fd infra

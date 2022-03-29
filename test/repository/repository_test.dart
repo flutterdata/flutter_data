@@ -607,6 +607,16 @@ void main() async {
     }, throwsA(isA<UnsupportedError>()));
   });
 
+  test('find one with utf8 characters', () async {
+    container.read(responseProvider.notifier).state = TestResponse(
+      text: (req) => '{ "id": "1", "surname": "عمر" }',
+      headers: {'content-type': 'application/json; charset=utf-8'},
+    );
+    final families = await familyRepository.findOne(1);
+
+    expect(families, Family(id: '1', surname: 'عمر'));
+  });
+
   test('dispose', () {
     familyRepository.dispose();
     expect(familyRepository.isInitialized, isFalse);
