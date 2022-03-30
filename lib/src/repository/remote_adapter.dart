@@ -225,13 +225,13 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   /// [key] can be used to supply a specific `key` when deserializing ONE model.
   @protected
   @visibleForTesting
-  DeserializedData<T> deserialize(Object? data, {String key});
+  Future<DeserializedData<T>> deserialize(Object? data, {String key});
 
   /// Returns a serialized version of a model of [T],
   /// as a [Map<String, dynamic>] ready to be JSON-encoded.
   @protected
   @visibleForTesting
-  Map<String, dynamic> serialize(T model);
+  Future<Map<String, dynamic>> serialize(T model);
 
   // caching
 
@@ -289,7 +289,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
         if (syncLocal!) {
           await localAdapter.clear();
         }
-        final models = deserialize(data).models.toImmutableList();
+        final deserialized = await deserialize(data);
+        final models = deserialized.models.toImmutableList();
         return onSuccess?.call(models) ?? models;
       },
       onError: onError,
@@ -330,9 +331,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       headers: headers,
       requestType: DataRequestType.findOne,
       key: StringUtils.typify(internalType, id!),
-      onSuccess: (data) {
-        final model = deserialize(data).model;
-        return onSuccess?.call(model) ?? model;
+      onSuccess: (data) async {
+        final deserialized = await deserialize(data);
+        return onSuccess?.call(deserialized.model) ?? deserialized.model;
       },
       onError: onError,
     );
@@ -360,7 +361,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       return localAdapter.save(model._key!, model, notify: true);
     }
 
-    final body = json.encode(serialize(model));
+    final serialized = await serialize(model);
+    final body = json.encode(serialized);
 
     final result = await sendRequest(
       baseUrl.asUri / urlForSave(model.id, params) & params,
@@ -369,7 +371,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       body: body,
       requestType: DataRequestType.save,
       key: model._key,
-      onSuccess: (data) {
+      onSuccess: (data) async {
         T _model;
         if (data == null) {
           // return "old" model if response was empty
@@ -377,9 +379,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
         } else {
           // deserialize already inits models
           // if model had a key already, reuse it
-          final _newModel =
-              deserialize(data as Map<String, dynamic>, key: model._key!)
-                  .model!;
+          final deserialized =
+              await deserialize(data as Map<String, dynamic>, key: model._key!);
+          final _newModel = deserialized.model!;
 
           // in the unlikely case where supplied key couldn't be used
           // ensure "old" copy of model carries the updated key

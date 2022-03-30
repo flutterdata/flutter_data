@@ -200,7 +200,7 @@ void main() async {
     expect(f4.residence!.value!.owner.value!.surname, 'Kamchatka');
   });
 
-  test('scenario #4: maintain relationship reference validity', () {
+  test('scenario #4: maintain relationship reference validity', () async {
     final brian = Person(name: 'Brian', age: 52).init(container.read);
     final family =
         Family(id: '229', surname: 'Rose', persons: {brian}.asHasMany)
@@ -214,16 +214,16 @@ void main() async {
     expect(family2.persons.length, 1);
 
     // new family comes in from API (simulate) with no persons relationship info
-    final family3 = familyRemoteAdapter
-        .deserialize({'id': '229', 'surname': 'Rose'})
+    final family3 = (await familyRemoteAdapter
+            .deserialize({'id': '229', 'surname': 'Rose'}))
         .model!
         .init(container.read);
     // it should keep the relationships unaltered
     expect(family3.persons.length, 1);
 
     // new family comes in from API (simulate) with empty persons relationship
-    final family4 = familyRemoteAdapter
-        .deserialize({'id': '229', 'surname': 'Rose', 'persons': []})
+    final family4 = (await familyRemoteAdapter
+            .deserialize({'id': '229', 'surname': 'Rose', 'persons': []}))
         .model!
         .init(container.read);
     // it should keep the relationships unaltered

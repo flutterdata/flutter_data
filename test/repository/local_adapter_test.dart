@@ -61,8 +61,6 @@ void main() async {
       'surname': 'Smith',
       'residence': h1r,
       'persons': p1r,
-      'cottage': null,
-      'dogs': null,
     });
   });
 

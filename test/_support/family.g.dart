@@ -24,14 +24,23 @@ Family _$FamilyFromJson(Map<String, dynamic> json) => Family(
           : HasMany<Dog>.fromJson(json['dogs'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$FamilyToJson(Family instance) => <String, dynamic>{
-      'id': instance.id,
-      'surname': instance.surname,
-      'persons': instance.persons.toJson(),
-      'cottage': instance.cottage?.toJson(),
-      'residence': instance.residence?.toJson(),
-      'dogs': instance.dogs?.toJson(),
-    };
+Map<String, dynamic> _$FamilyToJson(Family instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('id', instance.id);
+  val['surname'] = instance.surname;
+  val['persons'] = instance.persons.toJson();
+  writeNotNull('cottage', instance.cottage?.toJson());
+  writeNotNull('residence', instance.residence?.toJson());
+  writeNotNull('dogs', instance.dogs?.toJson());
+  return val;
+}
 
 // **************************************************************************
 // RepositoryGenerator

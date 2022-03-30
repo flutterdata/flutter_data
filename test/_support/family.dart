@@ -7,7 +7,7 @@ import 'pet.dart';
 
 part 'family.g.dart';
 
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(explicitToJson: true, includeIfNull: false)
 @DataRepository([])
 class Family with DataModel<Family> {
   @override
