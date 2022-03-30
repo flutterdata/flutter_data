@@ -588,7 +588,9 @@ void main() async {
     Dog(id: '3', name: 'Bowie').init(container.read);
     container.read(responseProvider.notifier).state = TestResponse.text('');
     await dogRepository.delete('3', params: {'a': 1}, remote: true);
-    expect(verbose, ['[flutter_data] [dogs] DELETE /dogs/3?a=1 [HTTP 200]']);
+    expect(verbose, [
+      '[flutter_data] [dogs] DELETE https://override-base-url-in-adapter/dogs/3?a=1 [HTTP 200]'
+    ]);
 
     try {
       container.read(responseProvider.notifier).state =
@@ -598,14 +600,6 @@ void main() async {
       expect(verbose.last, contains('DataException'));
     }
   }));
-
-  test('override baseUrl', () {
-    // node repo has no baseUrl (doesn't mix in TestRemoteAdapter)
-    expect(() async {
-      container.read(responseProvider.notifier).state = TestResponse.text('');
-      return await nodeRepository.findOne('1', remote: true);
-    }, throwsA(isA<UnsupportedError>()));
-  });
 
   test('find one with utf8 characters', () async {
     container.read(responseProvider.notifier).state = TestResponse(

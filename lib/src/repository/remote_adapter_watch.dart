@@ -3,8 +3,14 @@ part of flutter_data;
 mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
   @protected
   @visibleForTesting
-  Duration get throttleDuration =>
-      const Duration(milliseconds: 16); // 1 frame at 60fps
+  Duration get throttleDuration {
+    if (_isTesting) {
+      // if testing do not throttle
+      return Duration.zero;
+    }
+    // 1 frame at 60fps
+    return const Duration(milliseconds: 16);
+  }
 
   @protected
   @visibleForTesting

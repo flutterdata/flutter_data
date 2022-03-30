@@ -6,12 +6,16 @@ import 'package:recase/recase.dart';
 import 'package:riverpod/riverpod.dart';
 
 class HiveLocalStorage {
-  HiveLocalStorage({this.baseDirFn, List<int>? encryptionKey, bool? clear})
-      : encryptionCipher =
+  HiveLocalStorage({
+    required this.hive,
+    this.baseDirFn,
+    List<int>? encryptionKey,
+    bool? clear,
+  })  : encryptionCipher =
             encryptionKey != null ? HiveAesCipher(encryptionKey) : null,
         clear = clear ?? false;
 
-  HiveInterface get hive => Hive;
+  final HiveInterface hive;
   final HiveAesCipher? encryptionCipher;
   final FutureOr<String> Function()? baseDirFn;
   final bool clear;
@@ -86,5 +90,7 @@ Widget build(context) {
   }
 }
 
-final hiveLocalStorageProvider =
-    Provider<HiveLocalStorage>((ref) => HiveLocalStorage(baseDirFn: () => ''));
+final hiveLocalStorageProvider = Provider<HiveLocalStorage>((ref) =>
+    HiveLocalStorage(hive: ref.read(hiveProvider), baseDirFn: () => ''));
+
+final hiveProvider = Provider<HiveInterface>((_) => Hive);

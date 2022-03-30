@@ -15,10 +15,11 @@ const _kGraphBoxName = '_graph';
 /// i.e. `manager:key`
 class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
     with _Lifecycle {
+  final Reader read;
   @protected
-  GraphNotifier(this._hiveLocalStorage);
+  GraphNotifier(this.read);
 
-  final HiveLocalStorage _hiveLocalStorage;
+  HiveLocalStorage get _hiveLocalStorage => read(hiveLocalStorageProvider);
 
   @protected
   Box<Map>? box;
@@ -513,6 +514,5 @@ class DataGraphEvent {
   }
 }
 
-final graphNotifierProvider = Provider<GraphNotifier>((ref) {
-  return GraphNotifier(ref.watch(hiveLocalStorageProvider));
-});
+final graphNotifierProvider =
+    Provider<GraphNotifier>((ref) => GraphNotifier(ref.read));

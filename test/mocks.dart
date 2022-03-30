@@ -1,12 +1,10 @@
 import 'dart:async';
+import 'dart:typed_data';
 
-import 'package:flutter_data/flutter_data.dart';
 import 'package:hive/hive.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/testing.dart';
+import 'package:hive/src/box/default_compaction_strategy.dart';
+import 'package:hive/src/box/default_key_comparator.dart';
 import 'package:mockito/mockito.dart';
-
-// EXACT SAME CODE AS THE TEST BUILDER - KEEP IN SYNC FOR NOW
 
 class FakeBox<T> extends Fake implements Box<T> {
   final _map = <dynamic, T>{};
@@ -67,75 +65,31 @@ class FakeBox<T> extends Fake implements Box<T> {
   }
 }
 
-class HiveMock extends Mock implements HiveInterface {
+class HiveFake extends Fake implements HiveInterface {
   @override
   bool isBoxOpen(String name) => true;
 
   @override
-  void init(String path) {
-    return;
+  void init(String path) {}
+
+  @override
+  Future<bool> boxExists(String name, {String? path}) async => false;
+
+  @override
+  Future<Box<E>> openBox<E>(
+    String name, {
+    HiveCipher? encryptionCipher,
+    KeyComparator keyComparator = defaultKeyComparator,
+    CompactionStrategy compactionStrategy = defaultCompactionStrategy,
+    bool crashRecovery = true,
+    String? path,
+    Uint8List? bytes,
+    @Deprecated('Use encryptionCipher instead') List<int>? encryptionKey,
+  }) async {
+    return FakeBox<E>();
   }
 }
 
 class Listener<T> extends Mock {
   void call(T value);
 }
-
-mixin TestMetaBox on GraphNotifier {
-  @override
-  // ignore: must_call_super
-  Future<GraphNotifier> initialize() async {
-    box = FakeBox<Map>();
-    await super.initialize();
-    return this;
-  }
-}
-
-class TestDataGraphNotifier = GraphNotifier with TestMetaBox;
-
-class TestHiveLocalStorage extends HiveLocalStorage {
-  @override
-  HiveInterface get hive => HiveMock();
-
-  @override
-  HiveAesCipher? get encryptionCipher => null;
-
-  @override
-  Future<String> Function() get baseDirFn => () async => '';
-}
-
-mixin TestHiveLocalAdapter<T extends DataModel<T>> on HiveLocalAdapter<T> {
-  @override
-  // ignore: must_call_super
-  Future<TestHiveLocalAdapter<T>> initialize() async {
-    box = FakeBox<T>();
-    await super.initialize();
-    return this;
-  }
-}
-
-mixin TestRemoteAdapter<T extends DataModel<T>> on RemoteAdapter<T> {
-  @override
-  Duration get throttleDuration => Duration.zero;
-
-  @override
-  String get baseUrl => '';
-
-  @override
-  http.Client get httpClient {
-    return MockClient((req) async {
-      try {
-        return read(mockResponseProvider(req));
-      } on ProviderException catch (e) {
-        // unwrap provider exception
-        // ignore: only_throw_errors
-        throw e.exception;
-      }
-    });
-  }
-}
-
-final mockResponseProvider =
-    Provider.family<http.Response, http.Request>((ref, req) {
-  throw UnsupportedError('Please override mockResponseProvider!');
-});

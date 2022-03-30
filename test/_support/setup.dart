@@ -1,8 +1,7 @@
 import 'dart:async';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:http/http.dart' as http;
-// ignore: unnecessary_import
-import 'package:riverpod/riverpod.dart' hide Family;
+import 'package:http/testing.dart';
 
 import '../mocks.dart';
 import 'book.dart';
@@ -35,7 +34,26 @@ late Repository<Book> bookRepository;
 Function? dispose;
 
 void setUpFn() async {
-  container = createContainer();
+  container = ProviderContainer(
+    overrides: [
+      httpClientProvider.overrideWithProvider(Provider((ref) {
+        return MockClient((req) async {
+          try {
+            final response = ref.watch(responseProvider);
+            final text = response.text(req);
+            return http.Response(text, response.statusCode,
+                headers: response.headers);
+          } on ProviderException catch (e) {
+            // unwrap provider exception
+            // ignore: only_throw_errors
+            throw e.exception;
+          }
+        });
+      })),
+      hiveProvider.overrideWithValue(HiveFake()),
+    ],
+  );
+
   graph = container.read(graphNotifierProvider);
   // IMPORTANT: disable namespace assertions
   // in order to test un-namespaced (key, id)
@@ -121,7 +139,15 @@ void tearDownFn() async {
   graph.dispose();
 }
 
-//
+// utils
+
+/// Waits 1 millisecond (tests have a throttle of Duration.zero)
+Future<void> oneMs() async {
+  await Future.delayed(const Duration(milliseconds: 1));
+}
+
+final responseProvider =
+    StateProvider<TestResponse>((_) => TestResponse.text(''));
 
 class TestResponse {
   final String Function(http.Request) text;
@@ -137,105 +163,4 @@ class TestResponse {
   factory TestResponse.text(String text) {
     return TestResponse(text: (_) => text);
   }
-}
-
-final responseProvider =
-    StateProvider<TestResponse>((_) => TestResponse.text(''));
-
-ProviderContainer createContainer() {
-  // when testing in Flutter use ProviderScope
-  return ProviderContainer(
-    overrides: [
-      // app-specific
-      mockResponseProvider.overrideWithProvider(
-          Provider.family<http.Response, http.Request>((ref, req) {
-        final response = ref.watch(responseProvider);
-        final text = response.text(req);
-        return http.Response(text, response.statusCode,
-            headers: response.headers);
-      })),
-
-      // fd infra
-
-      hiveLocalStorageProvider
-          .overrideWithProvider(Provider((_) => TestHiveLocalStorage())),
-      graphNotifierProvider.overrideWithProvider(Provider(
-          (ref) => TestDataGraphNotifier(ref.watch(hiveLocalStorageProvider)))),
-
-      // model-specific
-
-      housesLocalAdapterProvider
-          .overrideWithProvider(Provider((ref) => HouseLocalAdapter(ref.read))),
-      familiesLocalAdapterProvider.overrideWithProvider(
-          Provider((ref) => FamilyLocalAdapter(ref.read))),
-      peopleLocalAdapterProvider.overrideWithProvider(
-          Provider((ref) => PersonLocalAdapter(ref.read))),
-      dogsLocalAdapterProvider
-          .overrideWithProvider(Provider((ref) => DogLocalAdapter(ref.read))),
-      nodesLocalAdapterProvider
-          .overrideWithProvider(Provider((ref) => NodeLocalAdapter(ref.read))),
-      bookAuthorsLocalAdapterProvider.overrideWithProvider(
-          Provider((ref) => BookAuthorLocalAdapter(ref.read))),
-      booksLocalAdapterProvider
-          .overrideWithProvider(Provider((ref) => BookLocalAdapter(ref.read))),
-
-      //
-
-      housesRemoteAdapterProvider.overrideWithProvider(Provider((ref) =>
-          TokenHouseRemoteAdapter(ref.watch(housesLocalAdapterProvider)))),
-      familiesRemoteAdapterProvider.overrideWithProvider(Provider((ref) =>
-          FamilyRemoteAdapter(ref.watch(familiesLocalAdapterProvider)))),
-      peopleRemoteAdapterProvider.overrideWithProvider(Provider(
-          (ref) => PersonRemoteAdapter(ref.watch(peopleLocalAdapterProvider)))),
-      dogsRemoteAdapterProvider.overrideWithProvider(Provider(
-          (ref) => DogRemoteAdapter(ref.watch(dogsLocalAdapterProvider)))),
-      nodesRemoteAdapterProvider.overrideWithProvider(Provider(
-          (ref) => $NodeRemoteAdapter(ref.watch(nodesLocalAdapterProvider)))),
-      bookAuthorsRemoteAdapterProvider.overrideWithProvider(Provider((ref) =>
-          BookAuthorRemoteAdapter(ref.watch(bookAuthorsLocalAdapterProvider)))),
-      booksRemoteAdapterProvider.overrideWithProvider(Provider(
-          (ref) => $BookRemoteAdapter(ref.watch(booksLocalAdapterProvider)))),
-    ],
-  );
-}
-
-//
-
-// ignore: must_be_immutable
-class HouseLocalAdapter = $HouseHiveLocalAdapter
-    with TestHiveLocalAdapter<House>;
-class HouseRemoteAdapter = $HouseRemoteAdapter with TestRemoteAdapter;
-
-// ignore: must_be_immutable
-class FamilyLocalAdapter = $FamilyHiveLocalAdapter
-    with TestHiveLocalAdapter<Family>;
-class FamilyRemoteAdapter = $FamilyRemoteAdapter with TestRemoteAdapter;
-
-// ignore: must_be_immutable
-class PersonLocalAdapter = $PersonHiveLocalAdapter
-    with TestHiveLocalAdapter<Person>;
-class PersonRemoteAdapter = $PersonRemoteAdapter with TestRemoteAdapter;
-
-// ignore: must_be_immutable
-class DogLocalAdapter = $DogHiveLocalAdapter with TestHiveLocalAdapter<Dog>;
-class DogRemoteAdapter = $DogRemoteAdapter with TestRemoteAdapter;
-
-// ignore: must_be_immutable
-class NodeLocalAdapter = $NodeHiveLocalAdapter with TestHiveLocalAdapter<Node>;
-
-// ignore: must_be_immutable
-class BookAuthorLocalAdapter = $BookAuthorHiveLocalAdapter
-    with TestHiveLocalAdapter<BookAuthor>;
-class BookAuthorRemoteAdapter = $BookAuthorRemoteAdapter with TestRemoteAdapter;
-
-// ignore: must_be_immutable
-class BookLocalAdapter = $BookHiveLocalAdapter with TestHiveLocalAdapter<Book>;
-
-class TokenHouseRemoteAdapter = $HouseRemoteAdapter with TestRemoteAdapter;
-
-// utils
-
-/// Waits 1 millisecond (tests have a throttle of Duration.zero)
-Future<void> oneMs() async {
-  await Future.delayed(const Duration(milliseconds: 1));
 }

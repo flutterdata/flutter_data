@@ -89,7 +89,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   ///
   /// For specific paths to this type [T], see [urlForFindAll], [urlForFindOne], etc
   @protected
-  String get baseUrl => throw UnsupportedError('Please override baseUrl');
+  String get baseUrl => 'https://override-base-url-in-adapter/';
 
   /// Returns URL for [findAll]. Defaults to [type].
   @protected
@@ -496,19 +496,21 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     Object? error;
     StackTrace? stackTrace;
 
+    final _client = _isTesting ? read(httpClientProvider)! : httpClient;
+
     try {
       final request = http.Request(method.toShortString(), uri & _params);
       request.headers.addAll(headers);
       if (body != null) {
         request.body = body;
       }
-      final stream = await httpClient.send(request);
+      final stream = await _client.send(request);
       response = await http.Response.fromStream(stream);
     } catch (err, stack) {
       error = err;
       stackTrace = stack;
     } finally {
-      httpClient.close();
+      _client.close();
     }
 
     // response handling
@@ -574,6 +576,10 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     return graph.getKeyForId(internalType, id,
         keyIfAbsent: model is T ? model._key : null);
   }
+
+  bool get _isTesting {
+    return read(httpClientProvider) != null;
+  }
 }
 
 /// A utility class used to return deserialized main [models] AND [included] models.
@@ -609,3 +615,5 @@ extension _DataRequestTypeX on DataRequestType {
 
 DataRequestType _getDataRequestType(String type) =>
     DataRequestType.values.singleWhere((_) => _.toShortString() == type);
+
+final httpClientProvider = Provider<http.Client?>((_) => null);

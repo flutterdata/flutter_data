@@ -79,7 +79,7 @@ void main() async {
   });
 
   test('use default headers & params', () async {
-    final adapter = (personRemoteAdapter as PersonRemoteAdapter);
+    final adapter = personRemoteAdapter as PersonLoginAdapter;
 
     container.read(responseProvider.notifier).state =
         TestResponse.text('{"message": "hello"}');
@@ -92,9 +92,10 @@ void main() async {
 
     container.read(responseProvider.notifier).state =
         TestResponse(text: (req) => '{"url" : "${req.url.toString()}"}');
-    expect(await adapter.url({'a': 1}), '/url?a=1');
+    expect(await adapter.url({'a': 1}),
+        'https://override-base-url-in-adapter/url?a=1');
     expect(await adapter.url({'b': 2}, useDefaultParams: true),
-        '/url?b=2&default=true');
+        'https://override-base-url-in-adapter/url?b=2&default=true');
   });
 
   test('can override type', () {
