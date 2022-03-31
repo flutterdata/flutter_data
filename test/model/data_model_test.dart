@@ -2,7 +2,7 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../_support/family.dart';
+import '../_support/familia.dart';
 import '../_support/person.dart';
 import '../_support/pet.dart';
 import '../_support/setup.dart';
@@ -13,32 +13,32 @@ void main() async {
   tearDown(tearDownFn);
 
   test('uninitialized throws an assertion error', () {
-    final family = Family(id: '1', surname: 'Johnson');
-    expectLater(family.save, throwsA(isA<AssertionError>()));
-    expectLater(family.delete, throwsA(isA<AssertionError>()));
-    expectLater(family.reload, throwsA(isA<AssertionError>()));
+    final familia = Familia(id: '1', surname: 'Johnson');
+    expectLater(familia.save, throwsA(isA<AssertionError>()));
+    expectLater(familia.delete, throwsA(isA<AssertionError>()));
+    expectLater(familia.reload, throwsA(isA<AssertionError>()));
   });
 
   test('init', () async {
-    final family = Family(id: '55', surname: 'Kelley').init(container.read);
+    final familia = Familia(id: '55', surname: 'Kelley').init(container.read);
     final model =
-        Person(id: '1', name: 'John', age: 27, family: family.asBelongsTo)
+        Person(id: '1', name: 'John', age: 27, familia: familia.asBelongsTo)
             .init(container.read);
 
     // (1) it wires up the relationship (setOwnerInRelationship)
-    expect(model.family.key, graph.getKeyForId('families', '55'));
+    expect(model.familia.key, graph.getKeyForId('familia', '55'));
 
     // (2) it saves the model locally
     expect(model, await personRepository.findOne(model.id!, remote: false));
   });
 
   test('findOne (reload) without ID', () async {
-    final family = Family(surname: 'Zliedowski').init(container.read);
-    final f2 = Family(surname: 'Zliedowski').was(family);
+    final familia = Familia(surname: 'Zliedowski').init(container.read);
+    final f2 = Familia(surname: 'Zliedowski').was(familia);
 
-    final f3 = await family.reload(remote: false);
-    expect(keyFor(family), keyFor(f2));
-    expect(keyFor(family), keyFor(f3!));
+    final f3 = await familia.reload(remote: false);
+    expect(keyFor(familia), keyFor(f2));
+    expect(keyFor(familia), keyFor(f3!));
   });
 
   test('delete model with and without ID', () async {
@@ -122,7 +122,7 @@ void main() async {
   test('should work with subclasses', () {
     final dog = Dog(id: '2', name: 'Walker').init(container.read);
     final f =
-        Family(surname: 'Walker', dogs: {dog}.asHasMany).init(container.read);
+        Familia(surname: 'Walker', dogs: {dog}.asHasMany).init(container.read);
     expect(f.dogs!.first.name, 'Walker');
   });
 

@@ -3,7 +3,7 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../../_support/book.dart';
-import '../../_support/family.dart';
+import '../../_support/familia.dart';
 import '../../_support/house.dart';
 import '../../_support/person.dart';
 import '../../_support/setup.dart';
@@ -15,7 +15,7 @@ void main() async {
 
   test('behaves like a collection (without init/models)', () {
     final anne = Person(name: 'Anne', age: 59);
-    final f1 = Family(surname: 'Mayer', persons: {anne}.asHasMany);
+    final f1 = Familia(surname: 'Mayer', persons: {anne}.asHasMany);
 
     f1.persons.add(anne);
     f1.persons.add(anne);
@@ -33,7 +33,7 @@ void main() async {
     final pete = Person(name: 'Pete', age: 29);
     final anne = Person(name: 'Anne', age: 59);
     final residence = House(address: '1322 Hill Rd');
-    final f2 = Family(
+    final f2 = Familia(
       surname: 'Sumberg',
       persons: {pete}.asHasMany,
       cottage: BelongsTo(),
@@ -58,16 +58,16 @@ void main() async {
   });
 
   test('assignment with relationship initialized & uninitialized', () {
-    final family = Family(id: '1', surname: 'Smith', persons: HasMany());
+    final familia = Familia(id: '1', surname: 'Smith', persons: HasMany());
     final person = Person(id: '1', name: 'Flavio', age: 12);
 
-    family.persons.add(person);
-    expect(family.persons.contains(person), isTrue);
+    familia.persons.add(person);
+    expect(familia.persons.contains(person), isTrue);
 
-    family.init(container.read);
+    familia.init(container.read);
 
-    family.persons.add(person);
-    expect(family.persons.contains(person), isTrue);
+    familia.persons.add(person);
+    expect(familia.persons.contains(person), isTrue);
   });
 
   test('use fromJson constructor without initialization', () {
@@ -83,41 +83,41 @@ void main() async {
   });
 
   test('watch', () async {
-    final family = Family(
+    final familia = Familia(
       id: '1',
       surname: 'Smith',
       persons: HasMany<Person>(),
     ).init(container.read);
 
-    final notifier = family.persons.watch();
+    final notifier = familia.persons.watch();
     final listener = Listener<Set<Person>>();
     dispose = notifier.addListener(listener, fireImmediately: false);
 
     final p1 = Person(name: 'a', age: 1);
     final p2 = Person(name: 'b', age: 2);
 
-    family.persons.add(p1);
+    familia.persons.add(p1);
     await oneMs();
 
     verify(listener({p1})).called(1);
 
-    family.persons.add(p2);
+    familia.persons.add(p2);
     await oneMs();
 
     verify(listener({p1, p2})).called(1);
 
-    family.persons.add(p2);
+    familia.persons.add(p2);
     await oneMs();
 
     // doesn't show up as p2 was already present!
     verifyNever(listener({p1, p2}));
 
-    family.persons.remove(p1);
+    familia.persons.remove(p1);
     await oneMs();
 
     verify(listener({p2})).called(1);
 
-    family.persons.add(p1);
+    familia.persons.add(p1);
     await oneMs();
 
     verify(listener({p1, p2})).called(1);

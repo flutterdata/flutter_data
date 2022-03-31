@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
-import '../_support/family.dart';
+import '../_support/familia.dart';
 import '../_support/house.dart';
 import '../_support/person.dart';
 import '../_support/setup.dart';
@@ -119,15 +119,15 @@ void main() async {
   });
 
   test('by key', () {
-    graph.getKeyForId('families', '3', keyIfAbsent: 'families#c3c3c3');
+    graph.getKeyForId('familia', '3', keyIfAbsent: 'familia#c3c3c3');
 
-    final key = 'families#c3c3c3';
-    expect(key, graph.getKeyForId('families', '3'));
+    final key = 'familia#c3c3c3';
+    expect(key, graph.getKeyForId('familia', '3'));
   });
 
   test('two models with id should get the same key', () {
-    expect(graph.getKeyForId('families', '2812', keyIfAbsent: 'f1'),
-        graph.getKeyForId('families', '2812', keyIfAbsent: 'f1'));
+    expect(graph.getKeyForId('familia', '2812', keyIfAbsent: 'f1'),
+        graph.getKeyForId('familia', '2812', keyIfAbsent: 'f1'));
   });
 
   test('should prioritize ID', () {
@@ -168,7 +168,7 @@ void main() async {
     final div = 19;
 
     for (var i = 0; i < length; i++) {
-      final family = Family(
+      final familia = Familia(
         id: '$i',
         surname: 'Smith',
         residence: residence.asBelongsTo,
@@ -177,19 +177,19 @@ void main() async {
 
       // add some people
       if (i % div == 0) {
-        family.persons
+        familia.persons
             .add(Person(name: 'new kid #$i', age: i).init(container.read));
       }
 
       // remove some residence relationships
       if (Random().nextBool()) {
-        family.residence!.value = null;
+        familia.residence!.value = null;
       }
 
-      await family.save();
+      await familia.save();
     }
 
-    expect(graph.toMap().keys.where((k) => k.startsWith('families')),
+    expect(graph.toMap().keys.where((k) => k.startsWith('familia')),
         hasLength(length));
   });
 

@@ -12,7 +12,7 @@ void main() async {
     expect(
         DataHelpers.getType('Inameclasseslikeshit'), 'inameclasseslikeshits');
     expect(DataHelpers.getType('Sheep'), 'sheep');
-    expect(DataHelpers.getType('Family'), 'families');
+    expect(DataHelpers.getType('Familia'), 'familia');
     // `type` argument takes precedence
     expect(DataHelpers.getType<Person>('animal'), 'animals');
   });
@@ -37,9 +37,9 @@ void main() async {
   });
 
   test('string utils', () {
-    expect('Family'.decapitalize(), 'family');
+    expect('Familia'.decapitalize(), 'familia');
     expect(''.decapitalize(), '');
-    expect('family'.capitalize(), 'Family');
+    expect('familia'.capitalize(), 'Familia');
     expect('people'.singularize(), 'person');
     expect('zebra'.pluralize(), 'zebras');
   });

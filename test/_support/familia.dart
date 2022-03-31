@@ -5,11 +5,11 @@ import 'house.dart';
 import 'person.dart';
 import 'pet.dart';
 
-part 'family.g.dart';
+part 'familia.g.dart';
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
 @DataRepository([])
-class Family with DataModel<Family> {
+class Familia with DataModel<Familia> {
   @override
   final String? id;
   final String surname;
@@ -18,7 +18,7 @@ class Family with DataModel<Family> {
   final BelongsTo<House>? residence;
   final HasMany<Dog>? dogs;
 
-  Family({
+  Familia({
     this.id,
     required this.surname,
     HasMany<Person>? persons,
@@ -31,7 +31,7 @@ class Family with DataModel<Family> {
 
   @override
   bool operator ==(other) =>
-      other is Family && id == other.id && surname == other.surname;
+      other is Familia && id == other.id && surname == other.surname;
 
   @override
   int get hashCode => runtimeType.hashCode ^ id.hashCode ^ surname.hashCode;

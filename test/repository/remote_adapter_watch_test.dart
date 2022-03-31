@@ -4,7 +4,7 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../_support/family.dart';
+import '../_support/familia.dart';
 import '../_support/house.dart';
 import '../_support/person.dart';
 import '../_support/setup.dart';
@@ -171,7 +171,7 @@ void main() async {
   });
 
   test('watchOneNotifier with alsoWatch relationships', () async {
-    final f1 = Family(
+    final f1 = Familia(
       id: '22',
       surname: 'Abagnale',
       persons: HasMany(),
@@ -179,11 +179,11 @@ void main() async {
       cottage: BelongsTo(),
     );
 
-    final notifier = familyRemoteAdapter.watchOneNotifier('22',
-        alsoWatch: (family) => [family.persons, family.residence!],
+    final notifier = familiaRemoteAdapter.watchOneNotifier('22',
+        alsoWatch: (familia) => [familia.persons, familia.residence!],
         remote: true);
 
-    final listener = Listener<DataState<Family?>?>();
+    final listener = Listener<DataState<Familia?>?>();
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
@@ -195,7 +195,7 @@ void main() async {
     await oneMs();
 
     final p1 = Person(id: '1', name: 'Frank', age: 16).init(container.read);
-    p1.family.value = f1;
+    p1.familia.value = f1;
     await oneMs();
 
     final matcher = isA<DataState>()
@@ -252,7 +252,7 @@ void main() async {
     final frank = Person(name: 'Frank', age: 30).init(container.read);
 
     final notifier = personRepository.remoteAdapter
-        .watchOneNotifier(frank, alsoWatch: (p) => [p.family]);
+        .watchOneNotifier(frank, alsoWatch: (p) => [p.familia]);
 
     final listener = Listener<DataState<Person?>?>();
     dispose = notifier.addListener(listener, fireImmediately: false);
@@ -271,14 +271,14 @@ void main() async {
     verify(listener(argThat(matcher))).called(1);
     verifyNoMoreInteractions(listener);
 
-    final family = Family(surname: 'Marquez');
-    steve.family.value = family;
+    final familia = Familia(surname: 'Marquez');
+    steve.familia.value = familia;
     await oneMs();
 
     verify(listener(argThat(matcher))).called(1);
     verifyNoMoreInteractions(listener);
 
-    Family(surname: 'Thomson').was(family);
+    Familia(surname: 'Thomson').was(familia);
     await oneMs();
 
     verify(listener(argThat(matcher))).called(1);
