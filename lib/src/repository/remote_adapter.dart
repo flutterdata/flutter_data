@@ -616,4 +616,7 @@ extension _DataRequestTypeX on DataRequestType {
 DataRequestType _getDataRequestType(String type) =>
     DataRequestType.values.singleWhere((_) => _.toShortString() == type);
 
+/// When this provider is non-null it will override
+/// all [_RemoteAdapter.httpClient] overrides;
+/// it is useful for providing a mock client for testing
 final httpClientProvider = Provider<http.Client?>((_) => null);

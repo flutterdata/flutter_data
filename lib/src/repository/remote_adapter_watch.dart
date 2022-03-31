@@ -4,10 +4,6 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
   @protected
   @visibleForTesting
   Duration get throttleDuration {
-    if (_isTesting) {
-      // if testing do not throttle
-      return Duration.zero;
-    }
     // 1 frame at 60fps
     return const Duration(milliseconds: 16);
   }
@@ -15,8 +11,14 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
   @protected
   @visibleForTesting
   @nonVirtual
-  DelayedStateNotifier<List<DataGraphEvent>> get throttledGraph =>
-      graph.throttle(() => throttleDuration);
+  DelayedStateNotifier<List<DataGraphEvent>> get throttledGraph {
+    var _throttleDuration = throttleDuration;
+    if (_isTesting) {
+      // do not throttle when testing
+      _throttleDuration = Duration.zero;
+    }
+    return graph.throttle(() => _throttleDuration);
+  }
 
   @protected
   @visibleForTesting
