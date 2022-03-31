@@ -15,7 +15,6 @@ jobs:
           - linux
           - windows
           - macos
-          - web
         include:
           - platform: linux
             os: ubuntu-latest
@@ -23,9 +22,6 @@ jobs:
             os: windows-latest
           - platform: macos
             os: macos-latest
-          - platform: web
-            os: ubuntu-latest
-            dartTestArgs: -p chrome
 
     runs-on: ${{ matrix.os }}
 
