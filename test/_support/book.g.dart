@@ -90,14 +90,9 @@ class $BookAuthorRemoteAdapter = RemoteAdapter<BookAuthor>
 
 //
 
-final bookAuthorsLocalAdapterProvider = Provider<LocalAdapter<BookAuthor>>(
-    (ref) => $BookAuthorHiveLocalAdapter(ref.read));
-
 final bookAuthorsRemoteAdapterProvider = Provider<RemoteAdapter<BookAuthor>>(
-    (ref) => $BookAuthorRemoteAdapter(
-        ref.watch(bookAuthorsLocalAdapterProvider),
-        bookAuthorProvider,
-        bookAuthorsProvider));
+    (ref) => $BookAuthorRemoteAdapter($BookAuthorHiveLocalAdapter(ref.read),
+        bookAuthorProvider, bookAuthorsProvider));
 
 final bookAuthorsRepositoryProvider =
     Provider<Repository<BookAuthor>>((ref) => Repository<BookAuthor>(ref.read));
@@ -221,12 +216,9 @@ class $BookRemoteAdapter = RemoteAdapter<Book> with NothingMixin;
 
 //
 
-final booksLocalAdapterProvider =
-    Provider<LocalAdapter<Book>>((ref) => $BookHiveLocalAdapter(ref.read));
-
 final booksRemoteAdapterProvider = Provider<RemoteAdapter<Book>>((ref) =>
     $BookRemoteAdapter(
-        ref.watch(booksLocalAdapterProvider), bookProvider, booksProvider));
+        $BookHiveLocalAdapter(ref.read), bookProvider, booksProvider));
 
 final booksRepositoryProvider =
     Provider<Repository<Book>>((ref) => Repository<Book>(ref.read));

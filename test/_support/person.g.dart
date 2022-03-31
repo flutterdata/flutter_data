@@ -46,12 +46,9 @@ class $PersonRemoteAdapter = RemoteAdapter<Person>
 
 //
 
-final peopleLocalAdapterProvider =
-    Provider<LocalAdapter<Person>>((ref) => $PersonHiveLocalAdapter(ref.read));
-
 final peopleRemoteAdapterProvider = Provider<RemoteAdapter<Person>>((ref) =>
     $PersonRemoteAdapter(
-        ref.watch(peopleLocalAdapterProvider), personProvider, peopleProvider));
+        $PersonHiveLocalAdapter(ref.read), personProvider, peopleProvider));
 
 final peopleRepositoryProvider =
     Provider<Repository<Person>>((ref) => Repository<Person>(ref.read));

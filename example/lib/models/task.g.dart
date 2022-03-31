@@ -61,12 +61,9 @@ class $TaskRemoteAdapter = RemoteAdapter<Task> with JSONServerAdapter<Task>;
 
 //
 
-final tasksLocalAdapterProvider =
-    Provider<LocalAdapter<Task>>((ref) => $TaskHiveLocalAdapter(ref.read));
-
 final tasksRemoteAdapterProvider = Provider<RemoteAdapter<Task>>((ref) =>
     $TaskRemoteAdapter(
-        ref.watch(tasksLocalAdapterProvider), taskProvider, tasksProvider));
+        $TaskHiveLocalAdapter(ref.read), taskProvider, tasksProvider));
 
 final tasksRepositoryProvider =
     Provider<Repository<Task>>((ref) => Repository<Task>(ref.read));

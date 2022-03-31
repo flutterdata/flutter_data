@@ -70,12 +70,9 @@ class $NodeRemoteAdapter = RemoteAdapter<Node> with NothingMixin;
 
 //
 
-final nodesLocalAdapterProvider =
-    Provider<LocalAdapter<Node>>((ref) => $NodeHiveLocalAdapter(ref.read));
-
 final nodesRemoteAdapterProvider = Provider<RemoteAdapter<Node>>((ref) =>
     $NodeRemoteAdapter(
-        ref.watch(nodesLocalAdapterProvider), nodeProvider, nodesProvider));
+        $NodeHiveLocalAdapter(ref.read), nodeProvider, nodesProvider));
 
 final nodesRepositoryProvider =
     Provider<Repository<Node>>((ref) => Repository<Node>(ref.read));

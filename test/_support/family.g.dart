@@ -102,12 +102,9 @@ class $FamilyRemoteAdapter = RemoteAdapter<Family> with NothingMixin;
 
 //
 
-final familiesLocalAdapterProvider =
-    Provider<LocalAdapter<Family>>((ref) => $FamilyHiveLocalAdapter(ref.read));
-
 final familiesRemoteAdapterProvider = Provider<RemoteAdapter<Family>>((ref) =>
-    $FamilyRemoteAdapter(ref.watch(familiesLocalAdapterProvider),
-        familyProvider, familiesProvider));
+    $FamilyRemoteAdapter(
+        $FamilyHiveLocalAdapter(ref.read), familyProvider, familiesProvider));
 
 final familiesRepositoryProvider =
     Provider<Repository<Family>>((ref) => Repository<Family>(ref.read));

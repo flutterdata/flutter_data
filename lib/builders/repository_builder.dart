@@ -210,12 +210,9 @@ class \$${classType}RemoteAdapter = RemoteAdapter<$classType> with ${mixins.join
 
 //
 
-final ${typeLowerCased}LocalAdapterProvider = Provider<LocalAdapter<$classType>>(
-    (ref) => \$${classType}HiveLocalAdapter(ref.read));
-
 final ${typeLowerCased}RemoteAdapterProvider =
     Provider<RemoteAdapter<$classType>>(
-        (ref) => \$${classType}RemoteAdapter(ref.watch(${typeLowerCased}LocalAdapterProvider), $providerStringSingular, $providerStringPlural));
+        (ref) => \$${classType}RemoteAdapter(\$${classType}HiveLocalAdapter(ref.read), $providerStringSingular, $providerStringPlural));
 
 final ${typeLowerCased}RepositoryProvider =
     Provider<Repository<$classType>>((ref) => Repository<$classType>(ref.read));
