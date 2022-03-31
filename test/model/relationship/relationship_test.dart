@@ -306,15 +306,26 @@ void main() async {
         equals(BookAuthor(id: 15, name: 'Steve-O', books: HasMany({book}))
             .init(container.read)));
 
+    Book(
+      id: 24,
+      title: 'Lord of the Rings',
+      // create a different relationship object but
+      // equal to `author.books!.first.originalAuthor`
+      originalAuthor: BelongsTo(author.books!.first.originalAuthor!.value),
+    ).init(container.read);
+
+    final books = author.books!.toList();
+    // expect these two distinct objects are equal
+    expect(books.first.originalAuthor, books.last.originalAuthor);
+
     // expect a LateInitializationError when trying
     // to compare uninitialized relationships
     expect(() => HasMany<Book>() == HasMany<Book>(), throwsA(isA<Error>()));
 
-    expect(author.books!.first.originalAuthor.toString(),
-        'BelongsTo<BookAuthor>(15)');
-    expect(author.books.toString(), 'HasMany<Book>(23)');
+    expect(books.first.originalAuthor.toString(), 'BelongsTo<BookAuthor>(15)');
+    expect(author.books.toString(), 'HasMany<Book>(23, 24)');
     expect(author.books!.first.originalAuthor!.value.toString(),
-        'BookAuthor(id: 15, name: Steve-O, books: HasMany<Book>(23))');
+        'BookAuthor(id: 15, name: Steve-O, books: HasMany<Book>(23, 24))');
   });
 
   test('HasMany iterable proxies', () {

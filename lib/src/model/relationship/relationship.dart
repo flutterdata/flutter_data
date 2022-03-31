@@ -206,7 +206,7 @@ abstract class Relationship<E extends DataModel<E>, N>
   dynamic toJson() => this;
 
   @override
-  List<Object?> get props => [isInitialized, _ownerKey, _name];
+  List<Object?> get props => [isInitialized, keys, _name];
 
   @override
   void dispose() {
