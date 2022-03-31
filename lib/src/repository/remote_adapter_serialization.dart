@@ -2,7 +2,7 @@ part of flutter_data;
 
 mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
   @override
-  Future<Map<String, dynamic>> serialize(T model) async {
+  Map<String, dynamic> serialize(T model) {
     final map = localAdapter.serialize(model);
 
     final relationships = <String, dynamic>{};
@@ -26,12 +26,12 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
   }
 
   @override
-  Future<DeserializedData<T>> deserialize(Object? data, {String? key}) async {
+  DeserializedData<T> deserialize(Object? data, {String? key}) {
     final result = DeserializedData<T>([], included: []);
 
-    Future<Object?> addIncluded(id, RemoteAdapter? adapter) async {
+    Object? addIncluded(id, RemoteAdapter? adapter) {
       if (id is Map && adapter != null) {
-        final data = await adapter.deserialize(id as Map<String, dynamic>);
+        final data = adapter.deserialize(id as Map<String, dynamic>);
         result.included
           ..add(data.model as DataModel<DataModel>)
           ..addAll(data.included);
@@ -61,7 +61,7 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
             final _type = metadata['type'] as String;
 
             if (metadata['kind'] == 'BelongsTo') {
-              final id = await addIncluded(mapIn[mapInKey], adapters[_type]);
+              final id = addIncluded(mapIn[mapInKey], adapters[_type]);
               mapOut[mapOutKey] = id == null
                   ? null
                   : graph.getKeyForId(_type, id,
@@ -71,7 +71,7 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
             if (metadata['kind'] == 'HasMany') {
               final _mapOut = [];
               for (var id in (mapIn[mapInKey] as Iterable)) {
-                id = await addIncluded(id, adapters[_type]);
+                id = addIncluded(id, adapters[_type]);
                 if (id != null) {
                   _mapOut.add(graph.getKeyForId(_type, id,
                       keyIfAbsent: DataHelpers.generateKey(_type)));

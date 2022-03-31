@@ -225,13 +225,13 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   /// [key] can be used to supply a specific `key` when deserializing ONE model.
   @protected
   @visibleForTesting
-  Future<DeserializedData<T>> deserialize(Object? data, {String key});
+  DeserializedData<T> deserialize(Object? data, {String key});
 
   /// Returns a serialized version of a model of [T],
   /// as a [Map<String, dynamic>] ready to be JSON-encoded.
   @protected
   @visibleForTesting
-  Future<Map<String, dynamic>> serialize(T model);
+  Map<String, dynamic> serialize(T model);
 
   // caching
 
@@ -289,7 +289,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
         if (syncLocal!) {
           await localAdapter.clear();
         }
-        final deserialized = await deserialize(data);
+        final deserialized = deserialize(data);
         final models = deserialized.models.toImmutableList();
         return onSuccess?.call(models) ?? models;
       },
@@ -332,7 +332,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       requestType: DataRequestType.findOne,
       key: StringUtils.typify(internalType, id!),
       onSuccess: (data) async {
-        final deserialized = await deserialize(data);
+        final deserialized = deserialize(data);
         return onSuccess?.call(deserialized.model) ?? deserialized.model;
       },
       onError: onError,
@@ -361,7 +361,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       return localAdapter.save(model._key!, model, notify: true);
     }
 
-    final serialized = await serialize(model);
+    final serialized = serialize(model);
     final body = json.encode(serialized);
 
     final result = await sendRequest(
@@ -380,7 +380,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
           // deserialize already inits models
           // if model had a key already, reuse it
           final deserialized =
-              await deserialize(data as Map<String, dynamic>, key: model._key!);
+              deserialize(data as Map<String, dynamic>, key: model._key!);
           final _newModel = deserialized.model!;
 
           // in the unlikely case where supplied key couldn't be used
