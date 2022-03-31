@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.4]
+
+- Revamp some internal dependency management & testing pipes
+- Removed `test.data.dart` (will soon add documentation to test FD-driven apps)
+- Fix `Relationship` equality
+
 ## [1.3.3]
 
 - Fix `DataModel#notifier` getter
