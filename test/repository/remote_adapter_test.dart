@@ -4,7 +4,7 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
 import '../_support/book.dart';
-import '../_support/family.dart';
+import '../_support/familia.dart';
 import '../_support/house.dart';
 import '../_support/person.dart';
 import '../_support/setup.dart';
@@ -14,29 +14,29 @@ void main() async {
   tearDown(tearDownFn);
 
   test('findAll', () async {
-    final family1 = Family(id: '1', surname: 'Smith');
-    final family2 = Family(id: '2', surname: 'Jones');
+    final familia1 = Familia(id: '1', surname: 'Smith');
+    final familia2 = Familia(id: '2', surname: 'Jones');
 
-    await familyRemoteAdapter.save(family1);
-    await familyRemoteAdapter.save(family2);
-    final families = await familyRemoteAdapter.findAll(remote: false);
+    await familiaRemoteAdapter.save(familia1);
+    await familiaRemoteAdapter.save(familia2);
+    final familia = await familiaRemoteAdapter.findAll(remote: false);
 
-    expect(families, [family1, family2]);
+    expect(familia, [familia1, familia2]);
   });
 
   test('findOne', () async {
-    final family1 = Family(id: '1', surname: 'Smith');
+    final familia1 = Familia(id: '1', surname: 'Smith');
 
-    await familyRemoteAdapter.save(family1); // possible to save without init
-    final family = await familyRemoteAdapter.findOne('1', remote: false);
-    expect(family, family1);
+    await familiaRemoteAdapter.save(familia1); // possible to save without init
+    final familia = await familiaRemoteAdapter.findOne('1', remote: false);
+    expect(familia, familia1);
   });
 
   test('findOne with includes', () async {
-    final data = familyRemoteAdapter.deserialize(json.decode('''
+    final data = familiaRemoteAdapter.deserialize(json.decode('''
       { "id": "1", "surname": "Smith", "persons": [{"_id": "1", "name": "Stan", "age": 31}] }
     ''') as Object);
-    expect(data.model, Family(id: '1', surname: 'Smith'));
+    expect(data.model, Familia(id: '1', surname: 'Smith'));
     expect(data.included, [Person(id: '1', name: 'Stan', age: 31)]);
   });
 
@@ -54,11 +54,11 @@ void main() async {
   });
 
   test('save and find', () async {
-    final family = Family(id: '32423', surname: 'Toraine');
-    await familyRemoteAdapter.save(family);
+    final familia = Familia(id: '32423', surname: 'Toraine');
+    await familiaRemoteAdapter.save(familia);
 
-    final family2 = await familyRemoteAdapter.findOne('32423', remote: false);
-    expect(family, family2);
+    final familia2 = await familiaRemoteAdapter.findOne('32423', remote: false);
+    expect(familia, familia2);
   });
 
   test('delete', () async {
@@ -128,7 +128,7 @@ void main() async {
         ]''');
 
     // remote comes back with relationships
-    final models = await familyRepository.findAll(remote: true);
+    final models = await familiaRepository.findAll(remote: true);
     expect(models.first.persons.toList(), [
       Person(id: '1', name: 'Peter', age: 10),
       Person(id: '2', name: 'John', age: 44)
@@ -137,17 +137,17 @@ void main() async {
     final originalKey = keyFor(models.first)!;
 
     // simulate app restart
-    familyRepository.dispose();
-    familyRepository =
-        await container.read(familiesRepositoryProvider).initialize(
+    familiaRepository.dispose();
+    familiaRepository =
+        await container.read(familiaRepositoryProvider).initialize(
               // ignore: invalid_use_of_protected_member
-              adapters: familyRemoteAdapter.adapters,
+              adapters: familiaRemoteAdapter.adapters,
             );
-    await familyRemoteAdapter.localAdapter
-        .save(originalKey, Family(id: '1', surname: 'Smith'), notify: false);
+    await familiaRemoteAdapter.localAdapter
+        .save(originalKey, Familia(id: '1', surname: 'Smith'), notify: false);
 
     // local storage still comes back with relationships
-    final models2 = await familyRepository.findAll(remote: false);
+    final models2 = await familiaRepository.findAll(remote: false);
     expect(models2.first.persons.toList(), [
       Person(id: '1', name: 'Peter', age: 10),
       Person(id: '2', name: 'John', age: 44)

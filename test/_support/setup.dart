@@ -5,7 +5,7 @@ import 'package:http/testing.dart';
 
 import '../mocks.dart';
 import 'book.dart';
-import 'family.dart';
+import 'familia.dart';
 import 'house.dart';
 import 'node.dart';
 import 'person.dart';
@@ -20,10 +20,10 @@ late ProviderContainer container;
 late GraphNotifier graph;
 
 late RemoteAdapter<House> houseRemoteAdapter;
-late RemoteAdapter<Family> familyRemoteAdapter;
+late RemoteAdapter<Familia> familiaRemoteAdapter;
 late RemoteAdapter<Person> personRemoteAdapter;
 
-late Repository<Family> familyRepository;
+late Repository<Familia> familiaRepository;
 late Repository<House> houseRepository;
 late Repository<Person> personRepository;
 late Repository<Dog> dogRepository;
@@ -63,13 +63,13 @@ void setUpFn() async {
 
   final adapterGraph = <String, RemoteAdapter<DataModel>>{
     'houses': container.read(housesRemoteAdapterProvider),
-    'families': container.read(familiesRemoteAdapterProvider),
+    'familia': container.read(familiaRemoteAdapterProvider),
     'people': container.read(peopleRemoteAdapterProvider),
     'dogs': container.read(dogsRemoteAdapterProvider),
   };
 
   houseRemoteAdapter = container.read(housesRemoteAdapterProvider);
-  familyRemoteAdapter = container.read(familiesRemoteAdapterProvider);
+  familiaRemoteAdapter = container.read(familiaRemoteAdapterProvider);
   personRemoteAdapter = container.read(peopleRemoteAdapterProvider);
 
   await container.read(graphNotifierProvider).initialize();
@@ -80,8 +80,8 @@ void setUpFn() async {
         adapters: adapterGraph,
       );
 
-  familyRepository =
-      await container.read(familiesRepositoryProvider).initialize(
+  familiaRepository =
+      await container.read(familiaRepositoryProvider).initialize(
             remote: true,
             verbose: false,
             adapters: adapterGraph,
@@ -132,7 +132,7 @@ void tearDownFn() async {
   // Equivalent to generated in `main.data.dart`
   dispose?.call();
   houseRepository.dispose();
-  familyRepository.dispose();
+  familiaRepository.dispose();
   personRepository.dispose();
   dogRepository.dispose();
   nodeRepository.dispose();

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter_data/flutter_data.dart';
-import 'family.dart';
+import 'familia.dart';
 
 part 'person.g.dart';
 
@@ -13,14 +13,14 @@ class Person with DataModel<Person> {
   final String? id;
   final String name;
   final int? age;
-  final BelongsTo<Family> family;
+  final BelongsTo<Familia> familia;
 
   Person({
     this.id,
     required this.name,
     this.age,
-    BelongsTo<Family>? family,
-  }) : family = family ?? BelongsTo();
+    BelongsTo<Familia>? familia,
+  }) : familia = familia ?? BelongsTo();
 
   // testing without jsonserializable
   // also, simulates a @JsonKey(name: '_id) on `id`
@@ -28,16 +28,16 @@ class Person with DataModel<Person> {
         id: json['_id'] as String?,
         name: json['name'] as String,
         age: json['age'] as int?,
-        family: json['family'] == null
+        familia: json['familia'] == null
             ? null
-            : BelongsTo.fromJson(json['family'] as Map<String, dynamic>),
+            : BelongsTo.fromJson(json['familia'] as Map<String, dynamic>),
       );
 
   Map<String, dynamic> toJson() => {
         '_id': id,
         'name': name,
         'age': age,
-        'family': family.toJson(),
+        'familia': familia.toJson(),
       };
 
   @override

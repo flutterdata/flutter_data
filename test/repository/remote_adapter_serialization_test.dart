@@ -4,7 +4,7 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
 import '../_support/book.dart';
-import '../_support/family.dart';
+import '../_support/familia.dart';
 import '../_support/house.dart';
 import '../_support/node.dart';
 import '../_support/person.dart';
@@ -22,29 +22,29 @@ void main() async {
   });
 
   test('serialize with relationship and null attribute', () async {
-    final family = Family(
+    final familia = Familia(
       surname: 'Tao',
       persons: HasMany({Person(id: '332', name: 'Ko')}),
     );
-    expect(familyRemoteAdapter.serialize(family), {
+    expect(familiaRemoteAdapter.serialize(familia), {
       'surname': 'Tao',
       'persons': ['332']
     });
   });
 
   test('serialize embedded relationships', () async {
-    final f1 = Family(
+    final f1 = Familia(
         id: '334',
         surname: 'Zhan',
         residence: House(id: '1', address: 'Zhiwan 2').asBelongsTo,
         dogs: {Dog(id: '1', name: 'Pluto'), Dog(id: '2', name: 'Ricky')}
             .asHasMany);
 
-    final serialized = familyRemoteAdapter.serialize(f1);
+    final serialized = familiaRemoteAdapter.serialize(f1);
     expect(serialized, {
       'id': '334',
       'surname': 'Zhan',
-      // we expect persons: [] as it's default in the Family class
+      // we expect persons: [] as it's default in the Familia class
       'persons': [],
       'residence_id': '1',
       'dogs': ['1', '2']
@@ -86,41 +86,41 @@ void main() async {
 
   test('deserialize with BelongsTo id', () async {
     final p = (personRemoteAdapter.deserialize([
-      {'_id': '1', 'name': 'Na', 'age': 88, 'family_id': null}
+      {'_id': '1', 'name': 'Na', 'age': 88, 'familia_id': null}
     ])).model!;
 
-    Family(id: '1', surname: 'Kong').init(container.read);
+    Familia(id: '1', surname: 'Kong').init(container.read);
 
-    expect(p.family.key, isNull);
+    expect(p.familia.key, isNull);
 
     final p1 = (personRemoteAdapter.deserialize([
-      {'_id': '27', 'name': 'Ko', 'age': 24, 'family_id': '332'}
+      {'_id': '27', 'name': 'Ko', 'age': 24, 'familia_id': '332'}
     ])).model!;
 
-    Family(id: '332', surname: 'Tao').init(container.read);
+    Familia(id: '332', surname: 'Tao').init(container.read);
 
-    expect(p1.family.value!.id, '332');
+    expect(p1.familia.value!.id, '332');
 
     final p2 = Person(
         id: '27',
         name: 'Ko',
         age: 24,
-        family: Family(id: '332', surname: 'Tao').asBelongsTo);
+        familia: Familia(id: '332', surname: 'Tao').asBelongsTo);
 
     expect(p1, p2);
 
-    expect(p1.family.value, p2.family.value);
+    expect(p1.familia.value, p2.familia.value);
   });
 
   test('deserialize returns null if no ID is present', () async {
-    final family = (familyRemoteAdapter.deserialize([
+    final familia = (familiaRemoteAdapter.deserialize([
       {'surname': 'Ko'}
     ])).model;
-    expect(family, isNull);
+    expect(familia, isNull);
   });
 
   test('deserialize with HasMany ids (including nulls)', () async {
-    final f = (familyRemoteAdapter.deserialize([
+    final f = (familiaRemoteAdapter.deserialize([
       {
         'id': '1',
         'surname': 'Ko',
@@ -137,7 +137,7 @@ void main() async {
   });
 
   test('deserialize with embedded relationships', () async {
-    final data = familyRemoteAdapter.deserialize(
+    final data = familiaRemoteAdapter.deserialize(
       [
         {
           'id': '1',
@@ -155,7 +155,7 @@ void main() async {
     );
 
     final f1 = data.model!;
-    final f2 = Family(id: '1', surname: 'Byrde');
+    final f2 = Familia(id: '1', surname: 'Byrde');
 
     expect(f1, f2);
 
@@ -174,7 +174,7 @@ void main() async {
         {
           '_id': '1',
           'name': 'Marty',
-          'family': <String, dynamic>{
+          'familia': <String, dynamic>{
             'id': '1',
             'surname': 'Byrde',
             'residence': <String, dynamic>{
@@ -187,7 +187,7 @@ void main() async {
     );
 
     expect(data.included, [
-      Family(id: '1', surname: 'Byrde'),
+      Familia(id: '1', surname: 'Byrde'),
       House(id: '1', address: '123 Main St'),
     ]);
   });

@@ -11,7 +11,7 @@ House _$HouseFromJson(Map<String, dynamic> json) => House(
       address: json['address'] as String,
       owner: json['owner'] == null
           ? null
-          : BelongsTo<Family>.fromJson(json['owner'] as Map<String, dynamic>),
+          : BelongsTo<Familia>.fromJson(json['owner'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$HouseToJson(House instance) => <String, dynamic>{
@@ -32,7 +32,7 @@ mixin $HouseLocalAdapter on LocalAdapter<House> {
         'owner': {
           'name': 'owner',
           'inverse': 'residence',
-          'type': 'families',
+          'type': 'familia',
           'kind': 'BelongsTo',
           'instance': model?.owner
         }

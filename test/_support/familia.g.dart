@@ -1,12 +1,12 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'family.dart';
+part of 'familia.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-Family _$FamilyFromJson(Map<String, dynamic> json) => Family(
+Familia _$FamiliaFromJson(Map<String, dynamic> json) => Familia(
       id: json['id'] as String?,
       surname: json['surname'] as String,
       persons: json['persons'] == null
@@ -24,7 +24,7 @@ Family _$FamilyFromJson(Map<String, dynamic> json) => Family(
           : HasMany<Dog>.fromJson(json['dogs'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$FamilyToJson(Family instance) {
+Map<String, dynamic> _$FamiliaToJson(Familia instance) {
   final val = <String, dynamic>{};
 
   void writeNotNull(String key, dynamic value) {
@@ -48,12 +48,12 @@ Map<String, dynamic> _$FamilyToJson(Family instance) {
 
 // ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member, non_constant_identifier_names
 
-mixin $FamilyLocalAdapter on LocalAdapter<Family> {
+mixin $FamiliaLocalAdapter on LocalAdapter<Familia> {
   @override
-  Map<String, Map<String, Object?>> relationshipsFor([Family? model]) => {
+  Map<String, Map<String, Object?>> relationshipsFor([Familia? model]) => {
         'persons': {
           'name': 'persons',
-          'inverse': 'family',
+          'inverse': 'familia',
           'type': 'people',
           'kind': 'HasMany',
           'instance': model?.persons
@@ -81,38 +81,39 @@ mixin $FamilyLocalAdapter on LocalAdapter<Family> {
       };
 
   @override
-  Family deserialize(map) {
+  Familia deserialize(map) {
     for (final key in relationshipsFor().keys) {
       map[key] = {
         '_': [map[key], !map.containsKey(key)],
       };
     }
-    return _$FamilyFromJson(map);
+    return _$FamiliaFromJson(map);
   }
 
   @override
-  Map<String, dynamic> serialize(model) => _$FamilyToJson(model);
+  Map<String, dynamic> serialize(model) => _$FamiliaToJson(model);
 }
 
 // ignore: must_be_immutable
-class $FamilyHiveLocalAdapter = HiveLocalAdapter<Family>
-    with $FamilyLocalAdapter;
+class $FamiliaHiveLocalAdapter = HiveLocalAdapter<Familia>
+    with $FamiliaLocalAdapter;
 
-class $FamilyRemoteAdapter = RemoteAdapter<Family> with NothingMixin;
+class $FamiliaRemoteAdapter = RemoteAdapter<Familia> with NothingMixin;
 
 //
 
-final familiesRemoteAdapterProvider = Provider<RemoteAdapter<Family>>((ref) =>
-    $FamilyRemoteAdapter(
-        $FamilyHiveLocalAdapter(ref.read), familyProvider, familiesProvider));
+final familiaRemoteAdapterProvider = Provider<RemoteAdapter<Familia>>((ref) =>
+    $FamiliaRemoteAdapter(
+        $FamiliaHiveLocalAdapter(ref.read), familiumProvider, familiaProvider));
 
-final familiesRepositoryProvider =
-    Provider<Repository<Family>>((ref) => Repository<Family>(ref.read));
+final familiaRepositoryProvider =
+    Provider<Repository<Familia>>((ref) => Repository<Familia>(ref.read));
 
-final _familyProvider = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<Family?>, DataState<Family?>, WatchArgs<Family>>(
-        (ref, args) {
-  final adapter = ref.watch(familiesRemoteAdapterProvider);
+final _familiumProvider = StateNotifierProvider.autoDispose.family<
+    DataStateNotifier<Familia?>,
+    DataState<Familia?>,
+    WatchArgs<Familia>>((ref, args) {
+  final adapter = ref.watch(familiaRemoteAdapterProvider);
   final notifier =
       adapter.strategies.watchersOne[args.watcher] ?? adapter.watchOneNotifier;
   return notifier(args.id!,
@@ -123,15 +124,16 @@ final _familyProvider = StateNotifierProvider.autoDispose
       finder: args.finder);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<Family?>, DataState<Family?>>
-    familyProvider(Object? id,
+AutoDisposeStateNotifierProvider<DataStateNotifier<Familia?>,
+        DataState<Familia?>>
+    familiumProvider(Object? id,
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
-        AlsoWatch<Family>? alsoWatch,
+        AlsoWatch<Familia>? alsoWatch,
         String? finder,
         String? watcher}) {
-  return _familyProvider(WatchArgs(
+  return _familiumProvider(WatchArgs(
       id: id,
       remote: remote,
       params: params,
@@ -141,11 +143,11 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Family?>, DataState<Family?>>
       watcher: watcher));
 }
 
-final _familiesProvider = StateNotifierProvider.autoDispose.family<
-    DataStateNotifier<List<Family>>,
-    DataState<List<Family>>,
-    WatchArgs<Family>>((ref, args) {
-  final adapter = ref.watch(familiesRemoteAdapterProvider);
+final _familiaProvider = StateNotifierProvider.autoDispose.family<
+    DataStateNotifier<List<Familia>>,
+    DataState<List<Familia>>,
+    WatchArgs<Familia>>((ref, args) {
+  final adapter = ref.watch(familiaRemoteAdapterProvider);
   final notifier =
       adapter.strategies.watchersAll[args.watcher] ?? adapter.watchAllNotifier;
   return notifier(
@@ -156,16 +158,16 @@ final _familiesProvider = StateNotifierProvider.autoDispose.family<
       finder: args.finder);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<List<Family>>,
-        DataState<List<Family>>>
-    familiesProvider(
+AutoDisposeStateNotifierProvider<DataStateNotifier<List<Familia>>,
+        DataState<List<Familia>>>
+    familiaProvider(
         {bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         bool? syncLocal,
         String? finder,
         String? watcher}) {
-  return _familiesProvider(WatchArgs(
+  return _familiaProvider(WatchArgs(
       remote: remote,
       params: params,
       headers: headers,
@@ -174,17 +176,17 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<List<Family>>,
       watcher: watcher));
 }
 
-extension FamilyDataX on Family {
+extension FamiliaDataX on Familia {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
   /// [save], [delete] and so on.
   ///
   /// Can be obtained via `ref.read`, `container.read`
-  Family init(Reader read, {bool save = true}) {
-    final repository = internalLocatorFn(familiesRepositoryProvider, read);
+  Familia init(Reader read, {bool save = true}) {
+    final repository = internalLocatorFn(familiaRepositoryProvider, read);
     final updatedModel =
         repository.remoteAdapter.initializeModel(this, save: save);
     return save ? updatedModel : this;
   }
 }
 
-extension FamilyDataRepositoryX on Repository<Family> {}
+extension FamiliaDataRepositoryX on Repository<Familia> {}

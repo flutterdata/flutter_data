@@ -11,12 +11,12 @@ part of 'person.dart';
 mixin $PersonLocalAdapter on LocalAdapter<Person> {
   @override
   Map<String, Map<String, Object?>> relationshipsFor([Person? model]) => {
-        'family': {
-          'name': 'family',
+        'familia': {
+          'name': 'familia',
           'inverse': 'persons',
-          'type': 'families',
+          'type': 'familia',
           'kind': 'BelongsTo',
-          'instance': model?.family
+          'instance': model?.familia
         }
       };
 
