@@ -1,12 +1,10 @@
 import 'package:flutter_data/flutter_data.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../_support/familia.dart';
 import '../_support/person.dart';
 import '../_support/pet.dart';
 import '../_support/setup.dart';
-import '../mocks.dart';
 
 void main() async {
   setUp(setUpFn);
@@ -82,7 +80,7 @@ void main() async {
         contains(keyFor(p2)));
   });
 
-  test('field equality and key equality', () async {
+  test('equality', () async {
     /// [Person] is using field equality
     /// Charles was once called Agnes
     final p1a = Person(id: '2', name: 'Agnes', age: 20).init(container.read);
@@ -90,33 +88,6 @@ void main() async {
     // they maintain same key as they're the same person
     expect(keyFor(p1a), keyFor(p1b));
     expect(p1a, isNot(p1b));
-
-    /// [Dog] is using key equality
-    /// dog2 is the same dog who changed his name
-    final dog = Dog(id: '2', name: 'Walker').init(container.read);
-    final dog2 = Dog(id: '2', name: 'Mandarin').init(container.read);
-    expect(keyFor(dog), keyFor(dog2));
-    expect(dog, dog2);
-
-    // both update
-
-    final listener = Listener<DataState<Dog?>?>();
-
-    final notifier = dogRepository.remoteAdapter
-        .watchOneNotifier('2', remote: false, finder: 'dashboard');
-
-    dispose = notifier.addListener(listener, fireImmediately: true);
-
-    verify(listener(argThat(isA<Object>()))).called(1);
-    verifyNoMoreInteractions(listener);
-
-    Dog(id: '2', name: 'Tango').init(container.read);
-    await oneMs();
-
-    verify(listener(argThat(
-            isA<DataState>().having((s) => s.model.name, 'name', 'Tango'))))
-        .called(1);
-    verifyNoMoreInteractions(listener);
   });
 
   test('should work with subclasses', () {

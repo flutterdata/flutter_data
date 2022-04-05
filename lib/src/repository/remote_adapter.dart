@@ -321,7 +321,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
         return null;
       }
       final newModel = localAdapter.findOne(key);
-      newModel?._initialize(adapters, save: true);
+      newModel?._initialize(adapters);
       return newModel;
     }
 

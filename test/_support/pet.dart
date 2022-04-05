@@ -19,15 +19,6 @@ class Dog extends Pet<Dog> {
   factory Dog.fromJson(Map<String, dynamic> json) => _$DogFromJson(json);
   Map<String, dynamic> toJson() => _$DogToJson(this);
 
-  // https://stackoverflow.com/questions/5031614/the-jpa-hashcode-equals-dilemma
-  @override
-  bool operator ==(other) => other is Dog && keyFor(this) != null
-      ? keyFor(this) == keyFor(other)
-      : false;
-
-  @override
-  int get hashCode => keyFor(this).hashCode;
-
   @override
   String toString() {
     return '{ id: $id, name: $name }';

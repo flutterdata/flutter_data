@@ -55,8 +55,10 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
             notifier.updateWith(isLoading: true);
           }
           await _future;
-          // trigger doneLoading to ensure state is updated with isLoading=false
-          graph._notify([internalType], DataGraphEventType.doneLoading);
+          if (remote) {
+            // trigger doneLoading to ensure state is updated with isLoading=false
+            graph._notify([internalType], DataGraphEventType.doneLoading);
+          }
         } on DataException catch (e) {
           // we're only interested in notifying errors
           // as models will pop up via the graph notifier
@@ -170,7 +172,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           }
 
           _key ??= key();
-          if (_key != null) {
+          if (remote! && _key != null) {
             // trigger doneLoading to ensure state is updated with isLoading=false
             graph._notify([_key!], DataGraphEventType.doneLoading);
           }
@@ -217,16 +219,25 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       // buffers
       var modelBuffer = _notifier.data.model;
       var refresh = false;
+      var hasLoaded = _notifier.data.isLoading ? false : true;
 
       for (final event in events) {
         _key ??= key();
+
         if (_key != null && event.keys.containsFirst(_key!)) {
+          // handle done loading
+          if (modelBuffer != null &&
+              event.type == DataGraphEventType.doneLoading) {
+            hasLoaded = true;
+            refresh = true;
+          }
+
           // add/update
           if (event.type == DataGraphEventType.addNode ||
               event.type == DataGraphEventType.updateNode) {
             final model = localAdapter.findOne(_key!);
             if (model != null) {
-              initializeModel(model, save: true);
+              initializeModel(model);
               _initializeRelationshipsToWatch(model);
               modelBuffer = model;
             }
@@ -239,23 +250,20 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           }
 
           // changes on specific relationships of this model
-          if (_notifier.data.model != null &&
+          // (only when model already loaded)
+          if (_notifier.data.isLoading == false &&
+              _notifier.data.model != null &&
               event.type.isEdge &&
               _alsoWatchFilters.contains(event.metadata)) {
             // calculate currently related models
             refresh = true;
           }
-
-          if (modelBuffer != null &&
-              // ensure the done signal belongs to this type
-              event.keys.first == _key &&
-              event.type == DataGraphEventType.doneLoading) {
-            refresh = true;
-          }
         }
 
         // updates on all models of specific relationships of this model
-        if (event.type == DataGraphEventType.updateNode &&
+        // (only when model already loaded)
+        if (_notifier.data.isLoading == false &&
+            event.type == DataGraphEventType.updateNode &&
             _relatedKeys(_notifier.data.model!).any(event.keys.contains)) {
           refresh = true;
         }
@@ -265,7 +273,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       // rather than key equality (which wouldn't update)
       if (modelBuffer != _notifier.data.model || refresh) {
         _notifier.updateWith(
-            model: modelBuffer, isLoading: false, exception: null);
+            model: modelBuffer, isLoading: !hasLoaded, exception: null);
       }
     });
 

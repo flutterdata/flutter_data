@@ -3,6 +3,8 @@
 import 'package:flutter_data/flutter_data.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'setup.dart';
+
 part 'book.freezed.dart';
 part 'book.g.dart';
 
@@ -39,7 +41,23 @@ mixin BookAuthorAdapter on RemoteAdapter<BookAuthor> {
 
   @override
   DataStrategies<BookAuthor> get strategies =>
-      super.strategies.add(finderOne: dashboard, name: 'dashboard');
+      super.strategies.add(finderOne: censor, name: 'censor');
 
-  DataFinderOne<BookAuthor> get dashboard => findOne;
+  DataFinderOne<BookAuthor> get censor => (
+        Object model, {
+        bool? remote,
+        Map<String, dynamic>? params,
+        Map<String, String>? headers,
+        OnData<BookAuthor?>? onSuccess,
+        OnDataError<BookAuthor?>? onError,
+      }) async {
+        final _model = await findOne(model, remote: remote);
+        if (_model?.books?.toList().isNotEmpty ?? false) {
+          // save a relationship of
+          await _model!.books!.first.save();
+        }
+        await oneMs();
+        return _model!.copyWith(name: '#&(@*@&@!*(!').was(_model);
+        // return BookAuthor(id: model as int, name: '#&(@*@&@!*(!').init(read);
+      };
 }
