@@ -16,7 +16,7 @@ class DataHelpers {
 
   static String generateKey<T>([String? type]) {
     type = getType<T>(type);
-    return StringUtils.typify(type, uuid.v1().substring(0, 8));
+    return uuid.v1().substring(0, 8).typifyWith(type);
   }
 }
 

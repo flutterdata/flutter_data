@@ -18,15 +18,10 @@ void main() async {
     expect(graph.getNode('b1'), isNull);
   });
 
-  // test('assertions', () {
-  //   expect(() => graph.addNode(null), throwsA(isA<AssertionError>()));
-  //   expect(() => graph.getNode(null), throwsA(isA<AssertionError>()));
-  //   expect(() => graph.removeNode(null), throwsA(isA<AssertionError>()));
-  //   expect(() => graph.addEdges('a:b', tos: null, metadata: 'c:d'),
-  //       throwsA(isA<AssertionError>()));
-  //   expect(() => graph.removeEdges(null, metadata: 'c:d'),
-  //       throwsA(isA<AssertionError>()));
-  // });
+  test('add node if it does not exist', () {
+    graph.getNode('b1', orAdd: true);
+    expect(graph.getNode('b1'), isEmpty);
+  });
 
   test('add/remove edges with metadata', () {
     graph.addNodes(['h1', 'b1', 'b2']);
@@ -204,14 +199,17 @@ void main() async {
 
     expect(
         () =>
-            graph.addEdge('superman:1', 'nonamespace', metadata: 'nonamespace'),
+            graph.addEdge('superman:1', 'superman:to', metadata: 'nonamespace'),
+        throwsA(isA<AssertionError>()));
+    expect(() => graph.addEdge('superman:1', 'to', metadata: 'superman:prefix'),
         throwsA(isA<AssertionError>()));
 
-    graph.addEdge('superman:1', 'nonamespace', metadata: 'superman:prefix');
+    graph.addEdge('superman:1', 'superman:to', metadata: 'superman:prefix');
     expect(graph.getEdge('superman:1', metadata: 'superman:prefix'),
-        containsAll(['nonamespace']));
+        containsAll(['superman:to']));
     graph.removeEdges('superman:1', metadata: 'superman:prefix');
     expect(graph.hasEdge('superman:1', metadata: 'superman:prefix'), false);
+    expect(graph.hasNode('superman:to'), false);
 
     graph.removeNode('superman:1');
     expect(graph.hasNode('superman:1'), isFalse);
@@ -220,10 +218,8 @@ void main() async {
   });
 
   test('namespace', () {
-    expect(StringUtils.namespace('id', StringUtils.typify('posts', 'a9')),
-        'id:posts#a9');
-    expect(
-        StringUtils.namespace('zzz', StringUtils.typify('animals', '278#12')),
+    expect('a9'.typifyWith('posts').namespaceWith('id'), 'id:posts#a9');
+    expect('278#12'.typifyWith('animals').namespaceWith('zzz'),
         'zzz:animals#278#12');
   });
 

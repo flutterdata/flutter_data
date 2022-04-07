@@ -11,7 +11,7 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
   final HiveLocalStorage _hiveLocalStorage;
 
   final _hiveAdapterNs = '_adapter_hive';
-  String get _hiveAdapterKey => StringUtils.namespace(_hiveAdapterNs, 'key');
+  String get _hiveAdapterKey => 'key'.namespaceWith(_hiveAdapterNs);
 
   String get _internalType => DataHelpers.getType<T>();
 
@@ -103,8 +103,7 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
 
     final _typesNode = graph._getNode(_hiveAdapterKey)!;
 
-    final edge =
-        _typesNode[StringUtils.namespace(_hiveAdapterNs, _internalType)];
+    final edge = _typesNode[_internalType.namespaceWith(_hiveAdapterNs)];
 
     if (edge != null && edge.isNotEmpty) {
       // first is of format: _adapter_hive:1
@@ -119,9 +118,9 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
             .fold(0, max) +
         1;
 
-    graph._addEdge(_hiveAdapterKey,
-        StringUtils.namespace(_hiveAdapterNs, index.toString()),
-        metadata: StringUtils.namespace(_hiveAdapterNs, _internalType));
+    graph._addEdge(
+        _hiveAdapterKey, index.toString().namespaceWith(_hiveAdapterNs),
+        metadata: _internalType.namespaceWith(_hiveAdapterNs));
     return index;
   }
 

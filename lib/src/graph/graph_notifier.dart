@@ -64,8 +64,7 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   String? getKeyForId(String type, Object? id, {String? keyIfAbsent}) {
     type = DataHelpers.getType(type);
     if (id != null) {
-      final namespacedId =
-          StringUtils.namespace('id', StringUtils.typify(type, id));
+      final namespacedId = id.toString().typifyWith(type).namespaceWith('id');
 
       if (_getNode(namespacedId) != null) {
         final tos = _getEdge(namespacedId, metadata: 'key');
@@ -112,7 +111,7 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
 
   /// Removes [type]/[id] (and its edges) from graph
   void removeId(String type, Object id) =>
-      _removeNode(StringUtils.namespace('id', StringUtils.typify(type, id)));
+      _removeNode(id.toString().typifyWith(type).namespaceWith('id'));
 
   // nodes
 
@@ -139,8 +138,12 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   }
 
   /// Obtains a node, [key] MUST be namespaced (e.g. `manager:key`)
-  Map<String, List<String>>? getNode(String key) {
+  Map<String, List<String>>? getNode(String key,
+      {bool orAdd = false, bool notify = true}) {
     _assertKey(key);
+    if (orAdd && !_hasNode(key)) {
+      _addNode(key, notify: notify);
+    }
     return _getNode(key);
   }
 
@@ -167,6 +170,9 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
       String? inverseMetadata,
       bool notify = true}) {
     _assertKey(from);
+    for (final to in tos) {
+      _assertKey(to);
+    }
     _assertKey(metadata);
     if (inverseMetadata != null) {
       _assertKey(inverseMetadata);
@@ -193,6 +199,7 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   void addEdge(String from, String to,
       {required String metadata, String? inverseMetadata, bool notify = true}) {
     _assertKey(from);
+    _assertKey(to);
     _assertKey(metadata);
     if (inverseMetadata != null) {
       _assertKey(inverseMetadata);
@@ -204,10 +211,13 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   /// See [removeEdge]
   void removeEdges(String from,
       {required String metadata,
-      Iterable<String>? tos,
+      Iterable<String> tos = const [],
       String? inverseMetadata,
       bool notify = true}) {
     _assertKey(from);
+    for (final to in tos) {
+      _assertKey(to);
+    }
     _assertKey(metadata);
     if (inverseMetadata != null) {
       _assertKey(inverseMetadata);
@@ -225,6 +235,7 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   void removeEdge(String from, String to,
       {required String metadata, String? inverseMetadata, bool notify = true}) {
     _assertKey(from);
+    _assertKey(to);
     _assertKey(metadata);
     if (inverseMetadata != null) {
       _assertKey(inverseMetadata);

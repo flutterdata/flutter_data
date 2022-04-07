@@ -330,7 +330,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       method: methodForFindOne(id, params),
       headers: headers,
       requestType: DataRequestType.findOne,
-      key: StringUtils.typify(internalType, id!),
+      key: id!.toString().typifyWith(internalType),
       onSuccess: (data) async {
         final deserialized = deserialize(data);
         return onSuccess?.call(deserialized.model) ?? deserialized.model;
@@ -425,7 +425,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
         method: methodForDelete(id, params),
         headers: headers,
         requestType: DataRequestType.delete,
-        key: StringUtils.typify(internalType, id),
+        key: id.toString().typifyWith(internalType),
         onSuccess: onSuccess,
         onError: onError,
       );

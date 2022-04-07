@@ -1,5 +1,6 @@
 example/tmp
 .vscode/settings.json
+TODO.txt
 
 test/.test_cov.dart
 coverage/
