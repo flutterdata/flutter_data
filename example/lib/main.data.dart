@@ -28,20 +28,13 @@ ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<Str
           )));
 };
 
-// ignore: prefer_function_declarations_over_variables
-RepositoryInitializerProvider repositoryInitializerProvider = (
-        {bool? remote, bool? verbose}) {
-  return _repositoryInitializerProviderFamily(
-      RepositoryInitializerArgs(remote, verbose));
-};
-
 final repositoryProviders = <String, Provider<Repository<DataModel>>>{
   'tasks': tasksRepositoryProvider,
 'users': usersRepositoryProvider
 };
 
-final _repositoryInitializerProviderFamily =
-  FutureProvider.family<RepositoryInitializer, RepositoryInitializerArgs>((ref, args) async {
+final repositoryInitializerProvider =
+  FutureProvider<RepositoryInitializer>((ref) async {
     final adapters = <String, RemoteAdapter>{'tasks': ref.watch(tasksRemoteAdapterProvider), 'users': ref.watch(usersRemoteAdapterProvider)};
     final remotes = <String, bool>{'tasks': true, 'users': true};
 
@@ -56,8 +49,7 @@ final _repositoryInitializerProviderFamily =
       final repository = _repoMap[type]!;
       repository.dispose();
       await repository.initialize(
-        remote: args.remote ?? remotes[type],
-        verbose: args.verbose,
+        remote: remotes[type],
         adapters: adapters,
       );
     }

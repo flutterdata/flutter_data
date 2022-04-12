@@ -22,7 +22,7 @@ void main() async {
     _dir = await Directory('tmp').create();
     _dir.deleteSync(recursive: true);
 
-    await container.read(repositoryInitializerProvider().future);
+    await container.read(repositoryInitializerProvider.future);
 
     final usersRepo = container.read(usersRepositoryProvider);
     final user =

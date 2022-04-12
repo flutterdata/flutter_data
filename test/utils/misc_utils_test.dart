@@ -44,13 +44,6 @@ void main() async {
     expect('zebra'.pluralize(), 'zebras');
   });
 
-  test('repo init args', () {
-    final args = RepositoryInitializerArgs(false, true);
-    expect(args.remote, false);
-    expect(args.verbose, true);
-    expect(args, equals(RepositoryInitializerArgs(false, true)));
-  });
-
   test('repo watch args', () {
     final args = WatchArgs<Dog>(id: 1, remote: true, params: {'a': 1});
     expect(args.id, 1);

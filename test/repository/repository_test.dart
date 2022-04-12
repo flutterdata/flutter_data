@@ -318,18 +318,34 @@ void main() async {
 
   test('verbose', overridePrint(() async {
     Dog(id: '3', name: 'Bowie').init(container.read);
-    container.read(responseProvider.notifier).state = TestResponse.text('');
-    await dogRepository.delete('3', params: {'a': 1}, remote: true);
-    expect(verbose, [
-      '[flutter_data] [dogs] DELETE https://override-base-url-in-adapter/dogs/3?a=1 [HTTP 200]'
-    ]);
+    container.read(responseProvider.notifier).state = TestResponse.text('''
+      {"id": "3", "name": "Jackson"}''');
+    final dog =
+        await dogRepository.findOne('3', params: {'a': 1}, remote: true);
+    expect(verbose.first, endsWith('[dogs#findOne:3] request with {a: 1}'));
+    expect(verbose.last, endsWith('[dogs#findOne:3] {3} fetched from remote'));
+
+    verbose.clear();
+
+    await dogRepository.save(dog!, remote: false);
+    expect(verbose.first, endsWith('[dogs#save:3] request'));
+    expect(verbose.last, endsWith('[dogs#save:3] saved in local storage only'));
+
+    verbose.clear();
+
+    await dogRepository.delete('3', remote: true);
+    expect(verbose.first, endsWith('[dogs#delete:3] request'));
+    expect(verbose.last,
+        endsWith('[dogs#delete:3] deleted in local storage and remote'));
+
+    verbose.clear();
 
     try {
       container.read(responseProvider.notifier).state =
           TestResponse(text: (_) => '^@!@#(#(@#)#@', statusCode: 500);
       await dogRepository.findOne('1', remote: true);
     } catch (_) {
-      expect(verbose.last, contains('DataException'));
+      expect(verbose.last, contains('FormatException'));
     }
   }));
 

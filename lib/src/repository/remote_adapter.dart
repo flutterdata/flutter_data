@@ -48,7 +48,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   // None of these fields below can be late finals as they might be re-initialized
   Map<String, RemoteAdapter>? _adapters;
   bool? _remote;
-  bool? _verbose;
   Reader? _read;
 
   /// All adapters for the relationship subgraph of [T] and their relationships.
@@ -81,6 +80,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
   final OneProvider<T>? _oneProvider;
   final AllProvider<T>? _allProvider;
+
+  /// Turn verbosity on or off.
+  bool verbose = false;
 
   /// Returns the base URL for this type [T].
   ///
@@ -187,7 +189,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @nonVirtual
   Future<RemoteAdapter<T>> initialize(
       {bool? remote,
-      bool? verbose,
       required Map<String, RemoteAdapter> adapters,
       required Reader read}) async {
     if (isInitialized) return this as RemoteAdapter<T>;
@@ -195,7 +196,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     // initialize attributes
     _adapters = adapters;
     _remote = remote ?? true;
-    _verbose = verbose ?? true;
     _read = read;
 
     await localAdapter.initialize();
@@ -267,15 +267,21 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     bool? syncLocal,
     OnData<List<T>>? onSuccess,
     OnDataError<List<T>>? onError,
+    String? requestName,
   }) async {
     _assertInit();
     remote ??= _remote;
     syncLocal ??= false;
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
+    requestName = requestName ?? 'findAll';
+
+    log(requestName, 'request ${params.isNotEmpty ? 'with $params' : ''}');
 
     if (!shouldLoadRemoteAll(remote!, params, headers)) {
       final models = localAdapter.findAll().toImmutableList();
+      log(requestName,
+          'returned ${models.map((m) => m.id).toSet()} from local storage');
       return models.map((m) => m._initialize(adapters)).toList();
     }
 
@@ -290,12 +296,25 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
           await localAdapter.clear();
         }
         final deserialized = deserialize(data);
+        _logDeserialized(deserialized, requestName!);
         final models = deserialized.models.toImmutableList();
         return onSuccess?.call(models) ?? models;
       },
       onError: onError,
     );
     return result ?? <T>[];
+  }
+
+  void _logDeserialized(DeserializedData data, String name) {
+    final ids = data.models.map((m) => m.id).toSet();
+    log(name, '${ids.isNotEmpty ? ids : 'none'} fetched from remote');
+    final groupedIncluded =
+        data.included.groupListsBy((m) => m.remoteAdapter.type);
+    for (final e in groupedIncluded.entries) {
+      if (e.value.isNotEmpty) {
+        log(name, '  - with ${e.key} ${e.value.map((m) => m.id).toSet()} ');
+      }
+    }
   }
 
   Future<T?> findOne(
@@ -305,14 +324,17 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     Map<String, String>? headers,
     OnData<T?>? onSuccess,
     OnDataError<T?>? onError,
+    String? requestName,
   }) async {
     _assertInit();
     remote ??= _remote;
-
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
 
     final id = _resolveId(model);
+
+    requestName = requestName ?? 'findOne:$id';
+    log(requestName, 'request ${params.isNotEmpty ? 'with $params' : ''}');
 
     if (!shouldLoadRemoteOne(id, remote!, params, headers)) {
       final key = graph.getKeyForId(internalType, id,
@@ -322,6 +344,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       }
       final newModel = localAdapter.findOne(key);
       newModel?._initialize(adapters);
+      if (newModel != null) {
+        log(requestName, 'returned from local storage');
+      }
       return newModel;
     }
 
@@ -333,6 +358,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       key: id!.toString().typifyWith(internalType),
       onSuccess: (data) async {
         final deserialized = deserialize(data);
+        _logDeserialized(deserialized, requestName!);
         return onSuccess?.call(deserialized.model) ?? deserialized.model;
       },
       onError: onError,
@@ -356,8 +382,11 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     // ensure model is initialized
     model._initialize(adapters, save: true);
 
+    log('save:${model.id ?? 'new'}', 'request');
+
     if (remote == false) {
       // if not remote, notify now
+      log('save:${model.id ?? 'new'}', 'saved in local storage only');
       return localAdapter.save(model._key!, model, notify: true);
     }
 
@@ -391,6 +420,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
           }
           _model = _newModel;
         }
+        log('save:${_model.id}', 'saved in local storage and remote');
         return onSuccess?.call(_model) ?? _model;
       },
       onError: onError,
@@ -415,7 +445,10 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     final id = _resolveId(model);
     final key = _keyForModel(model);
 
+    log('delete:$id', 'request');
+
     if (key != null) {
+      log('delete:$id', 'deleting in local storage only');
       await localAdapter.delete(key);
     }
 
@@ -426,7 +459,10 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
         headers: headers,
         requestType: DataRequestType.delete,
         key: id.toString().typifyWith(internalType),
-        onSuccess: onSuccess,
+        onSuccess: (_) {
+          log('delete:$id', 'deleted in local storage and remote');
+          return onSuccess?.call(_);
+        },
         onError: onError,
       );
     }
@@ -525,20 +561,12 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
     final code = response?.statusCode;
 
-    if (_verbose!) {
-      print(
-          '[flutter_data] [$internalType] ${method.toShortString()} $uri [HTTP ${code ?? ''}]${body != null ? '\n -> body:\n $body' : ''}');
-    }
-
     if (error == null && code != null && code >= 200 && code < 300) {
       return await onSuccess?.call(data);
     } else {
       final e = DataException(error ?? data!,
           stackTrace: stackTrace, statusCode: code);
-
-      if (_verbose!) {
-        print('[flutter_data] [$internalType] Error: $e');
-      }
+      log(requestType.toShortString(), e.error.toString());
       return await onError(e);
     }
   }
@@ -557,6 +585,14 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       return null;
     }
     throw e;
+  }
+
+  void log(String name, String message) {
+    if (verbose) {
+      final now = DateTime.now();
+      print(
+          '${now.second.toString().padLeft(2, '0')}:${now.millisecond.toString().padLeft(3, '0')} [$type#$name] $message');
+    }
   }
 
   /// Initializes [model] making it ready to use with [DataModel] extensions.

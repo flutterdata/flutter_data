@@ -13,16 +13,6 @@ var internalLocatorFn =
 
 class RepositoryInitializer {}
 
-class RepositoryInitializerArgs with EquatableMixin {
-  RepositoryInitializerArgs(this.remote, this.verbose);
-
-  final bool? remote;
-  final bool? verbose;
-
-  @override
-  List<Object?> get props => [remote, verbose];
-}
-
 @protected
 mixin NothingMixin {}
 

@@ -76,33 +76,29 @@ void setUpFn() async {
 
   houseRepository = await container.read(housesRepositoryProvider).initialize(
         remote: false,
-        verbose: false,
         adapters: adapterGraph,
       );
 
   familiaRepository =
       await container.read(familiaRepositoryProvider).initialize(
             remote: true,
-            verbose: false,
             adapters: adapterGraph,
           );
 
   personRepository = await container.read(peopleRepositoryProvider).initialize(
         remote: false,
-        verbose: false,
         adapters: adapterGraph,
       );
 
   dogRepository = await container.read(dogsRepositoryProvider).initialize(
         remote: false,
-        verbose: true,
         adapters: adapterGraph,
       );
+  dogRepository.remoteAdapter.verbose = true;
 
   const nodesKey = _kIsWeb ? 'node1s' : 'nodes';
   nodeRepository = await container.read(nodesRepositoryProvider).initialize(
-    remote: false,
-    verbose: false,
+    remote: false, // TODO remove these here, use annotations
     adapters: {
       nodesKey: container.read(nodesRemoteAdapterProvider),
     },
@@ -111,7 +107,6 @@ void setUpFn() async {
   bookAuthorRepository =
       await container.read(bookAuthorsRepositoryProvider).initialize(
     remote: false,
-    verbose: false,
     adapters: {
       'bookAuthors': container.read(bookAuthorsRemoteAdapterProvider),
       'books': container.read(booksRemoteAdapterProvider),
@@ -120,7 +115,6 @@ void setUpFn() async {
 
   bookRepository = await container.read(booksRepositoryProvider).initialize(
     remote: false,
-    verbose: false,
     adapters: {
       'bookAuthors': container.read(bookAuthorsRemoteAdapterProvider),
       'books': container.read(booksRemoteAdapterProvider),

@@ -23,14 +23,11 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   /// In standard scenarios this initialization is done by the framework.
   @mustCallSuper
   FutureOr<Repository<T>> initialize(
-      {bool? remote,
-      bool? verbose,
-      required Map<String, RemoteAdapter> adapters}) async {
+      {bool? remote, required Map<String, RemoteAdapter> adapters}) async {
     if (isInitialized) return this;
     _adapters.addAll(adapters);
     await remoteAdapter.initialize(
       remote: remote,
-      verbose: verbose,
       adapters: adapters,
       read: _read,
     );
@@ -75,6 +72,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     Map<String, String>? headers,
     bool? syncLocal,
     OnDataError<List<T>>? onError,
+    String? requestName,
   }) {
     return remoteAdapter.findAll(
       remote: remote,
@@ -82,6 +80,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
       headers: headers,
       syncLocal: syncLocal,
       onError: onError,
+      requestName: requestName,
     );
   }
 
@@ -175,6 +174,8 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   /// `repositoryProviders` map exposed on your `main.data.dart`.
   Future<void> clear() => remoteAdapter.clear();
 
+  void log(String name, String message) => remoteAdapter.log(name, message);
+
   // offline
 
   /// Gets a list of all pending [OfflineOperation]s for this type.
@@ -255,5 +256,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
 class DataRepository {
   final List<Type> adapters;
   final bool remote;
-  const DataRepository(this.adapters, {this.remote = true});
+  final bool verbose;
+  const DataRepository(this.adapters,
+      {this.remote = true, this.verbose = false});
 }
