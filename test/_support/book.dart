@@ -22,7 +22,7 @@ class BookAuthor with DataModel<BookAuthor>, _$BookAuthor {
 }
 
 @freezed
-@DataRepository([])
+@DataRepository([], remote: false)
 class Book with DataModel<Book>, _$Book {
   Book._();
   @JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
@@ -48,8 +48,8 @@ mixin BookAuthorAdapter on RemoteAdapter<BookAuthor> {
         bool? remote,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
-        OnData<BookAuthor?>? onSuccess,
-        OnDataError<BookAuthor?>? onError,
+        OnSuccess<BookAuthor?>? onSuccess,
+        OnError<BookAuthor?>? onError,
       }) async {
         final _model = await findOne(model, remote: remote);
         if (_model?.books?.toList().isNotEmpty ?? false) {

@@ -98,7 +98,7 @@ void setUpFn() async {
 
   const nodesKey = _kIsWeb ? 'node1s' : 'nodes';
   nodeRepository = await container.read(nodesRepositoryProvider).initialize(
-    remote: false, // TODO remove these here, use annotations
+    remote: false,
     adapters: {
       nodesKey: container.read(nodesRemoteAdapterProvider),
     },

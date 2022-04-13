@@ -79,8 +79,8 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    OnData<T>? onSuccess,
-    OnDataError<T>? onError,
+    OnSuccess<T>? onSuccess,
+    OnError<T>? onError,
   }) async {
     _assertInit('save');
     return await remoteAdapter.save(
@@ -102,8 +102,8 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    OnData<void>? onSuccess,
-    OnDataError<void>? onError,
+    OnSuccess<void>? onSuccess,
+    OnError<void>? onError,
   }) async {
     _assertInit('delete');
     await remoteAdapter.delete(

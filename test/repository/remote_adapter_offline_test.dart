@@ -1,3 +1,5 @@
+@Timeout(Duration(seconds: 1000))
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -29,18 +31,12 @@ void main() async {
 
     await oneMs();
 
-    // the internal findAll should trigger an offline operation
-    expect(
-        bookAuthorRepository.offlineOperations.first.offlineKey, 'bookAuthors');
-    expect(bookAuthorRepository.offlineOperations.first.requestType,
-        DataRequestType.findAll);
-
     // now try to findOne
     await bookAuthorRepository.findOne(
       19,
       remote: true,
       // ignore: missing_return
-      onError: (e) async {
+      onError: (e, _) async {
         notifier.updateWith(exception: e);
         return null;
       },
@@ -52,20 +48,16 @@ void main() async {
           startsWith('OfflineException:')),
     ))).called(1); // one call per updateWith(e)
 
-    // retry and assert there is one queued operation for findOne
-    await bookAuthorRepository.offlineOperations.retry();
-    await oneMs();
-    expect(bookAuthorRepository.offlineOperations.only(DataRequestType.findOne),
-        hasLength(1));
+    // assert there are no queued operations for findOne
+    // because it is a GET operation
+    expect(
+        bookAuthorRepository.offlineOperations
+            .only(DataRequestLabel('findOne', type: 'bookAuthors')),
+        isEmpty);
 
     // now make the response a success
     container.read(responseProvider.notifier).state =
         TestResponse.text('{"id": 19, "name": "Author Saved"}');
-
-    // retry and assert queue is empty
-    await bookAuthorRepository.offlineOperations.retry();
-    await oneMs();
-    expect(bookAuthorRepository.offlineOperations, isEmpty);
 
     // try findOne again this time without errors
     final model = await bookAuthorRepository.findOne(19, remote: true);
@@ -82,6 +74,8 @@ void main() async {
 
     dispose = notifier.addListener(listener, fireImmediately: true);
 
+    // TODO test saving a model without ID
+
     // sample familia
     final familia = Familia(id: '1', surname: 'Smith');
 
@@ -89,20 +83,22 @@ void main() async {
     container.read(responseProvider.notifier).state =
         TestResponse(text: (_) => throw SocketException('unreachable'));
 
-    // must specify remote=true as repo's default is remote=false
     await familiaRepository.save(
       familia,
+      remote: true,
       // override headers & params
       headers: {'X-Override-Name': 'Mantego'},
       params: {'overrideSecondName': 'Zorrilla'},
       // ignore: missing_return
-      onError: (e) async {
+      onError: (e, _) async {
         // supply onError for exception to show up in notifier
         await oneMs();
         notifier.updateWith(exception: e);
         return null;
       },
-      onSuccess: (model) {
+      onSuccess: (data, label) async {
+        final model =
+            await familiaRepository.remoteAdapter.onSuccess(data, label);
         // the surname follows `X-Override-Name` + `overrideSecondName`
         // as the save has been replayed with the original headers/params
         expect(model, equals(Familia(id: '1', surname: 'Mantego Zorrilla')));
@@ -124,10 +120,10 @@ void main() async {
     // familia is remembered as failed to persist
     expect(
         familiaRepository.offlineOperations
-            .only(DataRequestType.save)
-            .map((o) => o.offlineKey)
+            .only(DataRequestLabel('save', type: 'familia'))
+            .map((o) => o.label.id)
             .toList(),
-        [keyFor(familia)]);
+        [familia.id]);
 
     // try with familia2
     final familia2 = Familia(id: '2', surname: 'Montewicz');
@@ -141,10 +137,10 @@ void main() async {
     // now two familia failed to persist
     expect(
         familiaRepository.offlineOperations
-            .only(DataRequestType.save)
-            .map((o) => o.offlineKey)
+            .only(DataRequestLabel('save', type: 'familia'))
+            .map((o) => o.label.id)
             .toList(),
-        [keyFor(familia), keyFor(familia2)]);
+        [familia.id, familia2.id]);
 
     // retry saving both
     await familiaRepository.offlineOperations.retry();
@@ -154,7 +150,7 @@ void main() async {
 
     // none of them could be saved upon retry
     expect(familiaRepository.offlineOperations.map((o) => o.model),
-        equals([familia, familia2]));
+        unorderedEquals([familia, familia2]));
 
     // change the response to: success for familia, failure for familia2
     container.read(responseProvider.notifier).state = TestResponse(
@@ -203,7 +199,7 @@ void main() async {
     // assert familia3 hasn't been persisted
     expect(
         familiaRepository.offlineOperations
-            .only(DataRequestType.save)
+            .only(DataRequestLabel('save', type: 'familia'))
             .map((o) => o.model),
         [familia3]);
 
@@ -213,7 +209,7 @@ void main() async {
     // so it's empty again
     expect(
         familiaRepository.offlineOperations
-            .only(DataRequestType.save)
+            .only(DataRequestLabel('save', type: 'familia'))
             .map((o) => o.model),
         isEmpty);
   });
@@ -243,7 +239,7 @@ void main() async {
     // delete familia and send offline exception to notifier
     await familia.delete(
       remote: true,
-      onError: (e) async {
+      onError: (e, _) async {
         notifier.updateWith(exception: e);
       },
     );
@@ -262,9 +258,9 @@ void main() async {
     // familia is remembered as failed to persist
     expect(
         familiaRepository.offlineOperations
-            .only(DataRequestType.delete)
-            .map((o) => o.offlineKey),
-        ['familia#1']);
+            .only(DataRequestLabel('delete', type: 'familia'))
+            .map((o) => o.label.id),
+        ['1']);
 
     // retry
     await familiaRepository.offlineOperations.retry();
@@ -273,9 +269,9 @@ void main() async {
     // could not be deleted upon retry
     expect(
         familiaRepository.offlineOperations
-            .only(DataRequestType.delete)
-            .map((o) => o.offlineKey),
-        ['familia#1']);
+            .only(DataRequestLabel('delete', type: 'familia'))
+            .map((o) => o.label.id),
+        ['1']);
 
     // change the response to success
     container.read(responseProvider.notifier).state = TestResponse.text('');
@@ -310,7 +306,7 @@ void main() async {
       remote: true,
       headers: {'X-Override-Name': 'Johnson'},
       // ignore: missing_return
-      onError: (e) async {
+      onError: (e, _) async {
         notifier.updateWith(exception: e);
         return null;
       },
@@ -321,7 +317,7 @@ void main() async {
     // ...and immediately delete
     await familia.delete(
       remote: true,
-      onError: (e) async {
+      onError: (e, _) async {
         notifier.updateWith(exception: e);
       },
     );
@@ -337,16 +333,16 @@ void main() async {
     // should see the failed save queued
     expect(
         familiaRepository.offlineOperations
-            .only(DataRequestType.save)
-            .map((o) => o.offlineKey)
+            .only(DataRequestLabel('save', type: 'familia'))
+            .map((o) => o.label.id)
             .toList(),
-        [keyFor(familia)]);
+        [familia.id]);
 
     // clearly the local model was deleted, so the associated
     // model should be null
     expect(
         familiaRepository.offlineOperations
-            .only(DataRequestType.save)
+            .only(DataRequestLabel('save', type: 'familia'))
             .map((o) => o.model)
             .toList(),
         [null]);
@@ -354,10 +350,10 @@ void main() async {
     // should see the failed delete queued
     expect(
         familiaRepository.offlineOperations
-            .only(DataRequestType.delete)
-            .map((o) => o.offlineKey)
+            .only(DataRequestLabel('delete', type: 'familia'))
+            .map((o) => o.label.id)
             .toList(),
-        ['familia#19']);
+        ['19']);
 
     // retry
     await familiaRepository.offlineOperations.retry();
@@ -382,17 +378,20 @@ void main() async {
     });
 
     // random endpoint with random headers
-    familiaRepository.remoteAdapter.sendRequest(
+    familiaRepository.remoteAdapter.sendRequest<Familia>(
       '/fam'.asUri,
       method: DataRequestMethod.POST,
       headers: {'X-Sats': '9389173717732'},
       body: json.encode({'a': 2}),
-      onSuccess: (_) {
+      onSuccess: (data, label) async {
+        final result = await familiaRepository.remoteAdapter
+            .onSuccess<Familia>(data, label);
         expect(
-            _,
+            data,
             equals([
               {'id': '19', 'surname': 'Ko Saved'}
             ]));
+        return result;
       },
     );
     await oneMs();
@@ -416,47 +415,23 @@ void main() async {
     expect(familiaRepository.offlineOperations, isEmpty);
   });
 
-  test('another non-offline error should resolve the operation', () async {
-    // network issue
-    container.read(responseProvider.notifier).state = TestResponse(text: (_) {
-      throw SocketException('unreachable');
-    });
-    familiaRepository.remoteAdapter.sendRequest('/fam'.asUri);
-
-    await oneMs();
-    // fails to go through
-    expect(familiaRepository.offlineOperations, hasLength(1));
-
-    // return a 404
-    container.read(responseProvider.notifier).state =
-        TestResponse(text: (_) => 'not found', statusCode: 404);
-
-    // retry
-    await familiaRepository.offlineOperations.retry();
-    await oneMs();
-    // done
-    expect(familiaRepository.offlineOperations, isEmpty);
-  });
-
   test('operation equality', () {
     final o1 = OfflineOperation<Familia>(
-      requestType: DataRequestType.findAll,
-      offlineKey: 'familia',
-      request: 'GET /familia',
+      label: DataRequestLabel('findAll', type: 'familia'),
+      httpRequest: 'GET /familia',
       headers: {'X-Header': 'chupala'},
       adapter: familiaRemoteAdapter,
     );
 
     final o2 = OfflineOperation<Familia>(
-      requestType: DataRequestType.findAll,
-      offlineKey: 'familia',
-      request: 'GET /familia',
+      label: DataRequestLabel('findAll', type: 'familia'),
+      httpRequest: 'GET /familia',
       headers: {'X-Header': 'chupala'},
       adapter: familiaRemoteAdapter,
     );
 
     expect(o1, equals(o2));
-    expect(o1.hash, equals(o2.hash));
+    // expect(o1.hash, equals(o2.hash));
   });
 
   test('findOne scenario issue #118', () async {

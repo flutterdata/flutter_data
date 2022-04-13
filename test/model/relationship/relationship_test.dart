@@ -207,13 +207,13 @@ void main() async {
             .init(container.read);
     expect(familia.persons.length, 1);
 
-    // new familia comes in locally with no persons relationship info
+    // new familia comes in locally with no persons relationship information
     final familia2 = Familia(id: '229', surname: 'Rose', persons: HasMany())
         .init(container.read);
     // it should keep the relationships unaltered
     expect(familia2.persons.length, 1);
 
-    // new familia comes in from API (simulate) with no persons relationship info
+    // new familia comes in from API (simulate) with no persons relationship information
     final familia3 =
         (familiaRemoteAdapter.deserialize({'id': '229', 'surname': 'Rose'}))
             .model!

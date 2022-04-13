@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_data/flutter_data.dart';
@@ -74,7 +75,7 @@ void main() async {
 
     await familiaRepository.findAll(
       // ignore: missing_return
-      onError: (e) {
+      onError: (e, _) {
         expect(e, isA<DataException>());
         return null;
       },
@@ -151,7 +152,7 @@ void main() async {
     await oneMs();
 
     // ignore: missing_return
-    await familiaRepository.findOne('1', onError: (e) {
+    await familiaRepository.findOne('1', onError: (e, _) {
       expect(e, error203);
       return null;
     });
@@ -172,7 +173,7 @@ void main() async {
     expect(() async {
       container.read(responseProvider.notifier).state = TestResponse(
           text: (_) => '{ "error": "not found" }', statusCode: 404);
-      await familiaRepository.findOne('2', onError: (e) => throw e);
+      await familiaRepository.findOne('2', onError: (e, _) => throw e);
     },
         throwsA(isA<DataException>().having(
           (e) => e.error,
@@ -187,10 +188,13 @@ void main() async {
   test('socket exception does not throw by default', () async {
     container.read(responseProvider.notifier).state =
         TestResponse(text: (_) => throw SocketException('unreachable'));
-    await familiaRepository.findOne('error', onError: (e) {
-      expect(e, isA<OfflineException>());
-      return null;
-    });
+    await familiaRepository.findOne(
+      'error',
+      onError: (e, _) {
+        expect(e, isA<OfflineException>());
+        return null;
+      },
+    );
   });
 
   test('save', () async {
@@ -228,11 +232,14 @@ void main() async {
     verify(listener(DataState([], isLoading: false))).called(1);
 
     // ignore: missing_return
-    await familiaRepository.save(familia, onError: (e) async {
-      await oneMs();
-      notifier.updateWith(exception: e);
-      return null;
-    });
+    await familiaRepository.save(
+      familia,
+      onError: (e, _) async {
+        await oneMs();
+        notifier.updateWith(exception: e);
+        return null;
+      },
+    );
     await oneMs();
 
     verify(listener(DataState([familia], isLoading: false))).called(1);
@@ -293,6 +300,20 @@ void main() async {
     expect(keyFor(familia1), keyFor(familia2));
   });
 
+  test('ad-hoc with auto deserialization', () async {
+    // network issue
+    container.read(responseProvider.notifier).state =
+        TestResponse.text('[{"id": "19", "surname": "Pandan"}]');
+
+    final f1 = await familiaRepository.remoteAdapter.sendRequest<Familia>(
+      '/family'.asUri,
+      method: DataRequestMethod.POST,
+      body: json.encode({'a': 2}),
+      label: DataRequestLabel('adhoc', type: 'familia'),
+    );
+    expect(f1, Familia(id: '19', surname: 'Pandan'));
+  });
+
   test('custom login adapter with repo extension', () async {
     // this crappy login uses password as token
     container.read(responseProvider.notifier).state =
@@ -322,21 +343,32 @@ void main() async {
       {"id": "3", "name": "Jackson"}''');
     final dog =
         await dogRepository.findOne('3', params: {'a': 1}, remote: true);
-    expect(verbose.first, endsWith('[dogs#findOne:3] request with {a: 1}'));
-    expect(verbose.last, endsWith('[dogs#findOne:3] {3} fetched from remote'));
+
+    var regexp = RegExp(r'^\d\d:\d\d\d \[findOne\/dogs#3@[a-z0-9]{6}\]');
+    expect(verbose.first, matches(regexp));
+    expect(verbose.first, endsWith('request with {a: 1}'));
+    expect(verbose.last, matches(regexp));
+    expect(verbose.last, endsWith('{3} fetched from remote'));
 
     verbose.clear();
 
     await dogRepository.save(dog!, remote: false);
-    expect(verbose.first, endsWith('[dogs#save:3] request'));
-    expect(verbose.last, endsWith('[dogs#save:3] saved in local storage only'));
+
+    regexp = RegExp(r'^\d\d:\d\d\d \[save\/dogs#3@[a-z0-9]{6}\]');
+    expect(verbose.first, matches(regexp));
+    expect(verbose.first, endsWith('request'));
+    expect(verbose.last, matches(regexp));
+    expect(verbose.last, endsWith('saved in local storage only'));
 
     verbose.clear();
 
     await dogRepository.delete('3', remote: true);
-    expect(verbose.first, endsWith('[dogs#delete:3] request'));
-    expect(verbose.last,
-        endsWith('[dogs#delete:3] deleted in local storage and remote'));
+
+    regexp = RegExp(r'^\d\d:\d\d\d \[delete\/dogs#3@[a-z0-9]{6}\]');
+    expect(verbose.first, matches(regexp));
+    expect(verbose.first, endsWith('request'));
+    expect(verbose.last, matches(regexp));
+    expect(verbose.last, endsWith('deleted in local storage and remote'));
 
     verbose.clear();
 

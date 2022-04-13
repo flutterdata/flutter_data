@@ -38,6 +38,9 @@ extension StringUtilsX on String {
 
   String typifyWith(String type) {
     assert(!type.contains('#'));
+    if (isEmpty) {
+      return type;
+    }
     return '$type#$this';
   }
 

@@ -6,7 +6,7 @@ import 'familia.dart';
 part 'house.g.dart';
 
 @JsonSerializable()
-@DataRepository([])
+@DataRepository([], remote: false)
 class House with DataModel<House> {
   @override
   final String? id;

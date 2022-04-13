@@ -71,8 +71,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     bool? syncLocal,
-    OnDataError<List<T>>? onError,
-    String? requestName,
+    OnError<List<T>>? onError,
   }) {
     return remoteAdapter.findAll(
       remote: remote,
@@ -80,7 +79,6 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
       headers: headers,
       syncLocal: syncLocal,
       onError: onError,
-      requestName: requestName,
     );
   }
 
@@ -99,7 +97,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    OnDataError<T>? onError,
+    OnError<T>? onError,
   }) {
     return remoteAdapter.findOne(
       id,
@@ -125,8 +123,8 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    OnData<T>? onSuccess,
-    OnDataError<T>? onError,
+    OnSuccess<T>? onSuccess,
+    OnError<T>? onError,
   }) {
     return remoteAdapter.save(
       model,
@@ -153,8 +151,8 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    OnData<void>? onSuccess,
-    OnDataError<void>? onError,
+    OnSuccess<void>? onSuccess,
+    OnError<void>? onError,
   }) {
     return remoteAdapter.delete(
       model,
@@ -173,8 +171,6 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   /// If you need to clear all models, use the
   /// `repositoryProviders` map exposed on your `main.data.dart`.
   Future<void> clear() => remoteAdapter.clear();
-
-  void log(String name, String message) => remoteAdapter.log(name, message);
 
   // offline
 

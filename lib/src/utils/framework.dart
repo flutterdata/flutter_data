@@ -14,6 +14,10 @@ class DataHelpers {
     return type.pluralize();
   }
 
+  static String generateShortKey<T>() {
+    return uuid.v1().substring(0, 6);
+  }
+
   static String generateKey<T>([String? type]) {
     type = getType<T>(type);
     return uuid.v1().substring(0, 8).typifyWith(type);
@@ -87,7 +91,7 @@ typedef DataFinderAll<T extends DataModel<T>> = Future<List<T>> Function({
   Map<String, dynamic>? params,
   Map<String, String>? headers,
   bool? syncLocal,
-  OnDataError<List<T>>? onError,
+  OnError<List<T>>? onError,
 });
 
 typedef DataFinderOne<T extends DataModel<T>> = Future<T?> Function(
@@ -95,7 +99,7 @@ typedef DataFinderOne<T extends DataModel<T>> = Future<T?> Function(
   bool? remote,
   Map<String, dynamic>? params,
   Map<String, String>? headers,
-  OnDataError<T?>? onError,
+  OnError<T?>? onError,
 });
 
 typedef DataWatcherAll<T extends DataModel<T>> = DataStateNotifier<List<T>>

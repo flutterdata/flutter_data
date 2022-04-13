@@ -9,7 +9,7 @@ abstract class Pet<T extends Pet<T>> with DataModel<T> {
   Pet(this.id);
 }
 
-@DataRepository([])
+@DataRepository([], remote: false)
 @JsonSerializable()
 class Dog extends Pet<Dog> {
   final String name;

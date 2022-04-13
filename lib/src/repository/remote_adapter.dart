@@ -26,10 +26,7 @@ part of flutter_data;
 /// }
 /// ```
 class RemoteAdapter<T extends DataModel<T>> = _RemoteAdapter<T>
-    with
-        _RemoteAdapterSerialization<T>,
-        _RemoteAdapterOffline<T>,
-        _RemoteAdapterWatch<T>;
+    with _RemoteAdapterSerialization<T>, _RemoteAdapterWatch<T>;
 
 abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @protected
@@ -183,7 +180,14 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   // lifecycle methods
 
   @mustCallSuper
-  Future<void> onInitialized() async {}
+  Future<void> onInitialized() async {
+    // wipe out orphans
+    graph.removeOrphanNodes();
+    // ensure offline nodes exist
+    if (!graph.hasNode(_offlineAdapterKey)) {
+      graph.addNode(_offlineAdapterKey);
+    }
+  }
 
   @mustCallSuper
   @nonVirtual
@@ -265,56 +269,40 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     bool? syncLocal,
-    OnData<List<T>>? onSuccess,
-    OnDataError<List<T>>? onError,
-    String? requestName,
+    OnSuccess<List<T>>? onSuccess,
+    OnError<List<T>>? onError,
+    DataRequestLabel? label,
   }) async {
     _assertInit();
     remote ??= _remote;
     syncLocal ??= false;
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
-    requestName = requestName ?? 'findAll';
+    label = label ?? DataRequestLabel('findAll', type: internalType);
 
-    log(requestName, 'request ${params.isNotEmpty ? 'with $params' : ''}');
+    log(label, 'request ${params.isNotEmpty ? 'with $params' : ''}');
 
     if (!shouldLoadRemoteAll(remote!, params, headers)) {
       final models = localAdapter.findAll().toImmutableList();
-      log(requestName,
+      log(label,
           'returned ${models.map((m) => m.id).toSet()} from local storage');
       return models.map((m) => m._initialize(adapters)).toList();
     }
 
-    final result = await sendRequest(
+    final result = await sendRequest<List<T>>(
       baseUrl.asUri / urlForFindAll(params) & params,
       method: methodForFindAll(params),
       headers: headers,
-      requestType: DataRequestType.findAll,
-      key: internalType,
-      onSuccess: (Object? data) async {
+      label: label,
+      onSuccess: (data, label) async {
         if (syncLocal!) {
           await localAdapter.clear();
         }
-        final deserialized = deserialize(data);
-        _logDeserialized(deserialized, requestName!);
-        final models = deserialized.models.toImmutableList();
-        return onSuccess?.call(models) ?? models;
+        return this.onSuccess(data, label);
       },
       onError: onError,
     );
     return result ?? <T>[];
-  }
-
-  void _logDeserialized(DeserializedData data, String name) {
-    final ids = data.models.map((m) => m.id).toSet();
-    log(name, '${ids.isNotEmpty ? ids : 'none'} fetched from remote');
-    final groupedIncluded =
-        data.included.groupListsBy((m) => m.remoteAdapter.type);
-    for (final e in groupedIncluded.entries) {
-      if (e.value.isNotEmpty) {
-        log(name, '  - with ${e.key} ${e.value.map((m) => m.id).toSet()} ');
-      }
-    }
   }
 
   Future<T?> findOne(
@@ -322,9 +310,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    OnData<T?>? onSuccess,
-    OnDataError<T?>? onError,
-    String? requestName,
+    OnSuccess<T>? onSuccess,
+    OnError<T>? onError,
+    DataRequestLabel? label,
   }) async {
     _assertInit();
     remote ??= _remote;
@@ -333,8 +321,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
     final id = _resolveId(model);
 
-    requestName = requestName ?? 'findOne:$id';
-    log(requestName, 'request ${params.isNotEmpty ? 'with $params' : ''}');
+    label ??=
+        DataRequestLabel('findOne', type: internalType, id: id.toString());
+    log(label, 'request ${params.isNotEmpty ? 'with $params' : ''}');
 
     if (!shouldLoadRemoteOne(id, remote!, params, headers)) {
       final key = graph.getKeyForId(internalType, id,
@@ -345,7 +334,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       final newModel = localAdapter.findOne(key);
       newModel?._initialize(adapters);
       if (newModel != null) {
-        log(requestName, 'returned from local storage');
+        log(label, 'returned from local storage');
       }
       return newModel;
     }
@@ -354,13 +343,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       baseUrl.asUri / urlForFindOne(id, params) & params,
       method: methodForFindOne(id, params),
       headers: headers,
-      requestType: DataRequestType.findOne,
-      key: id!.toString().typifyWith(internalType),
-      onSuccess: (data) async {
-        final deserialized = deserialize(data);
-        _logDeserialized(deserialized, requestName!);
-        return onSuccess?.call(deserialized.model) ?? deserialized.model;
-      },
+      label: label,
+      onSuccess: onSuccess,
       onError: onError,
     );
   }
@@ -370,8 +354,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    OnData<T>? onSuccess,
-    OnDataError<T>? onError,
+    OnSuccess<T>? onSuccess,
+    OnError<T>? onError,
+    DataRequestLabel? label,
   }) async {
     _assertInit();
     remote ??= _remote;
@@ -382,47 +367,26 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     // ensure model is initialized
     model._initialize(adapters, save: true);
 
-    log('save:${model.id ?? 'new'}', 'request');
+    label ??= DataRequestLabel('save',
+        type: internalType, id: model.id?.toString(), model: model);
+    log(label, 'request');
 
     if (remote == false) {
       // if not remote, notify now
-      log('save:${model.id ?? 'new'}', 'saved in local storage only');
+      log(label, 'saved in local storage only');
       return localAdapter.save(model._key!, model, notify: true);
     }
 
     final serialized = serialize(model);
     final body = json.encode(serialized);
 
-    final result = await sendRequest(
+    final result = await sendRequest<T>(
       baseUrl.asUri / urlForSave(model.id, params) & params,
       method: methodForSave(model.id, params),
       headers: headers,
       body: body,
-      requestType: DataRequestType.save,
-      key: model._key,
-      onSuccess: (data) async {
-        T _model;
-        if (data == null) {
-          // return "old" model if response was empty
-          _model = model._initialize(adapters, save: true);
-        } else {
-          // deserialize already inits models
-          // if model had a key already, reuse it
-          final deserialized =
-              deserialize(data as Map<String, dynamic>, key: model._key!);
-          final _newModel = deserialized.model!;
-
-          // in the unlikely case where supplied key couldn't be used
-          // ensure "old" copy of model carries the updated key
-          if (model._key != null && model._key != _newModel._key) {
-            graph.removeKey(model._key!);
-            model._key = _newModel._key;
-          }
-          _model = _newModel;
-        }
-        log('save:${_model.id}', 'saved in local storage and remote');
-        return onSuccess?.call(_model) ?? _model;
-      },
+      label: label,
+      onSuccess: onSuccess,
       onError: onError,
     );
     return result ?? model;
@@ -433,8 +397,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    OnData<void>? onSuccess,
-    OnDataError<void>? onError,
+    OnSuccess<void>? onSuccess,
+    OnError<void>? onError,
+    DataRequestLabel? label,
   }) async {
     _assertInit();
     remote ??= _remote;
@@ -445,24 +410,21 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     final id = _resolveId(model);
     final key = _keyForModel(model);
 
-    log('delete:$id', 'request');
+    label ??= DataRequestLabel('delete', type: internalType, id: id.toString());
+    log(label, 'request');
 
     if (key != null) {
-      log('delete:$id', 'deleting in local storage only');
+      log(label, 'deleting in local storage only');
       await localAdapter.delete(key);
     }
 
-    if (remote! && id != null) {
+    if (remote == true && id != null) {
       return await sendRequest(
         baseUrl.asUri / urlForDelete(id, params) & params,
         method: methodForDelete(id, params),
         headers: headers,
-        requestType: DataRequestType.delete,
-        key: id.toString().typifyWith(internalType),
-        onSuccess: (_) {
-          log('delete:$id', 'deleted in local storage and remote');
-          return onSuccess?.call(_);
-        },
+        label: label,
+        onSuccess: onSuccess,
         onError: onError,
       );
     }
@@ -515,17 +477,19 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     DataRequestMethod method = DataRequestMethod.GET,
     Map<String, String>? headers,
     String? body,
-    String? key,
-    OnData<R>? onSuccess,
-    OnDataError<R>? onError,
-    DataRequestType requestType = DataRequestType.adhoc,
+    OnSuccess<R>? onSuccess,
+    OnError<R>? onError,
     bool omitDefaultParams = false,
+    DataRequestLabel? label,
   }) async {
     // defaults
-    onError ??= this.onError as OnDataError<R>;
     headers ??= await defaultHeaders;
     final _params =
         omitDefaultParams ? <String, dynamic>{} : await defaultParams;
+
+    label ??= DataRequestLabel('adhoc', type: internalType);
+    onSuccess ??= this.onSuccess;
+    onError ??= this.onError;
 
     http.Response? response;
     Object? data;
@@ -562,13 +526,109 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     final code = response?.statusCode;
 
     if (error == null && code != null && code >= 200 && code < 300) {
-      return await onSuccess?.call(data);
+      return onSuccess(data, label);
     } else {
+      if (isOfflineError(error)) {
+        // queue a new operation if:
+        //  - this is a network error and we're offline
+        //  - the request was not a find
+        if (method != DataRequestMethod.GET) {
+          OfflineOperation<T>(
+            httpRequest: '${method.toShortString()} $uri',
+            label: label,
+            body: body,
+            headers: headers,
+            onSuccess: onSuccess,
+            onError: onError,
+            adapter: this as RemoteAdapter<T>,
+          ).add();
+        }
+
+        // wrap error in an OfflineException
+        final offlineException = OfflineException(error: error!);
+
+        // call error handler but do not return it
+        // (this gives the user the chance to present
+        // a UI element to retry fetching, for example)
+        onError(offlineException, label);
+
+        // instead return a fallback model from local storage
+        switch (label.kind) {
+          case 'findAll':
+            return findAll(remote: false) as Future<R>;
+          case 'findOne':
+          case 'save':
+            return label.model as R?;
+          default:
+            return null;
+        }
+      }
+
+      // if it was not a network error
+      // remove all operations with this request
+      OfflineOperation.remove(label, this as RemoteAdapter<T>);
+
       final e = DataException(error ?? data!,
           stackTrace: stackTrace, statusCode: code);
-      log(requestType.toShortString(), e.error.toString());
-      return await onError(e);
+      log(label, e.error.toString());
+      return await onError(e, label);
     }
+  }
+
+  @protected
+  @visibleForTesting
+  FutureOr<R?> onSuccess<R>(Object? data, DataRequestLabel? label) async {
+    // remove all operations with this label
+    OfflineOperation.remove(label!, this as RemoteAdapter);
+
+    if (label.kind == 'save') {
+      if (label.model == null) {
+        return null;
+      }
+      final model = label.model as T;
+      T _model;
+      if (data == null) {
+        // return "old" model if response was empty
+        _model = model._initialize(adapters, save: true);
+      } else {
+        // deserialize already inits models
+        // if model had a key already, reuse it
+        final deserialized =
+            deserialize(data as Map<String, dynamic>, key: model._key!);
+        final _newModel = deserialized.model!;
+
+        // reconcile keys in case the server attributed the same ID
+        if (model._key != null && model._key != _newModel._key) {
+          graph.removeKey(model._key!);
+          model._key = _newModel._key;
+        }
+        _model = _newModel;
+      }
+
+      // TODO requestId could have been updated with another id
+      log(label, 'saved in local storage and remote');
+      return _model as R?;
+    }
+
+    if (label.kind == 'delete') {
+      log(label, 'deleted in local storage and remote');
+      return null;
+    }
+
+    final deserialized = deserialize(data);
+    deserialized._log(this as RemoteAdapter, label);
+
+    final isAdHoc = !['findAll', 'findOne'].contains(label.kind);
+
+    if (label.kind == 'findAll' || (isAdHoc && deserialized.model == null)) {
+      return deserialized.models as R?;
+    }
+
+    if (label.kind == 'findOne' || (isAdHoc && deserialized.model != null)) {
+      return deserialized.model as R?;
+    }
+
+    return null;
   }
 
   /// Implements global request error handling.
@@ -580,19 +640,14 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   /// to override this default behavior.
   @protected
   @visibleForTesting
-  FutureOr<R?> onError<R>(DataException e) {
+  FutureOr<R?> onError<R>(
+    DataException e,
+    DataRequestLabel? label,
+  ) {
     if (e.statusCode == 404 || e is OfflineException) {
       return null;
     }
     throw e;
-  }
-
-  void log(String name, String message) {
-    if (verbose) {
-      final now = DateTime.now();
-      print(
-          '${now.second.toString().padLeft(2, '0')}:${now.millisecond.toString().padLeft(3, '0')} [$type#$name] $message');
-    }
   }
 
   /// Initializes [model] making it ready to use with [DataModel] extensions.
@@ -601,6 +656,53 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @nonVirtual
   T initializeModel(T model, {String? key, bool save = false}) {
     return model._initialize(adapters, key: key, save: save);
+  }
+
+  /// Logs messages for a specific label when `verbose` is `true`.
+  @protected
+  void log(DataRequestLabel label, String message) {
+    if (verbose) {
+      final now = DateTime.now();
+      final timestamp =
+          '${now.second.toString().padLeft(2, '0')}:${now.millisecond.toString().padLeft(3, '0')}';
+      print('$timestamp [$label] $message');
+    }
+  }
+
+  // offline
+
+  /// Determines whether [error] was an offline error.
+  @protected
+  @visibleForTesting
+  bool isOfflineError(Object? error) {
+    // timeouts via http's `connectionTimeout` are
+    // also socket exceptions
+    // we check the exception like this in order not to import `dart:io`
+    final _err = error.toString();
+    return _err.startsWith('SocketException') ||
+        _err.startsWith('Connection closed before full header was received') ||
+        _err.startsWith('HandshakeException');
+  }
+
+  @protected
+  @visibleForTesting
+  @nonVirtual
+  Set<OfflineOperation<T>> get offlineOperations {
+    final node = graph._getNode(_offlineAdapterKey);
+    return (node ?? {})
+        .entries
+        .map((e) {
+          // extract type from e.g. _offline:findOne/users#3@d7bcc9
+          final label = DataRequestLabel.parse(e.key.denamespace());
+          if (label.type == internalType) {
+            // get first edge value
+            final map = json.decode(e.value.first) as Map<String, dynamic>;
+            return OfflineOperation<T>.fromJson(
+                label, map, this as RemoteAdapter<T>);
+          }
+        })
+        .filterNulls
+        .toSet();
   }
 
   Object? _resolveId(Object? obj) {
@@ -618,14 +720,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   }
 }
 
-/// A utility class used to return deserialized main [models] AND [included] models.
-class DeserializedData<T> {
-  const DeserializedData(this.models, {this.included = const []});
-  final List<T> models;
-  final List<DataModel> included;
-  T? get model => models.singleOrNull;
-}
-
 // ignore: constant_identifier_names
 enum DataRequestMethod { GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS, TRACE }
 
@@ -633,24 +727,58 @@ extension _ToStringX on DataRequestMethod {
   String toShortString() => toString().split('.').last;
 }
 
-typedef OnData<T> = FutureOr<T?> Function(Object?);
-typedef OnDataError<T> = FutureOr<T?> Function(DataException);
+typedef OnSuccess<R> = FutureOr<R?> Function(
+    Object? data, DataRequestLabel? label);
+typedef OnError<R> = FutureOr<R?> Function(
+    DataException e, DataRequestLabel? label);
 
-// ignore: constant_identifier_names
-enum DataRequestType {
-  findAll,
-  findOne,
-  save,
-  delete,
-  adhoc,
+/// Data request information holder.
+///
+/// Format examples:
+///  - findAll/reports@b5d14c
+///  - findOne/inspections#3@c4a1bb
+class DataRequestLabel with EquatableMixin {
+  final String kind;
+  late final String type;
+  final String? id;
+  late final String requestId;
+  DataModel? model;
+
+  DataRequestLabel(
+    this.kind, {
+    required String type,
+    this.id,
+    String? requestId,
+    this.model,
+  }) {
+    assert(!kind.contains('/'));
+    if (requestId != null) {
+      assert(!requestId.contains('@'));
+    }
+    this.type = DataHelpers.getType(type);
+    this.requestId = requestId ?? DataHelpers.generateShortKey();
+  }
+
+  factory DataRequestLabel.parse(String text) {
+    final parts = text.split('/');
+    final parts2 = parts[1].split('@');
+    final parts3 = parts2[0].split('#');
+    final kind = parts[0];
+    final requestId = parts2[1];
+    final type = parts3[0];
+    final id = parts3.length > 1 ? parts3[1] : null;
+
+    return DataRequestLabel(kind, type: type, id: id, requestId: requestId);
+  }
+
+  @override
+  String toString() {
+    return '$kind/${(id ?? '').typifyWith(type)}@$requestId';
+  }
+
+  @override
+  List<Object?> get props => [kind, type, id, requestId];
 }
-
-extension _DataRequestTypeX on DataRequestType {
-  String toShortString() => toString().split('.').last;
-}
-
-DataRequestType _getDataRequestType(String type) =>
-    DataRequestType.values.singleWhere((_) => _.toShortString() == type);
 
 /// When this provider is non-null it will override
 /// all [_RemoteAdapter.httpClient] overrides;

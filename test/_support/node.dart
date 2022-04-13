@@ -5,7 +5,7 @@ part 'node.freezed.dart';
 part 'node.g.dart';
 
 @freezed
-@DataRepository([])
+@DataRepository([], remote: false)
 class Node with DataModel<Node>, _$Node {
   Node._();
   factory Node(
