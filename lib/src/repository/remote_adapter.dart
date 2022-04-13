@@ -266,6 +266,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
   Future<List<T>> findAll({
     bool? remote,
+    bool? background,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     bool? syncLocal,
@@ -275,6 +276,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   }) async {
     _assertInit();
     remote ??= _remote;
+    background ??= false;
     syncLocal ??= false;
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
@@ -282,14 +284,19 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
     log(label, 'request ${params.isNotEmpty ? 'with $params' : ''}');
 
-    if (!shouldLoadRemoteAll(remote!, params, headers)) {
-      final models = localAdapter.findAll().toImmutableList();
+    late List<T> models;
+
+    if (!shouldLoadRemoteAll(remote!, params, headers) || background) {
+      models = localAdapter.findAll().toImmutableList();
       log(label,
-          'returned ${models.map((m) => m.id).toSet()} from local storage');
-      return models.map((m) => m._initialize(adapters)).toList();
+          'returned ${models.map((m) => m.id).toSet()} from local storage${background ? ' and loading in the background' : ''}');
+      models = models.map((m) => m._initialize(adapters)).toList();
+      if (!background) {
+        return models;
+      }
     }
 
-    final result = await sendRequest<List<T>>(
+    final future = sendRequest<List<T>>(
       baseUrl.asUri / urlForFindAll(params) & params,
       method: methodForFindAll(params),
       headers: headers,
@@ -302,12 +309,20 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       },
       onError: onError,
     );
-    return result ?? <T>[];
+
+    if (background) {
+      // ignore: unawaited_futures
+      future.then((_) => Future.value(_));
+      return models;
+    } else {
+      return await future ?? <T>[];
+    }
   }
 
   Future<T?> findOne(
-    Object model, {
+    Object id, {
     bool? remote,
+    bool? background,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     OnSuccess<T>? onSuccess,
@@ -316,30 +331,35 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   }) async {
     _assertInit();
     remote ??= _remote;
+    background ??= false;
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
 
-    final id = _resolveId(model);
+    final resolvedId = _resolveId(id);
+    late T? model;
 
-    label ??=
-        DataRequestLabel('findOne', type: internalType, id: id.toString());
+    label ??= DataRequestLabel('findOne',
+        type: internalType, id: resolvedId?.toString());
     log(label, 'request ${params.isNotEmpty ? 'with $params' : ''}');
 
-    if (!shouldLoadRemoteOne(id, remote!, params, headers)) {
-      final key = graph.getKeyForId(internalType, id,
-          keyIfAbsent: model is T ? model._key : null);
+    if (!shouldLoadRemoteOne(id, remote!, params, headers) || background) {
+      final key = graph.getKeyForId(internalType, resolvedId,
+          keyIfAbsent: id is T ? id._key : null);
       if (key == null) {
         return null;
       }
-      final newModel = localAdapter.findOne(key);
-      newModel?._initialize(adapters);
-      if (newModel != null) {
-        log(label, 'returned from local storage');
+      model = localAdapter.findOne(key);
+      model?._initialize(adapters);
+      if (model != null) {
+        log(label,
+            'returned from local storage${background ? ' and loading in the background' : ''}');
       }
-      return newModel;
+      if (!background) {
+        return model;
+      }
     }
 
-    return await sendRequest(
+    final future = sendRequest(
       baseUrl.asUri / urlForFindOne(id, params) & params,
       method: methodForFindOne(id, params),
       headers: headers,
@@ -347,6 +367,14 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       onSuccess: onSuccess,
       onError: onError,
     );
+
+    if (background) {
+      // ignore: unawaited_futures
+      future.then((_) => Future.value(_));
+      return model;
+    } else {
+      return await future;
+    }
   }
 
   Future<T> save(
@@ -472,7 +500,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   /// [onError] can also be supplied to override [_RemoteAdapter.onError].
   @protected
   @visibleForTesting
-  FutureOr<R?> sendRequest<R>(
+  Future<R?> sendRequest<R>(
     final Uri uri, {
     DataRequestMethod method = DataRequestMethod.GET,
     Map<String, String>? headers,
@@ -705,7 +733,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
         .toSet();
   }
 
-  Object? _resolveId(Object? obj) {
+  Object? _resolveId(Object obj) {
     return obj is T ? obj.id : obj;
   }
 

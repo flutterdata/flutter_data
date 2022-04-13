@@ -68,6 +68,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   /// See also: [_RemoteAdapter.urlForFindAll], [_RemoteAdapter.methodForFindAll].
   Future<List<T>> findAll({
     bool? remote,
+    bool? background,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     bool? syncLocal,
@@ -75,6 +76,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   }) {
     return remoteAdapter.findAll(
       remote: remote,
+      background: background,
       params: params,
       headers: headers,
       syncLocal: syncLocal,
@@ -95,6 +97,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   Future<T?> findOne(
     Object id, {
     bool? remote,
+    bool? background,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     OnError<T>? onError,
@@ -102,6 +105,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     return remoteAdapter.findOne(
       id,
       remote: remote,
+      background: background,
       params: params,
       headers: headers,
       onError: onError,

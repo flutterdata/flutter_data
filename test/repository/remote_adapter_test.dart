@@ -153,4 +153,6 @@ void main() async {
       Person(id: '2', name: 'John', age: 44)
     ]);
   });
+
+  // TODO test with background=true
 }

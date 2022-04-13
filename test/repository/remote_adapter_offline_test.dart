@@ -1,5 +1,3 @@
-@Timeout(Duration(seconds: 1000))
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -378,7 +376,7 @@ void main() async {
     });
 
     // random endpoint with random headers
-    familiaRepository.remoteAdapter.sendRequest<Familia>(
+    await familiaRepository.remoteAdapter.sendRequest<Familia>(
       '/fam'.asUri,
       method: DataRequestMethod.POST,
       headers: {'X-Sats': '9389173717732'},
