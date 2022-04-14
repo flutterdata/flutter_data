@@ -646,13 +646,15 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     final deserialized = deserialize(data);
     deserialized._log(this as RemoteAdapter, label);
 
-    final isAdHoc = !['findAll', 'findOne'].contains(label.kind);
+    final isFindAll = label.kind.startsWith('findAll');
+    final isFindOne = label.kind.startsWith('findOne');
+    final isAdHoc = label.kind == 'adhoc';
 
-    if (label.kind == 'findAll' || (isAdHoc && deserialized.model == null)) {
+    if (isFindAll || (isAdHoc && deserialized.model == null)) {
       return deserialized.models as R?;
     }
 
-    if (label.kind == 'findOne' || (isAdHoc && deserialized.model != null)) {
+    if (isFindOne || (isAdHoc && deserialized.model != null)) {
       return deserialized.model as R?;
     }
 
