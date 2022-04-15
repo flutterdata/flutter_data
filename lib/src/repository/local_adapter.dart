@@ -18,7 +18,7 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
   List<T> findAll();
 
   /// Finds model of type [T] by [key] in local storage.
-  T? findOne(String key);
+  T? findOne(String? key);
 
   /// Saves model of type [T] with [key] in local storage.
   ///

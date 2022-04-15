@@ -10,6 +10,11 @@ void main() async {
   setUp(setUpFn);
   tearDown(tearDownFn);
 
+  test('findOne with null key', () {
+    final familia = familiaRemoteAdapter.localAdapter.findOne(null);
+    expect(familia, isNull);
+  });
+
   test('deserialize existing (with save)', () {
     final familia = Familia(surname: 'Moletto').init(container.read);
 

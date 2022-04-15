@@ -58,7 +58,7 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
   }
 
   @override
-  T? findOne(String key) => box!.get(key);
+  T? findOne(String? key) => box!.get(key);
 
   @override
   Future<T> save(String key, T model, {bool notify = true}) async {
