@@ -86,20 +86,26 @@ class DataStrategies<T extends DataModel<T>> {
   }
 }
 
-typedef DataFinderAll<T extends DataModel<T>> = Future<List<T>> Function({
+typedef DataFinderAll<T extends DataModel<T>> = Future<List<T>?> Function({
   bool? remote,
+  bool? background,
   Map<String, dynamic>? params,
   Map<String, String>? headers,
   bool? syncLocal,
+  OnSuccess<List<T>>? onSuccess,
   OnError<List<T>>? onError,
+  DataRequestLabel? label,
 });
 
 typedef DataFinderOne<T extends DataModel<T>> = Future<T?> Function(
   Object model, {
   bool? remote,
+  bool? background,
   Map<String, dynamic>? params,
   Map<String, String>? headers,
+  OnSuccess<T>? onSuccess,
   OnError<T?>? onError,
+  DataRequestLabel? label,
 });
 
 typedef DataWatcherAll<T extends DataModel<T>> = DataStateNotifier<List<T>?>

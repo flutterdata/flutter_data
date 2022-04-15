@@ -46,10 +46,12 @@ mixin BookAuthorAdapter on RemoteAdapter<BookAuthor> {
   DataFinderOne<BookAuthor> get censor => (
         Object model, {
         bool? remote,
+        bool? background,
         Map<String, dynamic>? params,
         Map<String, String>? headers,
         OnSuccess<BookAuthor?>? onSuccess,
         OnError<BookAuthor?>? onError,
+        DataRequestLabel? label,
       }) async {
         final _model = await findOne(model, remote: remote);
         if (_model?.books?.toList().isNotEmpty ?? false) {
