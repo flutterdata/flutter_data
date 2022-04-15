@@ -264,6 +264,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
   // remote implementation
 
+  // TODO should be Future<List<T>?>
   Future<List<T>> findAll({
     bool? remote,
     bool? background,
@@ -345,9 +346,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     if (!shouldLoadRemoteOne(id, remote!, params, headers) || background) {
       final key = graph.getKeyForId(internalType, resolvedId,
           keyIfAbsent: id is T ? id._key : null);
-      if (key == null) {
-        return null;
-      }
       model = localAdapter.findOne(key);
       model?._initialize(adapters);
       if (model != null) {
@@ -368,7 +366,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       onError: onError,
     );
 
-    if (background) {
+    if (background && model != null) {
       // ignore: unawaited_futures
       future.then((_) => Future.value(_));
       return model;
