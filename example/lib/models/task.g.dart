@@ -101,8 +101,8 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Task?>, DataState<Task?>>
 }
 
 final _tasksProvider = StateNotifierProvider.autoDispose.family<
-    DataStateNotifier<List<Task>>,
-    DataState<List<Task>>,
+    DataStateNotifier<List<Task>?>,
+    DataState<List<Task>?>,
     WatchArgs<Task>>((ref, args) {
   final adapter = ref.watch(tasksRemoteAdapterProvider);
   final notifier =
@@ -115,8 +115,8 @@ final _tasksProvider = StateNotifierProvider.autoDispose.family<
       finder: args.finder);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<List<Task>>,
-        DataState<List<Task>>>
+AutoDisposeStateNotifierProvider<DataStateNotifier<List<Task>?>,
+        DataState<List<Task>?>>
     tasksProvider(
         {bool? remote,
         Map<String, dynamic>? params,

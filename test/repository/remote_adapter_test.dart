@@ -129,7 +129,7 @@ void main() async {
 
     // remote comes back with relationships
     final models = await familiaRepository.findAll(remote: true);
-    expect(models.first.persons.toList(), [
+    expect(models!.first.persons.toList(), [
       Person(id: '1', name: 'Peter', age: 10),
       Person(id: '2', name: 'John', age: 44)
     ]);
@@ -148,7 +148,7 @@ void main() async {
 
     // local storage still comes back with relationships
     final models2 = await familiaRepository.findAll(remote: false);
-    expect(models2.first.persons.toList(), [
+    expect(models2!.first.persons.toList(), [
       Person(id: '1', name: 'Peter', age: 10),
       Person(id: '2', name: 'John', age: 44)
     ]);

@@ -144,8 +144,8 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Familia?>,
 }
 
 final _familiaProvider = StateNotifierProvider.autoDispose.family<
-    DataStateNotifier<List<Familia>>,
-    DataState<List<Familia>>,
+    DataStateNotifier<List<Familia>?>,
+    DataState<List<Familia>?>,
     WatchArgs<Familia>>((ref, args) {
   final adapter = ref.watch(familiaRemoteAdapterProvider);
   final notifier =
@@ -158,8 +158,8 @@ final _familiaProvider = StateNotifierProvider.autoDispose.family<
       finder: args.finder);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<List<Familia>>,
-        DataState<List<Familia>>>
+AutoDisposeStateNotifierProvider<DataStateNotifier<List<Familia>?>,
+        DataState<List<Familia>?>>
     familiaProvider(
         {bool? remote,
         Map<String, dynamic>? params,

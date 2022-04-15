@@ -16,7 +16,7 @@ void main() async {
   //
 
   test('watchAllNotifier', () async {
-    final listener = Listener<DataState<List<Familia>>>();
+    final listener = Listener<DataState<List<Familia>?>>();
 
     container.read(responseProvider.notifier).state = TestResponse.text('''
         [{ "id": "1", "surname": "Corleone" }, { "id": "2", "surname": "Soprano" }]
@@ -37,7 +37,7 @@ void main() async {
   });
 
   test('watchAllNotifier with error', () async {
-    final listener = Listener<DataState<List<Familia>>?>();
+    final listener = Listener<DataState<List<Familia>?>?>();
 
     container.read(responseProvider.notifier).state =
         TestResponse(text: (_) => throw Exception('unreachable'));
@@ -211,7 +211,7 @@ void main() async {
 
   test('watchAllNotifier updates isLoading even in an empty response',
       () async {
-    final listener = Listener<DataState<List<Familia>>?>();
+    final listener = Listener<DataState<List<Familia>?>?>();
 
     container.read(responseProvider.notifier).state = TestResponse.text('[]');
     final notifier = familiaRepository.remoteAdapter.watchAllNotifier();
@@ -233,7 +233,7 @@ void main() async {
     // get a new notifier and try again
 
     final notifier2 = familiaRepository.remoteAdapter.watchAllNotifier();
-    final listener2 = Listener<DataState<List<Familia>>?>();
+    final listener2 = Listener<DataState<List<Familia>?>?>();
 
     dispose?.call();
 
@@ -253,7 +253,7 @@ void main() async {
   });
 
   test('watchAllNotifier syncLocal', () async {
-    final listener = Listener<DataState<List<Familia>>>();
+    final listener = Listener<DataState<List<Familia>?>>();
 
     container.read(responseProvider.notifier).state = TestResponse.text(
         '''[{ "id": "22", "surname": "Paez" }, { "id": "12", "surname": "Brunez" }]''');
@@ -343,7 +343,7 @@ void main() async {
   });
 
   test('watchAllNotifier updates', () async {
-    final listener = Listener<DataState<List<Person>>>();
+    final listener = Listener<DataState<List<Person>?>>();
 
     final p1 = Person(id: '1', name: 'Zof', age: 23).init(container.read);
     final notifier = personRemoteAdapter.watchAllNotifier(remote: true);
@@ -368,7 +368,7 @@ void main() async {
   });
 
   test('watchAllNotifier with where/map', () async {
-    final listener = Listener<DataState<List<Person>>>();
+    final listener = Listener<DataState<List<Person>?>>();
 
     Person(id: '1', name: 'Zof', age: 23).init(container.read);
     Person(id: '2', name: 'Sarah', age: 50).init(container.read);

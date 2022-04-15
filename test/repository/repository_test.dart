@@ -223,7 +223,7 @@ void main() async {
         TestResponse.text('@**&#*#&');
 
     // overrides error handling with notifier
-    final listener = Listener<DataState<List<Familia>>?>();
+    final listener = Listener<DataState<List<Familia>?>?>();
     final notifier =
         familiaRepository.remoteAdapter.watchAllNotifier(remote: false);
 

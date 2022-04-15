@@ -232,7 +232,7 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<$classType?>, DataState<$clas
 }
 
 final _$providerStringPlural =
-    StateNotifierProvider.autoDispose.family<DataStateNotifier<List<$classType>>, DataState<List<$classType>>, WatchArgs<$classType>>(
+    StateNotifierProvider.autoDispose.family<DataStateNotifier<List<$classType>?>, DataState<List<$classType>?>, WatchArgs<$classType>>(
         (ref, args) {
   final adapter = ref.watch(${typeLowerCased}RemoteAdapterProvider);
   final notifier = adapter.strategies.watchersAll[args.watcher] ??
@@ -240,7 +240,7 @@ adapter.watchAllNotifier;
   return notifier(remote: args.remote, params: args.params, headers: args.headers, syncLocal: args.syncLocal, finder: args.finder);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<List<$classType>>, DataState<List<$classType>>> $providerStringPlural(
+AutoDisposeStateNotifierProvider<DataStateNotifier<List<$classType>?>, DataState<List<$classType>?>> $providerStringPlural(
     {bool? remote, Map<String, dynamic>? params, Map<String, String>? headers, bool? syncLocal, String? finder, String? watcher}) {
   return _$providerStringPlural(WatchArgs(remote: remote, params: params, headers: headers, syncLocal: syncLocal, finder: finder, watcher: watcher));
 }

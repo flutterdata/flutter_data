@@ -264,8 +264,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
   // remote implementation
 
-  // TODO should be Future<List<T>?>
-  Future<List<T>> findAll({
+  Future<List<T>?> findAll({
     bool? remote,
     bool? background,
     Map<String, dynamic>? params,
@@ -285,13 +284,15 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
     log(label, 'request ${params.isNotEmpty ? 'with $params' : ''}');
 
-    late List<T> models;
+    late List<T>? models;
 
     if (!shouldLoadRemoteAll(remote!, params, headers) || background) {
-      models = localAdapter.findAll().toImmutableList();
-      log(label,
-          'returned ${models.map((m) => m.id).toSet()} from local storage${background ? ' and loading in the background' : ''}');
-      models = models.map((m) => m._initialize(adapters)).toList();
+      models = localAdapter.findAll()?.toImmutableList();
+      models = models?.map((m) => m._initialize(adapters)).toList();
+      if (models != null) {
+        log(label,
+            'returned ${models.map((m) => m.id).toSet()} from local storage${background ? ' and loading in the background' : ''}');
+      }
       if (!background) {
         return models;
       }
@@ -311,7 +312,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       onError: onError,
     );
 
-    if (background) {
+    if (background && models != null) {
       // ignore: unawaited_futures
       future.then((_) => Future.value(_));
       return models;
@@ -581,7 +582,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
         // instead return a fallback model from local storage
         switch (label.kind) {
           case 'findAll':
-            return findAll(remote: false) as Future<R>;
+            return findAll(remote: false) as Future<R?>;
           case 'findOne':
           case 'save':
             return label.model as R?;

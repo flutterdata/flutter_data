@@ -66,7 +66,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   /// The default is `syncLocal: false`.
   ///
   /// See also: [_RemoteAdapter.urlForFindAll], [_RemoteAdapter.methodForFindAll].
-  Future<List<T>> findAll({
+  Future<List<T>?> findAll({
     bool? remote,
     bool? background,
     Map<String, dynamic>? params,
@@ -191,7 +191,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   /// ```
   /// ref.books.watchAll();
   /// ```
-  DataState<List<T>> watchAll({
+  DataState<List<T>?> watchAll({
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,

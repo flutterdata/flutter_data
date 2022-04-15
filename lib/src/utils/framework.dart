@@ -53,7 +53,7 @@ typedef OneProvider<T extends DataModel<T>>
 });
 
 typedef AllProvider<T extends DataModel<T>> = AutoDisposeStateNotifierProvider<
-        DataStateNotifier<List<T>>, DataState<List<T>>>
+        DataStateNotifier<List<T>?>, DataState<List<T>?>>
     Function({
   bool? remote,
   Map<String, dynamic>? params,
@@ -102,7 +102,7 @@ typedef DataFinderOne<T extends DataModel<T>> = Future<T?> Function(
   OnError<T?>? onError,
 });
 
-typedef DataWatcherAll<T extends DataModel<T>> = DataStateNotifier<List<T>>
+typedef DataWatcherAll<T extends DataModel<T>> = DataStateNotifier<List<T>?>
     Function({
   bool? remote,
   Map<String, dynamic>? params,

@@ -20,7 +20,7 @@ void main() async {
       throw HandshakeException('Connection terminated during handshake');
     });
 
-    final listener = Listener<DataState<List<BookAuthor>>?>();
+    final listener = Listener<DataState<List<BookAuthor>?>?>();
 
     // watch
     final notifier =
@@ -65,7 +65,7 @@ void main() async {
   });
 
   test('save', () async {
-    final listener = Listener<DataState<List<Familia>>?>();
+    final listener = Listener<DataState<List<Familia>?>?>();
     // listening to local changes enough
     final notifier =
         familiaRepository.remoteAdapter.watchAllNotifier(remote: false);
@@ -213,7 +213,7 @@ void main() async {
   });
 
   test('delete', () async {
-    final listener = Listener<DataState<List<Familia>>?>();
+    final listener = Listener<DataState<List<Familia>?>?>();
     // listening to local changes enough
     final notifier =
         familiaRepository.remoteAdapter.watchAllNotifier(remote: false);
@@ -283,7 +283,7 @@ void main() async {
   });
 
   test('save & delete combined', () async {
-    final listener = Listener<DataState<List<Familia>>?>();
+    final listener = Listener<DataState<List<Familia>?>?>();
     // listening to local changes enough
     final notifier =
         familiaRepository.remoteAdapter.watchAllNotifier(remote: false);
@@ -415,14 +415,14 @@ void main() async {
 
   test('operation equality', () {
     final o1 = OfflineOperation<Familia>(
-      label: DataRequestLabel('findAll', type: 'familia'),
+      label: DataRequestLabel('findAll', type: 'familia', requestId: 'test'),
       httpRequest: 'GET /familia',
       headers: {'X-Header': 'chupala'},
       adapter: familiaRemoteAdapter,
     );
 
     final o2 = OfflineOperation<Familia>(
-      label: DataRequestLabel('findAll', type: 'familia'),
+      label: DataRequestLabel('findAll', type: 'familia', requestId: 'test'),
       httpRequest: 'GET /familia',
       headers: {'X-Header': 'chupala'},
       adapter: familiaRemoteAdapter,

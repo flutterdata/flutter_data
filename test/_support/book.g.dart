@@ -132,8 +132,8 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<BookAuthor?>,
 }
 
 final _bookAuthorsProvider = StateNotifierProvider.autoDispose.family<
-    DataStateNotifier<List<BookAuthor>>,
-    DataState<List<BookAuthor>>,
+    DataStateNotifier<List<BookAuthor>?>,
+    DataState<List<BookAuthor>?>,
     WatchArgs<BookAuthor>>((ref, args) {
   final adapter = ref.watch(bookAuthorsRemoteAdapterProvider);
   final notifier =
@@ -146,8 +146,8 @@ final _bookAuthorsProvider = StateNotifierProvider.autoDispose.family<
       finder: args.finder);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<List<BookAuthor>>,
-        DataState<List<BookAuthor>>>
+AutoDisposeStateNotifierProvider<DataStateNotifier<List<BookAuthor>?>,
+        DataState<List<BookAuthor>?>>
     bookAuthorsProvider(
         {bool? remote,
         Map<String, dynamic>? params,
@@ -256,8 +256,8 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Book?>, DataState<Book?>>
 }
 
 final _booksProvider = StateNotifierProvider.autoDispose.family<
-    DataStateNotifier<List<Book>>,
-    DataState<List<Book>>,
+    DataStateNotifier<List<Book>?>,
+    DataState<List<Book>?>,
     WatchArgs<Book>>((ref, args) {
   final adapter = ref.watch(booksRemoteAdapterProvider);
   final notifier =
@@ -270,8 +270,8 @@ final _booksProvider = StateNotifierProvider.autoDispose.family<
       finder: args.finder);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<List<Book>>,
-        DataState<List<Book>>>
+AutoDisposeStateNotifierProvider<DataStateNotifier<List<Book>?>,
+        DataState<List<Book>?>>
     booksProvider(
         {bool? remote,
         Map<String, dynamic>? params,

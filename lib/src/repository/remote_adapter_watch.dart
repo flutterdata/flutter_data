@@ -22,7 +22,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
   @protected
   @visibleForTesting
-  DataStateNotifier<List<T>> watchAllNotifier({
+  DataStateNotifier<List<T>?> watchAllNotifier({
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
@@ -34,12 +34,14 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     syncLocal ??= false;
     final _finder = strategies._findersAll[finder] ?? findAll;
 
-    final _notifier = DataStateNotifier<List<T>>(
-      data: DataState(localAdapter
-          .findAll()
-          .map((m) => initializeModel(m, save: true))
-          .filterNulls
-          .toList()),
+    final localModels = localAdapter
+        .findAll()
+        ?.map((m) => initializeModel(m, save: true))
+        .filterNulls
+        .toList();
+
+    final _notifier = DataStateNotifier<List<T>?>(
+      data: DataState(localModels),
       reload: (notifier) async {
         if (!notifier.mounted) {
           return;
@@ -81,7 +83,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         return;
       }
 
-      final models = localAdapter.findAll().toImmutableList();
+      final models = localAdapter.findAll()?.toImmutableList();
       final modelChanged =
           !const DeepCollectionEquality().equals(models, _notifier.data.model);
       // ensure the done signal belongs to this notifier
@@ -99,7 +101,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     return _notifier;
   }
 
-  DataState<List<T>> watchAll({
+  DataState<List<T>?> watchAll({
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
@@ -108,12 +110,13 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     if (internalWatch == null || _allProvider == null) {
       throw UnsupportedError(_watchAllError);
     }
-    return internalWatch!(_allProvider!(
+    final p = _allProvider!(
       remote: remote,
       params: params,
       headers: headers,
       syncLocal: syncLocal,
-    ));
+    );
+    return internalWatch!(p);
   }
 
   String get _watchAllError =>
@@ -291,13 +294,14 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     if (internalWatch == null || _oneProvider == null) {
       throw UnsupportedError(_watchOneError);
     }
-    return internalWatch!(_oneProvider!(
+    final provider = _oneProvider!(
       model,
       remote: remote,
       params: params,
       headers: headers,
       alsoWatch: alsoWatch,
-    ));
+    );
+    return internalWatch!(provider);
   }
 
   String get _watchOneError =>

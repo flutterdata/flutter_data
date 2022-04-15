@@ -96,9 +96,10 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Dog?>, DataState<Dog?>>
       watcher: watcher));
 }
 
-final _dogsProvider = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<List<Dog>>, DataState<List<Dog>>, WatchArgs<Dog>>(
-        (ref, args) {
+final _dogsProvider = StateNotifierProvider.autoDispose.family<
+    DataStateNotifier<List<Dog>?>,
+    DataState<List<Dog>?>,
+    WatchArgs<Dog>>((ref, args) {
   final adapter = ref.watch(dogsRemoteAdapterProvider);
   final notifier =
       adapter.strategies.watchersAll[args.watcher] ?? adapter.watchAllNotifier;
@@ -110,8 +111,8 @@ final _dogsProvider = StateNotifierProvider.autoDispose
       finder: args.finder);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<List<Dog>>,
-        DataState<List<Dog>>>
+AutoDisposeStateNotifierProvider<DataStateNotifier<List<Dog>?>,
+        DataState<List<Dog>?>>
     dogsProvider(
         {bool? remote,
         Map<String, dynamic>? params,
@@ -209,9 +210,10 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Cat?>, DataState<Cat?>>
       watcher: watcher));
 }
 
-final _catsProvider = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<List<Cat>>, DataState<List<Cat>>, WatchArgs<Cat>>(
-        (ref, args) {
+final _catsProvider = StateNotifierProvider.autoDispose.family<
+    DataStateNotifier<List<Cat>?>,
+    DataState<List<Cat>?>,
+    WatchArgs<Cat>>((ref, args) {
   final adapter = ref.watch(catsRemoteAdapterProvider);
   final notifier =
       adapter.strategies.watchersAll[args.watcher] ?? adapter.watchAllNotifier;
@@ -223,8 +225,8 @@ final _catsProvider = StateNotifierProvider.autoDispose
       finder: args.finder);
 });
 
-AutoDisposeStateNotifierProvider<DataStateNotifier<List<Cat>>,
-        DataState<List<Cat>>>
+AutoDisposeStateNotifierProvider<DataStateNotifier<List<Cat>?>,
+        DataState<List<Cat>?>>
     catsProvider(
         {bool? remote,
         Map<String, dynamic>? params,

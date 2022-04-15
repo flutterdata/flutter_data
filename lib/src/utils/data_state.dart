@@ -114,12 +114,12 @@ class _FunctionalDataStateNotifier<T, W> extends DataStateNotifier<W> {
       if (state.hasModel) {
         W _model;
 
-        if (_typesEqual<W, List<T>>()) {
-          _model = (state.model as List<T>).where(test).toList() as W;
+        if (_typesEqual<W, List<T>?>()) {
+          _model = (state.model as List<T>?)?.where(test).toList() as W;
         } else if (_typesEqual<W, T?>()) {
           _model = test(state.model as T) ? state.model : null as W;
         } else {
-          throw UnsupportedError('W must either be T? or List<T>');
+          throw UnsupportedError('W must either be T? or List<T>?');
         }
 
         super.state = DataState(_model,
@@ -136,12 +136,12 @@ class _FunctionalDataStateNotifier<T, W> extends DataStateNotifier<W> {
       if (state.hasModel) {
         W _model;
 
-        if (_typesEqual<W, List<T>>()) {
-          _model = (state.model as List<T>).map(convert).toList() as W;
+        if (_typesEqual<W, List<T>?>()) {
+          _model = (state.model as List<T>?)?.map(convert).toList() as W;
         } else if (_typesEqual<W, T>()) {
           _model = convert(state.model as T) as W;
         } else {
-          throw UnsupportedError('W must either be T or List<T>');
+          throw UnsupportedError('W must either be T or List<T>?');
         }
 
         super.state = DataState(_model,
@@ -178,15 +178,15 @@ class _FunctionalDataStateNotifier<T, W> extends DataStateNotifier<W> {
 }
 
 /// Functional utilities for [DataStateNotifier]
-extension DataStateNotifierListX<T> on DataStateNotifier<List<T>> {
+extension DataStateNotifierListX<T> on DataStateNotifier<List<T>?> {
   /// Filters all models of the list (if present) through [test]
-  DataStateNotifier<List<T>> where(bool Function(T) test) {
-    return _FunctionalDataStateNotifier<T, List<T>>(this).where(test);
+  DataStateNotifier<List<T>?> where(bool Function(T) test) {
+    return _FunctionalDataStateNotifier<T, List<T>?>(this).where(test);
   }
 
   /// Maps all models of the list (if present) through [convert]
-  DataStateNotifier<List<T>> map(T Function(T) convert) {
-    return _FunctionalDataStateNotifier<T, List<T>>(this).map(convert);
+  DataStateNotifier<List<T>?> map(T Function(T) convert) {
+    return _FunctionalDataStateNotifier<T, List<T>?>(this).map(convert);
   }
 }
 
