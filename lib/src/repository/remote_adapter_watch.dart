@@ -33,6 +33,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     remote ??= _remote;
     syncLocal ??= false;
     final _finder = strategies._findersAll[finder] ?? findAll;
+    final label = DataRequestLabel('findAll', type: internalType);
 
     final localModels = localAdapter
         .findAll()
@@ -52,6 +53,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
             headers: headers,
             remote: remote,
             syncLocal: syncLocal,
+            label: label,
           );
           if (remote!) {
             notifier.updateWith(isLoading: true);
@@ -59,7 +61,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           await _future;
           if (remote) {
             // trigger doneLoading to ensure state is updated with isLoading=false
-            graph._notify([internalType], DataGraphEventType.doneLoading);
+            graph._notify([label.toString()], DataGraphEventType.doneLoading);
           }
         } on DataException catch (e) {
           // we're only interested in notifying errors
@@ -78,21 +80,24 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     // kick off
     _notifier.reload();
 
+    var hasLoaded = !_notifier.data.isLoading;
+
     final _dispose = throttledGraph.addListener((events) {
       if (!_notifier.mounted) {
         return;
       }
 
       final models = localAdapter.findAll()?.toImmutableList();
-      final modelChanged =
-          !const DeepCollectionEquality().equals(models, _notifier.data.model);
+
       // ensure the done signal belongs to this notifier
-      final doneLoading = events
-          .where((e) =>
-              e.type == DataGraphEventType.doneLoading &&
-              e.keys.first == internalType)
-          .isNotEmpty;
-      if (modelChanged || doneLoading) {
+      hasLoaded = hasLoaded ||
+          events
+              .where((e) =>
+                  e.type == DataGraphEventType.doneLoading &&
+                  e.keys.first == label.toString())
+              .isNotEmpty;
+
+      if (hasLoaded) {
         _notifier.updateWith(model: models, isLoading: false, exception: null);
       }
     });
@@ -137,8 +142,8 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     _assertInit();
 
     remote ??= _remote;
-
     final _finder = strategies._findersOne[finder] ?? findOne;
+    final label = DataRequestLabel('findOne', type: internalType);
 
     final id = _resolveId(model);
 
@@ -177,7 +182,8 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           _key ??= key();
           if (remote! && _key != null) {
             // trigger doneLoading to ensure state is updated with isLoading=false
-            graph._notify([_key!], DataGraphEventType.doneLoading);
+            graph._notify(
+                [_key!, label.toString()], DataGraphEventType.doneLoading);
           }
         } on DataException catch (e) {
           // we're only interested in notifying errors
@@ -222,7 +228,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       // buffers
       var modelBuffer = _notifier.data.model;
       var refresh = false;
-      var hasLoaded = _notifier.data.isLoading ? false : true;
+      var hasLoaded = !_notifier.data.isLoading;
 
       for (final event in events) {
         _key ??= key();
@@ -230,6 +236,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         if (_key != null && event.keys.containsFirst(_key!)) {
           // handle done loading
           if (modelBuffer != null &&
+              event.keys.last == label.toString() &&
               event.type == DataGraphEventType.doneLoading) {
             hasLoaded = true;
             refresh = true;

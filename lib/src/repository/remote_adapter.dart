@@ -280,6 +280,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     syncLocal ??= false;
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
+    onSuccess ??= this.onSuccess;
+
     label = label ?? DataRequestLabel('findAll', type: internalType);
 
     log(label, 'request ${params.isNotEmpty ? 'with $params' : ''}');
@@ -307,7 +309,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
         if (syncLocal!) {
           await localAdapter.clear();
         }
-        return this.onSuccess(data, label);
+        return onSuccess!(data, label);
       },
       onError: onError,
     );

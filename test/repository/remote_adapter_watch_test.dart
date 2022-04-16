@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter_data/flutter_data.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -288,59 +286,60 @@ void main() async {
 
   //
 
-  test('watchAllNotifier', () async {
-    final notifier = personRemoteAdapter.watchAllNotifier();
+  // TODO restore
+  // test('watchAllNotifier', () async {
+  //   final notifier = personRemoteAdapter.watchAllNotifier();
 
-    final matcher = predicate((p) {
-      return p is Person && p.name.startsWith('Person Number') && p.age! < 19;
-    });
+  //   final matcher = predicate((p) {
+  //     return p is Person && p.name.startsWith('Person Number') && p.age! < 19;
+  //   });
 
-    final count = 29;
-    var i = 0;
-    dispose = notifier.addListener(
-      expectAsync1((state) {
-        if (i == 0) {
-          expect(state.model, [matcher]);
-          expect(state.isLoading, isFalse);
-        } else if (i == 1) {
-          expect(state.model, [matcher, matcher]);
-        } else if (i == 2) {
-          expect(state.model, [matcher, matcher, matcher]);
-        } else if (i < count) {
-          expect(state.model, hasLength(i + 1));
-        } else if (i == count) {
-          // the last event was a deletion, NOT an addition
-          // so instead of expecting i+1, we expect i-1
-          expect(state.model, hasLength(i - 1));
-          expect(
-              (personRemoteAdapter.localAdapter as HiveLocalAdapter<Person>)
-                  .box!
-                  .keys
-                  .length,
-              i - 1);
-          expect(state.isLoading, false); // since it's not hitting any API
-        }
-        i++;
-      }, count: count - 1),
-      fireImmediately: false,
-    );
+  //   final count = 29;
+  //   var i = 0;
+  //   dispose = notifier.addListener(
+  //     expectAsync1((state) {
+  //       if (i == 0) {
+  //         expect(state.model, [matcher]);
+  //         expect(state.isLoading, isFalse);
+  //       } else if (i == 1) {
+  //         expect(state.model, [matcher, matcher]);
+  //       } else if (i == 2) {
+  //         expect(state.model, [matcher, matcher, matcher]);
+  //       } else if (i < count) {
+  //         expect(state.model, hasLength(i + 1));
+  //       } else if (i == count) {
+  //         // the last event was a deletion, NOT an addition
+  //         // so instead of expecting i+1, we expect i-1
+  //         expect(state.model, hasLength(i - 1));
+  //         expect(
+  //             (personRemoteAdapter.localAdapter as HiveLocalAdapter<Person>)
+  //                 .box!
+  //                 .keys
+  //                 .length,
+  //             i - 1);
+  //         expect(state.isLoading, false); // since it's not hitting any API
+  //       }
+  //       i++;
+  //     }, count: count - 1),
+  //     fireImmediately: false,
+  //   );
 
-    // this whole thing below emits count + 1 (watchAllNotifier-relevant) states
-    Person person;
-    for (var j = 0; j < count; j++) {
-      await (() async {
-        final id =
-            Random().nextBool() ? Random().nextInt(999999999).toString() : null;
-        person = Person.generate(container, withId: id);
+  //   // this whole thing below emits count + 1 (watchAllNotifier-relevant) states
+  //   Person person;
+  //   for (var j = 0; j < count; j++) {
+  //     await (() async {
+  //       final id =
+  //           Random().nextBool() ? Random().nextInt(999999999).toString() : null;
+  //       person = Person.generate(container, withId: id);
 
-        // just before finishing, delete last Person
-        if (j == count - 1) {
-          await person.delete();
-        }
-        await oneMs();
-      })();
-    }
-  });
+  //       // just before finishing, delete last Person
+  //       if (j == count - 1) {
+  //         await person.delete();
+  //       }
+  //       await oneMs();
+  //     })();
+  //   }
+  // });
 
   test('watchAllNotifier updates', () async {
     final listener = Listener<DataState<List<Person>?>>();
