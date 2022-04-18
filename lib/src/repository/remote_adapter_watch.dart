@@ -181,7 +181,17 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
       final _key = key();
 
-      if (event.keys.first == _key) {
+      if (event.keys.contains(_key)) {
+        _model = localAdapter.findOne(_key)?._initialize(adapters);
+
+        if (_model != null) {
+          _model!._initializeRelationships();
+          _alsoWatchRelationshipNames = {
+            internalType,
+            ...?alsoWatch?.call(_model!).filterNulls.map((r) => r._name)
+          };
+        }
+
         // handle done loading
         if (_notifier.data.isLoading &&
             event.keys.last == label.toString() &&
@@ -193,15 +203,6 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         // add/update
         if (event.type == DataGraphEventType.addNode ||
             event.type == DataGraphEventType.updateNode) {
-          _model = localAdapter.findOne(_key)?._initialize(adapters);
-
-          if (_model != null) {
-            _model!._initializeRelationships();
-            _alsoWatchRelationshipNames = {
-              ...?alsoWatch?.call(_model!).filterNulls.map((r) => r._name)
-            };
-          }
-
           if (_notifier.data.isLoading == false) {
             _notifier.updateWith(model: _model);
           }
@@ -217,7 +218,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         if (_notifier.data.isLoading == false &&
             event.type.isEdge &&
             _alsoWatchRelationshipNames.contains(event.metadata)) {
-          _notifier.updateWith();
+          _notifier.updateWith(model: _model);
         }
       }
 
@@ -226,7 +227,8 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       if (_notifier.data.isLoading == false &&
           event.type == DataGraphEventType.updateNode &&
           _relatedKeys(_notifier.data.model!).any(event.keys.contains)) {
-        _notifier.updateWith();
+        _model = localAdapter.findOne(_key)?._initialize(adapters);
+        _notifier.updateWith(model: _model);
       }
     });
 

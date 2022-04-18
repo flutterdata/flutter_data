@@ -4,7 +4,9 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
+import '../_support/book.dart';
 import '../_support/familia.dart';
+import '../_support/house.dart';
 import '../_support/person.dart';
 import '../_support/setup.dart';
 import '../mocks.dart';
@@ -459,124 +461,110 @@ void main() async {
 
   // TODO restore tests
 
-  // test('watchOneNotifier with custom strategy', () async {
-  //   // initialize a book in local storage, so we can later link it to the author
-  //   final author = BookAuthor(id: 1, name: 'Robert').init(container.read);
-  //   Book(id: 1, title: 'Choice', originalAuthor: author.asBelongsTo)
-  //       .init(container.read);
+  test('watchOneNotifier with custom strategy', () async {
+    // initialize a book in local storage, so we can later link it to the author
+    final author = BookAuthor(id: 1, name: 'Robert').init(container.read);
+    Book(id: 1, title: 'Choice', originalAuthor: author.asBelongsTo)
+        .init(container.read);
 
-  //   // update to the author
-  //   container.read(responseProvider.notifier).state = TestResponse.text('''
-  //       { "id": 1, "name": "Frank" }
-  //     ''');
+    // update to the author
+    container.read(responseProvider.notifier).state = TestResponse.text('''
+        { "id": 1, "name": "Frank" }
+      ''');
 
-  //   final listener = Listener<DataState<BookAuthor?>?>();
+    final listener = Listener<DataState<BookAuthor?>?>();
 
-  //   final notifier = bookAuthorRepository.remoteAdapter
-  //       .watchOneNotifier(1, finder: 'censor', remote: true);
+    final notifier = bookAuthorRepository.remoteAdapter
+        .watchOneNotifier(1, finder: 'censor', remote: true);
 
-  //   dispose = notifier.addListener(listener);
+    dispose = notifier.addListener(listener);
 
-  //   // wait 2ms as there is a 1ms delay in the 'censor' finder
-  //   // await oneMs();
-  //   verify(listener(DataState(author, isLoading: true))).called(1);
+    verify(listener(DataState(author, isLoading: true))).called(1);
 
-  //   // dispose = notifier.addListener(expectAsync1((state) {
-  //   //   expect(state.isLoading, isTrue);
-  //   // }));
+    await oneMs();
 
-  //   await oneMs();
+    verify(listener(argThat(
+      isA<DataState>().having((s) => s.model!.name, 'name', '#&(@*@&@!*(!'),
+    ))).called(1);
+    verifyNoMoreInteractions(listener);
+  });
 
-  //   verify(listener(argThat(
-  //     isA<DataState>().having((s) => s.model!.name, 'name', 'Frank'),
-  //   ))).called(1);
-  //   verifyNoMoreInteractions(listener);
+  test('watchOneNotifier with alsoWatch relationships remote=false', () async {
+    final f1 = Familia(
+      id: '22',
+      surname: 'Abagnale',
+      persons: HasMany(),
+      residence: BelongsTo(),
+      cottage: BelongsTo(),
+    ).init(container.read);
 
-  //   await oneMs();
-  //   verify(listener(argThat(
-  //     isA<DataState>().having((s) => s.model!.name, 'name', '#&(@*@&@!*(!'),
-  //   ))).called(1);
-  //   verifyNoMoreInteractions(listener);
+    final listener = Listener<DataState<Familia?>?>();
 
-  //   // dispose = notifier.addListener(expectAsync1((state) {
-  //   //   expect(state.model!.name, '#&(@*@&@!*(!');
-  //   // }));
-  // });
+    final notifier = familiaRemoteAdapter.watchOneNotifier('22',
+        alsoWatch: (familia) => [familia.persons, familia.residence],
+        remote: false);
 
-  // test('watchOneNotifier with alsoWatch relationships remote=false', () async {
-  //   final f1 = Familia(
-  //     id: '22',
-  //     surname: 'Abagnale',
-  //     persons: HasMany(),
-  //     residence: BelongsTo(),
-  //     cottage: BelongsTo(),
-  //   );
+    dispose = notifier.addListener(listener);
 
-  //   final listener = Listener<DataState<Familia?>?>();
+    final p1 = Person(id: '1', name: 'Frank', age: 16).init(container.read);
 
-  //   final notifier = familiaRemoteAdapter.watchOneNotifier('22',
-  //       alsoWatch: (familia) => [familia.persons, familia.residence!],
-  //       remote: false);
+    final matcher = isA<DataState>()
+        .having((s) => s.model.persons!, 'persons', isEmpty)
+        .having((s) => s.hasModel, 'hasModel', true)
+        .having((s) => s.hasException, 'hasException', false)
+        .having((s) => s.isLoading, 'isLoading', false);
 
-  //   dispose = notifier.addListener(listener);
+    verify(listener(argThat(matcher))).called(1);
 
-  //   notifier.addListener((state) {
-  //     state;
-  //   });
+    p1.familia.value = f1;
+    await oneMs();
 
-  //   final p1 = Person(id: '1', name: 'Frank', age: 16).init(container.read);
-  //   p1.familia.value = f1;
-  //   await oneMs();
+    final matcher2 = isA<DataState>()
+        .having((s) => s.model.persons!, 'persons', hasLength(1))
+        .having((s) => s.hasModel, 'hasModel', true)
+        .having((s) => s.hasException, 'hasException', false)
+        .having((s) => s.isLoading, 'isLoading', false);
 
-  //   final matcher = isA<DataState>()
-  //       .having((s) => s.model.persons, 'name', hasLength(1))
-  //       .having((s) => s.hasModel, 'hasModel', true)
-  //       .having((s) => s.hasException, 'hasException', false)
-  //       .having((s) => s.isLoading, 'isLoading', false);
+    verify(listener(argThat(matcher2))).called(1);
 
-  //   verify(listener(argThat(matcher))).called(1);
+    f1.persons.add(Person(name: 'Martin', age: 44)); // this time without init
+    await oneMs();
 
-  //   f1.persons.add(Person(name: 'Martin', age: 44)); // this time without init
-  //   await oneMs();
+    verify(listener(argThat(
+      isA<DataState>().having((s) => s.model.persons!, 'persons', hasLength(2)),
+    ))).called(1);
+    verifyNoMoreInteractions(listener);
 
-  //   verify(listener(argThat(
-  //     isA<DataState>().having((s) => s.model.persons!, 'persons', hasLength(2)),
-  //   ))).called(1);
-  //   verifyNoMoreInteractions(listener);
+    f1.residence!.value = House(address: '123 Main St'); // no init
+    await oneMs();
 
-  //   f1.residence!.value = House(address: '123 Main St'); // no init
-  //   await oneMs();
+    verify(listener(argThat(
+      isA<DataState>().having(
+          (s) => s.model.residence!.value!.address, 'address', '123 Main St'),
+    ))).called(1);
+    verifyNoMoreInteractions(listener);
 
-  //   verify(listener(argThat(
-  //     isA<DataState>().having(
-  //         (s) => s.model.residence!.value!.address, 'address', '123 Main St'),
-  //   ))).called(1);
-  //   verifyNoMoreInteractions(listener);
+    f1.persons.remove(p1);
+    await oneMs();
 
-  //   f1.persons.remove(p1);
-  //   await oneMs();
+    verify(listener(argThat(
+      isA<DataState>().having((s) => s.model.persons!, 'persons', hasLength(1)),
+    ))).called(1);
+    verifyNoMoreInteractions(listener);
 
-  //   verify(listener(argThat(
-  //     isA<DataState>().having((s) => s.model.persons!, 'persons', hasLength(1)),
-  //   ))).called(1);
-  //   verifyNoMoreInteractions(listener);
+    // a non-watched relationship does not trigger
 
-  //   // a non-watched relationship does not trigger
+    f1.cottage!.value = House(address: '7342 Mountain Rd');
+    await oneMs();
 
-  //   f1.cottage!.value = House(address: '7342 Mountain Rd');
-  //   await oneMs();
+    verifyNever(listener(any));
+    verifyNoMoreInteractions(listener);
 
-  //   verifyNever(listener(any));
-  //   verifyNoMoreInteractions(listener);
+    await f1.delete();
+    await oneMs();
 
-  //   await f1.delete();
-  //   await oneMs();
-
-  //   verify(listener(argThat(
-  //     isA<DataState>().having((s) => s.model, 'model', isNull),
-  //   ))).called(1);
-  //   verifyNoMoreInteractions(listener);
-  // });
+    verifyNever(listener(any));
+  });
 
   test('watchOneNotifier without ID and alsoWatch', () async {
     final frank = Person(name: 'Frank', age: 30).init(container.read);

@@ -53,6 +53,8 @@ abstract class Relationship<E extends DataModel<E>, N>
     _name = name;
     _inverseName = inverseName;
 
+    isInitialized = true;
+
     if (_shouldRemove) {
       _graph._removeEdges(_ownerKey,
           metadata: _name, inverseMetadata: _inverseName);
@@ -81,7 +83,6 @@ abstract class Relationship<E extends DataModel<E>, N>
       _uninitializedKeys.clear();
     }
 
-    isInitialized = true;
     return this;
   }
 
@@ -103,7 +104,14 @@ abstract class Relationship<E extends DataModel<E>, N>
 
     if (value.isInitialized && isInitialized) {
       _graph._addEdge(_ownerKey, value._key!,
-          metadata: _name, inverseMetadata: _inverseName, notify: notify);
+          metadata: _name, inverseMetadata: _inverseName, notify: false);
+      if (notify) {
+        _graph._notify(
+          [_ownerKey, value._key!],
+          metadata: _name,
+          type: DataGraphEventType.addEdge,
+        );
+      }
     } else {
       // if it can't be initialized, add to the models queue
       _uninitializedModels.add(value);
@@ -126,8 +134,15 @@ abstract class Relationship<E extends DataModel<E>, N>
         model._key!,
         metadata: _name,
         inverseMetadata: _inverseName,
-        notify: notify,
+        notify: false,
       );
+      if (notify) {
+        _graph._notify(
+          [_ownerKey, value._key!],
+          metadata: _name,
+          type: DataGraphEventType.removeEdge,
+        );
+      }
       return true;
     }
     return _uninitializedModels.remove(model);

@@ -51,7 +51,8 @@ void main() async {
 
   test('assignment with relationship initialized & uninitialized', () {
     final familia =
-        Familia(id: '1', surname: 'Smith', residence: BelongsTo<House>());
+        Familia(id: '1', surname: 'Smith', residence: BelongsTo<House>())
+            .init(container.read);
     final house = House(id: '1', address: '456 Lemon Rd');
 
     familia.residence!.value = house;

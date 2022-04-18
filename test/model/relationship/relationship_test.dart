@@ -293,14 +293,6 @@ void main() async {
     verify(listener(DataState(author2, isLoading: false))).called(1);
     verifyNoMoreInteractions(listener);
 
-    // FD can't possibly know the newly created HasMany's owner
-    // without initializing it
-    expect(
-        author.books!.first.originalAuthor!.value,
-        isNot(equals(
-            BookAuthor(id: 15, name: 'Steve-O', books: HasMany({book})))));
-
-    // now it does
     expect(
         author.books!.first.originalAuthor!.value,
         equals(BookAuthor(id: 15, name: 'Steve-O', books: HasMany({book}))
