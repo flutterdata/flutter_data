@@ -1,3 +1,5 @@
+@Timeout(Duration(days: 1))
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -25,20 +27,12 @@ void main() async {
     // watch
     final notifier =
         bookAuthorRepository.remoteAdapter.watchAllNotifier(remote: true);
-    dispose = notifier.addListener(listener, fireImmediately: true);
+    dispose = notifier.addListener(listener);
 
     await oneMs();
 
     // now try to findOne
-    await bookAuthorRepository.findOne(
-      19,
-      remote: true,
-      // ignore: missing_return
-      onError: (e, _) async {
-        notifier.updateWith(exception: e);
-        return null;
-      },
-    );
+    await bookAuthorRepository.findOne(19, remote: true);
 
     // and verify onError does capture the `OfflineException`
     verify(listener(argThat(
@@ -70,7 +64,7 @@ void main() async {
     final notifier =
         familiaRepository.remoteAdapter.watchAllNotifier(remote: false);
 
-    dispose = notifier.addListener(listener, fireImmediately: true);
+    dispose = notifier.addListener(listener);
 
     // TODO test saving a model without ID
 
@@ -95,8 +89,8 @@ void main() async {
         return null;
       },
       onSuccess: (data, label) async {
-        final model =
-            await familiaRepository.remoteAdapter.onSuccess(data, label);
+        final model = await familiaRepository.remoteAdapter
+            .onSuccess<Familia>(data, label);
         // the surname follows `X-Override-Name` + `overrideSecondName`
         // as the save has been replayed with the original headers/params
         expect(model, equals(Familia(id: '1', surname: 'Mantego Zorrilla')));
@@ -147,8 +141,9 @@ void main() async {
     await oneMs();
 
     // none of them could be saved upon retry
-    expect(familiaRepository.offlineOperations.map((o) => o.model),
-        unorderedEquals([familia, familia2]));
+    expect(familiaRepository.offlineOperations.map((o) {
+      return o.model;
+    }), unorderedEquals([familia, familia2]));
 
     // change the response to: success for familia, failure for familia2
     container.read(responseProvider.notifier).state = TestResponse(
@@ -218,7 +213,7 @@ void main() async {
     final notifier =
         familiaRepository.remoteAdapter.watchAllNotifier(remote: false);
 
-    dispose = notifier.addListener(listener, fireImmediately: true);
+    dispose = notifier.addListener(listener);
 
     // init a familia
     final familia = Familia(id: '1', surname: 'Smith').init(container.read);
@@ -288,7 +283,7 @@ void main() async {
     final notifier =
         familiaRepository.remoteAdapter.watchAllNotifier(remote: false);
 
-    dispose = notifier.addListener(listener, fireImmediately: true);
+    dispose = notifier.addListener(listener);
 
     // setup familia
     final familia = Familia(id: '19', surname: 'Ko').init(container.read);

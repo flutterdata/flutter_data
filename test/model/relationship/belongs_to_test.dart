@@ -86,23 +86,21 @@ void main() async {
     dispose = notifier.addListener(listener, fireImmediately: false);
 
     familia.residence!.value = House(id: '2', address: '456 Main St');
-    await oneMs();
 
     verify(listener(argThat(
       isA<House>().having((h) => h.address, 'address', startsWith('456')),
     ))).called(1);
 
     familia.residence!.value = House(id: '1', address: '123 Main St');
-    await oneMs();
 
     verify(listener(argThat(
       isA<House>().having((h) => h.address, 'address', startsWith('123')),
     ))).called(1);
 
     familia.residence!.value = null;
-    await oneMs();
 
     verify(listener(argThat(isNull))).called(1);
+    verifyNoMoreInteractions(listener);
   });
 
   test('inverses work when reusing a relationship', () {

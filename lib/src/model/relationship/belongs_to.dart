@@ -46,12 +46,30 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
   /// Sets the single [E] value of this relationship, replacing any previous [value].
   ///
   /// Passing in `null` will remove the existing value from the relationship.
-  set value(E? value) {
-    if (this.value != null || value == null) {
-      super.remove(this.value!);
+  set value(E? newValue) {
+    final isAddition = value == null && newValue != null;
+    final isUpdate = value != null && newValue != null;
+    final isRemoval = value != null && newValue == null;
+
+    if (isRemoval || isUpdate) {
+      super.remove(value!, notify: false);
     }
-    if (value != null) {
-      super.add(value);
+    if (isAddition || isUpdate) {
+      super.add(newValue!, notify: false);
+    }
+
+    // handle notifications
+    DataGraphEventType? type;
+    if (isAddition) type = DataGraphEventType.addEdge;
+    if (isUpdate) type = DataGraphEventType.updateEdge;
+    if (isRemoval) type = DataGraphEventType.removeEdge;
+
+    if (type != null && isInitialized) {
+      _graph._notify(
+        [_ownerKey, if (newValue != null) newValue._key!],
+        metadata: _name,
+        type: type,
+      );
     }
     assert(length <= 1);
   }
@@ -80,9 +98,9 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
   /// this [BelongsTo] relationship.
   @override
   DelayedStateNotifier<E?> watch() {
-    return _graphEvents.where((e) => e.isNotEmpty).map((e) {
+    return _relationshipEventNotifier.map((e) {
       return [DataGraphEventType.removeNode, DataGraphEventType.removeEdge]
-              .contains(e.last.type)
+              .contains(e.type)
           ? null
           : value;
     });

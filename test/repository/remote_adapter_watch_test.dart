@@ -1,3 +1,5 @@
+@Timeout(Duration(seconds: 10000))
+
 import 'package:flutter_data/flutter_data.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -21,7 +23,7 @@ void main() async {
       ''');
     final notifier = familiaRepository.remoteAdapter.watchAllNotifier();
 
-    dispose = notifier.addListener(listener, fireImmediately: true);
+    dispose = notifier.addListener(listener);
 
     verify(listener(DataState([], isLoading: true))).called(1);
     await oneMs();
@@ -41,7 +43,7 @@ void main() async {
         TestResponse(text: (_) => throw Exception('unreachable'));
     final notifier = familiaRepository.remoteAdapter.watchAllNotifier();
 
-    dispose = notifier.addListener(listener, fireImmediately: true);
+    dispose = notifier.addListener(listener);
 
     verify(listener(DataState([], isLoading: true))).called(1);
     await oneMs();
@@ -88,9 +90,9 @@ void main() async {
         personRepository.remoteAdapter.watchOneNotifier('1', remote: true);
 
     dispose = notifier.addListener(listener);
-    await oneMs();
 
     verify(listener(DataState(null, isLoading: true))).called(1);
+
     await oneMs();
 
     verify(listener(DataState(Person(id: '1', name: 'Charlie', age: 23),
@@ -99,7 +101,9 @@ void main() async {
     verifyNoMoreInteractions(listener);
 
     await personRepository.save(Person(id: '1', name: 'Charlie', age: 24));
-    await oneMs();
+
+    // unrelated request should not affect the current listener
+    await familiaRepository.findOne('234324', remote: false);
 
     verify(listener(DataState(Person(id: '1', name: 'Charlie', age: 24),
             isLoading: false)))
@@ -115,7 +119,7 @@ void main() async {
     );
     final notifier = familiaRepository.remoteAdapter.watchOneNotifier('1');
 
-    dispose = notifier.addListener(listener, fireImmediately: true);
+    dispose = notifier.addListener(listener);
 
     verify(listener(DataState<Familia?>(null, isLoading: true))).called(1);
     await oneMs();
@@ -149,6 +153,7 @@ void main() async {
     verifyNoMoreInteractions(listener);
 
     // now server will successfully respond with a familia
+    final familia = Familia(id: '1', surname: 'Corleone');
     container.read(responseProvider.notifier).state = TestResponse.text('''
         { "id": "1", "surname": "Corleone" }
       ''');
@@ -157,15 +162,11 @@ void main() async {
     await notifier.reload();
     await oneMs();
 
-    final familia = Familia(id: '1', surname: 'Corleone');
-
     // loads again, for now exception remains
     verify(listener(argThat(isA<DataState>()
             .having((s) => s.isLoading, 'isLoading', isTrue)
             .having((s) => s.exception, 'exception', isA<Exception>()))))
         .called(1);
-
-    await oneMs();
 
     // now responds with model, loading done, and no exception
     verify(listener(DataState(familia, isLoading: false))).called(1);
@@ -175,11 +176,9 @@ void main() async {
   test('watchOneNotifier with alsoWatch relationships', () async {
     // simulate Familia that exists in local storage
     // important to keep to test `alsoWatch` assignment order
-    final familia = Familia(id: '22', surname: 'Paez', persons: HasMany());
-    graph.getKeyForId('familia', '22', keyIfAbsent: 'familia#a1a1a1');
-    await (familiaRepository.remoteAdapter.localAdapter as HiveLocalAdapter)
-        .box!
-        .put('familia#a1a1a1', familia);
+    final familia = await Familia(id: '22', surname: 'Paez', persons: HasMany())
+        .init(container.read)
+        .save(remote: false);
 
     final listener = Listener<DataState<Familia?>?>();
 
@@ -190,19 +189,42 @@ void main() async {
       alsoWatch: (f) => [f.persons],
     );
 
-    dispose = notifier.addListener(listener, fireImmediately: true);
+    dispose = notifier.addListener(listener);
 
     // verify loading
     verify(listener(DataState(familia, isLoading: true))).called(1);
-    verifyNoMoreInteractions(listener);
 
-    final f1 = await familiaRepository.findOne('22', remote: false);
-    f1!.persons.add(Person(name: 'Martin', age: 44)); // this time without init
     await oneMs();
 
     verify(listener(argThat(isA<DataState>()
-            .having((s) => s.model.persons!, 'rel', hasLength(1))
+            .having((s) => s.model.persons!, 'rel', isEmpty)
             .having((s) => s.isLoading, 'loading', false))))
+        .called(1);
+    verifyNoMoreInteractions(listener);
+
+    // add a watched relationship
+    final martin = Person(id: '1', name: 'Martin', age: 44);
+    familia.persons.add(martin);
+
+    verify(listener(argThat(isA<DataState>()
+            .having((s) => s.model.persons!.toSet(), 'rel', {martin}).having(
+                (s) => s.isLoading, 'loading', false))))
+        .called(1);
+    verifyNoMoreInteractions(listener);
+
+    // update person
+    Person(id: '1', name: 'Martin', age: 45).init(container.read);
+
+    verify(listener(argThat(isA<DataState>().having(
+        (s) => s.model.persons!.toSet(),
+        'rel',
+        {Person(id: '1', name: 'Martin', age: 45)})))).called(1);
+    verifyNoMoreInteractions(listener);
+
+    // remove person
+    familia.persons.remove(martin);
+    verify(listener(argThat(isA<DataState>()
+            .having((s) => s.model.persons!.toSet(), 'rel', isEmpty))))
         .called(1);
     verifyNoMoreInteractions(listener);
   });
@@ -214,7 +236,7 @@ void main() async {
     container.read(responseProvider.notifier).state = TestResponse.text('[]');
     final notifier = familiaRepository.remoteAdapter.watchAllNotifier();
 
-    dispose = notifier.addListener(listener, fireImmediately: true);
+    dispose = notifier.addListener(listener);
 
     verify(listener(argThat(
       isA<DataState>().having((s) => s.isLoading, 'loading', true),
@@ -235,7 +257,7 @@ void main() async {
 
     dispose?.call();
 
-    dispose = notifier2.addListener(listener2, fireImmediately: true);
+    dispose = notifier2.addListener(listener2);
 
     verify(listener2(argThat(
       isA<DataState>().having((s) => s.isLoading, 'loading', true),
@@ -258,7 +280,7 @@ void main() async {
     final notifier =
         familiaRepository.remoteAdapter.watchAllNotifier(syncLocal: true);
 
-    dispose = notifier.addListener(listener, fireImmediately: true);
+    dispose = notifier.addListener(listener);
     await oneMs();
 
     verify(listener(DataState([
@@ -347,7 +369,7 @@ void main() async {
     final p1 = Person(id: '1', name: 'Zof', age: 23).init(container.read);
     final notifier = personRemoteAdapter.watchAllNotifier(remote: true);
 
-    dispose = notifier.addListener(listener, fireImmediately: true);
+    dispose = notifier.addListener(listener);
 
     verify(listener(DataState([p1], isLoading: true))).called(1);
     verifyNoMoreInteractions(listener);
@@ -379,7 +401,7 @@ void main() async {
         .where((p) => p.age! < 40)
         .map((p) => Person(name: p.name, age: p.age! + 10));
 
-    dispose = notifier.addListener(listener, fireImmediately: true);
+    dispose = notifier.addListener(listener);
 
     verify(listener(DataState(
       [Person(name: 'Zof', age: 33), Person(name: 'Walter', age: 21)],
@@ -432,7 +454,7 @@ void main() async {
 
     dispose = notifier.addListener(expectAsync1((state) {
       expect(state.model!.name, 'Steve-O');
-    }), fireImmediately: true);
+    }));
   });
 
   // TODO restore tests
@@ -496,7 +518,7 @@ void main() async {
   //       alsoWatch: (familia) => [familia.persons, familia.residence!],
   //       remote: false);
 
-  //   dispose = notifier.addListener(listener, fireImmediately: true);
+  //   dispose = notifier.addListener(listener);
 
   //   notifier.addListener((state) {
   //     state;
@@ -603,7 +625,7 @@ void main() async {
         .map((p) => Person(name: p!.name, age: p.age! + 10))
         .where((p) => p!.age! < 40);
 
-    dispose = notifier.addListener(listener, fireImmediately: true);
+    dispose = notifier.addListener(listener);
 
     verify(listener(DataState(
       Person(name: 'Zof', age: 33),

@@ -44,7 +44,7 @@ class HasMany<E extends DataModel<E>> extends Relationship<E, Set<E>> {
   /// this [HasMany] relationship.
   @override
   DelayedStateNotifier<Set<E>> watch() {
-    return _graphEvents.where((e) => e.isNotEmpty).map((e) => toSet());
+    return _relationshipEventNotifier.map((e) => toSet());
   }
 
   @override

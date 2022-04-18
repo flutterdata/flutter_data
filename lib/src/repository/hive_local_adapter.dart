@@ -67,7 +67,9 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
     if (notify) {
       graph._notify(
         [key],
-        keyExisted ? DataGraphEventType.updateNode : DataGraphEventType.addNode,
+        type: keyExisted
+            ? DataGraphEventType.updateNode
+            : DataGraphEventType.addNode,
       );
     }
     await save;

@@ -150,13 +150,13 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   /// [_RemoteAdapter.defaultParams] and [_RemoteAdapter.defaultHeaders], respectively.
   ///
   /// See also: [_RemoteAdapter.urlForDelete], [_RemoteAdapter.methodForDelete].
-  Future<void> delete(
+  Future<Null> delete(
     Object model, {
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    OnSuccess<void>? onSuccess,
-    OnError<void>? onError,
+    OnSuccess<Null>? onSuccess,
+    OnError<Null>? onError,
   }) {
     return remoteAdapter.delete(
       model,

@@ -3,25 +3,6 @@ part of flutter_data;
 mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
   @protected
   @visibleForTesting
-  Duration get throttleDuration {
-    // 1 frame at 60fps
-    return const Duration(milliseconds: 16);
-  }
-
-  @protected
-  @visibleForTesting
-  @nonVirtual
-  DelayedStateNotifier<List<DataGraphEvent>> get throttledGraph {
-    var _throttleDuration = throttleDuration;
-    if (_isTesting) {
-      // do not throttle when testing
-      _throttleDuration = Duration.zero;
-    }
-    return graph.throttle(() => _throttleDuration);
-  }
-
-  @protected
-  @visibleForTesting
   DataStateNotifier<List<T>?> watchAllNotifier({
     bool? remote,
     Map<String, dynamic>? params,
@@ -35,6 +16,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     final _finder = strategies._findersAll[finder] ?? findAll;
     final label = DataRequestLabel('findAll', type: internalType);
 
+    // TODO make default null (vs empty list)
     final localModels = localAdapter
         .findAll()
         ?.map((m) => initializeModel(m, save: true))
@@ -42,32 +24,27 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         .toList();
 
     final _notifier = DataStateNotifier<List<T>?>(
-      data: DataState(localModels),
+      data: DataState(localModels, isLoading: remote!),
       reload: (notifier) async {
-        if (!notifier.mounted) {
-          return;
+        if (!notifier.mounted) return;
+
+        if (remote!) {
+          notifier.updateWith(isLoading: true);
         }
+
         try {
-          final _future = _finder(
+          await _finder(
+            remote: remote,
             params: params,
             headers: headers,
-            remote: remote,
             syncLocal: syncLocal,
             label: label,
+            onError: (e, _) => throw e,
           );
-          if (remote!) {
-            notifier.updateWith(isLoading: true);
-          }
-          await _future;
-          if (remote) {
-            // trigger doneLoading to ensure state is updated with isLoading=false
-            graph._notify([label.toString()], DataGraphEventType.doneLoading);
-          }
+          // trigger doneLoading to ensure state is updated with isLoading=false
+          graph._notify([label.toString()],
+              type: DataGraphEventType.doneLoading);
         } on DataException catch (e) {
-          // we're only interested in notifying errors
-          // as models will pop up via the graph notifier
-          // (we can catch the exception as we are NOT supplying
-          // an `onError` to `findAll`)
           if (notifier.mounted) {
             notifier.updateWith(isLoading: false, exception: e);
           } else {
@@ -80,25 +57,27 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     // kick off
     _notifier.reload();
 
-    var hasLoaded = !_notifier.data.isLoading;
+    // local buffer useful to reduce amount of notifier updates
+    var _models = _notifier.data.model;
 
-    final _dispose = throttledGraph.addListener((events) {
-      if (!_notifier.mounted) {
-        return;
+    final _dispose = graph.addListener((event) {
+      if (!_notifier.mounted) return;
+
+      // handle done loading
+      if (_notifier.data.isLoading &&
+          event.keys.last == label.toString() &&
+          event.type == DataGraphEventType.doneLoading) {
+        _notifier.updateWith(model: _models, isLoading: false, exception: null);
       }
 
-      final models = localAdapter.findAll()?.toImmutableList();
+      if ((event.type == DataGraphEventType.addNode ||
+              event.type == DataGraphEventType.updateNode) &&
+          event.keys.first.startsWith(internalType)) {
+        _models = localAdapter.findAll();
 
-      // ensure the done signal belongs to this notifier
-      hasLoaded = hasLoaded ||
-          events
-              .where((e) =>
-                  e.type == DataGraphEventType.doneLoading &&
-                  e.keys.first == label.toString())
-              .isNotEmpty;
-
-      if (hasLoaded) {
-        _notifier.updateWith(model: models, isLoading: false, exception: null);
+        if (_notifier.data.isLoading == false) {
+          _notifier.updateWith(model: _models);
+        }
       }
     });
 
@@ -153,43 +132,34 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           keyIfAbsent: (model is T ? model._key : null));
     }
 
-    var _key = key();
+    var _alsoWatchRelationshipNames = <String>{};
 
-    final _alsoWatchFilters = <String>{};
+    final localModel = localAdapter.findOne(key())?._initialize(adapters);
 
-    final localModel = _key != null ? localAdapter.findOne(_key) : null;
     final _notifier = DataStateNotifier<T?>(
-      data: DataState(
-          localModel == null ? null : initializeModel(localModel, save: true)),
+      data: DataState(localModel, isLoading: remote!),
       reload: (notifier) async {
-        if (!notifier.mounted) {
-          return;
-        }
-        try {
-          if (id != null) {
-            final _future = _finder(
-              id,
-              remote: remote,
-              params: params,
-              headers: headers,
-            );
-            if (remote!) {
-              notifier.updateWith(isLoading: true);
-            }
-            await _future;
-          }
+        if (!notifier.mounted || id == null) return;
 
-          _key ??= key();
-          if (remote! && _key != null) {
-            // trigger doneLoading to ensure state is updated with isLoading=false
-            graph._notify(
-                [_key!, label.toString()], DataGraphEventType.doneLoading);
+        if (remote!) {
+          notifier.updateWith(isLoading: true);
+        }
+
+        try {
+          final model = await _finder(
+            id,
+            remote: remote,
+            params: params,
+            headers: headers,
+            onError: (e, _) => throw e,
+          );
+          // trigger doneLoading to ensure state is updated with isLoading=false
+          final _key = model?._key! ?? key();
+          if (_key != null) {
+            graph._notify([_key, label.toString()],
+                type: DataGraphEventType.doneLoading);
           }
         } on DataException catch (e) {
-          // we're only interested in notifying errors
-          // as models will pop up via the graph notifier
-          // (we can catch the exception as we are NOT supplying
-          // an `onError` to `findOne`)
           if (notifier.mounted) {
             notifier.updateWith(isLoading: false, exception: e);
           } else {
@@ -199,91 +169,64 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       },
     );
 
-    void _initializeRelationshipsToWatch(T? model) {
-      if (alsoWatch != null &&
-          _alsoWatchFilters.isEmpty &&
-          model != null &&
-          model.isInitialized) {
-        _alsoWatchFilters
-            .addAll(alsoWatch(model).where((rel) => rel != null).map((rel) {
-          return rel!._name;
-        }));
-      }
-    }
-
-    // kick off
-
-    // try to find relationships to watch
-    _initializeRelationshipsToWatch(_notifier.data.model);
-
     // trigger local + async loading
     _notifier.reload();
 
+    // local buffer useful to reduce amount of notifier updates
+    var _model = _notifier.data.model;
+
     // start listening to graph for further changes
-    final _dispose = throttledGraph.addListener((events) {
-      if (!_notifier.mounted) {
-        return;
-      }
+    final _dispose = graph.addListener((event) {
+      if (!_notifier.mounted) return;
 
-      // buffers
-      var modelBuffer = _notifier.data.model;
-      var refresh = false;
-      var hasLoaded = !_notifier.data.isLoading;
+      final _key = key();
 
-      for (final event in events) {
-        _key ??= key();
+      if (event.keys.first == _key) {
+        // handle done loading
+        if (_notifier.data.isLoading &&
+            event.keys.last == label.toString() &&
+            event.type == DataGraphEventType.doneLoading) {
+          _notifier.updateWith(
+              model: _model, isLoading: false, exception: null);
+        }
 
-        if (_key != null && event.keys.containsFirst(_key!)) {
-          // handle done loading
-          if (modelBuffer != null &&
-              event.keys.last == label.toString() &&
-              event.type == DataGraphEventType.doneLoading) {
-            hasLoaded = true;
-            refresh = true;
+        // add/update
+        if (event.type == DataGraphEventType.addNode ||
+            event.type == DataGraphEventType.updateNode) {
+          _model = localAdapter.findOne(_key)?._initialize(adapters);
+
+          if (_model != null) {
+            _model!._initializeRelationships();
+            _alsoWatchRelationshipNames = {
+              ...?alsoWatch?.call(_model!).filterNulls.map((r) => r._name)
+            };
           }
 
-          // add/update
-          if (event.type == DataGraphEventType.addNode ||
-              event.type == DataGraphEventType.updateNode) {
-            final model = localAdapter.findOne(_key!);
-            if (model != null) {
-              initializeModel(model);
-              _initializeRelationshipsToWatch(model);
-              modelBuffer = model;
-            }
-          }
-
-          // remove
-          if (event.type == DataGraphEventType.removeNode &&
-              _notifier.data.model != null) {
-            modelBuffer = null;
-          }
-
-          // changes on specific relationships of this model
-          // (only when model already loaded)
-          if (_notifier.data.isLoading == false &&
-              _notifier.data.model != null &&
-              event.type.isEdge &&
-              _alsoWatchFilters.contains(event.metadata)) {
-            // calculate currently related models
-            refresh = true;
+          if (_notifier.data.isLoading == false) {
+            _notifier.updateWith(model: _model);
           }
         }
 
-        // updates on all models of specific relationships of this model
+        // remove
+        if (event.type == DataGraphEventType.removeNode) {
+          _notifier.updateWith(model: null);
+        }
+
+        // changes on specific relationships of this model
         // (only when model already loaded)
         if (_notifier.data.isLoading == false &&
-            event.type == DataGraphEventType.updateNode &&
-            _relatedKeys(_notifier.data.model!).any(event.keys.contains)) {
-          refresh = true;
+            event.type.isEdge &&
+            _alsoWatchRelationshipNames.contains(event.metadata)) {
+          _notifier.updateWith();
         }
       }
 
-      // NOTE: because of this comparison, use field equality
-      // rather than key equality (which wouldn't update)
-      if (modelBuffer != _notifier.data.model || refresh) {
-        _notifier.updateWith(
-            model: modelBuffer, isLoading: !hasLoaded, exception: null);
+      // updates on all models of specific relationships of this model
+      // (only when model already loaded)
+      if (_notifier.data.isLoading == false &&
+          event.type == DataGraphEventType.updateNode &&
+          _relatedKeys(_notifier.data.model!).any(event.keys.contains)) {
+        _notifier.updateWith();
       }
     });
 

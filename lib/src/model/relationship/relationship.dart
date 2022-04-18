@@ -68,6 +68,7 @@ abstract class Relationship<E extends DataModel<E>, N>
 
     // initialize keys
     if (!_wasOmitted) {
+      // TODO don't notify everything here
       // if it wasn't omitted, we overwrite
       _graph._removeEdges(_ownerKey,
           metadata: _name, inverseMetadata: _inverseName);
@@ -102,7 +103,7 @@ abstract class Relationship<E extends DataModel<E>, N>
 
     if (value.isInitialized && isInitialized) {
       _graph._addEdge(_ownerKey, value._key!,
-          metadata: _name, inverseMetadata: _inverseName);
+          metadata: _name, inverseMetadata: _inverseName, notify: notify);
     } else {
       // if it can't be initialized, add to the models queue
       _uninitializedModels.add(value);
@@ -188,13 +189,11 @@ abstract class Relationship<E extends DataModel<E>, N>
     return model;
   }
 
-  DelayedStateNotifier<List<DataGraphEvent>> get _graphEvents {
-    return _adapter.throttledGraph.map((events) {
-      return events.where((event) {
-        return event.type.isEdge &&
-            event.metadata == _name &&
-            event.keys.containsFirst(_ownerKey);
-      }).toImmutableList();
+  DelayedStateNotifier<DataGraphEvent> get _relationshipEventNotifier {
+    return _adapter.graph.where((event) {
+      return event.type.isEdge &&
+          event.metadata == _name &&
+          event.keys.containsFirst(_ownerKey);
     });
   }
 

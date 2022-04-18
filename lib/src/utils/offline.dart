@@ -92,7 +92,7 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
     } else {
       // trick
       adapter.graph
-          ._notify([_offlineAdapterKey, ''], DataGraphEventType.addEdge);
+          ._notify([_offlineAdapterKey, ''], type: DataGraphEventType.addEdge);
     }
   }
 

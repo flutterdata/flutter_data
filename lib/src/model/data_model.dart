@@ -35,20 +35,25 @@ abstract class DataModel<T extends DataModel<T>> {
       remoteAdapter.localAdapter.save(_key!, this as T);
     }
 
-    // initialize relationships
+    _initializeRelationships();
+
+    return this as T;
+  }
+
+  void _initializeRelationships() {
+    assert(isInitialized);
+
     for (final metadata
         in remoteAdapter.localAdapter.relationshipsFor(this as T).entries) {
       final relationship = metadata.value['instance'] as Relationship?;
 
       relationship?.initialize(
-        adapters: adapters,
+        adapters: _adapters!,
         owner: this,
         name: metadata.value['name'] as String,
         inverseName: metadata.value['inverse'] as String?,
       );
     }
-
-    return this as T;
   }
 }
 
@@ -98,12 +103,12 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   /// Usage: `await post.delete()`
   ///
   /// **Requires this model to be initialized.**
-  Future<void> delete({
+  Future<Null> delete({
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    OnSuccess<void>? onSuccess,
-    OnError<void>? onError,
+    OnSuccess<Null>? onSuccess,
+    OnError<Null>? onError,
   }) async {
     _assertInit('delete');
     await remoteAdapter.delete(

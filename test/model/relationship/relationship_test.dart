@@ -279,14 +279,14 @@ void main() async {
     final notifier = bookAuthorRepository.remoteAdapter
         .watchOneNotifier(author, remote: false);
 
-    dispose = notifier.addListener(listener, fireImmediately: true);
+    dispose = notifier.addListener(listener);
 
     verify(listener(DataState(author, isLoading: false))).called(1);
     verifyNoMoreInteractions(listener);
 
     // we can do this because `author` has an ID
-    final author2 = author.copyWith(name: 'Steve-O').init(container.read);
-    await author2.save(remote: false);
+    final author2 =
+        author.copyWith(name: 'Steve-O').init(container.read, save: true);
 
     await oneMs();
 

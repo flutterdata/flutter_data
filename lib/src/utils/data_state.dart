@@ -1,5 +1,7 @@
 library data_state;
 
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:state_notifier/state_notifier.dart';
 
@@ -153,6 +155,26 @@ class _FunctionalDataStateNotifier<T, W> extends DataStateNotifier<W> {
     return this;
   }
 
+  late DataState<W> _bufferedState;
+  Timer? _timer;
+
+  DataStateNotifier<W> throttle(Duration Function() durationFn) {
+    _timer = _makeTimer(durationFn);
+    _sourceDisposeFn = _source.addListener((model) {
+      _bufferedState = model;
+    }, fireImmediately: false);
+    return this;
+  }
+
+  Timer _makeTimer(Duration Function() durationFn) {
+    return Timer(durationFn(), () {
+      if (mounted) {
+        super.state = _bufferedState;
+        _timer = _makeTimer(durationFn); // reset timer
+      }
+    });
+  }
+
   bool _typesEqual<T1, T2>() => T1 == T2;
 
   @override
@@ -164,6 +186,7 @@ class _FunctionalDataStateNotifier<T, W> extends DataStateNotifier<W> {
         super.addListener(listener, fireImmediately: fireImmediately);
     return () {
       dispose.call();
+      _timer?.cancel();
       _sourceDisposeFn.call();
     };
   }

@@ -227,7 +227,7 @@ void main() async {
     final notifier =
         familiaRepository.remoteAdapter.watchAllNotifier(remote: false);
 
-    dispose = notifier.addListener(listener, fireImmediately: true);
+    dispose = notifier.addListener(listener);
 
     verify(listener(DataState([], isLoading: false))).called(1);
 
@@ -235,14 +235,12 @@ void main() async {
     await familiaRepository.save(
       familia,
       onError: (e, _) async {
-        await oneMs();
+        // await oneMs();
         notifier.updateWith(exception: e);
         return null;
       },
     );
     await oneMs();
-
-    verify(listener(DataState([familia], isLoading: false))).called(1);
 
     verify(listener(argThat(
       isA<DataState>().having((s) {
@@ -394,6 +392,27 @@ void main() async {
   test('dispose', () {
     familiaRepository.dispose();
     expect(familiaRepository.isInitialized, isFalse);
+  });
+
+  test('DataRequestLabel', () {
+    final label = DataRequestLabel('findAll', type: 'dogs');
+    expect(label.kind, 'findAll');
+    expect(label.type, 'dogs');
+    expect(label.requestId, isNotNull);
+
+    final label2 = DataRequestLabel.parse('findOne/watch/dogs#1@7ebcc6');
+    expect(label2.kind, 'findOne/watch');
+    expect(label2.type, 'dogs');
+    expect(label2.id, '1');
+    expect(label2.requestId, '7ebcc6');
+    expect(label2.indentation, 0);
+
+    final label3 = DataRequestLabel.parse('   findAll/dogs@4ebcc6');
+    expect(label3.kind, 'findAll');
+    expect(label3.type, 'dogs');
+    expect(label3.id, isNull);
+    expect(label3.requestId, '4ebcc6');
+    expect(label3.indentation, 3);
   });
 }
 

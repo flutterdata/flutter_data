@@ -463,8 +463,9 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
     }
   }
 
-  void _notify(List<String> keys, DataGraphEventType type) {
-    state = DataGraphEvent(type: type, keys: keys);
+  void _notify(List<String> keys,
+      {String? metadata, required DataGraphEventType type}) {
+    state = DataGraphEvent(type: type, metadata: metadata, keys: keys);
   }
 
   // misc

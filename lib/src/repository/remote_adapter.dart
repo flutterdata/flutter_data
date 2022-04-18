@@ -282,7 +282,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     headers = await defaultHeaders & headers;
     onSuccess ??= this.onSuccess;
 
-    label = label ?? DataRequestLabel('findAll', type: internalType);
+    label ??= DataRequestLabel('findAll', type: internalType);
 
     log(label, 'request ${params.isNotEmpty ? 'with $params' : ''}');
 
@@ -338,6 +338,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     background ??= false;
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
+    onSuccess ??= this.onSuccess;
 
     final resolvedId = _resolveId(id);
     late T? model;
@@ -401,9 +402,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     log(label, 'request');
 
     if (remote == false) {
-      // if not remote, notify now
       log(label, 'saved in local storage only');
-      return localAdapter.save(model._key!, model, notify: true);
+      return model;
     }
 
     final serialized = serialize(model);
@@ -421,13 +421,13 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     return result ?? model;
   }
 
-  Future<void> delete(
+  Future<Null> delete(
     Object model, {
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    OnSuccess<void>? onSuccess,
-    OnError<void>? onError,
+    OnSuccess<Null>? onSuccess,
+    OnError<Null>? onError,
     DataRequestLabel? label,
   }) async {
     _assertInit();
@@ -443,7 +443,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     log(label, 'request');
 
     if (key != null) {
-      log(label, 'deleting in local storage only');
+      if (remote == false) {
+        log(label, 'deleted in local storage only');
+      }
       await localAdapter.delete(key);
     }
 
@@ -696,7 +698,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       final now = DateTime.now();
       final timestamp =
           '${now.second.toString().padLeft(2, '0')}:${now.millisecond.toString().padLeft(3, '0')}';
-      print('$timestamp [$label] $message');
+      print('$timestamp ${' ' * label.indentation}[$label] $message');
     }
   }
 
@@ -774,15 +776,20 @@ class DataRequestLabel with EquatableMixin {
   final String? id;
   late final String requestId;
   DataModel? model;
+  final int indentation;
 
   DataRequestLabel(
-    this.kind, {
+    String kind, {
     required String type,
     this.id,
     String? requestId,
     this.model,
-  }) {
-    assert(!kind.contains('/'));
+  })  : indentation = kind.split(kind.trim()).first.length,
+        kind = kind.trim() {
+    assert(!type.contains('#'));
+    if (id != null) {
+      assert(!id!.contains('#'));
+    }
     if (requestId != null) {
       assert(!requestId.contains('@'));
     }
@@ -792,9 +799,9 @@ class DataRequestLabel with EquatableMixin {
 
   factory DataRequestLabel.parse(String text) {
     final parts = text.split('/');
-    final parts2 = parts[1].split('@');
+    final parts2 = parts.last.split('@');
     final parts3 = parts2[0].split('#');
-    final kind = parts[0];
+    final kind = (parts..removeLast()).join('/');
     final requestId = parts2[1];
     final type = parts3[0];
     final id = parts3.length > 1 ? parts3[1] : null;
