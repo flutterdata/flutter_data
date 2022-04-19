@@ -138,13 +138,16 @@ void main() async {
     graph.getKeyForId('people', '3', keyIfAbsent: 'people#c3c3c3');
     graph.getKeyForId('houses', '98', keyIfAbsent: 'houses#c98d1b');
 
-    // test ids
-    expect(familia.persons.ids, {'1', '2', '3'});
+    // no ids as persons haven't been loaded
+    expect(familia.persons.ids, isEmpty);
 
     // (2) then load persons
 
     Person(id: '1', name: 'z1', age: 23).init(container.read);
     Person(id: '2', name: 'z2', age: 33).init(container.read);
+
+    // some ids are now present
+    expect(familia.persons.ids, {'1', '2'});
 
     // (3) assert two first are linked, third one null, residence is null
     expect(familia.persons.length, 2);
@@ -153,6 +156,9 @@ void main() async {
     // (4) load the last person and assert it exists now
     final p3 = Person(id: '3', name: 'z3', age: 3).init(container.read);
     expect(p3.familia.value, familia);
+
+    // all ids are now present
+    expect(familia.persons.ids, {'1', '2', '3'});
 
     // (5) load familia and assert it exists now
     final house =

@@ -13,6 +13,18 @@ void main() async {
   setUp(setUpFn);
   tearDown(tearDownFn);
 
+  test('BelongsTo ids', () {
+    final person = Person(name: 'Test', familia: BelongsTo());
+    person.familia.value = Familia(id: '1', surname: 'Sanchez');
+    // id is between brackets as familia is not initialized
+    expect(person.familia.toString(), 'BelongsTo<Familia>([1])');
+
+    person.init(container.read);
+
+    expect(person.familia.value!.id, person.familia.id);
+    expect(person.familia.toString(), 'BelongsTo<Familia>(1)');
+  });
+
   test('set owner in relationships (before & after init)', () {
     final person = Person(id: '1', name: 'John', age: 37);
     final house = House(id: '31', address: '123 Main St');

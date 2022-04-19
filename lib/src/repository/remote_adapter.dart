@@ -620,7 +620,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
         _model = _newModel;
       }
 
-      // TODO requestId could have been updated with another id
       log(label, 'saved in local storage and remote');
       return _model as R?;
     }

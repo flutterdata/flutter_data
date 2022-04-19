@@ -1,5 +1,3 @@
-@Timeout(Duration(days: 1))
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -66,8 +64,6 @@ void main() async {
 
     dispose = notifier.addListener(listener);
 
-    // TODO test saving a model without ID
-
     // sample familia
     final familia = Familia(id: '1', surname: 'Smith');
 
@@ -117,8 +113,8 @@ void main() async {
             .toList(),
         [familia.id]);
 
-    // try with familia2
-    final familia2 = Familia(id: '2', surname: 'Montewicz');
+    // try with familia2 (tests it can work without ID)
+    final familia2 = Familia(surname: 'Montewicz');
     try {
       await familiaRepository.save(familia2);
     } catch (_) {
@@ -137,7 +133,6 @@ void main() async {
     // retry saving both
     await familiaRepository.offlineOperations.retry();
     // await 1ms for each familia
-    await oneMs();
     await oneMs();
 
     // none of them could be saved upon retry
@@ -158,7 +153,6 @@ void main() async {
     // retry
     await familiaRepository.offlineOperations.retry();
     await oneMs();
-    await oneMs();
 
     // familia2 failed on retry, operation still pending
     expect(familiaRepository.offlineOperations.map((o) => o.model),
@@ -171,7 +165,6 @@ void main() async {
 
     // retry
     await familiaRepository.offlineOperations.retry();
-    await oneMs();
     await oneMs();
 
     // should be empty as all saves succeeded

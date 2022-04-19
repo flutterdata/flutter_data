@@ -64,8 +64,7 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
     if (isUpdate) type = DataGraphEventType.updateEdge;
     if (isRemoval) type = DataGraphEventType.removeEdge;
 
-    if (type != null) {
-      assert(isInitialized);
+    if (type != null && isInitialized) {
       _graph._notify(
         [_ownerKey, if (newValue != null) newValue._key!],
         metadata: _name,
@@ -119,7 +118,9 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
   }
 
   @override
-  String toString() => 'BelongsTo<$E>(${ids.join(', ')})';
+  String toString() {
+    return 'BelongsTo<$E>($id)';
+  }
 }
 
 extension DataModelRelationshipExtension<T extends DataModel<T>>

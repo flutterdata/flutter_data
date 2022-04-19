@@ -70,18 +70,18 @@ abstract class Relationship<E extends DataModel<E>, N>
 
     // initialize keys
     if (!_wasOmitted) {
-      // TODO don't notify everything here
       // if it wasn't omitted, we overwrite
       _graph._removeEdges(_ownerKey,
-          metadata: _name, inverseMetadata: _inverseName);
-      _graph._addEdges(
-        _ownerKey,
-        tos: _uninitializedKeys,
-        metadata: _name,
-        inverseMetadata: _inverseName,
-      );
-      _uninitializedKeys.clear();
+          metadata: _name, inverseMetadata: _inverseName, notify: false);
     }
+    _graph._addEdges(
+      _ownerKey,
+      tos: _uninitializedKeys,
+      metadata: _name,
+      inverseMetadata: _inverseName,
+      notify: false,
+    );
+    _uninitializedKeys.clear();
 
     return this;
   }
@@ -194,7 +194,12 @@ abstract class Relationship<E extends DataModel<E>, N>
   }
 
   Set<String> get ids {
-    return keys.map(_graph.getIdForKey).filterNulls.toSet();
+    return {
+      for (final m in _iterable)
+        '${isInitialized ? '' : '['}${m.id}${isInitialized ? '' : ']'}',
+      for (final key in keys)
+        if (!isInitialized) '[${_graph.getIdForKey(key)}]',
+    };
   }
 
   E _ensureModelIsInitialized(E model) {

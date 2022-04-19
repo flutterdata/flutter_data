@@ -13,6 +13,19 @@ void main() async {
   setUp(setUpFn);
   tearDown(tearDownFn);
 
+  test('HasMany ids', () {
+    final f1 = Familia(surname: 'Sanchez');
+    f1.persons.add(Person(id: '1', name: 'Manuel'));
+    f1.persons.add(Person(id: '2', name: 'Carlos'));
+    // id is between brackets as familia is not initialized
+    expect(f1.persons.toString(), 'HasMany<Person>([1], [2])');
+
+    f1.init(container.read);
+
+    expect(f1.persons.ids, f1.persons.map((e) => e.id));
+    expect(f1.persons.toString(), 'HasMany<Person>(1, 2)');
+  });
+
   test('behaves like a collection (without init/models)', () {
     final anne = Person(name: 'Anne', age: 59);
     final f1 = Familia(surname: 'Mayer', persons: {anne}.asHasMany);
