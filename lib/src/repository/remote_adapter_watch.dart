@@ -13,7 +13,10 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     _assertInit();
     remote ??= _remote;
     syncLocal ??= false;
-    final _finder = strategies._findersAll[finder] ?? findAll;
+
+    final _finderStrategy = _internalHolder?.strategies[finder]?.call(this);
+    final _finder =
+        _finderStrategy is DataFinderAll<T> ? _finderStrategy : findAll;
     final label = DataRequestLabel('findAll', type: internalType);
 
     // TODO make default null (vs empty list)
@@ -91,16 +94,16 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     Map<String, String>? headers,
     bool? syncLocal,
   }) {
-    if (internalWatch == null || _allProvider == null) {
+    if (internalWatch == null || _internalHolder?.allProvider == null) {
       throw UnsupportedError(_watchAllError);
     }
-    final p = _allProvider!(
+    final provider = _internalHolder!.allProvider!(
       remote: remote,
       params: params,
       headers: headers,
       syncLocal: syncLocal,
     );
-    return internalWatch!(p);
+    return internalWatch!(provider);
   }
 
   String get _watchAllError =>
@@ -121,7 +124,9 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     _assertInit();
 
     remote ??= _remote;
-    final _finder = strategies._findersOne[finder] ?? findOne;
+    final _finderStrategy = _internalHolder?.strategies[finder]?.call(this);
+    final _finder =
+        _finderStrategy is DataFinderOne<T> ? _finderStrategy : findOne;
     final label = DataRequestLabel('findOne', type: internalType);
 
     final id = _resolveId(model);
@@ -243,10 +248,10 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     Map<String, String>? headers,
     AlsoWatch<T>? alsoWatch,
   }) {
-    if (internalWatch == null || _oneProvider == null) {
+    if (internalWatch == null || _internalHolder?.oneProvider == null) {
       throw UnsupportedError(_watchOneError);
     }
-    final provider = _oneProvider!(
+    final provider = _internalHolder!.oneProvider!(
       model,
       remote: remote,
       params: params,

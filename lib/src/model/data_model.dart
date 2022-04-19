@@ -158,10 +158,11 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   /// Get this model's notifier (watchOne)
   DataStateNotifier<T?> get notifier {
     _assertInit('notifier');
-    if (remoteAdapter._oneProvider == null) {
+    if (remoteAdapter._internalHolder?.oneProvider == null) {
       throw UnsupportedError(remoteAdapter._watchOneError);
     }
-    return remoteAdapter.read(remoteAdapter._oneProvider!(this).notifier);
+    return remoteAdapter
+        .read(remoteAdapter._internalHolder!.oneProvider!(this).notifier);
   }
 
   void _assertInit(String method) {

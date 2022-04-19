@@ -88,11 +88,17 @@ class $BookAuthorHiveLocalAdapter = HiveLocalAdapter<BookAuthor>
 class $BookAuthorRemoteAdapter = RemoteAdapter<BookAuthor>
     with BookAuthorAdapter;
 
+final _bookAuthorsStrategies = <String, dynamic>{
+  'censor': (_) => _.censor,
+};
+
 //
 
 final bookAuthorsRemoteAdapterProvider = Provider<RemoteAdapter<BookAuthor>>(
-    (ref) => $BookAuthorRemoteAdapter($BookAuthorHiveLocalAdapter(ref.read),
-        bookAuthorProvider, bookAuthorsProvider));
+    (ref) => $BookAuthorRemoteAdapter(
+        $BookAuthorHiveLocalAdapter(ref.read),
+        InternalHolder(
+            bookAuthorProvider, bookAuthorsProvider, _bookAuthorsStrategies)));
 
 final bookAuthorsRepositoryProvider =
     Provider<Repository<BookAuthor>>((ref) => Repository<BookAuthor>(ref.read));
@@ -102,8 +108,10 @@ final _bookAuthorProvider = StateNotifierProvider.autoDispose.family<
     DataState<BookAuthor?>,
     WatchArgs<BookAuthor>>((ref, args) {
   final adapter = ref.watch(bookAuthorsRemoteAdapterProvider);
-  final notifier =
-      adapter.strategies.watchersOne[args.watcher] ?? adapter.watchOneNotifier;
+  final _watcherStrategy = _bookAuthorsStrategies[args.watcher]?.call(adapter);
+  final notifier = _watcherStrategy is DataWatcherOne<BookAuthor>
+      ? _watcherStrategy as DataWatcherOne<BookAuthor>
+      : adapter.watchOneNotifier;
   return notifier(args.id!,
       remote: args.remote,
       params: args.params,
@@ -136,8 +144,10 @@ final _bookAuthorsProvider = StateNotifierProvider.autoDispose.family<
     DataState<List<BookAuthor>?>,
     WatchArgs<BookAuthor>>((ref, args) {
   final adapter = ref.watch(bookAuthorsRemoteAdapterProvider);
-  final notifier =
-      adapter.strategies.watchersAll[args.watcher] ?? adapter.watchAllNotifier;
+  final _watcherStrategy = _bookAuthorsStrategies[args.watcher]?.call(adapter);
+  final notifier = _watcherStrategy is DataWatcherAll<BookAuthor>
+      ? _watcherStrategy as DataWatcherAll<BookAuthor>
+      : adapter.watchAllNotifier;
   return notifier(
       remote: args.remote,
       params: args.params,
@@ -214,11 +224,13 @@ class $BookHiveLocalAdapter = HiveLocalAdapter<Book> with $BookLocalAdapter;
 
 class $BookRemoteAdapter = RemoteAdapter<Book> with NothingMixin;
 
+final _booksStrategies = <String, dynamic>{};
+
 //
 
 final booksRemoteAdapterProvider = Provider<RemoteAdapter<Book>>((ref) =>
-    $BookRemoteAdapter(
-        $BookHiveLocalAdapter(ref.read), bookProvider, booksProvider));
+    $BookRemoteAdapter($BookHiveLocalAdapter(ref.read),
+        InternalHolder(bookProvider, booksProvider, _booksStrategies)));
 
 final booksRepositoryProvider =
     Provider<Repository<Book>>((ref) => Repository<Book>(ref.read));
@@ -227,8 +239,10 @@ final _bookProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Book?>, DataState<Book?>, WatchArgs<Book>>(
         (ref, args) {
   final adapter = ref.watch(booksRemoteAdapterProvider);
-  final notifier =
-      adapter.strategies.watchersOne[args.watcher] ?? adapter.watchOneNotifier;
+  final _watcherStrategy = _booksStrategies[args.watcher]?.call(adapter);
+  final notifier = _watcherStrategy is DataWatcherOne<Book>
+      ? _watcherStrategy as DataWatcherOne<Book>
+      : adapter.watchOneNotifier;
   return notifier(args.id!,
       remote: args.remote,
       params: args.params,
@@ -260,8 +274,10 @@ final _booksProvider = StateNotifierProvider.autoDispose.family<
     DataState<List<Book>?>,
     WatchArgs<Book>>((ref, args) {
   final adapter = ref.watch(booksRemoteAdapterProvider);
-  final notifier =
-      adapter.strategies.watchersAll[args.watcher] ?? adapter.watchAllNotifier;
+  final _watcherStrategy = _booksStrategies[args.watcher]?.call(adapter);
+  final notifier = _watcherStrategy is DataWatcherAll<Book>
+      ? _watcherStrategy as DataWatcherAll<Book>
+      : adapter.watchAllNotifier;
   return notifier(
       remote: args.remote,
       params: args.params,

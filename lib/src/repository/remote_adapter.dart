@@ -30,7 +30,7 @@ class RemoteAdapter<T extends DataModel<T>> = _RemoteAdapter<T>
 
 abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @protected
-  _RemoteAdapter(this.localAdapter, [this._oneProvider, this._allProvider]);
+  _RemoteAdapter(this.localAdapter, [this._internalHolder]);
 
   @protected
   @visibleForTesting
@@ -74,9 +74,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
   /// ONLY FOR FLUTTER DATA INTERNAL USE
   Watcher? internalWatch;
-
-  final OneProvider<T>? _oneProvider;
-  final AllProvider<T>? _allProvider;
+  final InternalHolder<T>? _internalHolder;
 
   /// Turn verbosity on or off.
   bool verbose = false;
@@ -127,20 +125,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @protected
   DataRequestMethod methodForDelete(id, Map<String, dynamic> params) =>
       DataRequestMethod.DELETE;
-
-  /// Use to specify any alternative finder and watcher strategies.
-  ///
-  /// Example:
-  ///
-  /// ```
-  /// @override
-  /// DataStrategies<Book> get strategies {
-  ///   return super.strategies
-  ///     .add(finderOne: prefetchDependants, name: 'withDependants')
-  ///     .add(watcherAll: watchAllVisible, name: 'visible');
-  /// }
-  /// ```
-  DataStrategies<T> get strategies => DataStrategies<T>._();
 
   /// A [Map] representing default HTTP query parameters. Defaults to empty.
   ///

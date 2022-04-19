@@ -38,6 +38,6 @@ class Familia with DataModel<Familia> {
 
   @override
   String toString() {
-    return '{ id: $id, surname: $surname }';
+    return '{ id: $id, surname: $surname, #persons: ${persons.length}, residence: $residence, cottage: $cottage }';
   }
 }

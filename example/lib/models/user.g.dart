@@ -57,11 +57,13 @@ class $UserHiveLocalAdapter = HiveLocalAdapter<User> with $UserLocalAdapter;
 
 class $UserRemoteAdapter = RemoteAdapter<User> with JSONServerAdapter<User>;
 
+final _usersStrategies = <String, dynamic>{};
+
 //
 
 final usersRemoteAdapterProvider = Provider<RemoteAdapter<User>>((ref) =>
-    $UserRemoteAdapter(
-        $UserHiveLocalAdapter(ref.read), userProvider, usersProvider));
+    $UserRemoteAdapter($UserHiveLocalAdapter(ref.read),
+        InternalHolder(userProvider, usersProvider, _usersStrategies)));
 
 final usersRepositoryProvider =
     Provider<Repository<User>>((ref) => Repository<User>(ref.read));
@@ -70,8 +72,10 @@ final _userProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<User?>, DataState<User?>, WatchArgs<User>>(
         (ref, args) {
   final adapter = ref.watch(usersRemoteAdapterProvider);
-  final notifier =
-      adapter.strategies.watchersOne[args.watcher] ?? adapter.watchOneNotifier;
+  final _watcherStrategy = _usersStrategies[args.watcher]?.call(adapter);
+  final notifier = _watcherStrategy is DataWatcherOne<User>
+      ? _watcherStrategy as DataWatcherOne<User>
+      : adapter.watchOneNotifier;
   return notifier(args.id!,
       remote: args.remote,
       params: args.params,
@@ -103,8 +107,10 @@ final _usersProvider = StateNotifierProvider.autoDispose.family<
     DataState<List<User>?>,
     WatchArgs<User>>((ref, args) {
   final adapter = ref.watch(usersRemoteAdapterProvider);
-  final notifier =
-      adapter.strategies.watchersAll[args.watcher] ?? adapter.watchAllNotifier;
+  final _watcherStrategy = _usersStrategies[args.watcher]?.call(adapter);
+  final notifier = _watcherStrategy is DataWatcherAll<User>
+      ? _watcherStrategy as DataWatcherAll<User>
+      : adapter.watchAllNotifier;
   return notifier(
       remote: args.remote,
       params: args.params,

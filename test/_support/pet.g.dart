@@ -55,11 +55,13 @@ class $DogHiveLocalAdapter = HiveLocalAdapter<Dog> with $DogLocalAdapter;
 
 class $DogRemoteAdapter = RemoteAdapter<Dog> with NothingMixin;
 
+final _dogsStrategies = <String, dynamic>{};
+
 //
 
 final dogsRemoteAdapterProvider = Provider<RemoteAdapter<Dog>>((ref) =>
-    $DogRemoteAdapter(
-        $DogHiveLocalAdapter(ref.read), dogProvider, dogsProvider));
+    $DogRemoteAdapter($DogHiveLocalAdapter(ref.read),
+        InternalHolder(dogProvider, dogsProvider, _dogsStrategies)));
 
 final dogsRepositoryProvider =
     Provider<Repository<Dog>>((ref) => Repository<Dog>(ref.read));
@@ -68,8 +70,10 @@ final _dogProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Dog?>, DataState<Dog?>, WatchArgs<Dog>>(
         (ref, args) {
   final adapter = ref.watch(dogsRemoteAdapterProvider);
-  final notifier =
-      adapter.strategies.watchersOne[args.watcher] ?? adapter.watchOneNotifier;
+  final _watcherStrategy = _dogsStrategies[args.watcher]?.call(adapter);
+  final notifier = _watcherStrategy is DataWatcherOne<Dog>
+      ? _watcherStrategy as DataWatcherOne<Dog>
+      : adapter.watchOneNotifier;
   return notifier(args.id!,
       remote: args.remote,
       params: args.params,
@@ -101,8 +105,10 @@ final _dogsProvider = StateNotifierProvider.autoDispose.family<
     DataState<List<Dog>?>,
     WatchArgs<Dog>>((ref, args) {
   final adapter = ref.watch(dogsRemoteAdapterProvider);
-  final notifier =
-      adapter.strategies.watchersAll[args.watcher] ?? adapter.watchAllNotifier;
+  final _watcherStrategy = _dogsStrategies[args.watcher]?.call(adapter);
+  final notifier = _watcherStrategy is DataWatcherAll<Dog>
+      ? _watcherStrategy as DataWatcherAll<Dog>
+      : adapter.watchAllNotifier;
   return notifier(
       remote: args.remote,
       params: args.params,
@@ -169,11 +175,13 @@ class $CatHiveLocalAdapter = HiveLocalAdapter<Cat> with $CatLocalAdapter;
 
 class $CatRemoteAdapter = RemoteAdapter<Cat> with NothingMixin;
 
+final _catsStrategies = <String, dynamic>{};
+
 //
 
 final catsRemoteAdapterProvider = Provider<RemoteAdapter<Cat>>((ref) =>
-    $CatRemoteAdapter(
-        $CatHiveLocalAdapter(ref.read), catProvider, catsProvider));
+    $CatRemoteAdapter($CatHiveLocalAdapter(ref.read),
+        InternalHolder(catProvider, catsProvider, _catsStrategies)));
 
 final catsRepositoryProvider =
     Provider<Repository<Cat>>((ref) => Repository<Cat>(ref.read));
@@ -182,8 +190,10 @@ final _catProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Cat?>, DataState<Cat?>, WatchArgs<Cat>>(
         (ref, args) {
   final adapter = ref.watch(catsRemoteAdapterProvider);
-  final notifier =
-      adapter.strategies.watchersOne[args.watcher] ?? adapter.watchOneNotifier;
+  final _watcherStrategy = _catsStrategies[args.watcher]?.call(adapter);
+  final notifier = _watcherStrategy is DataWatcherOne<Cat>
+      ? _watcherStrategy as DataWatcherOne<Cat>
+      : adapter.watchOneNotifier;
   return notifier(args.id!,
       remote: args.remote,
       params: args.params,
@@ -215,8 +225,10 @@ final _catsProvider = StateNotifierProvider.autoDispose.family<
     DataState<List<Cat>?>,
     WatchArgs<Cat>>((ref, args) {
   final adapter = ref.watch(catsRemoteAdapterProvider);
-  final notifier =
-      adapter.strategies.watchersAll[args.watcher] ?? adapter.watchAllNotifier;
+  final _watcherStrategy = _catsStrategies[args.watcher]?.call(adapter);
+  final notifier = _watcherStrategy is DataWatcherAll<Cat>
+      ? _watcherStrategy as DataWatcherAll<Cat>
+      : adapter.watchAllNotifier;
   return notifier(
       remote: args.remote,
       params: args.params,

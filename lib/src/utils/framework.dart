@@ -42,6 +42,14 @@ abstract class _Lifecycle {
 
 typedef Watcher = W Function<W>(ProviderListenable<W> provider);
 
+class InternalHolder<T extends DataModel<T>> {
+  final OneProvider<T>? oneProvider;
+  final AllProvider<T>? allProvider;
+  final Map<String, dynamic> strategies;
+
+  InternalHolder(this.oneProvider, this.allProvider, this.strategies);
+}
+
 typedef OneProvider<T extends DataModel<T>>
     = AutoDisposeStateNotifierProvider<DataStateNotifier<T?>, DataState<T?>>
         Function(
@@ -63,27 +71,8 @@ typedef AllProvider<T extends DataModel<T>> = AutoDisposeStateNotifierProvider<
 
 // strategies
 
-class DataStrategies<T extends DataModel<T>> {
-  DataStrategies._();
-
-  final Map<String, DataFinderAll<T>> _findersAll = {};
-  final Map<String, DataFinderOne<T>> _findersOne = {};
-  final Map<String, DataWatcherAll<T>> watchersAll = {};
-  final Map<String, DataWatcherOne<T>> watchersOne = {};
-
-  DataStrategies<T> add({
-    DataFinderOne<T>? finderOne,
-    DataFinderAll<T>? finderAll,
-    DataWatcherAll<T>? watcherAll,
-    DataWatcherOne<T>? watcherOne,
-    required String name,
-  }) {
-    if (finderOne != null) _findersOne[name] = finderOne;
-    if (finderAll != null) _findersAll[name] = finderAll;
-    if (watcherAll != null) watchersAll[name] = watcherAll;
-    if (watcherOne != null) watchersOne[name] = watcherOne;
-    return this;
-  }
+class DataStrategy {
+  const DataStrategy();
 }
 
 typedef DataFinderAll<T extends DataModel<T>> = Future<List<T>?> Function({
