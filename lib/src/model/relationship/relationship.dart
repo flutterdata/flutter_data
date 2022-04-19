@@ -148,10 +148,6 @@ abstract class Relationship<E extends DataModel<E>, N>
     return _uninitializedModels.remove(model);
   }
 
-  Iterator<E> get iterator => _iterable.iterator;
-
-  E? lookup(Object? element) => lookup(element);
-
   Set<E> toSet() => _iterable.toSet();
 
   List<E> toList() => _iterable.toList();

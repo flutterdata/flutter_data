@@ -89,7 +89,7 @@ class $BookAuthorRemoteAdapter = RemoteAdapter<BookAuthor>
     with BookAuthorAdapter;
 
 final _bookAuthorsStrategies = <String, dynamic>{
-  'censor': (_) => _.censor,
+  'caps': (_) => _.caps,
 };
 
 //

@@ -38,7 +38,7 @@ mixin BookAuthorAdapter on RemoteAdapter<BookAuthor> {
   String get type => 'writers';
 
   @DataStrategy()
-  Future<BookAuthor> censor(
+  Future<BookAuthor> caps(
     Object model, {
     bool? remote,
     bool? background,
@@ -49,12 +49,6 @@ mixin BookAuthorAdapter on RemoteAdapter<BookAuthor> {
     DataRequestLabel? label,
   }) async {
     final _model = await findOne(model, remote: remote);
-    return _model!.copyWith(name: '#&(@*@&@!*(!').was(_model);
+    return _model!.copyWith(name: _model.name?.toUpperCase()).was(_model);
   }
 }
-
-// mixin _StrategyAdapter on RemoteAdapter<BookAuthor>, BookAuthorAdapter {
-//   @override
-//   DataStrategies<BookAuthor> get strategies =>
-//       super.strategies.add(finderOne: censor, name: 'censor');
-// }

@@ -704,9 +704,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @visibleForTesting
   @nonVirtual
   Set<OfflineOperation<T>> get offlineOperations {
-    final node = graph._getNode(_offlineAdapterKey);
-    return (node ?? {})
-        .entries
+    final node = graph._getNode(_offlineAdapterKey)!;
+    return node.entries
         .map((e) {
           // extract type from e.g. _offline:findOne/users#3@d7bcc9
           final label = DataRequestLabel.parse(e.key.denamespace());

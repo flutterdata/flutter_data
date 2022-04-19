@@ -471,7 +471,7 @@ void main() async {
     final listener = Listener<DataState<BookAuthor?>?>();
 
     final notifier = bookAuthorRepository.remoteAdapter
-        .watchOneNotifier(1, finder: 'censor', remote: true);
+        .watchOneNotifier(1, finder: 'caps', remote: true);
 
     dispose = notifier.addListener(listener);
 
@@ -480,7 +480,7 @@ void main() async {
     await oneMs();
 
     verify(listener(argThat(
-      isA<DataState>().having((s) => s.model!.name, 'name', '#&(@*@&@!*(!'),
+      isA<DataState>().having((s) => s.model!.name, 'name', 'FRANK'),
     ))).called(1);
     verifyNoMoreInteractions(listener);
   });
@@ -638,10 +638,10 @@ void main() async {
         .save(remote: false);
 
     final defaultNotifier = container.read(bookAuthorProvider(1).notifier);
-    final remoteFalseNotifier =
-        container.read(bookAuthorProvider(1, remote: false).notifier);
-    final remoteFalseNotifier2 =
-        container.read(bookAuthorProvider(1, remote: false).notifier);
+    final remoteFalseNotifier = container
+        .read(bookAuthorProvider(1, remote: false, finder: 'caps').notifier);
+    final remoteFalseNotifier2 = container
+        .read(bookAuthorProvider(1, remote: false, finder: 'caps').notifier);
     expect(remoteFalseNotifier, remoteFalseNotifier2);
 
     expect(defaultNotifier, isNot(remoteFalseNotifier));
@@ -650,6 +650,13 @@ void main() async {
     expect(state.model!, bookAuthor);
 
     expect(defaultNotifier, bookAuthor.notifier());
-    expect(remoteFalseNotifier, bookAuthor.notifier(remote: false));
+    expect(remoteFalseNotifier,
+        bookAuthor.notifier(remote: false, finder: 'caps'));
+  });
+
+  test('watchargs', () {
+    final a1 = WatchArgs<Person>(id: 1, remote: false, finder: 'finder');
+    final a2 = WatchArgs<Person>(id: 1, remote: false, finder: 'finder');
+    expect(a1, a2);
   });
 }
