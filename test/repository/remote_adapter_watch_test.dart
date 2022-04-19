@@ -15,8 +15,6 @@ void main() async {
   setUp(setUpFn);
   tearDown(tearDownFn);
 
-  //
-
   test('watchAllNotifier', () async {
     final listener = Listener<DataState<List<Familia>?>>();
 
@@ -632,5 +630,26 @@ void main() async {
     dispose!();
     final notifier2 = personRemoteAdapter.watchAllNotifier();
     dispose = notifier2.addListener((_) {});
+  });
+
+  test('notifier equality', () async {
+    final bookAuthor = await BookAuthor(id: 1, name: 'Billy')
+        .init(container.read)
+        .save(remote: false);
+
+    final defaultNotifier = container.read(bookAuthorProvider(1).notifier);
+    final remoteFalseNotifier =
+        container.read(bookAuthorProvider(1, remote: false).notifier);
+    final remoteFalseNotifier2 =
+        container.read(bookAuthorProvider(1, remote: false).notifier);
+    expect(remoteFalseNotifier, remoteFalseNotifier2);
+
+    expect(defaultNotifier, isNot(remoteFalseNotifier));
+
+    final state = container.read(bookAuthorProvider(1));
+    expect(state.model!, bookAuthor);
+
+    expect(defaultNotifier, bookAuthor.notifier());
+    expect(remoteFalseNotifier, bookAuthor.notifier(remote: false));
   });
 }

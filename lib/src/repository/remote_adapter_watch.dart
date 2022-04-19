@@ -93,6 +93,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     bool? syncLocal,
+    String? finder,
   }) {
     if (internalWatch == null || _internalHolder?.allProvider == null) {
       throw UnsupportedError(_watchAllError);
@@ -160,7 +161,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           );
           // trigger doneLoading to ensure state is updated with isLoading=false
           final _key = model?._key! ?? key();
-          if (_key != null) {
+          if (remote && _key != null) {
             graph._notify([_key, label.toString()],
                 type: DataGraphEventType.doneLoading);
           }
@@ -247,6 +248,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     AlsoWatch<T>? alsoWatch,
+    String? finder,
   }) {
     if (internalWatch == null || _internalHolder?.oneProvider == null) {
       throw UnsupportedError(_watchOneError);

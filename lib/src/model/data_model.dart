@@ -156,13 +156,25 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   }
 
   /// Get this model's notifier (watchOne)
-  DataStateNotifier<T?> get notifier {
+  DataStateNotifier<T?> notifier(
+      {bool? remote,
+      Map<String, dynamic>? params,
+      Map<String, String>? headers,
+      AlsoWatch<T>? alsoWatch,
+      String? finder}) {
     _assertInit('notifier');
     if (remoteAdapter._internalHolder?.oneProvider == null) {
       throw UnsupportedError(remoteAdapter._watchOneError);
     }
-    return remoteAdapter
-        .read(remoteAdapter._internalHolder!.oneProvider!(this).notifier);
+    return remoteAdapter.read(remoteAdapter
+        ._internalHolder!
+        .oneProvider!(id ?? this,
+            remote: remote,
+            params: params,
+            headers: headers,
+            alsoWatch: alsoWatch,
+            finder: finder)
+        .notifier);
   }
 
   void _assertInit(String method) {

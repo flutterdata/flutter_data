@@ -58,6 +58,7 @@ typedef OneProvider<T extends DataModel<T>>
   Map<String, dynamic>? params,
   Map<String, String>? headers,
   AlsoWatch<T>? alsoWatch,
+  String? finder,
 });
 
 typedef AllProvider<T extends DataModel<T>> = AutoDisposeStateNotifierProvider<
@@ -67,6 +68,7 @@ typedef AllProvider<T extends DataModel<T>> = AutoDisposeStateNotifierProvider<
   Map<String, dynamic>? params,
   Map<String, String>? headers,
   bool? syncLocal,
+  String? finder,
 });
 
 // strategies
