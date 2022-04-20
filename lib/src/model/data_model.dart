@@ -11,16 +11,10 @@ abstract class DataModel<T extends DataModel<T>> {
   String? _key;
   Map<String, RemoteAdapter>? _adapters;
   String get _internalType => DataHelpers.getType<T>();
-  DataStateNotifier? _notifier;
 
   /// Exposes this type's [RemoteAdapter]
   RemoteAdapter<T> get remoteAdapter =>
       _adapters?[_internalType]! as RemoteAdapter<T>;
-
-  /// Exposes the [DataStateNotifier] that fetched this model;
-  /// typically used to access `notifier.reload()` so it only
-  /// makes sense for `remote=true` requests.
-  DataStateNotifier<R>? notifier<R>() => _notifier as DataStateNotifier<R>?;
 
   /// Whether this model was initialized, either
   /// automatically or manually via `init` or [was].
@@ -62,11 +56,6 @@ abstract class DataModel<T extends DataModel<T>> {
         inverseName: metadata.value['inverse'] as String?,
       );
     }
-  }
-
-  // privately set the notifier
-  void _updateNotifier<R>(DataStateNotifier<R> value) {
-    _notifier = value;
   }
 }
 

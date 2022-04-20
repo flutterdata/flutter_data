@@ -99,9 +99,7 @@ void main() async {
         .having((s) => s.isLoading, 'isLoading', isFalse)
         .having((s) => s.model.id, 'id', '1')
         .having((s) => s.model.age, 'age', 23)
-        .having((s) => s.model.name, 'name', 'Charlie')
-        // ensure the notifier has been attached
-        .having((s) => s.model.notifier, 'notifier', isNotNull);
+        .having((s) => s.model.name, 'name', 'Charlie');
 
     verify(listener(argThat(charlie))).called(1);
     verifyNoMoreInteractions(listener);
@@ -696,13 +694,13 @@ void main() async {
         .save(remote: false);
 
     final defaultNotifier = container.read(bookAuthorProvider(1).notifier);
-    final remoteFalseNotifier = container
-        .read(bookAuthorProvider(1, remote: false, finder: 'caps').notifier);
-    final remoteFalseNotifier2 = container
-        .read(bookAuthorProvider(1, remote: false, finder: 'caps').notifier);
-    expect(remoteFalseNotifier, remoteFalseNotifier2);
+    final capsNotifier =
+        container.read(bookAuthorProvider(1, finder: 'caps').notifier);
+    final capsNotifier2 =
+        container.read(bookAuthorProvider(1, finder: 'caps').notifier);
 
-    expect(defaultNotifier, isNot(remoteFalseNotifier));
+    expect(capsNotifier, capsNotifier2);
+    expect(defaultNotifier, isNot(capsNotifier));
 
     final state = container.read(bookAuthorProvider(1));
     expect(state.model!, bookAuthor);

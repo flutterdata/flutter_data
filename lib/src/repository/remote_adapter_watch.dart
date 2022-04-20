@@ -18,51 +18,47 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     final _finder = _maybeFinder is DataFinderAll<T> ? _maybeFinder : findAll;
     final label = DataRequestLabel('findAll', type: internalType);
 
-    final localModels =
-        localAdapter.findAll()?.map((m) => m._initialize(adapters)).toList();
+    // closure to get latest models
+    List<T>? _getUpdatedModels() {
+      return localAdapter
+          .findAll()
+          ?.map((m) => m._initialize(adapters))
+          .toList();
+    }
 
     final _notifier = DataStateNotifier<List<T>?>(
-      data: DataState(localModels, isLoading: remote!),
-      reload: (notifier) async {
-        if (!notifier.mounted) return;
+      data: DataState(_getUpdatedModels(), isLoading: remote!),
+    );
 
-        if (remote!) {
-          notifier.updateWith(isLoading: true);
-        }
+    _notifier.reloadFn = () async {
+      if (!_notifier.mounted) return;
 
-        try {
-          await _finder(
-            remote: remote,
-            params: params,
-            headers: headers,
-            syncLocal: syncLocal,
-            label: label,
-            onError: (e, _) => throw e,
-          );
+      if (remote!) {
+        _notifier.updateWith(isLoading: true);
+      }
+
+      try {
+        await _finder(
+          remote: remote,
+          params: params,
+          headers: headers,
+          syncLocal: syncLocal,
+          label: label,
+          onError: (e, _) => throw e,
+        );
+        if (remote) {
           // trigger doneLoading to ensure state is updated with isLoading=false
           graph._notify([label.toString()],
               type: DataGraphEventType.doneLoading);
-        } on DataException catch (e) {
-          if (notifier.mounted) {
-            notifier.updateWith(isLoading: false, exception: e);
-          } else {
-            rethrow;
-          }
         }
-      },
-    );
-
-    // closure to get latest models
-    List<T>? _getUpdatedModels() {
-      final models = localAdapter.findAll();
-      if (models != null) {
-        for (final model in models) {
-          model._initialize(adapters);
-          model._updateNotifier(_notifier);
+      } on DataException catch (e) {
+        if (_notifier.mounted) {
+          _notifier.updateWith(isLoading: false, exception: e);
+        } else {
+          rethrow;
         }
       }
-      return models;
-    }
+    };
 
     // kick off
     _notifier.reload();
@@ -141,40 +137,6 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           keyIfAbsent: (model is T ? model._key : null));
     }
 
-    final _notifier = DataStateNotifier<T?>(
-      data: DataState(localAdapter.findOne(key())?._initialize(adapters),
-          isLoading: remote!),
-      reload: (notifier) async {
-        if (!notifier.mounted || id == null) return;
-
-        if (remote!) {
-          notifier.updateWith(isLoading: true);
-        }
-
-        try {
-          final model = await _finder(
-            id,
-            remote: remote,
-            params: params,
-            headers: headers,
-            onError: (e, _) => throw e,
-          );
-          // trigger doneLoading to ensure state is updated with isLoading=false
-          final _key = model?._key!;
-          if (remote && _key != null) {
-            graph._notify([_key, label.toString()],
-                type: DataGraphEventType.doneLoading);
-          }
-        } on DataException catch (e) {
-          if (notifier.mounted) {
-            notifier.updateWith(isLoading: false, exception: e);
-          } else {
-            rethrow;
-          }
-        }
-      },
-    );
-
     // closure to get latest model and watchable relationship pairs
     T? _getUpdatedModel() {
       final model = localAdapter.findOne(key())?._initialize(adapters);
@@ -185,10 +147,43 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
             return r.keys.map((key) => [r._ownerKey, key]);
           }).expand((_) => _)
         };
-        model._updateNotifier(_notifier);
       }
       return model;
     }
+
+    final _notifier = DataStateNotifier<T?>(
+      data: DataState(_getUpdatedModel(), isLoading: remote!),
+    );
+
+    _notifier.reloadFn = () async {
+      if (!_notifier.mounted || id == null) return;
+
+      if (remote!) {
+        _notifier.updateWith(isLoading: true);
+      }
+
+      try {
+        final model = await _finder(
+          id,
+          remote: remote,
+          params: params,
+          headers: headers,
+          onError: (e, _) => throw e,
+        );
+        // trigger doneLoading to ensure state is updated with isLoading=false
+        final _key = model?._key!;
+        if (remote && _key != null) {
+          graph._notify([_key, label.toString()],
+              type: DataGraphEventType.doneLoading);
+        }
+      } on DataException catch (e) {
+        if (_notifier.mounted) {
+          _notifier.updateWith(isLoading: false, exception: e);
+        } else {
+          rethrow;
+        }
+      }
+    };
 
     // trigger local + async loading
     _notifier.reload();
