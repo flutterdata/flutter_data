@@ -104,7 +104,7 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
 
   @override
   bool get _isLocalStorageTouched {
-    return graph.hasEdge('_boxMetadata', metadata: '_boxMetadata:touched');
+    return graph._hasEdge('_boxMetadata', metadata: '_boxMetadata:touched');
   }
 
   @override
