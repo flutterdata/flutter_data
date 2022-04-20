@@ -19,7 +19,6 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         _finderStrategy is DataFinderAll<T> ? _finderStrategy : findAll;
     final label = DataRequestLabel('findAll', type: internalType);
 
-    // TODO make default null (vs empty list)
     final localModels = localAdapter
         .findAll()
         ?.map((m) => initializeModel(m, save: true))
@@ -132,18 +131,30 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
     final id = _resolveId(model);
 
+    var _alsoWatchPairs = <List<String>>{};
+
     // lazy key access
     String? key() {
       return graph.getKeyForId(internalType, id,
           keyIfAbsent: (model is T ? model._key : null));
     }
 
-    var _alsoWatchRelationshipNames = <String>{};
-
-    final localModel = localAdapter.findOne(key())?._initialize(adapters);
+    T? _getUpdatedModel() {
+      final model = localAdapter.findOne(key())?._initialize(adapters);
+      if (model != null) {
+        model._initializeRelationships();
+        _alsoWatchPairs = {
+          ...?alsoWatch?.call(model).filterNulls.map((r) {
+            return r.keys.map((key) => [r._ownerKey, key]);
+          }).expand((_) => _)
+        };
+      }
+      return model;
+    }
 
     final _notifier = DataStateNotifier<T?>(
-      data: DataState(localModel, isLoading: remote!),
+      data: DataState(localAdapter.findOne(key())?._initialize(adapters),
+          isLoading: remote!),
       reload: (notifier) async {
         if (!notifier.mounted || id == null) return;
 
@@ -160,7 +171,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
             onError: (e, _) => throw e,
           );
           // trigger doneLoading to ensure state is updated with isLoading=false
-          final _key = model?._key! ?? key();
+          final _key = model?._key!;
           if (remote && _key != null) {
             graph._notify([_key, label.toString()],
                 type: DataGraphEventType.doneLoading);
@@ -187,17 +198,13 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
       final _key = key();
 
+      // get the latest updated model with watchable relationships
+      // (_alsoWatchPairs) in order to determine whether there is
+      // something that will cause a notification (with the introduction
+      // of `andEach` even seemingly unrelated models could trigger)
+      _model = _getUpdatedModel();
+
       if (event.keys.contains(_key)) {
-        _model = localAdapter.findOne(_key)?._initialize(adapters);
-
-        if (_model != null) {
-          _model!._initializeRelationships();
-          _alsoWatchRelationshipNames = {
-            internalType,
-            ...?alsoWatch?.call(_model!).filterNulls.map((r) => r._name)
-          };
-        }
-
         // handle done loading
         if (_notifier.data.isLoading &&
             event.keys.last == label.toString() &&
@@ -219,21 +226,29 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           _notifier.updateWith(model: null);
         }
 
-        // changes on specific relationships of this model
-        // (only when model already loaded)
-        if (_notifier.data.isLoading == false &&
-            event.type.isEdge &&
-            _alsoWatchRelationshipNames.contains(event.metadata)) {
-          _notifier.updateWith(model: _model);
+        // temporarily restore removed pair so that watchedRelationshipUpdate
+        // has a chance to apply the update
+        if (event.type == DataGraphEventType.removeEdge) {
+          _alsoWatchPairs.add(event.keys);
         }
       }
 
-      // updates on all models of specific relationships of this model
-      // (only when model already loaded)
-      if (_notifier.data.isLoading == false &&
-          event.type == DataGraphEventType.updateNode &&
-          _relatedKeys(_notifier.data.model!).any(event.keys.contains)) {
-        _model = localAdapter.findOne(_key)?._initialize(adapters);
+      // updates on watched relationships condition
+      final watchedRelationshipUpdate = event.type.isEdge &&
+          _alsoWatchPairs
+              .where((pair) =>
+                  pair.sorted().toString() == event.keys.sorted().toString())
+              .isNotEmpty;
+
+      // updates on watched models (of relationships) condition
+      final watchedModelUpdate = event.type == DataGraphEventType.updateNode &&
+          _alsoWatchPairs
+              .where((pair) => pair.contains(event.keys.first))
+              .isNotEmpty;
+
+      // if model is loaded and any condition passes, notify update
+      if (_notifier.data.isLoading == false && watchedRelationshipUpdate ||
+          watchedModelUpdate) {
         _notifier.updateWith(model: _model);
       }
     });
@@ -265,16 +280,6 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
   String get _watchOneError =>
       'Should only be used via `ref.$type.watchOne`. Alternatively use `watch${type.singularize().capitalize()}()`.';
-
-  Set<String> _relatedKeys(T model) {
-    return localAdapter
-        .relationshipsFor(model)
-        .values
-        .map((meta) => (meta['instance'] as Relationship?)?.keys)
-        .filterNulls
-        .expand((key) => key)
-        .toSet();
-  }
 }
 
-typedef AlsoWatch<T extends DataModel<T>> = List<Relationship?> Function(T);
+typedef AlsoWatch<T extends DataModel<T>> = Iterable<Relationship?> Function(T);

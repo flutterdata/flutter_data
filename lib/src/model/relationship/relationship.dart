@@ -57,7 +57,7 @@ abstract class Relationship<E extends DataModel<E>, N>
 
     if (_shouldRemove) {
       _graph._removeEdges(_ownerKey,
-          metadata: _name, inverseMetadata: _inverseName);
+          metadata: _name, inverseMetadata: _inverseName, notify: false);
     } else {
       // initialize uninitialized models and get keys
       final newKeys = _uninitializedModels.map((model) {
@@ -195,6 +195,14 @@ abstract class Relationship<E extends DataModel<E>, N>
         '${isInitialized ? '' : '['}${m.id}${isInitialized ? '' : ']'}',
       for (final key in keys)
         if (!isInitialized) '[${_graph.getIdForKey(key)}]',
+    };
+  }
+
+  Iterable<Relationship?> andEach(AlsoWatch<E>? alsoWatch) {
+    return {
+      this,
+      for (final value in _iterable)
+        ...?alsoWatch?.call(value.._initializeRelationships()),
     };
   }
 

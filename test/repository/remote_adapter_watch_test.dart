@@ -229,6 +229,32 @@ void main() async {
     verifyNoMoreInteractions(listener);
   });
 
+  test('watchOneNotifier with alsoWatch relationships (remote=false)',
+      () async {
+    // simulate Familia that exists in local storage
+    // important to keep to test `alsoWatch` assignment order
+    final familia = Familia(id: '1', surname: 'Paez', persons: HasMany())
+        .init(container.read);
+
+    final listener = Listener<DataState<Familia?>?>();
+
+    final notifier = familiaRepository.remoteAdapter
+        .watchOneNotifier('1', remote: false, alsoWatch: (f) => [f.persons]);
+
+    // we don't want it to immediately notify the default local model
+    dispose = notifier.addListener(listener, fireImmediately: false);
+
+    familia.persons.add(Person(id: '1', name: 'Ricky'));
+    await oneMs();
+
+    verify(listener(DataState(familia))).called(1);
+
+    Person(id: '1', name: 'Ricardo').init(container.read);
+    await oneMs();
+
+    verify(listener(DataState(familia))).called(1);
+  });
+
   test('watchAllNotifier updates isLoading even in an empty response',
       () async {
     final listener = Listener<DataState<List<Familia>?>?>();
@@ -319,7 +345,6 @@ void main() async {
     var i = 0;
     dispose = notifier.addListener(
       expectAsync1((state) {
-        // return print(state);
         if (i == 0) {
           expect(state.model, [matcher]);
           expect(state.isLoading, isFalse);
@@ -559,14 +584,20 @@ void main() async {
     await f1.delete();
     await oneMs();
 
-    verifyNever(listener(any));
+    // called four times: model removal and relationships removal
+    verify(listener(argThat(
+      isA<DataState>().having((s) => s.model, 'model', isNull),
+    ))).called(4);
+    verifyNoMoreInteractions(listener);
   });
 
   test('watchOneNotifier without ID and alsoWatch', () async {
     final frank = Person(name: 'Frank', age: 30).init(container.read);
 
-    final notifier = personRepository.remoteAdapter
-        .watchOneNotifier(frank, alsoWatch: (p) => [p.familia]);
+    final notifier = personRepository.remoteAdapter.watchOneNotifier(
+      frank,
+      alsoWatch: (p) => p.familia.andEach((f) => [f.cottage]),
+    );
 
     final listener = Listener<DataState<Person?>?>();
     dispose = notifier.addListener(listener, fireImmediately: false);
@@ -585,14 +616,33 @@ void main() async {
     verify(listener(argThat(matcher))).called(1);
     verifyNoMoreInteractions(listener);
 
-    final familia = Familia(surname: 'Marquez');
+    final cottage = House(id: '32769', address: '32769 Winding Road');
+
+    final familia = Familia(
+      surname: 'Marquez',
+      cottage: cottage.asBelongsTo,
+    );
     steve.familia.value = familia;
     await oneMs();
 
     verify(listener(argThat(matcher))).called(1);
     verifyNoMoreInteractions(listener);
 
-    Familia(surname: 'Thomson').was(familia);
+    Familia(surname: 'Thomson', cottage: cottage.asBelongsTo).was(familia);
+    await oneMs();
+
+    verify(listener(argThat(matcher))).called(1);
+    verifyNoMoreInteractions(listener);
+
+    await House(id: '32769', address: '8 Hill St')
+        .init(container.read)
+        .save(remote: false);
+    await oneMs();
+
+    verify(listener(argThat(matcher))).called(1);
+    verifyNoMoreInteractions(listener);
+
+    Familia(surname: 'Thomson', cottage: BelongsTo.remove()).was(familia);
     await oneMs();
 
     verify(listener(argThat(matcher))).called(1);
