@@ -237,7 +237,7 @@ final _$providerStringSingular =
         (ref, args) {
   final adapter = ref.watch(${typeLowerCased}RemoteAdapterProvider);
   final _watcherStrategy = _${typeLowerCased}Strategies[args.watcher]?.call(adapter);
-  final notifier = _watcherStrategy is DataWatcherOne<$classType> ? _watcherStrategy as DataWatcherOne<$classType> : adapter.watchOneNotifier;
+  final notifier = _watcherStrategy is DataWatcherOne<$classType> ? _watcherStrategy : adapter.watchOneNotifier;
   return notifier(args.id!, remote: args.remote, params: args.params, headers: args.headers, alsoWatch: args.alsoWatch, finder: args.finder);
 });
 
@@ -251,7 +251,7 @@ final _$providerStringPlural =
         (ref, args) {
   final adapter = ref.watch(${typeLowerCased}RemoteAdapterProvider);
   final _watcherStrategy = _${typeLowerCased}Strategies[args.watcher]?.call(adapter);
-  final notifier = _watcherStrategy is DataWatcherAll<$classType> ? _watcherStrategy as DataWatcherAll<$classType> : adapter.watchAllNotifier;
+  final notifier = _watcherStrategy is DataWatcherAll<$classType> ? _watcherStrategy : adapter.watchAllNotifier;
   return notifier(remote: args.remote, params: args.params, headers: args.headers, syncLocal: args.syncLocal, finder: args.finder);
 });
 
