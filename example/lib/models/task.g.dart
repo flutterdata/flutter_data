@@ -76,7 +76,7 @@ final _taskProvider = StateNotifierProvider.autoDispose
   final adapter = ref.watch(tasksRemoteAdapterProvider);
   final _watcherStrategy = _tasksStrategies[args.watcher]?.call(adapter);
   final notifier = _watcherStrategy is DataWatcherOne<Task>
-      ? _watcherStrategy as DataWatcherOne<Task>
+      ? _watcherStrategy
       : adapter.watchOneNotifier;
   return notifier(args.id!,
       remote: args.remote,
@@ -111,7 +111,7 @@ final _tasksProvider = StateNotifierProvider.autoDispose.family<
   final adapter = ref.watch(tasksRemoteAdapterProvider);
   final _watcherStrategy = _tasksStrategies[args.watcher]?.call(adapter);
   final notifier = _watcherStrategy is DataWatcherAll<Task>
-      ? _watcherStrategy as DataWatcherAll<Task>
+      ? _watcherStrategy
       : adapter.watchAllNotifier;
   return notifier(
       remote: args.remote,

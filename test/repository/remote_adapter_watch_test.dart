@@ -25,7 +25,7 @@ void main() async {
 
     dispose = notifier.addListener(listener);
 
-    verify(listener(DataState([], isLoading: true))).called(1);
+    verify(listener(DataState(null, isLoading: true))).called(1);
     await oneMs();
 
     verify(listener(DataState([
@@ -45,7 +45,7 @@ void main() async {
 
     dispose = notifier.addListener(listener);
 
-    verify(listener(DataState([], isLoading: true))).called(1);
+    verify(listener(DataState(null, isLoading: true))).called(1);
     await oneMs();
 
     // finished loading but found the network unreachable
@@ -266,19 +266,24 @@ void main() async {
     final listener = Listener<DataState<List<Familia>?>?>();
 
     container.read(responseProvider.notifier).state = TestResponse.text('[]');
-    final notifier = familiaRepository.remoteAdapter.watchAllNotifier();
+    final notifier =
+        familiaRepository.remoteAdapter.watchAllNotifier(remote: true);
 
     dispose = notifier.addListener(listener);
 
     verify(listener(argThat(
-      isA<DataState>().having((s) => s.isLoading, 'loading', true),
+      isA<DataState>()
+          .having((s) => s.isLoading, 'loading', true)
+          // local storage should be null at this point
+          .having((s) => s.model, 'model', null),
     ))).called(1);
 
     await oneMs();
 
     verify(listener(argThat(
       isA<DataState>()
-          .having((s) => s.model, 'empty', isEmpty)
+          // empty because the server response was an empty list
+          .having((s) => s.model, 'model', isEmpty)
           .having((s) => s.isLoading, 'loading', false),
     ))).called(1);
 
@@ -302,6 +307,7 @@ void main() async {
           .having((s) => s.model, 'empty', isEmpty)
           .having((s) => s.isLoading, 'loading', false),
     ))).called(1);
+    verifyNoMoreInteractions(listener2);
   });
 
   test('watchAllNotifier syncLocal', () async {
@@ -340,11 +346,11 @@ void main() async {
 
   //
 
-  test('watchAllNotifier 2', () async {
-    final notifier = personRemoteAdapter.watchAllNotifier();
+  test('watchAllNotifier with multiple model updates', () async {
+    final notifier = personRemoteAdapter.watchAllNotifier(remote: false);
 
     final matcher = predicate((p) {
-      return p is Person && p.name.startsWith('Person Number') && p.age! < 19;
+      return p is Person && p.name.startsWith('Number') && p.age! < 19;
     });
 
     final count = 29;
@@ -352,32 +358,27 @@ void main() async {
     dispose = notifier.addListener(
       expectAsync1((state) {
         if (i == 0) {
-          expect(state.model, [matcher]);
+          expect(state.model, isNull);
           expect(state.isLoading, isFalse);
-        } else if (i == 1) {
-          expect(state.model, [matcher, matcher]);
-        } else if (i == 2) {
-          expect(state.model, [matcher, matcher, matcher]);
-        } else if (i < count) {
-          expect(state.model, hasLength(i + 1));
-        } else if (i == count) {
-          // the last event was a deletion, NOT an addition
-          // so instead of expecting i+1, we expect i-1
-          expect(state.model, hasLength(i - 1));
-          expect(
+        } else if (i <= count) {
+          expect(state.model, List.generate(i, (_) => matcher));
+          final box =
               (personRemoteAdapter.localAdapter as HiveLocalAdapter<Person>)
-                  .box!
-                  .keys
-                  .length,
-              i - 1);
-          expect(state.isLoading, false); // since it's not hitting any API
+                  .box!;
+          // check box has all the keys
+          expect(box.keys.length, i);
+        } else {
+          // one less because of emitting the deletion,
+          // and one less because of the now missing model
+          expect(state.model, hasLength(i - 2));
         }
         i++;
-      }, count: count),
-      fireImmediately: false,
+        // an extra count because of the initial `null` state
+        // and an extra count because of the deletion in the loop below
+      }, count: count + 2),
     );
 
-    // this whole thing below emits count + 1 (watchAllNotifier-relevant) states
+    // this emits `count` states
     Person person;
     for (var j = 0; j < count; j++) {
       await (() async {
@@ -385,8 +386,9 @@ void main() async {
             Random().nextBool() ? Random().nextInt(999999999).toString() : null;
         person = Person.generate(container, withId: id);
 
-        // just before finishing, delete last Person
+        // in the last cycle, delete last Person too
         if (j == count - 1) {
+          await oneMs();
           await person.delete();
         }
         await oneMs();

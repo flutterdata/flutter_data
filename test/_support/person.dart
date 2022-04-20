@@ -62,7 +62,7 @@ class Person with DataModel<Person> {
   factory Person.generate(ProviderContainer container, {String? withId}) {
     return Person(
             id: withId,
-            name: 'Person Number ${withId ?? Random().nextInt(999999999)}',
+            name: 'Number ${withId ?? Random().nextInt(999999999)}',
             age: Random().nextInt(19))
         .init(container.read);
   }

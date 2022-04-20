@@ -59,6 +59,16 @@ void main() async {
     });
   });
 
+  test('addNode/orAdd', () {
+    graph.addEdges('h1',
+        tos: ['b1', 'b2'],
+        metadata: 'blogs',
+        addNode: true,
+        inverseMetadata: 'host');
+
+    expect(graph.getEdge('h1', metadata: 'blogs'), hasLength(2));
+  });
+
   test('produces a new key', () {
     var key = graph.getKeyForId('people', '1');
     expect(key, isNull);

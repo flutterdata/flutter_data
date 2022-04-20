@@ -53,8 +53,11 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
   // protected API
 
   @override
-  List<T> findAll() {
-    return box!.values.toImmutableList();
+  List<T>? findAll() {
+    if (_isLocalStorageTouched) {
+      return box!.values.toImmutableList();
+    }
+    return null;
   }
 
   @override
@@ -62,6 +65,8 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
 
   @override
   Future<T> save(String key, T model, {bool notify = true}) async {
+    _touchLocalStorage();
+
     final keyExisted = box!.containsKey(key);
     final save = box!.put(key, model);
     if (notify) {
@@ -89,6 +94,25 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
     await box!.clear();
   }
 
+  // Touching local storage means the box has received data;
+  // this is used to know whether `findAll` should return
+  // null, or its models (possibly empty)
+
+  // _boxMetadata: {
+  //   '_boxMetadata:touched': ['_'],
+  // }
+
+  @override
+  bool get _isLocalStorageTouched {
+    return graph.hasEdge('_boxMetadata', metadata: '_boxMetadata:touched');
+  }
+
+  @override
+  void _touchLocalStorage() {
+    graph._addEdge('_boxMetadata', '_',
+        metadata: '_boxMetadata:touched', addNode: true, notify: false);
+  }
+
   // hive adapter
 
   @override
@@ -99,11 +123,8 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
     //   '_adapter_hive:houses': ['_adapter_hive:3'],
     // }
 
-    if (!graph._hasNode(_hiveAdapterKey)) {
-      graph._addNode(_hiveAdapterKey);
-    }
-
-    final _typesNode = graph._getNode(_hiveAdapterKey)!;
+    final _typesNode =
+        graph._getNode(_hiveAdapterKey, orAdd: true, notify: false)!;
 
     final edge = _typesNode[_internalType.namespaceWith(_hiveAdapterNs)];
 
@@ -122,7 +143,7 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
 
     graph._addEdge(
         _hiveAdapterKey, index.toString().namespaceWith(_hiveAdapterNs),
-        metadata: _internalType.namespaceWith(_hiveAdapterNs));
+        metadata: _internalType.namespaceWith(_hiveAdapterNs), notify: false);
     return index;
   }
 

@@ -72,7 +72,7 @@ final _dogProvider = StateNotifierProvider.autoDispose
   final adapter = ref.watch(dogsRemoteAdapterProvider);
   final _watcherStrategy = _dogsStrategies[args.watcher]?.call(adapter);
   final notifier = _watcherStrategy is DataWatcherOne<Dog>
-      ? _watcherStrategy as DataWatcherOne<Dog>
+      ? _watcherStrategy
       : adapter.watchOneNotifier;
   return notifier(args.id!,
       remote: args.remote,
@@ -107,7 +107,7 @@ final _dogsProvider = StateNotifierProvider.autoDispose.family<
   final adapter = ref.watch(dogsRemoteAdapterProvider);
   final _watcherStrategy = _dogsStrategies[args.watcher]?.call(adapter);
   final notifier = _watcherStrategy is DataWatcherAll<Dog>
-      ? _watcherStrategy as DataWatcherAll<Dog>
+      ? _watcherStrategy
       : adapter.watchAllNotifier;
   return notifier(
       remote: args.remote,
@@ -192,7 +192,7 @@ final _catProvider = StateNotifierProvider.autoDispose
   final adapter = ref.watch(catsRemoteAdapterProvider);
   final _watcherStrategy = _catsStrategies[args.watcher]?.call(adapter);
   final notifier = _watcherStrategy is DataWatcherOne<Cat>
-      ? _watcherStrategy as DataWatcherOne<Cat>
+      ? _watcherStrategy
       : adapter.watchOneNotifier;
   return notifier(args.id!,
       remote: args.remote,
@@ -227,7 +227,7 @@ final _catsProvider = StateNotifierProvider.autoDispose.family<
   final adapter = ref.watch(catsRemoteAdapterProvider);
   final _watcherStrategy = _catsStrategies[args.watcher]?.call(adapter);
   final notifier = _watcherStrategy is DataWatcherAll<Cat>
-      ? _watcherStrategy as DataWatcherAll<Cat>
+      ? _watcherStrategy
       : adapter.watchAllNotifier;
   return notifier(
       remote: args.remote,

@@ -85,7 +85,7 @@ final _nodeProvider = StateNotifierProvider.autoDispose
   final adapter = ref.watch(nodesRemoteAdapterProvider);
   final _watcherStrategy = _nodesStrategies[args.watcher]?.call(adapter);
   final notifier = _watcherStrategy is DataWatcherOne<Node>
-      ? _watcherStrategy as DataWatcherOne<Node>
+      ? _watcherStrategy
       : adapter.watchOneNotifier;
   return notifier(args.id!,
       remote: args.remote,
@@ -120,7 +120,7 @@ final _nodesProvider = StateNotifierProvider.autoDispose.family<
   final adapter = ref.watch(nodesRemoteAdapterProvider);
   final _watcherStrategy = _nodesStrategies[args.watcher]?.call(adapter);
   final notifier = _watcherStrategy is DataWatcherAll<Node>
-      ? _watcherStrategy as DataWatcherAll<Node>
+      ? _watcherStrategy
       : adapter.watchAllNotifier;
   return notifier(
       remote: args.remote,

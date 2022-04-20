@@ -110,7 +110,7 @@ final _bookAuthorProvider = StateNotifierProvider.autoDispose.family<
   final adapter = ref.watch(bookAuthorsRemoteAdapterProvider);
   final _watcherStrategy = _bookAuthorsStrategies[args.watcher]?.call(adapter);
   final notifier = _watcherStrategy is DataWatcherOne<BookAuthor>
-      ? _watcherStrategy as DataWatcherOne<BookAuthor>
+      ? _watcherStrategy
       : adapter.watchOneNotifier;
   return notifier(args.id!,
       remote: args.remote,
@@ -146,7 +146,7 @@ final _bookAuthorsProvider = StateNotifierProvider.autoDispose.family<
   final adapter = ref.watch(bookAuthorsRemoteAdapterProvider);
   final _watcherStrategy = _bookAuthorsStrategies[args.watcher]?.call(adapter);
   final notifier = _watcherStrategy is DataWatcherAll<BookAuthor>
-      ? _watcherStrategy as DataWatcherAll<BookAuthor>
+      ? _watcherStrategy
       : adapter.watchAllNotifier;
   return notifier(
       remote: args.remote,
@@ -241,7 +241,7 @@ final _bookProvider = StateNotifierProvider.autoDispose
   final adapter = ref.watch(booksRemoteAdapterProvider);
   final _watcherStrategy = _booksStrategies[args.watcher]?.call(adapter);
   final notifier = _watcherStrategy is DataWatcherOne<Book>
-      ? _watcherStrategy as DataWatcherOne<Book>
+      ? _watcherStrategy
       : adapter.watchOneNotifier;
   return notifier(args.id!,
       remote: args.remote,
@@ -276,7 +276,7 @@ final _booksProvider = StateNotifierProvider.autoDispose.family<
   final adapter = ref.watch(booksRemoteAdapterProvider);
   final _watcherStrategy = _booksStrategies[args.watcher]?.call(adapter);
   final notifier = _watcherStrategy is DataWatcherAll<Book>
-      ? _watcherStrategy as DataWatcherAll<Book>
+      ? _watcherStrategy
       : adapter.watchAllNotifier;
   return notifier(
       remote: args.remote,

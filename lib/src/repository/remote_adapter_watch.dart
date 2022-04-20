@@ -19,11 +19,8 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         _finderStrategy is DataFinderAll<T> ? _finderStrategy : findAll;
     final label = DataRequestLabel('findAll', type: internalType);
 
-    final localModels = localAdapter
-        .findAll()
-        ?.map((m) => initializeModel(m, save: true))
-        .filterNulls
-        .toList();
+    final localModels =
+        localAdapter.findAll()?.map((m) => m._initialize(adapters)).toList();
 
     final _notifier = DataStateNotifier<List<T>?>(
       data: DataState(localModels, isLoading: remote!),
@@ -56,11 +53,20 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       },
     );
 
+    // closure to get latest models
+    List<T>? _getUpdatedModels() {
+      final models = localAdapter.findAll();
+      if (models != null) {
+        for (final model in models) {
+          model._initialize(adapters);
+          // model._updateNotifier(_notifier);
+        }
+      }
+      return models;
+    }
+
     // kick off
     _notifier.reload();
-
-    // local buffer useful to reduce amount of notifier updates
-    var _models = _notifier.data.model;
 
     final _dispose = graph.addListener((event) {
       if (!_notifier.mounted) return;
@@ -69,17 +75,15 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       if (_notifier.data.isLoading &&
           event.keys.last == label.toString() &&
           event.type == DataGraphEventType.doneLoading) {
-        _notifier.updateWith(model: _models, isLoading: false, exception: null);
+        final models = _getUpdatedModels();
+        _notifier.updateWith(model: models, isLoading: false, exception: null);
       }
 
-      if ((event.type == DataGraphEventType.addNode ||
-              event.type == DataGraphEventType.updateNode) &&
+      if (_notifier.data.isLoading == false &&
+          event.type.isNode &&
           event.keys.first.startsWith(internalType)) {
-        _models = localAdapter.findAll();
-
-        if (_notifier.data.isLoading == false) {
-          _notifier.updateWith(model: _models);
-        }
+        final models = _getUpdatedModels();
+        _notifier.updateWith(model: models);
       }
     });
 
@@ -183,7 +187,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
             return r.keys.map((key) => [r._ownerKey, key]);
           }).expand((_) => _)
         };
-        model.notifier = _notifier;
+        model._updateNotifier(_notifier);
       }
       return model;
     }

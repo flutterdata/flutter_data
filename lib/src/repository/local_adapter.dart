@@ -46,4 +46,11 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
   T deserialize(Map<String, dynamic> map);
 
   Map<String, Map<String, Object?>> relationshipsFor([T model]);
+
+  // private
+
+  // ignore: unused_element
+  bool get _isLocalStorageTouched;
+  
+  void _touchLocalStorage();
 }

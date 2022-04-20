@@ -229,7 +229,7 @@ void main() async {
 
     dispose = notifier.addListener(listener);
 
-    verify(listener(DataState([], isLoading: false))).called(1);
+    verify(listener(DataState(null, isLoading: false))).called(1);
 
     // ignore: missing_return
     await familiaRepository.save(

@@ -61,7 +61,7 @@ final _personProvider = StateNotifierProvider.autoDispose
   final adapter = ref.watch(peopleRemoteAdapterProvider);
   final _watcherStrategy = _peopleStrategies[args.watcher]?.call(adapter);
   final notifier = _watcherStrategy is DataWatcherOne<Person>
-      ? _watcherStrategy as DataWatcherOne<Person>
+      ? _watcherStrategy
       : adapter.watchOneNotifier;
   return notifier(args.id!,
       remote: args.remote,
@@ -96,7 +96,7 @@ final _peopleProvider = StateNotifierProvider.autoDispose.family<
   final adapter = ref.watch(peopleRemoteAdapterProvider);
   final _watcherStrategy = _peopleStrategies[args.watcher]?.call(adapter);
   final notifier = _watcherStrategy is DataWatcherAll<Person>
-      ? _watcherStrategy as DataWatcherAll<Person>
+      ? _watcherStrategy
       : adapter.watchAllNotifier;
   return notifier(
       remote: args.remote,

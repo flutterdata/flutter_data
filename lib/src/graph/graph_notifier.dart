@@ -78,12 +78,8 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
         // this means the method is instructed to
         // create nodes and edges
 
-        if (!_hasNode(keyIfAbsent)) {
-          _addNode(keyIfAbsent, notify: false);
-        }
-        if (!_hasNode(namespacedId)) {
-          _addNode(namespacedId, notify: false);
-        }
+        _addNode(keyIfAbsent, notify: false);
+        _addNode(namespacedId, notify: false);
         _removeEdges(keyIfAbsent,
             metadata: 'id', inverseMetadata: 'key', notify: false);
         _addEdge(keyIfAbsent, namespacedId,
@@ -92,9 +88,7 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
       }
     } else if (keyIfAbsent != null) {
       // if no ID is supplied but keyIfAbsent is, create node for key
-      if (!_hasNode(keyIfAbsent)) {
-        _addNode(keyIfAbsent, notify: false);
-      }
+      _addNode(keyIfAbsent, notify: false);
       return keyIfAbsent;
     }
     return null;
@@ -141,10 +135,7 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   Map<String, List<String>>? getNode(String key,
       {bool orAdd = false, bool notify = true}) {
     _assertKey(key);
-    if (orAdd && !_hasNode(key)) {
-      _addNode(key, notify: notify);
-    }
-    return _getNode(key);
+    return _getNode(key, orAdd: orAdd, notify: notify);
   }
 
   /// Returns whether [key] is present in this graph.
@@ -168,6 +159,7 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
       {required String metadata,
       required Iterable<String> tos,
       String? inverseMetadata,
+      bool addNode = false,
       bool notify = true}) {
     _assertKey(from);
     for (final to in tos) {
@@ -178,7 +170,10 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
       _assertKey(inverseMetadata);
     }
     _addEdges(from,
-        metadata: metadata, tos: tos, inverseMetadata: inverseMetadata);
+        metadata: metadata,
+        tos: tos,
+        addNode: addNode,
+        inverseMetadata: inverseMetadata);
   }
 
   /// Returns edge by [metadata]
@@ -197,7 +192,10 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   ///
   /// [from], [metadata] & [inverseMetadata] MUST be namespaced (e.g. `manager:key`)
   void addEdge(String from, String to,
-      {required String metadata, String? inverseMetadata, bool notify = true}) {
+      {required String metadata,
+      String? inverseMetadata,
+      bool addNode = false,
+      bool notify = true}) {
     _assertKey(from);
     _assertKey(to);
     _assertKey(metadata);
@@ -205,7 +203,10 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
       _assertKey(inverseMetadata);
     }
     return _addEdge(from, to,
-        metadata: metadata, inverseMetadata: inverseMetadata, notify: notify);
+        metadata: metadata,
+        inverseMetadata: inverseMetadata,
+        addNode: addNode,
+        notify: notify);
   }
 
   /// See [removeEdge]
@@ -274,7 +275,9 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
 
   // private API
 
-  Map<String, List<String>>? _getNode(String key) {
+  Map<String, List<String>>? _getNode(String key,
+      {bool orAdd = false, bool notify = true}) {
+    if (orAdd) _addNode(key, notify: notify);
     return box?.get(key)?.cast<String, List<String>>();
   }
 
@@ -304,7 +307,7 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   }
 
   void _addNode(String key, {bool notify = true}) {
-    if (!(box?.containsKey(key) ?? false)) {
+    if (!_hasNode(key)) {
       box?.put(key, {});
       if (notify) {
         state = DataGraphEvent(keys: [key], type: DataGraphEventType.addNode);
@@ -338,11 +341,15 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   }
 
   void _addEdge(String from, String to,
-      {required String metadata, String? inverseMetadata, bool notify = true}) {
+      {required String metadata,
+      String? inverseMetadata,
+      bool addNode = false,
+      bool notify = true}) {
     _addEdges(from,
         tos: [to],
         metadata: metadata,
         inverseMetadata: inverseMetadata,
+        addNode: addNode,
         notify: notify);
   }
 
@@ -350,8 +357,9 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
       {required String metadata,
       required Iterable<String> tos,
       String? inverseMetadata,
+      bool addNode = false,
       bool notify = true}) {
-    final fromNode = _getNode(from)!;
+    final fromNode = _getNode(from, orAdd: addNode, notify: notify)!;
 
     if (tos.isEmpty) {
       return;
@@ -373,8 +381,7 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
     if (inverseMetadata != null) {
       for (final to in tos) {
         // get or create toNode
-        final toNode =
-            _hasNode(to) ? _getNode(to)! : (this.._addNode(to))._getNode(to)!;
+        final toNode = _getNode(to, orAdd: true, notify: notify)!;
 
         // use a set to ensure resulting list elements are unique
         toNode[inverseMetadata] = {...?toNode[inverseMetadata], from}.toList();

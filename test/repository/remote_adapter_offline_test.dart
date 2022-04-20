@@ -202,7 +202,7 @@ void main() async {
 
   test('delete', () async {
     final listener = Listener<DataState<List<Familia>?>?>();
-    // listening to local changes enough
+    // listening to local changes is enough
     final notifier =
         familiaRepository.remoteAdapter.watchAllNotifier(remote: false);
 
@@ -226,6 +226,7 @@ void main() async {
     await familia.delete(
       remote: true,
       onError: (e, _) async {
+        await oneMs();
         notifier.updateWith(exception: e);
       },
     );
@@ -234,6 +235,8 @@ void main() async {
     verify(listener(
       argThat(isA<DataState>().having((s) => s.model, 'model', isEmpty)),
     )).called(1);
+
+    await oneMs();
 
     // and that we actually got an OfflineException
     verify(listener(argThat(
@@ -291,8 +294,8 @@ void main() async {
     await familia.save(
       remote: true,
       headers: {'X-Override-Name': 'Johnson'},
-      // ignore: missing_return
       onError: (e, _) async {
+        await oneMs();
         notifier.updateWith(exception: e);
         return null;
       },
@@ -304,11 +307,10 @@ void main() async {
     await familia.delete(
       remote: true,
       onError: (e, _) async {
+        await oneMs();
         notifier.updateWith(exception: e);
       },
     );
-
-    await oneMs();
 
     // assert it's an OfflineException, TWICE (one call per updateWith(e))
     verify(listener(argThat(
