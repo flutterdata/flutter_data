@@ -95,9 +95,15 @@ void main() async {
 
     await oneMs();
 
-    verify(listener(DataState(Person(id: '1', name: 'Charlie', age: 23),
-            isLoading: false)))
-        .called(1);
+    final charlie = isA<DataState>()
+        .having((s) => s.isLoading, 'isLoading', isFalse)
+        .having((s) => s.model.id, 'id', '1')
+        .having((s) => s.model.age, 'age', 23)
+        .having((s) => s.model.name, 'name', 'Charlie')
+        // ensure the notifier has been attached
+        .having((s) => s.model.notifier, 'notifier', isNotNull);
+
+    verify(listener(argThat(charlie))).called(1);
     verifyNoMoreInteractions(listener);
 
     await personRepository.save(Person(id: '1', name: 'Charlie', age: 24));
@@ -698,10 +704,6 @@ void main() async {
 
     final state = container.read(bookAuthorProvider(1));
     expect(state.model!, bookAuthor);
-
-    expect(defaultNotifier, bookAuthor.notifier());
-    expect(remoteFalseNotifier,
-        bookAuthor.notifier(remote: false, finder: 'caps'));
   });
 
   test('watchargs', () {

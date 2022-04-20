@@ -139,19 +139,6 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           keyIfAbsent: (model is T ? model._key : null));
     }
 
-    T? _getUpdatedModel() {
-      final model = localAdapter.findOne(key())?._initialize(adapters);
-      if (model != null) {
-        model._initializeRelationships();
-        _alsoWatchPairs = {
-          ...?alsoWatch?.call(model).filterNulls.map((r) {
-            return r.keys.map((key) => [r._ownerKey, key]);
-          }).expand((_) => _)
-        };
-      }
-      return model;
-    }
-
     final _notifier = DataStateNotifier<T?>(
       data: DataState(localAdapter.findOne(key())?._initialize(adapters),
           isLoading: remote!),
@@ -185,6 +172,21 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         }
       },
     );
+
+    // closure to get latest model and watchable relationship pairs
+    T? _getUpdatedModel() {
+      final model = localAdapter.findOne(key())?._initialize(adapters);
+      if (model != null) {
+        model._initializeRelationships();
+        _alsoWatchPairs = {
+          ...?alsoWatch?.call(model).filterNulls.map((r) {
+            return r.keys.map((key) => [r._ownerKey, key]);
+          }).expand((_) => _)
+        };
+        model.notifier = _notifier;
+      }
+      return model;
+    }
 
     // trigger local + async loading
     _notifier.reload();

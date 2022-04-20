@@ -7,15 +7,22 @@ part of flutter_data;
 abstract class DataModel<T extends DataModel<T>> {
   Object? get id;
 
-  // "late" finals
+  // internal
   String? _key;
   Map<String, RemoteAdapter>? _adapters;
-
-  // computed
   String get _internalType => DataHelpers.getType<T>();
+
+  /// Exposes this type's [RemoteAdapter]
   RemoteAdapter<T> get remoteAdapter =>
       _adapters?[_internalType]! as RemoteAdapter<T>;
 
+  /// Exposes the [DataStateNotifier] that fetched this model;
+  /// typically used to access `notifier.reload()` so it only
+  /// makes sense for `remote=true` requests.
+  DataStateNotifier<T?>? notifier;
+
+  /// Whether this model was initialized, either
+  /// automatically or manually via `init` or [was].
   bool get isInitialized => _key != null && _adapters != null;
 
   // initializers
@@ -153,28 +160,6 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     }
 
     return rels;
-  }
-
-  /// Get this model's notifier (watchOne)
-  DataStateNotifier<T?> notifier(
-      {bool? remote,
-      Map<String, dynamic>? params,
-      Map<String, String>? headers,
-      AlsoWatch<T>? alsoWatch,
-      String? finder}) {
-    _assertInit('notifier');
-    if (remoteAdapter._internalHolder?.oneProvider == null) {
-      throw UnsupportedError(remoteAdapter._watchOneError);
-    }
-    return remoteAdapter.read(remoteAdapter
-        ._internalHolder!
-        .oneProvider!(id ?? this,
-            remote: remote,
-            params: params,
-            headers: headers,
-            alsoWatch: alsoWatch,
-            finder: finder)
-        .notifier);
   }
 
   void _assertInit(String method) {
