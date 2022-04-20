@@ -79,17 +79,21 @@ final _dogProvider = StateNotifierProvider.autoDispose
       params: args.params,
       headers: args.headers,
       alsoWatch: args.alsoWatch,
-      finder: args.finder);
+      finder: args.finder,
+      label: args.label);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Dog?>, DataState<Dog?>>
-    dogProvider(Object? id,
-        {bool? remote,
-        Map<String, dynamic>? params,
-        Map<String, String>? headers,
-        AlsoWatch<Dog>? alsoWatch,
-        String? finder,
-        String? watcher}) {
+    dogProvider(
+  Object? id, {
+  bool? remote,
+  Map<String, dynamic>? params,
+  Map<String, String>? headers,
+  AlsoWatch<Dog>? alsoWatch,
+  String? finder,
+  String? watcher,
+  DataRequestLabel? label,
+}) {
   return _dogProvider(WatchArgs(
       id: id,
       remote: remote,
@@ -97,7 +101,8 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Dog?>, DataState<Dog?>>
       headers: headers,
       alsoWatch: alsoWatch,
       finder: finder,
-      watcher: watcher));
+      watcher: watcher,
+      label: label));
 }
 
 final _dogsProvider = StateNotifierProvider.autoDispose.family<
@@ -114,25 +119,28 @@ final _dogsProvider = StateNotifierProvider.autoDispose.family<
       params: args.params,
       headers: args.headers,
       syncLocal: args.syncLocal,
-      finder: args.finder);
+      finder: args.finder,
+      label: args.label);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<Dog>?>,
-        DataState<List<Dog>?>>
-    dogsProvider(
-        {bool? remote,
-        Map<String, dynamic>? params,
-        Map<String, String>? headers,
-        bool? syncLocal,
-        String? finder,
-        String? watcher}) {
+    DataState<List<Dog>?>> dogsProvider({
+  bool? remote,
+  Map<String, dynamic>? params,
+  Map<String, String>? headers,
+  bool? syncLocal,
+  String? finder,
+  String? watcher,
+  DataRequestLabel? label,
+}) {
   return _dogsProvider(WatchArgs(
       remote: remote,
       params: params,
       headers: headers,
       syncLocal: syncLocal,
       finder: finder,
-      watcher: watcher));
+      watcher: watcher,
+      label: label));
 }
 
 extension DogDataX on Dog {
@@ -199,17 +207,21 @@ final _catProvider = StateNotifierProvider.autoDispose
       params: args.params,
       headers: args.headers,
       alsoWatch: args.alsoWatch,
-      finder: args.finder);
+      finder: args.finder,
+      label: args.label);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Cat?>, DataState<Cat?>>
-    catProvider(Object? id,
-        {bool? remote,
-        Map<String, dynamic>? params,
-        Map<String, String>? headers,
-        AlsoWatch<Cat>? alsoWatch,
-        String? finder,
-        String? watcher}) {
+    catProvider(
+  Object? id, {
+  bool? remote,
+  Map<String, dynamic>? params,
+  Map<String, String>? headers,
+  AlsoWatch<Cat>? alsoWatch,
+  String? finder,
+  String? watcher,
+  DataRequestLabel? label,
+}) {
   return _catProvider(WatchArgs(
       id: id,
       remote: remote,
@@ -217,7 +229,8 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Cat?>, DataState<Cat?>>
       headers: headers,
       alsoWatch: alsoWatch,
       finder: finder,
-      watcher: watcher));
+      watcher: watcher,
+      label: label));
 }
 
 final _catsProvider = StateNotifierProvider.autoDispose.family<
@@ -234,25 +247,28 @@ final _catsProvider = StateNotifierProvider.autoDispose.family<
       params: args.params,
       headers: args.headers,
       syncLocal: args.syncLocal,
-      finder: args.finder);
+      finder: args.finder,
+      label: args.label);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<Cat>?>,
-        DataState<List<Cat>?>>
-    catsProvider(
-        {bool? remote,
-        Map<String, dynamic>? params,
-        Map<String, String>? headers,
-        bool? syncLocal,
-        String? finder,
-        String? watcher}) {
+    DataState<List<Cat>?>> catsProvider({
+  bool? remote,
+  Map<String, dynamic>? params,
+  Map<String, String>? headers,
+  bool? syncLocal,
+  String? finder,
+  String? watcher,
+  DataRequestLabel? label,
+}) {
   return _catsProvider(WatchArgs(
       remote: remote,
       params: params,
       headers: headers,
       syncLocal: syncLocal,
       finder: finder,
-      watcher: watcher));
+      watcher: watcher,
+      label: label));
 }
 
 extension CatDataX on Cat {

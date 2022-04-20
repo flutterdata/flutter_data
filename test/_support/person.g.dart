@@ -68,17 +68,21 @@ final _personProvider = StateNotifierProvider.autoDispose
       params: args.params,
       headers: args.headers,
       alsoWatch: args.alsoWatch,
-      finder: args.finder);
+      finder: args.finder,
+      label: args.label);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Person?>, DataState<Person?>>
-    personProvider(Object? id,
-        {bool? remote,
-        Map<String, dynamic>? params,
-        Map<String, String>? headers,
-        AlsoWatch<Person>? alsoWatch,
-        String? finder,
-        String? watcher}) {
+    personProvider(
+  Object? id, {
+  bool? remote,
+  Map<String, dynamic>? params,
+  Map<String, String>? headers,
+  AlsoWatch<Person>? alsoWatch,
+  String? finder,
+  String? watcher,
+  DataRequestLabel? label,
+}) {
   return _personProvider(WatchArgs(
       id: id,
       remote: remote,
@@ -86,7 +90,8 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Person?>, DataState<Person?>>
       headers: headers,
       alsoWatch: alsoWatch,
       finder: finder,
-      watcher: watcher));
+      watcher: watcher,
+      label: label));
 }
 
 final _peopleProvider = StateNotifierProvider.autoDispose.family<
@@ -103,25 +108,28 @@ final _peopleProvider = StateNotifierProvider.autoDispose.family<
       params: args.params,
       headers: args.headers,
       syncLocal: args.syncLocal,
-      finder: args.finder);
+      finder: args.finder,
+      label: args.label);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<Person>?>,
-        DataState<List<Person>?>>
-    peopleProvider(
-        {bool? remote,
-        Map<String, dynamic>? params,
-        Map<String, String>? headers,
-        bool? syncLocal,
-        String? finder,
-        String? watcher}) {
+    DataState<List<Person>?>> peopleProvider({
+  bool? remote,
+  Map<String, dynamic>? params,
+  Map<String, String>? headers,
+  bool? syncLocal,
+  String? finder,
+  String? watcher,
+  DataRequestLabel? label,
+}) {
   return _peopleProvider(WatchArgs(
       remote: remote,
       params: params,
       headers: headers,
       syncLocal: syncLocal,
       finder: finder,
-      watcher: watcher));
+      watcher: watcher,
+      label: label));
 }
 
 extension PersonDataX on Person {

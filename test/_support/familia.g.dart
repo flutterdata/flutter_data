@@ -125,18 +125,21 @@ final _familiumProvider = StateNotifierProvider.autoDispose.family<
       params: args.params,
       headers: args.headers,
       alsoWatch: args.alsoWatch,
-      finder: args.finder);
+      finder: args.finder,
+      label: args.label);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Familia?>,
-        DataState<Familia?>>
-    familiumProvider(Object? id,
-        {bool? remote,
-        Map<String, dynamic>? params,
-        Map<String, String>? headers,
-        AlsoWatch<Familia>? alsoWatch,
-        String? finder,
-        String? watcher}) {
+    DataState<Familia?>> familiumProvider(
+  Object? id, {
+  bool? remote,
+  Map<String, dynamic>? params,
+  Map<String, String>? headers,
+  AlsoWatch<Familia>? alsoWatch,
+  String? finder,
+  String? watcher,
+  DataRequestLabel? label,
+}) {
   return _familiumProvider(WatchArgs(
       id: id,
       remote: remote,
@@ -144,7 +147,8 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Familia?>,
       headers: headers,
       alsoWatch: alsoWatch,
       finder: finder,
-      watcher: watcher));
+      watcher: watcher,
+      label: label));
 }
 
 final _familiaProvider = StateNotifierProvider.autoDispose.family<
@@ -161,25 +165,28 @@ final _familiaProvider = StateNotifierProvider.autoDispose.family<
       params: args.params,
       headers: args.headers,
       syncLocal: args.syncLocal,
-      finder: args.finder);
+      finder: args.finder,
+      label: args.label);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<Familia>?>,
-        DataState<List<Familia>?>>
-    familiaProvider(
-        {bool? remote,
-        Map<String, dynamic>? params,
-        Map<String, String>? headers,
-        bool? syncLocal,
-        String? finder,
-        String? watcher}) {
+    DataState<List<Familia>?>> familiaProvider({
+  bool? remote,
+  Map<String, dynamic>? params,
+  Map<String, String>? headers,
+  bool? syncLocal,
+  String? finder,
+  String? watcher,
+  DataRequestLabel? label,
+}) {
   return _familiaProvider(WatchArgs(
       remote: remote,
       params: params,
       headers: headers,
       syncLocal: syncLocal,
       finder: finder,
-      watcher: watcher));
+      watcher: watcher,
+      label: label));
 }
 
 extension FamiliaDataX on Familia {

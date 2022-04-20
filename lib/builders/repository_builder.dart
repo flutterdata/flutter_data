@@ -238,12 +238,12 @@ final _$providerStringSingular =
   final adapter = ref.watch(${typeLowerCased}RemoteAdapterProvider);
   final _watcherFinder = _${typeLowerCased}Finders[args.watcher]?.call(adapter);
   final notifier = _watcherFinder is DataWatcherOne<$classType> ? _watcherFinder : adapter.watchOneNotifier;
-  return notifier(args.id!, remote: args.remote, params: args.params, headers: args.headers, alsoWatch: args.alsoWatch, finder: args.finder);
+  return notifier(args.id!, remote: args.remote, params: args.params, headers: args.headers, alsoWatch: args.alsoWatch, finder: args.finder, label: args.label);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<$classType?>, DataState<$classType?>> $providerStringSingular(Object? id,
-    {bool? remote, Map<String, dynamic>? params, Map<String, String>? headers, AlsoWatch<$classType>? alsoWatch, String? finder, String? watcher}) {
-  return _$providerStringSingular(WatchArgs(id: id, remote: remote, params: params, headers: headers, alsoWatch: alsoWatch, finder: finder, watcher: watcher));
+    {bool? remote, Map<String, dynamic>? params, Map<String, String>? headers, AlsoWatch<$classType>? alsoWatch, String? finder, String? watcher, DataRequestLabel? label,}) {
+  return _$providerStringSingular(WatchArgs(id: id, remote: remote, params: params, headers: headers, alsoWatch: alsoWatch, finder: finder, watcher: watcher, label: label));
 }
 
 final _$providerStringPlural =
@@ -252,12 +252,12 @@ final _$providerStringPlural =
   final adapter = ref.watch(${typeLowerCased}RemoteAdapterProvider);
   final _watcherFinder = _${typeLowerCased}Finders[args.watcher]?.call(adapter);
   final notifier = _watcherFinder is DataWatcherAll<$classType> ? _watcherFinder : adapter.watchAllNotifier;
-  return notifier(remote: args.remote, params: args.params, headers: args.headers, syncLocal: args.syncLocal, finder: args.finder);
+  return notifier(remote: args.remote, params: args.params, headers: args.headers, syncLocal: args.syncLocal, finder: args.finder, label: args.label);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<$classType>?>, DataState<List<$classType>?>> $providerStringPlural(
-    {bool? remote, Map<String, dynamic>? params, Map<String, String>? headers, bool? syncLocal, String? finder, String? watcher}) {
-  return _$providerStringPlural(WatchArgs(remote: remote, params: params, headers: headers, syncLocal: syncLocal, finder: finder, watcher: watcher));
+    {bool? remote, Map<String, dynamic>? params, Map<String, String>? headers, bool? syncLocal, String? finder, String? watcher, DataRequestLabel? label,}) {
+  return _$providerStringPlural(WatchArgs(remote: remote, params: params, headers: headers, syncLocal: syncLocal, finder: finder, watcher: watcher, label: label));
 }
 
 extension ${classType}DataX on $classType {

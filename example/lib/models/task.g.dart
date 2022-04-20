@@ -83,17 +83,21 @@ final _taskProvider = StateNotifierProvider.autoDispose
       params: args.params,
       headers: args.headers,
       alsoWatch: args.alsoWatch,
-      finder: args.finder);
+      finder: args.finder,
+      label: args.label);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<Task?>, DataState<Task?>>
-    taskProvider(Object? id,
-        {bool? remote,
-        Map<String, dynamic>? params,
-        Map<String, String>? headers,
-        AlsoWatch<Task>? alsoWatch,
-        String? finder,
-        String? watcher}) {
+    taskProvider(
+  Object? id, {
+  bool? remote,
+  Map<String, dynamic>? params,
+  Map<String, String>? headers,
+  AlsoWatch<Task>? alsoWatch,
+  String? finder,
+  String? watcher,
+  DataRequestLabel? label,
+}) {
   return _taskProvider(WatchArgs(
       id: id,
       remote: remote,
@@ -101,7 +105,8 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<Task?>, DataState<Task?>>
       headers: headers,
       alsoWatch: alsoWatch,
       finder: finder,
-      watcher: watcher));
+      watcher: watcher,
+      label: label));
 }
 
 final _tasksProvider = StateNotifierProvider.autoDispose.family<
@@ -118,25 +123,28 @@ final _tasksProvider = StateNotifierProvider.autoDispose.family<
       params: args.params,
       headers: args.headers,
       syncLocal: args.syncLocal,
-      finder: args.finder);
+      finder: args.finder,
+      label: args.label);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<Task>?>,
-        DataState<List<Task>?>>
-    tasksProvider(
-        {bool? remote,
-        Map<String, dynamic>? params,
-        Map<String, String>? headers,
-        bool? syncLocal,
-        String? finder,
-        String? watcher}) {
+    DataState<List<Task>?>> tasksProvider({
+  bool? remote,
+  Map<String, dynamic>? params,
+  Map<String, String>? headers,
+  bool? syncLocal,
+  String? finder,
+  String? watcher,
+  DataRequestLabel? label,
+}) {
   return _tasksProvider(WatchArgs(
       remote: remote,
       params: params,
       headers: headers,
       syncLocal: syncLocal,
       finder: finder,
-      watcher: watcher));
+      watcher: watcher,
+      label: label));
 }
 
 extension TaskDataX on Task {

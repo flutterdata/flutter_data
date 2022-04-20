@@ -99,7 +99,9 @@ void main() async {
         .having((s) => s.isLoading, 'isLoading', isFalse)
         .having((s) => s.model.id, 'id', '1')
         .having((s) => s.model.age, 'age', 23)
-        .having((s) => s.model.name, 'name', 'Charlie');
+        .having((s) => s.model.name, 'name', 'Charlie')
+        // ensure the notifier has been attached
+        .having((s) => s.model.notifier, 'notifier', isNotNull);
 
     verify(listener(argThat(charlie))).called(1);
     verifyNoMoreInteractions(listener);

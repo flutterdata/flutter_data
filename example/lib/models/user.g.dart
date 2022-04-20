@@ -81,17 +81,21 @@ final _userProvider = StateNotifierProvider.autoDispose
       params: args.params,
       headers: args.headers,
       alsoWatch: args.alsoWatch,
-      finder: args.finder);
+      finder: args.finder,
+      label: args.label);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<User?>, DataState<User?>>
-    userProvider(Object? id,
-        {bool? remote,
-        Map<String, dynamic>? params,
-        Map<String, String>? headers,
-        AlsoWatch<User>? alsoWatch,
-        String? finder,
-        String? watcher}) {
+    userProvider(
+  Object? id, {
+  bool? remote,
+  Map<String, dynamic>? params,
+  Map<String, String>? headers,
+  AlsoWatch<User>? alsoWatch,
+  String? finder,
+  String? watcher,
+  DataRequestLabel? label,
+}) {
   return _userProvider(WatchArgs(
       id: id,
       remote: remote,
@@ -99,7 +103,8 @@ AutoDisposeStateNotifierProvider<DataStateNotifier<User?>, DataState<User?>>
       headers: headers,
       alsoWatch: alsoWatch,
       finder: finder,
-      watcher: watcher));
+      watcher: watcher,
+      label: label));
 }
 
 final _usersProvider = StateNotifierProvider.autoDispose.family<
@@ -116,25 +121,28 @@ final _usersProvider = StateNotifierProvider.autoDispose.family<
       params: args.params,
       headers: args.headers,
       syncLocal: args.syncLocal,
-      finder: args.finder);
+      finder: args.finder,
+      label: args.label);
 });
 
 AutoDisposeStateNotifierProvider<DataStateNotifier<List<User>?>,
-        DataState<List<User>?>>
-    usersProvider(
-        {bool? remote,
-        Map<String, dynamic>? params,
-        Map<String, String>? headers,
-        bool? syncLocal,
-        String? finder,
-        String? watcher}) {
+    DataState<List<User>?>> usersProvider({
+  bool? remote,
+  Map<String, dynamic>? params,
+  Map<String, String>? headers,
+  bool? syncLocal,
+  String? finder,
+  String? watcher,
+  DataRequestLabel? label,
+}) {
   return _usersProvider(WatchArgs(
       remote: remote,
       params: params,
       headers: headers,
       syncLocal: syncLocal,
       finder: finder,
-      watcher: watcher));
+      watcher: watcher,
+      label: label));
 }
 
 extension UserDataX on User {

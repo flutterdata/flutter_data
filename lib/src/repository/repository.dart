@@ -73,6 +73,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     Map<String, String>? headers,
     bool? syncLocal,
     OnError<List<T>>? onError,
+    DataRequestLabel? label,
   }) {
     return remoteAdapter.findAll(
       remote: remote,
@@ -81,6 +82,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
       headers: headers,
       syncLocal: syncLocal,
       onError: onError,
+      label: label,
     );
   }
 
@@ -101,6 +103,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     OnError<T>? onError,
+    DataRequestLabel? label,
   }) {
     return remoteAdapter.findOne(
       id,
@@ -109,6 +112,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
       params: params,
       headers: headers,
       onError: onError,
+      label: label,
     );
   }
 
@@ -129,6 +133,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     Map<String, String>? headers,
     OnSuccess<T>? onSuccess,
     OnError<T>? onError,
+    DataRequestLabel? label,
   }) {
     return remoteAdapter.save(
       model,
@@ -137,6 +142,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
       headers: headers,
       onSuccess: onSuccess,
       onError: onError,
+      label: label,
     );
   }
 
@@ -157,6 +163,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     Map<String, String>? headers,
     OnSuccess<Null>? onSuccess,
     OnError<Null>? onError,
+    DataRequestLabel? label,
   }) {
     return remoteAdapter.delete(
       model,
@@ -165,6 +172,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
       headers: headers,
       onSuccess: onSuccess,
       onError: onError,
+      label: label,
     );
   }
 

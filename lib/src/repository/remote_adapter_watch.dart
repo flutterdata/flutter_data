@@ -9,6 +9,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     Map<String, String>? headers,
     bool? syncLocal,
     String? finder,
+    DataRequestLabel? label,
   }) {
     _assertInit();
     remote ??= _remote;
@@ -16,7 +17,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
     final _maybeFinder = _internalHolder?.finders[finder]?.call(this);
     final _finder = _maybeFinder is DataFinderAll<T> ? _maybeFinder : findAll;
-    final label = DataRequestLabel('findAll', type: internalType);
+    label ??= DataRequestLabel('findAll', type: internalType);
 
     // closure to get latest models
     List<T>? _getUpdatedModels() {
@@ -92,6 +93,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     Map<String, String>? headers,
     bool? syncLocal,
     String? finder,
+    DataRequestLabel? label,
   }) {
     if (internalWatch == null || _internalHolder?.allProvider == null) {
       throw UnsupportedError(_watchAllError);
@@ -101,6 +103,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       params: params,
       headers: headers,
       syncLocal: syncLocal,
+      label: label,
     );
     return internalWatch!(provider);
   }
@@ -119,13 +122,14 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     Map<String, String>? headers,
     AlsoWatch<T>? alsoWatch,
     String? finder,
+    DataRequestLabel? label,
   }) {
     _assertInit();
 
     remote ??= _remote;
     final _maybeFinder = _internalHolder?.finders[finder]?.call(this);
     final _finder = _maybeFinder is DataFinderOne<T> ? _maybeFinder : findOne;
-    final label = DataRequestLabel('findOne', type: internalType);
+    label ??= DataRequestLabel('findOne', type: internalType);
 
     final id = _resolveId(model);
 
@@ -138,7 +142,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     }
 
     // closure to get latest model and watchable relationship pairs
-    T? _getUpdatedModel() {
+    T? _getUpdatedModel({DataStateNotifier<T?>? withNotifier}) {
       final model = localAdapter.findOne(key())?._initialize(adapters);
       if (model != null) {
         model._initializeRelationships();
@@ -147,6 +151,9 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
             return r.keys.map((key) => [r._ownerKey, key]);
           }).expand((_) => _)
         };
+        if (withNotifier != null) {
+          model._updateNotifier(withNotifier);
+        }
       }
       return model;
     }
@@ -201,7 +208,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       // (_alsoWatchPairs) in order to determine whether there is
       // something that will cause a notification (with the introduction
       // of `andEach` even seemingly unrelated models could trigger)
-      _model = _getUpdatedModel();
+      _model = _getUpdatedModel(withNotifier: _notifier);
 
       if (event.keys.contains(_key)) {
         // handle done loading
@@ -263,6 +270,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     Map<String, String>? headers,
     AlsoWatch<T>? alsoWatch,
     String? finder,
+    DataRequestLabel? label,
   }) {
     if (internalWatch == null || _internalHolder?.oneProvider == null) {
       throw UnsupportedError(_watchOneError);
@@ -273,6 +281,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       params: params,
       headers: headers,
       alsoWatch: alsoWatch,
+      label: label,
     );
     return internalWatch!(provider);
   }

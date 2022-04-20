@@ -59,6 +59,7 @@ typedef OneProvider<T extends DataModel<T>>
   Map<String, String>? headers,
   AlsoWatch<T>? alsoWatch,
   String? finder,
+  DataRequestLabel? label,
 });
 
 typedef AllProvider<T extends DataModel<T>> = AutoDisposeStateNotifierProvider<
@@ -69,6 +70,7 @@ typedef AllProvider<T extends DataModel<T>> = AutoDisposeStateNotifierProvider<
   Map<String, String>? headers,
   bool? syncLocal,
   String? finder,
+  DataRequestLabel? label,
 });
 
 // finders
@@ -106,6 +108,7 @@ typedef DataWatcherAll<T extends DataModel<T>> = DataStateNotifier<List<T>?>
   Map<String, String>? headers,
   bool? syncLocal,
   String? finder,
+  DataRequestLabel? label,
 });
 
 typedef DataWatcherOne<T extends DataModel<T>> = DataStateNotifier<T?> Function(
@@ -115,4 +118,5 @@ typedef DataWatcherOne<T extends DataModel<T>> = DataStateNotifier<T?> Function(
   Map<String, String>? headers,
   AlsoWatch<T>? alsoWatch,
   String? finder,
+  DataRequestLabel? label,
 });
