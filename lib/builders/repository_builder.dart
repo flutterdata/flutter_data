@@ -139,7 +139,7 @@ and execute a code generation build again.
 
     final remoteAdapterTypeChecker = TypeChecker.fromRuntime(RemoteAdapter);
 
-    final strategies = <String>[];
+    final finders = <String>[];
 
     final mixins = annotation.read('adapters').listValue.map((obj) {
       final mixinType = obj.toTypeValue() as ParameterizedType;
@@ -166,12 +166,12 @@ and execute a code generation build again.
       displayName =
           instantiatedMixinType.getDisplayString(withNullability: false);
 
-      // add strategies
+      // add finders
       for (final field in mixinMethods) {
-        final hasStrategyAnnotation =
-            TypeChecker.fromRuntime(DataStrategy).hasAnnotationOfExact(field);
-        if (hasStrategyAnnotation) {
-          strategies.add(field.name);
+        final hasFinderAnnotation =
+            TypeChecker.fromRuntime(DataFinder).hasAnnotationOfExact(field);
+        if (hasFinderAnnotation) {
+          finders.add(field.name);
         }
       }
 
@@ -219,15 +219,15 @@ class \$${classType}HiveLocalAdapter = HiveLocalAdapter<$classType> with \$${cla
 
 class \$${classType}RemoteAdapter = RemoteAdapter<$classType> with ${mixins.join(', ')};
 
-final _${typeLowerCased}Strategies = <String, dynamic>{
-  ${strategies.map((strategy) => '''  '$strategy': (_) => _.$strategy,''').join('\n')}
+final _${typeLowerCased}Finders = <String, dynamic>{
+  ${finders.map((f) => '''  '$f': (_) => _.$f,''').join('\n')}
 };
 
 //
 
 final ${typeLowerCased}RemoteAdapterProvider =
     Provider<RemoteAdapter<$classType>>(
-        (ref) => \$${classType}RemoteAdapter(\$${classType}HiveLocalAdapter(ref.read), InternalHolder($providerStringSingular, $providerStringPlural, _${typeLowerCased}Strategies)));
+        (ref) => \$${classType}RemoteAdapter(\$${classType}HiveLocalAdapter(ref.read), InternalHolder($providerStringSingular, $providerStringPlural, _${typeLowerCased}Finders)));
 
 final ${typeLowerCased}RepositoryProvider =
     Provider<Repository<$classType>>((ref) => Repository<$classType>(ref.read));
@@ -236,8 +236,8 @@ final _$providerStringSingular =
     StateNotifierProvider.autoDispose.family<DataStateNotifier<$classType?>, DataState<$classType?>, WatchArgs<$classType>>(
         (ref, args) {
   final adapter = ref.watch(${typeLowerCased}RemoteAdapterProvider);
-  final _watcherStrategy = _${typeLowerCased}Strategies[args.watcher]?.call(adapter);
-  final notifier = _watcherStrategy is DataWatcherOne<$classType> ? _watcherStrategy : adapter.watchOneNotifier;
+  final _watcherFinder = _${typeLowerCased}Finders[args.watcher]?.call(adapter);
+  final notifier = _watcherFinder is DataWatcherOne<$classType> ? _watcherFinder : adapter.watchOneNotifier;
   return notifier(args.id!, remote: args.remote, params: args.params, headers: args.headers, alsoWatch: args.alsoWatch, finder: args.finder);
 });
 
@@ -250,8 +250,8 @@ final _$providerStringPlural =
     StateNotifierProvider.autoDispose.family<DataStateNotifier<List<$classType>?>, DataState<List<$classType>?>, WatchArgs<$classType>>(
         (ref, args) {
   final adapter = ref.watch(${typeLowerCased}RemoteAdapterProvider);
-  final _watcherStrategy = _${typeLowerCased}Strategies[args.watcher]?.call(adapter);
-  final notifier = _watcherStrategy is DataWatcherAll<$classType> ? _watcherStrategy : adapter.watchAllNotifier;
+  final _watcherFinder = _${typeLowerCased}Finders[args.watcher]?.call(adapter);
+  final notifier = _watcherFinder is DataWatcherAll<$classType> ? _watcherFinder : adapter.watchAllNotifier;
   return notifier(remote: args.remote, params: args.params, headers: args.headers, syncLocal: args.syncLocal, finder: args.finder);
 });
 

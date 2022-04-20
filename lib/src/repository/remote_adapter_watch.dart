@@ -14,9 +14,8 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     remote ??= _remote;
     syncLocal ??= false;
 
-    final _finderStrategy = _internalHolder?.strategies[finder]?.call(this);
-    final _finder =
-        _finderStrategy is DataFinderAll<T> ? _finderStrategy : findAll;
+    final _maybeFinder = _internalHolder?.finders[finder]?.call(this);
+    final _finder = _maybeFinder is DataFinderAll<T> ? _maybeFinder : findAll;
     final label = DataRequestLabel('findAll', type: internalType);
 
     final localModels =
@@ -59,7 +58,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       if (models != null) {
         for (final model in models) {
           model._initialize(adapters);
-          // model._updateNotifier(_notifier);
+          model._updateNotifier(_notifier);
         }
       }
       return models;
@@ -128,9 +127,8 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     _assertInit();
 
     remote ??= _remote;
-    final _finderStrategy = _internalHolder?.strategies[finder]?.call(this);
-    final _finder =
-        _finderStrategy is DataFinderOne<T> ? _finderStrategy : findOne;
+    final _maybeFinder = _internalHolder?.finders[finder]?.call(this);
+    final _finder = _maybeFinder is DataFinderOne<T> ? _maybeFinder : findOne;
     final label = DataRequestLabel('findOne', type: internalType);
 
     final id = _resolveId(model);

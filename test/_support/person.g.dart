@@ -44,13 +44,13 @@ class $PersonRemoteAdapter = RemoteAdapter<Person>
         GenericDoesNothingAdapter<Person>,
         YetAnotherLoginAdapter;
 
-final _peopleStrategies = <String, dynamic>{};
+final _peopleFinders = <String, dynamic>{};
 
 //
 
 final peopleRemoteAdapterProvider = Provider<RemoteAdapter<Person>>((ref) =>
     $PersonRemoteAdapter($PersonHiveLocalAdapter(ref.read),
-        InternalHolder(personProvider, peopleProvider, _peopleStrategies)));
+        InternalHolder(personProvider, peopleProvider, _peopleFinders)));
 
 final peopleRepositoryProvider =
     Provider<Repository<Person>>((ref) => Repository<Person>(ref.read));
@@ -59,9 +59,9 @@ final _personProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Person?>, DataState<Person?>, WatchArgs<Person>>(
         (ref, args) {
   final adapter = ref.watch(peopleRemoteAdapterProvider);
-  final _watcherStrategy = _peopleStrategies[args.watcher]?.call(adapter);
-  final notifier = _watcherStrategy is DataWatcherOne<Person>
-      ? _watcherStrategy
+  final _watcherFinder = _peopleFinders[args.watcher]?.call(adapter);
+  final notifier = _watcherFinder is DataWatcherOne<Person>
+      ? _watcherFinder
       : adapter.watchOneNotifier;
   return notifier(args.id!,
       remote: args.remote,
@@ -94,9 +94,9 @@ final _peopleProvider = StateNotifierProvider.autoDispose.family<
     DataState<List<Person>?>,
     WatchArgs<Person>>((ref, args) {
   final adapter = ref.watch(peopleRemoteAdapterProvider);
-  final _watcherStrategy = _peopleStrategies[args.watcher]?.call(adapter);
-  final notifier = _watcherStrategy is DataWatcherAll<Person>
-      ? _watcherStrategy
+  final _watcherFinder = _peopleFinders[args.watcher]?.call(adapter);
+  final notifier = _watcherFinder is DataWatcherAll<Person>
+      ? _watcherFinder
       : adapter.watchAllNotifier;
   return notifier(
       remote: args.remote,

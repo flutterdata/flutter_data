@@ -100,13 +100,13 @@ class $FamiliaHiveLocalAdapter = HiveLocalAdapter<Familia>
 
 class $FamiliaRemoteAdapter = RemoteAdapter<Familia> with NothingMixin;
 
-final _familiaStrategies = <String, dynamic>{};
+final _familiaFinders = <String, dynamic>{};
 
 //
 
 final familiaRemoteAdapterProvider = Provider<RemoteAdapter<Familia>>((ref) =>
     $FamiliaRemoteAdapter($FamiliaHiveLocalAdapter(ref.read),
-        InternalHolder(familiumProvider, familiaProvider, _familiaStrategies)));
+        InternalHolder(familiumProvider, familiaProvider, _familiaFinders)));
 
 final familiaRepositoryProvider =
     Provider<Repository<Familia>>((ref) => Repository<Familia>(ref.read));
@@ -116,9 +116,9 @@ final _familiumProvider = StateNotifierProvider.autoDispose.family<
     DataState<Familia?>,
     WatchArgs<Familia>>((ref, args) {
   final adapter = ref.watch(familiaRemoteAdapterProvider);
-  final _watcherStrategy = _familiaStrategies[args.watcher]?.call(adapter);
-  final notifier = _watcherStrategy is DataWatcherOne<Familia>
-      ? _watcherStrategy
+  final _watcherFinder = _familiaFinders[args.watcher]?.call(adapter);
+  final notifier = _watcherFinder is DataWatcherOne<Familia>
+      ? _watcherFinder
       : adapter.watchOneNotifier;
   return notifier(args.id!,
       remote: args.remote,
@@ -152,9 +152,9 @@ final _familiaProvider = StateNotifierProvider.autoDispose.family<
     DataState<List<Familia>?>,
     WatchArgs<Familia>>((ref, args) {
   final adapter = ref.watch(familiaRemoteAdapterProvider);
-  final _watcherStrategy = _familiaStrategies[args.watcher]?.call(adapter);
-  final notifier = _watcherStrategy is DataWatcherAll<Familia>
-      ? _watcherStrategy
+  final _watcherFinder = _familiaFinders[args.watcher]?.call(adapter);
+  final notifier = _watcherFinder is DataWatcherAll<Familia>
+      ? _watcherFinder
       : adapter.watchAllNotifier;
   return notifier(
       remote: args.remote,

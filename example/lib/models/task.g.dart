@@ -59,13 +59,13 @@ class $TaskHiveLocalAdapter = HiveLocalAdapter<Task> with $TaskLocalAdapter;
 
 class $TaskRemoteAdapter = RemoteAdapter<Task> with JSONServerAdapter<Task>;
 
-final _tasksStrategies = <String, dynamic>{};
+final _tasksFinders = <String, dynamic>{};
 
 //
 
 final tasksRemoteAdapterProvider = Provider<RemoteAdapter<Task>>((ref) =>
     $TaskRemoteAdapter($TaskHiveLocalAdapter(ref.read),
-        InternalHolder(taskProvider, tasksProvider, _tasksStrategies)));
+        InternalHolder(taskProvider, tasksProvider, _tasksFinders)));
 
 final tasksRepositoryProvider =
     Provider<Repository<Task>>((ref) => Repository<Task>(ref.read));
@@ -74,9 +74,9 @@ final _taskProvider = StateNotifierProvider.autoDispose
     .family<DataStateNotifier<Task?>, DataState<Task?>, WatchArgs<Task>>(
         (ref, args) {
   final adapter = ref.watch(tasksRemoteAdapterProvider);
-  final _watcherStrategy = _tasksStrategies[args.watcher]?.call(adapter);
-  final notifier = _watcherStrategy is DataWatcherOne<Task>
-      ? _watcherStrategy
+  final _watcherFinder = _tasksFinders[args.watcher]?.call(adapter);
+  final notifier = _watcherFinder is DataWatcherOne<Task>
+      ? _watcherFinder
       : adapter.watchOneNotifier;
   return notifier(args.id!,
       remote: args.remote,
@@ -109,9 +109,9 @@ final _tasksProvider = StateNotifierProvider.autoDispose.family<
     DataState<List<Task>?>,
     WatchArgs<Task>>((ref, args) {
   final adapter = ref.watch(tasksRemoteAdapterProvider);
-  final _watcherStrategy = _tasksStrategies[args.watcher]?.call(adapter);
-  final notifier = _watcherStrategy is DataWatcherAll<Task>
-      ? _watcherStrategy
+  final _watcherFinder = _tasksFinders[args.watcher]?.call(adapter);
+  final notifier = _watcherFinder is DataWatcherAll<Task>
+      ? _watcherFinder
       : adapter.watchAllNotifier;
   return notifier(
       remote: args.remote,

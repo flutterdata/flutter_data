@@ -490,7 +490,7 @@ void main() async {
     }));
   });
 
-  test('watchOneNotifier with custom strategy', () async {
+  test('watchOneNotifier with custom finder', () async {
     // initialize a book in local storage, so we can later link it to the author
     final author = BookAuthor(id: 1, name: 'Robert').init(container.read);
     Book(id: 1, title: 'Choice', originalAuthor: author.asBelongsTo)
