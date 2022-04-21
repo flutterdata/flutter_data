@@ -249,7 +249,7 @@ void main() async {
   test('event', () {
     final event =
         DataGraphEvent(keys: ['a', 'b'], type: DataGraphEventType.addEdge);
-    expect(event.toString(), '[GraphEvent] DataGraphEventType.addEdge: [a, b]');
+    expect(event.toString(), 'addEdge: [a, b]');
   });
 
   test('clear', () {

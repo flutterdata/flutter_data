@@ -531,8 +531,12 @@ class DataGraphEvent {
 
   @override
   String toString() {
-    return '[GraphEvent] $type: $keys';
+    return '${type.toShortString()}: $keys';
   }
+}
+
+extension _DataGraphEventX on DataGraphEventType {
+  String toShortString() => toString().split('.').last;
 }
 
 final graphNotifierProvider =
