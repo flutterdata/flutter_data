@@ -230,11 +230,6 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           }
         }
 
-        // remove
-        if (event.type == DataGraphEventType.removeNode) {
-          _notifier.updateWith(model: null);
-        }
-
         // temporarily restore removed pair so that watchedRelationshipUpdate
         // has a chance to apply the update
         if (event.type == DataGraphEventType.removeEdge &&

@@ -238,6 +238,7 @@ final _$providerStringSingular =
   final adapter = ref.watch(${typeLowerCased}RemoteAdapterProvider);
   final _watcherFinder = _${typeLowerCased}Finders[args.watcher]?.call(adapter);
   final notifier = _watcherFinder is DataWatcherOne<$classType> ? _watcherFinder : adapter.watchOneNotifier;
+  ref.maintainState = true;
   return notifier(args.id!, remote: args.remote, params: args.params, headers: args.headers, alsoWatch: args.alsoWatch, finder: args.finder, label: args.label);
 });
 
@@ -252,6 +253,7 @@ final _$providerStringPlural =
   final adapter = ref.watch(${typeLowerCased}RemoteAdapterProvider);
   final _watcherFinder = _${typeLowerCased}Finders[args.watcher]?.call(adapter);
   final notifier = _watcherFinder is DataWatcherAll<$classType> ? _watcherFinder : adapter.watchAllNotifier;
+  ref.maintainState = true;
   return notifier(remote: args.remote, params: args.params, headers: args.headers, syncLocal: args.syncLocal, finder: args.finder, label: args.label);
 });
 

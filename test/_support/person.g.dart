@@ -63,6 +63,7 @@ final _personProvider = StateNotifierProvider.autoDispose
   final notifier = _watcherFinder is DataWatcherOne<Person>
       ? _watcherFinder
       : adapter.watchOneNotifier;
+  ref.maintainState = true;
   return notifier(args.id!,
       remote: args.remote,
       params: args.params,
@@ -103,6 +104,7 @@ final _peopleProvider = StateNotifierProvider.autoDispose.family<
   final notifier = _watcherFinder is DataWatcherAll<Person>
       ? _watcherFinder
       : adapter.watchAllNotifier;
+  ref.maintainState = true;
   return notifier(
       remote: args.remote,
       params: args.params,

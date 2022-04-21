@@ -112,6 +112,7 @@ final _bookAuthorProvider = StateNotifierProvider.autoDispose.family<
   final notifier = _watcherFinder is DataWatcherOne<BookAuthor>
       ? _watcherFinder
       : adapter.watchOneNotifier;
+  ref.maintainState = true;
   return notifier(args.id!,
       remote: args.remote,
       params: args.params,
@@ -152,6 +153,7 @@ final _bookAuthorsProvider = StateNotifierProvider.autoDispose.family<
   final notifier = _watcherFinder is DataWatcherAll<BookAuthor>
       ? _watcherFinder
       : adapter.watchAllNotifier;
+  ref.maintainState = true;
   return notifier(
       remote: args.remote,
       params: args.params,
@@ -250,6 +252,7 @@ final _bookProvider = StateNotifierProvider.autoDispose
   final notifier = _watcherFinder is DataWatcherOne<Book>
       ? _watcherFinder
       : adapter.watchOneNotifier;
+  ref.maintainState = true;
   return notifier(args.id!,
       remote: args.remote,
       params: args.params,
@@ -290,6 +293,7 @@ final _booksProvider = StateNotifierProvider.autoDispose.family<
   final notifier = _watcherFinder is DataWatcherAll<Book>
       ? _watcherFinder
       : adapter.watchAllNotifier;
+  ref.maintainState = true;
   return notifier(
       remote: args.remote,
       params: args.params,

@@ -34,6 +34,24 @@ void main() async {
           clear: false,
         ).initialize();
       }, throwsA(isA<UnsupportedError>()));
+
+      await storage.openBox('posts');
+
+      expect(await hive.boxExists('posts'), isTrue);
+      expect(await hive.boxExists('comments'), isFalse);
+
+      await storage.deleteBox('posts');
+      expect(await hive.boxExists('posts'), isFalse);
+
+      // now with underscore special case
+      await storage.openBox('_authors');
+      await storage.deleteBox('_authors');
+      expect(await hive.boxExists('_authors'), isFalse);
+
+      // and with snake case conversion
+      await storage.openBox('authors_meta');
+      await storage.deleteBox('authorsMeta');
+      expect(await hive.boxExists('authors_meta'), isFalse);
     } finally {
       if (_dir.existsSync()) {
         await _dir.delete(recursive: true);

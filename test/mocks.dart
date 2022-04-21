@@ -66,14 +66,17 @@ class FakeBox<T> extends Fake implements Box<T> {
 }
 
 class HiveFake extends Fake implements HiveInterface {
+  final _boxes = <String, Box>{};
+
   @override
-  bool isBoxOpen(String name) => true;
+  bool isBoxOpen(String name) => _boxes[name]?.isOpen ?? false;
 
   @override
   void init(String path) {}
 
   @override
-  Future<bool> boxExists(String name, {String? path}) async => false;
+  Future<bool> boxExists(String name, {String? path}) async =>
+      _boxes.containsKey(name);
 
   @override
   Future<Box<E>> openBox<E>(
@@ -86,7 +89,19 @@ class HiveFake extends Fake implements HiveInterface {
     Uint8List? bytes,
     @Deprecated('Use encryptionCipher instead') List<int>? encryptionKey,
   }) async {
-    return FakeBox<E>();
+    final box = FakeBox<E>();
+    _boxes[name] = box;
+    return box;
+  }
+
+  @override
+  Future<void> deleteBoxFromDisk(String name, {String? path}) async {
+    _boxes.remove(name);
+  }
+
+  @override
+  bool isAdapterRegistered(int typeId) {
+    return true;
   }
 }
 

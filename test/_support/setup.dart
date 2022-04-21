@@ -120,6 +120,13 @@ void setUpFn() async {
       'books': container.read(booksRemoteAdapterProvider),
     },
   );
+
+  personRemoteAdapter.internalWatch = _watch;
+}
+
+// home baked watcher
+E _watch<E>(ProviderListenable<E> provider) {
+  return container.readProviderElement(provider as ProviderBase<E>).readSelf();
 }
 
 void tearDownFn() async {

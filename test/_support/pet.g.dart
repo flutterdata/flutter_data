@@ -74,6 +74,7 @@ final _dogProvider = StateNotifierProvider.autoDispose
   final notifier = _watcherFinder is DataWatcherOne<Dog>
       ? _watcherFinder
       : adapter.watchOneNotifier;
+  ref.maintainState = true;
   return notifier(args.id!,
       remote: args.remote,
       params: args.params,
@@ -114,6 +115,7 @@ final _dogsProvider = StateNotifierProvider.autoDispose.family<
   final notifier = _watcherFinder is DataWatcherAll<Dog>
       ? _watcherFinder
       : adapter.watchAllNotifier;
+  ref.maintainState = true;
   return notifier(
       remote: args.remote,
       params: args.params,
@@ -202,6 +204,7 @@ final _catProvider = StateNotifierProvider.autoDispose
   final notifier = _watcherFinder is DataWatcherOne<Cat>
       ? _watcherFinder
       : adapter.watchOneNotifier;
+  ref.maintainState = true;
   return notifier(args.id!,
       remote: args.remote,
       params: args.params,
@@ -242,6 +245,7 @@ final _catsProvider = StateNotifierProvider.autoDispose.family<
   final notifier = _watcherFinder is DataWatcherAll<Cat>
       ? _watcherFinder
       : adapter.watchAllNotifier;
+  ref.maintainState = true;
   return notifier(
       remote: args.remote,
       params: args.params,

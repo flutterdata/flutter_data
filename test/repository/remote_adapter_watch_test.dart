@@ -15,13 +15,13 @@ void main() async {
   setUp(setUpFn);
   tearDown(tearDownFn);
 
-  test('watchAllNotifier', () async {
+  test('watchAll', () async {
     final listener = Listener<DataState<List<Familia>?>>();
 
     container.read(responseProvider.notifier).state = TestResponse.text('''
         [{ "id": "1", "surname": "Corleone" }, { "id": "2", "surname": "Soprano" }]
       ''');
-    final notifier = familiaRepository.remoteAdapter.watchAllNotifier();
+    final notifier = container.read(familiaProvider().notifier);
 
     dispose = notifier.addListener(listener);
 
@@ -36,12 +36,12 @@ void main() async {
     verifyNoMoreInteractions(listener);
   });
 
-  test('watchAllNotifier with error', () async {
+  test('watchAll with error', () async {
     final listener = Listener<DataState<List<Familia>?>?>();
 
     container.read(responseProvider.notifier).state =
         TestResponse(text: (_) => throw Exception('unreachable'));
-    final notifier = familiaRepository.remoteAdapter.watchAllNotifier();
+    final notifier = container.read(familiaProvider().notifier);
 
     dispose = notifier.addListener(listener);
 
@@ -80,14 +80,13 @@ void main() async {
     verifyNoMoreInteractions(listener);
   });
 
-  test('watchOneNotifier', () async {
+  test('watchOne', () async {
     final listener = Listener<DataState<Person?>?>();
 
     container.read(responseProvider.notifier).state = TestResponse.text(
       '''{ "_id": "1", "name": "Charlie", "age": 23 }''',
     );
-    final notifier =
-        personRepository.remoteAdapter.watchOneNotifier('1', remote: true);
+    final notifier = container.read(personProvider('1', remote: true).notifier);
 
     dispose = notifier.addListener(listener);
 
@@ -107,9 +106,11 @@ void main() async {
     verifyNoMoreInteractions(listener);
 
     await personRepository.save(Person(id: '1', name: 'Charlie', age: 24));
+    await oneMs();
 
     // unrelated request should not affect the current listener
     await familiaRepository.findOne('234324', remote: false);
+    await oneMs();
 
     verify(listener(DataState(Person(id: '1', name: 'Charlie', age: 24),
             isLoading: false)))
@@ -117,13 +118,13 @@ void main() async {
     verifyNoMoreInteractions(listener);
   });
 
-  test('watchOneNotifier with error', () async {
+  test('watchOne with error', () async {
     final listener = Listener<DataState<Familia?>?>();
 
     container.read(responseProvider.notifier).state = TestResponse(
       text: (_) => throw Exception('whatever'),
     );
-    final notifier = familiaRepository.remoteAdapter.watchOneNotifier('1');
+    final notifier = container.read(familiumProvider('1').notifier);
 
     dispose = notifier.addListener(listener);
 
@@ -179,7 +180,7 @@ void main() async {
     verifyNoMoreInteractions(listener);
   });
 
-  test('watchOneNotifier with alsoWatch relationships', () async {
+  test('watchOne with alsoWatch relationships', () async {
     // simulate Familia that exists in local storage
     // important to keep to test `alsoWatch` assignment order
     final familia = await Familia(id: '22', surname: 'Paez', persons: HasMany())
@@ -190,10 +191,10 @@ void main() async {
 
     container.read(responseProvider.notifier).state =
         TestResponse.text('''{ "id": "22", "surname": "Paez" }''');
-    final notifier = familiaRepository.remoteAdapter.watchOneNotifier(
+    final notifier = container.read(familiumProvider(
       '22',
       alsoWatch: (f) => [f.persons],
-    );
+    ).notifier);
 
     dispose = notifier.addListener(listener);
 
@@ -406,7 +407,7 @@ void main() async {
     }
   });
 
-  test('watchAllNotifier updates', () async {
+  test('watchAllNotifier updates, watchAll', () async {
     final listener = Listener<DataState<List<Person>?>>();
 
     final p1 = Person(id: '1', name: 'Zof', age: 23).init(container.read);
@@ -429,6 +430,12 @@ void main() async {
 
     verifyNever(listener(DataState([p3], isLoading: false)));
     verifyNoMoreInteractions(listener);
+
+    expect(personRepository.watchAll(), DataState<List<Person>?>([p2]));
+
+    // houses should throw an unsupported error since its
+    // watcher was not configured in setup
+    expect(() => houseRepository.watchAll(), throwsA(isA<UnsupportedError>()));
   });
 
   test('watchAllNotifier with where/map', () async {
@@ -452,7 +459,7 @@ void main() async {
     verifyNoMoreInteractions(listener);
   });
 
-  test('watchOneNotifier 2', () async {
+  test('watchOneNotifier and watchOne', () async {
     final listener = Listener<DataState<Person?>?>();
 
     final notifier = personRemoteAdapter.watchOneNotifier('1');
@@ -487,6 +494,15 @@ void main() async {
 
     verifyNever(listener(argThat(matcher('Jupiter'))));
     verifyNoMoreInteractions(listener);
+
+    // also ensure watchers return expected state
+    expect(personRepository.watchOne('1'),
+        DataState<Person?>(Person(id: '1', name: 'Liam', age: 36)));
+
+    // houses should throw an unsupported error since its
+    // watcher was not configured in setup
+    expect(
+        () => houseRepository.watchOne('1'), throwsA(isA<UnsupportedError>()));
   });
 
   test('watchOneNotifier reads latest version', () async {

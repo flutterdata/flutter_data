@@ -33,6 +33,8 @@ void main() async {
 
     await familiaRepository.clear();
     expect(await familiaRepository.findAll(remote: false), isEmpty);
+
+    expect(familiaRepository.type, 'familia');
   });
 
   test('findAll with and without syncLocal', () async {
