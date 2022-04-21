@@ -592,12 +592,14 @@ void main() async {
     await f1.delete();
     await oneMs();
 
-    // called four times: model removal and relationships removal
+    // TODO review called(5)
     verify(listener(argThat(
       isA<DataState>().having((s) => s.model, 'model', isNull),
-    ))).called(4);
+    ))).called(5);
     verifyNoMoreInteractions(listener);
   });
+
+  // TODO test adding model of a relationship just via local storage
 
   test('watchOneNotifier without ID and alsoWatch', () async {
     final frank = Person(name: 'Frank', age: 30).init(container.read);

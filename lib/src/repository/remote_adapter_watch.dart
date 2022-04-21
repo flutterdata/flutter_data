@@ -247,19 +247,21 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
               .isNotEmpty;
 
       // updates on watched models (of relationships) condition
-      final watchedModelUpdate = event.type == DataGraphEventType.updateNode &&
+      final watchedModelUpdate = event.type.isNode &&
           _alsoWatchPairs
               .where((pair) => pair.contains(event.keys.first))
               .isNotEmpty;
 
       // if model is loaded and any condition passes, notify update
-      if (_notifier.data.isLoading == false && watchedRelationshipUpdate ||
-          watchedModelUpdate) {
+      if (_notifier.data.isLoading == false &&
+          (watchedRelationshipUpdate || watchedModelUpdate)) {
         _notifier.updateWith(model: _model);
       }
     });
 
-    _notifier.onDispose = _dispose;
+    _notifier.onDispose = () {
+      _dispose();
+    };
     return _notifier;
   }
 

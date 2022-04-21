@@ -39,11 +39,11 @@ abstract class DataModel<T extends DataModel<T>> {
     _key = remoteAdapter.graph.getKeyForId(remoteAdapter.internalType, id,
         keyIfAbsent: key ?? DataHelpers.generateKey<T>());
 
+    _initializeRelationships();
+
     if (save) {
       remoteAdapter.localAdapter.save(_key!, this as T);
     }
-
-    _initializeRelationships();
 
     return this as T;
   }
