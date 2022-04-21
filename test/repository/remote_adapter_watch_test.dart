@@ -209,7 +209,7 @@ void main() async {
     verifyNoMoreInteractions(listener);
 
     // add a watched relationship
-    final martin = Person(id: '1', name: 'Martin', age: 44);
+    var martin = Person(id: '1', name: 'Martin', age: 44);
     familia.persons.add(martin);
 
     verify(listener(argThat(isA<DataState>()
@@ -219,7 +219,7 @@ void main() async {
     verifyNoMoreInteractions(listener);
 
     // update person
-    Person(id: '1', name: 'Martin', age: 45).init(container.read);
+    martin = Person(id: '1', name: 'Martin', age: 45).init(container.read);
 
     verify(listener(argThat(isA<DataState>().having(
         (s) => s.model.persons!.toSet(),
@@ -227,11 +227,21 @@ void main() async {
         {Person(id: '1', name: 'Martin', age: 45)})))).called(1);
     verifyNoMoreInteractions(listener);
 
+    // update another person through deserialization
+    container.read(responseProvider.notifier).state = TestResponse.text(
+        '''{ "_id": "2", "name": "Eve", "age": 20, "familia_id": "22" }''');
+    final eve = await personRepository.findOne('2', remote: true);
+    await oneMs();
+
+    verify(listener(argThat(isA<DataState>().having((s) {
+      return s.model.persons!.toSet();
+    }, 'rel', unorderedEquals({martin, eve}))))).called(1);
+    verifyNoMoreInteractions(listener);
+
     // remove person
     familia.persons.remove(martin);
     verify(listener(argThat(isA<DataState>()
-            .having((s) => s.model.persons!.toSet(), 'rel', isEmpty))))
-        .called(1);
+        .having((s) => s.model.persons!.toSet(), 'rel', {eve})))).called(1);
     verifyNoMoreInteractions(listener);
   });
 
@@ -471,7 +481,7 @@ void main() async {
     verify(listener(argThat(matcher('Liam')))).called(1);
     verifyNoMoreInteractions(listener);
 
-    // a different ID doesn't trigger an extra call to expectAsync1(count=3)
+    // a different ID doesn't trigger
     await personRemoteAdapter.save(Person(id: '2', name: 'Jupiter', age: 3));
     await oneMs();
 
@@ -582,7 +592,6 @@ void main() async {
     verifyNoMoreInteractions(listener);
 
     // a non-watched relationship does not trigger
-
     f1.cottage!.value = House(address: '7342 Mountain Rd');
     await oneMs();
 
@@ -592,14 +601,12 @@ void main() async {
     await f1.delete();
     await oneMs();
 
-    // TODO review called(5)
+    // only the model removal triggers
     verify(listener(argThat(
       isA<DataState>().having((s) => s.model, 'model', isNull),
-    ))).called(5);
+    ))).called(1);
     verifyNoMoreInteractions(listener);
   });
-
-  // TODO test adding model of a relationship just via local storage
 
   test('watchOneNotifier without ID and alsoWatch', () async {
     final frank = Person(name: 'Frank', age: 30).init(container.read);

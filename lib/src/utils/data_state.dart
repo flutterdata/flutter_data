@@ -1,9 +1,4 @@
-library data_state;
-
-import 'dart:async';
-
-import 'package:equatable/equatable.dart';
-import 'package:state_notifier/state_notifier.dart';
+part of flutter_data;
 
 class DataState<T> with EquatableMixin {
   final T model;
@@ -49,10 +44,11 @@ class DataStateNotifier<T> extends StateNotifier<DataState<T>> {
   DataStateNotifier({
     required DataState<T> data,
     Future<void> Function()? reload,
-  })  : reloadFn = reload,
+  })  : _reloadFn = reload,
         super(data);
 
-  Future<void> Function()? reloadFn;
+  // ignore: prefer_final_fields
+  Future<void> Function()? _reloadFn;
   void Function()? onDispose;
 
   DataState<T> get data => super.state;
@@ -74,7 +70,7 @@ class DataStateNotifier<T> extends StateNotifier<DataState<T>> {
   }
 
   Future<void> reload() async {
-    return reloadFn?.call();
+    return _reloadFn?.call();
   }
 
   @override
@@ -109,7 +105,7 @@ class _FunctionalDataStateNotifier<T, W> extends DataStateNotifier<W> {
   late RemoveListener _sourceDisposeFn;
 
   _FunctionalDataStateNotifier(this._source)
-      : super(data: _source.data, reload: _source.reloadFn);
+      : super(data: _source.data, reload: _source._reloadFn);
 
   DataStateNotifier<W> where(bool Function(T) test) {
     _sourceDisposeFn = _source.addListener((state) {

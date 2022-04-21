@@ -13,12 +13,12 @@ import 'package:inflection3/inflection3.dart' as inflection;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path_helper;
 import 'package:riverpod/riverpod.dart';
+import 'package:state_notifier/state_notifier.dart';
 import 'package:uuid/uuid.dart';
 
 // import internal packages
 import 'src/graph/notifier_extension.dart';
 import 'src/repository/hive_local_storage.dart';
-import 'src/utils/data_state.dart';
 
 // export external packages
 export 'package:riverpod/riverpod.dart' hide Family;
@@ -26,7 +26,6 @@ export 'package:riverpod/riverpod.dart' hide Family;
 // export internal packages
 export 'src/graph/notifier_extension.dart';
 export 'src/repository/hive_local_storage.dart';
-export 'src/utils/data_state.dart';
 
 part 'src/graph/graph_notifier.dart';
 // include parts
@@ -43,4 +42,5 @@ part 'src/repository/repository.dart';
 part 'src/utils/extensions.dart';
 part 'src/utils/framework.dart';
 part 'src/utils/initialization.dart';
+part 'src/utils/data_state.dart';
 part 'src/utils/offline.dart';

@@ -31,7 +31,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       data: DataState(_getUpdatedModels(), isLoading: remote!),
     );
 
-    _notifier.reloadFn = () async {
+    _notifier._reloadFn = () async {
       if (!_notifier.mounted) return;
 
       if (remote!) {
@@ -154,6 +154,9 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         if (withNotifier != null) {
           model._updateNotifier(withNotifier);
         }
+      } else {
+        // if there is no model nothing should be watched, reset pairs
+        _alsoWatchPairs = {};
       }
       return model;
     }
@@ -162,7 +165,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       data: DataState(_getUpdatedModel(), isLoading: remote!),
     );
 
-    _notifier.reloadFn = () async {
+    _notifier._reloadFn = () async {
       if (!_notifier.mounted || id == null) return;
 
       if (remote!) {
@@ -202,7 +205,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     final _dispose = graph.addListener((event) {
       if (!_notifier.mounted) return;
 
-      final _key = key();
+      final _key = _model?._key ?? key();
 
       // get the latest updated model with watchable relationships
       // (_alsoWatchPairs) in order to determine whether there is
@@ -234,9 +237,15 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
         // temporarily restore removed pair so that watchedRelationshipUpdate
         // has a chance to apply the update
-        if (event.type == DataGraphEventType.removeEdge) {
+        if (event.type == DataGraphEventType.removeEdge &&
+            !event.keys.first.startsWith('id:')) {
           _alsoWatchPairs.add(event.keys);
         }
+      }
+
+      // handle deletion
+      if (event.type == DataGraphEventType.removeNode && _model == null) {
+        _notifier.updateWith(model: null);
       }
 
       // updates on watched relationships condition

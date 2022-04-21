@@ -328,7 +328,7 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
       // remove deleted key from all metadatas
       if (toNode != null) {
         for (final entry in toNode.entries.toSet()) {
-          _removeEdges(toKey, tos: [key], metadata: entry.key);
+          _removeEdge(toKey, key, metadata: entry.key);
         }
       }
     }
@@ -387,14 +387,6 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
         toNode[inverseMetadata] = {...?toNode[inverseMetadata], from}.toList();
         // persist change
         box?.put(to, toNode);
-      }
-
-      if (notify) {
-        state = DataGraphEvent(
-          keys: [...tos, from],
-          metadata: inverseMetadata,
-          type: DataGraphEventType.addEdge,
-        );
       }
     }
   }
@@ -458,14 +450,6 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
         if (toNode == null || toNode.isEmpty) {
           _removeNode(to, notify: notify);
         }
-      }
-
-      if (notify) {
-        state = DataGraphEvent(
-          keys: [...tos, from],
-          metadata: inverseMetadata,
-          type: DataGraphEventType.removeEdge,
-        );
       }
     }
   }
