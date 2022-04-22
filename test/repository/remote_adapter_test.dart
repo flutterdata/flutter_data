@@ -153,4 +153,50 @@ void main() async {
       Person(id: '2', name: 'John', age: 44)
     ]);
   });
+
+  test('DataRequestLabel', () {
+    final label = DataRequestLabel('findAll', type: 'dogs');
+    expect(label.kind, 'findAll');
+    expect(label.type, 'dogs');
+    expect(label.requestId, isNotNull);
+    expect(label.isParent, isFalse);
+
+    final label2 = DataRequestLabel.parse('findOne/watch/dogs#1@7ebcc6');
+    expect(label2.kind, 'findOne/watch');
+    expect(label2.type, 'dogs');
+    expect(label2.id, '1');
+    expect(label2.requestId, '7ebcc6');
+    expect(label2.indentation, 0);
+
+    // indentation does not depend on left padding
+    final label3 = DataRequestLabel.parse('   findAll/dogs@4ebcc6');
+    expect(label3.kind, 'findAll');
+    expect(label3.type, 'dogs');
+    expect(label3.id, isNull);
+    expect(label3.requestId, '4ebcc6');
+    expect(label3.indentation, 0);
+
+    // nested
+    final parentLabel = DataRequestLabel('findOne',
+        id: '1', type: 'dogs', requestId: 'ee58b2', isParent: true);
+    final nestedLabel1 = DataRequestLabel('findAll',
+        type: 'parks',
+        requestId: 'ff01b1',
+        isParent: true,
+        withParent: parentLabel);
+    final nestedLabel2 = DataRequestLabel('findAll',
+        type: 'rangers', requestId: 'e7bf99', withParent: nestedLabel1);
+
+    expect(parentLabel.toString(), 'findOne/dogs#1@ee58b2');
+    expect(parentLabel.requestId, 'ee58b2');
+    expect(parentLabel.indentation, 0);
+
+    expect(nestedLabel1.toString(), 'findAll/parks@ff01b1<ee58b2');
+    expect(nestedLabel1.requestId, 'ff01b1');
+    expect(nestedLabel1.indentation, 1);
+
+    expect(nestedLabel2.toString(), 'findAll/rangers@e7bf99<ff01b1<ee58b2');
+    expect(nestedLabel2.requestId, 'e7bf99');
+    expect(nestedLabel2.indentation, 2);
+  });
 }

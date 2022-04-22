@@ -14,8 +14,6 @@ import 'pet.dart';
 // copied from https://api.flutter.dev/flutter/foundation/kIsWeb-constant.html
 const _kIsWeb = identical(0, 0.0);
 
-//
-
 late ProviderContainer container;
 late GraphNotifier graph;
 
@@ -32,6 +30,8 @@ late Repository<BookAuthor> bookAuthorRepository;
 late Repository<Book> bookRepository;
 
 Function? dispose;
+
+final verbose = [];
 
 void setUpFn() async {
   container = ProviderContainer(
@@ -124,11 +124,6 @@ void setUpFn() async {
   personRemoteAdapter.internalWatch = _watch;
 }
 
-// home baked watcher
-E _watch<E>(ProviderListenable<E> provider) {
-  return container.readProviderElement(provider as ProviderBase<E>).readSelf();
-}
-
 void tearDownFn() async {
   // Equivalent to generated in `main.data.dart`
   dispose?.call();
@@ -138,6 +133,8 @@ void tearDownFn() async {
   dogRepository.dispose();
   nodeRepository.dispose();
   graph.dispose();
+
+  verbose.clear();
 }
 
 // utils
@@ -145,6 +142,24 @@ void tearDownFn() async {
 /// Waits 1 millisecond (tests have a throttle of Duration.zero)
 Future<void> oneMs() async {
   await Future.delayed(const Duration(milliseconds: 1));
+}
+
+// home baked watcher
+E _watch<E>(ProviderListenable<E> provider) {
+  return container.readProviderElement(provider as ProviderBase<E>).readSelf();
+}
+
+Function() overridePrint(dynamic Function() testFn) => () {
+      final spec = ZoneSpecification(print: (_, __, ___, String msg) {
+        // Add to log instead of printing to stdout
+        verbose.add(msg);
+      });
+      return Zone.current.fork(specification: spec).run(testFn);
+    };
+
+class Bloc {
+  final Repository<Familia> repo;
+  Bloc(this.repo);
 }
 
 final responseProvider =

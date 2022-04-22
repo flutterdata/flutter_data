@@ -266,7 +266,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     headers = await defaultHeaders & headers;
     onSuccess ??= this.onSuccess;
 
-    label ??= DataRequestLabel('findAll', type: internalType);
+    label = DataRequestLabel('findAll', type: internalType, withParent: label);
 
     log(label, 'request ${params.isNotEmpty ? 'with $params' : ''}');
 
@@ -327,8 +327,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     final resolvedId = _resolveId(id);
     late T? model;
 
-    label ??= DataRequestLabel('findOne',
-        type: internalType, id: resolvedId?.toString());
+    label = DataRequestLabel('findOne',
+        type: internalType, id: resolvedId?.toString(), withParent: label);
     log(label, 'request ${params.isNotEmpty ? 'with $params' : ''}');
 
     if (!shouldLoadRemoteOne(id, remote!, params, headers) || background) {
@@ -381,8 +381,11 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     // ensure model is initialized
     model._initialize(adapters, save: true);
 
-    label ??= DataRequestLabel('save',
-        type: internalType, id: model.id?.toString(), model: model);
+    label = DataRequestLabel('save',
+        type: internalType,
+        id: model.id?.toString(),
+        model: model,
+        withParent: label);
     log(label, 'request');
 
     if (remote == false) {
@@ -423,7 +426,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     final id = _resolveId(model);
     final key = _keyForModel(model);
 
-    label ??= DataRequestLabel('delete', type: internalType, id: id.toString());
+    label = DataRequestLabel('delete',
+        type: internalType, id: id.toString(), withParent: label);
     log(label, 'request');
 
     if (key != null) {
@@ -681,7 +685,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       final now = DateTime.now();
       final timestamp =
           '${now.second.toString().padLeft(2, '0')}:${now.millisecond.toString().padLeft(3, '0')}';
-      print('$timestamp ${' ' * label.indentation}[$label] $message');
+      print('$timestamp ${' ' * label.indentation * 2}[$label] $message');
     }
   }
 
@@ -752,13 +756,17 @@ typedef OnError<R> = FutureOr<R?> Function(
 /// Format examples:
 ///  - findAll/reports@b5d14c
 ///  - findOne/inspections#3@c4a1bb
+///  - findAll/reports@b5d14c<c4a1bb
 class DataRequestLabel with EquatableMixin {
   final String kind;
   late final String type;
   final String? id;
-  late final String requestId;
   DataModel? model;
-  final int indentation;
+  final bool isParent;
+  final _requestIds = <String>[];
+
+  String get requestId => _requestIds.first;
+  int get indentation => _requestIds.length - 1;
 
   DataRequestLabel(
     String kind, {
@@ -766,8 +774,9 @@ class DataRequestLabel with EquatableMixin {
     this.id,
     String? requestId,
     this.model,
-  })  : indentation = kind.split(kind.trim()).first.length,
-        kind = kind.trim() {
+    this.isParent = false,
+    DataRequestLabel? withParent,
+  }) : kind = kind.trim() {
     assert(!type.contains('#'));
     if (id != null) {
       assert(!id!.contains('#'));
@@ -776,7 +785,11 @@ class DataRequestLabel with EquatableMixin {
       assert(!requestId.contains('@'));
     }
     this.type = DataHelpers.getType(type);
-    this.requestId = requestId ?? DataHelpers.generateShortKey();
+    _requestIds.add(requestId ?? DataHelpers.generateShortKey());
+
+    if (withParent != null && withParent.isParent) {
+      _requestIds.addAll(withParent._requestIds);
+    }
   }
 
   factory DataRequestLabel.parse(String text) {
@@ -793,11 +806,11 @@ class DataRequestLabel with EquatableMixin {
 
   @override
   String toString() {
-    return '$kind/${(id ?? '').typifyWith(type)}@$requestId';
+    return '$kind/${(id ?? '').typifyWith(type)}@${_requestIds.join('<')}';
   }
 
   @override
-  List<Object?> get props => [kind, type, id, requestId];
+  List<Object?> get props => [kind, type, id, _requestIds];
 }
 
 /// When this provider is non-null it will override

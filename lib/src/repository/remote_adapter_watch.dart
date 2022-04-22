@@ -17,6 +17,9 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
     final _maybeFinder = _internalHolder?.finders[finder]?.call(this);
     final _finder = _maybeFinder is DataFinderAll<T> ? _maybeFinder : findAll;
+
+    // we can't use `findAll`'s default internal label
+    // because we need a label to handle events
     label ??= DataRequestLabel('findAll', type: internalType);
 
     // closure to get latest models
@@ -129,6 +132,9 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     remote ??= _remote;
     final _maybeFinder = _internalHolder?.finders[finder]?.call(this);
     final _finder = _maybeFinder is DataFinderOne<T> ? _maybeFinder : findOne;
+
+    // we can't use `findOne`'s default internal label
+    // because we need a label to handle events
     label ??= DataRequestLabel('findOne', type: internalType);
 
     final id = _resolveId(model);
@@ -209,7 +215,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
       // get the latest updated model with watchable relationships
       // (_alsoWatchPairs) in order to determine whether there is
-      // something that will cause a notification (with the introduction
+      // something that will cause an event (with the introduction
       // of `andEach` even seemingly unrelated models could trigger)
       _model = _getUpdatedModel(withNotifier: _notifier);
 

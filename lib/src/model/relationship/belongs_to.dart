@@ -58,7 +58,7 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
       super.add(newValue!, notify: false);
     }
 
-    // handle notifications
+    // handle events
     DataGraphEventType? type;
     if (isAddition) type = DataGraphEventType.addEdge;
     if (isUpdate) type = DataGraphEventType.updateEdge;

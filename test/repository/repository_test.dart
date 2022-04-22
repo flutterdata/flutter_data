@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -395,40 +394,4 @@ void main() async {
     familiaRepository.dispose();
     expect(familiaRepository.isInitialized, isFalse);
   });
-
-  test('DataRequestLabel', () {
-    final label = DataRequestLabel('findAll', type: 'dogs');
-    expect(label.kind, 'findAll');
-    expect(label.type, 'dogs');
-    expect(label.requestId, isNotNull);
-
-    final label2 = DataRequestLabel.parse('findOne/watch/dogs#1@7ebcc6');
-    expect(label2.kind, 'findOne/watch');
-    expect(label2.type, 'dogs');
-    expect(label2.id, '1');
-    expect(label2.requestId, '7ebcc6');
-    expect(label2.indentation, 0);
-
-    final label3 = DataRequestLabel.parse('   findAll/dogs@4ebcc6');
-    expect(label3.kind, 'findAll');
-    expect(label3.type, 'dogs');
-    expect(label3.id, isNull);
-    expect(label3.requestId, '4ebcc6');
-    expect(label3.indentation, 3);
-  });
-}
-
-final verbose = [];
-
-Function() overridePrint(dynamic Function() testFn) => () {
-      final spec = ZoneSpecification(print: (_, __, ___, String msg) {
-        // Add to log instead of printing to stdout
-        verbose.add(msg);
-      });
-      return Zone.current.fork(specification: spec).run(testFn);
-    };
-
-class Bloc {
-  final Repository<Familia> repo;
-  Bloc(this.repo);
 }
