@@ -139,8 +139,6 @@ and execute a code generation build again.
 
     final remoteAdapterTypeChecker = TypeChecker.fromRuntime(RemoteAdapter);
 
-    final finders = <String>[];
-
     final mixins = annotation.read('adapters').listValue.map((obj) {
       final mixinType = obj.toTypeValue() as ParameterizedType;
       final mixinMethods = <MethodElement>[];
@@ -166,15 +164,6 @@ and execute a code generation build again.
       displayName =
           instantiatedMixinType.getDisplayString(withNullability: false);
 
-      // add finders
-      for (final field in mixinMethods) {
-        final hasFinderAnnotation =
-            TypeChecker.fromRuntime(DataFinder).hasAnnotationOfExact(field);
-        if (hasFinderAnnotation) {
-          finders.add(field.name);
-        }
-      }
-
       return displayName;
     }).toSet();
 
@@ -186,9 +175,6 @@ and execute a code generation build again.
     if (mixins.isEmpty) {
       mixins.add('NothingMixin');
     }
-
-    final providerStringPlural = getProviderStringPlural(typeLowerCased);
-    final providerStringSingular = getProviderStringSingular(typeLowerCased);
 
     // template
 
@@ -219,48 +205,12 @@ class \$${classType}HiveLocalAdapter = HiveLocalAdapter<$classType> with \$${cla
 
 class \$${classType}RemoteAdapter = RemoteAdapter<$classType> with ${mixins.join(', ')};
 
-final _${typeLowerCased}Finders = <String, dynamic>{
-  ${finders.map((f) => '''  '$f': (_) => _.$f,''').join('\n')}
-};
-
-//
-
 final ${typeLowerCased}RemoteAdapterProvider =
     Provider<RemoteAdapter<$classType>>(
-        (ref) => \$${classType}RemoteAdapter(\$${classType}HiveLocalAdapter(ref.read), InternalHolder($providerStringSingular, $providerStringPlural, _${typeLowerCased}Finders)));
+        (ref) => \$${classType}RemoteAdapter(\$${classType}HiveLocalAdapter(ref.read)));
 
 final ${typeLowerCased}RepositoryProvider =
     Provider<Repository<$classType>>((ref) => Repository<$classType>(ref.read));
-
-final _$providerStringSingular =
-    StateNotifierProvider.autoDispose.family<DataStateNotifier<$classType?>, DataState<$classType?>, WatchArgs<$classType>>(
-        (ref, args) {
-  final adapter = ref.watch(${typeLowerCased}RemoteAdapterProvider);
-  final _watcherFinder = _${typeLowerCased}Finders[args.watcher]?.call(adapter);
-  final notifier = _watcherFinder is DataWatcherOne<$classType> ? _watcherFinder : adapter.watchOneNotifier;
-  ref.maintainState = true;
-  return notifier(args.id!, remote: args.remote, params: args.params, headers: args.headers, alsoWatch: args.alsoWatch, finder: args.finder, label: args.label);
-});
-
-AutoDisposeStateNotifierProvider<DataStateNotifier<$classType?>, DataState<$classType?>> $providerStringSingular(Object? id,
-    {bool? remote, Map<String, dynamic>? params, Map<String, String>? headers, AlsoWatch<$classType>? alsoWatch, String? finder, String? watcher, DataRequestLabel? label,}) {
-  return _$providerStringSingular(WatchArgs(id: id, remote: remote, params: params, headers: headers, alsoWatch: alsoWatch, finder: finder, watcher: watcher, label: label));
-}
-
-final _$providerStringPlural =
-    StateNotifierProvider.autoDispose.family<DataStateNotifier<List<$classType>?>, DataState<List<$classType>?>, WatchArgs<$classType>>(
-        (ref, args) {
-  final adapter = ref.watch(${typeLowerCased}RemoteAdapterProvider);
-  final _watcherFinder = _${typeLowerCased}Finders[args.watcher]?.call(adapter);
-  final notifier = _watcherFinder is DataWatcherAll<$classType> ? _watcherFinder : adapter.watchAllNotifier;
-  ref.maintainState = true;
-  return notifier(remote: args.remote, params: args.params, headers: args.headers, syncLocal: args.syncLocal, finder: args.finder, label: args.label);
-});
-
-AutoDisposeStateNotifierProvider<DataStateNotifier<List<$classType>?>, DataState<List<$classType>?>> $providerStringPlural(
-    {bool? remote, Map<String, dynamic>? params, Map<String, String>? headers, bool? syncLocal, String? finder, String? watcher, DataRequestLabel? label,}) {
-  return _$providerStringPlural(WatchArgs(remote: remote, params: params, headers: headers, syncLocal: syncLocal, finder: finder, watcher: watcher, label: label));
-}
 
 extension ${classType}DataX on $classType {
   /// Initializes "fresh" models (i.e. manually instantiated) to use

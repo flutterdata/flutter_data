@@ -10,6 +10,14 @@ void main() async {
   setUp(setUpFn);
   tearDown(tearDownFn);
 
+  test('zz', () {
+    AlsoWatch<Familia> f1 = (f) => [f.persons];
+
+    print(f1.toString());
+    final familia = Familia(id: '1', surname: 'Johnson').init(container.read);
+    print(f1(familia).toString());
+  });
+
   test('uninitialized throws an assertion error', () {
     final familia = Familia(id: '1', surname: 'Johnson');
     expectLater(familia.save, throwsA(isA<AssertionError>()));
@@ -27,7 +35,7 @@ void main() async {
     expect(model.familia.key, graph.getKeyForId('familia', '55'));
 
     // (2) it saves the model locally
-    expect(model, await personRepository.findOne(model.id!, remote: false));
+    expect(model, await container.people.findOne(model.id!, remote: false));
   });
 
   test('findOne (reload) without ID', () async {
@@ -40,7 +48,7 @@ void main() async {
   });
 
   test('delete model with and without ID', () async {
-    final adapter = personRemoteAdapter.localAdapter;
+    final adapter = container.people.remoteAdapter.localAdapter;
     // create a person WITH ID and assert it's there
     final person =
         Person(id: '21103', name: 'John', age: 54).init(container.read);
@@ -63,7 +71,8 @@ void main() async {
     // id-less person
     final p1 = Person(name: 'Frank', age: 20).init(container.read);
     expect(
-        (personRemoteAdapter.localAdapter as HiveLocalAdapter<Person>)
+        (container.people.remoteAdapter.localAdapter
+                as HiveLocalAdapter<Person>)
             .box!
             .keys,
         contains(keyFor(p1)));
@@ -74,7 +83,8 @@ void main() async {
     expect(keyFor(p1), keyFor(p2));
 
     expect(
-        (personRemoteAdapter.localAdapter as HiveLocalAdapter<Person>)
+        (container.people.remoteAdapter.localAdapter
+                as HiveLocalAdapter<Person>)
             .box!
             .keys,
         contains(keyFor(p2)));

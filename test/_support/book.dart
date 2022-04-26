@@ -37,7 +37,6 @@ mixin BookAuthorAdapter on RemoteAdapter<BookAuthor> {
   @override
   String get type => 'writers';
 
-  @DataFinder()
   Future<BookAuthor> caps(
     Object model, {
     bool? remote,

@@ -99,8 +99,11 @@ class DataExtensionBuilder implements Builder {
 
     final isFlutter = await isDependency('flutter', b);
     final hasPathProvider = await isDependency('path_provider', b);
-    final isFlutterRiverpod = await isDependency('flutter_riverpod', b) ||
+    final hasFlutterRiverpod = await isDependency('flutter_riverpod', b) ||
         await isDependency('hooks_riverpod', b);
+    // ensure it's only plain riverpod
+    final hasRiverpod =
+        await isDependency('riverpod', b) && !hasFlutterRiverpod;
 
     final flutterFoundationImport = isFlutter
         ? "import 'package:flutter/foundation.dart' show kIsWeb;"
@@ -108,7 +111,9 @@ class DataExtensionBuilder implements Builder {
     final pathProviderImport = hasPathProvider
         ? "import 'package:path_provider/path_provider.dart';"
         : '';
-    final riverpodFlutterImport = isFlutterRiverpod
+    final riverpodImport =
+        hasFlutterRiverpod ? "import 'package:riverpod/riverpod.dart';" : '';
+    final riverpodFlutterImport = hasFlutterRiverpod
         ? "import 'package:flutter_riverpod/flutter_riverpod.dart';"
         : '';
 
@@ -121,11 +126,11 @@ class DataExtensionBuilder implements Builder {
     String repositoryWatcherRefExtension(List<Map<String, String>> classes) {
       return '''
 extension RepositoryWidgetRefX on WidgetRef {
-${classes.map((clazz) => '  Repository<${clazz['name']}> get ${clazz['type']} => watch(${clazz['type']}RepositoryProvider)..remoteAdapter.internalWatch = watch;').join('\n')}
+${classes.map((clazz) => '  Repository<${clazz['name']}> get ${clazz['type']} => watch(${clazz['type']}RepositoryProvider)..internalWatch = watch;').join('\n')}
 }
 
 extension RepositoryRefX on Ref {
-${classes.map((clazz) => '  Repository<${clazz['name']}> get ${clazz['type']} => watch(${clazz['type']}RepositoryProvider)..remoteAdapter.internalWatch = watch as Watcher;').join('\n')}
+${classes.map((clazz) => '  Repository<${clazz['name']}> get ${clazz['type']} => watch(${clazz['type']}RepositoryProvider)..internalWatch = watch as Watcher;').join('\n')}
 }''';
     }
 
@@ -140,6 +145,7 @@ ${classes.map((clazz) => '  Repository<${clazz['name']}> get ${clazz['type']} =>
 import 'package:flutter_data/flutter_data.dart';
 $flutterFoundationImport
 $pathProviderImport
+$riverpodImport
 $riverpodFlutterImport
 
 $modelImports
@@ -195,6 +201,7 @@ final repositoryInitializerProvider =
     return RepositoryInitializer();
 });
 ''' +
-            (isFlutterRiverpod ? repositoryWatcherRefExtension(classes) : ''));
+            (hasRiverpod ? repositoryWatcherRefExtension(classes) : '') +
+            (hasFlutterRiverpod ? repositoryWatcherRefExtension(classes) : ''));
   }
 }

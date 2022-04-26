@@ -20,9 +20,11 @@ void main() async {
     final residenceKey = graph.getKeyForId('houses', '1',
         keyIfAbsent: DataHelpers.generateKey<House>());
 
+    final familiaLocalAdapter = container.familia.remoteAdapter.localAdapter;
+
     // since we're passing a key (not an ID)
     // we MUST use the local adapter serializer
-    final f1 = familiaRemoteAdapter.localAdapter.deserialize({
+    final f1 = familiaLocalAdapter.deserialize({
       'id': '1',
       'surname': 'Rose',
       'residence': residenceKey
@@ -40,7 +42,7 @@ void main() async {
     // residence is omitted, but persons is included (no people exist yet)
     final personKey =
         graph.getKeyForId('people', '1', keyIfAbsent: 'people#a1a1a1');
-    final f1b = familiaRemoteAdapter.localAdapter.deserialize({
+    final f1b = familiaLocalAdapter.deserialize({
       'id': '1',
       'surname': 'Rose',
       'persons': [personKey],
@@ -57,7 +59,7 @@ void main() async {
     expect(f1b.persons.toSet(), {p1});
 
     // relationships are omitted - so they remain unchanged
-    final f1c = familiaRemoteAdapter.localAdapter
+    final f1c = familiaLocalAdapter
         .deserialize({'id': '1', 'surname': 'Rose'}).init(container.read);
     expect(f1c.persons.toSet(), {p1});
     expect(f1c.residence!.value, isNotNull);
@@ -65,7 +67,7 @@ void main() async {
     final p2 = Person(id: '2', name: 'Brian', age: 55).init(container.read);
 
     // persons has changed from [1] to [2]
-    final f1d = familiaRemoteAdapter.localAdapter.deserialize({
+    final f1d = familiaLocalAdapter.deserialize({
       'id': '1',
       'surname': 'Rose',
       'persons': [keyFor(p2)]
@@ -78,7 +80,7 @@ void main() async {
     expect(p1.familia.value, isNull);
 
     // relationships are explicitly set to null
-    final f1e = familiaRemoteAdapter.localAdapter.deserialize({
+    final f1e = familiaLocalAdapter.deserialize({
       'id': '1',
       'surname': 'Rose',
       'persons': null,
@@ -91,10 +93,11 @@ void main() async {
   });
 
   test('scenario #1b (inverse)', () {
+    final houseLocalAdapter = container.houses.remoteAdapter.localAdapter;
     // deserialize house, owner does not exist
     // since we're passing a key (not an ID)
     // we MUST use the local adapter serializer
-    final h1 = houseRemoteAdapter.localAdapter.deserialize({
+    final h1 = houseLocalAdapter.deserialize({
       'id': '1',
       'address': '123 Main St',
       'owner': 'familia#a1a1a1'
@@ -121,11 +124,11 @@ void main() async {
         '_': [
           ['people#c1c1c1', 'people#c2c2c2', 'people#c3c3c3'],
           false,
-          familiaRepository
+          container.familia
         ]
       }),
       residence: BelongsTo.fromJson({
-        '_': ['houses#c98d1b', false, familiaRepository]
+        '_': ['houses#c98d1b', false, container.familia]
       }),
     ).init(container.read);
 
@@ -220,15 +223,15 @@ void main() async {
     expect(familia2.persons.length, 1);
 
     // new familia comes in from API (simulate) with no persons relationship information
-    final familia3 =
-        (familiaRemoteAdapter.deserialize({'id': '229', 'surname': 'Rose'}))
-            .model!
-            .init(container.read);
+    final familia3 = (container.familia.remoteAdapter
+            .deserialize({'id': '229', 'surname': 'Rose'}))
+        .model!
+        .init(container.read);
     // it should keep the relationships unaltered
     expect(familia3.persons.length, 1);
 
     // new familia comes in from API (simulate) with empty persons relationship
-    final familia4 = (familiaRemoteAdapter
+    final familia4 = (container.familia.remoteAdapter
             .deserialize({'id': '229', 'surname': 'Rose', 'persons': []}))
         .model!
         .init(container.read);
@@ -237,7 +240,7 @@ void main() async {
 
     // since we're passing a key (not an ID)
     // we MUST use the local adapter serializer
-    final familia5 = familiaRemoteAdapter.localAdapter.deserialize({
+    final familia5 = container.familia.remoteAdapter.localAdapter.deserialize({
       'id': '229',
       'surname': 'Rose',
       'persons': ['people#231aaa']
@@ -282,8 +285,7 @@ void main() async {
         .init(container.read);
 
     final listener = Listener<DataState<BookAuthor?>>();
-    final notifier = bookAuthorRepository.remoteAdapter
-        .watchOneNotifier(author, remote: false);
+    final notifier = container.bookAuthors.watchOneNotifier(author);
 
     dispose = notifier.addListener(listener);
 

@@ -14,26 +14,28 @@ void main() async {
   tearDown(tearDownFn);
 
   test('findAll', () async {
+    final adapter = container.familia.remoteAdapter;
     final familia1 = Familia(id: '1', surname: 'Smith');
     final familia2 = Familia(id: '2', surname: 'Jones');
 
-    await familiaRemoteAdapter.save(familia1);
-    await familiaRemoteAdapter.save(familia2);
-    final familia = await familiaRemoteAdapter.findAll(remote: false);
+    await adapter.save(familia1);
+    await adapter.save(familia2);
+    final familia = await adapter.findAll(remote: false);
 
     expect(familia, [familia1, familia2]);
   });
 
   test('findOne', () async {
+    final adapter = container.familia.remoteAdapter;
     final familia1 = Familia(id: '1', surname: 'Smith');
 
-    await familiaRemoteAdapter.save(familia1); // possible to save without init
-    final familia = await familiaRemoteAdapter.findOne('1', remote: false);
+    await adapter.save(familia1); // possible to save without init
+    final familia = await adapter.findOne('1', remote: false);
     expect(familia, familia1);
   });
 
   test('findOne with includes', () async {
-    final data = familiaRemoteAdapter.deserialize(json.decode('''
+    final data = container.familia.remoteAdapter.deserialize(json.decode('''
       { "id": "1", "surname": "Smith", "persons": [{"_id": "1", "name": "Stan", "age": 31}] }
     ''') as Object);
     expect(data.model, Familia(id: '1', surname: 'Smith'));
@@ -44,34 +46,36 @@ void main() async {
     final house = House(id: '25', address: '12 Lincoln Rd');
 
     // the house is not initialized, so we shouldn't be able to find it
-    expect(await houseRemoteAdapter.findOne(house.id!), isNull);
+    expect(await container.houses.remoteAdapter.findOne(house.id!), isNull);
 
     // now initialize
     house.init(container.read);
 
     // repo.findOne works because the House repo is remote=false
-    expect(await houseRemoteAdapter.findOne(house.id!), house);
+    expect(await container.houses.remoteAdapter.findOne(house.id!), house);
   });
 
   test('save and find', () async {
+    final adapter = container.familia.remoteAdapter;
     final familia = Familia(id: '32423', surname: 'Toraine');
-    await familiaRemoteAdapter.save(familia);
+    await adapter.save(familia);
 
-    final familia2 = await familiaRemoteAdapter.findOne('32423', remote: false);
+    final familia2 = await adapter.findOne('32423', remote: false);
     expect(familia, familia2);
   });
 
   test('delete', () async {
+    final adapter = container.people.remoteAdapter;
     // init a person
     final person = Person(id: '1', name: 'John', age: 21).init(container.read);
     // it does have a key
     expect(graph.getKeyForId('people', person.id), isNotNull);
 
     // now delete
-    await personRemoteAdapter.delete(person.id!);
+    await adapter.delete(person.id!);
 
     // so fetching by id again is null
-    expect(await personRemoteAdapter.findOne(person.id!), isNull);
+    expect(await adapter.findOne(person.id!), isNull);
 
     // and now key & id are both non-existent
     expect(graph.getNode(keyFor(person)!), isNull);
@@ -79,7 +83,7 @@ void main() async {
   });
 
   test('use default headers & params', () async {
-    final adapter = personRemoteAdapter as PersonLoginAdapter;
+    final adapter = container.people.personLoginAdapter;
 
     container.read(responseProvider.notifier).state =
         TestResponse.text('{"message": "hello"}');
@@ -128,7 +132,7 @@ void main() async {
         ]''');
 
     // remote comes back with relationships
-    final models = await familiaRepository.findAll(remote: true);
+    final models = await container.familia.findAll(remote: true);
     expect(models!.first.persons.toList(), [
       Person(id: '1', name: 'Peter', age: 10),
       Person(id: '2', name: 'John', age: 44)
@@ -137,17 +141,16 @@ void main() async {
     final originalKey = keyFor(models.first)!;
 
     // simulate app restart
-    familiaRepository.dispose();
-    familiaRepository =
-        await container.read(familiaRepositoryProvider).initialize(
-              // ignore: invalid_use_of_protected_member
-              adapters: familiaRemoteAdapter.adapters,
-            );
-    await familiaRemoteAdapter.localAdapter
+    container.familia.dispose();
+    await container.read(familiaRepositoryProvider).initialize(
+          // ignore: invalid_use_of_protected_member
+          adapters: container.familia.remoteAdapter.adapters,
+        );
+    await container.familia.remoteAdapter.localAdapter
         .save(originalKey, Familia(id: '1', surname: 'Smith'), notify: false);
 
     // local storage still comes back with relationships
-    final models2 = await familiaRepository.findAll(remote: false);
+    final models2 = await container.familia.findAll(remote: false);
     expect(models2!.first.persons.toList(), [
       Person(id: '1', name: 'Peter', age: 10),
       Person(id: '2', name: 'John', age: 44)

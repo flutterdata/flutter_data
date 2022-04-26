@@ -11,40 +11,39 @@ void main() async {
   tearDown(tearDownFn);
 
   test('findOne with null key', () {
-    final familia = familiaRemoteAdapter.localAdapter.findOne(null);
+    final familia = container.familia.remoteAdapter.localAdapter.findOne(null);
     expect(familia, isNull);
   });
 
   test('deserialize existing (with save)', () {
+    final familiaLocalAdapter = container.familia.remoteAdapter.localAdapter
+        as HiveLocalAdapter<Familia>;
     final familia = Familia(surname: 'Moletto').init(container.read);
 
     // simulate "save"
     graph.getKeyForId('familia', '1098', keyIfAbsent: keyFor(familia));
-    final familia2 = familiaRemoteAdapter.localAdapter
+    final familia2 = familiaLocalAdapter
         .deserialize({'id': '1098', 'surname': 'Moletto'}).init(container.read);
 
     expect(familia2, Familia(id: '1098', surname: 'Moletto'));
-    expect(
-        (familiaRemoteAdapter.localAdapter as HiveLocalAdapter<Familia>)
-            .box!
-            .keys,
-        [keyFor(familia2)]);
+    expect(familiaLocalAdapter.box!.keys, [keyFor(familia2)]);
   });
 
   test('deserialize many local for same remote ID', () {
+    final familiaLocalAdapter = container.familia.remoteAdapter.localAdapter;
     final familia = Familia(surname: 'Moletto').init(container.read);
     final familia2 = Familia(surname: 'Zandiver').init(container.read);
 
     // simulate "save" for familia
     graph.getKeyForId('familia', '1298', keyIfAbsent: keyFor(familia));
-    final familia1b = familiaRemoteAdapter.localAdapter.deserialize({
+    final familia1b = familiaLocalAdapter.deserialize({
       'id': '1298',
       'surname': 'Helsinki',
     }).init(container.read);
 
     // simulate "save" for familia2
     graph.getKeyForId('familia', '1298', keyIfAbsent: keyFor(familia2));
-    final familia2b = familiaRemoteAdapter.localAdapter.deserialize({
+    final familia2b = familiaLocalAdapter.deserialize({
       'id': '1298',
       'surname': 'Oslo',
     }).init(container.read);
@@ -54,13 +53,14 @@ void main() async {
   });
 
   test('local serialize', () {
+    final familiaLocalAdapter = container.familia.remoteAdapter.localAdapter;
     final p1r = {Person(id: '1', name: 'Franco', age: 28)}.asHasMany;
     final h1r = House(id: '1', address: '123 Main St').asBelongsTo;
 
     final familia =
         Familia(id: '1', surname: 'Smith', residence: h1r, persons: p1r);
 
-    final map = familiaRemoteAdapter.localAdapter.serialize(familia);
+    final map = familiaLocalAdapter.serialize(familia);
     expect(map, {
       'id': '1',
       'surname': 'Smith',
@@ -70,6 +70,7 @@ void main() async {
   });
 
   test('local deserialize', () {
+    final familiaLocalAdapter = container.familia.remoteAdapter.localAdapter;
     final p1r = {Person(id: '1', name: 'Franco', age: 28)}.asHasMany;
     final h1r = House(id: '1', address: '123 Main St').asBelongsTo;
 
@@ -80,7 +81,7 @@ void main() async {
       'persons': p1r.keys,
     };
 
-    final familia = familiaRemoteAdapter.localAdapter.deserialize(map);
+    final familia = familiaLocalAdapter.deserialize(map);
     expect(
         familia,
         Familia(
@@ -92,6 +93,7 @@ void main() async {
   });
 
   test('local deserialize with relationships', () {
+    final familiaLocalAdapter = container.familia.remoteAdapter.localAdapter;
     final house = House(id: '1', address: '123 Main St').init(container.read);
     final person = Person(id: '1', name: 'John', age: 21).init(container.read);
 
@@ -102,8 +104,7 @@ void main() async {
       'persons': [keyFor(person)]
     };
 
-    final familia =
-        familiaRemoteAdapter.localAdapter.deserialize(obj).init(container.read);
+    final familia = familiaLocalAdapter.deserialize(obj).init(container.read);
 
     expect(familia, Familia(id: '1', surname: 'Smith'));
     expect(familia.residence!.value!.address, '123 Main St');
@@ -111,10 +112,10 @@ void main() async {
   });
 
   test('hive adapter typeId', () {
-    final a1 = familiaRemoteAdapter.localAdapter as HiveLocalAdapter<Familia>;
-    final a1b = familiaRemoteAdapter.localAdapter as HiveLocalAdapter<Familia>;
-    final a2 = houseRemoteAdapter.localAdapter as HiveLocalAdapter<House>;
-    expect(a1.typeId, equals(a1b.typeId));
+    final a1 = container.familia.remoteAdapter.localAdapter
+        as HiveLocalAdapter<Familia>;
+    final a2 =
+        container.houses.remoteAdapter.localAdapter as HiveLocalAdapter<House>;
     expect(a1.typeId, isNot(a2.typeId));
   });
 }

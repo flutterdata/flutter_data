@@ -100,96 +100,11 @@ class $FamiliaHiveLocalAdapter = HiveLocalAdapter<Familia>
 
 class $FamiliaRemoteAdapter = RemoteAdapter<Familia> with NothingMixin;
 
-final _familiaFinders = <String, dynamic>{};
-
-//
-
-final familiaRemoteAdapterProvider = Provider<RemoteAdapter<Familia>>((ref) =>
-    $FamiliaRemoteAdapter($FamiliaHiveLocalAdapter(ref.read),
-        InternalHolder(familiumProvider, familiaProvider, _familiaFinders)));
+final familiaRemoteAdapterProvider = Provider<RemoteAdapter<Familia>>(
+    (ref) => $FamiliaRemoteAdapter($FamiliaHiveLocalAdapter(ref.read)));
 
 final familiaRepositoryProvider =
     Provider<Repository<Familia>>((ref) => Repository<Familia>(ref.read));
-
-final _familiumProvider = StateNotifierProvider.autoDispose.family<
-    DataStateNotifier<Familia?>,
-    DataState<Familia?>,
-    WatchArgs<Familia>>((ref, args) {
-  final adapter = ref.watch(familiaRemoteAdapterProvider);
-  final _watcherFinder = _familiaFinders[args.watcher]?.call(adapter);
-  final notifier = _watcherFinder is DataWatcherOne<Familia>
-      ? _watcherFinder
-      : adapter.watchOneNotifier;
-  ref.maintainState = true;
-  return notifier(args.id!,
-      remote: args.remote,
-      params: args.params,
-      headers: args.headers,
-      alsoWatch: args.alsoWatch,
-      finder: args.finder,
-      label: args.label);
-});
-
-AutoDisposeStateNotifierProvider<DataStateNotifier<Familia?>,
-    DataState<Familia?>> familiumProvider(
-  Object? id, {
-  bool? remote,
-  Map<String, dynamic>? params,
-  Map<String, String>? headers,
-  AlsoWatch<Familia>? alsoWatch,
-  String? finder,
-  String? watcher,
-  DataRequestLabel? label,
-}) {
-  return _familiumProvider(WatchArgs(
-      id: id,
-      remote: remote,
-      params: params,
-      headers: headers,
-      alsoWatch: alsoWatch,
-      finder: finder,
-      watcher: watcher,
-      label: label));
-}
-
-final _familiaProvider = StateNotifierProvider.autoDispose.family<
-    DataStateNotifier<List<Familia>?>,
-    DataState<List<Familia>?>,
-    WatchArgs<Familia>>((ref, args) {
-  final adapter = ref.watch(familiaRemoteAdapterProvider);
-  final _watcherFinder = _familiaFinders[args.watcher]?.call(adapter);
-  final notifier = _watcherFinder is DataWatcherAll<Familia>
-      ? _watcherFinder
-      : adapter.watchAllNotifier;
-  ref.maintainState = true;
-  return notifier(
-      remote: args.remote,
-      params: args.params,
-      headers: args.headers,
-      syncLocal: args.syncLocal,
-      finder: args.finder,
-      label: args.label);
-});
-
-AutoDisposeStateNotifierProvider<DataStateNotifier<List<Familia>?>,
-    DataState<List<Familia>?>> familiaProvider({
-  bool? remote,
-  Map<String, dynamic>? params,
-  Map<String, String>? headers,
-  bool? syncLocal,
-  String? finder,
-  String? watcher,
-  DataRequestLabel? label,
-}) {
-  return _familiaProvider(WatchArgs(
-      remote: remote,
-      params: params,
-      headers: headers,
-      syncLocal: syncLocal,
-      finder: finder,
-      watcher: watcher,
-      label: label));
-}
 
 extension FamiliaDataX on Familia {
   /// Initializes "fresh" models (i.e. manually instantiated) to use

@@ -44,95 +44,11 @@ class $PersonRemoteAdapter = RemoteAdapter<Person>
         GenericDoesNothingAdapter<Person>,
         YetAnotherLoginAdapter;
 
-final _peopleFinders = <String, dynamic>{};
-
-//
-
-final peopleRemoteAdapterProvider = Provider<RemoteAdapter<Person>>((ref) =>
-    $PersonRemoteAdapter($PersonHiveLocalAdapter(ref.read),
-        InternalHolder(personProvider, peopleProvider, _peopleFinders)));
+final peopleRemoteAdapterProvider = Provider<RemoteAdapter<Person>>(
+    (ref) => $PersonRemoteAdapter($PersonHiveLocalAdapter(ref.read)));
 
 final peopleRepositoryProvider =
     Provider<Repository<Person>>((ref) => Repository<Person>(ref.read));
-
-final _personProvider = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<Person?>, DataState<Person?>, WatchArgs<Person>>(
-        (ref, args) {
-  final adapter = ref.watch(peopleRemoteAdapterProvider);
-  final _watcherFinder = _peopleFinders[args.watcher]?.call(adapter);
-  final notifier = _watcherFinder is DataWatcherOne<Person>
-      ? _watcherFinder
-      : adapter.watchOneNotifier;
-  ref.maintainState = true;
-  return notifier(args.id!,
-      remote: args.remote,
-      params: args.params,
-      headers: args.headers,
-      alsoWatch: args.alsoWatch,
-      finder: args.finder,
-      label: args.label);
-});
-
-AutoDisposeStateNotifierProvider<DataStateNotifier<Person?>, DataState<Person?>>
-    personProvider(
-  Object? id, {
-  bool? remote,
-  Map<String, dynamic>? params,
-  Map<String, String>? headers,
-  AlsoWatch<Person>? alsoWatch,
-  String? finder,
-  String? watcher,
-  DataRequestLabel? label,
-}) {
-  return _personProvider(WatchArgs(
-      id: id,
-      remote: remote,
-      params: params,
-      headers: headers,
-      alsoWatch: alsoWatch,
-      finder: finder,
-      watcher: watcher,
-      label: label));
-}
-
-final _peopleProvider = StateNotifierProvider.autoDispose.family<
-    DataStateNotifier<List<Person>?>,
-    DataState<List<Person>?>,
-    WatchArgs<Person>>((ref, args) {
-  final adapter = ref.watch(peopleRemoteAdapterProvider);
-  final _watcherFinder = _peopleFinders[args.watcher]?.call(adapter);
-  final notifier = _watcherFinder is DataWatcherAll<Person>
-      ? _watcherFinder
-      : adapter.watchAllNotifier;
-  ref.maintainState = true;
-  return notifier(
-      remote: args.remote,
-      params: args.params,
-      headers: args.headers,
-      syncLocal: args.syncLocal,
-      finder: args.finder,
-      label: args.label);
-});
-
-AutoDisposeStateNotifierProvider<DataStateNotifier<List<Person>?>,
-    DataState<List<Person>?>> peopleProvider({
-  bool? remote,
-  Map<String, dynamic>? params,
-  Map<String, String>? headers,
-  bool? syncLocal,
-  String? finder,
-  String? watcher,
-  DataRequestLabel? label,
-}) {
-  return _peopleProvider(WatchArgs(
-      remote: remote,
-      params: params,
-      headers: headers,
-      syncLocal: syncLocal,
-      finder: finder,
-      watcher: watcher,
-      label: label));
-}
 
 extension PersonDataX on Person {
   /// Initializes "fresh" models (i.e. manually instantiated) to use

@@ -57,95 +57,11 @@ class $UserHiveLocalAdapter = HiveLocalAdapter<User> with $UserLocalAdapter;
 
 class $UserRemoteAdapter = RemoteAdapter<User> with JSONServerAdapter<User>;
 
-final _usersFinders = <String, dynamic>{};
-
-//
-
-final usersRemoteAdapterProvider = Provider<RemoteAdapter<User>>((ref) =>
-    $UserRemoteAdapter($UserHiveLocalAdapter(ref.read),
-        InternalHolder(userProvider, usersProvider, _usersFinders)));
+final usersRemoteAdapterProvider = Provider<RemoteAdapter<User>>(
+    (ref) => $UserRemoteAdapter($UserHiveLocalAdapter(ref.read)));
 
 final usersRepositoryProvider =
     Provider<Repository<User>>((ref) => Repository<User>(ref.read));
-
-final _userProvider = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<User?>, DataState<User?>, WatchArgs<User>>(
-        (ref, args) {
-  final adapter = ref.watch(usersRemoteAdapterProvider);
-  final _watcherFinder = _usersFinders[args.watcher]?.call(adapter);
-  final notifier = _watcherFinder is DataWatcherOne<User>
-      ? _watcherFinder
-      : adapter.watchOneNotifier;
-  ref.maintainState = true;
-  return notifier(args.id!,
-      remote: args.remote,
-      params: args.params,
-      headers: args.headers,
-      alsoWatch: args.alsoWatch,
-      finder: args.finder,
-      label: args.label);
-});
-
-AutoDisposeStateNotifierProvider<DataStateNotifier<User?>, DataState<User?>>
-    userProvider(
-  Object? id, {
-  bool? remote,
-  Map<String, dynamic>? params,
-  Map<String, String>? headers,
-  AlsoWatch<User>? alsoWatch,
-  String? finder,
-  String? watcher,
-  DataRequestLabel? label,
-}) {
-  return _userProvider(WatchArgs(
-      id: id,
-      remote: remote,
-      params: params,
-      headers: headers,
-      alsoWatch: alsoWatch,
-      finder: finder,
-      watcher: watcher,
-      label: label));
-}
-
-final _usersProvider = StateNotifierProvider.autoDispose.family<
-    DataStateNotifier<List<User>?>,
-    DataState<List<User>?>,
-    WatchArgs<User>>((ref, args) {
-  final adapter = ref.watch(usersRemoteAdapterProvider);
-  final _watcherFinder = _usersFinders[args.watcher]?.call(adapter);
-  final notifier = _watcherFinder is DataWatcherAll<User>
-      ? _watcherFinder
-      : adapter.watchAllNotifier;
-  ref.maintainState = true;
-  return notifier(
-      remote: args.remote,
-      params: args.params,
-      headers: args.headers,
-      syncLocal: args.syncLocal,
-      finder: args.finder,
-      label: args.label);
-});
-
-AutoDisposeStateNotifierProvider<DataStateNotifier<List<User>?>,
-    DataState<List<User>?>> usersProvider({
-  bool? remote,
-  Map<String, dynamic>? params,
-  Map<String, String>? headers,
-  bool? syncLocal,
-  String? finder,
-  String? watcher,
-  DataRequestLabel? label,
-}) {
-  return _usersProvider(WatchArgs(
-      remote: remote,
-      params: params,
-      headers: headers,
-      syncLocal: syncLocal,
-      finder: finder,
-      watcher: watcher,
-      label: label));
-}
 
 extension UserDataX on User {
   /// Initializes "fresh" models (i.e. manually instantiated) to use

@@ -16,19 +16,6 @@ const _kIsWeb = identical(0, 0.0);
 
 late ProviderContainer container;
 late GraphNotifier graph;
-
-late RemoteAdapter<House> houseRemoteAdapter;
-late RemoteAdapter<Familia> familiaRemoteAdapter;
-late RemoteAdapter<Person> personRemoteAdapter;
-
-late Repository<Familia> familiaRepository;
-late Repository<House> houseRepository;
-late Repository<Person> personRepository;
-late Repository<Dog> dogRepository;
-late Repository<Node> nodeRepository;
-late Repository<BookAuthor> bookAuthorRepository;
-late Repository<Book> bookRepository;
-
 Function? dispose;
 
 final verbose = [];
@@ -61,6 +48,8 @@ void setUpFn() async {
 
   // Equivalent to generated in `main.data.dart`
 
+  await container.read(graphNotifierProvider).initialize();
+
   final adapterGraph = <String, RemoteAdapter<DataModel>>{
     'houses': container.read(housesRemoteAdapterProvider),
     'familia': container.read(familiaRemoteAdapterProvider),
@@ -68,70 +57,57 @@ void setUpFn() async {
     'dogs': container.read(dogsRemoteAdapterProvider),
   };
 
-  houseRemoteAdapter = container.read(housesRemoteAdapterProvider);
-  familiaRemoteAdapter = container.read(familiaRemoteAdapterProvider);
-  personRemoteAdapter = container.read(peopleRemoteAdapterProvider);
-
-  await container.read(graphNotifierProvider).initialize();
-
-  houseRepository = await container.read(housesRepositoryProvider).initialize(
-        remote: false,
-        adapters: adapterGraph,
-      );
-
-  familiaRepository =
-      await container.read(familiaRepositoryProvider).initialize(
-            remote: true,
-            adapters: adapterGraph,
-          );
-
-  personRepository = await container.read(peopleRepositoryProvider).initialize(
-        remote: false,
-        adapters: adapterGraph,
-      );
-
-  dogRepository = await container.read(dogsRepositoryProvider).initialize(
-        remote: false,
-        adapters: adapterGraph,
-      );
-  dogRepository.remoteAdapter.verbose = true;
+  await container
+      .read(housesRepositoryProvider)
+      .initialize(remote: false, adapters: adapterGraph);
+  await container
+      .read(familiaRepositoryProvider)
+      .initialize(remote: true, adapters: adapterGraph);
+  final _peopleRepository = await container
+      .read(peopleRepositoryProvider)
+      .initialize(remote: false, adapters: adapterGraph);
+  final _dogsRepository = await container
+      .read(dogsRepositoryProvider)
+      .initialize(remote: false, adapters: adapterGraph);
 
   const nodesKey = _kIsWeb ? 'node1s' : 'nodes';
-  nodeRepository = await container.read(nodesRepositoryProvider).initialize(
+  await container.read(nodesRepositoryProvider).initialize(
     remote: false,
     adapters: {
       nodesKey: container.read(nodesRemoteAdapterProvider),
     },
   );
 
-  bookAuthorRepository =
-      await container.read(bookAuthorsRepositoryProvider).initialize(
-    remote: false,
-    adapters: {
-      'bookAuthors': container.read(bookAuthorsRemoteAdapterProvider),
-      'books': container.read(booksRemoteAdapterProvider),
-    },
-  );
+  final booksGraph = <String, RemoteAdapter<DataModel>>{
+    'bookAuthors': container.read(bookAuthorsRemoteAdapterProvider),
+    'books': container.read(booksRemoteAdapterProvider),
+  };
 
-  bookRepository = await container.read(booksRepositoryProvider).initialize(
-    remote: false,
-    adapters: {
-      'bookAuthors': container.read(bookAuthorsRemoteAdapterProvider),
-      'books': container.read(booksRemoteAdapterProvider),
-    },
-  );
+  await container.read(bookAuthorsRepositoryProvider).initialize(
+        remote: false,
+        adapters: booksGraph,
+      );
 
-  personRemoteAdapter.internalWatch = _watch;
+  await container.read(booksRepositoryProvider).initialize(
+        remote: false,
+        adapters: booksGraph,
+      );
+
+  _dogsRepository.remoteAdapter.verbose = true;
+  _peopleRepository.internalWatch = _watch;
 }
 
 void tearDownFn() async {
   // Equivalent to generated in `main.data.dart`
   dispose?.call();
-  houseRepository.dispose();
-  familiaRepository.dispose();
-  personRepository.dispose();
-  dogRepository.dispose();
-  nodeRepository.dispose();
+  container.houses.dispose();
+  container.familia.dispose();
+  container.people.dispose();
+  container.dogs.dispose();
+
+  container.nodes.dispose();
+  container.books.dispose();
+  container.bookAuthors.dispose();
   graph.dispose();
 
   verbose.clear();
@@ -179,4 +155,22 @@ class TestResponse {
   factory TestResponse.text(String text) {
     return TestResponse(text: (_) => text);
   }
+}
+
+extension TestX on ProviderContainer {
+  Repository<House> get houses =>
+      _watch(housesRepositoryProvider)..internalWatch = _watch;
+  Repository<Familia> get familia =>
+      _watch(familiaRepositoryProvider)..internalWatch = _watch;
+  Repository<Person> get people =>
+      _watch(peopleRepositoryProvider)..internalWatch = _watch;
+  Repository<Dog> get dogs =>
+      _watch(dogsRepositoryProvider)..internalWatch = _watch;
+
+  Repository<Node> get nodes =>
+      _watch(nodesRepositoryProvider)..internalWatch = _watch;
+  Repository<BookAuthor> get bookAuthors =>
+      _watch(bookAuthorsRepositoryProvider)..internalWatch = _watch;
+  Repository<Book> get books =>
+      _watch(booksRepositoryProvider)..internalWatch = _watch;
 }

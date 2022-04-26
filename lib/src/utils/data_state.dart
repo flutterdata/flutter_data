@@ -43,12 +43,13 @@ class DataException with EquatableMixin implements Exception {
 class DataStateNotifier<T> extends StateNotifier<DataState<T>> {
   DataStateNotifier({
     required DataState<T> data,
-    Future<void> Function()? reload,
+    Future<void> Function([Future Function(Object?)? future])? reload,
   })  : _reloadFn = reload,
         super(data);
 
-  // ignore: prefer_final_fields
-  Future<void> Function()? _reloadFn;
+  Future<void> Function([Future Function(dynamic)? future])?
+      // ignore: prefer_final_fields
+      _reloadFn;
   void Function()? onDispose;
 
   DataState<T> get data => super.state;
@@ -69,8 +70,8 @@ class DataStateNotifier<T> extends StateNotifier<DataState<T>> {
     );
   }
 
-  Future<void> reload() async {
-    return _reloadFn?.call();
+  Future<void> reload([Future Function(Object?)? future]) async {
+    return _reloadFn?.call(future);
   }
 
   @override

@@ -57,95 +57,11 @@ class $HouseHiveLocalAdapter = HiveLocalAdapter<House> with $HouseLocalAdapter;
 
 class $HouseRemoteAdapter = RemoteAdapter<House> with NothingMixin;
 
-final _housesFinders = <String, dynamic>{};
-
-//
-
-final housesRemoteAdapterProvider = Provider<RemoteAdapter<House>>((ref) =>
-    $HouseRemoteAdapter($HouseHiveLocalAdapter(ref.read),
-        InternalHolder(houseProvider, housesProvider, _housesFinders)));
+final housesRemoteAdapterProvider = Provider<RemoteAdapter<House>>(
+    (ref) => $HouseRemoteAdapter($HouseHiveLocalAdapter(ref.read)));
 
 final housesRepositoryProvider =
     Provider<Repository<House>>((ref) => Repository<House>(ref.read));
-
-final _houseProvider = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<House?>, DataState<House?>, WatchArgs<House>>(
-        (ref, args) {
-  final adapter = ref.watch(housesRemoteAdapterProvider);
-  final _watcherFinder = _housesFinders[args.watcher]?.call(adapter);
-  final notifier = _watcherFinder is DataWatcherOne<House>
-      ? _watcherFinder
-      : adapter.watchOneNotifier;
-  ref.maintainState = true;
-  return notifier(args.id!,
-      remote: args.remote,
-      params: args.params,
-      headers: args.headers,
-      alsoWatch: args.alsoWatch,
-      finder: args.finder,
-      label: args.label);
-});
-
-AutoDisposeStateNotifierProvider<DataStateNotifier<House?>, DataState<House?>>
-    houseProvider(
-  Object? id, {
-  bool? remote,
-  Map<String, dynamic>? params,
-  Map<String, String>? headers,
-  AlsoWatch<House>? alsoWatch,
-  String? finder,
-  String? watcher,
-  DataRequestLabel? label,
-}) {
-  return _houseProvider(WatchArgs(
-      id: id,
-      remote: remote,
-      params: params,
-      headers: headers,
-      alsoWatch: alsoWatch,
-      finder: finder,
-      watcher: watcher,
-      label: label));
-}
-
-final _housesProvider = StateNotifierProvider.autoDispose.family<
-    DataStateNotifier<List<House>?>,
-    DataState<List<House>?>,
-    WatchArgs<House>>((ref, args) {
-  final adapter = ref.watch(housesRemoteAdapterProvider);
-  final _watcherFinder = _housesFinders[args.watcher]?.call(adapter);
-  final notifier = _watcherFinder is DataWatcherAll<House>
-      ? _watcherFinder
-      : adapter.watchAllNotifier;
-  ref.maintainState = true;
-  return notifier(
-      remote: args.remote,
-      params: args.params,
-      headers: args.headers,
-      syncLocal: args.syncLocal,
-      finder: args.finder,
-      label: args.label);
-});
-
-AutoDisposeStateNotifierProvider<DataStateNotifier<List<House>?>,
-    DataState<List<House>?>> housesProvider({
-  bool? remote,
-  Map<String, dynamic>? params,
-  Map<String, String>? headers,
-  bool? syncLocal,
-  String? finder,
-  String? watcher,
-  DataRequestLabel? label,
-}) {
-  return _housesProvider(WatchArgs(
-      remote: remote,
-      params: params,
-      headers: headers,
-      syncLocal: syncLocal,
-      finder: finder,
-      watcher: watcher,
-      label: label));
-}
 
 extension HouseDataX on House {
   /// Initializes "fresh" models (i.e. manually instantiated) to use

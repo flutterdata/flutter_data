@@ -68,95 +68,11 @@ class $NodeHiveLocalAdapter = HiveLocalAdapter<Node> with $NodeLocalAdapter;
 
 class $NodeRemoteAdapter = RemoteAdapter<Node> with NothingMixin;
 
-final _nodesFinders = <String, dynamic>{};
-
-//
-
-final nodesRemoteAdapterProvider = Provider<RemoteAdapter<Node>>((ref) =>
-    $NodeRemoteAdapter($NodeHiveLocalAdapter(ref.read),
-        InternalHolder(nodeProvider, nodesProvider, _nodesFinders)));
+final nodesRemoteAdapterProvider = Provider<RemoteAdapter<Node>>(
+    (ref) => $NodeRemoteAdapter($NodeHiveLocalAdapter(ref.read)));
 
 final nodesRepositoryProvider =
     Provider<Repository<Node>>((ref) => Repository<Node>(ref.read));
-
-final _nodeProvider = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<Node?>, DataState<Node?>, WatchArgs<Node>>(
-        (ref, args) {
-  final adapter = ref.watch(nodesRemoteAdapterProvider);
-  final _watcherFinder = _nodesFinders[args.watcher]?.call(adapter);
-  final notifier = _watcherFinder is DataWatcherOne<Node>
-      ? _watcherFinder
-      : adapter.watchOneNotifier;
-  ref.maintainState = true;
-  return notifier(args.id!,
-      remote: args.remote,
-      params: args.params,
-      headers: args.headers,
-      alsoWatch: args.alsoWatch,
-      finder: args.finder,
-      label: args.label);
-});
-
-AutoDisposeStateNotifierProvider<DataStateNotifier<Node?>, DataState<Node?>>
-    nodeProvider(
-  Object? id, {
-  bool? remote,
-  Map<String, dynamic>? params,
-  Map<String, String>? headers,
-  AlsoWatch<Node>? alsoWatch,
-  String? finder,
-  String? watcher,
-  DataRequestLabel? label,
-}) {
-  return _nodeProvider(WatchArgs(
-      id: id,
-      remote: remote,
-      params: params,
-      headers: headers,
-      alsoWatch: alsoWatch,
-      finder: finder,
-      watcher: watcher,
-      label: label));
-}
-
-final _nodesProvider = StateNotifierProvider.autoDispose.family<
-    DataStateNotifier<List<Node>?>,
-    DataState<List<Node>?>,
-    WatchArgs<Node>>((ref, args) {
-  final adapter = ref.watch(nodesRemoteAdapterProvider);
-  final _watcherFinder = _nodesFinders[args.watcher]?.call(adapter);
-  final notifier = _watcherFinder is DataWatcherAll<Node>
-      ? _watcherFinder
-      : adapter.watchAllNotifier;
-  ref.maintainState = true;
-  return notifier(
-      remote: args.remote,
-      params: args.params,
-      headers: args.headers,
-      syncLocal: args.syncLocal,
-      finder: args.finder,
-      label: args.label);
-});
-
-AutoDisposeStateNotifierProvider<DataStateNotifier<List<Node>?>,
-    DataState<List<Node>?>> nodesProvider({
-  bool? remote,
-  Map<String, dynamic>? params,
-  Map<String, String>? headers,
-  bool? syncLocal,
-  String? finder,
-  String? watcher,
-  DataRequestLabel? label,
-}) {
-  return _nodesProvider(WatchArgs(
-      remote: remote,
-      params: params,
-      headers: headers,
-      syncLocal: syncLocal,
-      finder: finder,
-      watcher: watcher,
-      label: label));
-}
 
 extension NodeDataX on Node {
   /// Initializes "fresh" models (i.e. manually instantiated) to use

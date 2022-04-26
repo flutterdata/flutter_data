@@ -88,100 +88,11 @@ class $BookAuthorHiveLocalAdapter = HiveLocalAdapter<BookAuthor>
 class $BookAuthorRemoteAdapter = RemoteAdapter<BookAuthor>
     with BookAuthorAdapter;
 
-final _bookAuthorsFinders = <String, dynamic>{
-  'caps': (_) => _.caps,
-};
-
-//
-
 final bookAuthorsRemoteAdapterProvider = Provider<RemoteAdapter<BookAuthor>>(
-    (ref) => $BookAuthorRemoteAdapter(
-        $BookAuthorHiveLocalAdapter(ref.read),
-        InternalHolder(
-            bookAuthorProvider, bookAuthorsProvider, _bookAuthorsFinders)));
+    (ref) => $BookAuthorRemoteAdapter($BookAuthorHiveLocalAdapter(ref.read)));
 
 final bookAuthorsRepositoryProvider =
     Provider<Repository<BookAuthor>>((ref) => Repository<BookAuthor>(ref.read));
-
-final _bookAuthorProvider = StateNotifierProvider.autoDispose.family<
-    DataStateNotifier<BookAuthor?>,
-    DataState<BookAuthor?>,
-    WatchArgs<BookAuthor>>((ref, args) {
-  final adapter = ref.watch(bookAuthorsRemoteAdapterProvider);
-  final _watcherFinder = _bookAuthorsFinders[args.watcher]?.call(adapter);
-  final notifier = _watcherFinder is DataWatcherOne<BookAuthor>
-      ? _watcherFinder
-      : adapter.watchOneNotifier;
-  ref.maintainState = true;
-  return notifier(args.id!,
-      remote: args.remote,
-      params: args.params,
-      headers: args.headers,
-      alsoWatch: args.alsoWatch,
-      finder: args.finder,
-      label: args.label);
-});
-
-AutoDisposeStateNotifierProvider<DataStateNotifier<BookAuthor?>,
-    DataState<BookAuthor?>> bookAuthorProvider(
-  Object? id, {
-  bool? remote,
-  Map<String, dynamic>? params,
-  Map<String, String>? headers,
-  AlsoWatch<BookAuthor>? alsoWatch,
-  String? finder,
-  String? watcher,
-  DataRequestLabel? label,
-}) {
-  return _bookAuthorProvider(WatchArgs(
-      id: id,
-      remote: remote,
-      params: params,
-      headers: headers,
-      alsoWatch: alsoWatch,
-      finder: finder,
-      watcher: watcher,
-      label: label));
-}
-
-final _bookAuthorsProvider = StateNotifierProvider.autoDispose.family<
-    DataStateNotifier<List<BookAuthor>?>,
-    DataState<List<BookAuthor>?>,
-    WatchArgs<BookAuthor>>((ref, args) {
-  final adapter = ref.watch(bookAuthorsRemoteAdapterProvider);
-  final _watcherFinder = _bookAuthorsFinders[args.watcher]?.call(adapter);
-  final notifier = _watcherFinder is DataWatcherAll<BookAuthor>
-      ? _watcherFinder
-      : adapter.watchAllNotifier;
-  ref.maintainState = true;
-  return notifier(
-      remote: args.remote,
-      params: args.params,
-      headers: args.headers,
-      syncLocal: args.syncLocal,
-      finder: args.finder,
-      label: args.label);
-});
-
-AutoDisposeStateNotifierProvider<DataStateNotifier<List<BookAuthor>?>,
-    DataState<List<BookAuthor>?>> bookAuthorsProvider({
-  bool? remote,
-  Map<String, dynamic>? params,
-  Map<String, String>? headers,
-  bool? syncLocal,
-  String? finder,
-  String? watcher,
-  DataRequestLabel? label,
-}) {
-  return _bookAuthorsProvider(WatchArgs(
-      remote: remote,
-      params: params,
-      headers: headers,
-      syncLocal: syncLocal,
-      finder: finder,
-      watcher: watcher,
-      label: label));
-}
 
 extension BookAuthorDataX on BookAuthor {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
@@ -233,95 +144,11 @@ class $BookHiveLocalAdapter = HiveLocalAdapter<Book> with $BookLocalAdapter;
 
 class $BookRemoteAdapter = RemoteAdapter<Book> with NothingMixin;
 
-final _booksFinders = <String, dynamic>{};
-
-//
-
-final booksRemoteAdapterProvider = Provider<RemoteAdapter<Book>>((ref) =>
-    $BookRemoteAdapter($BookHiveLocalAdapter(ref.read),
-        InternalHolder(bookProvider, booksProvider, _booksFinders)));
+final booksRemoteAdapterProvider = Provider<RemoteAdapter<Book>>(
+    (ref) => $BookRemoteAdapter($BookHiveLocalAdapter(ref.read)));
 
 final booksRepositoryProvider =
     Provider<Repository<Book>>((ref) => Repository<Book>(ref.read));
-
-final _bookProvider = StateNotifierProvider.autoDispose
-    .family<DataStateNotifier<Book?>, DataState<Book?>, WatchArgs<Book>>(
-        (ref, args) {
-  final adapter = ref.watch(booksRemoteAdapterProvider);
-  final _watcherFinder = _booksFinders[args.watcher]?.call(adapter);
-  final notifier = _watcherFinder is DataWatcherOne<Book>
-      ? _watcherFinder
-      : adapter.watchOneNotifier;
-  ref.maintainState = true;
-  return notifier(args.id!,
-      remote: args.remote,
-      params: args.params,
-      headers: args.headers,
-      alsoWatch: args.alsoWatch,
-      finder: args.finder,
-      label: args.label);
-});
-
-AutoDisposeStateNotifierProvider<DataStateNotifier<Book?>, DataState<Book?>>
-    bookProvider(
-  Object? id, {
-  bool? remote,
-  Map<String, dynamic>? params,
-  Map<String, String>? headers,
-  AlsoWatch<Book>? alsoWatch,
-  String? finder,
-  String? watcher,
-  DataRequestLabel? label,
-}) {
-  return _bookProvider(WatchArgs(
-      id: id,
-      remote: remote,
-      params: params,
-      headers: headers,
-      alsoWatch: alsoWatch,
-      finder: finder,
-      watcher: watcher,
-      label: label));
-}
-
-final _booksProvider = StateNotifierProvider.autoDispose.family<
-    DataStateNotifier<List<Book>?>,
-    DataState<List<Book>?>,
-    WatchArgs<Book>>((ref, args) {
-  final adapter = ref.watch(booksRemoteAdapterProvider);
-  final _watcherFinder = _booksFinders[args.watcher]?.call(adapter);
-  final notifier = _watcherFinder is DataWatcherAll<Book>
-      ? _watcherFinder
-      : adapter.watchAllNotifier;
-  ref.maintainState = true;
-  return notifier(
-      remote: args.remote,
-      params: args.params,
-      headers: args.headers,
-      syncLocal: args.syncLocal,
-      finder: args.finder,
-      label: args.label);
-});
-
-AutoDisposeStateNotifierProvider<DataStateNotifier<List<Book>?>,
-    DataState<List<Book>?>> booksProvider({
-  bool? remote,
-  Map<String, dynamic>? params,
-  Map<String, String>? headers,
-  bool? syncLocal,
-  String? finder,
-  String? watcher,
-  DataRequestLabel? label,
-}) {
-  return _booksProvider(WatchArgs(
-      remote: remote,
-      params: params,
-      headers: headers,
-      syncLocal: syncLocal,
-      finder: finder,
-      watcher: watcher,
-      label: label));
-}
 
 extension BookDataX on Book {
   /// Initializes "fresh" models (i.e. manually instantiated) to use
