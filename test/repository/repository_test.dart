@@ -225,7 +225,8 @@ void main() async {
 
     // overrides error handling with notifier
     final listener = Listener<DataState<List<Familia>?>?>();
-    final notifier = container.familia.watchAllNotifier(remote: false);
+    final notifier =
+        container.familia.remoteAdapter.watchAllNotifier(remote: false);
 
     dispose = notifier.addListener(listener);
 

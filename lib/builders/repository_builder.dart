@@ -139,6 +139,8 @@ and execute a code generation build again.
 
     final remoteAdapterTypeChecker = TypeChecker.fromRuntime(RemoteAdapter);
 
+    final finders = <String>[];
+
     final mixins = annotation.read('adapters').listValue.map((obj) {
       final mixinType = obj.toTypeValue() as ParameterizedType;
       final mixinMethods = <MethodElement>[];
@@ -163,6 +165,15 @@ and execute a code generation build again.
       mixinMethods.addAll(instantiatedMixinType.methods);
       displayName =
           instantiatedMixinType.getDisplayString(withNullability: false);
+
+// add finders
+      for (final field in mixinMethods) {
+        final hasFinderAnnotation =
+            TypeChecker.fromRuntime(DataFinder).hasAnnotationOfExact(field);
+        if (hasFinderAnnotation) {
+          finders.add(field.name);
+        }
+      }
 
       return displayName;
     }).toSet();
@@ -200,6 +211,10 @@ mixin \$${classType}LocalAdapter on LocalAdapter<$classType> {
   Map<String, dynamic> serialize(model) => $toJson;
 }
 
+final _${typeLowerCased}Finders = <String, dynamic>{
+  ${finders.map((f) => '''  '$f': (_) => _.$f,''').join('\n')}
+};
+
 // ignore: must_be_immutable
 class \$${classType}HiveLocalAdapter = HiveLocalAdapter<$classType> with \$${classType}LocalAdapter;
 
@@ -207,7 +222,7 @@ class \$${classType}RemoteAdapter = RemoteAdapter<$classType> with ${mixins.join
 
 final ${typeLowerCased}RemoteAdapterProvider =
     Provider<RemoteAdapter<$classType>>(
-        (ref) => \$${classType}RemoteAdapter(\$${classType}HiveLocalAdapter(ref.read)));
+        (ref) => \$${classType}RemoteAdapter(\$${classType}HiveLocalAdapter(ref.read), InternalHolder(_${typeLowerCased}Finders)));
 
 final ${typeLowerCased}RepositoryProvider =
     Provider<Repository<$classType>>((ref) => Repository<$classType>(ref.read));

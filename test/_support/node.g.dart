@@ -63,13 +63,16 @@ mixin $NodeLocalAdapter on LocalAdapter<Node> {
   Map<String, dynamic> serialize(model) => model.toJson();
 }
 
+final _nodesFinders = <String, dynamic>{};
+
 // ignore: must_be_immutable
 class $NodeHiveLocalAdapter = HiveLocalAdapter<Node> with $NodeLocalAdapter;
 
 class $NodeRemoteAdapter = RemoteAdapter<Node> with NothingMixin;
 
-final nodesRemoteAdapterProvider = Provider<RemoteAdapter<Node>>(
-    (ref) => $NodeRemoteAdapter($NodeHiveLocalAdapter(ref.read)));
+final nodesRemoteAdapterProvider = Provider<RemoteAdapter<Node>>((ref) =>
+    $NodeRemoteAdapter(
+        $NodeHiveLocalAdapter(ref.read), InternalHolder(_nodesFinders)));
 
 final nodesRepositoryProvider =
     Provider<Repository<Node>>((ref) => Repository<Node>(ref.read));

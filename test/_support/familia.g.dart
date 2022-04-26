@@ -94,14 +94,17 @@ mixin $FamiliaLocalAdapter on LocalAdapter<Familia> {
   Map<String, dynamic> serialize(model) => _$FamiliaToJson(model);
 }
 
+final _familiaFinders = <String, dynamic>{};
+
 // ignore: must_be_immutable
 class $FamiliaHiveLocalAdapter = HiveLocalAdapter<Familia>
     with $FamiliaLocalAdapter;
 
 class $FamiliaRemoteAdapter = RemoteAdapter<Familia> with NothingMixin;
 
-final familiaRemoteAdapterProvider = Provider<RemoteAdapter<Familia>>(
-    (ref) => $FamiliaRemoteAdapter($FamiliaHiveLocalAdapter(ref.read)));
+final familiaRemoteAdapterProvider = Provider<RemoteAdapter<Familia>>((ref) =>
+    $FamiliaRemoteAdapter(
+        $FamiliaHiveLocalAdapter(ref.read), InternalHolder(_familiaFinders)));
 
 final familiaRepositoryProvider =
     Provider<Repository<Familia>>((ref) => Repository<Familia>(ref.read));

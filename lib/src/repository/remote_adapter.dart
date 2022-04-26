@@ -30,7 +30,7 @@ class RemoteAdapter<T extends DataModel<T>> = _RemoteAdapter<T>
 
 abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @protected
-  _RemoteAdapter(this.localAdapter);
+  _RemoteAdapter(this.localAdapter, [this._internalHolder]);
 
   @protected
   @visibleForTesting
@@ -71,6 +71,10 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @visibleForTesting
   @protected
   String get type => internalType;
+
+  /// ONLY FOR FLUTTER DATA INTERNAL USE
+  Watcher? internalWatch;
+  final InternalHolder<T>? _internalHolder;
 
   /// Turn verbosity on or off.
   bool verbose = false;

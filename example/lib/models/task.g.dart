@@ -54,13 +54,16 @@ mixin $TaskLocalAdapter on LocalAdapter<Task> {
   Map<String, dynamic> serialize(model) => _$TaskToJson(model);
 }
 
+final _tasksFinders = <String, dynamic>{};
+
 // ignore: must_be_immutable
 class $TaskHiveLocalAdapter = HiveLocalAdapter<Task> with $TaskLocalAdapter;
 
 class $TaskRemoteAdapter = RemoteAdapter<Task> with JSONServerAdapter<Task>;
 
-final tasksRemoteAdapterProvider = Provider<RemoteAdapter<Task>>(
-    (ref) => $TaskRemoteAdapter($TaskHiveLocalAdapter(ref.read)));
+final tasksRemoteAdapterProvider = Provider<RemoteAdapter<Task>>((ref) =>
+    $TaskRemoteAdapter(
+        $TaskHiveLocalAdapter(ref.read), InternalHolder(_tasksFinders)));
 
 final tasksRepositoryProvider =
     Provider<Repository<Task>>((ref) => Repository<Task>(ref.read));

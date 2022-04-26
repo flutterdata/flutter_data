@@ -27,7 +27,6 @@ class WatchArgs<T extends DataModel<T>> with EquatableMixin {
     this.syncLocal,
     this.alsoWatch,
     this.finder,
-    this.watcher,
     this.label,
   });
 
@@ -38,10 +37,9 @@ class WatchArgs<T extends DataModel<T>> with EquatableMixin {
   final bool? syncLocal;
   final AlsoWatch<T>? alsoWatch;
   final String? finder;
-  final String? watcher;
   final DataRequestLabel? label;
 
   @override
   List<Object?> get props =>
-      [id, remote, params, headers, syncLocal, finder, watcher, label];
+      [id, remote, params, headers, syncLocal, finder, label];
 }

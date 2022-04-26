@@ -1,6 +1,66 @@
 part of flutter_data;
 
 mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
+  DataState<List<T>?> watchAll({
+    bool? remote,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    bool? syncLocal,
+    String? finder,
+    DataRequestLabel? label,
+  }) {
+    final provider = watchAllProvider(WatchArgs(
+      remote: remote,
+      params: params,
+      headers: headers,
+      syncLocal: syncLocal,
+      label: label,
+    ));
+    return internalWatch!(provider);
+  }
+
+  @protected
+  @visibleForTesting
+  late final watchAllProvider = StateNotifierProvider.autoDispose
+      .family<DataStateNotifier<List<T>?>, DataState<List<T>?>, WatchArgs<T>>(
+          (ref, args) {
+    return watchAllNotifier(remote: args.remote);
+  });
+
+  DataState<T?> watchOne(
+    Object model, {
+    bool? remote,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    AlsoWatch<T>? alsoWatch,
+    String? finder,
+    DataRequestLabel? label,
+  }) {
+    final provider = watchOneProvider(WatchArgs(
+      id: model,
+      remote: remote,
+      params: params,
+      headers: headers,
+      alsoWatch: alsoWatch,
+      finder: finder,
+      label: label,
+    ));
+    return internalWatch!(provider);
+  }
+
+  @protected
+  @visibleForTesting
+  late final watchOneProvider = StateNotifierProvider.autoDispose
+      .family<DataStateNotifier<T?>, DataState<T?>, WatchArgs<T>>((ref, args) {
+    return watchOneNotifier(
+      args.id!,
+      remote: args.remote,
+      alsoWatch: args.alsoWatch,
+    );
+  });
+
+  // notifiers
+
   @protected
   @visibleForTesting
   DataStateNotifier<List<T>?> watchAllNotifier({
@@ -13,6 +73,10 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
   }) {
     _assertInit();
     remote ??= _remote;
+    syncLocal ??= false;
+
+    final _maybeFinder = _internalHolder?.finders[finder]?.call(this);
+    final _finder = _maybeFinder is DataFinderAll<T> ? _maybeFinder : findAll;
 
     // we can't use `findAll`'s default internal label
     // because we need a label to handle events
@@ -30,22 +94,25 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       data: DataState(_getUpdatedModels(), isLoading: remote!),
     );
 
-    _notifier._reloadFn = ([future]) async {
-      if (!_notifier.mounted) return;
+    _notifier._reloadFn = () async {
+      if (!_notifier.mounted) {
+        print('NOT MOUNTED ALL');
+        return;
+      }
 
       if (remote!) {
         _notifier.updateWith(isLoading: true);
       }
 
       try {
-        // TODO should pass a label, and test it
-        final _future = future?.call(this) ??
-            findAll(
-              remote: remote,
-              onError: (e, _) => throw e,
-              label: label,
-            );
-        await _future;
+        await _finder(
+          remote: remote,
+          params: params,
+          headers: headers,
+          syncLocal: syncLocal,
+          label: label,
+          onError: (e, _) => throw e,
+        );
         if (remote) {
           // trigger doneLoading to ensure state is updated with isLoading=false
           graph._notify([label.toString()],
@@ -60,8 +127,14 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       }
     };
 
+    // kick off
+    _notifier.reload();
+
     final _dispose = graph.addListener((event) {
-      if (!_notifier.mounted) return;
+      if (!_notifier.mounted) {
+        print('NOT MOUNTED ONE');
+        return;
+      }
 
       // handle done loading
       if (_notifier.data.isLoading &&
@@ -86,33 +159,44 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
   @protected
   @visibleForTesting
   DataStateNotifier<T?> watchOneNotifier(
-    String key, {
+    Object model, {
     bool? remote,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
     AlsoWatch<T>? alsoWatch,
+    String? finder,
     DataRequestLabel? label,
   }) {
     _assertInit();
 
     remote ??= _remote;
+    final _maybeFinder = _internalHolder?.finders[finder]?.call(this);
+    final _finder = _maybeFinder is DataFinderOne<T> ? _maybeFinder : findOne;
 
     // we can't use `findOne`'s default internal label
     // because we need a label to handle events
     label ??= DataRequestLabel('findOne', type: internalType);
 
+    final id = _resolveId(model);
+
     var _alsoWatchPairs = <List<String>>{};
+
+    // lazy key access
+    String? key() {
+      return graph.getKeyForId(internalType, id,
+          keyIfAbsent: (model is T ? model._key : null));
+    }
 
     // closure to get latest model and watchable relationship pairs
     T? _getUpdatedModel({DataStateNotifier<T?>? withNotifier}) {
-      final model = localAdapter.findOne(key)?._initialize(adapters);
+      final model = localAdapter.findOne(key())?._initialize(adapters);
       if (model != null) {
         model._initializeRelationships();
-
         _alsoWatchPairs = {
           ...?alsoWatch?.call(model).filterNulls.map((r) {
             return r.keys.map((key) => [r._ownerKey, key]);
           }).expand((_) => _)
         };
-
         if (withNotifier != null) {
           model._updateNotifier(withNotifier);
         }
@@ -127,9 +211,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       data: DataState(_getUpdatedModel(), isLoading: remote!),
     );
 
-    _notifier._reloadFn = ([future]) async {
-      final _key = key;
-      final id = graph.getIdForKey(_key); // this SHOULD ALWAYS BE OK
+    _notifier._reloadFn = () async {
       if (!_notifier.mounted || id == null) return;
 
       if (remote!) {
@@ -137,20 +219,16 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       }
 
       try {
-        final _future = future?.call(this) ??
-            findOne(
-              id,
-              remote: remote,
-              onError: (e, _) => throw e,
-              label: label,
-            );
-        await _future;
-        // TODO should check model._key? how about that weird edge case (remote can return a different ID)
-        // final model =
-        // final _key = model?._key!;
-
-        if (remote) {
-          // trigger doneLoading to ensure state is updated with isLoading=false
+        final model = await _finder(
+          id,
+          remote: remote,
+          params: params,
+          headers: headers,
+          onError: (e, _) => throw e,
+        );
+        // trigger doneLoading to ensure state is updated with isLoading=false
+        final _key = model?._key!;
+        if (remote && _key != null) {
           graph._notify([_key, label.toString()],
               type: DataGraphEventType.doneLoading);
         }
@@ -163,6 +241,9 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       }
     };
 
+    // trigger local + async loading
+    _notifier.reload();
+
     // local buffer useful to reduce amount of notifier updates
     var _model = _notifier.data.model;
 
@@ -170,8 +251,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     final _dispose = graph.addListener((event) {
       if (!_notifier.mounted) return;
 
-      // final _key = _model?._key ?? key();
-      final _key = key;
+      final _key = _model?._key ?? key();
 
       // get the latest updated model with watchable relationships
       // (_alsoWatchPairs) in order to determine whether there is

@@ -23,7 +23,8 @@ void main() async {
     final listener = Listener<DataState<List<BookAuthor>?>?>();
 
     // watch
-    final notifier = container.bookAuthors.watchAllNotifier(remote: true);
+    final notifier =
+        container.bookAuthors.remoteAdapter.watchAllNotifier(remote: true);
     dispose = notifier.addListener(listener);
 
     await oneMs();
@@ -58,7 +59,8 @@ void main() async {
   test('save', () async {
     final listener = Listener<DataState<List<Familia>?>?>();
     // listening to local changes enough
-    final notifier = container.familia.watchAllNotifier(remote: false);
+    final notifier =
+        container.familia.remoteAdapter.watchAllNotifier(remote: false);
 
     dispose = notifier.addListener(listener);
 
@@ -201,7 +203,7 @@ void main() async {
   test('delete', () async {
     final listener = Listener<DataState<List<Familia>?>?>();
     // listening to local changes is enough
-    final notifier = container.familia.watchAllNotifier();
+    final notifier = container.familia.remoteAdapter.watchAllNotifier();
 
     dispose = notifier.addListener(listener);
 
@@ -273,7 +275,7 @@ void main() async {
   test('save & delete combined', () async {
     final listener = Listener<DataState<List<Familia>?>?>();
     // listening to local changes enough
-    final notifier = container.familia.watchAllNotifier();
+    final notifier = container.familia.remoteAdapter.watchAllNotifier();
 
     dispose = notifier.addListener(listener);
 

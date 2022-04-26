@@ -63,7 +63,7 @@ void setUpFn() async {
   await container
       .read(familiaRepositoryProvider)
       .initialize(remote: true, adapters: adapterGraph);
-  final _peopleRepository = await container
+  await container
       .read(peopleRepositoryProvider)
       .initialize(remote: false, adapters: adapterGraph);
   final _dogsRepository = await container
@@ -94,7 +94,6 @@ void setUpFn() async {
       );
 
   _dogsRepository.remoteAdapter.verbose = true;
-  _peopleRepository.internalWatch = _watch;
 }
 
 void tearDownFn() async {
@@ -157,20 +156,21 @@ class TestResponse {
   }
 }
 
-extension TestX on ProviderContainer {
+extension ProviderContainerX on ProviderContainer {
   Repository<House> get houses =>
-      _watch(housesRepositoryProvider)..internalWatch = _watch;
+      _watch(housesRepositoryProvider)..remoteAdapter.internalWatch = _watch;
   Repository<Familia> get familia =>
-      _watch(familiaRepositoryProvider)..internalWatch = _watch;
+      _watch(familiaRepositoryProvider)..remoteAdapter.internalWatch = _watch;
   Repository<Person> get people =>
-      _watch(peopleRepositoryProvider)..internalWatch = _watch;
+      _watch(peopleRepositoryProvider)..remoteAdapter.internalWatch = _watch;
   Repository<Dog> get dogs =>
-      _watch(dogsRepositoryProvider)..internalWatch = _watch;
+      _watch(dogsRepositoryProvider)..remoteAdapter.internalWatch = _watch;
 
   Repository<Node> get nodes =>
-      _watch(nodesRepositoryProvider)..internalWatch = _watch;
+      _watch(nodesRepositoryProvider)..remoteAdapter.internalWatch = _watch;
   Repository<BookAuthor> get bookAuthors =>
-      _watch(bookAuthorsRepositoryProvider)..internalWatch = _watch;
+      _watch(bookAuthorsRepositoryProvider)
+        ..remoteAdapter.internalWatch = _watch;
   Repository<Book> get books =>
-      _watch(booksRepositoryProvider)..internalWatch = _watch;
+      _watch(booksRepositoryProvider)..remoteAdapter.internalWatch = _watch;
 }

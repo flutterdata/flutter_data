@@ -50,13 +50,16 @@ mixin $DogLocalAdapter on LocalAdapter<Dog> {
   Map<String, dynamic> serialize(model) => model.toJson();
 }
 
+final _dogsFinders = <String, dynamic>{};
+
 // ignore: must_be_immutable
 class $DogHiveLocalAdapter = HiveLocalAdapter<Dog> with $DogLocalAdapter;
 
 class $DogRemoteAdapter = RemoteAdapter<Dog> with NothingMixin;
 
-final dogsRemoteAdapterProvider = Provider<RemoteAdapter<Dog>>(
-    (ref) => $DogRemoteAdapter($DogHiveLocalAdapter(ref.read)));
+final dogsRemoteAdapterProvider = Provider<RemoteAdapter<Dog>>((ref) =>
+    $DogRemoteAdapter(
+        $DogHiveLocalAdapter(ref.read), InternalHolder(_dogsFinders)));
 
 final dogsRepositoryProvider =
     Provider<Repository<Dog>>((ref) => Repository<Dog>(ref.read));
@@ -96,13 +99,16 @@ mixin $CatLocalAdapter on LocalAdapter<Cat> {
   Map<String, dynamic> serialize(model) => model.toJson();
 }
 
+final _catsFinders = <String, dynamic>{};
+
 // ignore: must_be_immutable
 class $CatHiveLocalAdapter = HiveLocalAdapter<Cat> with $CatLocalAdapter;
 
 class $CatRemoteAdapter = RemoteAdapter<Cat> with NothingMixin;
 
-final catsRemoteAdapterProvider = Provider<RemoteAdapter<Cat>>(
-    (ref) => $CatRemoteAdapter($CatHiveLocalAdapter(ref.read)));
+final catsRemoteAdapterProvider = Provider<RemoteAdapter<Cat>>((ref) =>
+    $CatRemoteAdapter(
+        $CatHiveLocalAdapter(ref.read), InternalHolder(_catsFinders)));
 
 final catsRepositoryProvider =
     Provider<Repository<Cat>>((ref) => Repository<Cat>(ref.read));

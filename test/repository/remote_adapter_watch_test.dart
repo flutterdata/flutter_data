@@ -23,7 +23,7 @@ void main() async {
     container.read(responseProvider.notifier).state = TestResponse.text('''
         [{ "id": "1", "surname": "Corleone" }, { "id": "2", "surname": "Soprano" }]
       ''');
-    final notifier = container.familia.watchAllNotifier();
+    final notifier = container.familia.remoteAdapter.watchAllNotifier();
 
     dispose = notifier.addListener(listener);
 
@@ -43,7 +43,7 @@ void main() async {
 
     container.read(responseProvider.notifier).state =
         TestResponse(text: (_) => throw Exception('unreachable'));
-    final notifier = container.familia.watchAllNotifier();
+    final notifier = container.familia.remoteAdapter.watchAllNotifier();
 
     dispose = notifier.addListener(listener);
 
@@ -89,8 +89,8 @@ void main() async {
       '''{ "_id": "1", "name": "Charlie", "age": 23 }''',
     );
 
-    final _finder = (RemoteAdapter<Person> _) => _.findOne('1', remote: true);
-    final notifier = container.people.watchOneNotifier('1', finder: _finder);
+    final notifier =
+        container.people.remoteAdapter.watchOneNotifier('1', remote: true);
 
     dispose = notifier.addListener(listener);
 
@@ -128,7 +128,7 @@ void main() async {
     container.read(responseProvider.notifier).state = TestResponse(
       text: (_) => throw Exception('whatever'),
     );
-    final notifier = container.familia.watchOneNotifier('1');
+    final notifier = container.familia.remoteAdapter.watchOneNotifier('1');
 
     dispose = notifier.addListener(listener);
 
@@ -195,8 +195,8 @@ void main() async {
 
     container.read(responseProvider.notifier).state =
         TestResponse.text('''{ "id": "22", "surname": "Paez" }''');
-    final notifier =
-        container.familia.watchOneNotifier('22', alsoWatch: (f) => [f.persons]);
+    final notifier = container.familia.remoteAdapter
+        .watchOneNotifier('22', alsoWatch: (f) => [f.persons]);
 
     dispose = notifier.addListener(listener);
 
@@ -257,8 +257,8 @@ void main() async {
 
     final listener = Listener<DataState<Familia?>?>();
 
-    final notifier =
-        container.familia.watchOneNotifier('1', alsoWatch: (f) => [f.persons]);
+    final notifier = container.familia.remoteAdapter
+        .watchOneNotifier('1', remote: false, alsoWatch: (f) => [f.persons]);
 
     // we don't want it to immediately notify the default local model
     dispose = notifier.addListener(listener, fireImmediately: false);
@@ -279,7 +279,8 @@ void main() async {
     final listener = Listener<DataState<List<Familia>?>?>();
 
     container.read(responseProvider.notifier).state = TestResponse.text('[]');
-    final notifier = container.familia.watchAllNotifier(remote: true);
+    final notifier =
+        container.familia.remoteAdapter.watchAllNotifier(remote: true);
 
     dispose = notifier.addListener(listener);
 
@@ -323,9 +324,8 @@ void main() async {
     container.read(responseProvider.notifier).state = TestResponse.text(
         '''[{ "id": "22", "surname": "Paez" }, { "id": "12", "surname": "Brunez" }]''');
 
-    final _finder =
-        (_) => (_ as RemoteAdapter<Familia>).findAll(syncLocal: true);
-    final notifier = container.familia.watchAllNotifier(finder: _finder);
+    final notifier =
+        container.familia.remoteAdapter.watchAllNotifier(syncLocal: true);
 
     dispose = notifier.addListener(listener);
     await oneMs();
@@ -338,7 +338,7 @@ void main() async {
 
     container.read(responseProvider.notifier).state =
         TestResponse.text('''[{ "id": "22", "surname": "Paez" }]''');
-    await notifier.reload(_finder);
+    await notifier.reload();
     await oneMs();
 
     verify(listener(DataState([
@@ -354,7 +354,8 @@ void main() async {
   });
 
   test('watchAllNotifier with multiple model updates', () async {
-    final notifier = container.people.watchAllNotifier(remote: false);
+    final notifier =
+        container.people.remoteAdapter.watchAllNotifier(remote: false);
 
     final matcher = predicate((p) {
       return p is Person && p.name.startsWith('Number') && p.age! < 19;
@@ -406,7 +407,8 @@ void main() async {
     final listener = Listener<DataState<List<Person>?>>();
 
     final p1 = Person(id: '1', name: 'Zof', age: 23).init(container.read);
-    final notifier = container.people.watchAllNotifier(remote: true);
+    final notifier =
+        container.people.remoteAdapter.watchAllNotifier(remote: true);
 
     dispose = notifier.addListener(listener);
 
@@ -427,11 +429,6 @@ void main() async {
     verifyNoMoreInteractions(listener);
 
     expect(container.people.watchAll(), DataState<List<Person>?>([p2]));
-
-    // houses should throw an unsupported error since its
-    // watcher was not configured in setup
-    // TODO restore?
-    // expect(() => container.houses.watchAll(), throwsA(isA<UnsupportedError>()));
   });
 
   test('watchAllNotifier with where/map', () async {
@@ -442,7 +439,7 @@ void main() async {
     Person(id: '3', name: 'Walter', age: 11).init(container.read);
     Person(id: '4', name: 'Koen', age: 92).init(container.read);
 
-    final notifier = container.people
+    final notifier = container.people.remoteAdapter
         .watchAllNotifier()
         .where((p) => p.age! < 40)
         .map((p) => Person(name: p.name, age: p.age! + 10));
@@ -458,7 +455,7 @@ void main() async {
   test('watchOneNotifier and watchOne', () async {
     final listener = Listener<DataState<Person?>?>();
 
-    final notifier = container.people.watchOneNotifier('1');
+    final notifier = container.people.remoteAdapter.watchOneNotifier('1');
 
     final matcher = (name) => isA<DataState>()
         .having((s) => s.model.id, 'id', '1')
@@ -497,19 +494,13 @@ void main() async {
     // also ensure watchers return expected state
     expect(container.people.watchOne('1'),
         DataState<Person?>(Person(id: '1', name: 'Liam', age: 36)));
-
-    // houses should throw an unsupported error since its
-    // watcher was not configured in setup
-    // TODO restore?
-    // expect(
-    //     () => container.houses.watchOne('1'), throwsA(isA<UnsupportedError>()));
   });
 
   test('watchOneNotifier reads latest version', () async {
     Person(id: '345', name: 'Frank', age: 30).init(container.read);
     Person(id: '345', name: 'Steve-O', age: 34).init(container.read);
 
-    final notifier = container.people.watchOneNotifier('345');
+    final notifier = container.people.remoteAdapter.watchOneNotifier('345');
 
     dispose = notifier.addListener(expectAsync1((state) {
       expect(state.model!.name, 'Steve-O');
@@ -529,8 +520,8 @@ void main() async {
 
     final listener = Listener<DataState<BookAuthor?>?>();
 
-    final _finder = (_) => (_ as BookAuthorAdapter).caps('1', remote: true);
-    final notifier = container.bookAuthors.watchOneNotifier(1, finder: _finder);
+    final notifier = container.bookAuthors.remoteAdapter
+        .watchOneNotifier(1, remote: true, finder: 'caps');
 
     dispose = notifier.addListener(listener);
 
@@ -555,7 +546,7 @@ void main() async {
 
     final listener = Listener<DataState<Familia?>?>();
 
-    final notifier = container.familia.watchOneNotifier(
+    final notifier = container.familia.remoteAdapter.watchOneNotifier(
       '22',
       remote: false,
       alsoWatch: (familia) => [familia.persons, familia.residence],
@@ -622,14 +613,14 @@ void main() async {
     // only the model removal triggers
     verify(listener(argThat(
       isA<DataState>().having((s) => s.model, 'model', isNull),
-    ))).called(4); // TODO FIX SHOULD BE ONLY ONE
+    ))).called(1);
     verifyNoMoreInteractions(listener);
   });
 
   test('watchOneNotifier without ID and alsoWatch', () async {
     final frank = Person(name: 'Frank', age: 30).init(container.read);
 
-    final notifier = container.people.watchOneNotifier(
+    final notifier = container.people.remoteAdapter.watchOneNotifier(
       frank,
       alsoWatch: (p) => p.familia.andEach((f) => [f.cottage]),
     );
@@ -689,7 +680,7 @@ void main() async {
 
     Person(id: '1', name: 'Zof', age: 23).init(container.read);
 
-    final notifier = container.people
+    final notifier = container.people.remoteAdapter
         .watchOneNotifier('1')
         .map((p) => Person(name: p!.name, age: p.age! + 10))
         .where((p) => p!.age! < 40);
@@ -710,10 +701,10 @@ void main() async {
   });
 
   test('should be able to watch, dispose and watch again', () async {
-    final notifier = container.people.watchAllNotifier();
+    final notifier = container.people.remoteAdapter.watchAllNotifier();
     dispose = notifier.addListener((_) {});
     dispose!();
-    final notifier2 = container.people.watchAllNotifier();
+    final notifier2 = container.people.remoteAdapter.watchAllNotifier();
     dispose = notifier2.addListener((_) {});
   });
 
@@ -722,24 +713,19 @@ void main() async {
         .init(container.read)
         .save(remote: false);
 
-    container.bookAuthors
-        .watchOne(1, finder: (_) => _.findOne(1, remote: false));
+    final defaultNotifier = container.read(container.bookAuthors.remoteAdapter
+        .watchOneProvider(WatchArgs(id: 1))
+        .notifier);
+    final capsNotifier = container.read(container.bookAuthors.remoteAdapter
+        .watchOneProvider(WatchArgs(id: 1, finder: 'caps')));
+    final capsNotifier2 = container.read(container.bookAuthors.remoteAdapter
+        .watchOneProvider(WatchArgs(id: 1, finder: 'caps')));
 
-    // final z = container.bookAuthors.watchOneNotifier(1);
-    expect(container.bookAuthors.watchOneNotifier(1),
-        container.bookAuthors.watchOneNotifier(1));
+    expect(capsNotifier, capsNotifier2);
+    expect(defaultNotifier, isNot(capsNotifier));
 
-    // final defaultNotifier = container.read(bookAuthorProvider(1).notifier);
-    // final capsNotifier =
-    //     container.read(bookAuthorProvider(1, finder: 'caps').notifier);
-    // final capsNotifier2 =
-    //     container.read(bookAuthorProvider(1, finder: 'caps').notifier);
-
-    // expect(capsNotifier, capsNotifier2);
-    // expect(defaultNotifier, isNot(capsNotifier));
-
-    // final state = container.read(bookAuthorProvider(1));
-    // expect(state.model!, bookAuthor);
+    final state = container.bookAuthors.remoteAdapter.watchOne(1);
+    expect(state.model!, bookAuthor);
   });
 
   test('watchargs', () {

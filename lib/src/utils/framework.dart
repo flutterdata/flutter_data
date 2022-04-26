@@ -42,30 +42,16 @@ abstract class _Lifecycle {
 
 typedef Watcher = W Function<W>(ProviderListenable<W> provider);
 
-typedef OneProvider<T extends DataModel<T>>
-    = AutoDisposeStateNotifierProvider<DataStateNotifier<T?>, DataState<T?>>
-        Function(
-  Object id, {
-  bool? remote,
-  Map<String, dynamic>? params,
-  Map<String, String>? headers,
-  AlsoWatch<T>? alsoWatch,
-  String? finder,
-  DataRequestLabel? label,
-});
-
-typedef AllProvider<T extends DataModel<T>> = AutoDisposeStateNotifierProvider<
-        DataStateNotifier<List<T>?>, DataState<List<T>?>>
-    Function({
-  bool? remote,
-  Map<String, dynamic>? params,
-  Map<String, String>? headers,
-  bool? syncLocal,
-  String? finder,
-  DataRequestLabel? label,
-});
+class InternalHolder<T extends DataModel<T>> {
+  final Map<String, dynamic> finders;
+  InternalHolder(this.finders);
+}
 
 // finders
+
+class DataFinder {
+  const DataFinder();
+}
 
 typedef DataFinderAll<T extends DataModel<T>> = Future<List<T>?> Function({
   bool? remote,

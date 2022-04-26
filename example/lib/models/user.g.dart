@@ -52,13 +52,16 @@ mixin $UserLocalAdapter on LocalAdapter<User> {
   Map<String, dynamic> serialize(model) => _$UserToJson(model);
 }
 
+final _usersFinders = <String, dynamic>{};
+
 // ignore: must_be_immutable
 class $UserHiveLocalAdapter = HiveLocalAdapter<User> with $UserLocalAdapter;
 
 class $UserRemoteAdapter = RemoteAdapter<User> with JSONServerAdapter<User>;
 
-final usersRemoteAdapterProvider = Provider<RemoteAdapter<User>>(
-    (ref) => $UserRemoteAdapter($UserHiveLocalAdapter(ref.read)));
+final usersRemoteAdapterProvider = Provider<RemoteAdapter<User>>((ref) =>
+    $UserRemoteAdapter(
+        $UserHiveLocalAdapter(ref.read), InternalHolder(_usersFinders)));
 
 final usersRepositoryProvider =
     Provider<Repository<User>>((ref) => Repository<User>(ref.read));

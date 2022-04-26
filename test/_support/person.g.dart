@@ -34,6 +34,8 @@ mixin $PersonLocalAdapter on LocalAdapter<Person> {
   Map<String, dynamic> serialize(model) => model.toJson();
 }
 
+final _peopleFinders = <String, dynamic>{};
+
 // ignore: must_be_immutable
 class $PersonHiveLocalAdapter = HiveLocalAdapter<Person>
     with $PersonLocalAdapter;
@@ -44,8 +46,9 @@ class $PersonRemoteAdapter = RemoteAdapter<Person>
         GenericDoesNothingAdapter<Person>,
         YetAnotherLoginAdapter;
 
-final peopleRemoteAdapterProvider = Provider<RemoteAdapter<Person>>(
-    (ref) => $PersonRemoteAdapter($PersonHiveLocalAdapter(ref.read)));
+final peopleRemoteAdapterProvider = Provider<RemoteAdapter<Person>>((ref) =>
+    $PersonRemoteAdapter(
+        $PersonHiveLocalAdapter(ref.read), InternalHolder(_peopleFinders)));
 
 final peopleRepositoryProvider =
     Provider<Repository<Person>>((ref) => Repository<Person>(ref.read));

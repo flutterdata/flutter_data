@@ -81,6 +81,10 @@ mixin $BookAuthorLocalAdapter on LocalAdapter<BookAuthor> {
   Map<String, dynamic> serialize(model) => model.toJson();
 }
 
+final _bookAuthorsFinders = <String, dynamic>{
+  'caps': (_) => _.caps,
+};
+
 // ignore: must_be_immutable
 class $BookAuthorHiveLocalAdapter = HiveLocalAdapter<BookAuthor>
     with $BookAuthorLocalAdapter;
@@ -89,7 +93,8 @@ class $BookAuthorRemoteAdapter = RemoteAdapter<BookAuthor>
     with BookAuthorAdapter;
 
 final bookAuthorsRemoteAdapterProvider = Provider<RemoteAdapter<BookAuthor>>(
-    (ref) => $BookAuthorRemoteAdapter($BookAuthorHiveLocalAdapter(ref.read)));
+    (ref) => $BookAuthorRemoteAdapter($BookAuthorHiveLocalAdapter(ref.read),
+        InternalHolder(_bookAuthorsFinders)));
 
 final bookAuthorsRepositoryProvider =
     Provider<Repository<BookAuthor>>((ref) => Repository<BookAuthor>(ref.read));
@@ -139,13 +144,16 @@ mixin $BookLocalAdapter on LocalAdapter<Book> {
   Map<String, dynamic> serialize(model) => model.toJson();
 }
 
+final _booksFinders = <String, dynamic>{};
+
 // ignore: must_be_immutable
 class $BookHiveLocalAdapter = HiveLocalAdapter<Book> with $BookLocalAdapter;
 
 class $BookRemoteAdapter = RemoteAdapter<Book> with NothingMixin;
 
-final booksRemoteAdapterProvider = Provider<RemoteAdapter<Book>>(
-    (ref) => $BookRemoteAdapter($BookHiveLocalAdapter(ref.read)));
+final booksRemoteAdapterProvider = Provider<RemoteAdapter<Book>>((ref) =>
+    $BookRemoteAdapter(
+        $BookHiveLocalAdapter(ref.read), InternalHolder(_booksFinders)));
 
 final booksRepositoryProvider =
     Provider<Repository<Book>>((ref) => Repository<Book>(ref.read));

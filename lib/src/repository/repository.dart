@@ -19,9 +19,6 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   @nonVirtual
   String get type => remoteAdapter.type;
 
-  /// ONLY FOR FLUTTER DATA INTERNAL USE
-  Watcher? internalWatch;
-
   /// Initializes this [Repository]. Nothing will work without this.
   /// In standard scenarios this initialization is done by the framework.
   @mustCallSuper
@@ -204,45 +201,21 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   /// ```
   DataState<List<T>?> watchAll({
     bool? remote,
-    Future<List<T>?> Function(RemoteAdapter<T>)? finder,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    bool? syncLocal,
+    String? finder,
+    DataRequestLabel? label,
   }) {
-    return internalWatch!(_resolvedAllProvider(remote: remote, finder: finder));
+    return remoteAdapter.watchAll(
+      remote: remote,
+      params: params,
+      headers: headers,
+      syncLocal: syncLocal,
+      finder: finder,
+      label: label,
+    );
   }
-
-  DataStateNotifier<List<T>?> watchAllNotifier({
-    bool? remote,
-    Future<List<T>?> Function(RemoteAdapter<T>)? finder,
-  }) {
-    return internalWatch!(
-        _resolvedAllProvider(remote: remote, finder: finder).notifier);
-  }
-
-  AutoDisposeStateNotifierProvider<DataStateNotifier<List<T>?>,
-      DataState<List<T>?>> _resolvedAllProvider({
-    bool? remote,
-    Future<List<T>?> Function(RemoteAdapter<T>)? finder,
-  }) {
-    // TODO explain remote logic
-    remote ??= finder != null ? true : remoteAdapter._remote;
-
-    final provider = _allProvider(WatchArgs2(remote: remote));
-    final notifier = remoteAdapter.read(provider.notifier);
-
-    if (remote!) {
-      // trigger finder
-      final fn = finder != null ? (_) => finder(_ as RemoteAdapter<T>) : null;
-      notifier._reloadFn!.call(fn);
-    }
-
-    return provider;
-  }
-
-  late final _allProvider = StateNotifierProvider.autoDispose
-      .family<DataStateNotifier<List<T>?>, DataState<List<T>?>, WatchArgs2<T>>(
-          (ref, args) {
-    ref.maintainState = true; // TODO check
-    return remoteAdapter.watchAllNotifier(remote: args.remote);
-  });
 
   /// Watches a provider wrapping [_RemoteAdapterWatch.watchOneNotifier]
   /// which allows the watcher to be notified of changes
@@ -258,84 +231,22 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   DataState<T?> watchOne(
     Object model, {
     bool? remote,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
     AlsoWatch<T>? alsoWatch,
-    Future<T?> Function(RemoteAdapter<T>)? finder,
+    String? finder,
     DataRequestLabel? label,
   }) {
-    return internalWatch!(_resolvedOneProvider(
+    return remoteAdapter.watchOne(
       model,
       remote: remote,
+      params: params,
+      headers: headers,
       alsoWatch: alsoWatch,
       finder: finder,
-    ));
-  }
-
-  DataStateNotifier<T?> watchOneNotifier(
-    Object model, {
-    bool? remote,
-    AlsoWatch<T>? alsoWatch,
-    Future<T?> Function(RemoteAdapter<T>)? finder,
-    DataRequestLabel? label,
-  }) {
-    return remoteAdapter.read(_resolvedOneProvider(
-      model,
-      remote: remote,
-      alsoWatch: alsoWatch,
-      finder: finder,
-    ).notifier);
-  }
-
-  AutoDisposeStateNotifierProvider<DataStateNotifier<T?>, DataState<T?>>
-      _resolvedOneProvider(
-    Object model, {
-    bool? remote,
-    AlsoWatch<T>? alsoWatch,
-    Future<T?> Function(RemoteAdapter<T>)? finder,
-  }) {
-    final id = remoteAdapter._resolveId(model);
-    final key = remoteAdapter.graph.getKeyForId(remoteAdapter.internalType, id,
-        keyIfAbsent: (model is T ? model._key : DataHelpers.generateKey<T>()))!;
-
-    // TODO explain remote logic
-    remote ??= finder != null ? true : remoteAdapter._remote;
-
-    final provider = _oneProvider(
-        WatchArgs2(key: key, remote: remote, alsoWatch: alsoWatch));
-    final notifier = remoteAdapter.read(provider.notifier);
-
-    if (remote!) {
-      // trigger finder
-      final fn = finder != null ? (_) => finder(_ as RemoteAdapter<T>) : null;
-      notifier._reloadFn!.call(fn);
-    }
-
-    return provider;
-  }
-
-  late final _oneProvider = StateNotifierProvider.autoDispose
-      .family<DataStateNotifier<T?>, DataState<T?>, WatchArgs2<T>>((ref, args) {
-    ref.maintainState = true; // TODO check
-    return remoteAdapter.watchOneNotifier(
-      args.key!,
-      remote: args.remote,
-      alsoWatch: args.alsoWatch,
+      label: label,
     );
-  });
-}
-
-class WatchArgs2<T extends DataModel<T>> with EquatableMixin {
-  WatchArgs2({
-    this.key,
-    this.remote,
-    this.alsoWatch,
-  });
-
-  final String? key;
-  final bool? remote;
-  final AlsoWatch<T>? alsoWatch;
-
-  @override
-  List<Object?> get props => [key, alsoWatch]; // NOT: remote
+  }
 }
 
 /// Annotation on a [DataModel] model to request a [Repository] be generated for it.
