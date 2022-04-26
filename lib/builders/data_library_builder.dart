@@ -88,7 +88,7 @@ class DataExtensionBuilder implements Builder {
     final adaptersMap = {
       for (final clazz in classes)
         '\'${clazz['type']}\'':
-            'ref.watch(${clazz['type']}RemoteAdapterProvider)'
+            'ref.watch(internal${clazz['type'].toString().capitalize()}RemoteAdapterProvider)'
     };
 
     final remotesMap = {
@@ -111,8 +111,6 @@ class DataExtensionBuilder implements Builder {
     final pathProviderImport = hasPathProvider
         ? "import 'package:path_provider/path_provider.dart';"
         : '';
-    final riverpodImport =
-        hasFlutterRiverpod ? "import 'package:riverpod/riverpod.dart';" : '';
     final riverpodFlutterImport = hasFlutterRiverpod
         ? "import 'package:flutter_riverpod/flutter_riverpod.dart';"
         : '';
@@ -145,7 +143,6 @@ ${classes.map((clazz) => '  Repository<${clazz['name']}> get ${clazz['type']} =>
 import 'package:flutter_data/flutter_data.dart';
 $flutterFoundationImport
 $pathProviderImport
-$riverpodImport
 $riverpodFlutterImport
 
 $modelImports

@@ -220,7 +220,7 @@ class \$${classType}HiveLocalAdapter = HiveLocalAdapter<$classType> with \$${cla
 
 class \$${classType}RemoteAdapter = RemoteAdapter<$classType> with ${mixins.join(', ')};
 
-final ${typeLowerCased}RemoteAdapterProvider =
+final internal${typeLowerCased.capitalize()}RemoteAdapterProvider =
     Provider<RemoteAdapter<$classType>>(
         (ref) => \$${classType}RemoteAdapter(\$${classType}HiveLocalAdapter(ref.read), InternalHolder(_${typeLowerCased}Finders)));
 

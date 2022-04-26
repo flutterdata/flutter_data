@@ -70,8 +70,8 @@ class $NodeHiveLocalAdapter = HiveLocalAdapter<Node> with $NodeLocalAdapter;
 
 class $NodeRemoteAdapter = RemoteAdapter<Node> with NothingMixin;
 
-final nodesRemoteAdapterProvider = Provider<RemoteAdapter<Node>>((ref) =>
-    $NodeRemoteAdapter(
+final internalNodesRemoteAdapterProvider = Provider<RemoteAdapter<Node>>(
+    (ref) => $NodeRemoteAdapter(
         $NodeHiveLocalAdapter(ref.read), InternalHolder(_nodesFinders)));
 
 final nodesRepositoryProvider =

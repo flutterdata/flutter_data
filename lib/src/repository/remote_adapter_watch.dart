@@ -24,7 +24,14 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
   late final watchAllProvider = StateNotifierProvider.autoDispose
       .family<DataStateNotifier<List<T>?>, DataState<List<T>?>, WatchArgs<T>>(
           (ref, args) {
-    return watchAllNotifier(remote: args.remote);
+    return watchAllNotifier(
+      remote: args.remote,
+      params: args.params,
+      headers: args.headers,
+      syncLocal: args.syncLocal,
+      finder: args.finder,
+      label: args.label,
+    );
   });
 
   DataState<T?> watchOne(
@@ -55,7 +62,11 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     return watchOneNotifier(
       args.id!,
       remote: args.remote,
+      params: args.params,
+      headers: args.headers,
       alsoWatch: args.alsoWatch,
+      finder: args.finder,
+      label: args.label,
     );
   });
 
@@ -96,7 +107,6 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
     _notifier._reloadFn = () async {
       if (!_notifier.mounted) {
-        print('NOT MOUNTED ALL');
         return;
       }
 
@@ -132,7 +142,6 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
     final _dispose = graph.addListener((event) {
       if (!_notifier.mounted) {
-        print('NOT MOUNTED ONE');
         return;
       }
 

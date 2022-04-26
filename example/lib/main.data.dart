@@ -36,7 +36,7 @@ final repositoryProviders = <String, Provider<Repository<DataModel>>>{
 
 final repositoryInitializerProvider =
   FutureProvider<RepositoryInitializer>((ref) async {
-    final adapters = <String, RemoteAdapter>{'tasks': ref.watch(tasksRemoteAdapterProvider), 'users': ref.watch(usersRemoteAdapterProvider)};
+    final adapters = <String, RemoteAdapter>{'tasks': ref.watch(internalTasksRemoteAdapterProvider), 'users': ref.watch(internalUsersRemoteAdapterProvider)};
     final remotes = <String, bool>{'tasks': true, 'users': true};
 
     await ref.watch(graphNotifierProvider).initialize();

@@ -57,7 +57,7 @@ class $DogHiveLocalAdapter = HiveLocalAdapter<Dog> with $DogLocalAdapter;
 
 class $DogRemoteAdapter = RemoteAdapter<Dog> with NothingMixin;
 
-final dogsRemoteAdapterProvider = Provider<RemoteAdapter<Dog>>((ref) =>
+final internalDogsRemoteAdapterProvider = Provider<RemoteAdapter<Dog>>((ref) =>
     $DogRemoteAdapter(
         $DogHiveLocalAdapter(ref.read), InternalHolder(_dogsFinders)));
 
@@ -106,7 +106,7 @@ class $CatHiveLocalAdapter = HiveLocalAdapter<Cat> with $CatLocalAdapter;
 
 class $CatRemoteAdapter = RemoteAdapter<Cat> with NothingMixin;
 
-final catsRemoteAdapterProvider = Provider<RemoteAdapter<Cat>>((ref) =>
+final internalCatsRemoteAdapterProvider = Provider<RemoteAdapter<Cat>>((ref) =>
     $CatRemoteAdapter(
         $CatHiveLocalAdapter(ref.read), InternalHolder(_catsFinders)));
 

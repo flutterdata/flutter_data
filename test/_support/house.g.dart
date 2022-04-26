@@ -59,8 +59,8 @@ class $HouseHiveLocalAdapter = HiveLocalAdapter<House> with $HouseLocalAdapter;
 
 class $HouseRemoteAdapter = RemoteAdapter<House> with NothingMixin;
 
-final housesRemoteAdapterProvider = Provider<RemoteAdapter<House>>((ref) =>
-    $HouseRemoteAdapter(
+final internalHousesRemoteAdapterProvider = Provider<RemoteAdapter<House>>(
+    (ref) => $HouseRemoteAdapter(
         $HouseHiveLocalAdapter(ref.read), InternalHolder(_housesFinders)));
 
 final housesRepositoryProvider =

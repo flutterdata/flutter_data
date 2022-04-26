@@ -46,8 +46,8 @@ class $PersonRemoteAdapter = RemoteAdapter<Person>
         GenericDoesNothingAdapter<Person>,
         YetAnotherLoginAdapter;
 
-final peopleRemoteAdapterProvider = Provider<RemoteAdapter<Person>>((ref) =>
-    $PersonRemoteAdapter(
+final internalPeopleRemoteAdapterProvider = Provider<RemoteAdapter<Person>>(
+    (ref) => $PersonRemoteAdapter(
         $PersonHiveLocalAdapter(ref.read), InternalHolder(_peopleFinders)));
 
 final peopleRepositoryProvider =

@@ -10,19 +10,11 @@ void main() async {
   setUp(setUpFn);
   tearDown(tearDownFn);
 
-  test('zz', () {
-    AlsoWatch<Familia> f1 = (f) => [f.persons];
-
-    print(f1.toString());
-    final familia = Familia(id: '1', surname: 'Johnson').init(container.read);
-    print(f1(familia).toString());
-  });
-
   test('uninitialized throws an assertion error', () {
     final familia = Familia(id: '1', surname: 'Johnson');
     expectLater(familia.save, throwsA(isA<AssertionError>()));
     expectLater(familia.delete, throwsA(isA<AssertionError>()));
-    expectLater(familia.reload, throwsA(isA<AssertionError>()));
+    expectLater(familia.refresh, throwsA(isA<AssertionError>()));
   });
 
   test('init', () async {
@@ -38,13 +30,22 @@ void main() async {
     expect(model, await container.people.findOne(model.id!, remote: false));
   });
 
-  test('findOne (reload) without ID', () async {
-    final familia = Familia(surname: 'Zliedowski').init(container.read);
-    final f2 = Familia(surname: 'Zliedowski').was(familia);
+  test('findOne (reload)', () async {
+    final familia = Familia(id: '1', surname: 'Perez').init(container.read);
+    final f2 = Familia(id: '1', surname: 'Perez').was(familia);
 
     final f3 = await familia.reload(remote: false);
     expect(keyFor(familia), keyFor(f2));
     expect(keyFor(familia), keyFor(f3!));
+  });
+
+  test('findOne (refresh) without ID', () async {
+    final familia = Familia(surname: 'Zliedowski').init(container.read);
+    final f2 = Familia(surname: 'Zliedowski').was(familia);
+
+    final f3 = familia.refresh();
+    expect(keyFor(familia), keyFor(f2));
+    expect(keyFor(familia), keyFor(f3));
   });
 
   test('delete model with and without ID', () async {
@@ -88,6 +89,13 @@ void main() async {
             .box!
             .keys,
         contains(keyFor(p2)));
+  });
+
+  test('was should not allow a different ID', () async {
+    final f1 = Familia(id: '1', surname: 'Perez').init(container.read);
+    expect(() {
+      Familia(id: '2', surname: 'Perez').was(f1);
+    }, throwsA(isA<AssertionError>()));
   });
 
   test('equality', () async {

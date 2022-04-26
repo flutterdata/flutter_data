@@ -26,6 +26,13 @@ abstract class DataModel<T extends DataModel<T>> {
   /// automatically or manually via `init` or [was].
   bool get isInitialized => _key != null && _adapters != null;
 
+  // methods
+
+  T refresh() {
+    _assertInit('refresh');
+    return remoteAdapter.localAdapter.findOne(_key)!;
+  }
+
   // initializers
 
   T _initialize(final Map<String, RemoteAdapter> adapters,
@@ -85,6 +92,10 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   T was(T model) {
     assert(model.isInitialized,
         'Please initialize model before passing it to `was`');
+    if (model.id != null) {
+      assert(id == model.id,
+          'Should not use `was` with a model of a different ID');
+    }
     return _initialize(model._adapters!, key: model._key, save: true);
   }
 
@@ -166,13 +177,6 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     }
 
     return rels;
-  }
-
-  // TODO test
-
-  /// Watch this model
-  DataState<T?> watch() {
-    return remoteAdapter.watchOne(id!);
   }
 
   void _assertInit(String method) {

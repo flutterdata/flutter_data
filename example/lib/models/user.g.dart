@@ -59,8 +59,8 @@ class $UserHiveLocalAdapter = HiveLocalAdapter<User> with $UserLocalAdapter;
 
 class $UserRemoteAdapter = RemoteAdapter<User> with JSONServerAdapter<User>;
 
-final usersRemoteAdapterProvider = Provider<RemoteAdapter<User>>((ref) =>
-    $UserRemoteAdapter(
+final internalUsersRemoteAdapterProvider = Provider<RemoteAdapter<User>>(
+    (ref) => $UserRemoteAdapter(
         $UserHiveLocalAdapter(ref.read), InternalHolder(_usersFinders)));
 
 final usersRepositoryProvider =

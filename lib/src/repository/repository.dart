@@ -247,6 +247,39 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
       label: label,
     );
   }
+
+  AutoDisposeStateNotifierProvider<DataStateNotifier<T?>, DataState<T?>>
+      watchOneProvider(
+    Object model, {
+    bool? remote,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    AlsoWatch<T>? alsoWatch,
+    String? finder,
+    DataRequestLabel? label,
+  }) {
+    return remoteAdapter.watchOneProvider(
+      WatchArgs(
+        id: model,
+        remote: remote,
+        params: params,
+        headers: headers,
+        alsoWatch: alsoWatch,
+        finder: finder,
+        label: label,
+      ),
+    );
+  }
+
+  // TODO test
+
+  /// Watch this model
+  T watch(T model) {
+    if (!model.isInitialized) {
+      throw UnsupportedError('Model must be initialized!');
+    }
+    return remoteAdapter.watchOne(model, remote: false).model!;
+  }
 }
 
 /// Annotation on a [DataModel] model to request a [Repository] be generated for it.

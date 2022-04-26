@@ -51,10 +51,10 @@ void setUpFn() async {
   await container.read(graphNotifierProvider).initialize();
 
   final adapterGraph = <String, RemoteAdapter<DataModel>>{
-    'houses': container.read(housesRemoteAdapterProvider),
-    'familia': container.read(familiaRemoteAdapterProvider),
-    'people': container.read(peopleRemoteAdapterProvider),
-    'dogs': container.read(dogsRemoteAdapterProvider),
+    'houses': container.read(internalHousesRemoteAdapterProvider),
+    'familia': container.read(internalFamiliaRemoteAdapterProvider),
+    'people': container.read(internalPeopleRemoteAdapterProvider),
+    'dogs': container.read(internalDogsRemoteAdapterProvider),
   };
 
   await container
@@ -74,13 +74,13 @@ void setUpFn() async {
   await container.read(nodesRepositoryProvider).initialize(
     remote: false,
     adapters: {
-      nodesKey: container.read(nodesRemoteAdapterProvider),
+      nodesKey: container.read(internalNodesRemoteAdapterProvider),
     },
   );
 
   final booksGraph = <String, RemoteAdapter<DataModel>>{
-    'bookAuthors': container.read(bookAuthorsRemoteAdapterProvider),
-    'books': container.read(booksRemoteAdapterProvider),
+    'bookAuthors': container.read(internalBookAuthorsRemoteAdapterProvider),
+    'books': container.read(internalBooksRemoteAdapterProvider),
   };
 
   await container.read(bookAuthorsRepositoryProvider).initialize(
