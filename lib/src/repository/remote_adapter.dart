@@ -7,7 +7,7 @@ part of flutter_data;
 ///  - Remote methods such as [_RemoteAdapter.findAll] or [_RemoteAdapter.save]
 ///  - Configuration methods and getters like [_RemoteAdapter.baseUrl] or [_RemoteAdapter.urlForFindAll]
 ///  - Serialization methods like [_RemoteAdapterSerialization.serialize]
-///  - Watch methods such as [_RemoteAdapterWatch.watchOneNotifier]
+///  - Watch methods such as [Repository.watchOneNotifier]
 ///  - Access to the [_RemoteAdapter.graph] for subclasses or mixins
 ///
 /// This class is meant to be extended via mixing in new adapters.
@@ -268,8 +268,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
     label = DataRequestLabel('findAll', type: internalType, withParent: label);
 
-    log(label, 'request ${params.isNotEmpty ? 'with $params' : ''}');
-
     late List<T>? models;
 
     if (!shouldLoadRemoteAll(remote!, params, headers) || background) {
@@ -283,6 +281,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
         return models;
       }
     }
+
+    log(label, 'request ${params.isNotEmpty ? 'with $params' : ''}');
 
     final future = sendRequest<List<T>>(
       baseUrl.asUri / urlForFindAll(params) & params,
@@ -329,7 +329,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
     label = DataRequestLabel('findOne',
         type: internalType, id: resolvedId?.toString(), withParent: label);
-    log(label, 'request ${params.isNotEmpty ? 'with $params' : ''}');
 
     if (!shouldLoadRemoteOne(id, remote!, params, headers) || background) {
       final key = graph.getKeyForId(internalType, resolvedId,
@@ -344,6 +343,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
         return model;
       }
     }
+
+    log(label, 'request ${params.isNotEmpty ? 'with $params' : ''}');
 
     final future = sendRequest(
       baseUrl.asUri / urlForFindOne(id, params) & params,
@@ -424,18 +425,16 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     headers = await defaultHeaders & headers;
 
     final id = _resolveId(model);
-    final key = _keyForModel(model);
+    final key = keyForModelOrId(model);
 
     label = DataRequestLabel('delete',
         type: internalType, id: id.toString(), withParent: label);
     log(label, 'request');
 
-    if (key != null) {
-      if (remote == false) {
-        log(label, 'deleted in local storage only');
-      }
-      await localAdapter.delete(key);
+    if (remote == false) {
+      log(label, 'deleted in local storage only');
     }
+    await localAdapter.delete(key);
 
     if (remote == true && id != null) {
       return await sendRequest(
@@ -728,10 +727,18 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     return obj is T ? obj.id : obj;
   }
 
-  String? _keyForModel(Object model) {
-    final id = _resolveId(model);
-    return graph.getKeyForId(internalType, id,
-        keyIfAbsent: model is T ? model._key : null);
+  // TODO test
+  @protected
+  @visibleForTesting
+  @nonVirtual
+  String keyForModelOrId(Object model) {
+    if (model is T && model.isInitialized) {
+      return model._key!;
+    } else {
+      final id = _resolveId(model);
+      return graph.getKeyForId(internalType, id,
+          keyIfAbsent: model is T ? model._key : DataHelpers.generateKey<T>())!;
+    }
   }
 
   bool get _isTesting {

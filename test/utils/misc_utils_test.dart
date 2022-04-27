@@ -45,11 +45,12 @@ void main() async {
   });
 
   test('repo watch args', () {
-    final args = WatchArgs<Dog>(id: 1, remote: true, params: {'a': 1});
-    expect(args.id, 1);
+    final args = WatchArgs<Dog>(key: '1', remote: true, params: {'a': 1});
+    expect(args.key, '1');
     expect(args.remote, true);
     expect(args.params, {'a': 1});
-    expect(args, equals(WatchArgs<Dog>(id: 1, remote: true, params: {'a': 1})));
+    expect(
+        args, equals(WatchArgs<Dog>(key: '1', remote: true, params: {'a': 1})));
   });
 
   test('iterable utils', () {

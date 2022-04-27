@@ -198,7 +198,7 @@ abstract class Relationship<E extends DataModel<E>, N>
     };
   }
 
-  Iterable<Relationship?> andEach(AlsoWatch<E>? alsoWatch) {
+  Set<Relationship?> andEach(AlsoWatch<E>? alsoWatch) {
     return {
       this,
       for (final value in _iterable)

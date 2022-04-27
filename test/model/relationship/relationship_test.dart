@@ -285,8 +285,7 @@ void main() async {
         .init(container.read);
 
     final listener = Listener<DataState<BookAuthor?>>();
-    final notifier =
-        container.bookAuthors.remoteAdapter.watchOneNotifier(author);
+    final notifier = container.bookAuthors.watchOneNotifier(author);
 
     dispose = notifier.addListener(listener);
 

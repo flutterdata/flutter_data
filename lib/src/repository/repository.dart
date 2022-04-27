@@ -190,7 +190,9 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   Set<OfflineOperation<T>> get offlineOperations =>
       remoteAdapter.offlineOperations;
 
-  /// Watches a provider wrapping [_RemoteAdapterWatch.watchAllNotifier]
+  // watchers
+
+  /// Watches a provider wrapping [Repository.watchAllNotifier]
   /// which allows the watcher to be notified of changes
   /// on any model of this [type].
   ///
@@ -207,7 +209,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     String? finder,
     DataRequestLabel? label,
   }) {
-    return remoteAdapter.watchAll(
+    final provider = watchAllProvider(
       remote: remote,
       params: params,
       headers: headers,
@@ -215,9 +217,10 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
       finder: finder,
       label: label,
     );
+    return remoteAdapter.internalWatch!(provider);
   }
 
-  /// Watches a provider wrapping [_RemoteAdapterWatch.watchOneNotifier]
+  /// Watches a provider wrapping [Repository.watchOneNotifier]
   /// which allows the watcher to be notified of changes
   /// on a specific model of this [type], optionally reacting
   /// to selected relationships of this model via [alsoWatch].
@@ -237,7 +240,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     String? finder,
     DataRequestLabel? label,
   }) {
-    return remoteAdapter.watchOne(
+    final provider = watchOneProvider(
       model,
       remote: remote,
       params: params,
@@ -246,7 +249,44 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
       finder: finder,
       label: label,
     );
+    return remoteAdapter.internalWatch!(provider);
   }
+
+  // providers
+
+  AutoDisposeStateNotifierProvider<DataStateNotifier<List<T>?>,
+      DataState<List<T>?>> watchAllProvider({
+    bool? remote,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    bool? syncLocal,
+    String? finder,
+    DataRequestLabel? label,
+  }) {
+    return _watchAllProvider(
+      WatchArgs(
+        remote: remote,
+        params: params,
+        headers: headers,
+        syncLocal: syncLocal,
+        finder: finder,
+        label: label,
+      ),
+    );
+  }
+
+  late final _watchAllProvider = StateNotifierProvider.autoDispose
+      .family<DataStateNotifier<List<T>?>, DataState<List<T>?>, WatchArgs<T>>(
+          (ref, args) {
+    return remoteAdapter.watchAllNotifier(
+      remote: args.remote,
+      params: args.params,
+      headers: args.headers,
+      syncLocal: args.syncLocal,
+      finder: args.finder,
+      label: args.label,
+    );
+  });
 
   AutoDisposeStateNotifierProvider<DataStateNotifier<T?>, DataState<T?>>
       watchOneProvider(
@@ -258,9 +298,10 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     String? finder,
     DataRequestLabel? label,
   }) {
-    return remoteAdapter.watchOneProvider(
+    final key = remoteAdapter.keyForModelOrId(model);
+    return _watchOneProvider(
       WatchArgs(
-        id: model,
+        key: key,
         remote: remote,
         params: params,
         headers: headers,
@@ -271,14 +312,63 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     );
   }
 
-  // TODO test
+  late final _watchOneProvider = StateNotifierProvider.autoDispose
+      .family<DataStateNotifier<T?>, DataState<T?>, WatchArgs<T>>((ref, args) {
+    return remoteAdapter.watchOneNotifier(
+      args.key!,
+      remote: args.remote,
+      params: args.params,
+      headers: args.headers,
+      alsoWatch: args.alsoWatch,
+      finder: args.finder,
+      label: args.label,
+    );
+  });
+
+  // notifiers
+
+  DataStateNotifier<List<T>?> watchAllNotifier(
+      {bool? remote,
+      Map<String, dynamic>? params,
+      Map<String, String>? headers,
+      bool? syncLocal,
+      String? finder,
+      DataRequestLabel? label}) {
+    final provider = watchAllProvider(
+      remote: remote,
+      params: params,
+      headers: headers,
+      syncLocal: syncLocal,
+      finder: finder,
+      label: label,
+    );
+    return remoteAdapter.internalWatch!(provider.notifier);
+  }
+
+  DataStateNotifier<T?> watchOneNotifier(Object model,
+      {bool? remote,
+      Map<String, dynamic>? params,
+      Map<String, String>? headers,
+      AlsoWatch<T>? alsoWatch,
+      String? finder,
+      DataRequestLabel? label}) {
+    return remoteAdapter.internalWatch!(watchOneProvider(
+      model,
+      remote: remote,
+      params: params,
+      headers: headers,
+      alsoWatch: alsoWatch,
+      finder: finder,
+      label: label,
+    ).notifier);
+  }
 
   /// Watch this model
   T watch(T model) {
     if (!model.isInitialized) {
       throw UnsupportedError('Model must be initialized!');
     }
-    return remoteAdapter.watchOne(model, remote: false).model!;
+    return watchOne(model, remote: false).model!;
   }
 }
 

@@ -40,8 +40,6 @@ abstract class _Lifecycle {
   void dispose();
 }
 
-typedef Watcher = W Function<W>(ProviderListenable<W> provider);
-
 class InternalHolder<T extends DataModel<T>> {
   final Map<String, dynamic> finders;
   InternalHolder(this.finders);
@@ -94,3 +92,37 @@ typedef DataWatcherOne<T extends DataModel<T>> = DataStateNotifier<T?> Function(
   String? finder,
   DataRequestLabel? label,
 });
+
+// watch
+
+typedef Watcher = W Function<W>(ProviderListenable<W> provider);
+
+typedef AlsoWatch<T extends DataModel<T>> = Iterable<Relationship?> Function(T);
+
+/// This argument holder class is used internally with
+/// Riverpod `family`s.
+class WatchArgs<T extends DataModel<T>> with EquatableMixin {
+  WatchArgs({
+    this.key,
+    this.remote,
+    this.params,
+    this.headers,
+    this.syncLocal,
+    this.alsoWatch,
+    this.finder,
+    this.label,
+  });
+
+  final String? key;
+  final bool? remote;
+  final Map<String, dynamic>? params;
+  final Map<String, String>? headers;
+  final bool? syncLocal;
+  final AlsoWatch<T>? alsoWatch;
+  final String? finder;
+  final DataRequestLabel? label;
+
+  @override
+  List<Object?> get props =>
+      [key, remote, params, headers, syncLocal, finder, label];
+}

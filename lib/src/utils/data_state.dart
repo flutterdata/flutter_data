@@ -78,10 +78,12 @@ class DataStateNotifier<T> extends StateNotifier<DataState<T>> {
     Listener<DataState<T>> listener, {
     bool fireImmediately = true,
   }) {
-    final dispose =
-        super.addListener(listener, fireImmediately: fireImmediately);
+    Function? _dispose;
+    if (mounted) {
+      _dispose = super.addListener(listener, fireImmediately: fireImmediately);
+    }
     return () {
-      dispose();
+      _dispose?.call();
       onDispose?.call();
     };
   }

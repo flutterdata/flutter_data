@@ -1,79 +1,7 @@
 part of flutter_data;
 
 mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
-  DataState<List<T>?> watchAll({
-    bool? remote,
-    Map<String, dynamic>? params,
-    Map<String, String>? headers,
-    bool? syncLocal,
-    String? finder,
-    DataRequestLabel? label,
-  }) {
-    final provider = watchAllProvider(WatchArgs(
-      remote: remote,
-      params: params,
-      headers: headers,
-      syncLocal: syncLocal,
-      label: label,
-    ));
-    return internalWatch!(provider);
-  }
-
   @protected
-  @visibleForTesting
-  late final watchAllProvider = StateNotifierProvider.autoDispose
-      .family<DataStateNotifier<List<T>?>, DataState<List<T>?>, WatchArgs<T>>(
-          (ref, args) {
-    return watchAllNotifier(
-      remote: args.remote,
-      params: args.params,
-      headers: args.headers,
-      syncLocal: args.syncLocal,
-      finder: args.finder,
-      label: args.label,
-    );
-  });
-
-  DataState<T?> watchOne(
-    Object model, {
-    bool? remote,
-    Map<String, dynamic>? params,
-    Map<String, String>? headers,
-    AlsoWatch<T>? alsoWatch,
-    String? finder,
-    DataRequestLabel? label,
-  }) {
-    final provider = watchOneProvider(WatchArgs(
-      id: model,
-      remote: remote,
-      params: params,
-      headers: headers,
-      alsoWatch: alsoWatch,
-      finder: finder,
-      label: label,
-    ));
-    return internalWatch!(provider);
-  }
-
-  @protected
-  @visibleForTesting
-  late final watchOneProvider = StateNotifierProvider.autoDispose
-      .family<DataStateNotifier<T?>, DataState<T?>, WatchArgs<T>>((ref, args) {
-    return watchOneNotifier(
-      args.id!,
-      remote: args.remote,
-      params: args.params,
-      headers: args.headers,
-      alsoWatch: args.alsoWatch,
-      finder: args.finder,
-      label: args.label,
-    );
-  });
-
-  // notifiers
-
-  @protected
-  @visibleForTesting
   DataStateNotifier<List<T>?> watchAllNotifier({
     bool? remote,
     Map<String, dynamic>? params,
@@ -91,7 +19,9 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
     // we can't use `findAll`'s default internal label
     // because we need a label to handle events
-    label ??= DataRequestLabel('findAll', type: internalType);
+    label ??= DataRequestLabel('watchAll', type: internalType, isParent: true);
+
+    super.log(label, 'initializing');
 
     // closure to get latest models
     List<T>? _getUpdatedModels() {
@@ -157,18 +87,21 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           event.type.isNode &&
           event.keys.first.startsWith(internalType)) {
         final models = _getUpdatedModels();
+        super.log(label!, 'updated models');
         _notifier.updateWith(model: models);
       }
     });
 
-    _notifier.onDispose = _dispose;
+    _notifier.onDispose = () {
+      super.log(label!, 'disposing');
+      _dispose();
+    };
     return _notifier;
   }
 
   @protected
-  @visibleForTesting
   DataStateNotifier<T?> watchOneNotifier(
-    Object model, {
+    String key, {
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
@@ -177,6 +110,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     DataRequestLabel? label,
   }) {
     _assertInit();
+    final id = graph.getIdForKey(key);
 
     remote ??= _remote;
     final _maybeFinder = _internalHolder?.finders[finder]?.call(this);
@@ -184,21 +118,13 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
     // we can't use `findOne`'s default internal label
     // because we need a label to handle events
-    label ??= DataRequestLabel('findOne', type: internalType);
-
-    final id = _resolveId(model);
+    label ??= DataRequestLabel('watchOne', type: internalType, isParent: true);
 
     var _alsoWatchPairs = <List<String>>{};
 
-    // lazy key access
-    String? key() {
-      return graph.getKeyForId(internalType, id,
-          keyIfAbsent: (model is T ? model._key : null));
-    }
-
     // closure to get latest model and watchable relationship pairs
     T? _getUpdatedModel({DataStateNotifier<T?>? withNotifier}) {
-      final model = localAdapter.findOne(key())?._initialize(adapters);
+      final model = localAdapter.findOne(key)?._initialize(adapters);
       if (model != null) {
         model._initializeRelationships();
         _alsoWatchPairs = {
@@ -220,6 +146,9 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       data: DataState(_getUpdatedModel(), isLoading: remote!),
     );
 
+    super.log(label,
+        'initializing${alsoWatch != null ? ' (with relationships)' : ''}');
+
     _notifier._reloadFn = () async {
       if (!_notifier.mounted || id == null) return;
 
@@ -233,6 +162,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           remote: remote,
           params: params,
           headers: headers,
+          label: label,
           onError: (e, _) => throw e,
         );
         // trigger doneLoading to ensure state is updated with isLoading=false
@@ -260,7 +190,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     final _dispose = graph.addListener((event) {
       if (!_notifier.mounted) return;
 
-      final _key = _model?._key ?? key();
+      final _key = _model?._key ?? key;
 
       // get the latest updated model with watchable relationships
       // (_alsoWatchPairs) in order to determine whether there is
@@ -281,6 +211,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         if (event.type == DataGraphEventType.addNode ||
             event.type == DataGraphEventType.updateNode) {
           if (_notifier.data.isLoading == false) {
+            super.log(label!, 'added/updated node');
             _notifier.updateWith(model: _model);
           }
         }
@@ -295,6 +226,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
       // handle deletion
       if (event.type == DataGraphEventType.removeNode && _model == null) {
+        super.log(label!, 'removed node');
         _notifier.updateWith(model: null);
       }
 
@@ -314,15 +246,15 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       // if model is loaded and any condition passes, notify update
       if (_notifier.data.isLoading == false &&
           (watchedRelationshipUpdate || watchedModelUpdate)) {
+        super.log(label!, 'relationship update');
         _notifier.updateWith(model: _model);
       }
     });
 
     _notifier.onDispose = () {
+      super.log(label!, 'disposing');
       _dispose();
     };
     return _notifier;
   }
 }
-
-typedef AlsoWatch<T extends DataModel<T>> = Iterable<Relationship?> Function(T);

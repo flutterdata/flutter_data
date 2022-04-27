@@ -19,7 +19,7 @@ abstract class DataModel<T extends DataModel<T>> {
 
   /// Exposes the [DataStateNotifier] that fetched this model;
   /// typically used to access `notifier.reload()`.
-  /// ONLY available if loaded via [_RemoteAdapterWatch.watchOneNotifier].
+  /// ONLY available if loaded via [Repository.watchOneNotifier].
   DataStateNotifier<T?>? get notifier => _notifier;
 
   /// Whether this model was initialized, either

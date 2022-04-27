@@ -15,31 +15,3 @@ class RepositoryInitializer {}
 
 @protected
 mixin NothingMixin {}
-
-/// This argument holder class is used internally with
-/// Riverpod `family`s.
-class WatchArgs<T extends DataModel<T>> with EquatableMixin {
-  WatchArgs({
-    this.id,
-    this.remote,
-    this.params,
-    this.headers,
-    this.syncLocal,
-    this.alsoWatch,
-    this.finder,
-    this.label,
-  });
-
-  final Object? id;
-  final bool? remote;
-  final Map<String, dynamic>? params;
-  final Map<String, String>? headers;
-  final bool? syncLocal;
-  final AlsoWatch<T>? alsoWatch;
-  final String? finder;
-  final DataRequestLabel? label;
-
-  @override
-  List<Object?> get props =>
-      [id, remote, params, headers, syncLocal, finder, label];
-}
