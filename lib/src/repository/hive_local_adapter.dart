@@ -138,7 +138,7 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
             // denamespace and parse single
             .map((e) => int.parse(e.first.denamespace()))
             // find max
-            .fold(0, max) +
+            .fold(0, math.max) +
         1;
 
     graph._addEdge(

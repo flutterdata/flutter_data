@@ -21,7 +21,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     // because we need a label to handle events
     label ??= DataRequestLabel('watchAll', type: internalType);
 
-    super.log(label, 'initializing');
+    log(label, 'initializing');
 
     // closure to get latest models
     List<T>? _getUpdatedModels() {
@@ -90,13 +90,13 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           event.type.isNode &&
           event.keys.first.startsWith(internalType)) {
         final models = _getUpdatedModels();
-        super.log(label!, 'updated models');
+        log(label!, 'updated models');
         _notifier.updateWith(model: models);
       }
     });
 
     _notifier.onDispose = () {
-      super.log(label!, 'disposing');
+      log(label!, 'disposing');
       _dispose();
     };
     return _notifier;
@@ -149,7 +149,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       data: DataState(_getUpdatedModel(), isLoading: remote!),
     );
 
-    super.log(label,
+    log(label,
         'initializing${alsoWatch != null ? ' (with relationships)' : ''}');
 
     _notifier._reloadFn = () async {
@@ -218,7 +218,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         if (event.type == DataGraphEventType.addNode ||
             event.type == DataGraphEventType.updateNode) {
           if (_notifier.data.isLoading == false) {
-            super.log(label!, 'added/updated node');
+            log(label!, 'added/updated node');
             _notifier.updateWith(model: _model);
           }
         }
@@ -233,7 +233,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
       // handle deletion
       if (event.type == DataGraphEventType.removeNode && _model == null) {
-        super.log(label!, 'removed node');
+        log(label!, 'removed node');
         _notifier.updateWith(model: null);
       }
 
@@ -253,13 +253,13 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       // if model is loaded and any condition passes, notify update
       if (_notifier.data.isLoading == false &&
           (watchedRelationshipUpdate || watchedModelUpdate)) {
-        super.log(label!, 'relationship update');
+        log(label!, 'relationship update');
         _notifier.updateWith(model: _model);
       }
     });
 
     _notifier.onDispose = () {
-      super.log(label!, 'disposing');
+      log(label!, 'disposing');
       _dispose();
     };
     return _notifier;
