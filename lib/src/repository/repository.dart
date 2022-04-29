@@ -72,7 +72,8 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     bool? syncLocal,
-    OnError<List<T>>? onError,
+    OnSuccessAll<T>? onSuccess,
+    OnErrorAll<T>? onError,
     DataRequestLabel? label,
   }) {
     return remoteAdapter.findAll(
@@ -81,6 +82,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
       params: params,
       headers: headers,
       syncLocal: syncLocal,
+      onSuccess: onSuccess,
       onError: onError,
       label: label,
     );
@@ -102,7 +104,8 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     bool? background,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    OnError<T>? onError,
+    OnSuccessOne<T>? onSuccess,
+    OnErrorOne<T>? onError,
     DataRequestLabel? label,
   }) {
     return remoteAdapter.findOne(
@@ -111,6 +114,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
       background: background,
       params: params,
       headers: headers,
+      onSuccess: onSuccess,
       onError: onError,
       label: label,
     );
@@ -131,8 +135,8 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    OnSuccess<T>? onSuccess,
-    OnError<T>? onError,
+    OnSuccessOne<T>? onSuccess,
+    OnErrorOne<T>? onError,
     DataRequestLabel? label,
   }) {
     return remoteAdapter.save(
@@ -156,13 +160,13 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   /// [_RemoteAdapter.defaultParams] and [_RemoteAdapter.defaultHeaders], respectively.
   ///
   /// See also: [_RemoteAdapter.urlForDelete], [_RemoteAdapter.methodForDelete].
-  Future<Null> delete(
+  Future<T?> delete(
     Object model, {
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    OnSuccess<Null>? onSuccess,
-    OnError<Null>? onError,
+    OnSuccessOne<T>? onSuccess,
+    OnErrorOne<T>? onError,
     DataRequestLabel? label,
   }) {
     return remoteAdapter.delete(

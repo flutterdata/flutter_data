@@ -76,15 +76,14 @@ void main() async {
       headers: {'X-Override-Name': 'Mantego'},
       params: {'overrideSecondName': 'Zorrilla'},
       // ignore: missing_return
-      onError: (e, _) async {
+      onError: (e, _, __) async {
         // supply onError for exception to show up in notifier
         await oneMs();
         notifier.updateWith(exception: e);
         return null;
       },
-      onSuccess: (data, label) async {
-        final model = await container.familia.remoteAdapter
-            .onSuccess<Familia>(data, label);
+      onSuccess: (data, label, adapter) async {
+        final model = await adapter.onSuccess(data, label);
         // the surname follows `X-Override-Name` + `overrideSecondName`
         // as the save has been replayed with the original headers/params
         expect(model, equals(Familia(id: '1', surname: 'Mantego Zorrilla')));
@@ -222,9 +221,10 @@ void main() async {
     // delete familia and send offline exception to notifier
     await familia.delete(
       remote: true,
-      onError: (e, _) async {
+      onError: (e, _, __) async {
         await oneMs();
         notifier.updateWith(exception: e);
+        return null;
       },
     );
 
@@ -290,7 +290,7 @@ void main() async {
     await familia.save(
       remote: true,
       headers: {'X-Override-Name': 'Johnson'},
-      onError: (e, _) async {
+      onError: (e, _, __) async {
         await oneMs();
         notifier.updateWith(exception: e);
         return null;
@@ -302,9 +302,10 @@ void main() async {
     // ...and immediately delete
     await familia.delete(
       remote: true,
-      onError: (e, _) async {
+      onError: (e, _, __) async {
         await oneMs();
         notifier.updateWith(exception: e);
+        return null;
       },
     );
 

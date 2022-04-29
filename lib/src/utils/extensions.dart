@@ -4,12 +4,24 @@ extension IterableX<T> on Iterable<T> {
   @protected
   @visibleForTesting
   T? get safeFirst => isNotEmpty ? first : null;
+
   @protected
   @visibleForTesting
   bool containsFirst(T model) => safeFirst == model;
+
   @protected
   @visibleForTesting
   List<T> toImmutableList() => List.unmodifiable(this);
+}
+
+extension _DataModelListX<T extends DataModel<T>> on Iterable<T> {
+  String toShortLog() {
+    final ids = map((m) => m.id).toSet();
+    return ids.isEmpty
+        ? 'none'
+        : (ids.length > 1 ? '${ids.first} and ${ids.length - 1} more' : ids)
+            .toString();
+  }
 }
 
 extension IterableNullX<T> on Iterable<T?> {

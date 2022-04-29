@@ -44,8 +44,8 @@ mixin BookAuthorAdapter on RemoteAdapter<BookAuthor> {
     bool? background,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    OnSuccess<BookAuthor?>? onSuccess,
-    OnError<BookAuthor?>? onError,
+    OnSuccessOne<BookAuthor>? onSuccess,
+    OnErrorOne<BookAuthor>? onError,
     DataRequestLabel? label,
   }) async {
     final _model = await findOne(model, remote: remote);

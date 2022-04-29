@@ -153,15 +153,14 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
 }
 
 /// A utility class used to return deserialized main [models] AND [included] models.
-class DeserializedData<T> {
+class DeserializedData<T extends DataModel<T>> {
   const DeserializedData(this.models, {this.included = const []});
   final List<T> models;
   final List<DataModel> included;
   T? get model => models.singleOrNull;
 
   void _log(RemoteAdapter adapter, DataRequestLabel label) {
-    final ids = models.map((m) => (m as DataModel).id).toSet();
-    adapter.log(label, '${ids.isNotEmpty ? ids : 'none'} fetched from remote');
+    adapter.log(label, '${models.toShortLog()} fetched from remote');
     final groupedIncluded = included.groupListsBy((m) => m.remoteAdapter.type);
     for (final e in groupedIncluded.entries) {
       if (e.value.isNotEmpty) {

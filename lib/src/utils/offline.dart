@@ -9,8 +9,8 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
   final Map<String, String>? headers;
   final String? body;
   late final String? key;
-  final OnSuccess? onSuccess;
-  final OnError? onError;
+  final _OnSuccessGeneric<T>? onSuccess;
+  final _OnErrorGeneric<T>? onError;
   final RemoteAdapter<T> adapter;
 
   OfflineOperation({
@@ -107,7 +107,7 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
     }
   }
 
-  Future<void> retry<R>() async {
+  Future<void> retry() async {
     final metadata = metadataFor(label);
     // look up callbacks (or provide defaults)
     final fns = adapter.read(_offlineCallbackProvider)[metadata] ??
@@ -116,14 +116,14 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
         ];
 
     for (final pair in fns) {
-      await adapter.sendRequest<R>(
+      await adapter.sendRequest<T>(
         uri,
         method: method,
         headers: headers,
         label: label,
         body: body,
-        onSuccess: pair.first as OnSuccess<R>?,
-        onError: pair.last as OnError<R>?,
+        onSuccess: pair.first as _OnSuccessGeneric<T>?,
+        onError: pair.last as _OnErrorGeneric<T>?,
       );
     }
   }

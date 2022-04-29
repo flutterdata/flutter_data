@@ -756,10 +756,16 @@ void main() async {
   });
 
   test('watchargs', () {
-    final a1 =
-        WatchArgs<Person>(key: 'e23f44', remote: false, finder: 'finder');
+    // ignores alsoWatch for now
+    final a1 = WatchArgs<Person>(
+        key: 'e23f44', remote: false, alsoWatch: (p) => [], finder: 'finder');
     final a2 =
         WatchArgs<Person>(key: 'e23f44', remote: false, finder: 'finder');
     expect(a1, a2);
+
+    // ?
+    // final b1 = WatchArgs<Person>(key: 'b');
+    // final b2 = WatchArgs<Person>(key: 'b', remote: false);
+    // expect(b1, b2);
   });
 }

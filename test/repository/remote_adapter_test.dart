@@ -162,7 +162,6 @@ void main() async {
     expect(label.kind, 'findAll');
     expect(label.type, 'dogs');
     expect(label.requestId, isNotNull);
-    expect(label.isParent, isFalse);
 
     final label2 = DataRequestLabel.parse('findOne/watch/dogs#1@7ebcc6');
     expect(label2.kind, 'findOne/watch');
@@ -180,13 +179,10 @@ void main() async {
     expect(label3.indentation, 0);
 
     // nested
-    final parentLabel = DataRequestLabel('findOne',
-        id: '1', type: 'dogs', requestId: 'ee58b2', isParent: true);
+    final parentLabel =
+        DataRequestLabel('findOne', id: '1', type: 'dogs', requestId: 'ee58b2');
     final nestedLabel1 = DataRequestLabel('findAll',
-        type: 'parks',
-        requestId: 'ff01b1',
-        isParent: true,
-        withParent: parentLabel);
+        type: 'parks', requestId: 'ff01b1', withParent: parentLabel);
     final nestedLabel2 = DataRequestLabel('findAll',
         type: 'rangers', requestId: 'e7bf99', withParent: nestedLabel1);
 

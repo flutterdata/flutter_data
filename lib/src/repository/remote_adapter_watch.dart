@@ -19,7 +19,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
     // we can't use `findAll`'s default internal label
     // because we need a label to handle events
-    label ??= DataRequestLabel('watchAll', type: internalType, isParent: true);
+    label ??= DataRequestLabel('watchAll', type: internalType);
 
     super.log(label, 'initializing');
 
@@ -44,26 +44,29 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         _notifier.updateWith(isLoading: true);
       }
 
-      try {
-        await _finder(
-          remote: remote,
-          params: params,
-          headers: headers,
-          syncLocal: syncLocal,
-          label: label,
-          onError: (e, _) => throw e,
-        );
-        if (remote) {
-          // trigger doneLoading to ensure state is updated with isLoading=false
-          graph._notify([label.toString()],
-              type: DataGraphEventType.doneLoading);
-        }
-      } on DataException catch (e) {
-        if (_notifier.mounted) {
-          _notifier.updateWith(isLoading: false, exception: e);
-        } else {
-          rethrow;
-        }
+      await _finder(
+        remote: remote,
+        params: params,
+        headers: headers,
+        syncLocal: syncLocal,
+        label: label,
+        onError: (e, label, _) async {
+          try {
+            await onError<List<T>>(e, label);
+          } on DataException catch (err) {
+            e = err;
+          } catch (_) {
+            rethrow;
+          }
+          if (_notifier.mounted) {
+            _notifier.updateWith(isLoading: false, exception: e);
+          }
+          return null;
+        },
+      );
+      if (remote) {
+        // trigger doneLoading to ensure state is updated with isLoading=false
+        graph._notify([label.toString()], type: DataGraphEventType.doneLoading);
       }
     };
 
@@ -118,7 +121,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
     // we can't use `findOne`'s default internal label
     // because we need a label to handle events
-    label ??= DataRequestLabel('watchOne', type: internalType, isParent: true);
+    label ??= DataRequestLabel('watchOne', type: internalType);
 
     var _alsoWatchPairs = <List<String>>{};
 
@@ -156,27 +159,31 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         _notifier.updateWith(isLoading: true);
       }
 
-      try {
-        final model = await _finder(
-          id,
-          remote: remote,
-          params: params,
-          headers: headers,
-          label: label,
-          onError: (e, _) => throw e,
-        );
-        // trigger doneLoading to ensure state is updated with isLoading=false
-        final _key = model?._key!;
-        if (remote && _key != null) {
-          graph._notify([_key, label.toString()],
-              type: DataGraphEventType.doneLoading);
-        }
-      } on DataException catch (e) {
-        if (_notifier.mounted) {
-          _notifier.updateWith(isLoading: false, exception: e);
-        } else {
-          rethrow;
-        }
+      final model = await _finder(
+        id,
+        remote: remote,
+        params: params,
+        headers: headers,
+        label: label,
+        onError: (e, label, _) async {
+          try {
+            await onError<T>(e, label);
+          } on DataException catch (err) {
+            e = err;
+          } catch (_) {
+            rethrow;
+          }
+          if (_notifier.mounted) {
+            _notifier.updateWith(isLoading: false, exception: e);
+          }
+          return null;
+        },
+      );
+      // trigger doneLoading to ensure state is updated with isLoading=false
+      final _key = model?._key!;
+      if (remote && _key != null) {
+        graph._notify([_key, label.toString()],
+            type: DataGraphEventType.doneLoading);
       }
     };
 

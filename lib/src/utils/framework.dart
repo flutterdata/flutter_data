@@ -57,8 +57,8 @@ typedef DataFinderAll<T extends DataModel<T>> = Future<List<T>?> Function({
   Map<String, dynamic>? params,
   Map<String, String>? headers,
   bool? syncLocal,
-  OnSuccess<List<T>>? onSuccess,
-  OnError<List<T>>? onError,
+  OnSuccessAll<T>? onSuccess,
+  OnErrorAll<T>? onError,
   DataRequestLabel? label,
 });
 
@@ -68,8 +68,8 @@ typedef DataFinderOne<T extends DataModel<T>> = Future<T?> Function(
   bool? background,
   Map<String, dynamic>? params,
   Map<String, String>? headers,
-  OnSuccess<T>? onSuccess,
-  OnError<T?>? onError,
+  OnSuccessOne<T>? onSuccess,
+  OnErrorOne<T>? onError,
   DataRequestLabel? label,
 });
 
@@ -125,4 +125,85 @@ class WatchArgs<T extends DataModel<T>> with EquatableMixin {
   @override
   List<Object?> get props =>
       [key, remote, params, headers, syncLocal, finder, label];
+}
+
+// ignore: constant_identifier_names
+enum DataRequestMethod { GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS, TRACE }
+
+extension _ToStringX on DataRequestMethod {
+  String toShortString() => toString().split('.').last;
+}
+
+typedef _OnSuccessGeneric<R> = FutureOr<R?> Function(
+    Object? data, DataRequestLabel? label);
+typedef OnSuccessOne<T extends DataModel<T>> = FutureOr<T?> Function(
+    Object? data, DataRequestLabel? label, RemoteAdapter<T> adapter);
+typedef OnSuccessAll<T extends DataModel<T>> = FutureOr<List<T>?> Function(
+    Object? data, DataRequestLabel? label, RemoteAdapter<T> adapter);
+
+typedef _OnErrorGeneric<R> = FutureOr<R?> Function(
+    DataException e, DataRequestLabel? label);
+typedef OnErrorOne<T extends DataModel<T>> = FutureOr<T?> Function(
+    DataException e, DataRequestLabel? label, RemoteAdapter<T> adapter);
+typedef OnErrorAll<T extends DataModel<T>> = FutureOr<List<T>?> Function(
+    DataException e, DataRequestLabel? label, RemoteAdapter<T> adapter);
+
+/// Data request information holder.
+///
+/// Format examples:
+///  - findAll/reports@b5d14c
+///  - findOne/inspections#3@c4a1bb
+///  - findAll/reports@b5d14c<c4a1bb
+class DataRequestLabel with EquatableMixin {
+  final String kind;
+  late final String type;
+  final String? id;
+  DataModel? model;
+  final _requestIds = <String>[];
+
+  String get requestId => _requestIds.first;
+  int get indentation => _requestIds.length - 1;
+
+  DataRequestLabel(
+    String kind, {
+    required String type,
+    this.id,
+    String? requestId,
+    this.model,
+    DataRequestLabel? withParent,
+  }) : kind = kind.trim() {
+    assert(!type.contains('#'));
+    if (id != null) {
+      assert(!id!.contains('#'));
+    }
+    if (requestId != null) {
+      assert(!requestId.contains('@'));
+    }
+    this.type = DataHelpers.getType(type);
+    _requestIds.add(requestId ?? DataHelpers.generateShortKey());
+
+    if (withParent != null) {
+      _requestIds.addAll(withParent._requestIds);
+    }
+  }
+
+  factory DataRequestLabel.parse(String text) {
+    final parts = text.split('/');
+    final parts2 = parts.last.split('@');
+    final parts3 = parts2[0].split('#');
+    final kind = (parts..removeLast()).join('/');
+    final requestId = parts2[1];
+    final type = parts3[0];
+    final id = parts3.length > 1 ? parts3[1] : null;
+
+    return DataRequestLabel(kind, type: type, id: id, requestId: requestId);
+  }
+
+  @override
+  String toString() {
+    return '$kind/${(id ?? '').typifyWith(type)}@${_requestIds.join('<')}';
+  }
+
+  @override
+  List<Object?> get props => [kind, type, id, _requestIds];
 }

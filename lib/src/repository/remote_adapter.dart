@@ -68,8 +68,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   /// by default.
   ///
   /// Example: [T] as `Post` has a [type] of `posts`.
-  @visibleForTesting
-  @protected
   String get type => internalType;
 
   /// ONLY FOR FLUTTER DATA INTERNAL USE
@@ -254,8 +252,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     bool? syncLocal,
-    OnSuccess<List<T>>? onSuccess,
-    OnError<List<T>>? onError,
+    OnSuccessAll<T>? onSuccess,
+    OnErrorAll<T>? onError,
     DataRequestLabel? label,
   }) async {
     _assertInit();
@@ -264,7 +262,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     syncLocal ??= false;
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
-    onSuccess ??= this.onSuccess;
 
     label = DataRequestLabel('findAll', type: internalType, withParent: label);
 
@@ -275,7 +272,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       models = models?.map((m) => m._initialize(adapters)).toList();
       if (models != null) {
         log(label,
-            'returned ${models.map((m) => m.id).toSet()} from local storage${background ? ' and loading in the background' : ''}');
+            'returned ${models.toShortLog()} from local storage${background ? ' and loading in the background' : ''}');
       }
       if (!background) {
         return models;
@@ -293,9 +290,13 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
         if (syncLocal!) {
           await localAdapter.clear();
         }
-        return onSuccess!(data, label);
+        onSuccess ??= (data, label, _) => this.onSuccess<List<T>>(data, label);
+        return onSuccess!.call(data, label, this as RemoteAdapter<T>);
       },
-      onError: onError,
+      onError: (e, label) async {
+        onError ??= (e, label, _) => this.onError<List<T>>(e, label);
+        return onError!.call(e, label, this as RemoteAdapter<T>);
+      },
     );
 
     if (background && models != null) {
@@ -313,8 +314,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     bool? background,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    OnSuccess<T>? onSuccess,
-    OnError<T>? onError,
+    OnSuccessOne<T>? onSuccess,
+    OnErrorOne<T>? onError,
     DataRequestLabel? label,
   }) async {
     _assertInit();
@@ -322,7 +323,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     background ??= false;
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
-    onSuccess ??= this.onSuccess;
 
     final resolvedId = _resolveId(id);
     late T? model;
@@ -351,8 +351,14 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       method: methodForFindOne(id, params),
       headers: headers,
       label: label,
-      onSuccess: onSuccess,
-      onError: onError,
+      onSuccess: (data, label) {
+        onSuccess ??= (data, label, _) => this.onSuccess<T>(data, label);
+        return onSuccess!.call(data, label, this as RemoteAdapter<T>);
+      },
+      onError: (e, label) async {
+        onError ??= (e, label, _) => this.onError<T>(e, label);
+        return onError!.call(e, label, this as RemoteAdapter<T>);
+      },
     );
 
     if (background && model != null) {
@@ -364,13 +370,16 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     }
   }
 
+  FutureOr<T?> onSuccessOne(Object? data, DataRequestLabel? label) =>
+      onSuccess<T>(data, label);
+
   Future<T> save(
     T model, {
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    OnSuccess<T>? onSuccess,
-    OnError<T>? onError,
+    OnSuccessOne<T>? onSuccess,
+    OnErrorOne<T>? onError,
     DataRequestLabel? label,
   }) async {
     _assertInit();
@@ -403,19 +412,25 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       headers: headers,
       body: body,
       label: label,
-      onSuccess: onSuccess,
-      onError: onError,
+      onSuccess: (data, label) {
+        onSuccess ??= (data, label, _) => this.onSuccess<T>(data, label);
+        return onSuccess!.call(data, label, this as RemoteAdapter<T>);
+      },
+      onError: (e, label) async {
+        onError ??= (e, label, _) => this.onError<T>(e, label);
+        return onError!.call(e, label, this as RemoteAdapter<T>);
+      },
     );
     return result ?? model;
   }
 
-  Future<Null> delete(
+  Future<T?> delete(
     Object model, {
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    OnSuccess<Null>? onSuccess,
-    OnError<Null>? onError,
+    OnSuccessOne<T>? onSuccess,
+    OnErrorOne<T>? onError,
     DataRequestLabel? label,
   }) async {
     _assertInit();
@@ -442,10 +457,17 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
         method: methodForDelete(id, params),
         headers: headers,
         label: label,
-        onSuccess: onSuccess,
-        onError: onError,
+        onSuccess: (data, label) {
+          onSuccess ??= (data, label, _) => this.onSuccess<T>(data, label);
+          return onSuccess!.call(data, label, this as RemoteAdapter<T>);
+        },
+        onError: (e, label) async {
+          onError ??= (e, label, _) => this.onError<T>(e, label);
+          return onError!.call(e, label, this as RemoteAdapter<T>);
+        },
       );
     }
+    return null;
   }
 
   Future<void> clear() => localAdapter.clear();
@@ -495,8 +517,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     DataRequestMethod method = DataRequestMethod.GET,
     Map<String, String>? headers,
     String? body,
-    OnSuccess<R>? onSuccess,
-    OnError<R>? onError,
+    _OnSuccessGeneric<R>? onSuccess,
+    _OnErrorGeneric<R>? onError,
     bool omitDefaultParams = false,
     DataRequestLabel? label,
   }) async {
@@ -556,8 +578,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
             label: label,
             body: body,
             headers: headers,
-            onSuccess: onSuccess,
-            onError: onError,
+            onSuccess: onSuccess as _OnSuccessGeneric<T>,
+            onError: onError as _OnErrorGeneric<T>,
             adapter: this as RemoteAdapter<T>,
           ).add();
         }
@@ -744,80 +766,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   bool get _isTesting {
     return read(httpClientProvider) != null;
   }
-}
-
-// ignore: constant_identifier_names
-enum DataRequestMethod { GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS, TRACE }
-
-extension _ToStringX on DataRequestMethod {
-  String toShortString() => toString().split('.').last;
-}
-
-typedef OnSuccess<R> = FutureOr<R?> Function(
-    Object? data, DataRequestLabel? label);
-typedef OnError<R> = FutureOr<R?> Function(
-    DataException e, DataRequestLabel? label);
-
-/// Data request information holder.
-///
-/// Format examples:
-///  - findAll/reports@b5d14c
-///  - findOne/inspections#3@c4a1bb
-///  - findAll/reports@b5d14c<c4a1bb
-class DataRequestLabel with EquatableMixin {
-  final String kind;
-  late final String type;
-  final String? id;
-  DataModel? model;
-  final bool isParent;
-  final _requestIds = <String>[];
-
-  String get requestId => _requestIds.first;
-  int get indentation => _requestIds.length - 1;
-
-  DataRequestLabel(
-    String kind, {
-    required String type,
-    this.id,
-    String? requestId,
-    this.model,
-    this.isParent = false,
-    DataRequestLabel? withParent,
-  }) : kind = kind.trim() {
-    assert(!type.contains('#'));
-    if (id != null) {
-      assert(!id!.contains('#'));
-    }
-    if (requestId != null) {
-      assert(!requestId.contains('@'));
-    }
-    this.type = DataHelpers.getType(type);
-    _requestIds.add(requestId ?? DataHelpers.generateShortKey());
-
-    if (withParent != null && withParent.isParent) {
-      _requestIds.addAll(withParent._requestIds);
-    }
-  }
-
-  factory DataRequestLabel.parse(String text) {
-    final parts = text.split('/');
-    final parts2 = parts.last.split('@');
-    final parts3 = parts2[0].split('#');
-    final kind = (parts..removeLast()).join('/');
-    final requestId = parts2[1];
-    final type = parts3[0];
-    final id = parts3.length > 1 ? parts3[1] : null;
-
-    return DataRequestLabel(kind, type: type, id: id, requestId: requestId);
-  }
-
-  @override
-  String toString() {
-    return '$kind/${(id ?? '').typifyWith(type)}@${_requestIds.join('<')}';
-  }
-
-  @override
-  List<Object?> get props => [kind, type, id, _requestIds];
 }
 
 /// When this provider is non-null it will override

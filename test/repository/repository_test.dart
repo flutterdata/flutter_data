@@ -77,7 +77,7 @@ void main() async {
 
     await container.familia.findAll(
       // ignore: missing_return
-      onError: (e, _) {
+      onError: (e, _, __) {
         expect(e, isA<DataException>());
         return null;
       },
@@ -154,10 +154,13 @@ void main() async {
     await oneMs();
 
     // ignore: missing_return
-    await container.familia.findOne('1', onError: (e, _) {
-      expect(e, error203);
-      return null;
-    });
+    await container.familia.findOne(
+      '1',
+      onError: (e, _, __) {
+        expect(e, error203);
+        return null;
+      },
+    );
   });
 
   test('not found does not throw by default', () async {
@@ -175,7 +178,7 @@ void main() async {
     expect(() async {
       container.read(responseProvider.notifier).state = TestResponse(
           text: (_) => '{ "error": "not found" }', statusCode: 404);
-      await container.familia.findOne('2', onError: (e, _) => throw e);
+      await container.familia.findOne('2', onError: (e, _, __) => throw e);
     },
         throwsA(isA<DataException>().having(
           (e) => e.error,
@@ -192,7 +195,7 @@ void main() async {
         TestResponse(text: (_) => throw SocketException('unreachable'));
     await container.familia.findOne(
       'error',
-      onError: (e, _) {
+      onError: (e, _, __) {
         expect(e, isA<OfflineException>());
         return null;
       },
@@ -235,8 +238,7 @@ void main() async {
     // ignore: missing_return
     await container.familia.save(
       familia,
-      onError: (e, _) async {
-        // await oneMs();
+      onError: (e, _, __) async {
         notifier.updateWith(exception: e);
         return null;
       },
@@ -309,6 +311,7 @@ void main() async {
       method: DataRequestMethod.POST,
       body: json.encode({'a': 2}),
       label: DataRequestLabel('adhoc', type: 'familia'),
+      onSuccess: container.familia.remoteAdapter.onSuccess,
     );
     expect(f1, Familia(id: '19', surname: 'Pandan'));
   });

@@ -108,8 +108,8 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    OnSuccess<T>? onSuccess,
-    OnError<T>? onError,
+    OnSuccessOne<T>? onSuccess,
+    OnErrorOne<T>? onError,
   }) async {
     _assertInit('save');
     return await remoteAdapter.save(
@@ -127,15 +127,15 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   /// Usage: `await post.delete()`
   ///
   /// **Requires this model to be initialized.**
-  Future<Null> delete({
+  Future<T?> delete({
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    OnSuccess<Null>? onSuccess,
-    OnError<Null>? onError,
+    OnSuccessOne<T>? onSuccess,
+    OnErrorOne<T>? onError,
   }) async {
     _assertInit('delete');
-    await remoteAdapter.delete(
+    return await remoteAdapter.delete(
       this,
       remote: remote,
       params: params,
