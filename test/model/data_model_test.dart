@@ -93,9 +93,8 @@ void main() async {
 
   test('was should not allow a different ID', () async {
     final f1 = Familia(id: '1', surname: 'Perez').init(container.read);
-    expect(() {
-      Familia(id: '2', surname: 'Perez').was(f1);
-    }, throwsA(isA<AssertionError>()));
+    expect(() => Familia(id: '2', surname: 'Perez').was(f1),
+        throwsA(isA<AssertionError>()));
   });
 
   test('equality', () async {

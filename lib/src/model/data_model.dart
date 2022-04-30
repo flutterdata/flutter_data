@@ -90,10 +90,12 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   /// newPost.was(post); // new is now initialized with same key as post
   /// ```
   T was(T model) {
-    assert(model.isInitialized,
-        'Please initialize model before passing it to `was`');
-    if (model.id != null) {
-      assert(id == model.id,
+    if (!model.isInitialized) {
+      throw AssertionError(
+          'Please initialize model before passing it to `was`');
+    }
+    if (id != model.id) {
+      throw AssertionError(
           'Should not use `was` with a model of a different ID');
     }
     return _initialize(model._adapters!, key: model._key, save: true);
