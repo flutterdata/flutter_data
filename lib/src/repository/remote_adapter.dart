@@ -446,10 +446,12 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
         type: internalType, id: id.toString(), withParent: label);
     log(label, 'request');
 
-    if (remote == false) {
-      log(label, 'deleted in local storage only');
+    if (key != null) {
+      if (remote == false) {
+        log(label, 'deleted in local storage only');
+      }
+      await localAdapter.delete(key);
     }
-    await localAdapter.delete(key);
 
     if (remote == true && id != null) {
       return await sendRequest(
@@ -749,17 +751,20 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     return obj is T ? obj.id : obj;
   }
 
-  // TODO test
   @protected
   @visibleForTesting
   @nonVirtual
-  String keyForModelOrId(Object model) {
+  String? keyForModelOrId(Object model) {
     if (model is T && model.isInitialized) {
       return model._key!;
     } else {
       final id = _resolveId(model);
-      return graph.getKeyForId(internalType, id,
-          keyIfAbsent: model is T ? model._key : DataHelpers.generateKey<T>())!;
+      if (id != null) {
+        return graph.getKeyForId(internalType, id,
+            keyIfAbsent: DataHelpers.generateKey<T>())!;
+      } else {
+        return null;
+      }
     }
   }
 

@@ -5,7 +5,6 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../_support/book.dart';
 import '../_support/familia.dart';
 import '../_support/person.dart';
 import '../_support/pet.dart';
@@ -391,14 +390,6 @@ void main() async {
     final familia = await container.familia.findOne(1);
 
     expect(familia, Familia(id: '1', surname: 'عمر'));
-  });
-
-  test('watch', () {
-    final bookAuthor = BookAuthor(id: 1, name: 'Billy').init(container.read);
-    final state =
-        container.bookAuthors.watchOne(1, alsoWatch: (a) => [a.books]);
-    expect(state.model!, bookAuthor);
-    // TODO test
   });
 
   test('dispose', () {

@@ -198,4 +198,21 @@ void main() async {
     expect(nestedLabel2.requestId, 'e7bf99');
     expect(nestedLabel2.indentation, 2);
   });
+
+  test('keyForModelOrId', () {
+    final adapter = container.people.remoteAdapter;
+    final p1 = Person(name: 'Ludwig').init(container.read);
+    final key1 = adapter.keyForModelOrId(p1);
+    expect(key1, keyFor(p1)!);
+
+    final key2 = graph.getKeyForId('people', '43',
+        keyIfAbsent: DataHelpers.generateKey<Person>());
+    final key2b = adapter.keyForModelOrId('43');
+    expect(key2, key2b);
+
+    final p3 = Person(id: '22', name: 'Joe');
+    final key3 = adapter.keyForModelOrId(p3);
+    final key3b = graph.getKeyForId('people', '22');
+    expect(key3, key3b);
+  });
 }

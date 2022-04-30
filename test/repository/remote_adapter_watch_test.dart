@@ -605,10 +605,13 @@ void main() async {
     await f1.delete();
     await oneMs();
 
-    // only the model removal triggers
+    // 1 event for node removal
+    // 1 event for persons relationship removed
+    // 1 event for residence relationship removed
+    // 1 event for cottage relationship removed
     verify(listener(argThat(
       isA<DataState>().having((s) => s.model, 'model', isNull),
-    ))).called(4); // TODO should be one call
+    ))).called(4);
     verifyNoMoreInteractions(listener);
   });
 
