@@ -405,6 +405,8 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
       Iterable<String>? tos,
       String? inverseMetadata,
       bool notify = true}) {
+    if (!_hasNode(from)) return;
+
     final fromNode = _getNode(from)!;
 
     if (tos != null && fromNode[metadata] != null) {
