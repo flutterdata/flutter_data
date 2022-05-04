@@ -8,7 +8,7 @@ part 'book.g.dart';
 
 @freezed
 @DataRepository([BookAuthorAdapter], remote: false)
-class BookAuthor with DataModel<BookAuthor>, _$BookAuthor {
+class BookAuthor extends DataModel<BookAuthor> with _$BookAuthor {
   BookAuthor._();
   factory BookAuthor({
     required int id,
@@ -21,7 +21,7 @@ class BookAuthor with DataModel<BookAuthor>, _$BookAuthor {
 
 @freezed
 @DataRepository([], remote: false)
-class Book with DataModel<Book>, _$Book {
+class Book extends DataModel<Book> with _$Book {
   Book._();
   @JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
   factory Book({
@@ -49,6 +49,6 @@ mixin BookAuthorAdapter on RemoteAdapter<BookAuthor> {
     DataRequestLabel? label,
   }) async {
     final _model = await findOne(model, remote: remote);
-    return _model!.copyWith(name: _model.name?.toUpperCase()).was(_model);
+    return _model!.copyWith(name: _model.name?.toUpperCase());
   }
 }

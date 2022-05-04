@@ -89,7 +89,7 @@ void main() async {
       {'_id': '1', 'name': 'Na', 'age': 88, 'familia_id': null}
     ])).model!;
 
-    Familia(id: '1', surname: 'Kong').init(container.read);
+    Familia(id: '1', surname: 'Kong');
 
     expect(p.familia.key, isNull);
 
@@ -97,7 +97,7 @@ void main() async {
       {'_id': '27', 'name': 'Ko', 'age': 24, 'familia_id': '332'}
     ])).model!;
 
-    Familia(id: '332', surname: 'Tao').init(container.read);
+    Familia(id: '332', surname: 'Tao');
 
     expect(p1.familia.value!.id, '332');
 
@@ -112,11 +112,11 @@ void main() async {
     expect(p1.familia.value, p2.familia.value);
   });
 
-  test('deserialize returns null if no ID is present', () async {
+  test('deserialize returns even if no ID is present', () async {
     final familia = (container.familia.remoteAdapter.deserialize([
       {'surname': 'Ko'}
     ])).model;
-    expect(familia, isNull);
+    expect(familia, isNotNull);
   });
 
   test('deserialize with HasMany ids (including nulls)', () async {
@@ -194,7 +194,7 @@ void main() async {
 
   test('deserializes/serializes with overriden json key for relationship',
       () async {
-    BookAuthor(id: 332, name: 'Zhung').init(container.read);
+    BookAuthor(id: 332, name: 'Zhung');
 
     final deserialized = container.books.remoteAdapter.deserialize([
       {'id': 27, 'title': 'Ko', 'original_author_id': 332}

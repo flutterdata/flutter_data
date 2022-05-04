@@ -28,8 +28,8 @@ void main() async {
   test('findOne', () async {
     final adapter = container.familia.remoteAdapter;
     final familia1 = Familia(id: '1', surname: 'Smith');
+    await adapter.save(familia1, remote: false);
 
-    await adapter.save(familia1); // possible to save without init
     final familia = await adapter.findOne('1', remote: false);
     expect(familia, familia1);
   });
@@ -44,13 +44,6 @@ void main() async {
 
   test('create and save', () async {
     final house = House(id: '25', address: '12 Lincoln Rd');
-
-    // the house is not initialized, so we shouldn't be able to find it
-    expect(await container.houses.remoteAdapter.findOne(house.id!), isNull);
-
-    // now initialize
-    house.init(container.read);
-
     // repo.findOne works because the House repo is remote=false
     expect(await container.houses.remoteAdapter.findOne(house.id!), house);
   });
@@ -67,7 +60,7 @@ void main() async {
   test('delete', () async {
     final adapter = container.people.remoteAdapter;
     // init a person
-    final person = Person(id: '1', name: 'John', age: 21).init(container.read);
+    final person = Person(id: '1', name: 'John', age: 21);
     // it does have a key
     expect(graph.getKeyForId('people', person.id), isNotNull);
 
@@ -103,7 +96,7 @@ void main() async {
   });
 
   test('can override type', () {
-    final author = BookAuthor(id: 15, name: 'Walter').init(container.read);
+    final author = BookAuthor(id: 15, name: 'Walter');
     final adapter = adapterFor(author)!;
     expect(adapter.type, 'writers');
     expect(adapter.internalType, 'bookAuthors');
@@ -201,7 +194,7 @@ void main() async {
 
   test('keyForModelOrId', () {
     final adapter = container.people.remoteAdapter;
-    final p1 = Person(name: 'Ludwig').init(container.read);
+    final p1 = Person(name: 'Ludwig');
     final key1 = adapter.keyForModelOrId(p1);
     expect(key1, keyFor(p1)!);
 

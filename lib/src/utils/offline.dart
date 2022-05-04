@@ -57,7 +57,7 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
     if (operation.key != null) {
       final model = adapter.localAdapter.findOne(operation.key!);
       if (model != null) {
-        adapter.initializeModel(model, key: operation.key);
+        // adapter.initializeModel(model, key: operation.key);
         operation.label.model = model;
       }
     }

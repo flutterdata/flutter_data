@@ -16,11 +16,6 @@ void main() async {
   test('BelongsTo ids', () {
     final person = Person(name: 'Test', familia: BelongsTo());
     person.familia.value = Familia(id: '1', surname: 'Sanchez');
-    // id is between brackets as familia is not initialized
-    expect(person.familia.toString(), 'BelongsTo<Familia>([1])');
-
-    person.init(container.read);
-
     expect(person.familia.value!.id, person.familia.id);
     expect(person.familia.toString(), 'BelongsTo<Familia>(1)');
   });
@@ -40,8 +35,6 @@ void main() async {
     expect(familia.residence!.value, house);
     expect(familia.persons.toSet(), {person});
     expect(familia.persons, equals(familia.persons));
-
-    familia.init(container.read);
 
     // after init, values remain the same
     expect(familia.residence!.value, house);
@@ -63,28 +56,14 @@ void main() async {
 
   test('assignment with relationship initialized & uninitialized', () {
     final familia =
-        Familia(id: '1', surname: 'Smith', residence: BelongsTo<House>())
-            .init(container.read);
+        Familia(id: '1', surname: 'Smith', residence: BelongsTo<House>());
     final house = House(id: '1', address: '456 Lemon Rd');
 
     familia.residence!.value = house;
     expect(familia.residence!.value, house);
 
-    familia.init(container.read);
     familia.residence!.value = house; // assigning again shouldn't affect
     expect(familia.residence!.value, house);
-  });
-
-  test('use fromJson constructor without initialization', () {
-    // internal format
-    final person = BelongsTo<Person>.fromJson({
-      '_': [
-        'k1',
-        false,
-      ]
-    });
-    expect(person.key, 'k1');
-    expect(person.value, isNull);
   });
 
   test('watch', () async {
@@ -92,7 +71,7 @@ void main() async {
       id: '22',
       surname: 'Besson',
       residence: BelongsTo<House>(),
-    ).init(container.read);
+    );
 
     final notifier = familia.residence!.watch();
     final listener = Listener<House?>();
@@ -117,40 +96,37 @@ void main() async {
   });
 
   test('inverses work when reusing a relationship', () {
-    final person = Person(name: 'Cecil', age: 2).init(container.read);
-    final house =
-        House(id: '1', address: '21 Coconut Trail').init(container.read);
+    final person = Person(name: 'Cecil', age: 2);
+    final house = House(id: '1', address: '21 Coconut Trail');
     final familia = Familia(
-            id: '2',
-            surname: 'Raoult',
-            residence: house.asBelongsTo,
-            persons: {person}.asHasMany)
-        .init(container.read);
+      id: '2',
+      surname: 'Raoult',
+      residence: house.asBelongsTo,
+      persons: {person}.asHasMany,
+    );
 
-    // reusing a BelongsTo<Familia> (`house.owner`) to add a person
     // adds the inverse relationship
     expect(familia.persons.length, 1);
-    Person(name: 'Junior', age: 12, familia: house.owner).init(container.read);
+    Person(name: 'Junior', age: 12, familia: house.owner.value!.asBelongsTo);
     expect(familia.persons.length, 2);
 
     // an empty reused relationship should not fail
     final house2 =
-        House(id: '17', address: '798 Birkham Rd', owner: BelongsTo<Familia>())
-            .init(container.read);
+        House(id: '17', address: '798 Birkham Rd', owner: BelongsTo<Familia>());
 
     // trying to add walter to a null familia does nothing
-    Person(name: 'Walter', age: 55, familia: house2.owner).init(container.read);
+    Person(name: 'Walter', age: 55, familia: house2.owner.value?.asBelongsTo);
 
     expect(familia.persons.length, 2);
   });
 
   test('remove relationship', () async {
-    final a1 = BookAuthor(id: 1, name: 'Walter').init(container.read);
+    final a1 = BookAuthor(id: 1, name: 'Walter', books: HasMany());
     await a1.save();
-    final b1 = Book(id: 1, originalAuthor: a1.asBelongsTo).init(container.read);
+    final b1 = Book(id: 1, originalAuthor: a1.asBelongsTo);
     await b1.save();
 
-    final b2 = b1.copyWith(originalAuthor: BelongsTo.remove()).was(b1);
+    final b2 = b1.copyWith(originalAuthor: BelongsTo.remove());
     await b2.save();
     expect(b2.originalAuthor!.value, isNull);
     expect(b1.originalAuthor!.value, isNull);

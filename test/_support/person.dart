@@ -9,7 +9,7 @@ part 'person.g.dart';
 @DataRepository(
     [PersonLoginAdapter, GenericDoesNothingAdapter, YetAnotherLoginAdapter],
     remote: false)
-class Person with DataModel<Person> {
+class Person extends DataModel<Person> {
   @override
   final String? id;
   final String name;
@@ -59,12 +59,11 @@ class Person with DataModel<Person> {
 
   //
 
-  factory Person.generate(ProviderContainer container, {String? withId}) {
+  factory Person.generate({String? withId}) {
     return Person(
-            id: withId,
-            name: 'Number ${withId ?? Random().nextInt(999999999)}',
-            age: Random().nextInt(19))
-        .init(container.read);
+        id: withId,
+        name: 'Number ${withId ?? Random().nextInt(999999999)}',
+        age: Random().nextInt(19));
   }
 }
 

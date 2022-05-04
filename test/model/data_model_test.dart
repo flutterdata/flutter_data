@@ -10,49 +10,89 @@ void main() async {
   setUp(setUpFn);
   tearDown(tearDownFn);
 
-  test('uninitialized throws an assertion error', () {
-    final familia = Familia(id: '1', surname: 'Johnson');
-    expectLater(familia.save, throwsA(isA<AssertionError>()));
-    expectLater(familia.delete, throwsA(isA<AssertionError>()));
-    expectLater(familia.refresh, throwsA(isA<AssertionError>()));
-  });
-
   test('init', () async {
-    final familia = Familia(id: '55', surname: 'Kelley').init(container.read);
-    final model =
-        Person(id: '1', name: 'John', age: 27, familia: familia.asBelongsTo)
-            .init(container.read);
+    final familia = Familia(id: '55', surname: 'Kelley');
+    final person =
+        Person(id: '1', name: 'John', age: 27, familia: familia.asBelongsTo);
+    await person.save();
 
-    // (1) it wires up the relationship (setOwnerInRelationship)
-    expect(model.familia.key, graph.getKeyForId('familia', '55'));
+    // (1) it wires up the relationship
+    expect(person.familia.key, graph.getKeyForId('familia', '55'));
 
     // (2) it saves the model locally
-    expect(model, await container.people.findOne(model.id!, remote: false));
+    expect(person, await container.people.findOne(person.id!, remote: false));
   });
 
-  test('findOne (reload)', () async {
-    final familia = Familia(id: '1', surname: 'Perez').init(container.read);
-    final f2 = Familia(id: '1', surname: 'Perez').was(familia);
+  test('was', () {
+    final p = Person(id: '1', name: 'Peter');
+    final p2 = Person(id: '2', name: 'Petera');
+    // keys are different
+    expect(keyFor(p), isNot(keyFor(p2)));
 
-    final f3 = await familia.reload(remote: false);
-    expect(keyFor(familia), keyFor(f2));
-    expect(keyFor(familia), keyFor(f3!));
+    p2.was(p);
+
+    // now both objects have the same key
+    expect(keyFor(p), keyFor(p2));
+
+    // now the original key is associated to id=2
+    expect(graph.getKeyForId('people', '1'), isNull);
+    expect(graph.getKeyForId('people', '2'), keyFor(p));
+
+    //
+
+    final p3 = Person(name: 'Robert');
+    final p4 = Person(name: 'Roberta');
+
+    expect(keyFor(p3), isNot(keyFor(p4)));
+
+    p4.was(p3);
+    expect(keyFor(p3), keyFor(p4));
+
+    //
+
+    final p5 = Person(name: 'Thiago');
+    final p6 = Person(id: '7', name: 'Thiaga');
+
+    expect(keyFor(p5), isNot(keyFor(p6)));
+
+    p6.was(p5);
+    expect(keyFor(p5), keyFor(p6));
+
+    // now the original key is associated to id=7
+    expect(graph.getKeyForId('people', '7'), keyFor(p5));
+
+    //
+
+    final p7 = Person(id: '8', name: 'Evo');
+    final p8 = Person(name: 'Eva');
+
+    expect(keyFor(p7), isNot(keyFor(p8)));
+
+    p8.was(p7);
+    expect(keyFor(p7), keyFor(p8));
+
+    // now no key is associated to id=8
+    expect(graph.getKeyForId('people', '8'), keyFor(p7));
   });
 
-  test('findOne (refresh) without ID', () async {
-    final familia = Familia(surname: 'Zliedowski').init(container.read);
-    final f2 = Familia(surname: 'Zliedowski').was(familia);
+  test('findOne (remote reload)', () async {
+    var familia = await Familia(id: '1', surname: 'Perez').save(remote: true);
+    familia = Familia(id: '1', surname: 'Perez Gomez');
 
-    final f3 = familia.refresh();
-    expect(keyFor(familia), keyFor(f2));
-    expect(keyFor(familia), keyFor(f3));
+    container.read(responseProvider.notifier).state = TestResponse.text('''
+        { "id": "1", "surname": "Perez" }
+      ''');
+
+    familia = (await familia.reload())!;
+    expect(familia, Familia(id: '1', surname: 'Perez'));
+    expect(await container.familia.findOne('1'),
+        Familia(id: '1', surname: 'Perez'));
   });
 
   test('delete model with and without ID', () async {
     final adapter = container.people.remoteAdapter.localAdapter;
     // create a person WITH ID and assert it's there
-    final person =
-        Person(id: '21103', name: 'John', age: 54).init(container.read);
+    final person = Person(id: '21103', name: 'John', age: 54);
     expect(adapter.findAll(), hasLength(1));
 
     // delete that person and assert it's not there
@@ -60,7 +100,7 @@ void main() async {
     expect(adapter.findAll(), hasLength(0));
 
     // create a person WITHOUT ID and assert it's there
-    final person2 = Person(name: 'Peter', age: 101).init(container.read);
+    final person2 = Person(name: 'Peter', age: 101);
     expect(adapter.findAll(), hasLength(1));
 
     // delete that person and assert it's not there
@@ -70,7 +110,7 @@ void main() async {
 
   test('should reuse key', () {
     // id-less person
-    final p1 = Person(name: 'Frank', age: 20).init(container.read);
+    final p1 = Person(name: 'Frank', age: 20);
     expect(
         (container.people.remoteAdapter.localAdapter
                 as HiveLocalAdapter<Person>)
@@ -80,7 +120,7 @@ void main() async {
 
     // person with new id, reusing existing key
     graph.getKeyForId('people', '221', keyIfAbsent: keyFor(p1));
-    final p2 = Person(id: '221', name: 'Frank2', age: 32).init(container.read);
+    final p2 = Person(id: '221', name: 'Frank2', age: 32);
     expect(keyFor(p1), keyFor(p2));
 
     expect(
@@ -91,26 +131,18 @@ void main() async {
         contains(keyFor(p2)));
   });
 
-  test('was should not allow a different ID', () async {
-    final f1 = Familia(id: '1', surname: 'Perez').init(container.read);
-    expect(() => Familia(id: '2', surname: 'Perez').was(f1),
-        throwsA(isA<AssertionError>()));
-  });
-
   test('equality', () async {
-    /// [Person] is using field equality
-    /// Charles was once called Agnes
-    final p1a = Person(id: '2', name: 'Agnes', age: 20).init(container.read);
-    final p1b = Person(id: '2', name: 'Charles', age: 21).init(container.read);
+    /// Charles was once called Walter
+    final p1a = Person(id: '2', name: 'Walter', age: 20);
+    final p1b = Person(id: '2', name: 'Charles', age: 21);
     // they maintain same key as they're the same person
     expect(keyFor(p1a), keyFor(p1b));
     expect(p1a, isNot(p1b));
   });
 
   test('should work with subclasses', () {
-    final dog = Dog(id: '2', name: 'Walker').init(container.read);
-    final f =
-        Familia(surname: 'Walker', dogs: {dog}.asHasMany).init(container.read);
+    final dog = Dog(id: '2', name: 'Walker');
+    final f = Familia(surname: 'Walker', dogs: {dog}.asHasMany);
     expect(f.dogs!.first.name, 'Walker');
   });
 

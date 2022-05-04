@@ -34,7 +34,9 @@ class FakeBox<T> extends Fake implements Box<T> {
   Iterable get keys => _map.keys;
 
   @override
-  Iterable<T> get values => _map.values;
+  Iterable<T> get values {
+    return _map.values;
+  }
 
   @override
   bool containsKey(key) => _map.containsKey(key);

@@ -2,82 +2,62 @@ part of flutter_data;
 
 /// A `Set` that models a relationship between one or more [DataModel] objects
 /// and their a [DataModel] owner. Backed by a [GraphNotifier].
-abstract class Relationship<E extends DataModel<E>, N>
-    with EquatableMixin, _Lifecycle {
+abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
   @protected
   Relationship([Set<E>? models])
-      : _uninitializedKeys = {},
-        _uninitializedModels = models ?? {},
-        _wasOmitted = models == null,
-        _shouldRemove = false;
+      : this._(models?.map((m) => m._key) ?? {}, models == null);
 
   Relationship._(Iterable<String> keys, this._wasOmitted)
       : _uninitializedKeys = keys.toSet(),
-        _uninitializedModels = {},
         _shouldRemove = false;
 
   Relationship._remove()
       : _uninitializedKeys = {},
-        _uninitializedModels = {},
         _wasOmitted = false,
         _shouldRemove = true;
 
-  late final String _ownerKey;
-  late final String _name;
-  late final String? _inverseName;
-  late final Map<String, RemoteAdapter> _adapters;
-  late final RemoteAdapter<E> _adapter;
+  String? _ownerKey;
+  String? _name;
+  String? _inverseName;
+
+  RemoteAdapter<E> get _adapter =>
+      internalRepositories[_internalType]!.remoteAdapter as RemoteAdapter<E>;
   GraphNotifier get _graph => _adapter.localAdapter.graph;
 
   final Set<String> _uninitializedKeys;
-  final Set<E> _uninitializedModels;
   final bool _wasOmitted;
   final bool _shouldRemove;
-
-  @protected
-  String get internalType => DataHelpers.getType<E>();
+  String get _internalType => DataHelpers.getType<E>();
 
   /// Initializes this relationship (typically when initializing the owner
-  /// in [DataModel]) by supplying the owner, and related [adapters] and metadata.
-  Future<Relationship<E, N>> initialize(
-      {required final Map<String, RemoteAdapter> adapters,
-      required final DataModel owner,
+  /// in [DataModel]) by supplying the owner, and related metadata.
+  Relationship<E, N> initialize(
+      {required final DataModel owner,
       required final String name,
-      final String? inverseName}) async {
-    if (isInitialized) return this;
+      final String? inverseName}) {
+    if (_ownerKey != null) {
+      return this; // return if already initialized
+    }
 
-    _adapters = adapters;
-    _adapter = adapters[internalType] as RemoteAdapter<E>;
-
-    _ownerKey = owner._key!;
+    _ownerKey = owner._key;
     _name = name;
     _inverseName = inverseName;
 
-    isInitialized = true;
-
     if (_shouldRemove) {
-      _graph._removeEdges(_ownerKey,
-          metadata: _name, inverseMetadata: _inverseName, notify: false);
-    } else {
-      // initialize uninitialized models and get keys
-      final newKeys = _uninitializedModels.map((model) {
-        return model._initialize(_adapters, save: true)._key!;
-      });
-      _uninitializedKeys.addAll(newKeys);
+      _graph._removeEdges(_ownerKey!,
+          metadata: _name!, inverseMetadata: _inverseName, notify: false);
     }
-
-    _uninitializedModels.clear();
 
     // initialize keys
     if (!_wasOmitted) {
       // if it wasn't omitted, we overwrite
-      _graph._removeEdges(_ownerKey,
-          metadata: _name, inverseMetadata: _inverseName, notify: false);
+      _graph._removeEdges(_ownerKey!,
+          metadata: _name!, inverseMetadata: _inverseName, notify: false);
     }
     _graph._addEdges(
-      _ownerKey,
+      _ownerKey!,
       tos: _uninitializedKeys,
-      metadata: _name,
+      metadata: _name!,
       inverseMetadata: _inverseName,
       notify: false,
     );
@@ -85,9 +65,6 @@ abstract class Relationship<E extends DataModel<E>, N>
 
     return this;
   }
-
-  @override
-  bool isInitialized = false;
 
   // implement collection-like methods
 
@@ -99,23 +76,16 @@ abstract class Relationship<E extends DataModel<E>, N>
       return false;
     }
 
-    // try to ensure value is initialized
-    _ensureModelIsInitialized(value);
-
-    if (value.isInitialized && isInitialized) {
-      _graph._addEdge(_ownerKey, value._key!,
-          metadata: _name, inverseMetadata: _inverseName, notify: false);
-      if (notify) {
-        _graph._notify(
-          [_ownerKey, value._key!],
-          metadata: _name,
-          type: DataGraphEventType.addEdge,
-        );
-      }
-    } else {
-      // if it can't be initialized, add to the models queue
-      _uninitializedModels.add(value);
+    _graph._addEdge(_ownerKey!, value._key,
+        metadata: _name!, inverseMetadata: _inverseName, notify: false);
+    if (notify) {
+      _graph._notify(
+        [_ownerKey!, value._key],
+        metadata: _name,
+        type: DataGraphEventType.addEdge,
+      );
     }
+
     return true;
   }
 
@@ -127,25 +97,22 @@ abstract class Relationship<E extends DataModel<E>, N>
   bool remove(Object? value, {bool notify = true}) {
     assert(value is E);
     final model = value as E;
-    if (isInitialized) {
-      _ensureModelIsInitialized(model);
-      _graph._removeEdge(
-        _ownerKey,
-        model._key!,
+
+    _graph._removeEdge(
+      _ownerKey!,
+      model._key,
+      metadata: _name!,
+      inverseMetadata: _inverseName,
+      notify: false,
+    );
+    if (notify) {
+      _graph._notify(
+        [_ownerKey!, value._key],
         metadata: _name,
-        inverseMetadata: _inverseName,
-        notify: false,
+        type: DataGraphEventType.removeEdge,
       );
-      if (notify) {
-        _graph._notify(
-          [_ownerKey, value._key!],
-          metadata: _name,
-          type: DataGraphEventType.removeEdge,
-        );
-      }
-      return true;
     }
-    return _uninitializedModels.remove(model);
+    return true;
   }
 
   Set<E> toSet() => _iterable.toSet();
@@ -169,55 +136,32 @@ abstract class Relationship<E extends DataModel<E>, N>
   // support methods
 
   Iterable<E> get _iterable {
-    if (isInitialized) {
-      return keys
-          .map((key) => _adapter.localAdapter
-              .findOne(key)
-              ?._initialize(_adapters, key: key))
-          .filterNulls;
-    }
-    return _uninitializedModels;
+    return keys.map((key) => _adapter.localAdapter.findOne(key)).filterNulls;
   }
 
-  /// Returns keys as [Set] in relationship if initialized, otherwise an empty set
+  /// Returns keys as [Set] in relationship
   @protected
   @visibleForTesting
   Set<String> get keys {
-    if (isInitialized) {
-      return _graph._getEdge(_ownerKey, metadata: _name).toSet();
-    }
-    return _uninitializedKeys;
+    return _graph._getEdge(_ownerKey!, metadata: _name!).toSet();
   }
 
   Set<String> get ids {
-    return {
-      for (final m in _iterable)
-        '${isInitialized ? '' : '['}${m.id}${isInitialized ? '' : ']'}',
-      for (final key in keys)
-        if (!isInitialized) '[${_graph.getIdForKey(key)}]',
-    };
+    return keys.map((key) => _graph.getIdForKey(key)!).toSet();
   }
 
   Set<Relationship?> andEach(AlsoWatch<E>? alsoWatch) {
     return {
       this,
-      for (final value in _iterable)
-        ...?alsoWatch?.call(value.._initializeRelationships()),
+      for (final value in _iterable) ...?alsoWatch?.call(value),
     };
-  }
-
-  E _ensureModelIsInitialized(E model) {
-    if (!model.isInitialized && isInitialized) {
-      model._initialize(_adapters, save: true);
-    }
-    return model;
   }
 
   DelayedStateNotifier<DataGraphEvent> get _relationshipEventNotifier {
     return _adapter.graph.where((event) {
       return event.type.isEdge &&
           event.metadata == _name &&
-          event.keys.containsFirst(_ownerKey);
+          event.keys.containsFirst(_ownerKey!);
     });
   }
 
@@ -229,12 +173,7 @@ abstract class Relationship<E extends DataModel<E>, N>
   dynamic toJson() => this;
 
   @override
-  List<Object?> get props => [isInitialized, keys, _name];
-
-  @override
-  void dispose() {
-    // relationships are not disposed
-  }
+  List<Object?> get props => [keys, _name];
 }
 
 // annotation

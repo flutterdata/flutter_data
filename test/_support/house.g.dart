@@ -66,17 +66,4 @@ final internalHousesRemoteAdapterProvider = Provider<RemoteAdapter<House>>(
 final housesRepositoryProvider =
     Provider<Repository<House>>((ref) => Repository<House>(ref.read));
 
-extension HouseDataX on House {
-  /// Initializes "fresh" models (i.e. manually instantiated) to use
-  /// [save], [delete] and so on.
-  ///
-  /// Can be obtained via `ref.read`, `container.read`
-  House init(Reader read, {bool save = true}) {
-    final repository = internalLocatorFn(housesRepositoryProvider, read);
-    final updatedModel =
-        repository.remoteAdapter.initializeModel(this, save: save);
-    return save ? updatedModel : this;
-  }
-}
-
 extension HouseDataRepositoryX on Repository<House> {}

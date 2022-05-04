@@ -90,10 +90,7 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
         }
 
         final model = localAdapter.deserialize(mapOut);
-        if (model.id != null) {
-          model._initialize(adapters, key: key, save: true);
-          result.models.add(model);
-        }
+        result.models.add(model);
       }
     }
 

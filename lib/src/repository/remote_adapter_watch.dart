@@ -10,7 +10,6 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     String? finder,
     DataRequestLabel? label,
   }) {
-    _assertInit();
     remote ??= _remote;
     syncLocal ??= false;
 
@@ -25,10 +24,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
     // closure to get latest models
     List<T>? _getUpdatedModels() {
-      return localAdapter
-          .findAll()
-          ?.map((m) => m._initialize(adapters))
-          .toList();
+      return localAdapter.findAll();
     }
 
     final _notifier = DataStateNotifier<List<T>?>(
@@ -112,7 +108,6 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     String? finder,
     DataRequestLabel? label,
   }) {
-    _assertInit();
     final id = graph.getIdForKey(key);
 
     remote ??= _remote;
@@ -121,18 +116,18 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
     // we can't use `findOne`'s default internal label
     // because we need a label to handle events
-    label ??= DataRequestLabel('watchOne', type: internalType);
+    label ??=
+        DataRequestLabel('watchOne', id: key.detypify(), type: internalType);
 
     var _alsoWatchPairs = <List<String>>{};
 
     // closure to get latest model and watchable relationship pairs
     T? _getUpdatedModel({DataStateNotifier<T?>? withNotifier}) {
-      final model = localAdapter.findOne(key)?._initialize(adapters);
+      final model = localAdapter.findOne(key);
       if (model != null) {
-        model._initializeRelationships();
         _alsoWatchPairs = {
           ...?alsoWatch?.call(model).filterNulls.map((r) {
-            return r.keys.map((key) => [r._ownerKey, key]);
+            return r.keys.map((key) => [r._ownerKey!, key]);
           }).expand((_) => _)
         };
         if (withNotifier != null) {
@@ -180,7 +175,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         },
       );
       // trigger doneLoading to ensure state is updated with isLoading=false
-      final _key = model?._key!;
+      final _key = model?._key;
       if (remote && _key != null) {
         graph._notify([_key, label.toString()],
             type: DataGraphEventType.doneLoading);
@@ -218,7 +213,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         if (event.type == DataGraphEventType.addNode ||
             event.type == DataGraphEventType.updateNode) {
           if (_notifier.data.isLoading == false) {
-            log(label!, 'added/updated node');
+            log(label!, 'added/updated node ${event.keys}');
             _notifier.updateWith(model: _model);
           }
         }
@@ -233,7 +228,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
       // handle deletion
       if (event.type == DataGraphEventType.removeNode && _model == null) {
-        log(label!, 'removed node');
+        log(label!, 'removed node ${event.keys}');
         _notifier.updateWith(model: null);
       }
 
@@ -253,7 +248,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       // if model is loaded and any condition passes, notify update
       if (_notifier.data.isLoading == false &&
           (watchedRelationshipUpdate || watchedModelUpdate)) {
-        log(label!, 'relationship update');
+        log(label!, 'relationship update ${event.keys}');
         _notifier.updateWith(model: _model);
       }
     });

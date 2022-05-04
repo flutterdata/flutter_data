@@ -207,3 +207,6 @@ class DataRequestLabel with EquatableMixin {
   @override
   List<Object?> get props => [kind, type, id, _requestIds];
 }
+
+/// ONLY FOR FLUTTER DATA INTERNAL USE
+final internalRepositories = <String, Repository>{};

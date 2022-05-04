@@ -101,9 +101,6 @@ class DataExtensionBuilder implements Builder {
     final hasPathProvider = await isDependency('path_provider', b);
     final hasFlutterRiverpod = await isDependency('flutter_riverpod', b) ||
         await isDependency('hooks_riverpod', b);
-    // ensure it's only plain riverpod
-    final hasRiverpod =
-        await isDependency('riverpod', b) && !hasFlutterRiverpod;
 
     final flutterFoundationImport = isFlutter
         ? "import 'package:flutter/foundation.dart' show kIsWeb;"
@@ -121,14 +118,21 @@ class DataExtensionBuilder implements Builder {
 
     //
 
-    String repositoryWatcherRefExtension(List<Map<String, String>> classes) {
+    String repositoryWatcherRefExtension(List<Map<String, String>> classes,
+        {required bool hasWidgets}) {
       return '''
+${hasWidgets ? '''
 extension RepositoryWidgetRefX on WidgetRef {
 ${classes.map((clazz) => '  Repository<${clazz['name']}> get ${clazz['type']} => watch(${clazz['type']}RepositoryProvider)..remoteAdapter.internalWatch = watch;').join('\n')}
-}
+}''' : ''}
 
-extension RepositoryRefX on Ref {
-${classes.map((clazz) => '  Repository<${clazz['name']}> get ${clazz['type']} => watch(${clazz['type']}RepositoryProvider)..remoteAdapter.internalWatch = watch as Watcher;').join('\n')}
+extension RepositoryRefX on ${hasWidgets ? 'Ref' : 'ProviderContainer'} {
+${hasWidgets ? '' : '''
+E watch<E>(ProviderListenable<E> provider) {
+  return readProviderElement(provider as ProviderBase<E>).readSelf();
+}
+'''}
+${classes.map((clazz) => '  Repository<${clazz['name']}> get ${clazz['type']} => watch(${clazz['type']}RepositoryProvider)..remoteAdapter.internalWatch = watch${hasWidgets ? 'as Watcher' : ''};').join('\n')}
 }''';
     }
 
@@ -182,6 +186,7 @@ final repositoryInitializerProvider =
 
     for (final type in _repoMap.keys) {
       final repository = _repoMap[type]!;
+      internalRepositories[type] = repository;
       repository.dispose();
       await repository.initialize(
         remote: remotes[type],
@@ -198,7 +203,7 @@ final repositoryInitializerProvider =
     return RepositoryInitializer();
 });
 ''' +
-            (hasRiverpod ? repositoryWatcherRefExtension(classes) : '') +
-            (hasFlutterRiverpod ? repositoryWatcherRefExtension(classes) : ''));
+            repositoryWatcherRefExtension(classes,
+                hasWidgets: hasFlutterRiverpod));
   }
 }

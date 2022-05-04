@@ -9,29 +9,36 @@ import 'models/user.dart';
 
 void main() async {
   late final Directory _dir;
-  final container = ProviderContainer(
-    overrides: [
-      configureRepositoryLocalStorage(
-        baseDirFn: () => _dir.path,
-        encryptionKey: _encryptionKey,
-      ),
-    ],
-  );
 
   try {
-    _dir = await Directory('tmp').create();
+    final container = ProviderContainer(
+      overrides: [
+        configureRepositoryLocalStorage(
+          baseDirFn: () => _dir.path,
+          encryptionKey: _encryptionKey,
+          clear: true,
+        ),
+      ],
+    );
+
+    _dir = Directory.systemTemp.createTempSync();
+    print('Using temporary directory: ${_dir.path}');
     _dir.deleteSync(recursive: true);
 
     await container.read(repositoryInitializerProvider.future);
 
-    final usersRepo = container.read(usersRepositoryProvider);
-    final user =
-        await usersRepo.findOne(1, params: {'_embed': 'tasks', '_limit': 5});
-    assert(user!.tasks.length == 5);
+    container.users.remoteAdapter.verbose = true;
+    container.tasks.remoteAdapter.verbose = true;
+
+    await container.tasks.findAll(params: {'user_id': 1, '_limit': 3});
+
+    final user = User(id: 19, name: 'Zeku');
+    final user2 = await container.users.findOne(19, remote: false);
+
+    assert(user == user2);
+    assert(user.tasks.length == 3);
   } finally {
-    if (_dir.existsSync()) {
-      _dir.deleteSync(recursive: true);
-    }
+    _dir.deleteSync(recursive: true);
   }
 }
 

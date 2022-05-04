@@ -7,7 +7,7 @@ part 'house.g.dart';
 
 @JsonSerializable()
 @DataRepository([], remote: false)
-class House with DataModel<House> {
+class House extends DataModel<House> {
   @override
   final String? id;
   final String address;

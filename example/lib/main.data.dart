@@ -8,7 +8,6 @@ import 'package:flutter_data/flutter_data.dart';
 
 
 
-
 import 'package:jsonplaceholder_example/models/task.dart';
 import 'package:jsonplaceholder_example/models/user.dart';
 
@@ -48,6 +47,7 @@ final repositoryInitializerProvider =
 
     for (final type in _repoMap.keys) {
       final repository = _repoMap[type]!;
+      internalRepositories[type] = repository;
       repository.dispose();
       await repository.initialize(
         remote: remotes[type],
@@ -63,3 +63,13 @@ final repositoryInitializerProvider =
 
     return RepositoryInitializer();
 });
+
+
+extension RepositoryRefX on ProviderContainer {
+E watch<E>(ProviderListenable<E> provider) {
+  return readProviderElement(provider as ProviderBase<E>).readSelf();
+}
+
+  Repository<Task> get tasks => watch(tasksRepositoryProvider)..remoteAdapter.internalWatch = watch;
+  Repository<User> get users => watch(usersRepositoryProvider)..remoteAdapter.internalWatch = watch;
+}

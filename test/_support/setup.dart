@@ -57,21 +57,22 @@ void setUpFn() async {
     'dogs': container.read(internalDogsRemoteAdapterProvider),
   };
 
-  await container
+  internalRepositories['houses'] = await container
       .read(housesRepositoryProvider)
       .initialize(remote: false, adapters: adapterGraph);
-  await container
+  internalRepositories['familia'] = await container
       .read(familiaRepositoryProvider)
       .initialize(remote: true, adapters: adapterGraph);
-  await container
+  internalRepositories['people'] = await container
       .read(peopleRepositoryProvider)
       .initialize(remote: false, adapters: adapterGraph);
-  final _dogsRepository = await container
+  final _dogsRepository = internalRepositories['dogs'] = await container
       .read(dogsRepositoryProvider)
       .initialize(remote: false, adapters: adapterGraph);
 
   const nodesKey = _kIsWeb ? 'node1s' : 'nodes';
-  await container.read(nodesRepositoryProvider).initialize(
+  internalRepositories['nodes'] =
+      await container.read(nodesRepositoryProvider).initialize(
     remote: false,
     adapters: {
       nodesKey: container.read(internalNodesRemoteAdapterProvider),
@@ -83,15 +84,17 @@ void setUpFn() async {
     'books': container.read(internalBooksRemoteAdapterProvider),
   };
 
-  await container.read(bookAuthorsRepositoryProvider).initialize(
-        remote: false,
-        adapters: booksGraph,
-      );
+  internalRepositories['bookAuthors'] =
+      await container.read(bookAuthorsRepositoryProvider).initialize(
+            remote: false,
+            adapters: booksGraph,
+          );
 
-  await container.read(booksRepositoryProvider).initialize(
-        remote: false,
-        adapters: booksGraph,
-      );
+  internalRepositories['books'] =
+      await container.read(booksRepositoryProvider).initialize(
+            remote: false,
+            adapters: booksGraph,
+          );
 
   _dogsRepository.remoteAdapter.verbose = true;
 }

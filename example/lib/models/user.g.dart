@@ -66,19 +66,6 @@ final internalUsersRemoteAdapterProvider = Provider<RemoteAdapter<User>>(
 final usersRepositoryProvider =
     Provider<Repository<User>>((ref) => Repository<User>(ref.read));
 
-extension UserDataX on User {
-  /// Initializes "fresh" models (i.e. manually instantiated) to use
-  /// [save], [delete] and so on.
-  ///
-  /// Can be obtained via `ref.read`, `container.read`
-  User init(Reader read, {bool save = true}) {
-    final repository = internalLocatorFn(usersRepositoryProvider, read);
-    final updatedModel =
-        repository.remoteAdapter.initializeModel(this, save: save);
-    return save ? updatedModel : this;
-  }
-}
-
 extension UserDataRepositoryX on Repository<User> {
   JSONServerAdapter<User> get jSONServerAdapter =>
       remoteAdapter as JSONServerAdapter<User>;

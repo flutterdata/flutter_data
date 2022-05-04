@@ -68,19 +68,6 @@ final internalTasksRemoteAdapterProvider = Provider<RemoteAdapter<Task>>(
 final tasksRepositoryProvider =
     Provider<Repository<Task>>((ref) => Repository<Task>(ref.read));
 
-extension TaskDataX on Task {
-  /// Initializes "fresh" models (i.e. manually instantiated) to use
-  /// [save], [delete] and so on.
-  ///
-  /// Can be obtained via `ref.read`, `container.read`
-  Task init(Reader read, {bool save = true}) {
-    final repository = internalLocatorFn(tasksRepositoryProvider, read);
-    final updatedModel =
-        repository.remoteAdapter.initializeModel(this, save: save);
-    return save ? updatedModel : this;
-  }
-}
-
 extension TaskDataRepositoryX on Repository<Task> {
   JSONServerAdapter<Task> get jSONServerAdapter =>
       remoteAdapter as JSONServerAdapter<Task>;

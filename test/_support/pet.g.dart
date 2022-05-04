@@ -64,19 +64,6 @@ final internalDogsRemoteAdapterProvider = Provider<RemoteAdapter<Dog>>((ref) =>
 final dogsRepositoryProvider =
     Provider<Repository<Dog>>((ref) => Repository<Dog>(ref.read));
 
-extension DogDataX on Dog {
-  /// Initializes "fresh" models (i.e. manually instantiated) to use
-  /// [save], [delete] and so on.
-  ///
-  /// Can be obtained via `ref.read`, `container.read`
-  Dog init(Reader read, {bool save = true}) {
-    final repository = internalLocatorFn(dogsRepositoryProvider, read);
-    final updatedModel =
-        repository.remoteAdapter.initializeModel(this, save: save);
-    return save ? updatedModel : this;
-  }
-}
-
 extension DogDataRepositoryX on Repository<Dog> {}
 
 // ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member, non_constant_identifier_names
@@ -112,18 +99,5 @@ final internalCatsRemoteAdapterProvider = Provider<RemoteAdapter<Cat>>((ref) =>
 
 final catsRepositoryProvider =
     Provider<Repository<Cat>>((ref) => Repository<Cat>(ref.read));
-
-extension CatDataX on Cat {
-  /// Initializes "fresh" models (i.e. manually instantiated) to use
-  /// [save], [delete] and so on.
-  ///
-  /// Can be obtained via `ref.read`, `container.read`
-  Cat init(Reader read, {bool save = true}) {
-    final repository = internalLocatorFn(catsRepositoryProvider, read);
-    final updatedModel =
-        repository.remoteAdapter.initializeModel(this, save: save);
-    return save ? updatedModel : this;
-  }
-}
 
 extension CatDataRepositoryX on Repository<Cat> {}

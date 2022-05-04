@@ -227,18 +227,6 @@ final internal${typeLowerCased.capitalize()}RemoteAdapterProvider =
 final ${typeLowerCased}RepositoryProvider =
     Provider<Repository<$classType>>((ref) => Repository<$classType>(ref.read));
 
-extension ${classType}DataX on $classType {
-  /// Initializes "fresh" models (i.e. manually instantiated) to use
-  /// [save], [delete] and so on.
-  /// 
-  /// Can be obtained via `ref.read`, `container.read`
-  $classType init(Reader read, {bool save = true}) {
-    final repository = internalLocatorFn(${typeLowerCased}RepositoryProvider, read);
-    final updatedModel = repository.remoteAdapter.initializeModel(this, save: save);
-    return save ? updatedModel : this;
-  }
-}
-
 extension ${classType}DataRepositoryX on Repository<$classType> {
 $mixinShortcuts
 }

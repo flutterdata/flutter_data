@@ -53,19 +53,6 @@ final internalPeopleRemoteAdapterProvider = Provider<RemoteAdapter<Person>>(
 final peopleRepositoryProvider =
     Provider<Repository<Person>>((ref) => Repository<Person>(ref.read));
 
-extension PersonDataX on Person {
-  /// Initializes "fresh" models (i.e. manually instantiated) to use
-  /// [save], [delete] and so on.
-  ///
-  /// Can be obtained via `ref.read`, `container.read`
-  Person init(Reader read, {bool save = true}) {
-    final repository = internalLocatorFn(peopleRepositoryProvider, read);
-    final updatedModel =
-        repository.remoteAdapter.initializeModel(this, save: save);
-    return save ? updatedModel : this;
-  }
-}
-
 extension PersonDataRepositoryX on Repository<Person> {
   PersonLoginAdapter get personLoginAdapter =>
       remoteAdapter as PersonLoginAdapter;

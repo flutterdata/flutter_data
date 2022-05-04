@@ -77,17 +77,4 @@ final internalNodesRemoteAdapterProvider = Provider<RemoteAdapter<Node>>(
 final nodesRepositoryProvider =
     Provider<Repository<Node>>((ref) => Repository<Node>(ref.read));
 
-extension NodeDataX on Node {
-  /// Initializes "fresh" models (i.e. manually instantiated) to use
-  /// [save], [delete] and so on.
-  ///
-  /// Can be obtained via `ref.read`, `container.read`
-  Node init(Reader read, {bool save = true}) {
-    final repository = internalLocatorFn(nodesRepositoryProvider, read);
-    final updatedModel =
-        repository.remoteAdapter.initializeModel(this, save: save);
-    return save ? updatedModel : this;
-  }
-}
-
 extension NodeDataRepositoryX on Repository<Node> {}

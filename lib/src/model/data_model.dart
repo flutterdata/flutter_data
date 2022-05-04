@@ -7,68 +7,31 @@ part of flutter_data;
 abstract class DataModel<T extends DataModel<T>> {
   Object? get id;
 
-  // internal
-  String? _key;
-  Map<String, RemoteAdapter>? _adapters;
+  DataModel() {
+    _key = remoteAdapter.graph.getKeyForId(_internalType, id,
+        keyIfAbsent: DataHelpers.generateKey<T>())!;
+    remoteAdapter.localAdapter.save(_key, this as T, notify: false);
+    getRelationships();
+  }
+
+  late String _key;
   String get _internalType => DataHelpers.getType<T>();
   DataStateNotifier<T?>? _notifier;
 
   /// Exposes this type's [RemoteAdapter]
   RemoteAdapter<T> get remoteAdapter =>
-      _adapters?[_internalType]! as RemoteAdapter<T>;
+      internalRepositories[_internalType]!.remoteAdapter as RemoteAdapter<T>;
 
   /// Exposes the [DataStateNotifier] that fetched this model;
   /// typically used to access `notifier.reload()`.
   /// ONLY available if loaded via [Repository.watchOneNotifier].
   DataStateNotifier<T?>? get notifier => _notifier;
 
-  /// Whether this model was initialized, either
-  /// automatically or manually via `init` or [was].
-  bool get isInitialized => _key != null && _adapters != null;
-
   // methods
 
-  T refresh() {
-    _assertInit('refresh');
-    return remoteAdapter.localAdapter.findOne(_key)!;
-  }
-
-  // initializers
-
-  T _initialize(final Map<String, RemoteAdapter> adapters,
-      {String? key, bool save = false}) {
-    if (isInitialized) {
-      return this as T;
-    }
-
-    _adapters = adapters;
-
-    _key = remoteAdapter.graph.getKeyForId(remoteAdapter.internalType, id,
-        keyIfAbsent: key ?? DataHelpers.generateKey<T>());
-
-    _initializeRelationships();
-
-    if (save) {
-      remoteAdapter.localAdapter.save(_key!, this as T);
-    }
-
+  T saveLocal() {
+    remoteAdapter.localAdapter.save(_key, this as T);
     return this as T;
-  }
-
-  void _initializeRelationships() {
-    assert(isInitialized);
-
-    for (final metadata
-        in remoteAdapter.localAdapter.relationshipsFor(this as T).entries) {
-      final relationship = metadata.value['instance'] as Relationship?;
-
-      relationship?.initialize(
-        adapters: _adapters!,
-        owner: this,
-        name: metadata.value['name'] as String,
-        inverseName: metadata.value['inverse'] as String?,
-      );
-    }
   }
 
   // privately set the notifier
@@ -81,31 +44,46 @@ abstract class DataModel<T extends DataModel<T>> {
 /// linking them to common [Repository] methods such as
 /// [save] and [delete].
 extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
-  /// Initializes a model copying the identity of supplied [model].
-  ///
-  /// Usage:
-  /// ```
-  /// final post = await repository.findOne('1'); // returns initialized post
-  /// final newPost = Post(title: 'test'); // uninitialized post
-  /// newPost.was(post); // new is now initialized with same key as post
-  /// ```
+  /// Copy identity (internal key) from an old model to a new one
+  /// to signal they are the same.
   T was(T model) {
-    if (!model.isInitialized) {
-      throw AssertionError(
-          'Please initialize model before passing it to `was`');
+    if (model._key != _key) {
+      T _old;
+      T _new;
+
+      // if the passed-in model has no ID
+      // then treat the original as prevalent
+      if (model.id == null && id != null) {
+        _old = model;
+        _new = this as T;
+      } else {
+        // in all other cases, treat the passed-in
+        // model as prevalent
+        _old = this as T;
+        _new = model;
+      }
+
+      final _oldKey = _old._key;
+      if (_key != _new._key) {
+        _key = _new._key;
+      }
+      if (_key != _old._key) {
+        _old._key = _key;
+        remoteAdapter.graph.removeKey(_oldKey);
+      }
+
+      if (_old.id != null) {
+        remoteAdapter.graph.removeId(_internalType, _old.id!);
+        remoteAdapter.graph
+            .getKeyForId(_internalType, _old.id, keyIfAbsent: _key);
+      }
     }
-    if (id != model.id) {
-      throw AssertionError(
-          'Should not use `was` with a model of a different ID');
-    }
-    return _initialize(model._adapters!, key: model._key, save: true);
+    return this as T;
   }
 
   /// Saves this model through a call equivalent to [Repository.save].
   ///
   /// Usage: `await post.save()`, `author.save(remote: false, params: {'a': 'x'})`.
-  ///
-  /// **Requires this model to be initialized.**
   Future<T> save({
     bool? remote,
     Map<String, dynamic>? params,
@@ -113,7 +91,6 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     OnSuccessOne<T>? onSuccess,
     OnErrorOne<T>? onError,
   }) async {
-    _assertInit('save');
     return await remoteAdapter.save(
       this as T,
       remote: remote,
@@ -127,8 +104,6 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   /// Deletes this model through a call equivalent to [Repository.delete].
   ///
   /// Usage: `await post.delete()`
-  ///
-  /// **Requires this model to be initialized.**
   Future<T?> delete({
     bool? remote,
     Map<String, dynamic>? params,
@@ -136,7 +111,6 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     OnSuccessOne<T>? onSuccess,
     OnErrorOne<T>? onError,
   }) async {
-    _assertInit('delete');
     return await remoteAdapter.delete(
       this,
       remote: remote,
@@ -149,14 +123,11 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
 
   /// Re-fetch this model through a call equivalent to [Repository.findOne].
   /// with the current object/[id]
-  ///
-  /// **Requires this model to be initialized.**
   Future<T?> reload({
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
   }) async {
-    _assertInit('reload');
     return await remoteAdapter.findOne(
       this,
       remote: remote,
@@ -166,51 +137,22 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   }
 
   /// Get all non-null [Relationship]s for this model.
-  Iterable<Relationship> relationships({bool withValue = false}) {
-    _assertInit('relationships');
-    var rels = remoteAdapter.localAdapter
-        .relationshipsFor(this as T)
-        .values
-        .map((e) => e['instance'] as Relationship?)
+  Iterable<Relationship> getRelationships() {
+    final metadatas =
+        remoteAdapter.localAdapter.relationshipsFor(this as T).values;
+
+    return metadatas
+        .map((metadata) {
+          final relationship = metadata['instance'] as Relationship?;
+
+          return relationship?.initialize(
+            owner: this,
+            name: metadata['name'] as String,
+            inverseName: metadata['inverse'] as String?,
+          );
+        })
+        .toList()
         .filterNulls;
-
-    if (withValue) {
-      rels = rels.where((r) => r is BelongsTo ? r.value != null : true);
-    }
-
-    return rels;
-  }
-
-  void _assertInit(String method) {
-    if (isInitialized) {
-      return;
-    }
-    throw AssertionError('''\n
-This model MUST be initialized in order to call `$method`.
-
-DON'T DO THIS:
-
-  final ${_internalType.singularize()} = $T(...);
-  ${_internalType.singularize()}.$method(...);
-
-DO THIS:
-
-  final ${_internalType.singularize()} = $T(...).init(ref.read);
-  ${_internalType.singularize()}.$method(...);
-
-Call `init(ref.read)` on the model first.
-
-This ONLY happens when a model is manually instantiated
-and had no contact with Flutter Data.
-
-Initializing models is not necessary in any other case.
-
-When assigning new models to a relationship, only initialize
-the actual model:
-
-Family(surname: 'Carlson', dogs: {Dog(name: 'Jerry'), Dog(name: 'Zoe')}.asHasMany)
-  .init(ref.read);
-''');
   }
 }
 

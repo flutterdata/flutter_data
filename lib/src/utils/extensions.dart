@@ -19,7 +19,9 @@ extension _DataModelListX<T extends DataModel<T>> on Iterable<T> {
     final ids = map((m) => m.id).toSet();
     return ids.isEmpty
         ? 'none'
-        : (ids.length > 1 ? '${ids.first} and ${ids.length - 1} more' : ids)
+        : (ids.length > 5
+                ? '${ids.take(5).toSet()} (and ${ids.length - 5} more)'
+                : ids)
             .toString();
   }
 }

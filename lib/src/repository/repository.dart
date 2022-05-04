@@ -369,9 +369,6 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
 
   /// Watch this model
   T watch(T model) {
-    if (!model.isInitialized) {
-      throw UnsupportedError('Model must be initialized!');
-    }
     return watchOne(model, remote: false).model!;
   }
 }

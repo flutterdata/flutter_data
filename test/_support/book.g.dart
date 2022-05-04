@@ -100,19 +100,6 @@ final internalBookAuthorsRemoteAdapterProvider =
 final bookAuthorsRepositoryProvider =
     Provider<Repository<BookAuthor>>((ref) => Repository<BookAuthor>(ref.read));
 
-extension BookAuthorDataX on BookAuthor {
-  /// Initializes "fresh" models (i.e. manually instantiated) to use
-  /// [save], [delete] and so on.
-  ///
-  /// Can be obtained via `ref.read`, `container.read`
-  BookAuthor init(Reader read, {bool save = true}) {
-    final repository = internalLocatorFn(bookAuthorsRepositoryProvider, read);
-    final updatedModel =
-        repository.remoteAdapter.initializeModel(this, save: save);
-    return save ? updatedModel : this;
-  }
-}
-
 extension BookAuthorDataRepositoryX on Repository<BookAuthor> {
   BookAuthorAdapter get bookAuthorAdapter => remoteAdapter as BookAuthorAdapter;
 }
@@ -158,18 +145,5 @@ final internalBooksRemoteAdapterProvider = Provider<RemoteAdapter<Book>>(
 
 final booksRepositoryProvider =
     Provider<Repository<Book>>((ref) => Repository<Book>(ref.read));
-
-extension BookDataX on Book {
-  /// Initializes "fresh" models (i.e. manually instantiated) to use
-  /// [save], [delete] and so on.
-  ///
-  /// Can be obtained via `ref.read`, `container.read`
-  Book init(Reader read, {bool save = true}) {
-    final repository = internalLocatorFn(booksRepositoryProvider, read);
-    final updatedModel =
-        repository.remoteAdapter.initializeModel(this, save: save);
-    return save ? updatedModel : this;
-  }
-}
 
 extension BookDataRepositoryX on Repository<Book> {}

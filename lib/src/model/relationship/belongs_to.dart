@@ -59,16 +59,16 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
     }
 
     // handle events
-    DataGraphEventType? type;
-    if (isAddition) type = DataGraphEventType.addEdge;
-    if (isUpdate) type = DataGraphEventType.updateEdge;
-    if (isRemoval) type = DataGraphEventType.removeEdge;
+    DataGraphEventType? eventType;
+    if (isAddition) eventType = DataGraphEventType.addEdge;
+    if (isUpdate) eventType = DataGraphEventType.updateEdge;
+    if (isRemoval) eventType = DataGraphEventType.removeEdge;
 
-    if (type != null && isInitialized) {
+    if (eventType != null) {
       _graph._notify(
-        [_ownerKey, if (newValue != null) newValue._key!],
+        [_ownerKey!, if (newValue != null) newValue._key],
         metadata: _name,
-        type: type,
+        type: eventType,
       );
     }
     assert(length <= 1);
@@ -82,16 +82,16 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
   String? get id => super.ids.safeFirst;
 
   @override
-  Future<Relationship<E, E?>> initialize(
-      {required final Map<String, RemoteAdapter> adapters,
-      required final DataModel owner,
+  Relationship<E, E?> initialize(
+      {required final DataModel owner,
       required final String name,
-      final String? inverseName}) async {
-    if (isInitialized && inverseName != null) {
+      final String? inverseName}) {
+    final _this =
+        super.initialize(owner: owner, name: name, inverseName: inverseName);
+    if (inverseName != null) {
       addInverse(inverseName, owner);
     }
-    return super.initialize(
-        adapters: adapters, owner: owner, name: name, inverseName: inverseName);
+    return _this;
   }
 
   /// Returns a [StateNotifier] which emits the latest [value] of
@@ -110,8 +110,9 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
     if (value != null) {
       final _rels = value!.remoteAdapter.localAdapter.relationshipsFor(value!);
       final inverseMetadata = _rels[inverseName];
-      if (inverseMetadata != null) {
-        final inverseRelationship = inverseMetadata['instance'] as Relationship;
+      if (inverseMetadata?['instance'] != null) {
+        final inverseRelationship =
+            inverseMetadata!['instance'] as Relationship;
         inverseRelationship.add(model);
       }
     }

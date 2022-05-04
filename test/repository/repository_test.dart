@@ -2,14 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_data/flutter_data.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../_support/familia.dart';
 import '../_support/person.dart';
-import '../_support/pet.dart';
 import '../_support/setup.dart';
-import '../mocks.dart';
 
 void main() async {
   setUp(setUpFn);
@@ -27,6 +24,7 @@ void main() async {
         [{ "id": "1", "surname": "Smith" }, { "id": "2", "surname": "Jones" }]
       ''');
     final familia = await container.familia.findAll();
+    await oneMs();
 
     expect(familia, [familia1, familia2]);
 
@@ -221,39 +219,9 @@ void main() async {
     expect(familia2!.surname, 'Jones Saved');
   });
 
-  test('save with error', () async {
-    final familia = Familia(id: '1', surname: 'Smith');
-    container.read(responseProvider.notifier).state =
-        TestResponse.text('@**&#*#&');
-
-    // overrides error handling with notifier
-    final listener = Listener<DataState<List<Familia>?>?>();
-    final notifier = container.familia.watchAllNotifier(remote: false);
-
-    dispose = notifier.addListener(listener);
-
-    verify(listener(DataState(null, isLoading: false))).called(1);
-
-    // ignore: missing_return
-    await container.familia.save(
-      familia,
-      onError: (e, _, __) async {
-        notifier.updateWith(exception: e);
-        return null;
-      },
-    );
-    await oneMs();
-
-    verify(listener(argThat(
-      isA<DataState>().having((s) {
-        return s.exception!.error;
-      }, 'exception', isA<FormatException>()),
-    ))).called(1);
-  });
-
   test('delete', () async {
     // init a person
-    final person = Person(id: '1', name: 'John', age: 21).init(container.read);
+    final person = Person(id: '1', name: 'John', age: 21);
     // it does have a key
     expect(keyFor(person), isNotNull);
 
@@ -266,8 +234,8 @@ void main() async {
   });
 
   test('remote can return a different ID', () async {
-    Familia(id: '1', surname: 'Corleone').init(container.read);
-    Familia(id: '2', surname: 'Moletto').init(container.read);
+    Familia(id: '1', surname: 'Corleone');
+    Familia(id: '2', surname: 'Moletto');
 
     // returns 2, not the requested 1
     container.read(responseProvider.notifier).state =
@@ -282,10 +250,10 @@ void main() async {
 
   test('reconcile keys under same ID', () async {
     // id=1 exists locally, has a key
-    final familia1 = Familia(id: '1', surname: 'Corleone').init(container.read);
+    final familia1 = Familia(id: '1', surname: 'Corleone');
 
     // an id-less Familia is created (obviously with new key)
-    final familia2 = Familia(surname: 'Moletto').init(container.read);
+    final familia2 = Familia(surname: 'Moletto');
 
     // therefore these objects have different keys
     expect(keyFor(familia2), isNotNull);
@@ -339,21 +307,29 @@ void main() async {
   });
 
   test('verbose', overridePrint(() async {
-    Dog(id: '3', name: 'Bowie').init(container.read);
     container.read(responseProvider.notifier).state = TestResponse.text('''
-      {"id": "3", "name": "Jackson"}''');
-    final dog =
-        await container.dogs.findOne('3', params: {'a': 1}, remote: true);
+      [
+        {"id": "1", "name": "Jackson"},
+        {"id": "2", "name": "Ada"},
+        {"id": "3", "name": "Bowie"},
+        {"id": "4", "name": "Sandy"},
+        {"id": "5", "name": "Zoe"},
+        {"id": "6", "name": "Peter"},
+        {"id": "7", "name": "Aldo"}
+      ]''');
 
-    var regexp = RegExp(r'^\d\d:\d\d\d \[findOne\/dogs#3@[a-z0-9]{6}\]');
+    final dogs = await container.dogs.findAll(params: {'a': 1}, remote: true);
+
+    var regexp = RegExp(r'^\d\d:\d\d\d \[findAll\/dogs@[a-z0-9]{6}\]');
     expect(verbose.first, matches(regexp));
     expect(verbose.first, endsWith('request with {a: 1}'));
     expect(verbose.last, matches(regexp));
-    expect(verbose.last, endsWith('{3} fetched from remote'));
+    expect(verbose.last,
+        endsWith('{1, 2, 3, 4, 5} (and 2 more) fetched from remote'));
 
     verbose.clear();
 
-    await container.dogs.save(dog!, remote: false);
+    await container.dogs.save(dogs!.toList()[2], remote: false);
 
     regexp = RegExp(r'^\d\d:\d\d\d \[save\/dogs#3@[a-z0-9]{6}\]');
     expect(verbose.first, matches(regexp));

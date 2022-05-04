@@ -109,17 +109,4 @@ final internalFamiliaRemoteAdapterProvider = Provider<RemoteAdapter<Familia>>(
 final familiaRepositoryProvider =
     Provider<Repository<Familia>>((ref) => Repository<Familia>(ref.read));
 
-extension FamiliaDataX on Familia {
-  /// Initializes "fresh" models (i.e. manually instantiated) to use
-  /// [save], [delete] and so on.
-  ///
-  /// Can be obtained via `ref.read`, `container.read`
-  Familia init(Reader read, {bool save = true}) {
-    final repository = internalLocatorFn(familiaRepositoryProvider, read);
-    final updatedModel =
-        repository.remoteAdapter.initializeModel(this, save: save);
-    return save ? updatedModel : this;
-  }
-}
-
 extension FamiliaDataRepositoryX on Repository<Familia> {}

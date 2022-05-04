@@ -171,7 +171,7 @@ void main() async {
     container.read(responseProvider.notifier).state =
         TestResponse(text: (_) => throw SocketException('unreachable'));
 
-    final familia3 = Familia(id: '3', surname: 'Zweck').init(container.read);
+    final familia3 = Familia(id: '3', surname: 'Zweck');
     try {
       await familia3.save(remote: true);
     } catch (_) {
@@ -205,7 +205,7 @@ void main() async {
     dispose = notifier.addListener(listener);
 
     // init a familia
-    final familia = Familia(id: '1', surname: 'Smith').init(container.read);
+    final familia = Familia(id: '1', surname: 'Smith');
     await oneMs();
 
     // should show up through watchAllNotifier
@@ -278,7 +278,7 @@ void main() async {
     dispose = notifier.addListener(listener);
 
     // setup familia
-    final familia = Familia(id: '19', surname: 'Ko').init(container.read);
+    final familia = Familia(id: '19', surname: 'Ko');
     await oneMs();
 
     // network issues

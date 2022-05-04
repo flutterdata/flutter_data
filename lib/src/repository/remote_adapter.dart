@@ -200,10 +200,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     localAdapter.dispose();
   }
 
-  void _assertInit() {
-    assert(isInitialized, true);
-  }
-
   // serialization interface
 
   /// Returns a [DeserializedData] object when deserializing a given [data].
@@ -256,7 +252,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     OnErrorAll<T>? onError,
     DataRequestLabel? label,
   }) async {
-    _assertInit();
     remote ??= _remote;
     background ??= false;
     syncLocal ??= false;
@@ -269,7 +264,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
     if (!shouldLoadRemoteAll(remote!, params, headers) || background) {
       models = localAdapter.findAll()?.toImmutableList();
-      models = models?.map((m) => m._initialize(adapters)).toList();
       if (models != null) {
         log(label,
             'returned ${models.toShortLog()} from local storage${background ? ' and loading in the background' : ''}');
@@ -318,7 +312,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     OnErrorOne<T>? onError,
     DataRequestLabel? label,
   }) async {
-    _assertInit();
     remote ??= _remote;
     background ??= false;
     params = await defaultParams & params;
@@ -334,7 +327,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       final key = graph.getKeyForId(internalType, resolvedId,
           keyIfAbsent: id is T ? id._key : null);
       model = localAdapter.findOne(key);
-      model?._initialize(adapters);
+      // model?._initialize(adapters);
       if (model != null) {
         log(label,
             'returned from local storage${background ? ' and loading in the background' : ''}');
@@ -382,14 +375,13 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     OnErrorOne<T>? onError,
     DataRequestLabel? label,
   }) async {
-    _assertInit();
     remote ??= _remote;
 
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
 
-    // ensure model is initialized
-    model._initialize(adapters, save: true);
+    // ensure model is saved
+    await localAdapter.save(model._key, model);
 
     label = DataRequestLabel('save',
         type: internalType,
@@ -433,7 +425,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     OnErrorOne<T>? onError,
     DataRequestLabel? label,
   }) async {
-    _assertInit();
     remote ??= _remote;
 
     params = await defaultParams & params;
@@ -627,28 +618,20 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       if (label.model == null) {
         return null;
       }
-      final model = label.model as T;
-      T _model;
-      if (data == null) {
-        // return "old" model if response was empty
-        _model = model._initialize(adapters, save: true);
-      } else {
-        // deserialize already inits models
-        // if model had a key already, reuse it
-        final deserialized =
-            deserialize(data as Map<String, dynamic>, key: model._key!);
-        final _newModel = deserialized.model!;
+      var model = label.model as T;
 
-        // reconcile keys in case the server attributed the same ID
-        if (model._key != null && model._key != _newModel._key) {
-          graph.removeKey(model._key!);
-          model._key = _newModel._key;
-        }
-        _model = _newModel;
+      if (data == null) {
+        // return original model if response was empty
+        return model as R?;
       }
 
+      // deserialize already inits models
+      // if model had a key already, reuse it
+      final deserialized = deserialize(data as Map<String, dynamic>);
+      model = deserialized.model!.was(model).saveLocal();
+
       log(label, 'saved in local storage and remote');
-      return _model as R?;
+      return model as R?;
     }
 
     if (label.kind == 'delete') {
@@ -664,11 +647,11 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     final isAdHoc = label.kind == 'adhoc';
 
     if (isFindAll || (isAdHoc && deserialized.model == null)) {
-      return deserialized.models as R?;
+      return deserialized.models.map((e) => e.saveLocal()).toList() as R?;
     }
 
     if (isFindOne || (isAdHoc && deserialized.model != null)) {
-      return deserialized.model as R?;
+      return deserialized.model?.saveLocal() as R?;
     }
 
     return null;
@@ -691,14 +674,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       return null;
     }
     throw e;
-  }
-
-  /// Initializes [model] making it ready to use with [DataModel] extensions.
-  ///
-  /// Optionally provide [key]. Use [save] to persist in local storage.
-  @nonVirtual
-  T initializeModel(T model, {String? key, bool save = false}) {
-    return model._initialize(adapters, key: key, save: save);
   }
 
   /// Logs messages for a specific label when `verbose` is `true`.
@@ -755,8 +730,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @visibleForTesting
   @nonVirtual
   String? keyForModelOrId(Object model) {
-    if (model is T && model.isInitialized) {
-      return model._key!;
+    if (model is T) {
+      return model._key;
     } else {
       final id = _resolveId(model);
       if (id != null) {

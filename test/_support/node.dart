@@ -6,7 +6,7 @@ part 'node.g.dart';
 
 @freezed
 @DataRepository([], remote: false)
-class Node with DataModel<Node>, _$Node {
+class Node extends DataModel<Node> with _$Node {
   Node._();
   factory Node(
       {int? id,
