@@ -38,16 +38,15 @@ mixin $DogLocalAdapter on LocalAdapter<Dog> {
 
   @override
   Dog deserialize(map) {
-    for (final key in relationshipsFor().keys) {
-      map[key] = {
-        '_': [map[key], !map.containsKey(key)],
-      };
-    }
+    map = transformDeserialize(map);
     return Dog.fromJson(map);
   }
 
   @override
-  Map<String, dynamic> serialize(model) => model.toJson();
+  Map<String, dynamic> serialize(model, {bool withRelationships = true}) {
+    final map = model.toJson();
+    return transformSerialize(map, withRelationships: withRelationships);
+  }
 }
 
 final _dogsFinders = <String, dynamic>{};
@@ -74,16 +73,15 @@ mixin $CatLocalAdapter on LocalAdapter<Cat> {
 
   @override
   Cat deserialize(map) {
-    for (final key in relationshipsFor().keys) {
-      map[key] = {
-        '_': [map[key], !map.containsKey(key)],
-      };
-    }
+    map = transformDeserialize(map);
     return Cat.fromJson(map);
   }
 
   @override
-  Map<String, dynamic> serialize(model) => model.toJson();
+  Map<String, dynamic> serialize(model, {bool withRelationships = true}) {
+    final map = model.toJson();
+    return transformSerialize(map, withRelationships: withRelationships);
+  }
 }
 
 final _catsFinders = <String, dynamic>{};

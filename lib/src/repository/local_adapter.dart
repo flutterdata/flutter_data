@@ -41,16 +41,44 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
 
   // public abstract methods
 
-  Map<String, dynamic> serialize(T model);
+  Map<String, dynamic> serialize(T model, {bool withRelationships = true});
 
   T deserialize(Map<String, dynamic> map);
 
   Map<String, Map<String, Object?>> relationshipsFor([T model]);
 
+  // helpers
+
+  Map<String, dynamic> transformSerialize(Map<String, dynamic> map,
+      {bool withRelationships = true}) {
+    for (final key in relationshipsFor().keys) {
+      if (withRelationships) {
+        if (map[key] is HasMany) {
+          map[key] = (map[key] as HasMany).ids.toList();
+        } else if (map[key] is BelongsTo) {
+          map[key] = map[key].id;
+        }
+        if (map[key] == null) map.remove(key);
+      } else {
+        map.remove(key);
+      }
+    }
+    return map;
+  }
+
+  Map<String, dynamic> transformDeserialize(Map<String, dynamic> map) {
+    map = Map<String, dynamic>.from(map);
+    for (final key in relationshipsFor().keys) {
+      // just to cause relationship to instantiate
+      map[key] = {'_': null};
+    }
+    return map;
+  }
+
   // private
 
   // ignore: unused_element
   bool get _isLocalStorageTouched;
-  
+
   void _touchLocalStorage();
 }

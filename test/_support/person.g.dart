@@ -16,22 +16,22 @@ mixin $PersonLocalAdapter on LocalAdapter<Person> {
           'inverse': 'persons',
           'type': 'familia',
           'kind': 'BelongsTo',
-          'instance': model?.familia
+          'instance': model?.familia,
+          'jsonkey': false
         }
       };
 
   @override
   Person deserialize(map) {
-    for (final key in relationshipsFor().keys) {
-      map[key] = {
-        '_': [map[key], !map.containsKey(key)],
-      };
-    }
+    map = transformDeserialize(map);
     return Person.fromJson(map);
   }
 
   @override
-  Map<String, dynamic> serialize(model) => model.toJson();
+  Map<String, dynamic> serialize(model, {bool withRelationships = true}) {
+    final map = model.toJson();
+    return transformSerialize(map, withRelationships: withRelationships);
+  }
 }
 
 final _peopleFinders = <String, dynamic>{};

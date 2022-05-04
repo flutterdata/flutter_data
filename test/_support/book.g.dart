@@ -26,10 +26,10 @@ _$_Book _$$_BookFromJson(Map<String, dynamic> json) => _$_Book(
       id: json['id'] as int,
       title: json['title'] as String?,
       numberOfSales: json['number_of_sales'] as int? ?? 0,
-      originalAuthor: json['original_author'] == null
+      originalAuthor: json['original_author_id'] == null
           ? null
           : BelongsTo<BookAuthor>.fromJson(
-              json['original_author'] as Map<String, dynamic>),
+              json['original_author_id'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$$_BookToJson(_$_Book instance) {
@@ -45,7 +45,7 @@ Map<String, dynamic> _$$_BookToJson(_$_Book instance) {
 
   writeNotNull('title', instance.title);
   val['number_of_sales'] = instance.numberOfSales;
-  writeNotNull('original_author', instance.originalAuthor);
+  writeNotNull('original_author_id', instance.originalAuthor);
   return val;
 }
 
@@ -63,22 +63,22 @@ mixin $BookAuthorLocalAdapter on LocalAdapter<BookAuthor> {
           'inverse': 'originalAuthor',
           'type': 'books',
           'kind': 'HasMany',
-          'instance': model?.books
+          'instance': model?.books,
+          'jsonkey': false
         }
       };
 
   @override
   BookAuthor deserialize(map) {
-    for (final key in relationshipsFor().keys) {
-      map[key] = {
-        '_': [map[key], !map.containsKey(key)],
-      };
-    }
+    map = transformDeserialize(map);
     return BookAuthor.fromJson(map);
   }
 
   @override
-  Map<String, dynamic> serialize(model) => model.toJson();
+  Map<String, dynamic> serialize(model, {bool withRelationships = true}) {
+    final map = model.toJson();
+    return transformSerialize(map, withRelationships: withRelationships);
+  }
 }
 
 final _bookAuthorsFinders = <String, dynamic>{
@@ -109,27 +109,27 @@ extension BookAuthorDataRepositoryX on Repository<BookAuthor> {
 mixin $BookLocalAdapter on LocalAdapter<Book> {
   @override
   Map<String, Map<String, Object?>> relationshipsFor([Book? model]) => {
-        'original_author': {
+        'original_author_id': {
           'name': 'originalAuthor',
           'inverse': 'books',
           'type': 'bookAuthors',
           'kind': 'BelongsTo',
-          'instance': model?.originalAuthor
+          'instance': model?.originalAuthor,
+          'jsonkey': true
         }
       };
 
   @override
   Book deserialize(map) {
-    for (final key in relationshipsFor().keys) {
-      map[key] = {
-        '_': [map[key], !map.containsKey(key)],
-      };
-    }
+    map = transformDeserialize(map);
     return Book.fromJson(map);
   }
 
   @override
-  Map<String, dynamic> serialize(model) => model.toJson();
+  Map<String, dynamic> serialize(model, {bool withRelationships = true}) {
+    final map = model.toJson();
+    return transformSerialize(map, withRelationships: withRelationships);
+  }
 }
 
 final _booksFinders = <String, dynamic>{};

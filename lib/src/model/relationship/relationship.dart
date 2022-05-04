@@ -5,16 +5,19 @@ part of flutter_data;
 abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
   @protected
   Relationship([Set<E>? models])
-      : this._(models?.map((m) => m._key) ?? {}, models == null);
+      : this._(models?.map((m) => m._key) ?? {}, models == null, false);
+  // TODO shouldn't passing a specific set of models reset existing values? _shouldRemove=true?
 
-  Relationship._(Iterable<String> keys, this._wasOmitted)
+  Relationship._(
+      Iterable<String> keys, this._wasOmitted, this._reconstructFromGraph)
       : _uninitializedKeys = keys.toSet(),
         _shouldRemove = false;
 
   Relationship._remove()
       : _uninitializedKeys = {},
         _wasOmitted = false,
-        _shouldRemove = true;
+        _shouldRemove = true,
+        _reconstructFromGraph = false;
 
   String? _ownerKey;
   String? _name;
@@ -24,6 +27,7 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
       internalRepositories[_internalType]!.remoteAdapter as RemoteAdapter<E>;
   GraphNotifier get _graph => _adapter.localAdapter.graph;
 
+  final bool _reconstructFromGraph;
   final Set<String> _uninitializedKeys;
   final bool _wasOmitted;
   final bool _shouldRemove;
@@ -42,6 +46,10 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
     _ownerKey = owner._key;
     _name = name;
     _inverseName = inverseName;
+
+    if (_reconstructFromGraph) {
+      return this;
+    }
 
     if (_shouldRemove) {
       _graph._removeEdges(_ownerKey!,

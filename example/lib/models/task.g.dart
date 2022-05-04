@@ -36,22 +36,22 @@ mixin $TaskLocalAdapter on LocalAdapter<Task> {
           'inverse': 'tasks',
           'type': 'users',
           'kind': 'BelongsTo',
-          'instance': model?.user
+          'instance': model?.user,
+          'jsonkey': false
         }
       };
 
   @override
   Task deserialize(map) {
-    for (final key in relationshipsFor().keys) {
-      map[key] = {
-        '_': [map[key], !map.containsKey(key)],
-      };
-    }
+    map = transformDeserialize(map);
     return _$TaskFromJson(map);
   }
 
   @override
-  Map<String, dynamic> serialize(model) => _$TaskToJson(model);
+  Map<String, dynamic> serialize(model, {bool withRelationships = true}) {
+    final map = _$TaskToJson(model);
+    return transformSerialize(map, withRelationships: withRelationships);
+  }
 }
 
 final _tasksFinders = <String, dynamic>{};

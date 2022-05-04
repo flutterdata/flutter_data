@@ -77,6 +77,7 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
             : DataGraphEventType.addNode,
       );
     }
+
     await save;
     return model;
   }
@@ -158,26 +159,23 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
       for (var i = 0; i < total; i++) reader.read().toString(): reader.read(),
     };
 
-    // reconstruct relationship information from graph
-    for (final entry in relationshipsFor().entries) {
-      // entry keys are the name of relationships => metadata
-      final name = entry.value['name']! as String;
-      final relKeys = graph._getEdge(key, metadata: name);
-      map[name] =
-          entry.value['kind'] == 'BelongsTo' ? relKeys.safeFirst : relKeys;
-    }
+    final model = deserialize(map);
 
-    return deserialize(map);
+    if (model._key != key) {
+      final oldKey = model._key;
+      model._key = key;
+      graph.removeKey(oldKey);
+    }
+    return model;
   }
 
   @override
   void write(writer, T obj) {
-    final _map = serialize(obj);
+    final _map = serialize(obj, withRelationships: false);
     // write key first
     writer.write(obj._key);
 
-    // exclude relationships
-    final keys = _map.keys.where((k) => !relationshipsFor().containsKey(k));
+    final keys = _map.keys;
     writer.writeByte(keys.length);
     for (final k in keys) {
       writer.write(k);

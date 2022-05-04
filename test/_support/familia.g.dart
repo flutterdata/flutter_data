@@ -56,42 +56,45 @@ mixin $FamiliaLocalAdapter on LocalAdapter<Familia> {
           'inverse': 'familia',
           'type': 'people',
           'kind': 'HasMany',
-          'instance': model?.persons
+          'instance': model?.persons,
+          'jsonkey': false
         },
         'cottage': {
           'name': 'cottage',
           'inverse': 'owner',
           'type': 'houses',
           'kind': 'BelongsTo',
-          'instance': model?.cottage
+          'instance': model?.cottage,
+          'jsonkey': false
         },
         'residence': {
           'name': 'residence',
           'inverse': 'owner',
           'type': 'houses',
           'kind': 'BelongsTo',
-          'instance': model?.residence
+          'instance': model?.residence,
+          'jsonkey': false
         },
         'dogs': {
           'name': 'dogs',
           'type': 'dogs',
           'kind': 'HasMany',
-          'instance': model?.dogs
+          'instance': model?.dogs,
+          'jsonkey': false
         }
       };
 
   @override
   Familia deserialize(map) {
-    for (final key in relationshipsFor().keys) {
-      map[key] = {
-        '_': [map[key], !map.containsKey(key)],
-      };
-    }
+    map = transformDeserialize(map);
     return _$FamiliaFromJson(map);
   }
 
   @override
-  Map<String, dynamic> serialize(model) => _$FamiliaToJson(model);
+  Map<String, dynamic> serialize(model, {bool withRelationships = true}) {
+    final map = _$FamiliaToJson(model);
+    return transformSerialize(map, withRelationships: withRelationships);
+  }
 }
 
 final _familiaFinders = <String, dynamic>{};

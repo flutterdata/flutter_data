@@ -28,7 +28,7 @@ class Book extends DataModel<Book> with _$Book {
     required int id,
     String? title,
     @Default(0) int numberOfSales,
-    @JsonKey(name: 'original_author') BelongsTo<BookAuthor>? originalAuthor,
+    @JsonKey(name: 'original_author_id') BelongsTo<BookAuthor>? originalAuthor,
   }) = _Book;
   factory Book.fromJson(Map<String, dynamic> json) => _$BookFromJson(json);
 }

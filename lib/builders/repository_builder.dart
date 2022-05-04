@@ -102,6 +102,7 @@ and execute a code generation build again.
         'inverse': inverse,
         'kind': field.type.element?.name,
         'type': DataHelpers.getType(relationshipClassElement.name),
+        if (keyName != null) 'jsonkey': '_'
       });
 
       return result;
@@ -115,6 +116,7 @@ and execute a code generation build again.
           '\'type\'': '\'${rel['type']}\'',
           '\'kind\'': '\'${rel['kind']}\'',
           '\'instance\'': 'model?.' + rel['name']!,
+          '\'jsonkey\'': rel['jsonkey'] != null,
         }
     };
 
@@ -199,16 +201,15 @@ mixin \$${classType}LocalAdapter on LocalAdapter<$classType> {
 
   @override
   $classType deserialize(map) {
-    for (final key in relationshipsFor().keys) {
-      map[key] = {
-        '_': [map[key], !map.containsKey(key)],
-      };
-    }
+    map = transformDeserialize(map);
     return $fromJson;
   }
 
   @override
-  Map<String, dynamic> serialize(model) => $toJson;
+  Map<String, dynamic> serialize(model, {bool withRelationships = true}) {
+    final map = $toJson;
+    return transformSerialize(map, withRelationships: withRelationships);
+  }
 }
 
 final _${typeLowerCased}Finders = <String, dynamic>{

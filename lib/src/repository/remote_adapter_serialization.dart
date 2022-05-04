@@ -3,30 +3,11 @@ part of flutter_data;
 mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
   @override
   Map<String, dynamic> serialize(T model) {
-    final map = localAdapter.serialize(model);
-
-    final relationships = <String, dynamic>{};
-
-    for (final field in localAdapter.relationshipsFor(model).keys) {
-      final key = keyForField(field);
-
-      if (map[field] != null) {
-        if (map[field] is HasMany) {
-          relationships[key] =
-              (map[field] as HasMany).map((e) => e.id).toList();
-        }
-        if (map[field] is BelongsTo) {
-          relationships[key] = (map[field] as BelongsTo).value?.id;
-        }
-      }
-      map.remove(field);
-    }
-
-    return map..addAll(relationships.filterNulls);
+    return localAdapter.serialize(model);
   }
 
   @override
-  DeserializedData<T> deserialize(Object? data, {String? key}) {
+  DeserializedData<T> deserialize(Object? data) {
     final result = DeserializedData<T>([], included: []);
 
     Object? addIncluded(id, RemoteAdapter? adapter) {
@@ -58,7 +39,7 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
         final relationships = localAdapter.relationshipsFor();
 
         for (final mapInKey in mapIn.keys) {
-          final mapOutKey = fieldForKey(mapInKey.toString());
+          final mapOutKey = mapInKey.toString();
           final metadata = relationships[mapOutKey];
 
           if (metadata != null) {
@@ -95,57 +76,6 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
     }
 
     return result;
-  }
-
-  /// A suffix appended to all [BelongsTo] relationships in serialized form.
-  ///
-  /// Example:
-  ///
-  /// ```
-  /// {
-  ///  "user_id": 1,
-  ///  "id": 1,
-  ///  "title": "delectus aut autem",
-  ///  "completed": false
-  ///}
-  ///```
-  @protected
-  String get identifierSuffix => '_id';
-
-  Map<String, Map<String, Object?>> get _belongsTos =>
-      Map.fromEntries(localAdapter
-          .relationshipsFor()
-          .entries
-          .where((e) => e.value['kind'] == 'BelongsTo'));
-
-  /// Transforms a [key] into a model's field.
-  ///
-  /// This mapping can also be done via `json_serializable`'s `@JsonKey`.
-  /// If both are used, `fieldForKey` will be applied before
-  /// reaching `fromJson`.
-  @protected
-  @visibleForTesting
-  String fieldForKey(String key) {
-    if (key.endsWith(identifierSuffix)) {
-      final keyWithoutId =
-          key.substring(0, key.length - identifierSuffix.length);
-      if (_belongsTos.keys.contains(keyWithoutId)) {
-        return keyWithoutId;
-      }
-    }
-    return key;
-  }
-
-  /// Transforms a model's [field] into a key.
-  ///
-  /// This mapping can also be done via `json_serializable`'s `@JsonKey`.
-  @protected
-  @visibleForTesting
-  String keyForField(String field) {
-    if (_belongsTos.keys.contains(field)) {
-      return '$field$identifierSuffix';
-    }
-    return field;
   }
 }
 

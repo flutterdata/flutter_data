@@ -34,22 +34,22 @@ mixin $HouseLocalAdapter on LocalAdapter<House> {
           'inverse': 'residence',
           'type': 'familia',
           'kind': 'BelongsTo',
-          'instance': model?.owner
+          'instance': model?.owner,
+          'jsonkey': false
         }
       };
 
   @override
   House deserialize(map) {
-    for (final key in relationshipsFor().keys) {
-      map[key] = {
-        '_': [map[key], !map.containsKey(key)],
-      };
-    }
+    map = transformDeserialize(map);
     return _$HouseFromJson(map);
   }
 
   @override
-  Map<String, dynamic> serialize(model) => _$HouseToJson(model);
+  Map<String, dynamic> serialize(model, {bool withRelationships = true}) {
+    final map = _$HouseToJson(model);
+    return transformSerialize(map, withRelationships: withRelationships);
+  }
 }
 
 final _housesFinders = <String, dynamic>{};

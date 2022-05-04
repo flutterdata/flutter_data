@@ -113,6 +113,7 @@ void tearDownFn() async {
   graph.dispose();
 
   verbose.clear();
+  await oneMs();
 }
 
 // utils

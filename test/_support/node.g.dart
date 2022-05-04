@@ -38,29 +38,30 @@ mixin $NodeLocalAdapter on LocalAdapter<Node> {
           'inverse': 'children',
           'type': 'nodes',
           'kind': 'BelongsTo',
-          'instance': model?.parent
+          'instance': model?.parent,
+          'jsonkey': false
         },
         'children': {
           'name': 'children',
           'inverse': 'parent',
           'type': 'nodes',
           'kind': 'HasMany',
-          'instance': model?.children
+          'instance': model?.children,
+          'jsonkey': false
         }
       };
 
   @override
   Node deserialize(map) {
-    for (final key in relationshipsFor().keys) {
-      map[key] = {
-        '_': [map[key], !map.containsKey(key)],
-      };
-    }
+    map = transformDeserialize(map);
     return Node.fromJson(map);
   }
 
   @override
-  Map<String, dynamic> serialize(model) => model.toJson();
+  Map<String, dynamic> serialize(model, {bool withRelationships = true}) {
+    final map = model.toJson();
+    return transformSerialize(map, withRelationships: withRelationships);
+  }
 }
 
 final _nodesFinders = <String, dynamic>{};

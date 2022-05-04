@@ -203,11 +203,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   // serialization interface
 
   /// Returns a [DeserializedData] object when deserializing a given [data].
-  ///
-  /// [key] can be used to supply a specific `key` when deserializing ONE model.
   @protected
   @visibleForTesting
-  DeserializedData<T> deserialize(Object? data, {String key});
+  DeserializedData<T> deserialize(Object? data);
 
   /// Returns a serialized version of a model of [T],
   /// as a [Map<String, dynamic>] ready to be JSON-encoded.

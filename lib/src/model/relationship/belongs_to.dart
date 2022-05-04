@@ -25,19 +25,22 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
   /// See also: [DataModelRelationshipExtension<E>.asBelongsTo]
   BelongsTo([final E? model]) : super(model != null ? {model} : null);
 
-  BelongsTo._(String? key, bool _wasOmitted)
-      : super._(key != null ? {key} : {}, _wasOmitted);
+  BelongsTo._(String? key, bool _wasOmitted, bool _reconstructFromGraph)
+      : super._(key != null ? {key} : {}, _wasOmitted, _reconstructFromGraph);
 
   BelongsTo.remove() : super._remove();
 
   /// For internal use with `json_serializable`.
   factory BelongsTo.fromJson(final Map<String, dynamic> map) {
+    if (map['_'] == null) {
+      return BelongsTo._(null, false, true);
+    }
     final key = map['_'][0] as String?;
     if (key == null) {
       final wasOmitted = map['_'][1] as bool;
-      return BelongsTo._(null, wasOmitted);
+      return BelongsTo._(null, wasOmitted, false);
     }
-    return BelongsTo._(key, false);
+    return BelongsTo._(key, false, false);
   }
 
   /// Obtains the single [E] value of this relationship (`null` if not present).

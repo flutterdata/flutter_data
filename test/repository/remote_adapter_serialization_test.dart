@@ -21,7 +21,7 @@ void main() async {
         {'_id': '23', 'name': 'Ko', 'age': 24});
   });
 
-  test('serialize with relationship and null attribute', () async {
+  test('serialize with relationship', () async {
     final familia = Familia(
       surname: 'Tao',
       persons: HasMany({Person(id: '332', name: 'Ko')}),
@@ -46,7 +46,7 @@ void main() async {
       'surname': 'Zhan',
       // we expect persons: [] as it's default in the Familia class
       'persons': [],
-      'residence_id': '1',
+      'residence': '1',
       'dogs': ['1', '2']
     });
     expect(json.encode(serialized), isA<String>());
@@ -60,7 +60,7 @@ void main() async {
     expect(s2, {
       'id': 1,
       'name': 'a',
-      'children': [2, 3]
+      'children': ['2', '3']
     });
     expect(json.encode(s2), isA<String>());
   });

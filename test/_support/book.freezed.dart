@@ -211,7 +211,7 @@ class _$BookTearOff {
       {required int id,
       String? title,
       int numberOfSales = 0,
-      @JsonKey(name: 'original_author')
+      @JsonKey(name: 'original_author_id')
           BelongsTo<BookAuthor>? originalAuthor}) {
     return _Book(
       id: id,
@@ -234,7 +234,7 @@ mixin _$Book {
   int get id => throw _privateConstructorUsedError;
   String? get title => throw _privateConstructorUsedError;
   int get numberOfSales => throw _privateConstructorUsedError;
-  @JsonKey(name: 'original_author')
+  @JsonKey(name: 'original_author_id')
   BelongsTo<BookAuthor>? get originalAuthor =>
       throw _privateConstructorUsedError;
 
@@ -251,7 +251,8 @@ abstract class $BookCopyWith<$Res> {
       {int id,
       String? title,
       int numberOfSales,
-      @JsonKey(name: 'original_author') BelongsTo<BookAuthor>? originalAuthor});
+      @JsonKey(name: 'original_author_id')
+          BelongsTo<BookAuthor>? originalAuthor});
 }
 
 /// @nodoc
@@ -299,7 +300,8 @@ abstract class _$BookCopyWith<$Res> implements $BookCopyWith<$Res> {
       {int id,
       String? title,
       int numberOfSales,
-      @JsonKey(name: 'original_author') BelongsTo<BookAuthor>? originalAuthor});
+      @JsonKey(name: 'original_author_id')
+          BelongsTo<BookAuthor>? originalAuthor});
 }
 
 /// @nodoc
@@ -347,7 +349,7 @@ class _$_Book extends _Book {
       {required this.id,
       this.title,
       this.numberOfSales = 0,
-      @JsonKey(name: 'original_author') this.originalAuthor})
+      @JsonKey(name: 'original_author_id') this.originalAuthor})
       : super._();
 
   factory _$_Book.fromJson(Map<String, dynamic> json) => _$$_BookFromJson(json);
@@ -360,7 +362,7 @@ class _$_Book extends _Book {
   @override
   final int numberOfSales;
   @override
-  @JsonKey(name: 'original_author')
+  @JsonKey(name: 'original_author_id')
   final BelongsTo<BookAuthor>? originalAuthor;
 
   @override
@@ -405,7 +407,7 @@ abstract class _Book extends Book {
       {required int id,
       String? title,
       int numberOfSales,
-      @JsonKey(name: 'original_author')
+      @JsonKey(name: 'original_author_id')
           BelongsTo<BookAuthor>? originalAuthor}) = _$_Book;
   _Book._() : super._();
 
@@ -418,7 +420,7 @@ abstract class _Book extends Book {
   @override
   int get numberOfSales;
   @override
-  @JsonKey(name: 'original_author')
+  @JsonKey(name: 'original_author_id')
   BelongsTo<BookAuthor>? get originalAuthor;
   @override
   @JsonKey(ignore: true)

@@ -15,6 +15,22 @@ void main() async {
     expect(familia, isNull);
   });
 
+  test('save without ID', () async {
+    final p = Person(name: 'Luis');
+    await container.people.save(p);
+    final p2 = container.people.remoteAdapter.localAdapter.findOne(keyFor(p))!;
+    expect(p, p2);
+    expect(keyFor(p), keyFor(p2));
+  });
+
+  test('current and deserialized equals share same key', () async {
+    final p = Person(id: '1', name: 'Luis');
+    await container.people.save(p);
+    final p2 = container.people.remoteAdapter.localAdapter
+        .deserialize({'_id': '1', 'name': 'Luis'});
+    expect(keyFor(p), keyFor(p2));
+  });
+
   test('deserialize existing (with save)', () {
     final familiaLocalAdapter = container.familia.remoteAdapter.localAdapter
         as HiveLocalAdapter<Familia>;
@@ -52,9 +68,9 @@ void main() async {
     expect(keyFor(familia1b), keyFor(familia2b));
   });
 
-  test('local serialize', () {
+  test('local serialize with and without relationships', () {
     final familiaLocalAdapter = container.familia.remoteAdapter.localAdapter;
-    final p1r = {Person(id: '1', name: 'Franco', age: 28)}.asHasMany;
+    final p1r = {Person(id: '4', name: 'Franco', age: 28)}.asHasMany;
     final h1r = House(id: '1', address: '123 Main St').asBelongsTo;
 
     final familia =
@@ -64,8 +80,26 @@ void main() async {
     expect(map, {
       'id': '1',
       'surname': 'Smith',
-      'residence': h1r,
-      'persons': p1r,
+      'residence': '1',
+      'persons': {'4'},
+    });
+
+    // now a familia without specified relationships
+    final familia2 = Familia(id: '1', surname: 'Smith');
+
+    final map2 = familiaLocalAdapter.serialize(familia2);
+    expect(map2, {
+      'id': '1',
+      'surname': 'Smith',
+      // 'residence': '1', only persons as it's defaulted, residence is null! FOR NOW
+      'persons': {'4'},
+    });
+
+    final mapWithoutRelationships =
+        familiaLocalAdapter.serialize(familia, withRelationships: false);
+    expect(mapWithoutRelationships, {
+      'id': '1',
+      'surname': 'Smith',
     });
   });
 
@@ -96,17 +130,15 @@ void main() async {
 
   test('local deserialize with relationships', () {
     final familiaLocalAdapter = container.familia.remoteAdapter.localAdapter;
-    final house = House(id: '1', address: '123 Main St');
-    final person = Person(id: '1', name: 'John', age: 21);
 
     final obj = {
       'id': '1',
       'surname': 'Smith',
-      'residence': keyFor(house),
-      'persons': [keyFor(person)]
     };
 
     final familia = familiaLocalAdapter.deserialize(obj);
+    House(id: '1', address: '123 Main St', owner: familia.asBelongsTo);
+    Person(id: '1', name: 'John', age: 21, familia: familia.asBelongsTo);
 
     expect(familia, Familia(id: '1', surname: 'Smith'));
     expect(familia.residence!.value!.address, '123 Main St');
