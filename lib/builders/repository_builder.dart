@@ -102,7 +102,6 @@ and execute a code generation build again.
         'inverse': inverse,
         'kind': field.type.element?.name,
         'type': DataHelpers.getType(relationshipClassElement.name),
-        if (keyName != null) 'jsonkey': '_'
       });
 
       return result;
@@ -116,7 +115,6 @@ and execute a code generation build again.
           '\'type\'': '\'${rel['type']}\'',
           '\'kind\'': '\'${rel['kind']}\'',
           '\'instance\'': 'model?.' + rel['name']!,
-          '\'jsonkey\'': rel['jsonkey'] != null,
         }
     };
 

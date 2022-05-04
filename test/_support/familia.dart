@@ -14,6 +14,7 @@ class Familia extends DataModel<Familia> {
   final String? id;
   final String surname;
   late final HasMany<Person> persons;
+  @JsonKey(name: 'cottage_id')
   final BelongsTo<House>? cottage;
   final BelongsTo<House>? residence;
   final HasMany<Dog>? dogs;

@@ -34,8 +34,7 @@ mixin $UserLocalAdapter on LocalAdapter<User> {
           'inverse': 'user',
           'type': 'tasks',
           'kind': 'HasMany',
-          'instance': model?.tasks,
-          'jsonkey': false
+          'instance': model?.tasks
         }
       };
 

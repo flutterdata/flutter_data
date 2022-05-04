@@ -34,8 +34,7 @@ mixin $HouseLocalAdapter on LocalAdapter<House> {
           'inverse': 'residence',
           'type': 'familia',
           'kind': 'BelongsTo',
-          'instance': model?.owner,
-          'jsonkey': false
+          'instance': model?.owner
         }
       };
 

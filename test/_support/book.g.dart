@@ -63,8 +63,7 @@ mixin $BookAuthorLocalAdapter on LocalAdapter<BookAuthor> {
           'inverse': 'originalAuthor',
           'type': 'books',
           'kind': 'HasMany',
-          'instance': model?.books,
-          'jsonkey': false
+          'instance': model?.books
         }
       };
 
@@ -114,8 +113,7 @@ mixin $BookLocalAdapter on LocalAdapter<Book> {
           'inverse': 'books',
           'type': 'bookAuthors',
           'kind': 'BelongsTo',
-          'instance': model?.originalAuthor,
-          'jsonkey': true
+          'instance': model?.originalAuthor
         }
       };
 

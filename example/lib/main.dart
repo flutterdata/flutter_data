@@ -27,8 +27,8 @@ void main() async {
 
     await container.read(repositoryInitializerProvider.future);
 
-    container.users.remoteAdapter.verbose = true;
-    container.tasks.remoteAdapter.verbose = true;
+    container.users.verbose = true;
+    container.tasks.verbose = true;
 
     await container.tasks.findAll(params: {'user_id': 1, '_limit': 3});
 

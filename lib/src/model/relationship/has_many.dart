@@ -25,22 +25,14 @@ class HasMany<E extends DataModel<E>> extends Relationship<E, Set<E>> {
   /// See also: [IterableRelationshipExtension<E>.asHasMany]
   HasMany([Set<E>? models]) : super(models);
 
-  HasMany._(Iterable<String> keys, bool _wasOmitted, bool _reconstructFromGraph)
-      : super._(keys, _wasOmitted, _reconstructFromGraph);
+  HasMany._(Set<String>? keys) : super._(keys);
 
   HasMany.remove() : super._remove();
 
   /// For internal use with `json_serializable`.
   factory HasMany.fromJson(final Map<String, dynamic> map) {
-    if (map['_'] == null) {
-      return HasMany._({}, false, true);
-    }
-    if (map['_'][0] == null) {
-      final wasOmitted = map['_'][1] as bool;
-      return HasMany._({}, wasOmitted, false);
-    }
-    final keys = <String>{...map['_'][0]};
-    return HasMany._(keys, false, false);
+    if (map['_'] == null) return HasMany._(null);
+    return HasMany._({...map['_']});
   }
 
   /// Returns a [StateNotifier] which emits the latest [Set<E>] representing

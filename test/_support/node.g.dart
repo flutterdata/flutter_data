@@ -38,16 +38,14 @@ mixin $NodeLocalAdapter on LocalAdapter<Node> {
           'inverse': 'children',
           'type': 'nodes',
           'kind': 'BelongsTo',
-          'instance': model?.parent,
-          'jsonkey': false
+          'instance': model?.parent
         },
         'children': {
           'name': 'children',
           'inverse': 'parent',
           'type': 'nodes',
           'kind': 'HasMany',
-          'instance': model?.children,
-          'jsonkey': false
+          'instance': model?.children
         }
       };
 

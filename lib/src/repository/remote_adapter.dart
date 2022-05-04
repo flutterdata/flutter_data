@@ -75,7 +75,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   final InternalHolder<T>? _internalHolder;
 
   /// Turn verbosity on or off.
-  bool verbose = false;
+  // ignore: prefer_final_fields
+  bool _verbose = false;
 
   /// Returns the base URL for this type [T].
   ///
@@ -677,7 +678,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   /// Logs messages for a specific label when `verbose` is `true`.
   @protected
   void log(DataRequestLabel label, String message) {
-    if (verbose) {
+    if (_verbose) {
       final now = DateTime.now();
       final timestamp =
           '${now.second.toString().padLeft(2, '0')}:${now.millisecond.toString().padLeft(3, '0')}';

@@ -228,7 +228,7 @@ void main() async {
 
     // update another person through deserialization
     container.read(responseProvider.notifier).state = TestResponse.text(
-        '''{ "_id": "2", "name": "Eve", "age": 20, "familia_id": "22" }''');
+        '''{ "_id": "2", "name": "Eve", "age": 20, "familia": "22" }''');
     final eve = await container.people.findOne('2', remote: true);
     await oneMs();
 

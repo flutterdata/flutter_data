@@ -16,9 +16,13 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
         result.included
           ..add(data.model as DataModel<DataModel>)
           ..addAll(data.included);
-        return data.model!.id;
+        id = data.model!.id;
       }
-      return id;
+      if (id != null && adapter != null) {
+        return graph.getKeyForId(adapter.internalType, id,
+            keyIfAbsent: DataHelpers.generateKey(adapter.internalType));
+      }
+      return null;
     }
 
     if (data == null || data == '') {
@@ -28,45 +32,37 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
     // since data is not null, touch local storage
     localAdapter._touchLocalStorage();
 
-    if (data is Map) {
+    if (data is Map<String, dynamic>) {
       data = [data];
     }
 
     if (data is Iterable) {
-      for (final mapIn in data) {
+      for (final _ in data) {
+        final mapIn = Map<String, dynamic>.from(_ as Map);
         final mapOut = <String, dynamic>{};
 
         final relationships = localAdapter.relationshipsFor();
 
-        for (final mapInKey in mapIn.keys) {
-          final mapOutKey = mapInKey.toString();
-          final metadata = relationships[mapOutKey];
+        for (final mapKey in mapIn.keys) {
+          final metadata = relationships[mapKey];
 
           if (metadata != null) {
-            final _type = metadata['type'] as String;
+            final relType = metadata['type'] as String;
 
             if (metadata['kind'] == 'BelongsTo') {
-              final id = addIncluded(mapIn[mapInKey], adapters[_type]);
-              mapOut[mapOutKey] = id == null
-                  ? null
-                  : graph.getKeyForId(_type, id,
-                      keyIfAbsent: DataHelpers.generateKey(_type));
+              final key = addIncluded(mapIn[mapKey], adapters[relType]!);
+              if (key != null) mapOut[mapKey] = key;
             }
 
             if (metadata['kind'] == 'HasMany') {
-              final _mapOut = [];
-              for (var id in (mapIn[mapInKey] as Iterable)) {
-                id = addIncluded(id, adapters[_type]);
-                if (id != null) {
-                  _mapOut.add(graph.getKeyForId(_type, id,
-                      keyIfAbsent: DataHelpers.generateKey(_type)));
-                }
-              }
-              mapOut[mapOutKey] = _mapOut;
+              mapOut[mapKey] = [
+                for (final id in (mapIn[mapKey] as Iterable))
+                  addIncluded(id, adapters[relType]!)
+              ].filterNulls;
             }
           } else {
             // regular field mapping
-            mapOut[mapOutKey] = mapIn[mapInKey];
+            mapOut[mapKey] = mapIn[mapKey];
           }
         }
 

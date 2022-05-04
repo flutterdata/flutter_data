@@ -69,8 +69,12 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
   Map<String, dynamic> transformDeserialize(Map<String, dynamic> map) {
     map = Map<String, dynamic>.from(map);
     for (final key in relationshipsFor().keys) {
-      // just to cause relationship to instantiate
-      map[key] = {'_': null};
+      final keyset = map[key] is Iterable
+          ? {...(map[key] as Iterable)}
+          : {if (map[key] != null) map[key].toString()};
+      map[key] = {
+        '_': map.containsKey(key) ? keyset : null,
+      };
     }
     return map;
   }

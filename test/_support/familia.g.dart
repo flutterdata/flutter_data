@@ -12,9 +12,10 @@ Familia _$FamiliaFromJson(Map<String, dynamic> json) => Familia(
       persons: json['persons'] == null
           ? null
           : HasMany<Person>.fromJson(json['persons'] as Map<String, dynamic>),
-      cottage: json['cottage'] == null
+      cottage: json['cottage_id'] == null
           ? null
-          : BelongsTo<House>.fromJson(json['cottage'] as Map<String, dynamic>),
+          : BelongsTo<House>.fromJson(
+              json['cottage_id'] as Map<String, dynamic>),
       residence: json['residence'] == null
           ? null
           : BelongsTo<House>.fromJson(
@@ -36,7 +37,7 @@ Map<String, dynamic> _$FamiliaToJson(Familia instance) {
   writeNotNull('id', instance.id);
   val['surname'] = instance.surname;
   val['persons'] = instance.persons.toJson();
-  writeNotNull('cottage', instance.cottage?.toJson());
+  writeNotNull('cottage_id', instance.cottage?.toJson());
   writeNotNull('residence', instance.residence?.toJson());
   writeNotNull('dogs', instance.dogs?.toJson());
   return val;
@@ -56,31 +57,27 @@ mixin $FamiliaLocalAdapter on LocalAdapter<Familia> {
           'inverse': 'familia',
           'type': 'people',
           'kind': 'HasMany',
-          'instance': model?.persons,
-          'jsonkey': false
+          'instance': model?.persons
         },
-        'cottage': {
+        'cottage_id': {
           'name': 'cottage',
           'inverse': 'owner',
           'type': 'houses',
           'kind': 'BelongsTo',
-          'instance': model?.cottage,
-          'jsonkey': false
+          'instance': model?.cottage
         },
         'residence': {
           'name': 'residence',
           'inverse': 'owner',
           'type': 'houses',
           'kind': 'BelongsTo',
-          'instance': model?.residence,
-          'jsonkey': false
+          'instance': model?.residence
         },
         'dogs': {
           'name': 'dogs',
           'type': 'dogs',
           'kind': 'HasMany',
-          'instance': model?.dogs,
-          'jsonkey': false
+          'instance': model?.dogs
         }
       };
 

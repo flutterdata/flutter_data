@@ -4,20 +4,11 @@ part of flutter_data;
 /// and their a [DataModel] owner. Backed by a [GraphNotifier].
 abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
   @protected
-  Relationship([Set<E>? models])
-      : this._(models?.map((m) => m._key) ?? {}, models == null, false);
-  // TODO shouldn't passing a specific set of models reset existing values? _shouldRemove=true?
+  Relationship([Set<E>? models]) : this._(models?.map((m) => m._key).toSet());
 
-  Relationship._(
-      Iterable<String> keys, this._wasOmitted, this._reconstructFromGraph)
-      : _uninitializedKeys = keys.toSet(),
-        _shouldRemove = false;
+  Relationship._(this._uninitializedKeys);
 
-  Relationship._remove()
-      : _uninitializedKeys = {},
-        _wasOmitted = false,
-        _shouldRemove = true,
-        _reconstructFromGraph = false;
+  Relationship._remove() : _uninitializedKeys = {};
 
   String? _ownerKey;
   String? _name;
@@ -27,10 +18,7 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
       internalRepositories[_internalType]!.remoteAdapter as RemoteAdapter<E>;
   GraphNotifier get _graph => _adapter.localAdapter.graph;
 
-  final bool _reconstructFromGraph;
-  final Set<String> _uninitializedKeys;
-  final bool _wasOmitted;
-  final bool _shouldRemove;
+  final Set<String>? _uninitializedKeys;
   String get _internalType => DataHelpers.getType<E>();
 
   /// Initializes this relationship (typically when initializing the owner
@@ -47,29 +35,24 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
     _name = name;
     _inverseName = inverseName;
 
-    if (_reconstructFromGraph) {
+    if (_uninitializedKeys == null) {
+      // means it was omitted (remote-omitted, or loaded locally), so skip
       return this;
     }
 
-    if (_shouldRemove) {
-      _graph._removeEdges(_ownerKey!,
-          metadata: _name!, inverseMetadata: _inverseName, notify: false);
-    }
+    // setting up from scratch, remove all and add keys
 
-    // initialize keys
-    if (!_wasOmitted) {
-      // if it wasn't omitted, we overwrite
-      _graph._removeEdges(_ownerKey!,
-          metadata: _name!, inverseMetadata: _inverseName, notify: false);
-    }
+    _graph._removeEdges(_ownerKey!,
+        metadata: _name!, inverseMetadata: _inverseName, notify: false);
+
     _graph._addEdges(
       _ownerKey!,
-      tos: _uninitializedKeys,
+      tos: _uninitializedKeys!,
       metadata: _name!,
       inverseMetadata: _inverseName,
       notify: false,
     );
-    _uninitializedKeys.clear();
+    _uninitializedKeys!.clear();
 
     return this;
   }
@@ -155,7 +138,7 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
   }
 
   Set<String> get ids {
-    return keys.map((key) => _graph.getIdForKey(key)!).toSet();
+    return keys.map((key) => _graph.getIdForKey(key)).filterNulls.toSet();
   }
 
   Set<Relationship?> andEach(AlsoWatch<E>? alsoWatch) {

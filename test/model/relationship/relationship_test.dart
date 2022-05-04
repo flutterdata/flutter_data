@@ -18,43 +18,30 @@ void main() async {
   tearDown(tearDownFn);
 
   test('scenario #1', () {
-    // house does not yet exist
-    final residenceKey = graph.getKeyForId('houses', '1',
-        keyIfAbsent: DataHelpers.generateKey<House>());
-
     final familiaLocalAdapter = container.familia.remoteAdapter.localAdapter;
 
     // since we're passing a key (not an ID)
     // we MUST use the local adapter serializer
-    final f1 = familiaLocalAdapter
-        .deserialize({'id': '1', 'surname': 'Rose', 'residence': residenceKey});
+    final f1 = familiaLocalAdapter.deserialize({'id': '1', 'surname': 'Rose'});
     expect(f1.residence!.value, isNull);
     expect(keyFor(f1), isNotNull);
 
     // once it does
-    final house = House(id: '1', address: '123 Main St');
-    // it's automatically wired up
+    final house = House(id: '1', address: '123 Main St', owner: f1.asBelongsTo);
     expect(f1.residence!.value, house);
     expect(f1.residence!.value!.owner.value, f1);
     expect(house.owner.value, f1);
 
-    // residence is omitted, but persons is included (no people exist yet)
-    final personKey =
-        graph.getKeyForId('people', '1', keyIfAbsent: 'people#a1a1a1');
     final f1b = familiaLocalAdapter.deserialize({
       'id': '1',
       'surname': 'Rose',
-      'persons': [personKey],
     });
-    // therefore
-    // residence remains wired
+    // residence should remain wired
     expect(f1b.residence!.value, house);
     // persons is empty since no people exist yet (despite having keys)
     expect(f1b.persons, isEmpty);
 
-    // once p1 exists
-    final p1 = Person(id: '1', name: 'Axl', age: 58);
-    // it's automatically wired up
+    final p1 = Person(id: '1', name: 'Axl', age: 58, familia: f1b.asBelongsTo);
     expect(f1b.persons.toSet(), {p1});
 
     // relationships are omitted - so they remain unchanged
@@ -111,14 +98,10 @@ void main() async {
       id: '1',
       surname: 'Jones',
       persons: HasMany.fromJson({
-        '_': [
-          ['people#c1c1c1', 'people#c2c2c2', 'people#c3c3c3'],
-          false,
-          container.familia
-        ]
+        '_': {'people#c1c1c1', 'people#c2c2c2', 'people#c3c3c3'}
       }),
       residence: BelongsTo.fromJson({
-        '_': ['houses#c98d1b', false, container.familia]
+        '_': {'houses#c98d1b'}
       }),
     );
 

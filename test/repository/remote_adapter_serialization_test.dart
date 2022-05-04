@@ -86,7 +86,7 @@ void main() async {
 
   test('deserialize with BelongsTo id', () async {
     final p = (container.people.remoteAdapter.deserialize([
-      {'_id': '1', 'name': 'Na', 'age': 88, 'familia_id': null}
+      {'_id': '1', 'name': 'Na', 'age': 88, 'familia': null}
     ])).model!;
 
     Familia(id: '1', surname: 'Kong');
@@ -94,7 +94,7 @@ void main() async {
     expect(p.familia.key, isNull);
 
     final p1 = (container.people.remoteAdapter.deserialize([
-      {'_id': '27', 'name': 'Ko', 'age': 24, 'familia_id': '332'}
+      {'_id': '27', 'name': 'Ko', 'age': 24, 'familia': '332'}
     ])).model!;
 
     Familia(id: '332', surname: 'Tao');
@@ -146,9 +146,9 @@ void main() async {
             {'_id': '1', 'name': 'Wendy', 'age': 58},
             {'_id': '2', 'name': 'Marty', 'age': 60},
           ],
-          'residence': <String, dynamic>{
+          'cottage_id': <String, dynamic>{
             'id': '1',
-            'address': '123 Main St',
+            'address': '12345 Long Rd',
           }
         }
       ],
@@ -163,9 +163,10 @@ void main() async {
     final p2 = Person(id: '2', name: 'Marty', age: 60);
 
     // check included instead
-    expect(data.included, [p1, p2, House(id: '1', address: '123 Main St')]);
+    expect(data.included, [p1, p2, House(id: '1', address: '12345 Long Rd')]);
 
     expect(f1.persons.toSet(), {p1, p2});
+    expect(f1.cottage!.value, House(id: '1', address: '12345 Long Rd'));
   });
 
   test('deserialize with nested embedded relationships', () async {
@@ -207,7 +208,7 @@ void main() async {
       'id': 27,
       'title': 'Ko',
       'number_of_sales': 0,
-      'original_author_id': 332
+      'original_author_id': '332'
     });
   });
 }

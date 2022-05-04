@@ -371,6 +371,11 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   T watch(T model) {
     return watchOne(model, remote: false).model!;
   }
+
+  bool get verbose => remoteAdapter._verbose;
+  set verbose(bool value) {
+    remoteAdapter._verbose = value;
+  }
 }
 
 /// Annotation on a [DataModel] model to request a [Repository] be generated for it.

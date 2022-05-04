@@ -91,7 +91,7 @@ void main() async {
     expect(map2, {
       'id': '1',
       'surname': 'Smith',
-      // 'residence': '1', only persons as it's defaulted, residence is null! FOR NOW
+      // TODO FIX with const rels 'residence': '1', only persons as it's defaulted, residence is null!
       'persons': {'4'},
     });
 
@@ -106,15 +106,12 @@ void main() async {
   test('local deserialize', () {
     final familiaLocalAdapter = container.familia.remoteAdapter.localAdapter;
     final p1r = {Person(id: '1', name: 'Franco', age: 28)}.asHasMany;
-    final h1r = House(id: '1', address: '123 Main St').asBelongsTo;
-    final fam =
-        Familia(id: '1', surname: 'Smith', persons: p1r, residence: h1r);
+    final h1r = House(id: '1', address: '12345 Long Rd').asBelongsTo;
+    final fam = Familia(id: '1', surname: 'Smith', persons: p1r, cottage: h1r);
 
     final map = {
       'id': '1',
       'surname': 'Smith',
-      'residence': h1r.key,
-      'persons': p1r.keys,
     };
 
     final familia = familiaLocalAdapter.deserialize(map);
@@ -123,7 +120,7 @@ void main() async {
         Familia(
           id: '1',
           surname: 'Smith',
-          residence: fam.residence,
+          cottage: fam.cottage,
           persons: fam.persons,
         ));
   });

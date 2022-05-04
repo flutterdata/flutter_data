@@ -96,7 +96,7 @@ void setUpFn() async {
             adapters: booksGraph,
           );
 
-  _dogsRepository.remoteAdapter.verbose = true;
+  _dogsRepository.verbose = true;
 }
 
 void tearDownFn() async {

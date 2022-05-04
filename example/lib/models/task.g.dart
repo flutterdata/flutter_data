@@ -36,8 +36,7 @@ mixin $TaskLocalAdapter on LocalAdapter<Task> {
           'inverse': 'tasks',
           'type': 'users',
           'kind': 'BelongsTo',
-          'instance': model?.user,
-          'jsonkey': false
+          'instance': model?.user
         }
       };
 
