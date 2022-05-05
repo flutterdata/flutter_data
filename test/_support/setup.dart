@@ -71,7 +71,7 @@ void setUpFn() async {
       .initialize(remote: false, adapters: adapterGraph);
 
   const nodesKey = _kIsWeb ? 'node1s' : 'nodes';
-  internalRepositories['nodes'] =
+  internalRepositories[nodesKey] =
       await container.read(nodesRepositoryProvider).initialize(
     remote: false,
     adapters: {
