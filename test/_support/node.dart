@@ -5,7 +5,7 @@ part 'node.freezed.dart';
 part 'node.g.dart';
 
 @freezed
-@DataRepository([], remote: false)
+@DataRepository([NodeAdapter], remote: false)
 class Node extends DataModel<Node> with _$Node {
   Node._();
   factory Node(
@@ -14,4 +14,9 @@ class Node extends DataModel<Node> with _$Node {
       @DataRelationship(inverse: 'children') BelongsTo<Node>? parent,
       @DataRelationship(inverse: 'parent') HasMany<Node>? children}) = _Node;
   factory Node.fromJson(Map<String, dynamic> json) => _$NodeFromJson(json);
+}
+
+mixin NodeAdapter on RemoteAdapter<Node> {
+  @override
+  bool get autoInitializeModels => false;
 }

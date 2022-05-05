@@ -23,7 +23,7 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
   /// ```
   ///
   /// See also: [DataModelRelationshipExtension<E>.asBelongsTo]
-  BelongsTo([final E? model]) : super(model != null ? {model} : null);
+  BelongsTo([E? model]) : super(model != null ? {model} : null);
 
   BelongsTo._(Set<String>? keys) : super._(keys);
 

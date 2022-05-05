@@ -52,10 +52,12 @@ void main() async {
     expect(json.encode(serialized), isA<String>());
 
     // also test a class without @JsonSerializable(explicitToJson: true)
-    final n1 = Node(
-        id: 1,
-        name: 'a',
-        children: {Node(id: 2, name: 'a1'), Node(id: 3, name: 'a2')}.asHasMany);
+    // (and manual init!)
+    final children = {
+      Node(id: 2, name: 'a1').init(),
+      Node(id: 3, name: 'a2').init(),
+    };
+    final n1 = Node(id: 1, name: 'a', children: children.asHasMany).init();
     final s2 = container.nodes.remoteAdapter.serialize(n1);
     expect(s2, {
       'id': 1,
@@ -136,6 +138,17 @@ void main() async {
         ]));
   });
 
+  test('deserialize with complex-named relationship', () async {
+    final book = (container.books.remoteAdapter.deserialize([
+      {
+        'id': 1,
+        'name': 'Ludwig',
+      }
+    ])).model!;
+
+    expect(book.ardentSupporters.toList(), []);
+  });
+
   test('deserialize with embedded relationships', () async {
     final data = container.familia.remoteAdapter.deserialize(
       [
@@ -208,7 +221,8 @@ void main() async {
       'id': 27,
       'title': 'Ko',
       'number_of_sales': 0,
-      'original_author_id': '332'
+      'original_author_id': '332',
+      'ardent_supporters': [],
     });
   });
 }

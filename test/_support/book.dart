@@ -3,6 +3,8 @@
 import 'package:flutter_data/flutter_data.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'person.dart';
+
 part 'book.freezed.dart';
 part 'book.g.dart';
 
@@ -29,6 +31,9 @@ class Book extends DataModel<Book> with _$Book {
     String? title,
     @Default(0) int numberOfSales,
     @JsonKey(name: 'original_author_id') BelongsTo<BookAuthor>? originalAuthor,
+    // TODO should not need this
+    @JsonKey(name: 'ardent_supporters')
+        required HasMany<Person> ardentSupporters,
   }) = _Book;
   factory Book.fromJson(Map<String, dynamic> json) => _$BookFromJson(json);
 }

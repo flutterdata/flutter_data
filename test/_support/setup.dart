@@ -82,6 +82,7 @@ void setUpFn() async {
   final booksGraph = <String, RemoteAdapter<DataModel>>{
     'bookAuthors': container.read(internalBookAuthorsRemoteAdapterProvider),
     'books': container.read(internalBooksRemoteAdapterProvider),
+    'people': container.read(internalPeopleRemoteAdapterProvider),
   };
 
   internalRepositories['bookAuthors'] =

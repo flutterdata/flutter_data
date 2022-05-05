@@ -39,11 +39,3 @@ builders:
     auto_apply: dependents
     required_inputs: [".flutter_data.info"]
     build_to: source
-
-  # test_library_builder:
-  #   import: "package:flutter_data/builders/data_library_builder.dart"
-  #   builder_factories: ["dataExtensionBuilder"]
-  #   build_extensions: { ".flutter_data.info": [".dart"] }
-  #   auto_apply: dependents
-  #   required_inputs: [".flutter_data.info"]
-  #   build_to: source

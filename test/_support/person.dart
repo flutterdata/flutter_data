@@ -23,6 +23,9 @@ class Person extends DataModel<Person> {
     BelongsTo<Familia>? familia,
   }) : familia = familia ?? BelongsTo();
 
+  // self-referential relationship
+  late BelongsTo<Person> person = asBelongsTo;
+
   // testing without jsonserializable
   // also, simulates a @JsonKey(name: '_id) on `id`
   factory Person.fromJson(Map<String, dynamic> json) => Person(

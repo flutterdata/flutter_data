@@ -8,15 +8,13 @@ abstract class DataModel<T extends DataModel<T>> {
   Object? get id;
 
   DataModel() {
-    _key = remoteAdapter.graph.getKeyForId(_internalType, id,
-        keyIfAbsent: DataHelpers.generateKey<T>())!;
-    remoteAdapter.localAdapter.save(_key, this as T, notify: false);
-    getRelationships();
+    if (remoteAdapter.autoInitializeModels) init();
   }
 
   late String _key;
   String get _internalType => DataHelpers.getType<T>();
   DataStateNotifier<T?>? _notifier;
+  T get _this => this as T;
 
   /// Exposes this type's [RemoteAdapter]
   RemoteAdapter<T> get remoteAdapter =>
@@ -30,8 +28,8 @@ abstract class DataModel<T extends DataModel<T>> {
   // methods
 
   T saveLocal() {
-    remoteAdapter.localAdapter.save(_key, this as T);
-    return this as T;
+    remoteAdapter.localAdapter.save(_key, _this);
+    return _this;
   }
 
   // privately set the notifier
@@ -55,11 +53,11 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
       // then treat the original as prevalent
       if (model.id == null && id != null) {
         _old = model;
-        _new = this as T;
+        _new = _this;
       } else {
         // in all other cases, treat the passed-in
         // model as prevalent
-        _old = this as T;
+        _old = _this;
         _new = model;
       }
 
@@ -78,7 +76,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
             .getKeyForId(_internalType, _old.id, keyIfAbsent: _key);
       }
     }
-    return this as T;
+    return _this;
   }
 
   /// Saves this model through a call equivalent to [Repository.save].
@@ -92,7 +90,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     OnErrorOne<T>? onError,
   }) async {
     return await remoteAdapter.save(
-      this as T,
+      _this,
       remote: remote,
       params: params,
       headers: headers,
@@ -121,25 +119,32 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     );
   }
 
+  /// Get the refreshed version from local storage.
+  T? refresh() {
+    return remoteAdapter.localAdapter.findOne(_key);
+  }
+
   /// Re-fetch this model through a call equivalent to [Repository.findOne].
   /// with the current object/[id]
   Future<T?> reload({
-    bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
+    bool? background,
+    DataRequestLabel? label,
   }) async {
     return await remoteAdapter.findOne(
       this,
-      remote: remote,
+      remote: true,
       params: params,
       headers: headers,
+      background: background,
+      label: label,
     );
   }
 
   /// Get all non-null [Relationship]s for this model.
   Iterable<Relationship> getRelationships() {
-    final metadatas =
-        remoteAdapter.localAdapter.relationshipsFor(this as T).values;
+    final metadatas = remoteAdapter.localAdapter.relationshipsFor(_this).values;
 
     return metadatas
         .map((metadata) {
@@ -153,6 +158,16 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
         })
         .toList()
         .filterNulls;
+  }
+
+  T init({bool save = true}) {
+    _key = remoteAdapter.graph.getKeyForId(_internalType, id,
+        keyIfAbsent: DataHelpers.generateKey<T>())!;
+    if (save) {
+      remoteAdapter.localAdapter.save(_key, _this, notify: false);
+    }
+    getRelationships();
+    return _this;
   }
 }
 

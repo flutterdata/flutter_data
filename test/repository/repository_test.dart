@@ -333,9 +333,7 @@ void main() async {
 
     regexp = RegExp(r'^\d\d:\d\d\d \[save\/dogs#3@[a-z0-9]{6}\]');
     expect(verbose.first, matches(regexp));
-    expect(verbose.first, endsWith('request'));
-    expect(verbose.last, matches(regexp));
-    expect(verbose.last, endsWith('saved in local storage only'));
+    expect(verbose.first, endsWith('saved in local storage only'));
 
     verbose.clear();
 
@@ -343,7 +341,7 @@ void main() async {
 
     regexp = RegExp(r'^\d\d:\d\d\d \[delete\/dogs#3@[a-z0-9]{6}\]');
     expect(verbose.first, matches(regexp));
-    expect(verbose.first, endsWith('request'));
+    expect(verbose.first, endsWith('requesting'));
     expect(verbose.last, matches(regexp));
     expect(verbose.last, endsWith('deleted in local storage and remote'));
 

@@ -123,12 +123,18 @@ void main() async {
   test('remove relationship', () async {
     final a1 = BookAuthor(id: 1, name: 'Walter', books: HasMany());
     await a1.save();
-    final b1 = Book(id: 1, originalAuthor: a1.asBelongsTo);
+    final b1 = Book(
+        id: 1, originalAuthor: a1.asBelongsTo, ardentSupporters: HasMany());
     await b1.save();
 
     final b2 = b1.copyWith(originalAuthor: BelongsTo.remove());
     await b2.save();
     expect(b2.originalAuthor!.value, isNull);
     expect(b1.originalAuthor!.value, isNull);
+  });
+
+  test('self ref', () {
+    final p = Person(name: 'Walter');
+    expect(p.person.value, p);
   });
 }

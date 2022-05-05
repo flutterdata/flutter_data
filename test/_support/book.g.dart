@@ -67,6 +67,12 @@ mixin $BookLocalAdapter on LocalAdapter<Book> {
           'type': 'bookAuthors',
           'kind': 'BelongsTo',
           'instance': model?.originalAuthor
+        },
+        'ardent_supporters': {
+          'name': 'ardentSupporters',
+          'type': 'people',
+          'kind': 'HasMany',
+          'instance': model?.ardentSupporters
         }
       };
 
@@ -125,6 +131,8 @@ _$_Book _$$_BookFromJson(Map<String, dynamic> json) => _$_Book(
           ? null
           : BelongsTo<BookAuthor>.fromJson(
               json['original_author_id'] as Map<String, dynamic>),
+      ardentSupporters: HasMany<Person>.fromJson(
+          json['ardent_supporters'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$$_BookToJson(_$_Book instance) {
@@ -141,5 +149,6 @@ Map<String, dynamic> _$$_BookToJson(_$_Book instance) {
   writeNotNull('title', instance.title);
   val['number_of_sales'] = instance.numberOfSales;
   writeNotNull('original_author_id', instance.originalAuthor);
+  val['ardent_supporters'] = instance.ardentSupporters;
   return val;
 }

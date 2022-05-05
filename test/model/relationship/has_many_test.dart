@@ -117,7 +117,7 @@ void main() async {
   });
 
   test('remove relationship', () async {
-    final b1 = Book(id: 1);
+    final b1 = Book(id: 1, ardentSupporters: HasMany());
     await b1.save();
 
     final a1 = BookAuthor(id: 1, name: 'Walter', books: {b1}.asHasMany);

@@ -4,7 +4,7 @@ part of flutter_data;
 /// and their a [DataModel] owner. Backed by a [GraphNotifier].
 abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
   @protected
-  Relationship([Set<E>? models]) : this._(models?.map((m) => m._key).toSet());
+  Relationship(Set<E>? models) : this._(models?.map((m) => m._key).toSet());
 
   Relationship._(this._uninitializedKeys);
 

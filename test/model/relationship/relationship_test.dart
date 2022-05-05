@@ -212,9 +212,11 @@ void main() async {
   });
 
   test('self-ref with freezed', () {
-    final parent = Node(name: 'parent', children: HasMany());
+    // manually init Node as it has `autoInitialize=false`
+    final parent = Node(name: 'parent', children: HasMany()).init();
     final child =
-        Node(name: 'child', parent: parent.asBelongsTo, children: HasMany());
+        Node(name: 'child', parent: parent.asBelongsTo, children: HasMany())
+            .init();
 
     // since child has children defined, the rel is empty
     expect(child.children, isEmpty);
@@ -227,8 +229,11 @@ void main() async {
   });
 
   test('freezed bidirectional one-to-many', () async {
-    final book =
-        Book(id: 23, title: 'Tao Te Ching', originalAuthor: BelongsTo());
+    final book = Book(
+        id: 23,
+        title: 'Tao Te Ching',
+        originalAuthor: BelongsTo(),
+        ardentSupporters: HasMany());
     final author = BookAuthor(id: 15, name: 'Lao Tzu', books: HasMany({book}));
 
     final listener = Listener<DataState<BookAuthor?>>();
@@ -256,6 +261,7 @@ void main() async {
       // create a different relationship object but
       // equal to `author.books!.first.originalAuthor`
       originalAuthor: BelongsTo(author.books.first.originalAuthor!.value),
+      ardentSupporters: HasMany(),
     );
 
     final books = author.books.toList();

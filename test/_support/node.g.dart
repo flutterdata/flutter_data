@@ -45,7 +45,7 @@ final _nodesFinders = <String, dynamic>{};
 // ignore: must_be_immutable
 class $NodeHiveLocalAdapter = HiveLocalAdapter<Node> with $NodeLocalAdapter;
 
-class $NodeRemoteAdapter = RemoteAdapter<Node> with NothingMixin;
+class $NodeRemoteAdapter = RemoteAdapter<Node> with NodeAdapter;
 
 final internalNodesRemoteAdapterProvider = Provider<RemoteAdapter<Node>>(
     (ref) => $NodeRemoteAdapter(
@@ -54,7 +54,9 @@ final internalNodesRemoteAdapterProvider = Provider<RemoteAdapter<Node>>(
 final nodesRepositoryProvider =
     Provider<Repository<Node>>((ref) => Repository<Node>(ref.read));
 
-extension NodeDataRepositoryX on Repository<Node> {}
+extension NodeDataRepositoryX on Repository<Node> {
+  NodeAdapter get nodeAdapter => remoteAdapter as NodeAdapter;
+}
 
 // **************************************************************************
 // JsonSerializableGenerator

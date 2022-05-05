@@ -78,6 +78,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   // ignore: prefer_final_fields
   bool _verbose = false;
 
+  bool get autoInitializeModels => true;
+
   /// Returns the base URL for this type [T].
   ///
   /// Typically used in a generic adapter (i.e. one shared by all types)
@@ -387,7 +389,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
         id: model.id?.toString(),
         model: model,
         withParent: label);
-    log(label, 'request');
 
     if (remote == false) {
       log(label, 'saved in local storage only');
@@ -397,6 +398,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     final serialized = serialize(model);
     final body = json.encode(serialized);
 
+    log(label, 'requesting');
     final result = await sendRequest<T>(
       baseUrl.asUri / urlForSave(model.id, params) & params,
       method: methodForSave(model.id, params),
@@ -434,7 +436,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
     label = DataRequestLabel('delete',
         type: internalType, id: id.toString(), withParent: label);
-    log(label, 'request');
 
     if (key != null) {
       if (remote == false) {
@@ -444,6 +445,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     }
 
     if (remote == true && id != null) {
+      log(label, 'requesting');
       return await sendRequest(
         baseUrl.asUri / urlForDelete(id, params) & params,
         method: methodForDelete(id, params),
