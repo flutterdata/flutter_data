@@ -32,26 +32,26 @@ void main() async {
         persons: HasMany<Person>({person}));
 
     // values are there even if familia (and its relationships) are not init'd
-    expect(familia.residence!.value, house);
+    expect(familia.residence.value, house);
     expect(familia.persons.toSet(), {person});
     expect(familia.persons, equals(familia.persons));
 
     // after init, values remain the same
-    expect(familia.residence!.value, house);
+    expect(familia.residence.value, house);
     expect(familia.persons.toSet(), {person});
     expect(familia.persons, equals(familia.persons));
 
     // relationships are now associated to a key
-    expect(familia.residence!.key, isNotNull);
-    expect(familia.residence!.key, graph.getKeyForId('houses', '31'));
-    expect(familia.residence!.id, '31');
+    expect(familia.residence.key, isNotNull);
+    expect(familia.residence.key, graph.getKeyForId('houses', '31'));
+    expect(familia.residence.id, '31');
     expect(familia.persons.keys.first, isNotNull);
     expect(familia.persons.keys.first, graph.getKeyForId('people', '1'));
 
     // ensure there are not more than 1 key
-    familia.residence!.value = house2;
-    expect(familia.residence!.keys, hasLength(1));
-    expect(familia.residence!.id, '2');
+    familia.residence.value = house2;
+    expect(familia.residence.keys, hasLength(1));
+    expect(familia.residence.id, '2');
   });
 
   test('assignment with relationship initialized & uninitialized', () {
@@ -59,11 +59,11 @@ void main() async {
         Familia(id: '1', surname: 'Smith', residence: BelongsTo<House>());
     final house = House(id: '1', address: '456 Lemon Rd');
 
-    familia.residence!.value = house;
-    expect(familia.residence!.value, house);
+    familia.residence.value = house;
+    expect(familia.residence.value, house);
 
-    familia.residence!.value = house; // assigning again shouldn't affect
-    expect(familia.residence!.value, house);
+    familia.residence.value = house; // assigning again shouldn't affect
+    expect(familia.residence.value, house);
   });
 
   test('watch', () async {
@@ -73,23 +73,23 @@ void main() async {
       residence: BelongsTo<House>(),
     );
 
-    final notifier = familia.residence!.watch();
+    final notifier = familia.residence.watch();
     final listener = Listener<House?>();
     dispose = notifier.addListener(listener, fireImmediately: false);
 
-    familia.residence!.value = House(id: '2', address: '456 Main St');
+    familia.residence.value = House(id: '2', address: '456 Main St');
 
     verify(listener(argThat(
       isA<House>().having((h) => h.address, 'address', startsWith('456')),
     ))).called(1);
 
-    familia.residence!.value = House(id: '1', address: '123 Main St');
+    familia.residence.value = House(id: '1', address: '123 Main St');
 
     verify(listener(argThat(
       isA<House>().having((h) => h.address, 'address', startsWith('123')),
     ))).called(1);
 
-    familia.residence!.value = null;
+    familia.residence.value = null;
 
     verify(listener(argThat(isNull))).called(1);
     verifyNoMoreInteractions(listener);

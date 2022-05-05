@@ -12,36 +12,11 @@ part of 'node.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more informations: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
 
 Node _$NodeFromJson(Map<String, dynamic> json) {
   return _Node.fromJson(json);
 }
-
-/// @nodoc
-class _$NodeTearOff {
-  const _$NodeTearOff();
-
-  _Node call(
-      {int? id,
-      String? name,
-      @DataRelationship(inverse: 'children') BelongsTo<Node>? parent,
-      @DataRelationship(inverse: 'parent') HasMany<Node>? children}) {
-    return _Node(
-      id: id,
-      name: name,
-      parent: parent,
-      children: children,
-    );
-  }
-
-  Node fromJson(Map<String, Object?> json) {
-    return Node.fromJson(json);
-  }
-}
-
-/// @nodoc
-const $Node = _$NodeTearOff();
 
 /// @nodoc
 mixin _$Node {
@@ -192,6 +167,7 @@ class _$_Node extends _Node {
             const DeepCollectionEquality().equals(other.children, children));
   }
 
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -213,24 +189,25 @@ class _$_Node extends _Node {
 
 abstract class _Node extends Node {
   factory _Node(
-      {int? id,
-      String? name,
-      @DataRelationship(inverse: 'children') BelongsTo<Node>? parent,
-      @DataRelationship(inverse: 'parent') HasMany<Node>? children}) = _$_Node;
+          {final int? id,
+          final String? name,
+          @DataRelationship(inverse: 'children') final BelongsTo<Node>? parent,
+          @DataRelationship(inverse: 'parent') final HasMany<Node>? children}) =
+      _$_Node;
   _Node._() : super._();
 
   factory _Node.fromJson(Map<String, dynamic> json) = _$_Node.fromJson;
 
   @override
-  int? get id;
+  int? get id => throw _privateConstructorUsedError;
   @override
-  String? get name;
+  String? get name => throw _privateConstructorUsedError;
   @override
   @DataRelationship(inverse: 'children')
-  BelongsTo<Node>? get parent;
+  BelongsTo<Node>? get parent => throw _privateConstructorUsedError;
   @override
   @DataRelationship(inverse: 'parent')
-  HasMany<Node>? get children;
+  HasMany<Node>? get children => throw _privateConstructorUsedError;
   @override
   @JsonKey(ignore: true)
   _$NodeCopyWith<_Node> get copyWith => throw _privateConstructorUsedError;

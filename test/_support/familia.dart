@@ -15,18 +15,20 @@ class Familia extends DataModel<Familia> {
   final String surname;
   late final HasMany<Person> persons;
   @JsonKey(name: 'cottage_id')
-  final BelongsTo<House>? cottage;
-  final BelongsTo<House>? residence;
+  late final BelongsTo<House> cottage;
+  final BelongsTo<House> residence;
   final HasMany<Dog>? dogs;
 
   Familia({
     this.id,
     required this.surname,
     HasMany<Person>? persons,
-    this.cottage,
-    this.residence,
+    BelongsTo<House>? cottage,
+    BelongsTo<House>? residence,
     this.dogs,
-  }) : persons = persons ?? HasMany();
+  })  : persons = persons ?? HasMany(),
+        cottage = cottage ?? BelongsTo(),
+        residence = residence ?? BelongsTo();
 
   // no fromJson or toJson on purpose (testing codegen)
 

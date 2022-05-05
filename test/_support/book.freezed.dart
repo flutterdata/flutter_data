@@ -12,37 +12,17 @@ part of 'book.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more informations: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
 
 BookAuthor _$BookAuthorFromJson(Map<String, dynamic> json) {
   return _BookAuthor.fromJson(json);
 }
 
 /// @nodoc
-class _$BookAuthorTearOff {
-  const _$BookAuthorTearOff();
-
-  _BookAuthor call({required int id, String? name, HasMany<Book>? books}) {
-    return _BookAuthor(
-      id: id,
-      name: name,
-      books: books,
-    );
-  }
-
-  BookAuthor fromJson(Map<String, Object?> json) {
-    return BookAuthor.fromJson(json);
-  }
-}
-
-/// @nodoc
-const $BookAuthor = _$BookAuthorTearOff();
-
-/// @nodoc
 mixin _$BookAuthor {
   int get id => throw _privateConstructorUsedError;
   String? get name => throw _privateConstructorUsedError;
-  HasMany<Book>? get books => throw _privateConstructorUsedError;
+  HasMany<Book> get books => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -55,7 +35,7 @@ abstract class $BookAuthorCopyWith<$Res> {
   factory $BookAuthorCopyWith(
           BookAuthor value, $Res Function(BookAuthor) then) =
       _$BookAuthorCopyWithImpl<$Res>;
-  $Res call({int id, String? name, HasMany<Book>? books});
+  $Res call({int id, String? name, HasMany<Book> books});
 }
 
 /// @nodoc
@@ -84,7 +64,7 @@ class _$BookAuthorCopyWithImpl<$Res> implements $BookAuthorCopyWith<$Res> {
       books: books == freezed
           ? _value.books
           : books // ignore: cast_nullable_to_non_nullable
-              as HasMany<Book>?,
+              as HasMany<Book>,
     ));
   }
 }
@@ -95,7 +75,7 @@ abstract class _$BookAuthorCopyWith<$Res> implements $BookAuthorCopyWith<$Res> {
           _BookAuthor value, $Res Function(_BookAuthor) then) =
       __$BookAuthorCopyWithImpl<$Res>;
   @override
-  $Res call({int id, String? name, HasMany<Book>? books});
+  $Res call({int id, String? name, HasMany<Book> books});
 }
 
 /// @nodoc
@@ -126,7 +106,7 @@ class __$BookAuthorCopyWithImpl<$Res> extends _$BookAuthorCopyWithImpl<$Res>
       books: books == freezed
           ? _value.books
           : books // ignore: cast_nullable_to_non_nullable
-              as HasMany<Book>?,
+              as HasMany<Book>,
     ));
   }
 }
@@ -134,7 +114,7 @@ class __$BookAuthorCopyWithImpl<$Res> extends _$BookAuthorCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$_BookAuthor extends _BookAuthor {
-  _$_BookAuthor({required this.id, this.name, this.books}) : super._();
+  _$_BookAuthor({required this.id, this.name, required this.books}) : super._();
 
   factory _$_BookAuthor.fromJson(Map<String, dynamic> json) =>
       _$$_BookAuthorFromJson(json);
@@ -144,7 +124,7 @@ class _$_BookAuthor extends _BookAuthor {
   @override
   final String? name;
   @override
-  final HasMany<Book>? books;
+  final HasMany<Book> books;
 
   @override
   String toString() {
@@ -161,6 +141,7 @@ class _$_BookAuthor extends _BookAuthor {
             const DeepCollectionEquality().equals(other.books, books));
   }
 
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -180,19 +161,21 @@ class _$_BookAuthor extends _BookAuthor {
 }
 
 abstract class _BookAuthor extends BookAuthor {
-  factory _BookAuthor({required int id, String? name, HasMany<Book>? books}) =
-      _$_BookAuthor;
+  factory _BookAuthor(
+      {required final int id,
+      final String? name,
+      required final HasMany<Book> books}) = _$_BookAuthor;
   _BookAuthor._() : super._();
 
   factory _BookAuthor.fromJson(Map<String, dynamic> json) =
       _$_BookAuthor.fromJson;
 
   @override
-  int get id;
+  int get id => throw _privateConstructorUsedError;
   @override
-  String? get name;
+  String? get name => throw _privateConstructorUsedError;
   @override
-  HasMany<Book>? get books;
+  HasMany<Book> get books => throw _privateConstructorUsedError;
   @override
   @JsonKey(ignore: true)
   _$BookAuthorCopyWith<_BookAuthor> get copyWith =>
@@ -202,32 +185,6 @@ abstract class _BookAuthor extends BookAuthor {
 Book _$BookFromJson(Map<String, dynamic> json) {
   return _Book.fromJson(json);
 }
-
-/// @nodoc
-class _$BookTearOff {
-  const _$BookTearOff();
-
-  _Book call(
-      {required int id,
-      String? title,
-      int numberOfSales = 0,
-      @JsonKey(name: 'original_author_id')
-          BelongsTo<BookAuthor>? originalAuthor}) {
-    return _Book(
-      id: id,
-      title: title,
-      numberOfSales: numberOfSales,
-      originalAuthor: originalAuthor,
-    );
-  }
-
-  Book fromJson(Map<String, Object?> json) {
-    return Book.fromJson(json);
-  }
-}
-
-/// @nodoc
-const $Book = _$BookTearOff();
 
 /// @nodoc
 mixin _$Book {
@@ -358,8 +315,8 @@ class _$_Book extends _Book {
   final int id;
   @override
   final String? title;
-  @JsonKey()
   @override
+  @JsonKey()
   final int numberOfSales;
   @override
   @JsonKey(name: 'original_author_id')
@@ -383,6 +340,7 @@ class _$_Book extends _Book {
                 .equals(other.originalAuthor, originalAuthor));
   }
 
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -404,24 +362,25 @@ class _$_Book extends _Book {
 
 abstract class _Book extends Book {
   factory _Book(
-      {required int id,
-      String? title,
-      int numberOfSales,
+      {required final int id,
+      final String? title,
+      final int numberOfSales,
       @JsonKey(name: 'original_author_id')
-          BelongsTo<BookAuthor>? originalAuthor}) = _$_Book;
+          final BelongsTo<BookAuthor>? originalAuthor}) = _$_Book;
   _Book._() : super._();
 
   factory _Book.fromJson(Map<String, dynamic> json) = _$_Book.fromJson;
 
   @override
-  int get id;
+  int get id => throw _privateConstructorUsedError;
   @override
-  String? get title;
+  String? get title => throw _privateConstructorUsedError;
   @override
-  int get numberOfSales;
+  int get numberOfSales => throw _privateConstructorUsedError;
   @override
   @JsonKey(name: 'original_author_id')
-  BelongsTo<BookAuthor>? get originalAuthor;
+  BelongsTo<BookAuthor>? get originalAuthor =>
+      throw _privateConstructorUsedError;
   @override
   @JsonKey(ignore: true)
   _$BookCopyWith<_Book> get copyWith => throw _privateConstructorUsedError;

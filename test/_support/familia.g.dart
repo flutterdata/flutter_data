@@ -37,8 +37,8 @@ Map<String, dynamic> _$FamiliaToJson(Familia instance) {
   writeNotNull('id', instance.id);
   val['surname'] = instance.surname;
   val['persons'] = instance.persons.toJson();
-  writeNotNull('cottage_id', instance.cottage?.toJson());
-  writeNotNull('residence', instance.residence?.toJson());
+  val['cottage_id'] = instance.cottage.toJson();
+  val['residence'] = instance.residence.toJson();
   writeNotNull('dogs', instance.dogs?.toJson());
   return val;
 }

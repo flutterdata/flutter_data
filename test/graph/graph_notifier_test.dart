@@ -187,7 +187,7 @@ void main() async {
 
       // remove some residence relationships
       if (Random().nextBool()) {
-        familia.residence!.value = null;
+        familia.residence.value = null;
       }
 
       await familia.save();

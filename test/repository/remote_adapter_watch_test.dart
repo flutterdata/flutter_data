@@ -500,7 +500,7 @@ void main() async {
 
   test('watchOneNotifier with custom finder', () async {
     // initialize a book in local storage, so we can later link it to the author
-    final author = BookAuthor(id: 1, name: 'Robert');
+    final author = BookAuthor(id: 1, name: 'Robert', books: HasMany());
     Book(id: 1, title: 'Choice', originalAuthor: author.asBelongsTo);
 
     // update the author
@@ -573,7 +573,7 @@ void main() async {
     ))).called(1);
     verifyNoMoreInteractions(listener);
 
-    f1.residence!.value = House(address: '123 Main St'); // no init
+    f1.residence.value = House(address: '123 Main St'); // no init
     await oneMs();
 
     verify(listener(argThat(
@@ -591,7 +591,7 @@ void main() async {
     verifyNoMoreInteractions(listener);
 
     // a non-watched relationship does not trigger
-    f1.cottage!.value = House(address: '7342 Mountain Rd');
+    f1.cottage.value = House(address: '7342 Mountain Rd');
     await oneMs();
 
     verifyNever(listener(any));
@@ -655,10 +655,12 @@ void main() async {
     verify(listener(argThat(matcher))).called(1);
     verifyNoMoreInteractions(listener);
 
+    container.people.verbose = true;
+
     House(id: '32769', address: '8 Hill St').saveLocal();
     await oneMs();
 
-    verify(listener(argThat(matcher))).called(1);
+    verify(listener(argThat(matcher))).called(2);
     verifyNoMoreInteractions(listener);
 
     Familia(surname: 'Thomson', cottage: BelongsTo.remove())
@@ -733,7 +735,7 @@ void main() async {
   });
 
   test('notifier equality', () async {
-    final bookAuthor = BookAuthor(id: 1, name: 'Billy');
+    final bookAuthor = BookAuthor(id: 1, name: 'Billy', books: HasMany());
 
     final defaultNotifier = container.bookAuthors.watchOneNotifier(1);
 

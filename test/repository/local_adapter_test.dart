@@ -84,14 +84,15 @@ void main() async {
       'persons': {'4'},
     });
 
-    // now a familia without specified relationships
+    // now a familia without specified relationships,
+    // still serializes the defaults
     final familia2 = Familia(id: '1', surname: 'Smith');
 
     final map2 = familiaLocalAdapter.serialize(familia2);
     expect(map2, {
       'id': '1',
       'surname': 'Smith',
-      // TODO FIX with const rels 'residence': '1', only persons as it's defaulted, residence is null!
+      'residence': '1',
       'persons': {'4'},
     });
 
@@ -138,7 +139,7 @@ void main() async {
     Person(id: '1', name: 'John', age: 21, familia: familia.asBelongsTo);
 
     expect(familia, Familia(id: '1', surname: 'Smith'));
-    expect(familia.residence!.value!.address, '123 Main St');
+    expect(familia.residence.value!.address, '123 Main St');
     expect(familia.persons.first.age, 21);
   });
 

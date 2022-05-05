@@ -10,9 +10,7 @@ _$_BookAuthor _$$_BookAuthorFromJson(Map<String, dynamic> json) =>
     _$_BookAuthor(
       id: json['id'] as int,
       name: json['name'] as String?,
-      books: json['books'] == null
-          ? null
-          : HasMany<Book>.fromJson(json['books'] as Map<String, dynamic>),
+      books: HasMany<Book>.fromJson(json['books'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$$_BookAuthorToJson(_$_BookAuthor instance) =>

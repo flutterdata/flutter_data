@@ -166,7 +166,7 @@ void main() async {
     expect(data.included, [p1, p2, House(id: '1', address: '12345 Long Rd')]);
 
     expect(f1.persons.toSet(), {p1, p2});
-    expect(f1.cottage!.value, House(id: '1', address: '12345 Long Rd'));
+    expect(f1.cottage.value, House(id: '1', address: '12345 Long Rd'));
   });
 
   test('deserialize with nested embedded relationships', () async {
@@ -195,7 +195,7 @@ void main() async {
 
   test('deserializes/serializes with overriden json key for relationship',
       () async {
-    BookAuthor(id: 332, name: 'Zhung');
+    BookAuthor(id: 332, name: 'Zhung', books: HasMany());
 
     final deserialized = container.books.remoteAdapter.deserialize([
       {'id': 27, 'title': 'Ko', 'original_author_id': 332}

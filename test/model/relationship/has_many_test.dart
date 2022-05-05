@@ -125,7 +125,7 @@ void main() async {
 
     final a2 = a1.copyWith(books: HasMany.remove());
     await a2.save();
-    expect(a2.books!.toSet(), <Book>{});
-    expect(a1.books!.toSet(), <Book>{});
+    expect(a2.books.toSet(), <Book>{});
+    expect(a1.books.toSet(), <Book>{});
   });
 }

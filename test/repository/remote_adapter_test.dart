@@ -96,7 +96,7 @@ void main() async {
   });
 
   test('can override type', () {
-    final author = BookAuthor(id: 15, name: 'Walter');
+    final author = BookAuthor(id: 15, name: 'Walter', books: HasMany());
     final adapter = adapterFor(author)!;
     expect(adapter.type, 'writers');
     expect(adapter.internalType, 'bookAuthors');
