@@ -3,28 +3,6 @@
 part of 'node.dart';
 
 // **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-_$_Node _$$_NodeFromJson(Map<String, dynamic> json) => _$_Node(
-      id: json['id'] as int?,
-      name: json['name'] as String?,
-      parent: json['parent'] == null
-          ? null
-          : BelongsTo<Node>.fromJson(json['parent'] as Map<String, dynamic>),
-      children: json['children'] == null
-          ? null
-          : HasMany<Node>.fromJson(json['children'] as Map<String, dynamic>),
-    );
-
-Map<String, dynamic> _$$_NodeToJson(_$_Node instance) => <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
-      'parent': instance.parent,
-      'children': instance.children,
-    };
-
-// **************************************************************************
 // RepositoryGenerator
 // **************************************************************************
 
@@ -77,3 +55,25 @@ final nodesRepositoryProvider =
     Provider<Repository<Node>>((ref) => Repository<Node>(ref.read));
 
 extension NodeDataRepositoryX on Repository<Node> {}
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+_$_Node _$$_NodeFromJson(Map<String, dynamic> json) => _$_Node(
+      id: json['id'] as int?,
+      name: json['name'] as String?,
+      parent: json['parent'] == null
+          ? null
+          : BelongsTo<Node>.fromJson(json['parent'] as Map<String, dynamic>),
+      children: json['children'] == null
+          ? null
+          : HasMany<Node>.fromJson(json['children'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$$_NodeToJson(_$_Node instance) => <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'parent': instance.parent,
+      'children': instance.children,
+    };

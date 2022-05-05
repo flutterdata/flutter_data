@@ -13,7 +13,7 @@ import 'package:source_gen/source_gen.dart';
 import 'utils.dart';
 
 Builder repositoryBuilder(options) =>
-    SharedPartBuilder([RepositoryGenerator()], 'repository');
+    SharedPartBuilder([RepositoryGenerator()], 'flutter_data');
 
 class RepositoryGenerator extends GeneratorForAnnotation<DataRepository> {
   @override

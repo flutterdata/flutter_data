@@ -3,24 +3,6 @@
 part of 'user.dart';
 
 // **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-User _$UserFromJson(Map<String, dynamic> json) => User(
-      id: json['id'] as int?,
-      name: json['name'] as String,
-      tasks: json['tasks'] == null
-          ? null
-          : HasMany<Task>.fromJson(json['tasks'] as Map<String, dynamic>),
-    );
-
-Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
-      'tasks': instance.tasks,
-    };
-
-// **************************************************************************
 // RepositoryGenerator
 // **************************************************************************
 
@@ -69,3 +51,21 @@ extension UserDataRepositoryX on Repository<User> {
   JSONServerAdapter<User> get jSONServerAdapter =>
       remoteAdapter as JSONServerAdapter<User>;
 }
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+User _$UserFromJson(Map<String, dynamic> json) => User(
+      id: json['id'] as int?,
+      name: json['name'] as String,
+      tasks: json['tasks'] == null
+          ? null
+          : HasMany<Task>.fromJson(json['tasks'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'tasks': instance.tasks,
+    };

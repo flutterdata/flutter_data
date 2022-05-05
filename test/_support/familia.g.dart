@@ -3,47 +3,6 @@
 part of 'familia.dart';
 
 // **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-Familia _$FamiliaFromJson(Map<String, dynamic> json) => Familia(
-      id: json['id'] as String?,
-      surname: json['surname'] as String,
-      persons: json['persons'] == null
-          ? null
-          : HasMany<Person>.fromJson(json['persons'] as Map<String, dynamic>),
-      cottage: json['cottage_id'] == null
-          ? null
-          : BelongsTo<House>.fromJson(
-              json['cottage_id'] as Map<String, dynamic>),
-      residence: json['residence'] == null
-          ? null
-          : BelongsTo<House>.fromJson(
-              json['residence'] as Map<String, dynamic>),
-      dogs: json['dogs'] == null
-          ? null
-          : HasMany<Dog>.fromJson(json['dogs'] as Map<String, dynamic>),
-    );
-
-Map<String, dynamic> _$FamiliaToJson(Familia instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('id', instance.id);
-  val['surname'] = instance.surname;
-  val['persons'] = instance.persons.toJson();
-  val['cottage_id'] = instance.cottage.toJson();
-  val['residence'] = instance.residence.toJson();
-  writeNotNull('dogs', instance.dogs?.toJson());
-  return val;
-}
-
-// **************************************************************************
 // RepositoryGenerator
 // **************************************************************************
 
@@ -110,3 +69,44 @@ final familiaRepositoryProvider =
     Provider<Repository<Familia>>((ref) => Repository<Familia>(ref.read));
 
 extension FamiliaDataRepositoryX on Repository<Familia> {}
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+Familia _$FamiliaFromJson(Map<String, dynamic> json) => Familia(
+      id: json['id'] as String?,
+      surname: json['surname'] as String,
+      persons: json['persons'] == null
+          ? null
+          : HasMany<Person>.fromJson(json['persons'] as Map<String, dynamic>),
+      cottage: json['cottage_id'] == null
+          ? null
+          : BelongsTo<House>.fromJson(
+              json['cottage_id'] as Map<String, dynamic>),
+      residence: json['residence'] == null
+          ? null
+          : BelongsTo<House>.fromJson(
+              json['residence'] as Map<String, dynamic>),
+      dogs: json['dogs'] == null
+          ? null
+          : HasMany<Dog>.fromJson(json['dogs'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$FamiliaToJson(Familia instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('id', instance.id);
+  val['surname'] = instance.surname;
+  val['persons'] = instance.persons.toJson();
+  val['cottage_id'] = instance.cottage.toJson();
+  val['residence'] = instance.residence.toJson();
+  writeNotNull('dogs', instance.dogs?.toJson());
+  return val;
+}

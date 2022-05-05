@@ -3,30 +3,6 @@
 part of 'pet.dart';
 
 // **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-Dog _$DogFromJson(Map<String, dynamic> json) => Dog(
-      id: json['id'] as String?,
-      name: json['name'] as String,
-    );
-
-Map<String, dynamic> _$DogToJson(Dog instance) => <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
-    };
-
-Cat _$CatFromJson(Map<String, dynamic> json) => Cat(
-      id: json['id'] as String?,
-      meow: json['meow'] as bool,
-    );
-
-Map<String, dynamic> _$CatToJson(Cat instance) => <String, dynamic>{
-      'id': instance.id,
-      'meow': instance.meow,
-    };
-
-// **************************************************************************
 // RepositoryGenerator
 // **************************************************************************
 
@@ -99,3 +75,27 @@ final catsRepositoryProvider =
     Provider<Repository<Cat>>((ref) => Repository<Cat>(ref.read));
 
 extension CatDataRepositoryX on Repository<Cat> {}
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+Dog _$DogFromJson(Map<String, dynamic> json) => Dog(
+      id: json['id'] as String?,
+      name: json['name'] as String,
+    );
+
+Map<String, dynamic> _$DogToJson(Dog instance) => <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+    };
+
+Cat _$CatFromJson(Map<String, dynamic> json) => Cat(
+      id: json['id'] as String?,
+      meow: json['meow'] as bool,
+    );
+
+Map<String, dynamic> _$CatToJson(Cat instance) => <String, dynamic>{
+      'id': instance.id,
+      'meow': instance.meow,
+    };

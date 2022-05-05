@@ -3,51 +3,6 @@
 part of 'book.dart';
 
 // **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-_$_BookAuthor _$$_BookAuthorFromJson(Map<String, dynamic> json) =>
-    _$_BookAuthor(
-      id: json['id'] as int,
-      name: json['name'] as String?,
-      books: HasMany<Book>.fromJson(json['books'] as Map<String, dynamic>),
-    );
-
-Map<String, dynamic> _$$_BookAuthorToJson(_$_BookAuthor instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
-      'books': instance.books,
-    };
-
-_$_Book _$$_BookFromJson(Map<String, dynamic> json) => _$_Book(
-      id: json['id'] as int,
-      title: json['title'] as String?,
-      numberOfSales: json['number_of_sales'] as int? ?? 0,
-      originalAuthor: json['original_author_id'] == null
-          ? null
-          : BelongsTo<BookAuthor>.fromJson(
-              json['original_author_id'] as Map<String, dynamic>),
-    );
-
-Map<String, dynamic> _$$_BookToJson(_$_Book instance) {
-  final val = <String, dynamic>{
-    'id': instance.id,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('title', instance.title);
-  val['number_of_sales'] = instance.numberOfSales;
-  writeNotNull('original_author_id', instance.originalAuthor);
-  return val;
-}
-
-// **************************************************************************
 // RepositoryGenerator
 // **************************************************************************
 
@@ -143,3 +98,48 @@ final booksRepositoryProvider =
     Provider<Repository<Book>>((ref) => Repository<Book>(ref.read));
 
 extension BookDataRepositoryX on Repository<Book> {}
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+_$_BookAuthor _$$_BookAuthorFromJson(Map<String, dynamic> json) =>
+    _$_BookAuthor(
+      id: json['id'] as int,
+      name: json['name'] as String?,
+      books: HasMany<Book>.fromJson(json['books'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$$_BookAuthorToJson(_$_BookAuthor instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'books': instance.books,
+    };
+
+_$_Book _$$_BookFromJson(Map<String, dynamic> json) => _$_Book(
+      id: json['id'] as int,
+      title: json['title'] as String?,
+      numberOfSales: json['number_of_sales'] as int? ?? 0,
+      originalAuthor: json['original_author_id'] == null
+          ? null
+          : BelongsTo<BookAuthor>.fromJson(
+              json['original_author_id'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$$_BookToJson(_$_Book instance) {
+  final val = <String, dynamic>{
+    'id': instance.id,
+  };
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('title', instance.title);
+  val['number_of_sales'] = instance.numberOfSales;
+  writeNotNull('original_author_id', instance.originalAuthor);
+  return val;
+}

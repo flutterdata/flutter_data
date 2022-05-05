@@ -3,26 +3,6 @@
 part of 'task.dart';
 
 // **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-Task _$TaskFromJson(Map<String, dynamic> json) => Task(
-      id: json['id'] as int?,
-      title: json['title'] as String,
-      completed: json['completed'] as bool? ?? false,
-      user: json['user'] == null
-          ? null
-          : BelongsTo<User>.fromJson(json['user'] as Map<String, dynamic>),
-    );
-
-Map<String, dynamic> _$TaskToJson(Task instance) => <String, dynamic>{
-      'id': instance.id,
-      'title': instance.title,
-      'completed': instance.completed,
-      'user': instance.user,
-    };
-
-// **************************************************************************
 // RepositoryGenerator
 // **************************************************************************
 
@@ -71,3 +51,23 @@ extension TaskDataRepositoryX on Repository<Task> {
   JSONServerAdapter<Task> get jSONServerAdapter =>
       remoteAdapter as JSONServerAdapter<Task>;
 }
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+Task _$TaskFromJson(Map<String, dynamic> json) => Task(
+      id: json['id'] as int?,
+      title: json['title'] as String,
+      completed: json['completed'] as bool? ?? false,
+      user: json['user'] == null
+          ? null
+          : BelongsTo<User>.fromJson(json['user'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$TaskToJson(Task instance) => <String, dynamic>{
+      'id': instance.id,
+      'title': instance.title,
+      'completed': instance.completed,
+      'user': instance.user,
+    };

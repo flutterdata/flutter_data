@@ -3,24 +3,6 @@
 part of 'house.dart';
 
 // **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-House _$HouseFromJson(Map<String, dynamic> json) => House(
-      id: json['id'] as String?,
-      address: json['address'] as String,
-      owner: json['owner'] == null
-          ? null
-          : BelongsTo<Familia>.fromJson(json['owner'] as Map<String, dynamic>),
-    );
-
-Map<String, dynamic> _$HouseToJson(House instance) => <String, dynamic>{
-      'id': instance.id,
-      'address': instance.address,
-      'owner': instance.owner,
-    };
-
-// **************************************************************************
 // RepositoryGenerator
 // **************************************************************************
 
@@ -66,3 +48,21 @@ final housesRepositoryProvider =
     Provider<Repository<House>>((ref) => Repository<House>(ref.read));
 
 extension HouseDataRepositoryX on Repository<House> {}
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+House _$HouseFromJson(Map<String, dynamic> json) => House(
+      id: json['id'] as String?,
+      address: json['address'] as String,
+      owner: json['owner'] == null
+          ? null
+          : BelongsTo<Familia>.fromJson(json['owner'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$HouseToJson(House instance) => <String, dynamic>{
+      'id': instance.id,
+      'address': instance.address,
+      'owner': instance.owner,
+    };

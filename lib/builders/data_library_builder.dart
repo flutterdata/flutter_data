@@ -15,7 +15,7 @@ Builder dataExtensionIntermediateBuilder(options) =>
 class DataExtensionIntermediateBuilder implements Builder {
   @override
   final buildExtensions = const {
-    '.dart': ['.info']
+    '.dart': ['.flutter_data.info']
   };
 
   @override
@@ -31,7 +31,7 @@ class DataExtensionIntermediateBuilder implements Builder {
 
     if (members.isNotEmpty) {
       await buildStep.writeAsString(
-          buildStep.inputId.changeExtension('.info'),
+          buildStep.inputId.changeExtension('.flutter_data.info'),
           members.map((member) {
             return [
               member.element.name,
@@ -48,7 +48,7 @@ Builder dataExtensionBuilder(options) => DataExtensionBuilder();
 class DataExtensionBuilder implements Builder {
   @override
   final buildExtensions = const {
-    r'$lib$': ['main.data.dart']
+    r'$lib$': ['main.data.dart'],
   };
 
   @override
@@ -132,7 +132,7 @@ E watch<E>(ProviderListenable<E> provider) {
   return readProviderElement(provider as ProviderBase<E>).readSelf();
 }
 '''}
-${classes.map((clazz) => '  Repository<${clazz['name']}> get ${clazz['type']} => watch(${clazz['type']}RepositoryProvider)..remoteAdapter.internalWatch = watch${hasWidgets ? 'as Watcher' : ''};').join('\n')}
+${classes.map((clazz) => '  Repository<${clazz['name']}> get ${clazz['type']} => watch(${clazz['type']}RepositoryProvider)..remoteAdapter.internalWatch = watch${hasWidgets ? ' as Watcher' : ''};').join('\n')}
 }''';
     }
 

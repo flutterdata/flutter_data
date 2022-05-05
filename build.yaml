@@ -3,30 +3,47 @@ targets:
     builders:
       flutter_data|data_repository_builder:
         generate_for:
-          - test/_support/*.dart
+          - test/_support/*
+          - example/lib/models/*
+      flutter_data|data_library_intermediate_builder:
+        generate_for:
+          - test/_support/*
+          - example/lib/models/*
+      flutter_data|data_library_builder:
+        generate_for:
+          - /*
+          - example/*
 
 builders:
   data_repository_builder:
     import: "package:flutter_data/builders/repository_builder.dart"
     builder_factories: ["repositoryBuilder"]
-    build_extensions: { ".dart": [".repository.g.part"] }
+    build_extensions: { ".dart": [".flutter_data.g.part"] }
     auto_apply: dependents
     build_to: cache
     applies_builders: ["source_gen|combining_builder"]
     required_inputs: [".freezed.dart"]
 
-  data_extension_intermediate_builder:
+  data_library_intermediate_builder:
     import: "package:flutter_data/builders/data_library_builder.dart"
     builder_factories: ["dataExtensionIntermediateBuilder"]
-    build_extensions: { ".dart": [".info"] }
+    build_extensions: { ".dart": [".flutter_data.info"] }
     auto_apply: dependents
     build_to: cache
-    runs_before: ["data_extension_builder"]
+    runs_before: ["data_library_builder"]
 
-  data_extension_builder:
+  data_library_builder:
     import: "package:flutter_data/builders/data_library_builder.dart"
     builder_factories: ["dataExtensionBuilder"]
-    build_extensions: { ".info": [".dart"] }
+    build_extensions: { ".flutter_data.info": [".dart"] }
     auto_apply: dependents
-    required_inputs: [".info"]
+    required_inputs: [".flutter_data.info"]
     build_to: source
+
+  # test_library_builder:
+  #   import: "package:flutter_data/builders/data_library_builder.dart"
+  #   builder_factories: ["dataExtensionBuilder"]
+  #   build_extensions: { ".flutter_data.info": [".dart"] }
+  #   auto_apply: dependents
+  #   required_inputs: [".flutter_data.info"]
+  #   build_to: source
