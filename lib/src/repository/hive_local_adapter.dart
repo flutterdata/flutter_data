@@ -34,9 +34,8 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
 
     try {
       box = await _hiveLocalStorage.openBox<T>(_internalType);
-    } catch (e) {
-      await _hiveLocalStorage.deleteBox(_internalType);
-      box = await _hiveLocalStorage.openBox<T>(_internalType);
+    } catch (e, stackTrace) {
+      print('[flutter_data] Box failed to open:\n$stackTrace');
     }
 
     return this;
@@ -150,9 +149,6 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
 
   @override
   T read(reader) {
-    // read key first
-    final key = reader.read().toString();
-
     // read attributes (no relationships stored)
     final total = reader.readByte();
     final map = <String, dynamic>{
@@ -160,20 +156,12 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
     };
 
     final model = deserialize(map);
-
-    if (model._key != key) {
-      final oldKey = model._key;
-      model._key = key;
-      graph.removeKey(oldKey);
-    }
     return model;
   }
 
   @override
   void write(writer, T obj) {
     final _map = serialize(obj, withRelationships: false);
-    // write key first
-    writer.write(obj._key);
 
     final keys = _map.keys;
     writer.writeByte(keys.length);

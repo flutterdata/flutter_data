@@ -198,6 +198,16 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @override
   bool get isInitialized => localAdapter.isInitialized;
 
+  /// ONLY FOR FLUTTER DATA INTERNAL USE
+  Future<void> internalInitializeModels() async {
+    final models = localAdapter.findAll();
+    if (models != null) {
+      for (final model in models) {
+        model.init(save: false);
+      }
+    }
+  }
+
   @override
   void dispose() {
     localAdapter.dispose();

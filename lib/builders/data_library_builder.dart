@@ -179,23 +179,24 @@ final repositoryInitializerProvider =
 
     await ref.watch(graphNotifierProvider).initialize();
 
-    final _repoMap = {
-      for (final type in repositoryProviders.keys)
-        type: ref.watch(repositoryProviders[type]!)
-    };
-
-    for (final type in _repoMap.keys) {
-      final repository = _repoMap[type]!;
-      internalRepositories[type] = repository;
+    // initialize and register
+    for (final type in repositoryProviders.keys) {
+      final repository = ref.read(repositoryProviders[type]!);
       repository.dispose();
       await repository.initialize(
         remote: remotes[type],
         adapters: adapters,
       );
+      internalRepositories[type] = repository;
+    }
+
+    // deferred model initialization
+    for (final repository in internalRepositories.values) {
+      await repository.remoteAdapter.internalInitializeModels();
     }
 
     ref.onDispose(() {
-      for (final repository in _repoMap.values) {
+      for (final repository in internalRepositories.values) {
         repository.dispose();
       }
     });

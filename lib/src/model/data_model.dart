@@ -8,7 +8,8 @@ abstract class DataModel<T extends DataModel<T>> {
   Object? get id;
 
   DataModel() {
-    if (remoteAdapter.autoInitializeModels) init();
+    final _isRepoInitialized = internalRepositories.containsKey(_internalType);
+    if (_isRepoInitialized && remoteAdapter.autoInitializeModels) init();
   }
 
   late String _key;

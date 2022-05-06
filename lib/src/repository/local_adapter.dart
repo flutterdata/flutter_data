@@ -55,6 +55,7 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
       final key = e.key;
       if (withRelationships) {
         if (map[key] is HasMany) {
+          // TODO should spit out keys not ids
           map[key] = (map[key] as HasMany).ids.toList();
         } else if (map[key] is BelongsTo) {
           map[key] = map[key].id;
