@@ -9,6 +9,7 @@ import 'package:build/build.dart';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:source_gen/source_gen.dart';
+import 'package:source_helper/source_helper.dart';
 
 import 'utils.dart';
 
@@ -30,6 +31,18 @@ class RepositoryGenerator extends GeneratorForAnnotation<DataRepository> {
           "Can't generate repository for $classType. Please use @DataRepository on a class.");
     }
 
+    final annot = TypeChecker.fromRuntime(JsonSerializable);
+
+    var fieldRename = annot
+        .firstAnnotationOfExact(classElement, throwOnUnresolved: false)
+        ?.getField('fieldRename');
+    if (fieldRename == null && classElement.freezedConstructor != null) {
+      fieldRename = annot
+          .firstAnnotationOfExact(classElement.freezedConstructor!,
+              throwOnUnresolved: false)
+          ?.getField('fieldRename');
+    }
+
     void _checkIsFinal(final ClassElement? element, String? name) {
       if (element != null) {
         if (name != null &&
@@ -44,27 +57,45 @@ class RepositoryGenerator extends GeneratorForAnnotation<DataRepository> {
 
     _checkIsFinal(classElement, 'id');
 
-    for (final field in relationshipFields(classElement)) {
+    for (final field in classElement.relationshipFields) {
       _checkIsFinal(classElement, field.name);
     }
 
     // relationship-related
 
-    final relationships = relationshipFields(classElement)
+    final relationships = classElement.relationshipFields
         .fold<Set<Map<String, String?>>>({}, (result, field) {
       final relationshipClassElement = field.typeElement;
 
-      // define inverse
-
       final relationshipAnnotation = TypeChecker.fromRuntime(DataRelationship)
           .firstAnnotationOfExact(field, throwOnUnresolved: false);
+      final jsonKeyAnnotation = TypeChecker.fromRuntime(JsonKey)
+          .firstAnnotationOfExact(field, throwOnUnresolved: false);
+
+      final jsonKeyIgnored =
+          jsonKeyAnnotation?.getField('ignore')?.toBoolValue() ?? false;
+
+      if (jsonKeyIgnored) {
+        throw UnsupportedError('''
+@JsonKey(ignore: true) is not allowed in Flutter Data relationships.
+
+Please use @DataRelationship(serialized: false) to prevent it from
+serializing and deserializing.
+''');
+      }
+
+      // try again with @DataRelationship
+      final serialize =
+          relationshipAnnotation?.getField('serialize')?.toBoolValue() ?? true;
+
+      // define inverse
 
       var inverse =
           relationshipAnnotation?.getField('inverse')?.toStringValue();
 
       if (inverse == null) {
         final possibleInverseElements =
-            relationshipFields(relationshipClassElement).where((elem) {
+            relationshipClassElement.relationshipFields.where((elem) {
           return (elem.type as ParameterizedType)
                   .typeArguments
                   .single
@@ -91,17 +122,37 @@ and execute a code generation build again.
 
       // prepare metadata
 
-      final jsonKeyAnnotation = TypeChecker.fromRuntime(JsonKey)
-          .firstAnnotationOfExact(field, throwOnUnresolved: false);
+      // try to guess correct key name in json_serializable
+      var keyName = jsonKeyAnnotation?.getField('name')?.toStringValue();
 
-      final keyName = jsonKeyAnnotation?.getField('name')?.toStringValue();
+      if (keyName == null && fieldRename != null) {
+        final _case = fieldRename.getField('_name')?.toStringValue();
+        switch (_case) {
+          case 'kebab':
+            keyName = field.name.kebab;
+            break;
+          case 'snake':
+            keyName = field.name.snake;
+            break;
+          case 'pascal':
+            keyName = field.name.pascal;
+            break;
+          case 'none':
+            keyName = field.name;
+            break;
+          default:
+        }
+      }
+
+      keyName ??= field.name;
 
       result.add({
-        'key': keyName ?? field.name,
+        'key': keyName,
         'name': field.name,
         'inverse': inverse,
         'kind': field.type.element?.name,
         'type': DataHelpers.getType(relationshipClassElement.name),
+        if (!serialize) 'serialize': 'false',
       });
 
       return result;
@@ -115,6 +166,8 @@ and execute a code generation build again.
           '\'type\'': '\'${rel['type']}\'',
           '\'kind\'': '\'${rel['kind']}\'',
           '\'instance\'': 'model?.' + rel['name']!,
+          if (rel['serialize'] != null)
+            '\'serialize\'': '\'${rel['serialize']}\'',
         }
     };
 

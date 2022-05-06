@@ -170,6 +170,7 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
 // annotation
 
 class DataRelationship {
-  final String inverse;
-  const DataRelationship({required this.inverse});
+  final String? inverse;
+  final bool serialize;
+  const DataRelationship({this.inverse, this.serialize = true});
 }

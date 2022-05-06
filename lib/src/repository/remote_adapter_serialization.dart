@@ -10,7 +10,7 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
   DeserializedData<T> deserialize(Object? data) {
     final result = DeserializedData<T>([], included: []);
 
-    Object? addIncluded(id, RemoteAdapter? adapter) {
+    Object? _processIdAndAddInclude(id, RemoteAdapter? adapter) {
       if (id is Map && adapter != null) {
         final data = adapter.deserialize(id as Map<String, dynamic>);
         result.included
@@ -43,6 +43,8 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
 
         final relationships = localAdapter.relationshipsFor();
 
+        // - process includes
+        // - transform ids into keys to pass to the local deserializer
         for (final mapKey in mapIn.keys) {
           final metadata = relationships[mapKey];
 
@@ -50,14 +52,15 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
             final relType = metadata['type'] as String;
 
             if (metadata['kind'] == 'BelongsTo') {
-              final key = addIncluded(mapIn[mapKey], adapters[relType]!);
+              final key =
+                  _processIdAndAddInclude(mapIn[mapKey], adapters[relType]!);
               if (key != null) mapOut[mapKey] = key;
             }
 
             if (metadata['kind'] == 'HasMany') {
               mapOut[mapKey] = [
                 for (final id in (mapIn[mapKey] as Iterable))
-                  addIncluded(id, adapters[relType]!)
+                  _processIdAndAddInclude(id, adapters[relType]!)
               ].filterNulls;
             }
           } else {

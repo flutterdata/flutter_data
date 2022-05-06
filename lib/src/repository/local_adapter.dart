@@ -51,14 +51,16 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
 
   Map<String, dynamic> transformSerialize(Map<String, dynamic> map,
       {bool withRelationships = true}) {
-    for (final key in relationshipsFor().keys) {
+    for (final e in relationshipsFor().entries) {
+      final key = e.key;
       if (withRelationships) {
         if (map[key] is HasMany) {
           map[key] = (map[key] as HasMany).ids.toList();
         } else if (map[key] is BelongsTo) {
           map[key] = map[key].id;
         }
-        if (map[key] == null) map.remove(key);
+        final ignored = e.value['serialize'] == 'false';
+        if (map[key] == null || ignored) map.remove(key);
       } else {
         map.remove(key);
       }
@@ -68,12 +70,14 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
 
   Map<String, dynamic> transformDeserialize(Map<String, dynamic> map) {
     map = Map<String, dynamic>.from(map);
-    for (final key in relationshipsFor().keys) {
+    for (final e in relationshipsFor().entries) {
+      final key = e.key;
       final keyset = map[key] is Iterable
           ? {...(map[key] as Iterable)}
           : {if (map[key] != null) map[key].toString()};
+      final ignored = e.value['serialize'] == 'false';
       map[key] = {
-        '_': map.containsKey(key) ? keyset : null,
+        '_': (map.containsKey(key) && !ignored) ? keyset : null,
       };
     }
     return map;

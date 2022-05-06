@@ -1,6 +1,7 @@
 import 'package:flutter_data/flutter_data.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import 'book.dart';
 import 'familia.dart';
 
 part 'house.g.dart';
@@ -14,10 +15,16 @@ class House extends DataModel<House> {
   @DataRelationship(inverse: 'residence')
   final BelongsTo<Familia> owner;
 
+  // on purpose does not have a default
+  // (freezed models can't have and need to test everything)
+  @DataRelationship(serialize: false)
+  final HasMany<Book>? currentLibrary;
+
   House({
     this.id,
     required this.address,
     BelongsTo<Familia>? owner,
+    this.currentLibrary,
   }) : owner = owner ?? BelongsTo();
 
   @override

@@ -17,6 +17,14 @@ mixin $HouseLocalAdapter on LocalAdapter<House> {
           'type': 'familia',
           'kind': 'BelongsTo',
           'instance': model?.owner
+        },
+        'currentLibrary': {
+          'name': 'currentLibrary',
+          'inverse': 'house',
+          'type': 'books',
+          'kind': 'HasMany',
+          'instance': model?.currentLibrary,
+          'serialize': 'false'
         }
       };
 
@@ -59,10 +67,15 @@ House _$HouseFromJson(Map<String, dynamic> json) => House(
       owner: json['owner'] == null
           ? null
           : BelongsTo<Familia>.fromJson(json['owner'] as Map<String, dynamic>),
+      currentLibrary: json['currentLibrary'] == null
+          ? null
+          : HasMany<Book>.fromJson(
+              json['currentLibrary'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$HouseToJson(House instance) => <String, dynamic>{
       'id': instance.id,
       'address': instance.address,
       'owner': instance.owner,
+      'currentLibrary': instance.currentLibrary,
     };

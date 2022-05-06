@@ -8,27 +8,33 @@ import 'package:source_gen/source_gen.dart';
 final relationshipTypeChecker = TypeChecker.fromRuntime(Relationship);
 final dataModelTypeChecker = TypeChecker.fromRuntime(DataModel);
 
-// unique collection of constructor arguments and fields
-Iterable<VariableElement> relationshipFields(ClassElement elem) {
-  Map<String, VariableElement> map;
+extension ClassElementX on ClassElement {
+  ConstructorElement? get freezedConstructor => constructors
+      .where((c) => c.isFactory && c.displayName == name)
+      // ignore: invalid_use_of_visible_for_testing_member
+      .safeFirst;
 
-  map = {
-    for (final field in elem.fields)
-      if (field.type.element is ClassElement &&
-          field.isPublic &&
-          (field.type.element as ClassElement).supertype != null &&
-          relationshipTypeChecker.isSuperOf(field.type.element!))
-        field.name: field,
-    // also check factory constructors (used with freezed)
-    for (final constructor in elem.constructors)
-      if (constructor.isFactory)
-        for (final param in constructor.parameters)
+// unique collection of constructor arguments and fields
+  Iterable<VariableElement> get relationshipFields {
+    Map<String, VariableElement> map;
+
+    map = {
+      for (final field in fields)
+        if (field.type.element is ClassElement &&
+            field.isPublic &&
+            (field.type.element as ClassElement).supertype != null &&
+            relationshipTypeChecker.isSuperOf(field.type.element!))
+          field.name: field,
+      // also check freezed
+      if (freezedConstructor != null)
+        for (final param in freezedConstructor!.parameters)
           if (param.type.element != null &&
               relationshipTypeChecker.isSuperOf(param.type.element!))
             param.name: param,
-  };
+    };
 
-  return map.values.toList();
+    return map.values.toList();
+  }
 }
 
 extension VariableElementX on VariableElement {

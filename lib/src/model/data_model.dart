@@ -149,7 +149,6 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     return metadatas
         .map((metadata) {
           final relationship = metadata['instance'] as Relationship?;
-
           return relationship?.initialize(
             owner: this,
             name: metadata['name'] as String,

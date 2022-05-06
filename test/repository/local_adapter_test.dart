@@ -150,4 +150,24 @@ void main() async {
         container.houses.remoteAdapter.localAdapter as HiveLocalAdapter<House>;
     expect(a1.typeId, isNot(a2.typeId));
   });
+
+  test('relationships with serialized=false', () {
+    final familia = Familia(id: '1', surname: 'Test');
+    var house = container.houses.remoteAdapter.localAdapter.deserialize({
+      'id': '99',
+      'address': '456 Far Trail',
+      'owner': keyFor(familia),
+    }).saveLocal();
+    final book = container.books.remoteAdapter.localAdapter.deserialize({
+      'id': 1,
+      'house': keyFor(house), // since it's a localAdapter deserialization
+    });
+    expect(house.currentLibrary!.toList(), {book});
+
+    final map = container.houses.remoteAdapter.localAdapter.serialize(house);
+    // does not container currentLibrary which was serialize=false
+    expect(map.containsKey('currentLibrary'), isFalse);
+    // it does contain a regular relationship like owner
+    expect(map.containsKey('owner'), isTrue);
+  });
 }

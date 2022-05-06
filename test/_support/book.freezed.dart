@@ -193,8 +193,8 @@ mixin _$Book {
   int get numberOfSales => throw _privateConstructorUsedError;
   @JsonKey(name: 'original_author_id')
   BelongsTo<BookAuthor>? get originalAuthor =>
-      throw _privateConstructorUsedError; // TODO should not need this
-  @JsonKey(name: 'ardent_supporters')
+      throw _privateConstructorUsedError;
+  BelongsTo<House>? get house => throw _privateConstructorUsedError;
   HasMany<Person> get ardentSupporters => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -212,8 +212,8 @@ abstract class $BookCopyWith<$Res> {
       int numberOfSales,
       @JsonKey(name: 'original_author_id')
           BelongsTo<BookAuthor>? originalAuthor,
-      @JsonKey(name: 'ardent_supporters')
-          HasMany<Person> ardentSupporters});
+      BelongsTo<House>? house,
+      HasMany<Person> ardentSupporters});
 }
 
 /// @nodoc
@@ -230,6 +230,7 @@ class _$BookCopyWithImpl<$Res> implements $BookCopyWith<$Res> {
     Object? title = freezed,
     Object? numberOfSales = freezed,
     Object? originalAuthor = freezed,
+    Object? house = freezed,
     Object? ardentSupporters = freezed,
   }) {
     return _then(_value.copyWith(
@@ -249,6 +250,10 @@ class _$BookCopyWithImpl<$Res> implements $BookCopyWith<$Res> {
           ? _value.originalAuthor
           : originalAuthor // ignore: cast_nullable_to_non_nullable
               as BelongsTo<BookAuthor>?,
+      house: house == freezed
+          ? _value.house
+          : house // ignore: cast_nullable_to_non_nullable
+              as BelongsTo<House>?,
       ardentSupporters: ardentSupporters == freezed
           ? _value.ardentSupporters
           : ardentSupporters // ignore: cast_nullable_to_non_nullable
@@ -268,8 +273,8 @@ abstract class _$BookCopyWith<$Res> implements $BookCopyWith<$Res> {
       int numberOfSales,
       @JsonKey(name: 'original_author_id')
           BelongsTo<BookAuthor>? originalAuthor,
-      @JsonKey(name: 'ardent_supporters')
-          HasMany<Person> ardentSupporters});
+      BelongsTo<House>? house,
+      HasMany<Person> ardentSupporters});
 }
 
 /// @nodoc
@@ -287,6 +292,7 @@ class __$BookCopyWithImpl<$Res> extends _$BookCopyWithImpl<$Res>
     Object? title = freezed,
     Object? numberOfSales = freezed,
     Object? originalAuthor = freezed,
+    Object? house = freezed,
     Object? ardentSupporters = freezed,
   }) {
     return _then(_Book(
@@ -306,6 +312,10 @@ class __$BookCopyWithImpl<$Res> extends _$BookCopyWithImpl<$Res>
           ? _value.originalAuthor
           : originalAuthor // ignore: cast_nullable_to_non_nullable
               as BelongsTo<BookAuthor>?,
+      house: house == freezed
+          ? _value.house
+          : house // ignore: cast_nullable_to_non_nullable
+              as BelongsTo<House>?,
       ardentSupporters: ardentSupporters == freezed
           ? _value.ardentSupporters
           : ardentSupporters // ignore: cast_nullable_to_non_nullable
@@ -323,7 +333,8 @@ class _$_Book extends _Book {
       this.title,
       this.numberOfSales = 0,
       @JsonKey(name: 'original_author_id') this.originalAuthor,
-      @JsonKey(name: 'ardent_supporters') required this.ardentSupporters})
+      this.house,
+      required this.ardentSupporters})
       : super._();
 
   factory _$_Book.fromJson(Map<String, dynamic> json) => _$$_BookFromJson(json);
@@ -338,14 +349,14 @@ class _$_Book extends _Book {
   @override
   @JsonKey(name: 'original_author_id')
   final BelongsTo<BookAuthor>? originalAuthor;
-// TODO should not need this
   @override
-  @JsonKey(name: 'ardent_supporters')
+  final BelongsTo<House>? house;
+  @override
   final HasMany<Person> ardentSupporters;
 
   @override
   String toString() {
-    return 'Book(id: $id, title: $title, numberOfSales: $numberOfSales, originalAuthor: $originalAuthor, ardentSupporters: $ardentSupporters)';
+    return 'Book(id: $id, title: $title, numberOfSales: $numberOfSales, originalAuthor: $originalAuthor, house: $house, ardentSupporters: $ardentSupporters)';
   }
 
   @override
@@ -359,6 +370,7 @@ class _$_Book extends _Book {
                 .equals(other.numberOfSales, numberOfSales) &&
             const DeepCollectionEquality()
                 .equals(other.originalAuthor, originalAuthor) &&
+            const DeepCollectionEquality().equals(other.house, house) &&
             const DeepCollectionEquality()
                 .equals(other.ardentSupporters, ardentSupporters));
   }
@@ -371,6 +383,7 @@ class _$_Book extends _Book {
       const DeepCollectionEquality().hash(title),
       const DeepCollectionEquality().hash(numberOfSales),
       const DeepCollectionEquality().hash(originalAuthor),
+      const DeepCollectionEquality().hash(house),
       const DeepCollectionEquality().hash(ardentSupporters));
 
   @JsonKey(ignore: true)
@@ -391,8 +404,8 @@ abstract class _Book extends Book {
       final int numberOfSales,
       @JsonKey(name: 'original_author_id')
           final BelongsTo<BookAuthor>? originalAuthor,
-      @JsonKey(name: 'ardent_supporters')
-          required final HasMany<Person> ardentSupporters}) = _$_Book;
+      final BelongsTo<House>? house,
+      required final HasMany<Person> ardentSupporters}) = _$_Book;
   _Book._() : super._();
 
   factory _Book.fromJson(Map<String, dynamic> json) = _$_Book.fromJson;
@@ -407,8 +420,9 @@ abstract class _Book extends Book {
   @JsonKey(name: 'original_author_id')
   BelongsTo<BookAuthor>? get originalAuthor =>
       throw _privateConstructorUsedError;
-  @override // TODO should not need this
-  @JsonKey(name: 'ardent_supporters')
+  @override
+  BelongsTo<House>? get house => throw _privateConstructorUsedError;
+  @override
   HasMany<Person> get ardentSupporters => throw _privateConstructorUsedError;
   @override
   @JsonKey(ignore: true)
