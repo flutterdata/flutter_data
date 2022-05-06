@@ -14,7 +14,7 @@ extension IterableX<T> on Iterable<T> {
   List<T> toImmutableList() => List.unmodifiable(this);
 }
 
-extension _DataModelListX<T extends DataModel<T>> on Iterable<T> {
+extension _DataModelListX on Iterable<DataModel> {
   String toShortLog() {
     final ids = map((m) => m.id).toSet();
     return ids.isEmpty

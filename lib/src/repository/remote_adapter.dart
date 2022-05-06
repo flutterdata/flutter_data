@@ -609,8 +609,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     }
   }
 
-  @protected
-  @visibleForTesting
   FutureOr<R?> onSuccess<R>(Object? data, DataRequestLabel? label) async {
     // remove all operations with this label
     OfflineOperation.remove(label!, this as RemoteAdapter);
@@ -648,11 +646,17 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     final isAdHoc = label.kind == 'adhoc';
 
     if (isFindAll || (isAdHoc && deserialized.model == null)) {
-      return deserialized.models.map((e) => e.saveLocal()).toList() as R?;
+      for (final model in [...deserialized.models, ...deserialized.included]) {
+        model.saveLocal();
+      }
+      return deserialized.models as R?;
     }
 
     if (isFindOne || (isAdHoc && deserialized.model != null)) {
-      return deserialized.model?.saveLocal() as R?;
+      for (final model in [...deserialized.models, ...deserialized.included]) {
+        model.saveLocal();
+      }
+      return deserialized.model as R?;
     }
 
     return null;

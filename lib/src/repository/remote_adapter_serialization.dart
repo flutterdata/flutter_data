@@ -51,6 +51,10 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
           if (metadata != null) {
             final relType = metadata['type'] as String;
 
+            if (metadata['serialize'] == 'false') {
+              continue;
+            }
+
             if (metadata['kind'] == 'BelongsTo') {
               final key =
                   _processIdAndAddInclude(mapIn[mapKey], adapters[relType]!);
@@ -90,8 +94,7 @@ class DeserializedData<T extends DataModel<T>> {
     final groupedIncluded = included.groupListsBy((m) => m.remoteAdapter.type);
     for (final e in groupedIncluded.entries) {
       if (e.value.isNotEmpty) {
-        adapter.log(
-            label, '  - with ${e.key} ${e.value.map((m) => m.id).toSet()} ');
+        adapter.log(label, '  - with ${e.key} ${e.value.toShortLog()} ');
       }
     }
   }
