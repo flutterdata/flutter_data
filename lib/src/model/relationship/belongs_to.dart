@@ -76,19 +76,6 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
 
   String? get id => super.ids.safeFirst;
 
-  @override
-  Relationship<E, E?> initialize(
-      {required final DataModel owner,
-      required final String name,
-      final String? inverseName}) {
-    final _this =
-        super.initialize(owner: owner, name: name, inverseName: inverseName);
-    if (inverseName != null) {
-      addInverse(inverseName, owner);
-    }
-    return _this;
-  }
-
   /// Returns a [StateNotifier] which emits the latest [value] of
   /// this [BelongsTo] relationship.
   @override
@@ -101,21 +88,9 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
     });
   }
 
-  void addInverse(String inverseName, DataModel model) {
-    if (value != null) {
-      final _rels = value!.remoteAdapter.localAdapter.relationshipsFor(value!);
-      final inverseMetadata = _rels[inverseName];
-      if (inverseMetadata?['instance'] != null) {
-        final inverseRelationship =
-            inverseMetadata!['instance'] as Relationship;
-        inverseRelationship.add(model);
-      }
-    }
-  }
-
   @override
   String toString() {
-    return 'BelongsTo<$E>($id)';
+    return 'BelongsTo<$E>(${super.toString()})';
   }
 }
 

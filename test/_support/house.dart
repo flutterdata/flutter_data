@@ -20,6 +20,10 @@ class House extends DataModel<House> {
   @DataRelationship(serialize: false)
   final HasMany<Book>? currentLibrary;
 
+  // self-referential relationship
+  @DataRelationship(serialize: false)
+  late BelongsTo<House> house = asBelongsTo;
+
   House({
     this.id,
     required this.address,

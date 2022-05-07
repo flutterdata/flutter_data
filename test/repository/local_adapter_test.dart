@@ -70,18 +70,21 @@ void main() async {
 
   test('local serialize with and without relationships', () {
     final familiaLocalAdapter = container.familia.remoteAdapter.localAdapter;
-    final p1r = {Person(id: '4', name: 'Franco', age: 28)}.asHasMany;
-    final h1r = House(id: '1', address: '123 Main St').asBelongsTo;
+    final person = Person(id: '4', name: 'Franco', age: 28);
+    final house = House(id: '1', address: '123 Main St');
 
-    final familia =
-        Familia(id: '1', surname: 'Smith', residence: h1r, persons: p1r);
+    final familia = Familia(
+        id: '1',
+        surname: 'Smith',
+        residence: house.asBelongsTo,
+        persons: {person}.asHasMany);
 
     final map = familiaLocalAdapter.serialize(familia);
     expect(map, {
       'id': '1',
       'surname': 'Smith',
-      'residence': '1',
-      'persons': {'4'},
+      'residence': keyFor(house),
+      'persons': {keyFor(person)},
     });
 
     // now a familia without specified relationships,
@@ -92,8 +95,8 @@ void main() async {
     expect(map2, {
       'id': '1',
       'surname': 'Smith',
-      'residence': '1',
-      'persons': {'4'},
+      'residence': keyFor(house),
+      'persons': {keyFor(person)},
     });
 
     final mapWithoutRelationships =

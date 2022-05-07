@@ -3,7 +3,20 @@ part of flutter_data;
 mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
   @override
   Map<String, dynamic> serialize(T model) {
-    return localAdapter.serialize(model);
+    final map = localAdapter.serialize(model);
+
+    // essentially converts keys to IDs
+    for (final key in localAdapter.relationshipsFor().keys) {
+      if (map[key] is Iterable) {
+        map[key] = (map[key] as Iterable)
+            .map((k) => graph.getIdForKey(k.toString()))
+            .toList();
+      } else if (map[key] != null) {
+        map[key] = graph.getIdForKey(map[key].toString());
+      }
+      if (map[key] == null) map.remove(key);
+    }
+    return map;
   }
 
   @override

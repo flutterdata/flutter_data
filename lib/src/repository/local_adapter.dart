@@ -1,6 +1,8 @@
 part of flutter_data;
 
-/// An adapter interface to access local storage
+/// An adapter interface to access local storage.
+///
+/// Identity in this layer is enforced by keys.
 ///
 /// See also: [HiveLocalAdapter]
 abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
@@ -54,14 +56,16 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
     for (final e in relationshipsFor().entries) {
       final key = e.key;
       if (withRelationships) {
-        if (map[key] is HasMany) {
-          // TODO should spit out keys not ids
-          map[key] = (map[key] as HasMany).ids.toList();
-        } else if (map[key] is BelongsTo) {
-          map[key] = map[key].id;
-        }
         final ignored = e.value['serialize'] == 'false';
-        if (map[key] == null || ignored) map.remove(key);
+        if (ignored) map.remove(key);
+
+        if (map[key] is HasMany) {
+          map[key] = (map[key] as HasMany).keys;
+        } else if (map[key] is BelongsTo) {
+          map[key] = map[key].key;
+        }
+
+        if (map[key] == null) map.remove(key);
       } else {
         map.remove(key);
       }

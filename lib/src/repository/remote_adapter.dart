@@ -25,6 +25,8 @@ part of flutter_data;
 ///   Todo({this.id, required this.title, this.completed = false});
 /// }
 /// ```
+///
+/// Identity in this layer is enforced by IDs.
 class RemoteAdapter<T extends DataModel<T>> = _RemoteAdapter<T>
     with _RemoteAdapterSerialization<T>, _RemoteAdapterWatch<T>;
 

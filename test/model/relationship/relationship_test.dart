@@ -266,11 +266,7 @@ void main() async {
 
     final books = author.books.toList();
     // expect these two distinct objects are equal
-    expect(books.first.originalAuthor, books.last.originalAuthor);
-
-    // expect a LateInitializationError when trying
-    // to compare uninitialized relationships
-    expect(() => HasMany<Book>() == HasMany<Book>(), throwsA(isA<Error>()));
+    expect(books.first.originalAuthor!.value, books.last.originalAuthor!.value);
 
     expect(books.first.originalAuthor.toString(), 'BelongsTo<BookAuthor>(15)');
     expect(author.books.toString(), 'HasMany<Book>(23, 24)');

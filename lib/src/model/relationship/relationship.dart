@@ -164,7 +164,14 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
   dynamic toJson() => this;
 
   @override
-  List<Object?> get props => [keys, _name];
+  List<Object?> get props => [_ownerKey, _name, _inverseName];
+
+  @override
+  String toString() {
+    final keysWithoutId =
+        keys.where((k) => _graph.getIdForKey(k) == null).map((k) => '[$k]');
+    return '${{...ids, ...keysWithoutId}.join(', ')}';
+  }
 }
 
 // annotation

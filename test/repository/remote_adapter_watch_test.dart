@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter_data/flutter_data.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -344,58 +346,55 @@ void main() async {
         .called(1);
   });
 
-  // TODO re-enable (issue with self-ref related events)
-  // test('watchAllNotifier with multiple model updates', () async {
-  //   final notifier = container.people.watchAllNotifier(remote: false);
+  test('watchAllNotifier with multiple model updates', () async {
+    final notifier = container.people.watchAllNotifier(remote: false);
 
-  //   container.people.verbose = true;
+    final matcher = predicate((p) {
+      return p is Person && p.name.startsWith('Number') && p.age! < 19;
+    });
 
-  //   final matcher = predicate((p) {
-  //     return p is Person && p.name.startsWith('Number') && p.age! < 19;
-  //   });
+    final count = 29;
+    var i = 0;
+    dispose = notifier.addListener(
+      expectAsync1((state) {
+        if (i == 0) {
+          expect(state.model, isNull);
+          expect(state.isLoading, isFalse);
+        } else if (i <= count) {
+          expect(state.model, List.generate(i, (_) => matcher));
+          final adapter = container.people.remoteAdapter.localAdapter
+              as HiveLocalAdapter<Person>;
+          // check box has all the keys
+          expect(adapter.box!.keys.length, i);
+        } else {
+          // one less because of emitting the deletion,
+          // and one less because of the now missing model
+          expect(state.model, hasLength(i - 2));
+        }
+        i++;
+        // 1 extra count because of the initial `null` state
+        // 1 extra count because of the deletion in the loop below
+        // 1 extra count because of the self-ref due to the deletion
+      }, count: count + 2),
+    );
 
-  //   final count = 29;
-  //   var i = 0;
-  //   dispose = notifier.addListener(
-  //     expectAsync1((state) {
-  //       if (i == 0) {
-  //         expect(state.model, isNull);
-  //         expect(state.isLoading, isFalse);
-  //       } else if (i <= count) {
-  //         expect(state.model, List.generate(i, (_) => matcher));
-  //         final adapter = container.people.remoteAdapter.localAdapter
-  //             as HiveLocalAdapter<Person>;
-  //         // check box has all the keys
-  //         expect(adapter.box!.keys.length, i);
-  //       } else {
-  //         // one less because of emitting the deletion,
-  //         // and one less because of the now missing model
-  //         expect(state.model, hasLength(lessThanOrEqualTo(i - 2)));
-  //       }
-  //       i++;
-  //       // 1 extra count because of the initial `null` state
-  //       // 1 extra count because of the deletion in the loop below
-  //       // 1 extra count because of the self-ref due to the deletion
-  //     }, count: count + 3),
-  //   );
+    // this emits `count` states
+    Person person;
+    for (var j = 0; j < count; j++) {
+      await (() async {
+        final id =
+            Random().nextBool() ? Random().nextInt(999999999).toString() : null;
+        person = Person.generate(withId: id).saveLocal();
 
-  //   // this emits `count` states
-  //   Person person;
-  //   for (var j = 0; j < count; j++) {
-  //     await (() async {
-  //       final id =
-  //           Random().nextBool() ? Random().nextInt(999999999).toString() : null;
-  //       person = Person.generate(withId: id).saveLocal();
-
-  //       // in the last cycle, delete last Person too
-  //       if (j == count - 1) {
-  //         await oneMs();
-  //         await person.delete();
-  //       }
-  //       await oneMs();
-  //     })();
-  //   }
-  // });
+        // in the last cycle, delete last Person too
+        if (j == count - 1) {
+          await oneMs();
+          await person.delete();
+        }
+        await oneMs();
+      })();
+    }
+  });
 
   test('watchAllNotifier updates, watchAll', () async {
     final listener = Listener<DataState<List<Person>?>>();
@@ -610,10 +609,10 @@ void main() async {
     // 1 event for persons relationship removed
     // 1 event for residence relationship removed
     // 1 event for cottage relationship removed
-    // 1 for?
+    // 2 extra for?
     verify(listener(argThat(
       isA<DataState>().having((s) => s.model, 'model', isNull),
-    ))).called(5);
+    ))).called(6);
     verifyNoMoreInteractions(listener);
   });
 
@@ -662,12 +661,10 @@ void main() async {
     verify(listener(argThat(matcher))).called(1);
     verifyNoMoreInteractions(listener);
 
-    container.people.verbose = true;
-
     House(id: '32769', address: '8 Hill St').saveLocal();
     await oneMs();
 
-    verify(listener(argThat(matcher))).called(2);
+    verify(listener(argThat(matcher))).called(1);
     verifyNoMoreInteractions(listener);
 
     Familia(surname: 'Thomson', cottage: BelongsTo.remove())

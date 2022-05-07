@@ -13,13 +13,15 @@ void main() async {
   setUp(setUpFn);
   tearDown(tearDownFn);
 
-  test('HasMany ids', () {
+  test('ids + toString', () {
     final f1 = Familia(surname: 'Sanchez');
+    final p1 = Person(name: 'Javier');
+    f1.persons.add(p1);
     f1.persons.add(Person(id: '1', name: 'Manuel'));
     f1.persons.add(Person(id: '2', name: 'Carlos'));
 
-    expect(f1.persons.ids, f1.persons.map((e) => e.id));
-    expect(f1.persons.toString(), 'HasMany<Person>(1, 2)');
+    expect(f1.persons.ids, {'1', '2'});
+    expect(f1.persons.toString(), 'HasMany<Person>(1, 2, [${keyFor(p1)}])');
   });
 
   test('behaves like a collection (without init/models)', () {

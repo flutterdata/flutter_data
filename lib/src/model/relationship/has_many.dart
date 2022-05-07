@@ -43,7 +43,7 @@ class HasMany<E extends DataModel<E>> extends Relationship<E, Set<E>> {
   }
 
   @override
-  String toString() => 'HasMany<$E>(${ids.join(', ')})';
+  String toString() => 'HasMany<$E>(${super.toString()})';
 }
 
 extension IterableRelationshipExtension<T extends DataModel<T>> on Set<T> {

@@ -13,7 +13,7 @@ void main() async {
   setUp(setUpFn);
   tearDown(tearDownFn);
 
-  test('BelongsTo ids', () {
+  test('id + toString', () {
     final person = Person(name: 'Test', familia: BelongsTo());
     person.familia.value = Familia(id: '1', surname: 'Sanchez');
     expect(person.familia.value!.id, person.familia.id);
@@ -134,7 +134,7 @@ void main() async {
   });
 
   test('self ref', () {
-    final p = Person(name: 'Walter');
-    expect(p.person.value, p);
+    final house = House(address: '22 Peak Rd');
+    expect(house.house.value, house);
   });
 }

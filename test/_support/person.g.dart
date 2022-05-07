@@ -17,13 +17,6 @@ mixin $PersonLocalAdapter on LocalAdapter<Person> {
           'type': 'familia',
           'kind': 'BelongsTo',
           'instance': model?.familia
-        },
-        'person': {
-          'name': 'person',
-          'inverse': 'person',
-          'type': 'people',
-          'kind': 'BelongsTo',
-          'instance': model?.person
         }
       };
 
