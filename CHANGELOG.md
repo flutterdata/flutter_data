@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.0-rc1]
+
+- TBD
+
 ## [1.3.4]
 
 - Revamp some internal dependency management & testing pipes
