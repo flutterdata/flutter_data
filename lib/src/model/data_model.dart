@@ -12,7 +12,8 @@ abstract class DataModel<T extends DataModel<T>> {
     if (_isRepoInitialized && remoteAdapter.autoInitializeModels) init();
   }
 
-  late String _key;
+  String? __key;
+  String get _key => __key!;
   String get _internalType => DataHelpers.getType<T>();
   DataStateNotifier<T?>? _notifier;
   T get _this => this as T;
@@ -64,10 +65,10 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
 
       final _oldKey = _old._key;
       if (_key != _new._key) {
-        _key = _new._key;
+        __key = _new._key;
       }
       if (_key != _old._key) {
-        _old._key = _key;
+        _old.__key = _key;
         remoteAdapter.graph.removeKey(_oldKey);
       }
 
@@ -161,7 +162,11 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   }
 
   T init({bool save = true}) {
-    _key = remoteAdapter.graph.getKeyForId(_internalType, id,
+    // ignore if already initialized
+    if (__key != null) {
+      return _this;
+    }
+    __key = remoteAdapter.graph.getKeyForId(_internalType, id,
         keyIfAbsent: DataHelpers.generateKey<T>())!;
     if (save) {
       remoteAdapter.localAdapter.save(_key, _this, notify: false);

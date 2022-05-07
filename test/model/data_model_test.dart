@@ -19,6 +19,9 @@ void main() async {
         Person(id: '1', name: 'John', age: 27, familia: familia.asBelongsTo);
     await person.save();
 
+    // redundantly init'ing has no effect
+    person.init();
+
     // (1) it wires up the relationship
     expect(person.familia.key, graph.getKeyForId('familia', '55'));
 
