@@ -10,6 +10,7 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
       if (map[key] is Iterable) {
         map[key] = (map[key] as Iterable)
             .map((k) => graph.getIdForKey(k.toString()))
+            .filterNulls
             .toList();
       } else if (map[key] != null) {
         map[key] = graph.getIdForKey(map[key].toString());
