@@ -533,7 +533,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     final _params =
         omitDefaultParams ? <String, dynamic>{} : await defaultParams;
 
-    label ??= DataRequestLabel('adhoc', type: internalType);
+    label ??= DataRequestLabel('custom', type: internalType);
     onSuccess ??= this.onSuccess;
     onError ??= this.onError;
 
@@ -655,16 +655,16 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
     final isFindAll = label.kind.startsWith('findAll');
     final isFindOne = label.kind.startsWith('findOne');
-    final isAdHoc = label.kind == 'adhoc';
+    final isCustom = label.kind == 'custom';
 
-    if (isFindAll || (isAdHoc && deserialized.model == null)) {
+    if (isFindAll || (isCustom && deserialized.model == null)) {
       for (final model in [...deserialized.models, ...deserialized.included]) {
         model.saveLocal();
       }
       return deserialized.models as R?;
     }
 
-    if (isFindOne || (isAdHoc && deserialized.model != null)) {
+    if (isFindOne || (isCustom && deserialized.model != null)) {
       for (final model in [...deserialized.models, ...deserialized.included]) {
         model.saveLocal();
       }

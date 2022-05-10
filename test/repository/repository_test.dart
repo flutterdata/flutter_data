@@ -268,7 +268,7 @@ void main() async {
     expect(keyFor(familia1), keyFor(familia2));
   });
 
-  test('ad-hoc with auto deserialization', () async {
+  test('custom with auto deserialization', () async {
     // network issue
     container.read(responseProvider.notifier).state =
         TestResponse.text('[{"id": "19", "surname": "Pandan"}]');
@@ -277,7 +277,7 @@ void main() async {
       '/family'.asUri,
       method: DataRequestMethod.POST,
       body: json.encode({'a': 2}),
-      label: DataRequestLabel('adhoc', type: 'familia'),
+      label: DataRequestLabel('custom', type: 'familia'),
       onSuccess: container.familia.remoteAdapter.onSuccess,
     );
     expect(f1, Familia(id: '19', surname: 'Pandan'));

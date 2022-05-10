@@ -356,7 +356,7 @@ void main() async {
     expect(container.familia.offlineOperations, isEmpty);
   });
 
-  test('ad-hoc request with body', () async {
+  test('custom request with body', () async {
     // network issue
     container.read(responseProvider.notifier).state = TestResponse(text: (_) {
       throw SocketException('unreachable');
