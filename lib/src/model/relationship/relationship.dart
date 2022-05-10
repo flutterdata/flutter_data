@@ -4,7 +4,14 @@ part of flutter_data;
 /// and their a [DataModel] owner. Backed by a [GraphNotifier].
 abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
   @protected
-  Relationship(Set<E>? models) : this._(models?.map((m) => m._key).toSet());
+  Relationship(Set<E>? models)
+      : this._(models?.map((m) {
+          if (!m._isInitialized) {
+            throw AssertionError(
+                'Model $m must be initialized to be included in this relationship');
+          }
+          return m._key;
+        }).toSet());
 
   Relationship._(this._uninitializedKeys);
 
@@ -21,24 +28,22 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
   final Set<String>? _uninitializedKeys;
   String get _internalType => DataHelpers.getType<E>();
 
+  bool get isInitialized => _ownerKey != null;
+
   /// Initializes this relationship (typically when initializing the owner
   /// in [DataModel]) by supplying the owner, and related metadata.
   Relationship<E, N> initialize(
       {required final DataModel owner,
       required final String name,
       final String? inverseName}) {
-    if (_ownerKey != null) {
-      return this; // return if already initialized
-    }
+    if (isInitialized) return this;
 
     _ownerKey = owner._key;
     _name = name;
     _inverseName = inverseName;
 
-    if (_uninitializedKeys == null) {
-      // means it was omitted (remote-omitted, or loaded locally), so skip
-      return this;
-    }
+    // means it was omitted (remote-omitted, or loaded locally), so skip
+    if (_uninitializedKeys == null) return this;
 
     // setting up from scratch, remove all and add keys
 
@@ -134,6 +139,7 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
   @protected
   @visibleForTesting
   Set<String> get keys {
+    if (!isInitialized) return {};
     return _graph._getEdge(_ownerKey!, metadata: _name!).toSet();
   }
 

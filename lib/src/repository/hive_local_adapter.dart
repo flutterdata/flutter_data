@@ -54,16 +54,20 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
   @override
   List<T>? findAll() {
     if (_isLocalStorageTouched) {
-      return box!.values.toImmutableList();
+      return box?.values.toImmutableList();
     }
     return null;
   }
 
   @override
-  T? findOne(String? key) => box!.get(key);
+  T? findOne(String? key) {
+    return box?.get(key);
+  }
 
   @override
   Future<T> save(String key, T model, {bool notify = true}) async {
+    if (box == null) return model;
+
     _touchLocalStorage();
 
     final keyExisted = box!.containsKey(key);
@@ -83,6 +87,7 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
 
   @override
   Future<void> delete(String key) async {
+    if (box == null) return;
     final delete = box!.delete(key); // delete in bg
     // id will become orphan & purged
     graph.removeKey(key);
@@ -91,7 +96,7 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
 
   @override
   Future<void> clear() async {
-    await box!.clear();
+    await box?.clear();
   }
 
   // Touching local storage means the box has received data;

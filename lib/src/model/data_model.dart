@@ -18,6 +18,8 @@ abstract class DataModel<T extends DataModel<T>> {
   DataStateNotifier<T?>? _notifier;
   T get _this => this as T;
 
+  bool get _isInitialized => __key != null;
+
   /// Exposes this type's [RemoteAdapter]
   RemoteAdapter<T> get remoteAdapter =>
       internalRepositories[_internalType]!.remoteAdapter as RemoteAdapter<T>;
@@ -163,9 +165,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
 
   T init({bool save = true}) {
     // ignore if already initialized
-    if (__key != null) {
-      return _this;
-    }
+    if (_isInitialized) return _this;
     __key = remoteAdapter.graph.getKeyForId(_internalType, id,
         keyIfAbsent: DataHelpers.generateKey<T>())!;
     if (save) {
