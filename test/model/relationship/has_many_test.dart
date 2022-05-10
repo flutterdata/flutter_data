@@ -5,7 +5,6 @@ import 'package:test/test.dart';
 import '../../_support/book.dart';
 import '../../_support/familia.dart';
 import '../../_support/house.dart';
-import '../../_support/node.dart';
 import '../../_support/person.dart';
 import '../../_support/setup.dart';
 import '../../mocks.dart';
@@ -23,21 +22,6 @@ void main() async {
 
     expect(f1.persons.ids, {'1', '2'});
     expect(f1.persons.toString(), 'HasMany<Person>(1, 2, [${keyFor(p1)}])');
-  });
-
-  test('manual init', () {
-    // Node has autoInitialization set to false
-    // if child node is not initialized, it can't be passed to a relationship
-    expect(
-        () => Node(name: 'parent', children: {Node(name: 'child')}.asHasMany),
-        throwsA(isA<AssertionError>()));
-
-    // now that it is, ensure keys and toString work properly
-    final node =
-        Node(name: 'parent', children: {Node(name: 'child').init()}.asHasMany);
-    expect(node.children!.keys, isEmpty);
-    expect(node.toString(),
-        'Node(id: null, name: parent, parent: null, children: HasMany<Node>())');
   });
 
   test('behaves like a collection (without init/models)', () {

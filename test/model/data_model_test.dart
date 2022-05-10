@@ -2,6 +2,7 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
 import '../_support/familia.dart';
+import '../_support/node.dart';
 import '../_support/person.dart';
 import '../_support/pet.dart';
 import '../_support/setup.dart';
@@ -79,6 +80,29 @@ void main() async {
 
     // now no key is associated to id=8
     expect(graph.getKeyForId('people', '8'), keyFor(p7));
+  });
+
+  test('manual init', () {
+    // Node has autoInitialization set to false
+    // if child node is not initialized, it can't be passed to a relationship
+    expect(
+        () => Node(name: 'parent', children: {Node(name: 'child')}.asHasMany),
+        throwsA(isA<AssertionError>()));
+
+    // now that it is, ensure keys and toString work properly
+    final node =
+        Node(name: 'parent', children: {Node(name: 'child').init()}.asHasMany);
+    expect(node.children!.keys, isEmpty);
+    expect(node.toString(),
+        'Node(id: null, name: parent, parent: null, children: HasMany<Node>())');
+
+    final n = Node(name: 'parent');
+    // can't get key because `n` was not initialized
+    expect(() => n.copyWith(name: 'parent2').was(n),
+        throwsA(isA<AssertionError>()));
+
+    final n2 = n.init();
+    n2.copyWith(name: 'parent2').was(n2);
   });
 
   test('findOne (remote reload)', () async {
