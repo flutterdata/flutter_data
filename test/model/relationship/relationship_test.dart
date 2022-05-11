@@ -179,14 +179,16 @@ void main() async {
     expect(familia2.persons.length, 1);
 
     // new familia comes in from API (simulate) with no persons relationship information
-    final familia3 = (container.familia.remoteAdapter
-        .deserialize({'id': '229', 'surname': 'Rose'})).model!;
+    final familia3 = (await container.familia.remoteAdapter
+            .deserialize({'id': '229', 'surname': 'Rose'}))
+        .model!;
     // it should keep the relationships unaltered
     expect(familia3.persons.length, 1);
 
     // new familia comes in from API (simulate) with empty persons relationship
-    final familia4 = (container.familia.remoteAdapter
-        .deserialize({'id': '229', 'surname': 'Rose', 'persons': []})).model!;
+    final familia4 = (await container.familia.remoteAdapter
+            .deserialize({'id': '229', 'surname': 'Rose', 'persons': []}))
+        .model!;
     // it should keep the relationships unaltered
     expect(familia4.persons.length, 0);
 

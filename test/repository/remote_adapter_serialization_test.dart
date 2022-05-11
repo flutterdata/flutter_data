@@ -17,7 +17,7 @@ void main() async {
 
   test('serialize', () async {
     final person = Person(id: '23', name: 'Ko', age: 24);
-    expect(container.people.remoteAdapter.serialize(person),
+    expect(await container.people.remoteAdapter.serialize(person),
         {'_id': '23', 'name': 'Ko', 'age': 24});
   });
 
@@ -26,7 +26,7 @@ void main() async {
       surname: 'Tao',
       persons: HasMany({Person(id: '332', name: 'Ko')}),
     );
-    expect(container.familia.remoteAdapter.serialize(familia), {
+    expect(await container.familia.remoteAdapter.serialize(familia), {
       'surname': 'Tao',
       'persons': ['332']
     });
@@ -40,7 +40,7 @@ void main() async {
         dogs: {Dog(id: '1', name: 'Pluto'), Dog(id: '2', name: 'Ricky')}
             .asHasMany);
 
-    final serialized = container.familia.remoteAdapter.serialize(f1);
+    final serialized = await container.familia.remoteAdapter.serialize(f1);
     expect(serialized, {
       'id': '334',
       'surname': 'Zhan',
@@ -58,7 +58,7 @@ void main() async {
       Node(id: 3, name: 'a2').init(),
     };
     final n1 = Node(id: 1, name: 'a', children: children.asHasMany).init();
-    final s2 = container.nodes.remoteAdapter.serialize(n1);
+    final s2 = await container.nodes.remoteAdapter.serialize(n1);
     expect(s2, {
       'id': 1,
       'name': 'a',
@@ -68,36 +68,38 @@ void main() async {
   });
 
   test('serialize empty', () async {
-    final model = (container.people.remoteAdapter.deserialize(null)).model;
-    expect(model, isNull);
-    final model2 = (container.people.remoteAdapter.deserialize('')).model;
-    expect(model2, isNull);
+    final data = await container.people.remoteAdapter.deserialize(null);
+    expect(data.model, isNull);
+    final data2 = await container.people.remoteAdapter.deserialize('');
+    expect(data2.model, isNull);
   });
 
   test('deserialize multiple', () async {
-    final models = (container.people.remoteAdapter.deserialize([
+    final data = await container.people.remoteAdapter.deserialize([
       {'_id': '23', 'name': 'Ko', 'age': 24},
       {'_id': '26', 'name': 'Ze', 'age': 58}
-    ])).models;
+    ]);
 
-    expect(models, [
+    expect(data.models, [
       Person(id: '23', name: 'Ko', age: 24),
       Person(id: '26', name: 'Ze', age: 58)
     ]);
   });
 
   test('deserialize with BelongsTo id', () async {
-    final p = (container.people.remoteAdapter.deserialize([
+    final p = (await container.people.remoteAdapter.deserialize([
       {'_id': '1', 'name': 'Na', 'age': 88, 'familia': null}
-    ])).model!;
+    ]))
+        .model!;
 
     Familia(id: '1', surname: 'Kong');
 
     expect(p.familia.key, isNull);
 
-    final p1 = (container.people.remoteAdapter.deserialize([
+    final p1d = await container.people.remoteAdapter.deserialize([
       {'_id': '27', 'name': 'Ko', 'age': 24, 'familia': '332'}
-    ])).model!;
+    ]);
+    final p1 = p1d.model!;
 
     Familia(id: '332', surname: 'Tao');
 
@@ -115,23 +117,23 @@ void main() async {
   });
 
   test('deserialize returns even if no ID is present', () async {
-    final familia = (container.familia.remoteAdapter.deserialize([
+    final data = await container.familia.remoteAdapter.deserialize([
       {'surname': 'Ko'}
-    ])).model;
-    expect(familia, isNotNull);
+    ]);
+    expect(data.model, isNotNull);
   });
 
   test('deserialize with HasMany ids (including nulls)', () async {
-    final f = (container.familia.remoteAdapter.deserialize([
+    final data = await container.familia.remoteAdapter.deserialize([
       {
         'id': '1',
         'surname': 'Ko',
         'persons': ['1', null, '2']
       }
-    ])).model!;
+    ]);
 
     expect(
-        f.persons.keys,
+        data.model!.persons.keys,
         unorderedEquals([
           graph.getKeyForId('people', '1'),
           graph.getKeyForId('people', '2'),
@@ -139,18 +141,17 @@ void main() async {
   });
 
   test('deserialize with complex-named relationship', () async {
-    final book = (container.books.remoteAdapter.deserialize([
+    final data = await container.books.remoteAdapter.deserialize([
       {
         'id': 1,
         'name': 'Ludwig',
       }
-    ])).model!;
-
-    expect(book.ardentSupporters.toList(), []);
+    ]);
+    expect(data.model!.ardentSupporters.toList(), []);
   });
 
   test('deserialize with embedded relationships', () async {
-    final data = container.familia.remoteAdapter.deserialize(
+    final data = await container.familia.remoteAdapter.deserialize(
       [
         {
           'id': '1',
@@ -183,7 +184,7 @@ void main() async {
   });
 
   test('deserialize with nested embedded relationships', () async {
-    final data = container.people.remoteAdapter.deserialize(
+    final data = await container.people.remoteAdapter.deserialize(
       [
         {
           '_id': '1',
@@ -210,14 +211,15 @@ void main() async {
       () async {
     BookAuthor(id: 332, name: 'Zhung', books: HasMany());
 
-    final deserialized = container.books.remoteAdapter.deserialize([
+    final deserialized = await container.books.remoteAdapter.deserialize([
       {'id': 27, 'title': 'Ko', 'original_author_id': 332}
     ]);
     final book = deserialized.model;
 
     expect(book!.originalAuthor!.value!.id, 332);
 
-    expect(container.books.remoteAdapter.serialize(book), {
+    final serialized1 = await container.books.remoteAdapter.serialize(book);
+    expect(serialized1, {
       'id': 27,
       'title': 'Ko',
       'number_of_sales': 0,
@@ -225,12 +227,12 @@ void main() async {
       'ardent_supporters': [],
     });
 
-    expect(
-        container.books.remoteAdapter.serialize(book, withRelationships: false),
-        {
-          'id': 27,
-          'title': 'Ko',
-          'number_of_sales': 0,
-        });
+    final serialized2 = await container.books.remoteAdapter
+        .serialize(book, withRelationships: false);
+    expect(serialized2, {
+      'id': 27,
+      'title': 'Ko',
+      'number_of_sales': 0,
+    });
   });
 }

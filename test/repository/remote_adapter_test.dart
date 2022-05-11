@@ -35,7 +35,8 @@ void main() async {
   });
 
   test('findOne with includes', () async {
-    final data = container.familia.remoteAdapter.deserialize(json.decode('''
+    final data =
+        await container.familia.remoteAdapter.deserialize(json.decode('''
       { "id": "1", "surname": "Smith", "persons": [{"_id": "1", "name": "Stan", "age": 31}] }
     ''') as Object);
     expect(data.model, Familia(id: '1', surname: 'Smith'));

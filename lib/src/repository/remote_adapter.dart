@@ -170,10 +170,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   Future<void> onInitialized() async {
     // wipe out orphans
     graph.removeOrphanNodes();
-    // ensure offline nodes exist
-    if (!graph.hasNode(_offlineAdapterKey)) {
-      graph.addNode(_offlineAdapterKey);
-    }
   }
 
   @mustCallSuper
@@ -220,13 +216,14 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   /// Returns a [DeserializedData] object when deserializing a given [data].
   @protected
   @visibleForTesting
-  DeserializedData<T> deserialize(Object? data);
+  Future<DeserializedData<T>> deserialize(Object? data);
 
   /// Returns a serialized version of a model of [T],
   /// as a [Map<String, dynamic>] ready to be JSON-encoded.
   @protected
   @visibleForTesting
-  Map<String, dynamic> serialize(T model, {bool withRelationships = true});
+  Future<Map<String, dynamic>> serialize(T model,
+      {bool withRelationships = true});
 
   // caching
 
@@ -407,7 +404,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       return model;
     }
 
-    final serialized = serialize(model);
+    final serialized = await serialize(model);
     final body = json.encode(serialized);
 
     log(label, 'requesting');
@@ -638,7 +635,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
       // deserialize already inits models
       // if model had a key already, reuse it
-      final deserialized = deserialize(data as Map<String, dynamic>);
+      final deserialized = await deserialize(data as Map<String, dynamic>);
       model = deserialized.model!.was(model).saveLocal();
 
       log(label, 'saved in local storage and remote');
@@ -650,7 +647,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       return null;
     }
 
-    final deserialized = deserialize(data);
+    final deserialized = await deserialize(data);
     deserialized._log(this as RemoteAdapter, label);
 
     final isFindAll = label.kind.startsWith('findAll');
@@ -723,7 +720,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @visibleForTesting
   @nonVirtual
   Set<OfflineOperation<T>> get offlineOperations {
-    final node = graph._getNode(_offlineAdapterKey)!;
+    final node = graph._getNode(_offlineAdapterKey, orAdd: true)!;
     return node.entries
         .map((e) {
           // extract type from e.g. _offline:findOne/users#3@d7bcc9

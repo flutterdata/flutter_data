@@ -2,7 +2,8 @@ part of flutter_data;
 
 mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
   @override
-  Map<String, dynamic> serialize(T model, {bool withRelationships = true}) {
+  Future<Map<String, dynamic>> serialize(T model,
+      {bool withRelationships = true}) async {
     final map =
         localAdapter.serialize(model, withRelationships: withRelationships);
 
@@ -22,12 +23,12 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
   }
 
   @override
-  DeserializedData<T> deserialize(Object? data) {
+  Future<DeserializedData<T>> deserialize(Object? data) async {
     final result = DeserializedData<T>([], included: []);
 
-    Object? _processIdAndAddInclude(id, RemoteAdapter? adapter) {
+    Future<Object?> _processIdAndAddInclude(id, RemoteAdapter? adapter) async {
       if (id is Map && adapter != null) {
-        final data = adapter.deserialize(id as Map<String, dynamic>);
+        final data = await adapter.deserialize(id as Map<String, dynamic>);
         result.included
           ..add(data.model as DataModel<DataModel>)
           ..addAll(data.included);
@@ -71,15 +72,15 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
             }
 
             if (metadata['kind'] == 'BelongsTo') {
-              final key =
-                  _processIdAndAddInclude(mapIn[mapKey], adapters[relType]!);
+              final key = await _processIdAndAddInclude(
+                  mapIn[mapKey], adapters[relType]!);
               if (key != null) mapOut[mapKey] = key;
             }
 
             if (metadata['kind'] == 'HasMany') {
               mapOut[mapKey] = [
                 for (final id in (mapIn[mapKey] as Iterable))
-                  _processIdAndAddInclude(id, adapters[relType]!)
+                  await _processIdAndAddInclude(id, adapters[relType]!)
               ].filterNulls;
             }
           } else {

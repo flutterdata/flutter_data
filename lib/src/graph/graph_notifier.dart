@@ -120,6 +120,7 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
     if (_doAssert) {
       if (key.split(':').length != 2 || key.startsWith('_')) {
         throw AssertionError('''
+Key "$key":
   - Key must be namespaced (my:key)
   - Key can't contain a colon (my:precious:key)
   - Namespace can't start with an underscore (_my:key)
