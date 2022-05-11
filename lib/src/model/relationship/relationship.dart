@@ -143,7 +143,7 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
     return _graph._getEdge(_ownerKey!, metadata: _name!).toSet();
   }
 
-  Set<String> get ids {
+  Set<Object> get ids {
     return keys.map((key) => _graph.getIdForKey(key)).filterNulls.toSet();
   }
 

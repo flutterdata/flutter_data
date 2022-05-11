@@ -64,10 +64,12 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   String? getKeyForId(String type, Object? id, {String? keyIfAbsent}) {
     type = DataHelpers.getType(type);
     if (id != null) {
-      final namespacedId = id.toString().typifyWith(type).namespaceWith('id');
+      final namespace = id is int ? '_id_int' : '_id';
+      final namespacedId =
+          id.toString().typifyWith(type).namespaceWith(namespace);
 
       if (_getNode(namespacedId) != null) {
-        final tos = _getEdge(namespacedId, metadata: 'key');
+        final tos = _getEdge(namespacedId, metadata: '_key');
         if (tos.isNotEmpty) {
           final key = tos.first;
           return key;
@@ -81,9 +83,9 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
         _addNode(keyIfAbsent, notify: false);
         _addNode(namespacedId, notify: false);
         _removeEdges(keyIfAbsent,
-            metadata: 'id', inverseMetadata: 'key', notify: false);
+            metadata: '_id', inverseMetadata: '_key', notify: false);
         _addEdge(keyIfAbsent, namespacedId,
-            metadata: 'id', inverseMetadata: 'key', notify: false);
+            metadata: '_id', inverseMetadata: '_key', notify: false);
         return keyIfAbsent;
       }
     } else if (keyIfAbsent != null) {
@@ -98,21 +100,30 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   void removeKey(String key) => _removeNode(key);
 
   /// Finds an ID in the graph, given a [key].
-  String? getIdForKey(String key) {
-    final tos = _getEdge(key, metadata: 'id');
-    return tos.isEmpty ? null : (tos.first).denamespace().detypify();
+  Object? getIdForKey(String key) {
+    final tos = _getEdge(key, metadata: '_id');
+    if (tos.isEmpty) {
+      return null;
+    }
+    final isInt = tos.first.namespace == '_id_int';
+    final id = tos.first.denamespace().detypify();
+    return isInt ? int.tryParse(id) : id;
   }
 
   /// Removes [type]/[id] (and its edges) from graph
   void removeId(String type, Object id) =>
-      _removeNode(id.toString().typifyWith(type).namespaceWith('id'));
+      _removeNode(id.toString().typifyWith(type).namespaceWith('_id'));
 
   // nodes
 
   void _assertKey(String key) {
     if (_doAssert) {
-      if (key.split(':').length != 2) {
-        throw AssertionError('Key must be namespaced');
+      if (key.split(':').length != 2 || key.startsWith('_')) {
+        throw AssertionError('''
+  - Key must be namespaced (my:key)
+  - Key can't contain a colon (my:precious:key)
+  - Namespace can't start with an underscore (_my:key)
+''');
       }
     }
   }

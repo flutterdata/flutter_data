@@ -83,6 +83,17 @@ void main() async {
     expect(key, startsWith('people#'));
   });
 
+  test('gets back int id as int, else as string', () {
+    final key = graph.getKeyForId('people', 1,
+        keyIfAbsent: DataHelpers.generateKey<Person>())!;
+    expect(graph.getIdForKey(key), 1);
+
+    final dateTime = DateTime.now();
+    final key2 = graph.getKeyForId('people', dateTime,
+        keyIfAbsent: DataHelpers.generateKey<Person>())!;
+    expect(graph.getIdForKey(key2), dateTime.toString());
+  });
+
   test('deletes a new key', () {
     final key = graph.getKeyForId('people', '1',
         keyIfAbsent: DataHelpers.generateKey<Person>())!;
@@ -159,8 +170,8 @@ void main() async {
         containsAll({
           'people#a2a2a2',
           'people#a1a1a1',
-          'id:people#a1a1a1',
-          'id:people#1'
+          '_id:people#a1a1a1',
+          '_id:people#1'
         }));
     expect(graph.getKeyForId('people', '1'), 'people#a1a1a1');
     graph.removeKey('people#a1a1a1');
@@ -202,6 +213,7 @@ void main() async {
     graph.debugAssert(true);
 
     expect(() => graph.addNode('superman'), throwsA(isA<AssertionError>()));
+    expect(() => graph.addNode('_superman:1'), throwsA(isA<AssertionError>()));
 
     graph.addNode('superman:1');
     expect(graph.getNode('superman:1'), isA<Map<String, List<String>>>());

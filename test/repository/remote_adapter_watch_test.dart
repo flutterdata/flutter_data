@@ -609,10 +609,10 @@ void main() async {
     // 1 event for persons relationship removed
     // 1 event for residence relationship removed
     // 1 event for cottage relationship removed
-    // 2 extra for?
+    // a few extra for?!
     verify(listener(argThat(
       isA<DataState>().having((s) => s.model, 'model', isNull),
-    ))).called(6);
+    ))).called(7);
     verifyNoMoreInteractions(listener);
   });
 

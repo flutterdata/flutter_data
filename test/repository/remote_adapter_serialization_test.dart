@@ -62,7 +62,7 @@ void main() async {
     expect(s2, {
       'id': 1,
       'name': 'a',
-      'children': ['2', '3']
+      'children': [2, 3],
     });
     expect(json.encode(s2), isA<String>());
   });
@@ -221,7 +221,7 @@ void main() async {
       'id': 27,
       'title': 'Ko',
       'number_of_sales': 0,
-      'original_author_id': '332',
+      'original_author_id': 332,
       'ardent_supporters': [],
     });
 

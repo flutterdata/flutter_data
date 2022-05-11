@@ -58,6 +58,10 @@ extension StringUtilsX on String {
     return '$type#$this';
   }
 
+  String? get namespace => split(':').safeFirst;
+
+  String? get type => split('#').safeFirst;
+
   String denamespace() {
     // need to re-join with : in case there were other :s in the text
     return (split(':')..removeAt(0)).join(':');
