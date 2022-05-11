@@ -1,9 +1,9 @@
 import 'dart:async';
 
+import 'package:flutter_data/flutter_data.dart';
 import 'package:hive/hive.dart';
 import 'package:path/path.dart' as path_helper;
 import 'package:recase/recase.dart';
-import 'package:riverpod/riverpod.dart';
 
 class HiveLocalStorage {
   HiveLocalStorage({
@@ -19,6 +19,9 @@ class HiveLocalStorage {
   final HiveAesCipher? encryptionCipher;
   final FutureOr<String> Function()? baseDirFn;
   final bool clear;
+  late final String path;
+
+  final _boxes = <String>[];
 
   bool isInitialized = false;
 
@@ -46,7 +49,7 @@ Widget build(context) {
 ''');
     }
 
-    final path = path_helper.join(await baseDirFn!(), 'flutter_data');
+    path = path_helper.join(await baseDirFn!(), 'flutter_data');
     hive.init(path);
 
     isInitialized = true;
@@ -64,6 +67,7 @@ Widget build(context) {
         name = matches.first.group(1)! + name;
       }
     }
+    _boxes.add(name);
     return await hive.openBox<B>(name, encryptionCipher: encryptionCipher);
   }
 
@@ -71,11 +75,13 @@ Widget build(context) {
     // if hard clear, remove box
     try {
       if (await hive.boxExists(name)) {
+        _boxes.remove(name);
         await hive.deleteBoxFromDisk(name);
       }
       // now try with the new snake_case name
       name = ReCase(name).snakeCase;
       if (await hive.boxExists(name)) {
+        _boxes.remove(name);
         await hive.deleteBoxFromDisk(name);
       }
     } catch (e) {
@@ -87,6 +93,13 @@ Widget build(context) {
         rethrow;
       }
     }
+  }
+
+  Future<void> destroy() async {
+    final futures = [
+      for (final boxName in _boxes) hive.deleteBoxFromDisk(boxName),
+    ];
+    await Future.wait(futures);
   }
 }
 

@@ -15,47 +15,49 @@ void main() async {
     late final Directory _dir;
     final hive = HiveFake();
 
-    try {
-      _dir = await Directory('tmp').create();
-      final storage = HiveLocalStorage(
-        baseDirFn: () => _dir.path,
-        encryptionKey: Hive.generateSecureKey(),
-        clear: true,
+    _dir = await Directory('tmp').create();
+    final storage = HiveLocalStorage(
+      baseDirFn: () => _dir.path,
+      encryptionKey: Hive.generateSecureKey(),
+      clear: true,
+      hive: hive,
+    );
+    await storage.initialize();
+    expect(storage.encryptionCipher, isA<HiveAesCipher>());
+
+    expect(() {
+      return HiveLocalStorage(
         hive: hive,
-      );
-      await storage.initialize();
-      expect(storage.encryptionCipher, isA<HiveAesCipher>());
+        baseDirFn: null,
+        encryptionKey: Hive.generateSecureKey(),
+        clear: false,
+      ).initialize();
+    }, throwsA(isA<UnsupportedError>()));
 
-      expect(() {
-        return HiveLocalStorage(
-          hive: hive,
-          baseDirFn: null,
-          encryptionKey: Hive.generateSecureKey(),
-          clear: false,
-        ).initialize();
-      }, throwsA(isA<UnsupportedError>()));
+    await storage.openBox('posts');
 
-      await storage.openBox('posts');
+    expect(await hive.boxExists('posts'), isTrue);
+    expect(await hive.boxExists('comments'), isFalse);
 
-      expect(await hive.boxExists('posts'), isTrue);
-      expect(await hive.boxExists('comments'), isFalse);
+    await storage.deleteBox('posts');
+    expect(await hive.boxExists('posts'), isFalse);
 
-      await storage.deleteBox('posts');
-      expect(await hive.boxExists('posts'), isFalse);
+    // now with underscore special case
+    await storage.openBox('_authors');
+    await storage.deleteBox('_authors');
+    expect(await hive.boxExists('_authors'), isFalse);
 
-      // now with underscore special case
-      await storage.openBox('_authors');
-      await storage.deleteBox('_authors');
-      expect(await hive.boxExists('_authors'), isFalse);
+    // and with snake case conversion
+    await storage.openBox('authors_meta');
+    await storage.deleteBox('authorsMeta');
+    expect(await hive.boxExists('authors_meta'), isFalse);
 
-      // and with snake case conversion
-      await storage.openBox('authors_meta');
-      await storage.deleteBox('authorsMeta');
-      expect(await hive.boxExists('authors_meta'), isFalse);
-    } finally {
-      if (_dir.existsSync()) {
-        await _dir.delete(recursive: true);
-      }
+    await storage.openBox('libraries');
+
+    await storage.destroy();
+
+    for (final _ in ['posts', 'libraries']) {
+      expect(await hive.boxExists(_), isFalse);
     }
   });
 }

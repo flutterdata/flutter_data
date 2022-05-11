@@ -17,23 +17,25 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
 
   @protected
   @visibleForTesting
-  Box<T>? box;
+  Box<T>? get box => (_box?.isOpen ?? false) ? _box : null;
+  Box<T>? _box;
 
   @override
   Future<HiveLocalAdapter<T>> initialize() async {
     if (isInitialized) return this;
+    final hive = _hiveLocalStorage.hive;
 
-    if (!_hiveLocalStorage.hive.isBoxOpen(_internalType)) {
-      if (!_hiveLocalStorage.hive.isAdapterRegistered(typeId)) {
-        _hiveLocalStorage.hive.registerAdapter(this);
-      }
-      if (_hiveLocalStorage.clear) {
-        await _hiveLocalStorage.deleteBox(_internalType);
+    if (!hive.isBoxOpen(_internalType)) {
+      if (!hive.isAdapterRegistered(typeId)) {
+        hive.registerAdapter(this);
       }
     }
 
     try {
-      box = await _hiveLocalStorage.openBox<T>(_internalType);
+      if (_hiveLocalStorage.clear) {
+        await _hiveLocalStorage.deleteBox(_internalType);
+      }
+      _box = await _hiveLocalStorage.openBox<T>(_internalType);
     } catch (e, stackTrace) {
       print('[flutter_data] Box failed to open:\n$stackTrace');
     }
@@ -42,7 +44,7 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
   }
 
   @override
-  bool get isInitialized => box?.isOpen ?? false;
+  bool get isInitialized => box != null;
 
   @override
   void dispose() {
