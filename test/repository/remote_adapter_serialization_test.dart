@@ -224,5 +224,13 @@ void main() async {
       'original_author_id': '332',
       'ardent_supporters': [],
     });
+
+    expect(
+        container.books.remoteAdapter.serialize(book, withRelationships: false),
+        {
+          'id': 27,
+          'title': 'Ko',
+          'number_of_sales': 0,
+        });
   });
 }

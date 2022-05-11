@@ -2,8 +2,9 @@ part of flutter_data;
 
 mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
   @override
-  Map<String, dynamic> serialize(T model) {
-    final map = localAdapter.serialize(model);
+  Map<String, dynamic> serialize(T model, {bool withRelationships = true}) {
+    final map =
+        localAdapter.serialize(model, withRelationships: withRelationships);
 
     // essentially converts keys to IDs
     for (final key in localAdapter.relationshipsFor().keys) {

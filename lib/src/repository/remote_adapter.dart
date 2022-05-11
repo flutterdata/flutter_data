@@ -226,7 +226,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   /// as a [Map<String, dynamic>] ready to be JSON-encoded.
   @protected
   @visibleForTesting
-  Map<String, dynamic> serialize(T model);
+  Map<String, dynamic> serialize(T model, {bool withRelationships = true});
 
   // caching
 
