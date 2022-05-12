@@ -771,14 +771,12 @@ void main() async {
     expect(pn1, equals(pn1b));
     expect(pn1, isNot(pn2));
 
-    // unfortunately alsoWatch will return different notifiers (for now)
-    // (we need to figure out the equality of closures like alsoWatch)
-    // final pn3 =
-    //     container.people.watchOneNotifier(p2, alsoWatch: (p) => [p.familia]);
-    // final pn3b =
-    //     container.people.watchOneNotifier(p2, alsoWatch: (p) => [p.familia]);
-    // expect(pn3, isNot(pn3b));
-    // expect(pn2, isNot(pn3));
+    final pn3 =
+        container.people.watchOneNotifier(p2, alsoWatch: (p) => [p.familia]);
+    final pn3b =
+        container.people.watchOneNotifier(p2, alsoWatch: (p) => [p.familia]);
+    expect(pn3, pn3b);
+    expect(pn2, isNot(pn3));
 
     // all
     final apn1 = container.read(container.people.watchAllProvider().notifier);

@@ -303,12 +303,16 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     DataRequestLabel? label,
   }) {
     final key = remoteAdapter.keyForModelOrId(model);
+    final relationshipDataItems = alsoWatch
+        ?.call(remoteAdapter.localAdapter.relationshipData)
+        .toImmutableList();
     return _watchOneProvider(
       WatchArgs(
         key: key,
         remote: remote,
         params: params,
         headers: headers,
+        relationshipDataItems: relationshipDataItems,
         alsoWatch: alsoWatch,
         finder: finder,
         label: label,
