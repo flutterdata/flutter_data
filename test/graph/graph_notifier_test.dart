@@ -213,7 +213,13 @@ void main() async {
     graph.debugAssert(true);
 
     expect(() => graph.addNode('superman'), throwsA(isA<AssertionError>()));
+
+    // trying to write private nodes will throw, reading them not
     expect(() => graph.addNode('_superman:1'), throwsA(isA<AssertionError>()));
+    expect(() => graph.getNode('_superman:1'),
+        isNot(throwsA(isA<AssertionError>())));
+    expect(() => graph.hasNode('_superman:1'),
+        isNot(throwsA(isA<AssertionError>())));
 
     graph.addNode('superman:1');
     expect(graph.getNode('superman:1'), isA<Map<String, List<String>>>());

@@ -143,10 +143,9 @@ Key "$key":
     _addNodes(keys, notify: notify);
   }
 
-  /// Obtains a node, [key] MUST be namespaced (e.g. `manager:key`)
+  /// Obtains a node
   Map<String, List<String>>? getNode(String key,
       {bool orAdd = false, bool notify = true}) {
-    _assertKey(key);
     return _getNode(key, orAdd: orAdd, notify: notify);
   }
 
@@ -154,7 +153,6 @@ Key "$key":
   ///
   /// [key] MUST be namespaced (e.g. `manager:key`)
   bool hasNode(String key) {
-    _assertKey(key);
     return _hasNode(key);
   }
 
