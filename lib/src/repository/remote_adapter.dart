@@ -76,9 +76,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   Watcher? internalWatch;
   final InternalHolder<T>? _internalHolder;
 
-  /// Turn verbosity on or off.
+  /// Set log level.
   // ignore: prefer_final_fields
-  bool _verbose = false;
+  int _logLevel = 0;
 
   bool get autoInitializeModels => true;
 
@@ -692,8 +692,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
   /// Logs messages for a specific label when `verbose` is `true`.
   @protected
-  void log(DataRequestLabel label, String message) {
-    if (_verbose) {
+  void log(DataRequestLabel label, String message, {int logLevel = 0}) {
+    if (_logLevel > logLevel) {
       final now = DateTime.now();
       final timestamp =
           '${now.second.toString().padLeft(2, '0')}:${now.millisecond.toString().padLeft(3, '0')}';

@@ -372,9 +372,9 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     return watchOne(model, remote: false).model!;
   }
 
-  bool get verbose => remoteAdapter._verbose;
-  set verbose(bool value) {
-    remoteAdapter._verbose = value;
+  int get logLevel => remoteAdapter._logLevel;
+  set logLevel(int value) {
+    remoteAdapter._logLevel = value;
   }
 }
 
@@ -401,7 +401,5 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
 class DataRepository {
   final List<Type> adapters;
   final bool remote;
-  final bool verbose;
-  const DataRepository(this.adapters,
-      {this.remote = true, this.verbose = false});
+  const DataRepository(this.adapters, {this.remote = true});
 }

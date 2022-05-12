@@ -86,7 +86,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           event.type.isNode &&
           event.keys.first.startsWith(internalType)) {
         final models = _getUpdatedModels();
-        log(label!, 'updated models');
+        log(label!, 'updated models', logLevel: 2);
         _notifier.updateWith(model: models);
       }
     });
@@ -213,7 +213,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         if (event.type == DataGraphEventType.addNode ||
             event.type == DataGraphEventType.updateNode) {
           if (_notifier.data.isLoading == false) {
-            log(label!, 'added/updated node ${event.keys}');
+            log(label!, 'added/updated node ${event.keys}', logLevel: 2);
             _notifier.updateWith(model: _model);
           }
         }
@@ -228,7 +228,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
       // handle deletion
       if (event.type == DataGraphEventType.removeNode && _model == null) {
-        log(label!, 'removed node ${event.keys}');
+        log(label!, 'removed node ${event.keys}', logLevel: 2);
         _notifier.updateWith(model: null);
       }
 
@@ -248,7 +248,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       // if model is loaded and any condition passes, notify update
       if (_notifier.data.isLoading == false &&
           (watchedRelationshipUpdate || watchedModelUpdate)) {
-        log(label!, 'relationship update ${event.keys}');
+        log(label!, 'relationship update ${event.keys}', logLevel: 2);
         _notifier.updateWith(model: _model);
       }
     });

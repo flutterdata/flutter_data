@@ -306,7 +306,7 @@ void main() async {
     await container.people.genericDoesNothingAdapter.doNothing(null, 1);
   });
 
-  test('verbose', overridePrint(() async {
+  test('logging', overridePrint(() async {
     container.read(responseProvider.notifier).state = TestResponse.text('''
       [
         {"id": "1", "name": "Jackson"},
@@ -321,38 +321,38 @@ void main() async {
     final dogs = await container.dogs.findAll(params: {'a': 1}, remote: true);
 
     var regexp = RegExp(r'^\d\d:\d\d\d \[findAll\/dogs@[a-z0-9]{6}\]');
-    expect(verbose.first, matches(regexp));
-    expect(verbose.first, endsWith('request with {a: 1}'));
-    expect(verbose.last, matches(regexp));
-    expect(verbose.last,
+    expect(logging.first, matches(regexp));
+    expect(logging.first, endsWith('request with {a: 1}'));
+    expect(logging.last, matches(regexp));
+    expect(logging.last,
         endsWith('{1, 2, 3, 4, 5} (and 2 more) fetched from remote'));
 
-    verbose.clear();
+    logging.clear();
 
     await container.dogs.save(dogs!.toList()[2], remote: false);
 
     regexp = RegExp(r'^\d\d:\d\d\d \[save\/dogs#3@[a-z0-9]{6}\]');
-    expect(verbose.first, matches(regexp));
-    expect(verbose.first, endsWith('saved in local storage only'));
+    expect(logging.first, matches(regexp));
+    expect(logging.first, endsWith('saved in local storage only'));
 
-    verbose.clear();
+    logging.clear();
 
     await container.dogs.delete('3', remote: true);
 
     regexp = RegExp(r'^\d\d:\d\d\d \[delete\/dogs#3@[a-z0-9]{6}\]');
-    expect(verbose.first, matches(regexp));
-    expect(verbose.first, endsWith('requesting'));
-    expect(verbose.last, matches(regexp));
-    expect(verbose.last, endsWith('deleted in local storage and remote'));
+    expect(logging.first, matches(regexp));
+    expect(logging.first, endsWith('requesting'));
+    expect(logging.last, matches(regexp));
+    expect(logging.last, endsWith('deleted in local storage and remote'));
 
-    verbose.clear();
+    logging.clear();
 
     try {
       container.read(responseProvider.notifier).state =
           TestResponse(text: (_) => '^@!@#(#(@#)#@', statusCode: 500);
       await container.dogs.findOne('1', remote: true);
     } catch (_) {
-      expect(verbose.last, contains('FormatException'));
+      expect(logging.last, contains('FormatException'));
     }
   }));
 

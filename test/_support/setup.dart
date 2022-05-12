@@ -18,7 +18,7 @@ late ProviderContainer container;
 late GraphNotifier graph;
 Function? dispose;
 
-final verbose = [];
+final logging = [];
 
 void setUpFn() async {
   container = ProviderContainer(
@@ -91,7 +91,7 @@ void setUpFn() async {
     },
   );
 
-  _dogsRepository.verbose = true;
+  _dogsRepository.logLevel = 1;
 }
 
 void tearDownFn() async {
@@ -107,7 +107,7 @@ void tearDownFn() async {
   container.bookAuthors.dispose();
   graph.dispose();
 
-  verbose.clear();
+  logging.clear();
   await oneMs();
 }
 
@@ -126,7 +126,7 @@ E _watch<E>(ProviderListenable<E> provider) {
 Function() overridePrint(dynamic Function() testFn) => () {
       final spec = ZoneSpecification(print: (_, __, ___, String msg) {
         // Add to log instead of printing to stdout
-        verbose.add(msg);
+        logging.add(msg);
       });
       return Zone.current.fork(specification: spec).run(testFn);
     };

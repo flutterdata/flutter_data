@@ -27,8 +27,8 @@ void main() async {
 
     await container.read(repositoryInitializerProvider.future);
 
-    container.users.verbose = true;
-    container.tasks.verbose = true;
+    container.users.logLevel = 1;
+    container.tasks.logLevel = 1;
 
     await container.tasks.findAll(params: {'user_id': 1, '_limit': 3});
 
