@@ -97,7 +97,8 @@ typedef DataWatcherOne<T extends DataModel<T>> = DataStateNotifier<T?> Function(
 
 typedef Watcher = W Function<W>(ProviderListenable<W> provider);
 
-typedef AlsoWatch<T extends DataModel<T>> = Iterable<Relationship?> Function(T);
+typedef AlsoWatch<T extends DataModel<T>> = Iterable<RelationshipDataItem<T>>
+    Function(RelationshipData<T>);
 
 /// This argument holder class is used internally with
 /// Riverpod `family`s.

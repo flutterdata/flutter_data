@@ -1,7 +1,6 @@
 include: package:pedantic/analysis_options.yaml
 analyzer:
   exclude:
-    - "**/*.g.dart"
     - "**/*.freezed.dart"
   strong-mode:
     implicit-casts: false

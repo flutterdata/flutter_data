@@ -47,16 +47,16 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
 
   T deserialize(Map<String, dynamic> map);
 
-  Map<String, Map<String, Object?>> relationshipsFor([T model]);
+  RelationshipData<T> get relationshipData;
 
   // helpers
 
   Map<String, dynamic> transformSerialize(Map<String, dynamic> map,
       {bool withRelationships = true}) {
-    for (final e in relationshipsFor().entries) {
+    for (final e in relationshipData.items.entries) {
       final key = e.key;
       if (withRelationships) {
-        final ignored = e.value['serialize'] == 'false';
+        final ignored = e.value.serialize == false;
         if (ignored) map.remove(key);
 
         if (map[key] is HasMany) {
@@ -76,12 +76,12 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
   Map<String, dynamic> transformDeserialize(Map<String, dynamic> map) {
     // ensure value is dynamic (argument might come in as Map<String, String>)
     map = Map<String, dynamic>.from(map);
-    for (final e in relationshipsFor().entries) {
+    for (final e in relationshipData.items.entries) {
       final key = e.key;
       final keyset = map[key] is Iterable
           ? {...(map[key] as Iterable)}
           : {if (map[key] != null) map[key].toString()};
-      final ignored = e.value['serialize'] == 'false';
+      final ignored = e.value.serialize == false;
       map[key] = {
         '_': (map.containsKey(key) && !ignored) ? keyset : null,
       };

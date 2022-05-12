@@ -35,6 +35,9 @@ abstract class DataModel<T extends DataModel<T>> {
   /// ONLY available if loaded via [Repository.watchOneNotifier].
   DataStateNotifier<T?>? get notifier => _notifier;
 
+  RelationshipData<T> get relationshipData =>
+      remoteAdapter.localAdapter.relationshipData;
+
   // methods
 
   T saveLocal() {
@@ -101,15 +104,15 @@ abstract class DataModel<T extends DataModel<T>> {
 
   /// Get all non-null [Relationship]s for this model.
   Iterable<Relationship> getRelationships() {
-    final metadatas = remoteAdapter.localAdapter.relationshipsFor(_this).values;
+    final metadatas = remoteAdapter.localAdapter.relationshipData.items.values;
 
     return metadatas
         .map((metadata) {
-          final relationship = metadata['instance'] as Relationship?;
+          final relationship = metadata.instance(_this);
           return relationship?.initialize(
             owner: this,
-            name: metadata['name'] as String,
-            inverseName: metadata['inverse'] as String?,
+            name: metadata.name,
+            inverseName: metadata.inverseName,
           );
         })
         .toList()

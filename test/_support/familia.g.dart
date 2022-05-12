@@ -6,39 +6,41 @@ part of 'familia.dart';
 // RepositoryGenerator
 // **************************************************************************
 
-// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member, non_constant_identifier_names
+// ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $FamiliaLocalAdapter on LocalAdapter<Familia> {
+  static final rdata = RelationshipData<Familia>({
+    'persons': RelationshipDataItem<Familia>(
+      name: 'persons',
+      inverseName: 'familia',
+      type: 'people',
+      kind: 'HasMany',
+      instance: (_) => _.persons,
+    ),
+    'cottage_id': RelationshipDataItem<Familia>(
+      name: 'cottage',
+      inverseName: 'owner',
+      type: 'houses',
+      kind: 'BelongsTo',
+      instance: (_) => _.cottage,
+    ),
+    'residence': RelationshipDataItem<Familia>(
+      name: 'residence',
+      inverseName: 'owner',
+      type: 'houses',
+      kind: 'BelongsTo',
+      instance: (_) => _.residence,
+    ),
+    'dogs': RelationshipDataItem<Familia>(
+      name: 'dogs',
+      type: 'dogs',
+      kind: 'HasMany',
+      instance: (_) => _.dogs,
+    )
+  });
+
   @override
-  Map<String, Map<String, Object?>> relationshipsFor([Familia? model]) => {
-        'persons': {
-          'name': 'persons',
-          'inverse': 'familia',
-          'type': 'people',
-          'kind': 'HasMany',
-          'instance': model?.persons
-        },
-        'cottage_id': {
-          'name': 'cottage',
-          'inverse': 'owner',
-          'type': 'houses',
-          'kind': 'BelongsTo',
-          'instance': model?.cottage
-        },
-        'residence': {
-          'name': 'residence',
-          'inverse': 'owner',
-          'type': 'houses',
-          'kind': 'BelongsTo',
-          'instance': model?.residence
-        },
-        'dogs': {
-          'name': 'dogs',
-          'type': 'dogs',
-          'kind': 'HasMany',
-          'instance': model?.dogs
-        }
-      };
+  RelationshipData<Familia> get relationshipData => rdata;
 
   @override
   Familia deserialize(map) {
@@ -69,6 +71,13 @@ final familiaRepositoryProvider =
     Provider<Repository<Familia>>((ref) => Repository<Familia>(ref.read));
 
 extension FamiliaDataRepositoryX on Repository<Familia> {}
+
+extension FamiliaRelationshipDataX on RelationshipData<Familia> {
+  RelationshipDataItem<Familia> get persons => items['persons']!;
+  RelationshipDataItem<Familia> get cottage => items['cottage_id']!;
+  RelationshipDataItem<Familia> get residence => items['residence']!;
+  RelationshipDataItem<Familia> get dogs => items['dogs']!;
+}
 
 // **************************************************************************
 // JsonSerializableGenerator

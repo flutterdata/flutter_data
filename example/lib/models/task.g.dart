@@ -6,19 +6,21 @@ part of 'task.dart';
 // RepositoryGenerator
 // **************************************************************************
 
-// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member, non_constant_identifier_names
+// ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $TaskLocalAdapter on LocalAdapter<Task> {
+  static final rdata = RelationshipData<Task>({
+    'user': RelationshipDataItem<Task>(
+      name: 'user',
+      inverseName: 'tasks',
+      type: 'users',
+      kind: 'BelongsTo',
+      instance: (_) => _.user,
+    )
+  });
+
   @override
-  Map<String, Map<String, Object?>> relationshipsFor([Task? model]) => {
-        'user': {
-          'name': 'user',
-          'inverse': 'tasks',
-          'type': 'users',
-          'kind': 'BelongsTo',
-          'instance': model?.user
-        }
-      };
+  RelationshipData<Task> get relationshipData => rdata;
 
   @override
   Task deserialize(map) {
@@ -50,6 +52,10 @@ final tasksRepositoryProvider =
 extension TaskDataRepositoryX on Repository<Task> {
   JSONServerAdapter<Task> get jSONServerAdapter =>
       remoteAdapter as JSONServerAdapter<Task>;
+}
+
+extension TaskRelationshipDataX on RelationshipData<Task> {
+  RelationshipDataItem<Task> get user => items['user']!;
 }
 
 // **************************************************************************
