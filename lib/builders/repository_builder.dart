@@ -149,26 +149,30 @@ and execute a code generation build again.
       result.add({
         'key': keyName,
         'name': field.name,
-        'inverse': inverse,
+        'inverseName': inverse,
         'kind': field.type.element?.name,
-        'type': DataHelpers.getType(relationshipClassElement.name),
+        'type': relationshipClassElement.name,
         if (!serialize) 'serialize': 'false',
       });
 
       return result;
     }).toList();
 
-    final relationshipsFor = {
+    final relationshipData = {
       for (final rel in relationships)
-        '\'${rel['key']}\'': {
-          '\'name\'': '\'${rel['name']}\'',
-          if (rel['inverse'] != null) '\'inverse\'': '\'${rel['inverse']}\'',
-          '\'type\'': '\'${rel['type']}\'',
-          '\'kind\'': '\'${rel['kind']}\'',
-          '\'instance\'': 'model?.' + rel['name']!,
-          if (rel['serialize'] != null)
-            '\'serialize\'': '\'${rel['serialize']}\'',
-        }
+        '\'${rel['key']}\'': '''RelationshipDataItem<$classType>(
+            name: '${rel['name']}',
+            ${rel['inverseName'] != null ? 'inverseName: \'${rel['inverseName']}\',' : ''}
+            type: '${DataHelpers.getType(rel['type'])}',
+            kind: '${rel['kind']}',
+            ${rel['serialize'] != null ? 'serialize: ${rel['serialize']},' : ''}
+            instance: (_) => _.${rel['name']},
+          )''',
+    };
+
+    final relationshipDataExtension = {
+      for (final rel in relationships)
+        '''RelationshipDataItem<$classType> get ${rel['name']} => items['${rel['key']}']!;''',
     };
 
     // serialization-related
@@ -243,12 +247,15 @@ and execute a code generation build again.
     // template
 
     return '''
-// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member, non_constant_identifier_names
+// ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin \$${classType}LocalAdapter on LocalAdapter<$classType> {
+  static final rdata = RelationshipData<$classType>(
+    $relationshipData
+  );
+
   @override
-  Map<String, Map<String, Object?>> relationshipsFor([$classType? model]) =>
-    $relationshipsFor;
+  RelationshipData<$classType> get relationshipData => rdata;
 
   @override
   $classType deserialize(map) {
@@ -281,6 +288,10 @@ final ${typeLowerCased}RepositoryProvider =
 
 extension ${classType}DataRepositoryX on Repository<$classType> {
 $mixinShortcuts
+}
+
+extension ${classType}RelationshipDataX on RelationshipData<$classType> {
+  ${relationshipDataExtension.join('\n')}
 }
 ''';
   }

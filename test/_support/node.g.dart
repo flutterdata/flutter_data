@@ -6,26 +6,28 @@ part of 'node.dart';
 // RepositoryGenerator
 // **************************************************************************
 
-// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member, non_constant_identifier_names
+// ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $NodeLocalAdapter on LocalAdapter<Node> {
+  static final rdata = RelationshipData<Node>({
+    'parent': RelationshipDataItem<Node>(
+      name: 'parent',
+      inverseName: 'children',
+      type: 'nodes',
+      kind: 'BelongsTo',
+      instance: (_) => _.parent,
+    ),
+    'children': RelationshipDataItem<Node>(
+      name: 'children',
+      inverseName: 'parent',
+      type: 'nodes',
+      kind: 'HasMany',
+      instance: (_) => _.children,
+    )
+  });
+
   @override
-  Map<String, Map<String, Object?>> relationshipsFor([Node? model]) => {
-        'parent': {
-          'name': 'parent',
-          'inverse': 'children',
-          'type': 'nodes',
-          'kind': 'BelongsTo',
-          'instance': model?.parent
-        },
-        'children': {
-          'name': 'children',
-          'inverse': 'parent',
-          'type': 'nodes',
-          'kind': 'HasMany',
-          'instance': model?.children
-        }
-      };
+  RelationshipData<Node> get relationshipData => rdata;
 
   @override
   Node deserialize(map) {
@@ -56,6 +58,11 @@ final nodesRepositoryProvider =
 
 extension NodeDataRepositoryX on Repository<Node> {
   NodeAdapter get nodeAdapter => remoteAdapter as NodeAdapter;
+}
+
+extension NodeRelationshipDataX on RelationshipData<Node> {
+  RelationshipDataItem<Node> get parent => items['parent']!;
+  RelationshipDataItem<Node> get children => items['children']!;
 }
 
 // **************************************************************************

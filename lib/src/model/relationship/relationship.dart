@@ -128,7 +128,11 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
   Set<Relationship?> andEach(AlsoWatch<E>? alsoWatch) {
     return {
       this,
-      for (final value in _iterable) ...?alsoWatch?.call(value),
+      for (final value in _iterable)
+        ...?alsoWatch
+            ?.call(value.relationshipData)
+            .filterNulls
+            .map((data) => data.instance(value)),
     };
   }
 

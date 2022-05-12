@@ -6,35 +6,37 @@ part of 'house.dart';
 // RepositoryGenerator
 // **************************************************************************
 
-// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member, non_constant_identifier_names
+// ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $HouseLocalAdapter on LocalAdapter<House> {
+  static final rdata = RelationshipData<House>({
+    'owner': RelationshipDataItem<House>(
+      name: 'owner',
+      inverseName: 'residence',
+      type: 'familia',
+      kind: 'BelongsTo',
+      instance: (_) => _.owner,
+    ),
+    'currentLibrary': RelationshipDataItem<House>(
+      name: 'currentLibrary',
+      inverseName: 'house',
+      type: 'books',
+      kind: 'HasMany',
+      serialize: false,
+      instance: (_) => _.currentLibrary,
+    ),
+    'house': RelationshipDataItem<House>(
+      name: 'house',
+      inverseName: 'house',
+      type: 'houses',
+      kind: 'BelongsTo',
+      serialize: false,
+      instance: (_) => _.house,
+    )
+  });
+
   @override
-  Map<String, Map<String, Object?>> relationshipsFor([House? model]) => {
-        'owner': {
-          'name': 'owner',
-          'inverse': 'residence',
-          'type': 'familia',
-          'kind': 'BelongsTo',
-          'instance': model?.owner
-        },
-        'currentLibrary': {
-          'name': 'currentLibrary',
-          'inverse': 'house',
-          'type': 'books',
-          'kind': 'HasMany',
-          'instance': model?.currentLibrary,
-          'serialize': 'false'
-        },
-        'house': {
-          'name': 'house',
-          'inverse': 'house',
-          'type': 'houses',
-          'kind': 'BelongsTo',
-          'instance': model?.house,
-          'serialize': 'false'
-        }
-      };
+  RelationshipData<House> get relationshipData => rdata;
 
   @override
   House deserialize(map) {
@@ -64,6 +66,12 @@ final housesRepositoryProvider =
     Provider<Repository<House>>((ref) => Repository<House>(ref.read));
 
 extension HouseDataRepositoryX on Repository<House> {}
+
+extension HouseRelationshipDataX on RelationshipData<House> {
+  RelationshipDataItem<House> get owner => items['owner']!;
+  RelationshipDataItem<House> get currentLibrary => items['currentLibrary']!;
+  RelationshipDataItem<House> get house => items['house']!;
+}
 
 // **************************************************************************
 // JsonSerializableGenerator

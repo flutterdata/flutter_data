@@ -8,7 +8,7 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
         localAdapter.serialize(model, withRelationships: withRelationships);
 
     // essentially converts keys to IDs
-    for (final key in localAdapter.relationshipsFor().keys) {
+    for (final key in localAdapter.relationshipData.items.keys) {
       if (map[key] is Iterable) {
         map[key] = (map[key] as Iterable)
             .map((k) => graph.getIdForKey(k.toString()))
@@ -57,7 +57,7 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
         final mapIn = Map<String, dynamic>.from(_ as Map);
         final mapOut = <String, dynamic>{};
 
-        final relationships = localAdapter.relationshipsFor();
+        final relationships = localAdapter.relationshipData.items;
 
         // - process includes
         // - transform ids into keys to pass to the local deserializer
@@ -65,19 +65,19 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
           final metadata = relationships[mapKey];
 
           if (metadata != null) {
-            final relType = metadata['type'] as String;
+            final relType = metadata.type;
 
-            if (metadata['serialize'] == 'false') {
+            if (metadata.serialize == false) {
               continue;
             }
 
-            if (metadata['kind'] == 'BelongsTo') {
+            if (metadata.kind == 'BelongsTo') {
               final key = await _processIdAndAddInclude(
                   mapIn[mapKey], adapters[relType]!);
               if (key != null) mapOut[mapKey] = key;
             }
 
-            if (metadata['kind'] == 'HasMany') {
+            if (metadata.kind == 'HasMany') {
               mapOut[mapKey] = [
                 for (final id in (mapIn[mapKey] as Iterable))
                   await _processIdAndAddInclude(id, adapters[relType]!)

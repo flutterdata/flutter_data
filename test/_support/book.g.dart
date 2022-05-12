@@ -6,19 +6,21 @@ part of 'book.dart';
 // RepositoryGenerator
 // **************************************************************************
 
-// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member, non_constant_identifier_names
+// ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $BookAuthorLocalAdapter on LocalAdapter<BookAuthor> {
+  static final rdata = RelationshipData<BookAuthor>({
+    'books': RelationshipDataItem<BookAuthor>(
+      name: 'books',
+      inverseName: 'originalAuthor',
+      type: 'books',
+      kind: 'HasMany',
+      instance: (_) => _.books,
+    )
+  });
+
   @override
-  Map<String, Map<String, Object?>> relationshipsFor([BookAuthor? model]) => {
-        'books': {
-          'name': 'books',
-          'inverse': 'originalAuthor',
-          'type': 'books',
-          'kind': 'HasMany',
-          'instance': model?.books
-        }
-      };
+  RelationshipData<BookAuthor> get relationshipData => rdata;
 
   @override
   BookAuthor deserialize(map) {
@@ -56,32 +58,38 @@ extension BookAuthorDataRepositoryX on Repository<BookAuthor> {
   BookAuthorAdapter get bookAuthorAdapter => remoteAdapter as BookAuthorAdapter;
 }
 
-// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member, non_constant_identifier_names
+extension BookAuthorRelationshipDataX on RelationshipData<BookAuthor> {
+  RelationshipDataItem<BookAuthor> get books => items['books']!;
+}
+
+// ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $BookLocalAdapter on LocalAdapter<Book> {
+  static final rdata = RelationshipData<Book>({
+    'original_author_id': RelationshipDataItem<Book>(
+      name: 'originalAuthor',
+      inverseName: 'books',
+      type: 'bookAuthors',
+      kind: 'BelongsTo',
+      instance: (_) => _.originalAuthor,
+    ),
+    'house': RelationshipDataItem<Book>(
+      name: 'house',
+      inverseName: 'currentLibrary',
+      type: 'houses',
+      kind: 'BelongsTo',
+      instance: (_) => _.house,
+    ),
+    'ardent_supporters': RelationshipDataItem<Book>(
+      name: 'ardentSupporters',
+      type: 'people',
+      kind: 'HasMany',
+      instance: (_) => _.ardentSupporters,
+    )
+  });
+
   @override
-  Map<String, Map<String, Object?>> relationshipsFor([Book? model]) => {
-        'original_author_id': {
-          'name': 'originalAuthor',
-          'inverse': 'books',
-          'type': 'bookAuthors',
-          'kind': 'BelongsTo',
-          'instance': model?.originalAuthor
-        },
-        'house': {
-          'name': 'house',
-          'inverse': 'currentLibrary',
-          'type': 'houses',
-          'kind': 'BelongsTo',
-          'instance': model?.house
-        },
-        'ardent_supporters': {
-          'name': 'ardentSupporters',
-          'type': 'people',
-          'kind': 'HasMany',
-          'instance': model?.ardentSupporters
-        }
-      };
+  RelationshipData<Book> get relationshipData => rdata;
 
   @override
   Book deserialize(map) {
@@ -111,6 +119,13 @@ final booksRepositoryProvider =
     Provider<Repository<Book>>((ref) => Repository<Book>(ref.read));
 
 extension BookDataRepositoryX on Repository<Book> {}
+
+extension BookRelationshipDataX on RelationshipData<Book> {
+  RelationshipDataItem<Book> get originalAuthor => items['original_author_id']!;
+  RelationshipDataItem<Book> get house => items['house']!;
+  RelationshipDataItem<Book> get ardentSupporters =>
+      items['ardent_supporters']!;
+}
 
 // **************************************************************************
 // JsonSerializableGenerator

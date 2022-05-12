@@ -6,19 +6,21 @@ part of 'person.dart';
 // RepositoryGenerator
 // **************************************************************************
 
-// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member, non_constant_identifier_names
+// ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $PersonLocalAdapter on LocalAdapter<Person> {
+  static final rdata = RelationshipData<Person>({
+    'familia': RelationshipDataItem<Person>(
+      name: 'familia',
+      inverseName: 'persons',
+      type: 'familia',
+      kind: 'BelongsTo',
+      instance: (_) => _.familia,
+    )
+  });
+
   @override
-  Map<String, Map<String, Object?>> relationshipsFor([Person? model]) => {
-        'familia': {
-          'name': 'familia',
-          'inverse': 'persons',
-          'type': 'familia',
-          'kind': 'BelongsTo',
-          'instance': model?.familia
-        }
-      };
+  RelationshipData<Person> get relationshipData => rdata;
 
   @override
   Person deserialize(map) {
@@ -59,4 +61,8 @@ extension PersonDataRepositoryX on Repository<Person> {
       remoteAdapter as GenericDoesNothingAdapter<Person>;
   YetAnotherLoginAdapter get yetAnotherLoginAdapter =>
       remoteAdapter as YetAnotherLoginAdapter;
+}
+
+extension PersonRelationshipDataX on RelationshipData<Person> {
+  RelationshipDataItem<Person> get familia => items['familia']!;
 }

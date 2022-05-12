@@ -6,11 +6,13 @@ part of 'pet.dart';
 // RepositoryGenerator
 // **************************************************************************
 
-// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member, non_constant_identifier_names
+// ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $DogLocalAdapter on LocalAdapter<Dog> {
+  static final rdata = RelationshipData<Dog>({});
+
   @override
-  Map<String, Map<String, Object?>> relationshipsFor([Dog? model]) => {};
+  RelationshipData<Dog> get relationshipData => rdata;
 
   @override
   Dog deserialize(map) {
@@ -41,11 +43,15 @@ final dogsRepositoryProvider =
 
 extension DogDataRepositoryX on Repository<Dog> {}
 
-// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member, non_constant_identifier_names
+extension DogRelationshipDataX on RelationshipData<Dog> {}
+
+// ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $CatLocalAdapter on LocalAdapter<Cat> {
+  static final rdata = RelationshipData<Cat>({});
+
   @override
-  Map<String, Map<String, Object?>> relationshipsFor([Cat? model]) => {};
+  RelationshipData<Cat> get relationshipData => rdata;
 
   @override
   Cat deserialize(map) {
@@ -75,6 +81,8 @@ final catsRepositoryProvider =
     Provider<Repository<Cat>>((ref) => Repository<Cat>(ref.read));
 
 extension CatDataRepositoryX on Repository<Cat> {}
+
+extension CatRelationshipDataX on RelationshipData<Cat> {}
 
 // **************************************************************************
 // JsonSerializableGenerator

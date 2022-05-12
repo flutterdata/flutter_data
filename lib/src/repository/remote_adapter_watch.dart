@@ -1,5 +1,28 @@
 part of flutter_data;
 
+class RelationshipData<T extends DataModel<T>> {
+  final Map<String, RelationshipDataItem<T>> items;
+  RelationshipData(this.items);
+}
+
+class RelationshipDataItem<T extends DataModel<T>> {
+  final String name;
+  final String? inverseName;
+  final String type;
+  final String kind;
+  final bool serialize;
+  final Relationship? Function(T) instance;
+
+  const RelationshipDataItem({
+    required this.name,
+    this.inverseName,
+    required this.type,
+    required this.kind,
+    this.serialize = true,
+    required this.instance,
+  });
+}
+
 mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
   @protected
   DataStateNotifier<List<T>?> watchAllNotifier({
@@ -125,10 +148,16 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     T? _getUpdatedModel({DataStateNotifier<T?>? withNotifier}) {
       final model = localAdapter.findOne(key);
       if (model != null) {
+        final relationshipData = model.relationshipData;
         _alsoWatchPairs = {
-          ...?alsoWatch?.call(model).filterNulls.map((r) {
-            return r._keys.map((key) => [r._ownerKey!, key]);
-          }).expand((_) => _)
+          ...?alsoWatch
+              ?.call(relationshipData)
+              .map((dataItem) {
+                final r = dataItem.instance(model);
+                return r?._keys.map((key) => [r._ownerKey!, key]);
+              })
+              .filterNulls
+              .expand((_) => _)
         };
         if (withNotifier != null) {
           model._updateNotifier(withNotifier);
