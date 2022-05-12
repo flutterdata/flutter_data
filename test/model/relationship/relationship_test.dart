@@ -284,7 +284,7 @@ void main() async {
           Person(id: '2', name: 'Julia', age: 23)
         }.asHasMany);
 
-    expect(fam.persons.isNotEmpty, isTrue);
+    expect(fam.persons.isPresent, isTrue);
     expect(fam.persons.toSet(), isA<Set>());
     expect(fam.persons.where((e) => e.age! > 40), hasLength(1));
     expect(fam.persons.map((e) => e.age! - 10).toSet(), {39, 13});

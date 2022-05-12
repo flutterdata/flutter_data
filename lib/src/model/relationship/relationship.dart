@@ -111,24 +111,6 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
     return true;
   }
 
-  Set<E> toSet() => _iterable.toSet();
-
-  List<E> toList() => _iterable.toList();
-
-  int get length => _iterable.length;
-
-  //
-
-  E get first => _iterable.first;
-
-  bool get isEmpty => _iterable.isEmpty;
-
-  bool get isNotEmpty => _iterable.isNotEmpty;
-
-  Iterable<E> where(bool Function(E) test) => _iterable.where(test);
-
-  Iterable<T> map<T>(T Function(E) f) => _iterable.map(f);
-
   // support methods
 
   Iterable<E> get _iterable {
@@ -168,6 +150,9 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
   ///
   /// For internal use. Does not return valid JSON.
   dynamic toJson() => this;
+
+  /// Whether the relationship has a value.
+  bool get isPresent => _iterable.isNotEmpty;
 
   @override
   List<Object?> get props => [_ownerKey, _name, _inverseName];

@@ -36,7 +36,7 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
   }
 
   /// Obtains the single [E] value of this relationship (`null` if not present).
-  E? get value => isNotEmpty ? first : null;
+  E? get value => _iterable.isNotEmpty ? _iterable.first : null;
 
   /// Sets the single [E] value of this relationship, replacing any previous [value].
   ///
@@ -66,7 +66,7 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
         type: eventType,
       );
     }
-    assert(length <= 1);
+    assert(_iterable.length <= 1);
   }
 
   /// Returns the [value]'s `key`

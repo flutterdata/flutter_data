@@ -129,8 +129,8 @@ void main() async {
 
     final b2 = b1.copyWith(originalAuthor: BelongsTo.remove());
     await b2.save();
-    expect(b2.originalAuthor!.value, isNull);
-    expect(b1.originalAuthor!.value, isNull);
+    expect(b2.originalAuthor!.isPresent, isFalse);
+    expect(b1.originalAuthor!.isPresent, isFalse);
   });
 
   test('self ref', () {

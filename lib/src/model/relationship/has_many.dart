@@ -42,6 +42,24 @@ class HasMany<E extends DataModel<E>> extends Relationship<E, Set<E>> {
     return _relationshipEventNotifier.map((e) => toSet());
   }
 
+  // iterable utils
+
+  Set<E> toSet() => _iterable.toSet();
+
+  List<E> toList() => _iterable.toList();
+
+  int get length => _iterable.length;
+
+  E get first => _iterable.first;
+
+  bool get isEmpty => _iterable.isEmpty;
+
+  bool get isNotEmpty => _iterable.isNotEmpty;
+
+  Iterable<E> where(bool Function(E) test) => _iterable.where(test);
+
+  Iterable<T> map<T>(T Function(E) f) => _iterable.map(f);
+
   @override
   String toString() => 'HasMany<$E>(${super.toString()})';
 }

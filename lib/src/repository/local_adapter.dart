@@ -74,6 +74,7 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
   }
 
   Map<String, dynamic> transformDeserialize(Map<String, dynamic> map) {
+    // ensure value is dynamic (argument might come in as Map<String, String>)
     map = Map<String, dynamic>.from(map);
     for (final e in relationshipsFor().entries) {
       final key = e.key;
