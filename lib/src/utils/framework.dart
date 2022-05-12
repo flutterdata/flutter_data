@@ -109,6 +109,7 @@ class WatchArgs<T extends DataModel<T>> with EquatableMixin {
     this.params,
     this.headers,
     this.syncLocal,
+    this.relationshipDataItems,
     this.alsoWatch,
     this.finder,
     this.label,
@@ -119,13 +120,22 @@ class WatchArgs<T extends DataModel<T>> with EquatableMixin {
   final Map<String, dynamic>? params;
   final Map<String, String>? headers;
   final bool? syncLocal;
+  final List<RelationshipDataItem<T>>? relationshipDataItems;
   final AlsoWatch<T>? alsoWatch;
   final String? finder;
   final DataRequestLabel? label;
 
   @override
-  List<Object?> get props =>
-      [key, remote, params, headers, syncLocal, finder, label];
+  List<Object?> get props => [
+        key,
+        remote,
+        params,
+        headers,
+        syncLocal,
+        relationshipDataItems,
+        finder,
+        label
+      ];
 }
 
 // ignore: constant_identifier_names
