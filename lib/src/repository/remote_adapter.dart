@@ -690,7 +690,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     throw e;
   }
 
-  /// Logs messages for a specific label when `verbose` is `true`.
   @protected
   void log(DataRequestLabel label, String message, {int logLevel = 1}) {
     if (_logLevel >= logLevel) {

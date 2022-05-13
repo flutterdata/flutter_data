@@ -354,6 +354,12 @@ void main() async {
     } catch (_) {
       expect(logging.last, contains('FormatException'));
     }
+
+    logging.clear();
+
+    final label = DataRequestLabel('misc', type: 'dogs');
+    container.dogs.log(label, 'message');
+    expect(logging.first, contains('message'));
   }));
 
   test('find one with utf8 characters', () async {

@@ -372,6 +372,11 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     return watchOne(model, remote: false).model!;
   }
 
+  /// Logs messages for a specific label when `verbose` is `true`.
+  void log(DataRequestLabel label, String message, {int logLevel = 1}) {
+    remoteAdapter.log(label, message, logLevel: logLevel);
+  }
+
   int get logLevel => remoteAdapter._logLevel;
   set logLevel(int value) {
     remoteAdapter._logLevel = value;
