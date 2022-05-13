@@ -47,13 +47,13 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
 
   T deserialize(Map<String, dynamic> map);
 
-  RelationshipData<T> get relationshipData;
+  Map<String, RelationshipMeta> get relationshipMetas;
 
   // helpers
 
   Map<String, dynamic> transformSerialize(Map<String, dynamic> map,
       {bool withRelationships = true}) {
-    for (final e in relationshipData.items.entries) {
+    for (final e in relationshipMetas.entries) {
       final key = e.key;
       if (withRelationships) {
         final ignored = e.value.serialize == false;
@@ -76,7 +76,7 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
   Map<String, dynamic> transformDeserialize(Map<String, dynamic> map) {
     // ensure value is dynamic (argument might come in as Map<String, String>)
     map = Map<String, dynamic>.from(map);
-    for (final e in relationshipData.items.entries) {
+    for (final e in relationshipMetas.entries) {
       final key = e.key;
       final keyset = map[key] is Iterable
           ? {...(map[key] as Iterable)}

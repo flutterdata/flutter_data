@@ -97,8 +97,52 @@ typedef DataWatcherOne<T extends DataModel<T>> = DataStateNotifier<T?> Function(
 
 typedef Watcher = W Function<W>(ProviderListenable<W> provider);
 
-typedef AlsoWatch<T extends DataModel<T>> = Iterable<RelationshipDataItem<T>>
-    Function(RelationshipData<T>);
+// relationships + alsoWatch
+
+class RelationshipGraphNode<T extends DataModel<T>> {}
+
+class RelationshipMeta<T extends DataModel<T>>
+    with RelationshipGraphNode<T>, EquatableMixin {
+  final String name;
+  final String? inverseName;
+  final String type;
+  final String kind;
+  final bool serialize;
+  final Relationship? Function(DataModel) instance;
+
+  RelationshipMeta({
+    required this.name,
+    this.inverseName,
+    required this.type,
+    required this.kind,
+    this.serialize = true,
+    required this.instance,
+  });
+
+  RelationshipMeta? child;
+
+  RelationshipMeta? _parent;
+  RelationshipMeta? get parent => _parent;
+  set parent(RelationshipMeta? parent) {
+    _parent = parent;
+    parent?.child = this; // automatically set child
+  }
+
+  // get topmost parent
+  RelationshipMeta get _top {
+    RelationshipMeta? current = this;
+    while (current?.parent != null) {
+      current = current!.parent;
+    }
+    return current!;
+  }
+
+  @override
+  List<Object?> get props => [name, inverseName, type, kind, serialize];
+}
+
+typedef AlsoWatch<T extends DataModel<T>> = Set<RelationshipGraphNode> Function(
+    RelationshipGraphNode<T>);
 
 /// This argument holder class is used internally with
 /// Riverpod `family`s.
@@ -109,7 +153,7 @@ class WatchArgs<T extends DataModel<T>> with EquatableMixin {
     this.params,
     this.headers,
     this.syncLocal,
-    this.relationshipDataItems,
+    this.relationshipMetas,
     this.alsoWatch,
     this.finder,
     this.label,
@@ -120,7 +164,7 @@ class WatchArgs<T extends DataModel<T>> with EquatableMixin {
   final Map<String, dynamic>? params;
   final Map<String, String>? headers;
   final bool? syncLocal;
-  final List<RelationshipDataItem<T>>? relationshipDataItems;
+  final List<RelationshipMeta>? relationshipMetas;
   final AlsoWatch<T>? alsoWatch;
   final String? finder;
   final DataRequestLabel? label;
@@ -132,7 +176,7 @@ class WatchArgs<T extends DataModel<T>> with EquatableMixin {
         params,
         headers,
         syncLocal,
-        relationshipDataItems,
+        relationshipMetas,
         finder,
         label
       ];

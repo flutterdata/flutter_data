@@ -9,18 +9,18 @@ part of 'task.dart';
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $TaskLocalAdapter on LocalAdapter<Task> {
-  static final rdata = RelationshipData<Task>({
-    'user': RelationshipDataItem<Task>(
+  static final Map<String, RelationshipMeta> kTaskRelationshipMetas = {
+    'user': RelationshipMeta<User>(
       name: 'user',
       inverseName: 'tasks',
       type: 'users',
       kind: 'BelongsTo',
-      instance: (_) => _.user,
+      instance: (_) => (_ as Task).user,
     )
-  });
+  };
 
   @override
-  RelationshipData<Task> get relationshipData => rdata;
+  Map<String, RelationshipMeta> get relationshipMetas => kTaskRelationshipMetas;
 
   @override
   Task deserialize(map) {
@@ -54,8 +54,15 @@ extension TaskDataRepositoryX on Repository<Task> {
       remoteAdapter as JSONServerAdapter<Task>;
 }
 
-extension TaskRelationshipDataX on RelationshipData<Task> {
-  RelationshipDataItem<Task> get user => items['user']!;
+extension TaskRelationshipGraphNodeX on RelationshipGraphNode<Task> {
+  RelationshipGraphNode<User> get user {
+    final meta = $TaskLocalAdapter.kTaskRelationshipMetas['user']
+        as RelationshipMeta<User>;
+    if (this is RelationshipMeta) {
+      meta.parent = this as RelationshipMeta;
+    }
+    return meta;
+  }
 }
 
 // **************************************************************************

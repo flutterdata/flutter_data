@@ -9,38 +9,39 @@ part of 'familia.dart';
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $FamiliaLocalAdapter on LocalAdapter<Familia> {
-  static final rdata = RelationshipData<Familia>({
-    'persons': RelationshipDataItem<Familia>(
+  static final Map<String, RelationshipMeta> kFamiliaRelationshipMetas = {
+    'persons': RelationshipMeta<Person>(
       name: 'persons',
       inverseName: 'familia',
       type: 'people',
       kind: 'HasMany',
-      instance: (_) => _.persons,
+      instance: (_) => (_ as Familia).persons,
     ),
-    'cottage_id': RelationshipDataItem<Familia>(
+    'cottage_id': RelationshipMeta<House>(
       name: 'cottage',
       inverseName: 'owner',
       type: 'houses',
       kind: 'BelongsTo',
-      instance: (_) => _.cottage,
+      instance: (_) => (_ as Familia).cottage,
     ),
-    'residence': RelationshipDataItem<Familia>(
+    'residence': RelationshipMeta<House>(
       name: 'residence',
       inverseName: 'owner',
       type: 'houses',
       kind: 'BelongsTo',
-      instance: (_) => _.residence,
+      instance: (_) => (_ as Familia).residence,
     ),
-    'dogs': RelationshipDataItem<Familia>(
+    'dogs': RelationshipMeta<Dog>(
       name: 'dogs',
       type: 'dogs',
       kind: 'HasMany',
-      instance: (_) => _.dogs,
+      instance: (_) => (_ as Familia).dogs,
     )
-  });
+  };
 
   @override
-  RelationshipData<Familia> get relationshipData => rdata;
+  Map<String, RelationshipMeta> get relationshipMetas =>
+      kFamiliaRelationshipMetas;
 
   @override
   Familia deserialize(map) {
@@ -72,11 +73,42 @@ final familiaRepositoryProvider =
 
 extension FamiliaDataRepositoryX on Repository<Familia> {}
 
-extension FamiliaRelationshipDataX on RelationshipData<Familia> {
-  RelationshipDataItem<Familia> get persons => items['persons']!;
-  RelationshipDataItem<Familia> get cottage => items['cottage_id']!;
-  RelationshipDataItem<Familia> get residence => items['residence']!;
-  RelationshipDataItem<Familia> get dogs => items['dogs']!;
+extension FamiliaRelationshipGraphNodeX on RelationshipGraphNode<Familia> {
+  RelationshipGraphNode<Person> get persons {
+    final meta = $FamiliaLocalAdapter.kFamiliaRelationshipMetas['persons']
+        as RelationshipMeta<Person>;
+    if (this is RelationshipMeta) {
+      meta.parent = this as RelationshipMeta;
+    }
+    return meta;
+  }
+
+  RelationshipGraphNode<House> get cottage {
+    final meta = $FamiliaLocalAdapter.kFamiliaRelationshipMetas['cottage_id']
+        as RelationshipMeta<House>;
+    if (this is RelationshipMeta) {
+      meta.parent = this as RelationshipMeta;
+    }
+    return meta;
+  }
+
+  RelationshipGraphNode<House> get residence {
+    final meta = $FamiliaLocalAdapter.kFamiliaRelationshipMetas['residence']
+        as RelationshipMeta<House>;
+    if (this is RelationshipMeta) {
+      meta.parent = this as RelationshipMeta;
+    }
+    return meta;
+  }
+
+  RelationshipGraphNode<Dog> get dogs {
+    final meta = $FamiliaLocalAdapter.kFamiliaRelationshipMetas['dogs']
+        as RelationshipMeta<Dog>;
+    if (this is RelationshipMeta) {
+      meta.parent = this as RelationshipMeta;
+    }
+    return meta;
+  }
 }
 
 // **************************************************************************

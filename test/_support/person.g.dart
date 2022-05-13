@@ -9,18 +9,19 @@ part of 'person.dart';
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $PersonLocalAdapter on LocalAdapter<Person> {
-  static final rdata = RelationshipData<Person>({
-    'familia': RelationshipDataItem<Person>(
+  static final Map<String, RelationshipMeta> kPersonRelationshipMetas = {
+    'familia': RelationshipMeta<Familia>(
       name: 'familia',
       inverseName: 'persons',
       type: 'familia',
       kind: 'BelongsTo',
-      instance: (_) => _.familia,
+      instance: (_) => (_ as Person).familia,
     )
-  });
+  };
 
   @override
-  RelationshipData<Person> get relationshipData => rdata;
+  Map<String, RelationshipMeta> get relationshipMetas =>
+      kPersonRelationshipMetas;
 
   @override
   Person deserialize(map) {
@@ -63,6 +64,13 @@ extension PersonDataRepositoryX on Repository<Person> {
       remoteAdapter as YetAnotherLoginAdapter;
 }
 
-extension PersonRelationshipDataX on RelationshipData<Person> {
-  RelationshipDataItem<Person> get familia => items['familia']!;
+extension PersonRelationshipGraphNodeX on RelationshipGraphNode<Person> {
+  RelationshipGraphNode<Familia> get familia {
+    final meta = $PersonLocalAdapter.kPersonRelationshipMetas['familia']
+        as RelationshipMeta<Familia>;
+    if (this is RelationshipMeta) {
+      meta.parent = this as RelationshipMeta;
+    }
+    return meta;
+  }
 }

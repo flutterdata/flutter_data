@@ -1,28 +1,5 @@
 part of flutter_data;
 
-class RelationshipData<T extends DataModel<T>> {
-  final Map<String, RelationshipDataItem<T>> items;
-  RelationshipData(this.items);
-}
-
-class RelationshipDataItem<T extends DataModel<T>> {
-  final String name;
-  final String? inverseName;
-  final String type;
-  final String kind;
-  final bool serialize;
-  final Relationship? Function(T) instance;
-
-  const RelationshipDataItem({
-    required this.name,
-    this.inverseName,
-    required this.type,
-    required this.kind,
-    this.serialize = true,
-    required this.instance,
-  });
-}
-
 mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
   @protected
   DataStateNotifier<List<T>?> watchAllNotifier({
@@ -148,14 +125,16 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     T? _getUpdatedModel({DataStateNotifier<T?>? withNotifier}) {
       final model = localAdapter.findOne(key);
       if (model != null) {
-        final relationshipData = model.relationshipData;
+        // get all metas provided via `alsoWatch`
+        final metas = alsoWatch
+            ?.call(RelationshipGraphNode<T>())
+            .whereType<RelationshipMeta>();
+
+        // recursively get applicable watch key pairs for each meta -
+        // from top to bottom (e.g. `p`, `p.familia`, `p.familia.cottage`)
         _alsoWatchPairs = {
-          ...?alsoWatch
-              ?.call(relationshipData)
-              .map((dataItem) {
-                final r = dataItem.instance(model);
-                return r?._keys.map((key) => [r._ownerKey!, key]);
-              })
+          ...?metas
+              ?.map((meta) => _getPairsForMeta(meta._top, model))
               .filterNulls
               .expand((_) => _)
         };
@@ -300,6 +279,23 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       _dispose();
     };
     return _notifier;
+  }
+
+  Iterable<List<String>> _getPairsForMeta(
+      RelationshipMeta? meta, DataModel model) {
+    // get instance of this relationship
+    final relationship = meta?.instance(model);
+    if (relationship == null) return {};
+
+    return {
+      // include key pairs of (owner, key)
+      for (final key in relationship._keys) [relationship._ownerKey!, key],
+      // recursively include key pairs for other requested relationships
+      for (final childModel in relationship._iterable)
+        _getPairsForMeta(meta!.child, childModel as DataModel)
+            .expand((_) => _)
+            .toList()
+    };
   }
 }
 

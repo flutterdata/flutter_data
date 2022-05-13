@@ -9,18 +9,19 @@ part of 'book.dart';
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $BookAuthorLocalAdapter on LocalAdapter<BookAuthor> {
-  static final rdata = RelationshipData<BookAuthor>({
-    'books': RelationshipDataItem<BookAuthor>(
+  static final Map<String, RelationshipMeta> kBookAuthorRelationshipMetas = {
+    'books': RelationshipMeta<Book>(
       name: 'books',
       inverseName: 'originalAuthor',
       type: 'books',
       kind: 'HasMany',
-      instance: (_) => _.books,
+      instance: (_) => (_ as BookAuthor).books,
     )
-  });
+  };
 
   @override
-  RelationshipData<BookAuthor> get relationshipData => rdata;
+  Map<String, RelationshipMeta> get relationshipMetas =>
+      kBookAuthorRelationshipMetas;
 
   @override
   BookAuthor deserialize(map) {
@@ -58,38 +59,46 @@ extension BookAuthorDataRepositoryX on Repository<BookAuthor> {
   BookAuthorAdapter get bookAuthorAdapter => remoteAdapter as BookAuthorAdapter;
 }
 
-extension BookAuthorRelationshipDataX on RelationshipData<BookAuthor> {
-  RelationshipDataItem<BookAuthor> get books => items['books']!;
+extension BookAuthorRelationshipGraphNodeX
+    on RelationshipGraphNode<BookAuthor> {
+  RelationshipGraphNode<Book> get books {
+    final meta = $BookAuthorLocalAdapter.kBookAuthorRelationshipMetas['books']
+        as RelationshipMeta<Book>;
+    if (this is RelationshipMeta) {
+      meta.parent = this as RelationshipMeta;
+    }
+    return meta;
+  }
 }
 
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $BookLocalAdapter on LocalAdapter<Book> {
-  static final rdata = RelationshipData<Book>({
-    'original_author_id': RelationshipDataItem<Book>(
+  static final Map<String, RelationshipMeta> kBookRelationshipMetas = {
+    'original_author_id': RelationshipMeta<BookAuthor>(
       name: 'originalAuthor',
       inverseName: 'books',
       type: 'bookAuthors',
       kind: 'BelongsTo',
-      instance: (_) => _.originalAuthor,
+      instance: (_) => (_ as Book).originalAuthor,
     ),
-    'house': RelationshipDataItem<Book>(
+    'house': RelationshipMeta<House>(
       name: 'house',
       inverseName: 'currentLibrary',
       type: 'houses',
       kind: 'BelongsTo',
-      instance: (_) => _.house,
+      instance: (_) => (_ as Book).house,
     ),
-    'ardent_supporters': RelationshipDataItem<Book>(
+    'ardent_supporters': RelationshipMeta<Person>(
       name: 'ardentSupporters',
       type: 'people',
       kind: 'HasMany',
-      instance: (_) => _.ardentSupporters,
+      instance: (_) => (_ as Book).ardentSupporters,
     )
-  });
+  };
 
   @override
-  RelationshipData<Book> get relationshipData => rdata;
+  Map<String, RelationshipMeta> get relationshipMetas => kBookRelationshipMetas;
 
   @override
   Book deserialize(map) {
@@ -120,11 +129,33 @@ final booksRepositoryProvider =
 
 extension BookDataRepositoryX on Repository<Book> {}
 
-extension BookRelationshipDataX on RelationshipData<Book> {
-  RelationshipDataItem<Book> get originalAuthor => items['original_author_id']!;
-  RelationshipDataItem<Book> get house => items['house']!;
-  RelationshipDataItem<Book> get ardentSupporters =>
-      items['ardent_supporters']!;
+extension BookRelationshipGraphNodeX on RelationshipGraphNode<Book> {
+  RelationshipGraphNode<BookAuthor> get originalAuthor {
+    final meta = $BookLocalAdapter.kBookRelationshipMetas['original_author_id']
+        as RelationshipMeta<BookAuthor>;
+    if (this is RelationshipMeta) {
+      meta.parent = this as RelationshipMeta;
+    }
+    return meta;
+  }
+
+  RelationshipGraphNode<House> get house {
+    final meta = $BookLocalAdapter.kBookRelationshipMetas['house']
+        as RelationshipMeta<House>;
+    if (this is RelationshipMeta) {
+      meta.parent = this as RelationshipMeta;
+    }
+    return meta;
+  }
+
+  RelationshipGraphNode<Person> get ardentSupporters {
+    final meta = $BookLocalAdapter.kBookRelationshipMetas['ardent_supporters']
+        as RelationshipMeta<Person>;
+    if (this is RelationshipMeta) {
+      meta.parent = this as RelationshipMeta;
+    }
+    return meta;
+  }
 }
 
 // **************************************************************************

@@ -267,6 +267,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     String? finder,
     DataRequestLabel? label,
   }) {
+    remote ??= remoteAdapter._remote;
     return _watchAllProvider(
       WatchArgs(
         remote: remote,
@@ -303,16 +304,19 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     DataRequestLabel? label,
   }) {
     final key = remoteAdapter.keyForModelOrId(model);
-    final relationshipDataItems = alsoWatch
-        ?.call(remoteAdapter.localAdapter.relationshipData)
+    remote ??= remoteAdapter._remote;
+    final relationshipMetas = alsoWatch
+        ?.call(RelationshipGraphNode<T>())
+        .whereType<RelationshipMeta>()
         .toImmutableList();
+
     return _watchOneProvider(
       WatchArgs(
         key: key,
         remote: remote,
         params: params,
         headers: headers,
-        relationshipDataItems: relationshipDataItems,
+        relationshipMetas: relationshipMetas,
         alsoWatch: alsoWatch,
         finder: finder,
         label: label,

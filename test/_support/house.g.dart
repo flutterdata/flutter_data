@@ -9,34 +9,35 @@ part of 'house.dart';
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $HouseLocalAdapter on LocalAdapter<House> {
-  static final rdata = RelationshipData<House>({
-    'owner': RelationshipDataItem<House>(
+  static final Map<String, RelationshipMeta> kHouseRelationshipMetas = {
+    'owner': RelationshipMeta<Familia>(
       name: 'owner',
       inverseName: 'residence',
       type: 'familia',
       kind: 'BelongsTo',
-      instance: (_) => _.owner,
+      instance: (_) => (_ as House).owner,
     ),
-    'currentLibrary': RelationshipDataItem<House>(
+    'currentLibrary': RelationshipMeta<Book>(
       name: 'currentLibrary',
       inverseName: 'house',
       type: 'books',
       kind: 'HasMany',
       serialize: false,
-      instance: (_) => _.currentLibrary,
+      instance: (_) => (_ as House).currentLibrary,
     ),
-    'house': RelationshipDataItem<House>(
+    'house': RelationshipMeta<House>(
       name: 'house',
       inverseName: 'house',
       type: 'houses',
       kind: 'BelongsTo',
       serialize: false,
-      instance: (_) => _.house,
+      instance: (_) => (_ as House).house,
     )
-  });
+  };
 
   @override
-  RelationshipData<House> get relationshipData => rdata;
+  Map<String, RelationshipMeta> get relationshipMetas =>
+      kHouseRelationshipMetas;
 
   @override
   House deserialize(map) {
@@ -67,10 +68,33 @@ final housesRepositoryProvider =
 
 extension HouseDataRepositoryX on Repository<House> {}
 
-extension HouseRelationshipDataX on RelationshipData<House> {
-  RelationshipDataItem<House> get owner => items['owner']!;
-  RelationshipDataItem<House> get currentLibrary => items['currentLibrary']!;
-  RelationshipDataItem<House> get house => items['house']!;
+extension HouseRelationshipGraphNodeX on RelationshipGraphNode<House> {
+  RelationshipGraphNode<Familia> get owner {
+    final meta = $HouseLocalAdapter.kHouseRelationshipMetas['owner']
+        as RelationshipMeta<Familia>;
+    if (this is RelationshipMeta) {
+      meta.parent = this as RelationshipMeta;
+    }
+    return meta;
+  }
+
+  RelationshipGraphNode<Book> get currentLibrary {
+    final meta = $HouseLocalAdapter.kHouseRelationshipMetas['currentLibrary']
+        as RelationshipMeta<Book>;
+    if (this is RelationshipMeta) {
+      meta.parent = this as RelationshipMeta;
+    }
+    return meta;
+  }
+
+  RelationshipGraphNode<House> get house {
+    final meta = $HouseLocalAdapter.kHouseRelationshipMetas['house']
+        as RelationshipMeta<House>;
+    if (this is RelationshipMeta) {
+      meta.parent = this as RelationshipMeta;
+    }
+    return meta;
+  }
 }
 
 // **************************************************************************
