@@ -126,17 +126,6 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
     return _keys.map((key) => _graph.getIdForKey(key)).filterNulls.toSet();
   }
 
-  Set<Relationship?> andEach(AlsoWatch<E>? alsoWatch) {
-    return {
-      this,
-      for (final value in _iterable)
-        ...?alsoWatch
-            ?.call(value.relationshipData)
-            .filterNulls
-            .map((data) => data.instance(value)),
-    };
-  }
-
   DelayedStateNotifier<DataGraphEvent> get _relationshipEventNotifier {
     return _adapter.graph.where((event) {
       return event.type.isEdge &&

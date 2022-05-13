@@ -1,3 +1,5 @@
+@Timeout(Duration(days: 1))
+
 import 'dart:math';
 
 import 'package:flutter_data/flutter_data.dart';
@@ -186,8 +188,6 @@ void main() async {
     // important to keep to test `alsoWatch` assignment order
     final familia = await Familia(id: '22', surname: 'Paez', persons: HasMany())
         .save(remote: false);
-
-    container.familia.logLevel = 1;
 
     final listener = Listener<DataState<Familia?>?>();
 
@@ -623,7 +623,13 @@ void main() async {
 
     final notifier = container.people.watchOneNotifier(
       frank,
-      // TODO alsoWatch: (p) => {p.familia.persons},
+      alsoWatch: (p) => {
+        p, // also tests self (`p`, which is ignored)
+        p.familia,
+        p.familia.cottage,
+        p.familia.cottage.currentLibrary
+            .ardentSupporters, // and arbitrary relationship paths
+      },
     );
 
     final listener = Listener<DataState<Person?>?>();
@@ -771,10 +777,11 @@ void main() async {
     expect(pn1, equals(pn1b));
     expect(pn1, isNot(pn2));
 
-    final pn3 =
-        container.people.watchOneNotifier(p2, alsoWatch: (p) => [p.familia]);
+    // remote=false is the default for people, so these two should be equal
+    final pn3 = container.people
+        .watchOneNotifier(p2, remote: false, alsoWatch: (p) => {p.familia});
     final pn3b =
-        container.people.watchOneNotifier(p2, alsoWatch: (p) => [p.familia]);
+        container.people.watchOneNotifier(p2, alsoWatch: (p) => {p.familia});
     expect(pn3, pn3b);
     expect(pn2, isNot(pn3));
 
@@ -791,16 +798,19 @@ void main() async {
   });
 
   test('watchargs', () {
-    // ignores alsoWatch for now
     final a1 = WatchArgs<Person>(
-        key: 'e23f44', remote: false, alsoWatch: (p) => [], finder: 'finder');
-    final a2 =
-        WatchArgs<Person>(key: 'e23f44', remote: false, finder: 'finder');
-    expect(a1, a2);
+        key: 'e23f44',
+        remote: false,
+        alsoWatch: (p) => {p.familia}, // is ignored
+        relationshipMetas: [],
+        finder: 'finder');
 
-    // ?
-    // final b1 = WatchArgs<Person>(key: 'b');
-    // final b2 = WatchArgs<Person>(key: 'b', remote: false);
-    // expect(b1, b2);
+    final a2 = WatchArgs<Person>(
+      key: 'e23f44',
+      remote: false,
+      finder: 'finder',
+      relationshipMetas: [],
+    );
+    expect(a1, a2);
   });
 }

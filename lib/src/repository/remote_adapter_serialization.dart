@@ -8,7 +8,7 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
         localAdapter.serialize(model, withRelationships: withRelationships);
 
     // essentially converts keys to IDs
-    for (final key in localAdapter.relationshipData.items.keys) {
+    for (final key in localAdapter.relationshipMetas.keys) {
       if (map[key] is Iterable) {
         map[key] = (map[key] as Iterable)
             .map((k) => graph.getIdForKey(k.toString()))
@@ -57,7 +57,7 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
         final mapIn = Map<String, dynamic>.from(_ as Map);
         final mapOut = <String, dynamic>{};
 
-        final relationships = localAdapter.relationshipData.items;
+        final relationships = localAdapter.relationshipMetas;
 
         // - process includes
         // - transform ids into keys to pass to the local deserializer

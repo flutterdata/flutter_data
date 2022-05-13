@@ -158,21 +158,30 @@ and execute a code generation build again.
       return result;
     }).toList();
 
-    final relationshipData = {
+    final relationshipMeta = {
       for (final rel in relationships)
-        '\'${rel['key']}\'': '''RelationshipDataItem<$classType>(
+        '\'${rel['key']}\'': '''RelationshipMeta<${rel['type']}>(
             name: '${rel['name']}',
             ${rel['inverseName'] != null ? 'inverseName: \'${rel['inverseName']}\',' : ''}
             type: '${DataHelpers.getType(rel['type'])}',
             kind: '${rel['kind']}',
             ${rel['serialize'] != null ? 'serialize: ${rel['serialize']},' : ''}
-            instance: (_) => _.${rel['name']},
+            instance: (_) => (_ as $classType).${rel['name']},
           )''',
     };
 
-    final relationshipDataExtension = {
+    final relationshipGraphNodeExtension = {
       for (final rel in relationships)
-        '''RelationshipDataItem<$classType> get ${rel['name']} => items['${rel['key']}']!;''',
+        '''
+RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
+  final meta = \$${classType}LocalAdapter.k${classType}RelationshipMetas['${rel['key']}']
+      as RelationshipMeta<${rel['type']}>;
+  if (this is RelationshipMeta) {
+    meta.parent = this as RelationshipMeta;
+  }
+  return meta;
+}
+'''
     };
 
     // serialization-related
@@ -250,12 +259,11 @@ and execute a code generation build again.
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin \$${classType}LocalAdapter on LocalAdapter<$classType> {
-  static final rdata = RelationshipData<$classType>(
-    $relationshipData
-  );
+  static final Map<String, RelationshipMeta> k${classType}RelationshipMetas = 
+    $relationshipMeta;
 
   @override
-  RelationshipData<$classType> get relationshipData => rdata;
+  Map<String, RelationshipMeta> get relationshipMetas => k${classType}RelationshipMetas;
 
   @override
   $classType deserialize(map) {
@@ -290,8 +298,8 @@ extension ${classType}DataRepositoryX on Repository<$classType> {
 $mixinShortcuts
 }
 
-extension ${classType}RelationshipDataX on RelationshipData<$classType> {
-  ${relationshipDataExtension.join('\n')}
+extension ${classType}RelationshipGraphNodeX on RelationshipGraphNode<$classType> {
+  ${relationshipGraphNodeExtension.join('\n')}
 }
 ''';
   }

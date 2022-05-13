@@ -9,10 +9,10 @@ part of 'pet.dart';
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $DogLocalAdapter on LocalAdapter<Dog> {
-  static final rdata = RelationshipData<Dog>({});
+  static final Map<String, RelationshipMeta> kDogRelationshipMetas = {};
 
   @override
-  RelationshipData<Dog> get relationshipData => rdata;
+  Map<String, RelationshipMeta> get relationshipMetas => kDogRelationshipMetas;
 
   @override
   Dog deserialize(map) {
@@ -43,15 +43,15 @@ final dogsRepositoryProvider =
 
 extension DogDataRepositoryX on Repository<Dog> {}
 
-extension DogRelationshipDataX on RelationshipData<Dog> {}
+extension DogRelationshipGraphNodeX on RelationshipGraphNode<Dog> {}
 
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $CatLocalAdapter on LocalAdapter<Cat> {
-  static final rdata = RelationshipData<Cat>({});
+  static final Map<String, RelationshipMeta> kCatRelationshipMetas = {};
 
   @override
-  RelationshipData<Cat> get relationshipData => rdata;
+  Map<String, RelationshipMeta> get relationshipMetas => kCatRelationshipMetas;
 
   @override
   Cat deserialize(map) {
@@ -82,7 +82,7 @@ final catsRepositoryProvider =
 
 extension CatDataRepositoryX on Repository<Cat> {}
 
-extension CatRelationshipDataX on RelationshipData<Cat> {}
+extension CatRelationshipGraphNodeX on RelationshipGraphNode<Cat> {}
 
 // **************************************************************************
 // JsonSerializableGenerator

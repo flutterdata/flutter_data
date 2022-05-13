@@ -9,25 +9,25 @@ part of 'node.dart';
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $NodeLocalAdapter on LocalAdapter<Node> {
-  static final rdata = RelationshipData<Node>({
-    'parent': RelationshipDataItem<Node>(
+  static final Map<String, RelationshipMeta> kNodeRelationshipMetas = {
+    'parent': RelationshipMeta<Node>(
       name: 'parent',
       inverseName: 'children',
       type: 'nodes',
       kind: 'BelongsTo',
-      instance: (_) => _.parent,
+      instance: (_) => (_ as Node).parent,
     ),
-    'children': RelationshipDataItem<Node>(
+    'children': RelationshipMeta<Node>(
       name: 'children',
       inverseName: 'parent',
       type: 'nodes',
       kind: 'HasMany',
-      instance: (_) => _.children,
+      instance: (_) => (_ as Node).children,
     )
-  });
+  };
 
   @override
-  RelationshipData<Node> get relationshipData => rdata;
+  Map<String, RelationshipMeta> get relationshipMetas => kNodeRelationshipMetas;
 
   @override
   Node deserialize(map) {
@@ -60,9 +60,24 @@ extension NodeDataRepositoryX on Repository<Node> {
   NodeAdapter get nodeAdapter => remoteAdapter as NodeAdapter;
 }
 
-extension NodeRelationshipDataX on RelationshipData<Node> {
-  RelationshipDataItem<Node> get parent => items['parent']!;
-  RelationshipDataItem<Node> get children => items['children']!;
+extension NodeRelationshipGraphNodeX on RelationshipGraphNode<Node> {
+  RelationshipGraphNode<Node> get parent {
+    final meta = $NodeLocalAdapter.kNodeRelationshipMetas['parent']
+        as RelationshipMeta<Node>;
+    if (this is RelationshipMeta) {
+      meta.parent = this as RelationshipMeta;
+    }
+    return meta;
+  }
+
+  RelationshipGraphNode<Node> get children {
+    final meta = $NodeLocalAdapter.kNodeRelationshipMetas['children']
+        as RelationshipMeta<Node>;
+    if (this is RelationshipMeta) {
+      meta.parent = this as RelationshipMeta;
+    }
+    return meta;
+  }
 }
 
 // **************************************************************************
