@@ -34,6 +34,12 @@ void main() async {
     expect(familia, familia1);
   });
 
+  test('findOne with non-existing ID', () async {
+    final adapter = container.familia.remoteAdapter;
+    final model = await adapter.findOne('123', remote: false);
+    expect(model, isNull);
+  });
+
   test('findOne with includes', () async {
     final data =
         await container.familia.remoteAdapter.deserialize(json.decode('''

@@ -337,7 +337,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       final key = graph.getKeyForId(internalType, resolvedId,
           keyIfAbsent: id is T ? id._key : null);
       model = localAdapter.findOne(key);
-      // model?._initialize(adapters);
       if (model != null) {
         log(label,
             'returned from local storage${background ? ' and loading in the background' : ''}');

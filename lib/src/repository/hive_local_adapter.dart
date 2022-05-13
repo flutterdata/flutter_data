@@ -63,6 +63,7 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
 
   @override
   T? findOne(String? key) {
+    if (key == null) return null;
     return box?.get(key);
   }
 
