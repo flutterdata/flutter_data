@@ -114,19 +114,16 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
   // support methods
 
   Iterable<E> get _iterable {
-    return keys.map((key) => _adapter.localAdapter.findOne(key)).filterNulls;
+    return _keys.map((key) => _adapter.localAdapter.findOne(key)).filterNulls;
   }
 
-  /// Returns keys as [Set] in relationship
-  @protected
-  @visibleForTesting
-  Set<String> get keys {
+  Set<String> get _keys {
     if (!isInitialized) return {};
     return _graph._getEdge(_ownerKey!, metadata: _name!).toSet();
   }
 
-  Set<Object> get ids {
-    return keys.map((key) => _graph.getIdForKey(key)).filterNulls.toSet();
+  Set<Object> get _ids {
+    return _keys.map((key) => _graph.getIdForKey(key)).filterNulls.toSet();
   }
 
   Set<Relationship?> andEach(AlsoWatch<E>? alsoWatch) {
@@ -160,8 +157,8 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
   @override
   String toString() {
     final keysWithoutId =
-        keys.where((k) => _graph.getIdForKey(k) == null).map((k) => '[$k]');
-    return '${{...ids, ...keysWithoutId}.join(', ')}';
+        _keys.where((k) => _graph.getIdForKey(k) == null).map((k) => '[$k]');
+    return '${{..._ids, ...keysWithoutId}.join(', ')}';
   }
 }
 

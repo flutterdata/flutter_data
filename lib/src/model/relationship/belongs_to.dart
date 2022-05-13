@@ -69,12 +69,11 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
     assert(_iterable.length <= 1);
   }
 
-  /// Returns the [value]'s `key`
-  @protected
-  @visibleForTesting
-  String? get key => super.keys.safeFirst;
+  /// Returns the [value]'s `key`.
+  String? get key => super._keys.safeFirst;
 
-  Object? get id => super.ids.safeFirst;
+  /// Returns the [value]'s `id`.
+  Object? get id => super._ids.safeFirst;
 
   /// Returns a [StateNotifier] which emits the latest [value] of
   /// this [BelongsTo] relationship.

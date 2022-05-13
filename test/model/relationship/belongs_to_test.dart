@@ -50,7 +50,7 @@ void main() async {
 
     // ensure there are not more than 1 key
     familia.residence.value = house2;
-    expect(familia.residence.keys, hasLength(1));
+    expect(familia.residence.key, isNotNull);
     expect(familia.residence.id, '2');
   });
 

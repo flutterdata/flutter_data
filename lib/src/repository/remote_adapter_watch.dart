@@ -127,7 +127,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       if (model != null) {
         _alsoWatchPairs = {
           ...?alsoWatch?.call(model).filterNulls.map((r) {
-            return r.keys.map((key) => [r._ownerKey!, key]);
+            return r._keys.map((key) => [r._ownerKey!, key]);
           }).expand((_) => _)
         };
         if (withNotifier != null) {

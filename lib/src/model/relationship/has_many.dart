@@ -35,12 +35,11 @@ class HasMany<E extends DataModel<E>> extends Relationship<E, Set<E>> {
     return HasMany._({...map['_']});
   }
 
-  /// Returns a [StateNotifier] which emits the latest [Set<E>] representing
-  /// this [HasMany] relationship.
-  @override
-  DelayedStateNotifier<Set<E>> watch() {
-    return _relationshipEventNotifier.map((e) => toSet());
-  }
+  /// Returns keys in this relationship.
+  Set<String> get keys => _keys;
+
+  /// Returns IDs in this relationship.
+  Set<Object> get ids => _ids;
 
   // iterable utils
 
@@ -59,6 +58,15 @@ class HasMany<E extends DataModel<E>> extends Relationship<E, Set<E>> {
   Iterable<E> where(bool Function(E) test) => _iterable.where(test);
 
   Iterable<T> map<T>(T Function(E) f) => _iterable.map(f);
+
+  //
+
+  /// Returns a [StateNotifier] which emits the latest [Set<E>] representing
+  /// this [HasMany] relationship.
+  @override
+  DelayedStateNotifier<Set<E>> watch() {
+    return _relationshipEventNotifier.map((e) => toSet());
+  }
 
   @override
   String toString() => 'HasMany<$E>(${super.toString()})';
