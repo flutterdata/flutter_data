@@ -154,9 +154,11 @@ extension OfflineOperationsX on Set<OfflineOperation<DataModel>> {
     }
     final adapter = first.adapter;
     // removes node and severs edges
-    final node = adapter.graph._getNode(_offlineAdapterKey);
-    for (final metadata in (node ?? {}).keys.toImmutableList()) {
-      adapter.graph._removeEdges(_offlineAdapterKey, metadata: metadata);
+    if (adapter.graph._hasNode(_offlineAdapterKey)) {
+      final node = adapter.graph._getNode(_offlineAdapterKey);
+      for (final metadata in (node ?? {}).keys.toImmutableList()) {
+        adapter.graph._removeEdges(_offlineAdapterKey, metadata: metadata);
+      }
     }
     adapter.read(_offlineCallbackProvider).clear();
   }
@@ -181,7 +183,7 @@ final pendingOfflineTypesProvider =
   final _graph = ref.watch(graphNotifierProvider);
 
   Set<String> _pendingTypes() {
-    final node = _graph._getNode(_offlineAdapterKey)!;
+    final node = _graph._getNode(_offlineAdapterKey, orAdd: true)!;
     // obtain types from metadata e.g. _offline:users#4:findOne
     return node.keys.map((m) => m.split(':')[1].split('#')[0]).toSet();
   }
