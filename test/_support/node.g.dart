@@ -64,19 +64,15 @@ extension NodeRelationshipGraphNodeX on RelationshipGraphNode<Node> {
   RelationshipGraphNode<Node> get parent {
     final meta = $NodeLocalAdapter.kNodeRelationshipMetas['parent']
         as RelationshipMeta<Node>;
-    if (this is RelationshipMeta) {
-      meta.parent = this as RelationshipMeta;
-    }
-    return meta;
+    return meta.clone(
+        parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 
   RelationshipGraphNode<Node> get children {
     final meta = $NodeLocalAdapter.kNodeRelationshipMetas['children']
         as RelationshipMeta<Node>;
-    if (this is RelationshipMeta) {
-      meta.parent = this as RelationshipMeta;
-    }
-    return meta;
+    return meta.clone(
+        parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 }
 

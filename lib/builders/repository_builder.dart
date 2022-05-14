@@ -176,10 +176,7 @@ and execute a code generation build again.
 RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
   final meta = \$${classType}LocalAdapter.k${classType}RelationshipMetas['${rel['key']}']
       as RelationshipMeta<${rel['type']}>;
-  if (this is RelationshipMeta) {
-    meta.parent = this as RelationshipMeta;
-  }
-  return meta;
+  return meta.clone(parent: this is RelationshipMeta ? this as RelationshipMeta : null);
 }
 '''
     };

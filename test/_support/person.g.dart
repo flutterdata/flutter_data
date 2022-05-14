@@ -68,9 +68,7 @@ extension PersonRelationshipGraphNodeX on RelationshipGraphNode<Person> {
   RelationshipGraphNode<Familia> get familia {
     final meta = $PersonLocalAdapter.kPersonRelationshipMetas['familia']
         as RelationshipMeta<Familia>;
-    if (this is RelationshipMeta) {
-      meta.parent = this as RelationshipMeta;
-    }
-    return meta;
+    return meta.clone(
+        parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 }

@@ -77,37 +77,29 @@ extension FamiliaRelationshipGraphNodeX on RelationshipGraphNode<Familia> {
   RelationshipGraphNode<Person> get persons {
     final meta = $FamiliaLocalAdapter.kFamiliaRelationshipMetas['persons']
         as RelationshipMeta<Person>;
-    if (this is RelationshipMeta) {
-      meta.parent = this as RelationshipMeta;
-    }
-    return meta;
+    return meta.clone(
+        parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 
   RelationshipGraphNode<House> get cottage {
     final meta = $FamiliaLocalAdapter.kFamiliaRelationshipMetas['cottage_id']
         as RelationshipMeta<House>;
-    if (this is RelationshipMeta) {
-      meta.parent = this as RelationshipMeta;
-    }
-    return meta;
+    return meta.clone(
+        parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 
   RelationshipGraphNode<House> get residence {
     final meta = $FamiliaLocalAdapter.kFamiliaRelationshipMetas['residence']
         as RelationshipMeta<House>;
-    if (this is RelationshipMeta) {
-      meta.parent = this as RelationshipMeta;
-    }
-    return meta;
+    return meta.clone(
+        parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 
   RelationshipGraphNode<Dog> get dogs {
     final meta = $FamiliaLocalAdapter.kFamiliaRelationshipMetas['dogs']
         as RelationshipMeta<Dog>;
-    if (this is RelationshipMeta) {
-      meta.parent = this as RelationshipMeta;
-    }
-    return meta;
+    return meta.clone(
+        parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 }
 
