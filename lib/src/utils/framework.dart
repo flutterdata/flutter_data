@@ -109,6 +109,8 @@ class RelationshipMeta<T extends DataModel<T>>
   final String kind;
   final bool serialize;
   final Relationship? Function(DataModel) instance;
+  RelationshipMeta? parent;
+  RelationshipMeta? child;
 
   RelationshipMeta({
     required this.name,
@@ -119,15 +121,6 @@ class RelationshipMeta<T extends DataModel<T>>
     required this.instance,
   });
 
-  RelationshipMeta? child;
-
-  RelationshipMeta? _parent;
-  RelationshipMeta? get parent => _parent;
-  set parent(RelationshipMeta? parent) {
-    _parent = parent;
-    parent?.child = this; // automatically set child
-  }
-
   // get topmost parent
   RelationshipMeta get _top {
     RelationshipMeta? current = this;
@@ -135,6 +128,20 @@ class RelationshipMeta<T extends DataModel<T>>
       current = current!.parent;
     }
     return current!;
+  }
+
+  RelationshipMeta<T> clone({RelationshipMeta? parent}) {
+    final meta = RelationshipMeta<T>(
+      name: name,
+      type: type,
+      kind: kind,
+      instance: instance,
+    );
+    if (parent != null) {
+      meta.parent = parent;
+      meta.parent!.child = meta; // automatically set child
+    }
+    return meta;
   }
 
   @override

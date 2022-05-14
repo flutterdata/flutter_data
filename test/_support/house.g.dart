@@ -72,28 +72,22 @@ extension HouseRelationshipGraphNodeX on RelationshipGraphNode<House> {
   RelationshipGraphNode<Familia> get owner {
     final meta = $HouseLocalAdapter.kHouseRelationshipMetas['owner']
         as RelationshipMeta<Familia>;
-    if (this is RelationshipMeta) {
-      meta.parent = this as RelationshipMeta;
-    }
-    return meta;
+    return meta.clone(
+        parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 
   RelationshipGraphNode<Book> get currentLibrary {
     final meta = $HouseLocalAdapter.kHouseRelationshipMetas['currentLibrary']
         as RelationshipMeta<Book>;
-    if (this is RelationshipMeta) {
-      meta.parent = this as RelationshipMeta;
-    }
-    return meta;
+    return meta.clone(
+        parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 
   RelationshipGraphNode<House> get house {
     final meta = $HouseLocalAdapter.kHouseRelationshipMetas['house']
         as RelationshipMeta<House>;
-    if (this is RelationshipMeta) {
-      meta.parent = this as RelationshipMeta;
-    }
-    return meta;
+    return meta.clone(
+        parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 }
 

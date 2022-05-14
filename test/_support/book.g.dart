@@ -64,10 +64,8 @@ extension BookAuthorRelationshipGraphNodeX
   RelationshipGraphNode<Book> get books {
     final meta = $BookAuthorLocalAdapter.kBookAuthorRelationshipMetas['books']
         as RelationshipMeta<Book>;
-    if (this is RelationshipMeta) {
-      meta.parent = this as RelationshipMeta;
-    }
-    return meta;
+    return meta.clone(
+        parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 }
 
@@ -133,28 +131,22 @@ extension BookRelationshipGraphNodeX on RelationshipGraphNode<Book> {
   RelationshipGraphNode<BookAuthor> get originalAuthor {
     final meta = $BookLocalAdapter.kBookRelationshipMetas['original_author_id']
         as RelationshipMeta<BookAuthor>;
-    if (this is RelationshipMeta) {
-      meta.parent = this as RelationshipMeta;
-    }
-    return meta;
+    return meta.clone(
+        parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 
   RelationshipGraphNode<House> get house {
     final meta = $BookLocalAdapter.kBookRelationshipMetas['house']
         as RelationshipMeta<House>;
-    if (this is RelationshipMeta) {
-      meta.parent = this as RelationshipMeta;
-    }
-    return meta;
+    return meta.clone(
+        parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 
   RelationshipGraphNode<Person> get ardentSupporters {
     final meta = $BookLocalAdapter.kBookRelationshipMetas['ardent_supporters']
         as RelationshipMeta<Person>;
-    if (this is RelationshipMeta) {
-      meta.parent = this as RelationshipMeta;
-    }
-    return meta;
+    return meta.clone(
+        parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 }
 

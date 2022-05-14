@@ -58,10 +58,8 @@ extension TaskRelationshipGraphNodeX on RelationshipGraphNode<Task> {
   RelationshipGraphNode<User> get user {
     final meta = $TaskLocalAdapter.kTaskRelationshipMetas['user']
         as RelationshipMeta<User>;
-    if (this is RelationshipMeta) {
-      meta.parent = this as RelationshipMeta;
-    }
-    return meta;
+    return meta.clone(
+        parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 }
 
