@@ -148,8 +148,8 @@ class RelationshipMeta<T extends DataModel<T>>
   List<Object?> get props => [name, inverseName, type, kind, serialize];
 }
 
-typedef AlsoWatch<T extends DataModel<T>> = Set<RelationshipGraphNode> Function(
-    RelationshipGraphNode<T>);
+typedef AlsoWatch<T extends DataModel<T>> = Iterable<RelationshipGraphNode>
+    Function(RelationshipGraphNode<T>);
 
 /// This argument holder class is used internally with
 /// Riverpod `family`s.
