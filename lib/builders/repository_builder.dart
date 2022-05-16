@@ -174,7 +174,7 @@ and execute a code generation build again.
       for (final rel in relationships)
         '''
 RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
-  final meta = \$${classType}LocalAdapter.k${classType}RelationshipMetas['${rel['key']}']
+  final meta = \$${classType}LocalAdapter._k${classType}RelationshipMetas['${rel['key']}']
       as RelationshipMeta<${rel['type']}>;
   return meta.clone(parent: this is RelationshipMeta ? this as RelationshipMeta : null);
 }
@@ -256,11 +256,11 @@ RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin \$${classType}LocalAdapter on LocalAdapter<$classType> {
-  static final Map<String, RelationshipMeta> k${classType}RelationshipMetas = 
+  static final Map<String, RelationshipMeta> _k${classType}RelationshipMetas = 
     $relationshipMeta;
 
   @override
-  Map<String, RelationshipMeta> get relationshipMetas => k${classType}RelationshipMetas;
+  Map<String, RelationshipMeta> get relationshipMetas => _k${classType}RelationshipMetas;
 
   @override
   $classType deserialize(map) {

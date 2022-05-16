@@ -9,7 +9,7 @@ part of 'house.dart';
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $HouseLocalAdapter on LocalAdapter<House> {
-  static final Map<String, RelationshipMeta> kHouseRelationshipMetas = {
+  static final Map<String, RelationshipMeta> _kHouseRelationshipMetas = {
     'owner': RelationshipMeta<Familia>(
       name: 'owner',
       inverseName: 'residence',
@@ -37,7 +37,7 @@ mixin $HouseLocalAdapter on LocalAdapter<House> {
 
   @override
   Map<String, RelationshipMeta> get relationshipMetas =>
-      kHouseRelationshipMetas;
+      _kHouseRelationshipMetas;
 
   @override
   House deserialize(map) {
@@ -70,21 +70,21 @@ extension HouseDataRepositoryX on Repository<House> {}
 
 extension HouseRelationshipGraphNodeX on RelationshipGraphNode<House> {
   RelationshipGraphNode<Familia> get owner {
-    final meta = $HouseLocalAdapter.kHouseRelationshipMetas['owner']
+    final meta = $HouseLocalAdapter._kHouseRelationshipMetas['owner']
         as RelationshipMeta<Familia>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 
   RelationshipGraphNode<Book> get currentLibrary {
-    final meta = $HouseLocalAdapter.kHouseRelationshipMetas['currentLibrary']
+    final meta = $HouseLocalAdapter._kHouseRelationshipMetas['currentLibrary']
         as RelationshipMeta<Book>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 
   RelationshipGraphNode<House> get house {
-    final meta = $HouseLocalAdapter.kHouseRelationshipMetas['house']
+    final meta = $HouseLocalAdapter._kHouseRelationshipMetas['house']
         as RelationshipMeta<House>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);

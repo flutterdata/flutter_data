@@ -9,7 +9,7 @@ part of 'book.dart';
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $BookAuthorLocalAdapter on LocalAdapter<BookAuthor> {
-  static final Map<String, RelationshipMeta> kBookAuthorRelationshipMetas = {
+  static final Map<String, RelationshipMeta> _kBookAuthorRelationshipMetas = {
     'books': RelationshipMeta<Book>(
       name: 'books',
       inverseName: 'originalAuthor',
@@ -21,7 +21,7 @@ mixin $BookAuthorLocalAdapter on LocalAdapter<BookAuthor> {
 
   @override
   Map<String, RelationshipMeta> get relationshipMetas =>
-      kBookAuthorRelationshipMetas;
+      _kBookAuthorRelationshipMetas;
 
   @override
   BookAuthor deserialize(map) {
@@ -62,7 +62,7 @@ extension BookAuthorDataRepositoryX on Repository<BookAuthor> {
 extension BookAuthorRelationshipGraphNodeX
     on RelationshipGraphNode<BookAuthor> {
   RelationshipGraphNode<Book> get books {
-    final meta = $BookAuthorLocalAdapter.kBookAuthorRelationshipMetas['books']
+    final meta = $BookAuthorLocalAdapter._kBookAuthorRelationshipMetas['books']
         as RelationshipMeta<Book>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
@@ -72,7 +72,7 @@ extension BookAuthorRelationshipGraphNodeX
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $BookLocalAdapter on LocalAdapter<Book> {
-  static final Map<String, RelationshipMeta> kBookRelationshipMetas = {
+  static final Map<String, RelationshipMeta> _kBookRelationshipMetas = {
     'original_author_id': RelationshipMeta<BookAuthor>(
       name: 'originalAuthor',
       inverseName: 'books',
@@ -96,7 +96,8 @@ mixin $BookLocalAdapter on LocalAdapter<Book> {
   };
 
   @override
-  Map<String, RelationshipMeta> get relationshipMetas => kBookRelationshipMetas;
+  Map<String, RelationshipMeta> get relationshipMetas =>
+      _kBookRelationshipMetas;
 
   @override
   Book deserialize(map) {
@@ -129,21 +130,21 @@ extension BookDataRepositoryX on Repository<Book> {}
 
 extension BookRelationshipGraphNodeX on RelationshipGraphNode<Book> {
   RelationshipGraphNode<BookAuthor> get originalAuthor {
-    final meta = $BookLocalAdapter.kBookRelationshipMetas['original_author_id']
+    final meta = $BookLocalAdapter._kBookRelationshipMetas['original_author_id']
         as RelationshipMeta<BookAuthor>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 
   RelationshipGraphNode<House> get house {
-    final meta = $BookLocalAdapter.kBookRelationshipMetas['house']
+    final meta = $BookLocalAdapter._kBookRelationshipMetas['house']
         as RelationshipMeta<House>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 
   RelationshipGraphNode<Person> get ardentSupporters {
-    final meta = $BookLocalAdapter.kBookRelationshipMetas['ardent_supporters']
+    final meta = $BookLocalAdapter._kBookRelationshipMetas['ardent_supporters']
         as RelationshipMeta<Person>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);

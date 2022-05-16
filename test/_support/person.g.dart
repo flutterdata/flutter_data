@@ -9,7 +9,7 @@ part of 'person.dart';
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $PersonLocalAdapter on LocalAdapter<Person> {
-  static final Map<String, RelationshipMeta> kPersonRelationshipMetas = {
+  static final Map<String, RelationshipMeta> _kPersonRelationshipMetas = {
     'familia': RelationshipMeta<Familia>(
       name: 'familia',
       inverseName: 'persons',
@@ -21,7 +21,7 @@ mixin $PersonLocalAdapter on LocalAdapter<Person> {
 
   @override
   Map<String, RelationshipMeta> get relationshipMetas =>
-      kPersonRelationshipMetas;
+      _kPersonRelationshipMetas;
 
   @override
   Person deserialize(map) {
@@ -66,7 +66,7 @@ extension PersonDataRepositoryX on Repository<Person> {
 
 extension PersonRelationshipGraphNodeX on RelationshipGraphNode<Person> {
   RelationshipGraphNode<Familia> get familia {
-    final meta = $PersonLocalAdapter.kPersonRelationshipMetas['familia']
+    final meta = $PersonLocalAdapter._kPersonRelationshipMetas['familia']
         as RelationshipMeta<Familia>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);

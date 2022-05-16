@@ -9,7 +9,7 @@ part of 'task.dart';
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $TaskLocalAdapter on LocalAdapter<Task> {
-  static final Map<String, RelationshipMeta> kTaskRelationshipMetas = {
+  static final Map<String, RelationshipMeta> _kTaskRelationshipMetas = {
     'user': RelationshipMeta<User>(
       name: 'user',
       inverseName: 'tasks',
@@ -20,7 +20,8 @@ mixin $TaskLocalAdapter on LocalAdapter<Task> {
   };
 
   @override
-  Map<String, RelationshipMeta> get relationshipMetas => kTaskRelationshipMetas;
+  Map<String, RelationshipMeta> get relationshipMetas =>
+      _kTaskRelationshipMetas;
 
   @override
   Task deserialize(map) {
@@ -56,7 +57,7 @@ extension TaskDataRepositoryX on Repository<Task> {
 
 extension TaskRelationshipGraphNodeX on RelationshipGraphNode<Task> {
   RelationshipGraphNode<User> get user {
-    final meta = $TaskLocalAdapter.kTaskRelationshipMetas['user']
+    final meta = $TaskLocalAdapter._kTaskRelationshipMetas['user']
         as RelationshipMeta<User>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);

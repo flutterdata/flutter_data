@@ -9,7 +9,7 @@ part of 'familia.dart';
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $FamiliaLocalAdapter on LocalAdapter<Familia> {
-  static final Map<String, RelationshipMeta> kFamiliaRelationshipMetas = {
+  static final Map<String, RelationshipMeta> _kFamiliaRelationshipMetas = {
     'persons': RelationshipMeta<Person>(
       name: 'persons',
       inverseName: 'familia',
@@ -41,7 +41,7 @@ mixin $FamiliaLocalAdapter on LocalAdapter<Familia> {
 
   @override
   Map<String, RelationshipMeta> get relationshipMetas =>
-      kFamiliaRelationshipMetas;
+      _kFamiliaRelationshipMetas;
 
   @override
   Familia deserialize(map) {
@@ -75,28 +75,28 @@ extension FamiliaDataRepositoryX on Repository<Familia> {}
 
 extension FamiliaRelationshipGraphNodeX on RelationshipGraphNode<Familia> {
   RelationshipGraphNode<Person> get persons {
-    final meta = $FamiliaLocalAdapter.kFamiliaRelationshipMetas['persons']
+    final meta = $FamiliaLocalAdapter._kFamiliaRelationshipMetas['persons']
         as RelationshipMeta<Person>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 
   RelationshipGraphNode<House> get cottage {
-    final meta = $FamiliaLocalAdapter.kFamiliaRelationshipMetas['cottage_id']
+    final meta = $FamiliaLocalAdapter._kFamiliaRelationshipMetas['cottage_id']
         as RelationshipMeta<House>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 
   RelationshipGraphNode<House> get residence {
-    final meta = $FamiliaLocalAdapter.kFamiliaRelationshipMetas['residence']
+    final meta = $FamiliaLocalAdapter._kFamiliaRelationshipMetas['residence']
         as RelationshipMeta<House>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 
   RelationshipGraphNode<Dog> get dogs {
-    final meta = $FamiliaLocalAdapter.kFamiliaRelationshipMetas['dogs']
+    final meta = $FamiliaLocalAdapter._kFamiliaRelationshipMetas['dogs']
         as RelationshipMeta<Dog>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);

@@ -9,7 +9,7 @@ part of 'node.dart';
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $NodeLocalAdapter on LocalAdapter<Node> {
-  static final Map<String, RelationshipMeta> kNodeRelationshipMetas = {
+  static final Map<String, RelationshipMeta> _kNodeRelationshipMetas = {
     'parent': RelationshipMeta<Node>(
       name: 'parent',
       inverseName: 'children',
@@ -27,7 +27,8 @@ mixin $NodeLocalAdapter on LocalAdapter<Node> {
   };
 
   @override
-  Map<String, RelationshipMeta> get relationshipMetas => kNodeRelationshipMetas;
+  Map<String, RelationshipMeta> get relationshipMetas =>
+      _kNodeRelationshipMetas;
 
   @override
   Node deserialize(map) {
@@ -62,14 +63,14 @@ extension NodeDataRepositoryX on Repository<Node> {
 
 extension NodeRelationshipGraphNodeX on RelationshipGraphNode<Node> {
   RelationshipGraphNode<Node> get parent {
-    final meta = $NodeLocalAdapter.kNodeRelationshipMetas['parent']
+    final meta = $NodeLocalAdapter._kNodeRelationshipMetas['parent']
         as RelationshipMeta<Node>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 
   RelationshipGraphNode<Node> get children {
-    final meta = $NodeLocalAdapter.kNodeRelationshipMetas['children']
+    final meta = $NodeLocalAdapter._kNodeRelationshipMetas['children']
         as RelationshipMeta<Node>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);

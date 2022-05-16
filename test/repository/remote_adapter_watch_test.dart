@@ -693,7 +693,7 @@ void main() async {
 
     verify(listener(argThat(matcher))).called(1);
     verifyNoMoreInteractions(listener);
-  }, skip: true);
+  });
 
   test('watchOneNotifier with where/map', () async {
     final listener = Listener<DataState<Person?>>();

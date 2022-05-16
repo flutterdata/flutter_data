@@ -9,7 +9,7 @@ part of 'user.dart';
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $UserLocalAdapter on LocalAdapter<User> {
-  static final Map<String, RelationshipMeta> kUserRelationshipMetas = {
+  static final Map<String, RelationshipMeta> _kUserRelationshipMetas = {
     'tasks': RelationshipMeta<Task>(
       name: 'tasks',
       inverseName: 'user',
@@ -20,7 +20,8 @@ mixin $UserLocalAdapter on LocalAdapter<User> {
   };
 
   @override
-  Map<String, RelationshipMeta> get relationshipMetas => kUserRelationshipMetas;
+  Map<String, RelationshipMeta> get relationshipMetas =>
+      _kUserRelationshipMetas;
 
   @override
   User deserialize(map) {
@@ -56,7 +57,7 @@ extension UserDataRepositoryX on Repository<User> {
 
 extension UserRelationshipGraphNodeX on RelationshipGraphNode<User> {
   RelationshipGraphNode<Task> get tasks {
-    final meta = $UserLocalAdapter.kUserRelationshipMetas['tasks']
+    final meta = $UserLocalAdapter._kUserRelationshipMetas['tasks']
         as RelationshipMeta<Task>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);

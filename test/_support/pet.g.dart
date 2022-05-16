@@ -9,10 +9,10 @@ part of 'pet.dart';
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $DogLocalAdapter on LocalAdapter<Dog> {
-  static final Map<String, RelationshipMeta> kDogRelationshipMetas = {};
+  static final Map<String, RelationshipMeta> _kDogRelationshipMetas = {};
 
   @override
-  Map<String, RelationshipMeta> get relationshipMetas => kDogRelationshipMetas;
+  Map<String, RelationshipMeta> get relationshipMetas => _kDogRelationshipMetas;
 
   @override
   Dog deserialize(map) {
@@ -48,10 +48,10 @@ extension DogRelationshipGraphNodeX on RelationshipGraphNode<Dog> {}
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $CatLocalAdapter on LocalAdapter<Cat> {
-  static final Map<String, RelationshipMeta> kCatRelationshipMetas = {};
+  static final Map<String, RelationshipMeta> _kCatRelationshipMetas = {};
 
   @override
-  Map<String, RelationshipMeta> get relationshipMetas => kCatRelationshipMetas;
+  Map<String, RelationshipMeta> get relationshipMetas => _kCatRelationshipMetas;
 
   @override
   Cat deserialize(map) {
