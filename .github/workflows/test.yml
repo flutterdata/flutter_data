@@ -23,6 +23,7 @@ jobs:
             os: windows-latest
           - platform: macos
             os: macos-latest
+            sdk: stable
           - platform: web
             os: ubuntu-latest
             dartTestArgs: -p chrome
