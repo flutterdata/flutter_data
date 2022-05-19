@@ -106,7 +106,7 @@ void main() async {
     verify(listener(argThat(charlie))).called(1);
     verifyNoMoreInteractions(listener);
 
-    await container.people.save(Person(id: '1', name: 'Charlie', age: 24));
+    Person(id: '1', name: 'Charlie', age: 24).saveLocal();
     await oneMs();
 
     // unrelated request should not affect the current listener
@@ -208,8 +208,9 @@ void main() async {
     verifyNoMoreInteractions(listener);
 
     // add a watched relationship
-    var martin = Person(id: '1', name: 'Martin', age: 44);
-    familia.persons.add(martin);
+    var martin =
+        Person(id: '1', name: 'Martin', age: 44, familia: familia.asBelongsTo)
+            .saveLocal();
 
     verify(listener(argThat(isA<DataState>()
             .having((s) => s.model.persons!.toSet(), 'rel', {martin}).having(
@@ -237,10 +238,20 @@ void main() async {
     }, 'rel', unorderedEquals({martin, eve}))))).called(1);
     verifyNoMoreInteractions(listener);
 
+    // create another person
+    final maria = Person(id: '3', name: 'Maria', familia: familia.asBelongsTo)
+        .saveLocal();
+    await oneMs();
+
+    verify(listener(argThat(isA<DataState>().having((s) {
+      return s.model.persons!.toSet();
+    }, 'rel', unorderedEquals({martin, eve, maria}))))).called(1);
+    verifyNoMoreInteractions(listener);
+
     // remove person
     familia.persons.remove(martin);
-    verify(listener(argThat(isA<DataState>()
-        .having((s) => s.model.persons!.toSet(), 'rel', {eve})))).called(1);
+    verify(listener(argThat(isA<DataState>().having(
+        (s) => s.model.persons!.toSet(), 'rel', {eve, maria})))).called(1);
     verifyNoMoreInteractions(listener);
   });
 

@@ -188,8 +188,19 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     // local buffer useful to reduce amount of notifier updates
     var _model = _notifier.data.model;
 
+    late DelayedStateNotifier<List<DataGraphEvent>> _graph;
+
+    final throttleDuration = read(graphNotifierThrottleDurationProvider);
+    if (throttleDuration != null) {
+      _graph = graph.throttle(() => throttleDuration);
+    } else {
+      // if no throttle is required, use map to
+      // convert a single event in a list of events
+      _graph = graph.map((_) => [_]);
+    }
+
     // start listening to graph for further changes
-    final _dispose = graph.addListener((event) {
+    final _dispose = _graph.addListener((events) {
       if (!_notifier.mounted) return;
 
       final _key = _model?._key ?? key;
@@ -200,56 +211,58 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       // of `andEach` even seemingly unrelated models could trigger)
       _model = _getUpdatedModel(withNotifier: _notifier);
 
-      if (event.keys.contains(_key)) {
-        // handle done loading
-        if (_notifier.data.isLoading &&
-            event.keys.last == label.toString() &&
-            event.type == DataGraphEventType.doneLoading) {
-          _notifier.updateWith(
-              model: _model, isLoading: false, exception: null);
-        }
+      for (final event in events) {
+        if (event.keys.contains(_key)) {
+          // handle done loading
+          if (_notifier.data.isLoading &&
+              event.keys.last == label.toString() &&
+              event.type == DataGraphEventType.doneLoading) {
+            _notifier.updateWith(
+                model: _model, isLoading: false, exception: null);
+          }
 
-        // add/update
-        if (event.type == DataGraphEventType.addNode ||
-            event.type == DataGraphEventType.updateNode) {
-          if (_notifier.data.isLoading == false) {
-            log(label!, 'added/updated node ${event.keys}', logLevel: 2);
-            _notifier.updateWith(model: _model);
+          // add/update
+          if (event.type == DataGraphEventType.addNode ||
+              event.type == DataGraphEventType.updateNode) {
+            if (_notifier.data.isLoading == false) {
+              log(label!, 'added/updated node ${event.keys}', logLevel: 2);
+              _notifier.updateWith(model: _model);
+            }
+          }
+
+          // temporarily restore removed pair so that watchedRelationshipUpdate
+          // has a chance to apply the update
+          if (event.type == DataGraphEventType.removeEdge &&
+              !event.keys.first.startsWith('id:')) {
+            _alsoWatchPairs.add(event.keys);
           }
         }
 
-        // temporarily restore removed pair so that watchedRelationshipUpdate
-        // has a chance to apply the update
-        if (event.type == DataGraphEventType.removeEdge &&
-            !event.keys.first.startsWith('id:')) {
-          _alsoWatchPairs.add(event.keys);
+        // handle deletion
+        if (event.type == DataGraphEventType.removeNode && _model == null) {
+          log(label!, 'removed node ${event.keys}', logLevel: 2);
+          _notifier.updateWith(model: null);
         }
-      }
 
-      // handle deletion
-      if (event.type == DataGraphEventType.removeNode && _model == null) {
-        log(label!, 'removed node ${event.keys}', logLevel: 2);
-        _notifier.updateWith(model: null);
-      }
+        // updates on watched relationships condition
+        final watchedRelationshipUpdate = event.type.isEdge &&
+            _alsoWatchPairs
+                .where((pair) =>
+                    pair.sorted().toString() == event.keys.sorted().toString())
+                .isNotEmpty;
 
-      // updates on watched relationships condition
-      final watchedRelationshipUpdate = event.type.isEdge &&
-          _alsoWatchPairs
-              .where((pair) =>
-                  pair.sorted().toString() == event.keys.sorted().toString())
-              .isNotEmpty;
+        // updates on watched models (of relationships) condition
+        final watchedModelUpdate = event.type.isNode &&
+            _alsoWatchPairs
+                .where((pair) => pair.contains(event.keys.first))
+                .isNotEmpty;
 
-      // updates on watched models (of relationships) condition
-      final watchedModelUpdate = event.type.isNode &&
-          _alsoWatchPairs
-              .where((pair) => pair.contains(event.keys.first))
-              .isNotEmpty;
-
-      // if model is loaded and any condition passes, notify update
-      if (_notifier.data.isLoading == false &&
-          (watchedRelationshipUpdate || watchedModelUpdate)) {
-        log(label!, 'relationship update ${event.keys}', logLevel: 2);
-        _notifier.updateWith(model: _model);
+        // if model is loaded and any condition passes, notify update
+        if (_notifier.data.isLoading == false &&
+            (watchedRelationshipUpdate || watchedModelUpdate)) {
+          log(label!, 'relationship update ${event.keys}', logLevel: 2);
+          _notifier.updateWith(model: _model);
+        }
       }
     });
 
@@ -260,3 +273,6 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     return _notifier;
   }
 }
+
+final graphNotifierThrottleDurationProvider =
+    Provider<Duration?>((ref) => null);
