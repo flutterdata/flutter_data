@@ -37,10 +37,10 @@ jobs:
       - name: Run tests
         run: dart test --reporter expanded ${{ matrix.dartTestArgs }}
       - name: Generate coverage
-        if: runner.os == 'Linux'
+        if: runner.os == 'macOS'
         run: dart run test_cov
       - name: Send coverage report to codecov
-        if: runner.os == 'Linux'
+        if: runner.os == 'macOS'
         uses: codecov/codecov-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
