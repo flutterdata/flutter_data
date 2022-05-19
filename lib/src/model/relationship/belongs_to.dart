@@ -47,10 +47,10 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
     final isRemoval = value != null && newValue == null;
 
     if (isRemoval || isUpdate) {
-      super.remove(value!, notify: false);
+      super._remove(value!, notify: false);
     }
     if (isAddition || isUpdate) {
-      super.add(newValue!, notify: false);
+      super._add(newValue!, notify: false);
     }
 
     // handle events

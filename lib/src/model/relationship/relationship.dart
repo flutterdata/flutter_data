@@ -50,6 +50,9 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
     _graph._removeEdges(_ownerKey!,
         metadata: _name!, inverseMetadata: _inverseName, notify: false);
 
+    // in case node was removed during removeEdges
+    _graph._addNode(_ownerKey!);
+
     _graph._addEdges(
       _ownerKey!,
       tos: _uninitializedKeys!,
@@ -64,11 +67,8 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
 
   // implement collection-like methods
 
-  /// Add a [value] to this [Relationship]
-  ///
-  /// Attempting to add an existing [value] has no effect as this is a [Set]
-  bool add(E value, {bool notify = true}) {
-    if (contains(value)) {
+  bool _add(E value, {bool notify = true}) {
+    if (_contains(value)) {
       return false;
     }
 
@@ -85,12 +85,11 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
     return true;
   }
 
-  bool contains(Object? element) {
+  bool _contains(Object? element) {
     return _iterable.contains(element);
   }
 
-  /// Removes a [value] from this [Relationship]
-  bool remove(Object? value, {bool notify = true}) {
+  bool _remove(Object? value, {bool notify = true}) {
     assert(value is E);
     final model = value as E;
 

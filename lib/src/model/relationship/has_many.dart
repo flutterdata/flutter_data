@@ -35,6 +35,22 @@ class HasMany<E extends DataModel<E>> extends Relationship<E, Set<E>> {
     return HasMany._({...map['_']});
   }
 
+  /// Add a [value] to this [Relationship]
+  ///
+  /// Attempting to add an existing [value] has no effect as this is a [Set]
+  bool add(E value, {bool notify = true}) {
+    return _add(value, notify: notify);
+  }
+
+  bool contains(Object? element) {
+    return _contains(element);
+  }
+
+  /// Removes a [value] from this [Relationship]
+  bool remove(Object? value, {bool notify = true}) {
+    return _remove(value, notify: notify);
+  }
+
   /// Returns keys in this relationship.
   Set<String> get keys => _keys;
 
