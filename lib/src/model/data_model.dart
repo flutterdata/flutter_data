@@ -91,7 +91,7 @@ abstract class DataModel<T extends DataModel<T>> {
       }
 
       if (_old.id != null) {
-        remoteAdapter.graph.removeId(_internalType, _old.id!);
+        remoteAdapter.graph.removeId(_internalType, _old.id!, notify: false);
         remoteAdapter.graph
             .getKeyForId(_internalType, _old.id, keyIfAbsent: _key);
       }

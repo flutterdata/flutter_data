@@ -111,8 +111,9 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   }
 
   /// Removes [type]/[id] (and its edges) from graph
-  void removeId(String type, Object id) =>
-      _removeNode(id.toString().typifyWith(type).namespaceWith('_id'));
+  void removeId(String type, Object id, {bool notify = true}) =>
+      _removeNode(id.toString().typifyWith(type).namespaceWith('_id'),
+          notify: notify);
 
   // nodes
 
@@ -338,7 +339,7 @@ Key "$key":
       // remove deleted key from all metadatas
       if (toNode != null) {
         for (final entry in toNode.entries.toSet()) {
-          _removeEdge(toKey, key, metadata: entry.key);
+          _removeEdge(toKey, key, metadata: entry.key, notify: notify);
         }
       }
     }
