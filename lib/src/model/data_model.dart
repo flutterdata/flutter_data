@@ -60,7 +60,7 @@ abstract class DataModel<T extends DataModel<T>> {
     if (save) {
       remoteAdapter.localAdapter.save(_key, _this, notify: false);
     }
-    getRelationships();
+    _initializeRelationships();
     return _this;
   }
 
@@ -103,20 +103,23 @@ abstract class DataModel<T extends DataModel<T>> {
   }
 
   /// Get all non-null [Relationship]s for this model.
-  Iterable<Relationship> getRelationships() {
-    final metadatas = remoteAdapter.localAdapter.relationshipMetas.values;
+  Map<String, Relationship> getRelationships() {
+    return {
+      for (final meta in remoteAdapter.localAdapter.relationshipMetas.values)
+        if (meta.instance(this) != null) meta.name: meta.instance(this)!,
+    };
+  }
 
-    return metadatas
-        .map((metadata) {
-          final relationship = metadata.instance(_this);
-          return relationship?.initialize(
-            owner: this,
-            name: metadata.name,
-            inverseName: metadata.inverseName,
-          );
-        })
-        .toList()
-        .filterNulls;
+  void _initializeRelationships() {
+    final metadatas = remoteAdapter.localAdapter.relationshipMetas.values;
+    for (final metadata in metadatas) {
+      final relationship = metadata.instance(_this);
+      relationship?.initialize(
+        owner: this,
+        name: metadata.name,
+        inverseName: metadata.inverseName,
+      );
+    }
   }
 }
 
