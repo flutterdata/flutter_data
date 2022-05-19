@@ -61,9 +61,9 @@ void main() async {
     f2.persons.remove(anne);
     expect(f2.persons.toSet(), {pete});
 
-    expect(f2.getRelationships(),
+    expect(f2.getRelationships().values,
         unorderedEquals([f2.persons, f2.residence, f2.cottage]));
-    expect(f2.getRelationships().whereType<HasMany>(), [f2.persons]);
+    expect(f2.getRelationships().values.whereType<HasMany>(), [f2.persons]);
   });
 
   test('assignment with relationship initialized & uninitialized', () {

@@ -69,26 +69,48 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     // kick off
     _notifier.reload();
 
-    final _dispose = graph.addListener((event) {
+    late DelayedStateNotifier<List<DataGraphEvent>> _graph;
+
+    final throttleDuration = read(graphNotifierThrottleDurationProvider);
+    if (throttleDuration != null) {
+      _graph = graph.throttle(() => throttleDuration);
+    } else {
+      // if no throttle is required, use map to
+      // convert a single event in a list of events
+      _graph = graph.map((_) => [_]);
+    }
+
+    final _states = <DataState<List<T>?>>[];
+
+    final _dispose = _graph.addListener((events) {
       if (!_notifier.mounted) {
         return;
       }
 
-      // handle done loading
-      if (_notifier.data.isLoading &&
-          event.keys.last == label.toString() &&
-          event.type == DataGraphEventType.doneLoading) {
-        final models = _getUpdatedModels();
-        _notifier.updateWith(model: models, isLoading: false, exception: null);
+      for (final event in events) {
+        // handle done loading
+        if (_notifier.data.isLoading &&
+            event.keys.last == label.toString() &&
+            event.type == DataGraphEventType.doneLoading) {
+          final models = _getUpdatedModels();
+          _states.add(DataState(models, isLoading: false, exception: null));
+        }
+
+        if (_notifier.data.isLoading == false &&
+            event.type.isNode &&
+            event.keys.first.startsWith(internalType)) {
+          final models = _getUpdatedModels();
+          log(label!, 'updated models', logLevel: 2);
+          _states.add(DataState(
+            models,
+            isLoading: _notifier.data.isLoading,
+            exception: _notifier.data.exception,
+            stackTrace: _notifier.data.stackTrace,
+          ));
+        }
       }
 
-      if (_notifier.data.isLoading == false &&
-          event.type.isNode &&
-          event.keys.first.startsWith(internalType)) {
-        final models = _getUpdatedModels();
-        log(label!, 'updated models', logLevel: 2);
-        _notifier.updateWith(model: models);
-      }
+      _updateFromStates(_states, _notifier);
     });
 
     _notifier.onDispose = () {
@@ -207,6 +229,8 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       _graph = graph.map((_) => [_]);
     }
 
+    final _states = <DataState<T?>>[];
+
     // start listening to graph for further changes
     final _dispose = _graph.addListener((events) {
       if (!_notifier.mounted) return;
@@ -225,8 +249,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           if (_notifier.data.isLoading &&
               event.keys.last == label.toString() &&
               event.type == DataGraphEventType.doneLoading) {
-            _notifier.updateWith(
-                model: _model, isLoading: false, exception: null);
+            _states.add(DataState(_model, isLoading: false, exception: null));
           }
 
           // add/update
@@ -234,7 +257,12 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
               event.type == DataGraphEventType.updateNode) {
             if (_notifier.data.isLoading == false) {
               log(label!, 'added/updated node ${event.keys}', logLevel: 2);
-              _notifier.updateWith(model: _model);
+              _states.add(DataState(
+                _model,
+                isLoading: _notifier.data.isLoading,
+                exception: _notifier.data.exception,
+                stackTrace: _notifier.data.stackTrace,
+              ));
             }
           }
 
@@ -249,7 +277,12 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         // handle deletion
         if (event.type == DataGraphEventType.removeNode && _model == null) {
           log(label!, 'removed node ${event.keys}', logLevel: 2);
-          _notifier.updateWith(model: null);
+          _states.add(DataState(
+            null,
+            isLoading: _notifier.data.isLoading,
+            exception: _notifier.data.exception,
+            stackTrace: _notifier.data.stackTrace,
+          ));
         }
 
         // updates on watched relationships condition
@@ -269,9 +302,16 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         if (_notifier.data.isLoading == false &&
             (watchedRelationshipUpdate || watchedModelUpdate)) {
           log(label!, 'relationship update ${event.keys}', logLevel: 2);
-          _notifier.updateWith(model: _model);
+          _states.add(DataState(
+            _model,
+            isLoading: _notifier.data.isLoading,
+            exception: _notifier.data.exception,
+            stackTrace: _notifier.data.stackTrace,
+          ));
         }
       }
+
+      _updateFromStates(_states, _notifier);
     });
 
     _notifier.onDispose = () {
@@ -279,6 +319,23 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       _dispose();
     };
     return _notifier;
+  }
+
+  void _updateFromStates<S>(
+      List<DataState<S>> states, DataStateNotifier<S> notifier) {
+    final _mergedState = states.fold<DataState<S>?>(null, (acc, state) {
+      return acc == null ? state : acc.merge(state);
+    });
+    states.clear();
+
+    if (_mergedState != null) {
+      notifier.updateWith(
+        model: _mergedState.model,
+        isLoading: _mergedState.isLoading,
+        exception: _mergedState.exception,
+        stackTrace: _mergedState.stackTrace,
+      );
+    }
   }
 
   Iterable<List<String>> _getPairsForMeta(

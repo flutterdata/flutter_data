@@ -9,6 +9,15 @@ void main() {
     notifier = DataStateNotifier(data: DataState('initial'));
   });
 
+  test('merge', () {
+    final d1 =
+        DataState(1, isLoading: true, exception: DataException('message'));
+    final d2 = DataState(2);
+    // optional exception from "older" state gets passed on in merge
+    expect(DataState(2, isLoading: false, exception: DataException('message')),
+        d1.merge(d2));
+  });
+
   test('updates state', () async {
     var i = 0;
     final dispose = notifier.addListener((state) {

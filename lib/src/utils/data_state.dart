@@ -17,6 +17,16 @@ class DataState<T> with EquatableMixin {
 
   bool get hasModel => model != null;
 
+  DataState<T> merge(DataState<T> value) {
+    // only optional values do not get overwritten
+    return DataState(
+      value.model,
+      isLoading: value.isLoading,
+      exception: value.exception ?? exception,
+      stackTrace: value.stackTrace ?? stackTrace,
+    );
+  }
+
   @override
   List<Object?> get props => [model, isLoading, exception];
 
