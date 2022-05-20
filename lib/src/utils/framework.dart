@@ -5,13 +5,17 @@ typedef FutureFn<R> = FutureOr<R> Function();
 class DataHelpers {
   static final uuid = Uuid();
 
+  static final _types = <Object, String>{};
+
   static String getType<T>([String? type]) {
     if (T == dynamic && type == null) {
       throw UnsupportedError('Please supply a type');
     }
-    type ??= T.toString();
-    type = type.decapitalize();
-    return type.pluralize();
+    if (!_types.containsKey(type ?? T)) {
+      final _newType = type ?? T.toString();
+      _types[type ?? T] = _newType.decapitalize().pluralize();
+    }
+    return _types[type ?? T]!;
   }
 
   static String generateShortKey<T>() {
