@@ -126,8 +126,8 @@ and execute a code generation build again.
       var keyName = jsonKeyAnnotation?.getField('name')?.toStringValue();
 
       if (keyName == null && fieldRename != null) {
-        final _case = fieldRename.getField('_name')?.toStringValue();
-        switch (_case) {
+        final fieldCase = fieldRename.getField('_name')?.toStringValue();
+        switch (fieldCase) {
           case 'kebab':
             keyName = field.name.kebab;
             break;
@@ -242,7 +242,7 @@ RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
     }).toSet();
 
     final mixinShortcuts = mixins.map((mixin) {
-      final mixinB = mixin.replaceAll(RegExp('\<.*?\>'), '').decapitalize();
+      final mixinB = mixin.replaceAll(RegExp('<.*?>'), '').decapitalize();
       return '$mixin get $mixinB => remoteAdapter as $mixin;';
     }).join('\n');
 

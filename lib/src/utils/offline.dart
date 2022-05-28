@@ -180,10 +180,10 @@ final _offlineCallbackProvider =
 final pendingOfflineTypesProvider =
     StateNotifierProvider<DelayedStateNotifier<Set<String>>, Set<String>?>(
         (ref) {
-  final _graph = ref.watch(graphNotifierProvider);
+  final graph = ref.watch(graphNotifierProvider);
 
   Set<String> _pendingTypes() {
-    final node = _graph._getNode(_offlineAdapterKey, orAdd: true)!;
+    final node = graph._getNode(_offlineAdapterKey, orAdd: true)!;
     // obtain types from metadata e.g. _offline:users#4:findOne
     return node.keys.map((m) => m.split(':')[1].split('#')[0]).toSet();
   }
@@ -196,7 +196,7 @@ final pendingOfflineTypesProvider =
     }
   });
 
-  final _dispose = _graph.where((event) {
+  final dispose = graph.where((event) {
     // filter the right events
     return [DataGraphEventType.addEdge, DataGraphEventType.removeEdge]
             .contains(event.type) &&
@@ -209,7 +209,7 @@ final pendingOfflineTypesProvider =
     }
   });
 
-  notifier.onDispose = _dispose;
+  notifier.onDispose = dispose;
 
   return notifier;
 });

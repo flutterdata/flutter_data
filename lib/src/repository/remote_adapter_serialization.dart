@@ -53,8 +53,8 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
     }
 
     if (data is Iterable) {
-      for (final _ in data) {
-        final mapIn = Map<String, dynamic>.from(_ as Map);
+      for (final map in data) {
+        final mapIn = Map<String, dynamic>.from(map as Map);
         final mapOut = <String, dynamic>{};
 
         final relationships = localAdapter.relationshipMetas;

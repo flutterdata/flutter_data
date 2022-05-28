@@ -12,12 +12,12 @@ import '../mocks.dart';
 
 void main() async {
   test('hive local storage', () async {
-    late final Directory _dir;
+    late final Directory dir;
     final hive = HiveFake();
 
-    _dir = await Directory('tmp').create();
+    dir = await Directory('tmp').create();
     final storage = HiveLocalStorage(
-      baseDirFn: () => _dir.path,
+      baseDirFn: () => dir.path,
       encryptionKey: Hive.generateSecureKey(),
       clear: true,
       hive: hive,
@@ -56,8 +56,8 @@ void main() async {
 
     await storage.destroy();
 
-    for (final _ in ['posts', 'libraries']) {
-      expect(await hive.boxExists(_), isFalse);
+    for (final name in ['posts', 'libraries']) {
+      expect(await hive.boxExists(name), isFalse);
     }
   });
 }

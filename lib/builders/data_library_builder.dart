@@ -55,12 +55,12 @@ class DataExtensionBuilder implements Builder {
   Future<void> build(BuildStep b) async {
     final finalAssetId = AssetId(b.inputId.package, 'lib/main.data.dart');
 
-    final _classes = [
+    final infos = [
       await for (final file in b.findAssets(Glob('**/*.info')))
         await b.readAsString(file)
     ];
 
-    final classes = _classes.fold<List<Map<String, String>>>([], (acc, line) {
+    final classes = infos.fold<List<Map<String, String>>>([], (acc, line) {
       for (final e in line.split(';')) {
         final parts = e.split('#');
         final type = DataHelpers.getType(parts[0]);
@@ -77,7 +77,7 @@ class DataExtensionBuilder implements Builder {
 
     // if this is a library, do not generate
     if (classes.any((clazz) => clazz['path']!.startsWith('asset:'))) {
-      return null;
+      return;
     }
 
     final modelImports = classes

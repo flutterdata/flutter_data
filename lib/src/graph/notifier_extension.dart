@@ -13,17 +13,18 @@ class DelayedStateNotifier<T> extends StateNotifier<T?> {
   @override
   RemoveListener addListener(void Function(T) listener,
       {bool fireImmediately = true}) {
-    final _listener = (T? value) {
+    outerListener(T? value) {
       // if `value` is `null` and `T` is actually a nullable
       // type, then the listener MUST be called with `null`
       if (_typesEqual<T, T?>() && value == null) {
         listener(null as T);
-      } else {
+      } else if (value != null) {
         // if `value != null` and `T` is non-nullable, also
-        listener(value!);
+        listener(value);
       }
-    };
-    return super.addListener(_listener, fireImmediately: false);
+    }
+
+    return super.addListener(outerListener, fireImmediately: false);
   }
 
   Function? onDispose;
@@ -46,9 +47,9 @@ class _FunctionalStateNotifier<S, T> extends DelayedStateNotifier<T> {
   _FunctionalStateNotifier(this._source, {this.name});
 
   DelayedStateNotifier<T> where(bool Function(S) test) {
-    _sourceDisposeFn = _source.addListener((_state) {
-      if (test(_state)) {
-        state = _state as T;
+    _sourceDisposeFn = _source.addListener((newState) {
+      if (test(newState)) {
+        state = newState as T;
       }
     }, fireImmediately: false);
     return this;

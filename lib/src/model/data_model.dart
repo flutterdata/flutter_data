@@ -8,8 +8,8 @@ abstract class DataModel<T extends DataModel<T>> {
   Object? get id;
 
   DataModel() {
-    final _isRepoInitialized = internalRepositories.containsKey(_internalType);
-    if (_isRepoInitialized && remoteAdapter.autoInitializeModels) init();
+    final isRepoInitialized = internalRepositories.containsKey(_internalType);
+    if (isRepoInitialized && remoteAdapter.autoInitializeModels) init();
   }
 
   String? __key;
@@ -69,34 +69,35 @@ abstract class DataModel<T extends DataModel<T>> {
   T was(T model, {bool ignoreId = false}) {
     init();
     if (model._key != _key) {
-      T _old;
-      T _new;
+      T oldModel;
+      T newModel;
 
       // if the passed-in model has no ID
       // then treat the original as prevalent
       if (ignoreId == false && model.id == null && id != null) {
-        _old = model;
-        _new = _this;
+        oldModel = model;
+        newModel = _this;
       } else {
         // in all other cases, treat the passed-in
         // model as prevalent
-        _old = _this;
-        _new = model;
+        oldModel = _this;
+        newModel = model;
       }
 
-      final _oldKey = _old._key;
-      if (_key != _new._key) {
-        __key = _new._key;
+      final oldKey = oldModel._key;
+      if (_key != newModel._key) {
+        __key = newModel._key;
       }
-      if (_key != _old._key) {
-        _old.__key = _key;
-        remoteAdapter.graph.removeKey(_oldKey);
+      if (_key != oldModel._key) {
+        oldModel.__key = _key;
+        remoteAdapter.graph.removeKey(oldKey);
       }
 
-      if (_old.id != null) {
-        remoteAdapter.graph.removeId(_internalType, _old.id!, notify: false);
+      if (oldModel.id != null) {
         remoteAdapter.graph
-            .getKeyForId(_internalType, _old.id, keyIfAbsent: _key);
+            .removeId(_internalType, oldModel.id!, notify: false);
+        remoteAdapter.graph
+            .getKeyForId(_internalType, oldModel.id, keyIfAbsent: _key);
       }
     }
     return _this;

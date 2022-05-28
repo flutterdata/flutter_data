@@ -88,12 +88,12 @@ class DataStateNotifier<T> extends StateNotifier<DataState<T>> {
     Listener<DataState<T>> listener, {
     bool fireImmediately = true,
   }) {
-    Function? _dispose;
+    Function? dispose;
     if (mounted) {
-      _dispose = super.addListener(listener, fireImmediately: fireImmediately);
+      dispose = super.addListener(listener, fireImmediately: fireImmediately);
     }
     return () {
-      _dispose?.call();
+      dispose?.call();
       onDispose?.call();
     };
   }
@@ -122,17 +122,17 @@ class _FunctionalDataStateNotifier<T, W> extends DataStateNotifier<W> {
   DataStateNotifier<W> where(bool Function(T) test) {
     _sourceDisposeFn = _source.addListener((state) {
       if (state.hasModel) {
-        W _model;
+        W model;
 
         if (_typesEqual<W, List<T>?>()) {
-          _model = (state.model as List<T>?)?.where(test).toList() as W;
+          model = (state.model as List<T>?)?.where(test).toList() as W;
         } else if (_typesEqual<W, T?>()) {
-          _model = test(state.model as T) ? state.model : null as W;
+          model = test(state.model as T) ? state.model : null as W;
         } else {
           throw UnsupportedError('W must either be T? or List<T>?');
         }
 
-        super.state = DataState(_model,
+        super.state = DataState(model,
             isLoading: state.isLoading,
             exception: state.exception,
             stackTrace: state.stackTrace);
@@ -144,17 +144,17 @@ class _FunctionalDataStateNotifier<T, W> extends DataStateNotifier<W> {
   DataStateNotifier<W> map(T Function(T) convert) {
     _sourceDisposeFn = _source.addListener((state) {
       if (state.hasModel) {
-        W _model;
+        W model;
 
         if (_typesEqual<W, List<T>?>()) {
-          _model = (state.model as List<T>?)?.map(convert).toList() as W;
+          model = (state.model as List<T>?)?.map(convert).toList() as W;
         } else if (_typesEqual<W, T>()) {
-          _model = convert(state.model as T) as W;
+          model = convert(state.model as T) as W;
         } else {
           throw UnsupportedError('W must either be T or List<T>?');
         }
 
-        super.state = DataState(_model,
+        super.state = DataState(model,
             isLoading: state.isLoading,
             exception: state.exception,
             stackTrace: state.stackTrace);

@@ -3,7 +3,7 @@ import 'package:test/test.dart';
 
 void main() {
   late DataStateNotifier<String?> notifier;
-  final delay = () => Future.delayed(Duration(milliseconds: 12));
+  delay() => Future.delayed(Duration(milliseconds: 12));
 
   setUpAll(() {
     notifier = DataStateNotifier(data: DataState('initial'));

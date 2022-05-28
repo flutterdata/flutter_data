@@ -1,4 +1,4 @@
-include: package:pedantic/analysis_options.yaml
+include: package:lints/recommended.yaml
 analyzer:
   exclude:
     - "**/*.freezed.dart"
@@ -7,6 +7,7 @@ analyzer:
   errors:
     invalid_use_of_protected_member: error
     always_declare_return_types: error
+    library_private_types_in_public_api: ignore
 linter:
   rules:
     - avoid_function_literals_in_foreach_calls

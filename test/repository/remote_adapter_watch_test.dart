@@ -462,7 +462,7 @@ void main() async {
 
     final notifier = container.people.watchOneNotifier('1');
 
-    final matcher = (name) => isA<DataState>()
+    matcher(name) => isA<DataState>()
         .having((s) => s.model.id, 'id', '1')
         .having((s) => s.model.name, 'name', name);
 

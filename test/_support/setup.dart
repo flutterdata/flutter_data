@@ -68,7 +68,7 @@ void setUpFn() async {
   internalRepositories['people'] = await container
       .read(peopleRepositoryProvider)
       .initialize(remote: false, adapters: adapterGraph);
-  final _dogsRepository = internalRepositories['dogs'] = await container
+  final dogsRepository = internalRepositories['dogs'] = await container
       .read(dogsRepositoryProvider)
       .initialize(remote: false, adapters: adapterGraph);
   internalRepositories['bookAuthors'] =
@@ -91,7 +91,7 @@ void setUpFn() async {
     },
   );
 
-  _dogsRepository.logLevel = 1;
+  dogsRepository.logLevel = 1;
 }
 
 void tearDownFn() async {

@@ -70,23 +70,24 @@ class _$BookAuthorCopyWithImpl<$Res> implements $BookAuthorCopyWith<$Res> {
 }
 
 /// @nodoc
-abstract class _$BookAuthorCopyWith<$Res> implements $BookAuthorCopyWith<$Res> {
-  factory _$BookAuthorCopyWith(
-          _BookAuthor value, $Res Function(_BookAuthor) then) =
-      __$BookAuthorCopyWithImpl<$Res>;
+abstract class _$$_BookAuthorCopyWith<$Res>
+    implements $BookAuthorCopyWith<$Res> {
+  factory _$$_BookAuthorCopyWith(
+          _$_BookAuthor value, $Res Function(_$_BookAuthor) then) =
+      __$$_BookAuthorCopyWithImpl<$Res>;
   @override
   $Res call({int id, String? name, HasMany<Book> books});
 }
 
 /// @nodoc
-class __$BookAuthorCopyWithImpl<$Res> extends _$BookAuthorCopyWithImpl<$Res>
-    implements _$BookAuthorCopyWith<$Res> {
-  __$BookAuthorCopyWithImpl(
-      _BookAuthor _value, $Res Function(_BookAuthor) _then)
-      : super(_value, (v) => _then(v as _BookAuthor));
+class __$$_BookAuthorCopyWithImpl<$Res> extends _$BookAuthorCopyWithImpl<$Res>
+    implements _$$_BookAuthorCopyWith<$Res> {
+  __$$_BookAuthorCopyWithImpl(
+      _$_BookAuthor _value, $Res Function(_$_BookAuthor) _then)
+      : super(_value, (v) => _then(v as _$_BookAuthor));
 
   @override
-  _BookAuthor get _value => super._value as _BookAuthor;
+  _$_BookAuthor get _value => super._value as _$_BookAuthor;
 
   @override
   $Res call({
@@ -94,7 +95,7 @@ class __$BookAuthorCopyWithImpl<$Res> extends _$BookAuthorCopyWithImpl<$Res>
     Object? name = freezed,
     Object? books = freezed,
   }) {
-    return _then(_BookAuthor(
+    return _then(_$_BookAuthor(
       id: id == freezed
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -135,7 +136,7 @@ class _$_BookAuthor extends _BookAuthor {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _BookAuthor &&
+            other is _$_BookAuthor &&
             const DeepCollectionEquality().equals(other.id, id) &&
             const DeepCollectionEquality().equals(other.name, name) &&
             const DeepCollectionEquality().equals(other.books, books));
@@ -151,8 +152,8 @@ class _$_BookAuthor extends _BookAuthor {
 
   @JsonKey(ignore: true)
   @override
-  _$BookAuthorCopyWith<_BookAuthor> get copyWith =>
-      __$BookAuthorCopyWithImpl<_BookAuthor>(this, _$identity);
+  _$$_BookAuthorCopyWith<_$_BookAuthor> get copyWith =>
+      __$$_BookAuthorCopyWithImpl<_$_BookAuthor>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
@@ -178,7 +179,7 @@ abstract class _BookAuthor extends BookAuthor {
   HasMany<Book> get books => throw _privateConstructorUsedError;
   @override
   @JsonKey(ignore: true)
-  _$BookAuthorCopyWith<_BookAuthor> get copyWith =>
+  _$$_BookAuthorCopyWith<_$_BookAuthor> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -263,9 +264,9 @@ class _$BookCopyWithImpl<$Res> implements $BookCopyWith<$Res> {
 }
 
 /// @nodoc
-abstract class _$BookCopyWith<$Res> implements $BookCopyWith<$Res> {
-  factory _$BookCopyWith(_Book value, $Res Function(_Book) then) =
-      __$BookCopyWithImpl<$Res>;
+abstract class _$$_BookCopyWith<$Res> implements $BookCopyWith<$Res> {
+  factory _$$_BookCopyWith(_$_Book value, $Res Function(_$_Book) then) =
+      __$$_BookCopyWithImpl<$Res>;
   @override
   $Res call(
       {int id,
@@ -278,13 +279,13 @@ abstract class _$BookCopyWith<$Res> implements $BookCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$BookCopyWithImpl<$Res> extends _$BookCopyWithImpl<$Res>
-    implements _$BookCopyWith<$Res> {
-  __$BookCopyWithImpl(_Book _value, $Res Function(_Book) _then)
-      : super(_value, (v) => _then(v as _Book));
+class __$$_BookCopyWithImpl<$Res> extends _$BookCopyWithImpl<$Res>
+    implements _$$_BookCopyWith<$Res> {
+  __$$_BookCopyWithImpl(_$_Book _value, $Res Function(_$_Book) _then)
+      : super(_value, (v) => _then(v as _$_Book));
 
   @override
-  _Book get _value => super._value as _Book;
+  _$_Book get _value => super._value as _$_Book;
 
   @override
   $Res call({
@@ -295,7 +296,7 @@ class __$BookCopyWithImpl<$Res> extends _$BookCopyWithImpl<$Res>
     Object? house = freezed,
     Object? ardentSupporters = freezed,
   }) {
-    return _then(_Book(
+    return _then(_$_Book(
       id: id == freezed
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -363,7 +364,7 @@ class _$_Book extends _Book {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _Book &&
+            other is _$_Book &&
             const DeepCollectionEquality().equals(other.id, id) &&
             const DeepCollectionEquality().equals(other.title, title) &&
             const DeepCollectionEquality()
@@ -388,8 +389,8 @@ class _$_Book extends _Book {
 
   @JsonKey(ignore: true)
   @override
-  _$BookCopyWith<_Book> get copyWith =>
-      __$BookCopyWithImpl<_Book>(this, _$identity);
+  _$$_BookCopyWith<_$_Book> get copyWith =>
+      __$$_BookCopyWithImpl<_$_Book>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
@@ -426,5 +427,5 @@ abstract class _Book extends Book {
   HasMany<Person> get ardentSupporters => throw _privateConstructorUsedError;
   @override
   @JsonKey(ignore: true)
-  _$BookCopyWith<_Book> get copyWith => throw _privateConstructorUsedError;
+  _$$_BookCopyWith<_$_Book> get copyWith => throw _privateConstructorUsedError;
 }

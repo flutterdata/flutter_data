@@ -12,8 +12,8 @@ class DataHelpers {
       throw UnsupportedError('Please supply a type');
     }
     if (!_types.containsKey(type ?? T)) {
-      final _newType = type ?? T.toString();
-      _types[type ?? T] = _newType.decapitalize().pluralize();
+      final newType = type ?? T.toString();
+      _types[type ?? T] = newType.decapitalize().pluralize();
     }
     return _types[type ?? T]!;
   }

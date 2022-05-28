@@ -44,11 +44,11 @@ extension VariableElementX on VariableElement {
 
 Future<bool> isDependency(String package, BuildStep buildStep,
     {bool dev = false}) async {
-  final _pubspec = Pubspec.parse(await buildStep
+  final pubspec = Pubspec.parse(await buildStep
       .readAsString(AssetId(buildStep.inputId.package, 'pubspec.yaml')));
-  var deps = _pubspec.dependencies;
+  var deps = pubspec.dependencies;
   if (dev) {
-    deps = _pubspec.devDependencies;
+    deps = pubspec.devDependencies;
   }
   return deps.keys.any((key) => key == package);
 }

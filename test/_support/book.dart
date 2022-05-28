@@ -44,7 +44,7 @@ mixin BookAuthorAdapter on RemoteAdapter<BookAuthor> {
 
   @DataFinder()
   Future<BookAuthor> caps(
-    Object model, {
+    Object id, {
     bool? remote,
     bool? background,
     Map<String, dynamic>? params,
@@ -53,7 +53,7 @@ mixin BookAuthorAdapter on RemoteAdapter<BookAuthor> {
     OnErrorOne<BookAuthor>? onError,
     DataRequestLabel? label,
   }) async {
-    final _model = await findOne(model, remote: remote);
-    return _model!.copyWith(name: _model.name?.toUpperCase());
+    final model = await findOne(id, remote: remote);
+    return model!.copyWith(name: model.name?.toUpperCase());
   }
 }

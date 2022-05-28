@@ -27,6 +27,7 @@ part of flutter_data;
 /// ```
 ///
 /// Identity in this layer is enforced by IDs.
+// ignore: library_private_types_in_public_api
 class RemoteAdapter<T extends DataModel<T>> = _RemoteAdapter<T>
     with _RemoteAdapterSerialization<T>, _RemoteAdapterWatch<T>;
 
@@ -93,7 +94,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
   /// Returns URL for [findAll]. Defaults to [type].
   @protected
-  String urlForFindAll(Map<String, dynamic> params) => '$type';
+  String urlForFindAll(Map<String, dynamic> params) => type;
 
   /// Returns HTTP method for [findAll]. Defaults to `GET`.
   @protected
@@ -526,7 +527,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   }) async {
     // defaults
     headers ??= await defaultHeaders;
-    final _params =
+    final params =
         omitDefaultParams ? <String, dynamic>{} : await defaultParams;
 
     label ??= DataRequestLabel('custom', type: internalType);
@@ -538,21 +539,21 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     Object? error;
     StackTrace? stackTrace;
 
-    final _client = _isTesting ? read(httpClientProvider)! : httpClient;
+    final client = _isTesting ? read(httpClientProvider)! : httpClient;
 
     try {
-      final request = http.Request(method.toShortString(), uri & _params);
+      final request = http.Request(method.toShortString(), uri & params);
       request.headers.addAll(headers);
       if (body != null) {
         request.body = body;
       }
-      final stream = await _client.send(request);
+      final stream = await client.send(request);
       response = await http.Response.fromStream(stream);
     } catch (err, stack) {
       error = err;
       stackTrace = stack;
     } finally {
-      _client.close();
+      client.close();
     }
 
     // response handling
@@ -708,10 +709,10 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     // timeouts via http's `connectionTimeout` are
     // also socket exceptions
     // we check the exception like this in order not to import `dart:io`
-    final _err = error.toString();
-    return _err.startsWith('SocketException') ||
-        _err.startsWith('Connection closed before full header was received') ||
-        _err.startsWith('HandshakeException');
+    final err = error.toString();
+    return err.startsWith('SocketException') ||
+        err.startsWith('Connection closed before full header was received') ||
+        err.startsWith('HandshakeException');
   }
 
   @protected

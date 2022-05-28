@@ -80,9 +80,9 @@ class _$NodeCopyWithImpl<$Res> implements $NodeCopyWith<$Res> {
 }
 
 /// @nodoc
-abstract class _$NodeCopyWith<$Res> implements $NodeCopyWith<$Res> {
-  factory _$NodeCopyWith(_Node value, $Res Function(_Node) then) =
-      __$NodeCopyWithImpl<$Res>;
+abstract class _$$_NodeCopyWith<$Res> implements $NodeCopyWith<$Res> {
+  factory _$$_NodeCopyWith(_$_Node value, $Res Function(_$_Node) then) =
+      __$$_NodeCopyWithImpl<$Res>;
   @override
   $Res call(
       {int? id,
@@ -92,13 +92,13 @@ abstract class _$NodeCopyWith<$Res> implements $NodeCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$NodeCopyWithImpl<$Res> extends _$NodeCopyWithImpl<$Res>
-    implements _$NodeCopyWith<$Res> {
-  __$NodeCopyWithImpl(_Node _value, $Res Function(_Node) _then)
-      : super(_value, (v) => _then(v as _Node));
+class __$$_NodeCopyWithImpl<$Res> extends _$NodeCopyWithImpl<$Res>
+    implements _$$_NodeCopyWith<$Res> {
+  __$$_NodeCopyWithImpl(_$_Node _value, $Res Function(_$_Node) _then)
+      : super(_value, (v) => _then(v as _$_Node));
 
   @override
-  _Node get _value => super._value as _Node;
+  _$_Node get _value => super._value as _$_Node;
 
   @override
   $Res call({
@@ -107,7 +107,7 @@ class __$NodeCopyWithImpl<$Res> extends _$NodeCopyWithImpl<$Res>
     Object? parent = freezed,
     Object? children = freezed,
   }) {
-    return _then(_Node(
+    return _then(_$_Node(
       id: id == freezed
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -160,7 +160,7 @@ class _$_Node extends _Node {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _Node &&
+            other is _$_Node &&
             const DeepCollectionEquality().equals(other.id, id) &&
             const DeepCollectionEquality().equals(other.name, name) &&
             const DeepCollectionEquality().equals(other.parent, parent) &&
@@ -178,8 +178,8 @@ class _$_Node extends _Node {
 
   @JsonKey(ignore: true)
   @override
-  _$NodeCopyWith<_Node> get copyWith =>
-      __$NodeCopyWithImpl<_Node>(this, _$identity);
+  _$$_NodeCopyWith<_$_Node> get copyWith =>
+      __$$_NodeCopyWithImpl<_$_Node>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
@@ -210,5 +210,5 @@ abstract class _Node extends Node {
   HasMany<Node>? get children => throw _privateConstructorUsedError;
   @override
   @JsonKey(ignore: true)
-  _$NodeCopyWith<_Node> get copyWith => throw _privateConstructorUsedError;
+  _$$_NodeCopyWith<_$_Node> get copyWith => throw _privateConstructorUsedError;
 }

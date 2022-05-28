@@ -94,8 +94,8 @@ void main() async {
     expect(node.children!.keys, isEmpty);
 
     // since testing on web is a complete pain in the ass, skip this last part
-    const _kIsWeb = identical(0, 0.0);
-    if (_kIsWeb) return;
+    const kIsWeb = identical(0, 0.0);
+    if (kIsWeb) return;
 
     expect(node.toString(),
         'Node(id: null, name: parent, parent: null, children: HasMany<Node>())');

@@ -74,7 +74,9 @@ class HiveFake extends Fake implements HiveInterface {
   bool isBoxOpen(String name) => _boxes[name]?.isOpen ?? false;
 
   @override
-  void init(String path) {}
+  void init(String? path,
+      {HiveStorageBackendPreference backendPreference =
+          HiveStorageBackendPreference.native}) {}
 
   @override
   Future<bool> boxExists(String name, {String? path}) async =>
@@ -89,6 +91,7 @@ class HiveFake extends Fake implements HiveInterface {
     bool crashRecovery = true,
     String? path,
     Uint8List? bytes,
+    String? collection,
     @Deprecated('Use encryptionCipher instead') List<int>? encryptionKey,
   }) async {
     final box = FakeBox<E>();

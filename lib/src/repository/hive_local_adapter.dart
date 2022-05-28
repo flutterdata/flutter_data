@@ -131,10 +131,10 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
     //   '_adapter_hive:houses': ['_adapter_hive:3'],
     // }
 
-    final _typesNode =
+    final typesNode =
         graph._getNode(_hiveAdapterKey, orAdd: true, notify: false)!;
 
-    final edge = _typesNode[_internalType.namespaceWith(_hiveAdapterNs)];
+    final edge = typesNode[_internalType.namespaceWith(_hiveAdapterNs)];
 
     if (edge != null && edge.isNotEmpty) {
       // first is of format: _adapter_hive:1
@@ -142,7 +142,7 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
     }
 
     // get namespaced indices
-    final index = _typesNode.values
+    final index = typesNode.values
             // denamespace and parse single
             .map((e) => int.parse(e.first.denamespace()))
             // find max
@@ -169,13 +169,13 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
 
   @override
   void write(writer, T obj) {
-    final _map = serialize(obj, withRelationships: false);
+    final map = serialize(obj, withRelationships: false);
 
-    final keys = _map.keys;
+    final keys = map.keys;
     writer.writeByte(keys.length);
     for (final k in keys) {
       writer.write(k);
-      writer.write(_map[k]);
+      writer.write(map[k]);
     }
   }
 }

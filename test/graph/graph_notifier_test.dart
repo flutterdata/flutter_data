@@ -33,11 +33,11 @@ void main() async {
 
     graph.removeEdge('h1', 'b2', metadata: 'blogs', inverseMetadata: 'host');
 
-    final _map = graph.toMap();
-    expect(_map['h1'], {
+    final map = graph.toMap();
+    expect(map['h1'], {
       'blogs': {'b1'}
     });
-    expect(_map['b1'], {
+    expect(map['b1'], {
       'host': {'h1'}
     });
 

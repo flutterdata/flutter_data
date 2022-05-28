@@ -150,7 +150,7 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
   String toString() {
     final keysWithoutId =
         _keys.where((k) => _graph.getIdForKey(k) == null).map((k) => '[$k]');
-    return '${{..._ids, ...keysWithoutId}.join(', ')}';
+    return {..._ids, ...keysWithoutId}.join(', ');
   }
 }
 
