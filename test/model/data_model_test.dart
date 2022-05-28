@@ -13,8 +13,7 @@ void main() async {
 
   test('init', () async {
     final familia = Familia(id: '55', surname: 'Kelley');
-    // since it is init but NOT saved, we can't find it
-    expect(await container.people.findOne('55', remote: false), isNull);
+    expect(await container.familia.findOne('55', remote: false), isNotNull);
 
     final person =
         Person(id: '1', name: 'John', age: 27, familia: familia.asBelongsTo);
