@@ -1,8 +1,20 @@
 # Changelog
 
-## [2.0.0-rc1]
+## [1.4.0] - May 28th, 2022
 
-- TBD
+- `init` is no longer by default required (can be switched off via `autoInitializeModels`)
+- Everything is now only accessed via `ref.$model`
+- Support for `background` loading
+- New labels API to log and track requests, multiple log levels, nested labels
+- New `finder` API to supply an alternative finder to watchers (ex strategies)
+- Lots of improvements to serialization including async API for `serialize`, `deserialize`), introduced the `withRelationships` flag to `serialize`
+- Allow graph notifier to be throttled via the new `graphNotifierThrottleDurationProvider`
+- Improved `alsoWatch` API, can now watch any arbitrary relationship in the graph
+- `OnSuccess`/`OnError` callback APIs
+- `getIdForKey` will now return `int` IDs when appropriate
+- Bug fix: invoking two notifiers with equal arguments will now always yield the same cached notifier
+- Misc bug fixes and performance improvements, builder fixes, test improvements
+- Upgrade dependencies and use new lints
 
 ## [1.3.4]
 
