@@ -284,8 +284,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       }
     }
 
-    log(label, 'request ${params.isNotEmpty ? 'with $params' : ''}');
-
     final future = sendRequest<List<T>>(
       baseUrl.asUri / urlForFindAll(params) & params,
       method: methodForFindAll(params),
@@ -346,8 +344,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
         return model;
       }
     }
-
-    log(label, 'request ${params.isNotEmpty ? 'with $params' : ''}');
 
     final future = sendRequest(
       baseUrl.asUri / urlForFindOne(id, params) & params,
@@ -410,9 +406,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     final uri = baseUrl.asUri / urlForSave(model.id, params) & params;
     final method = methodForSave(model.id, params);
 
-    log(label,
-        'requesting${_logLevel > 1 ? ' [HTTP ${method.toShortString()}] $uri' : ''}');
-
     final result = await sendRequest<T>(
       uri,
       method: method,
@@ -459,7 +452,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     }
 
     if (remote == true && id != null) {
-      log(label, 'requesting');
       return await sendRequest(
         baseUrl.asUri / urlForDelete(id, params) & params,
         method: methodForDelete(id, params),
@@ -545,6 +537,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     StackTrace? stackTrace;
 
     final client = _isTesting ? read(httpClientProvider)! : httpClient;
+
+    log(label,
+        'requesting${_logLevel > 1 ? ' [HTTP ${method.toShortString()}] $uri' : ''}');
 
     try {
       final request = http.Request(method.toShortString(), uri & params);

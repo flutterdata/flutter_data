@@ -91,7 +91,7 @@ void setUpFn() async {
     },
   );
 
-  dogsRepository.logLevel = 1;
+  dogsRepository.logLevel = 2;
 }
 
 void tearDownFn() async {

@@ -322,7 +322,10 @@ void main() async {
 
     var regexp = RegExp(r'^\d\d:\d\d\d \[findAll\/dogs@[a-z0-9]{6}\]');
     expect(logging.first, matches(regexp));
-    expect(logging.first, endsWith('request with {a: 1}'));
+    expect(
+        logging.first,
+        endsWith(
+            'requesting [HTTP GET] https://override-base-url-in-adapter/dogs?a=1'));
     expect(logging.last, matches(regexp));
     expect(logging.last,
         endsWith('{1, 2, 3, 4, 5} (and 2 more) fetched from remote'));
@@ -341,7 +344,10 @@ void main() async {
 
     regexp = RegExp(r'^\d\d:\d\d\d \[delete\/dogs#3@[a-z0-9]{6}\]');
     expect(logging.first, matches(regexp));
-    expect(logging.first, endsWith('requesting'));
+    expect(
+        logging.first,
+        endsWith(
+            'requesting [HTTP DELETE] https://override-base-url-in-adapter/dogs/3'));
     expect(logging.last, matches(regexp));
     expect(logging.last, endsWith('deleted in local storage and remote'));
 
