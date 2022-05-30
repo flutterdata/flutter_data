@@ -32,6 +32,12 @@ extension IterableNullX<T> on Iterable<T?> {
   Iterable<T> get filterNulls => where((elem) => elem != null).cast();
 }
 
+extension IntUtilsX on int {
+  String typifyWith(String type) {
+    return toString().typifyWith(type);
+  }
+}
+
 extension StringUtilsX on String {
   String capitalize() =>
       isEmpty ? '' : '${this[0].toUpperCase()}${substring(1)}';
@@ -71,6 +77,10 @@ extension StringUtilsX on String {
     // need to re-join with # in case there were other #s in the id
     return (split('#')..removeAt(0)).join('#');
   }
+
+  int _detypifyInt() {
+    return int.tryParse(detypify())!;
+  }
 }
 
 extension MapUtilsX<K, V> on Map<K, V> {
@@ -108,4 +118,20 @@ Map<String, String> _flattenQueryParameters(Map<String, dynamic> params) {
     }
     return acc;
   });
+}
+
+extension FieldMetaX on Map<String, FieldMeta> {
+  Map<String, AttributeMeta> get attributes {
+    return {
+      for (final e in entries)
+        if (e.value is AttributeMeta) e.key: e.value as AttributeMeta,
+    };
+  }
+
+  Map<String, RelationshipMeta> get relationships {
+    return {
+      for (final e in entries)
+        if (e.value is RelationshipMeta) e.key: e.value as RelationshipMeta,
+    };
+  }
 }

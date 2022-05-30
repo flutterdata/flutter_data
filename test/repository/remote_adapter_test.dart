@@ -69,7 +69,7 @@ void main() async {
     // init a person
     final person = Person(id: '1', name: 'John', age: 21);
     // it does have a key
-    expect(graph.getKeyForId('people', person.id), isNotNull);
+    expect(graph.getKeyForId('people', person.id!), isNotNull);
 
     // now delete
     await adapter.delete(person.id!);
@@ -78,8 +78,8 @@ void main() async {
     expect(await adapter.findOne(person.id!), isNull);
 
     // and now key & id are both non-existent
-    expect(graph.getNode(keyFor(person)!), isNull);
-    expect(graph.getKeyForId('people', person.id), isNull);
+    // expect(graph.getNode(keyFor(person)!.typifyWith('people')), isNull);
+    expect(graph.getKeyForId('people', person.id!), isNull);
   });
 
   test('use default headers & params', () async {
@@ -138,16 +138,14 @@ void main() async {
       Person(id: '2', name: 'John', age: 44)
     ]);
 
-    final originalKey = keyFor(models.first)!;
-
     // simulate app restart
     container.familia.dispose();
     await container.read(familiaRepositoryProvider).initialize(
           // ignore: invalid_use_of_protected_member
           adapters: container.familia.remoteAdapter.adapters,
         );
-    await container.familia.remoteAdapter.localAdapter
-        .save(originalKey, Familia(id: '1', surname: 'Smith'), notify: false);
+    container.familia.remoteAdapter.localAdapter
+        .save(Familia(id: '1', surname: 'Smith'), notify: false);
 
     // local storage still comes back with relationships
     final models2 = await container.familia.findAll(remote: false);
@@ -205,8 +203,7 @@ void main() async {
     final key1 = adapter.keyForModelOrId(p1);
     expect(key1, keyFor(p1)!);
 
-    final key2 = graph.getKeyForId('people', '43',
-        keyIfAbsent: DataHelpers.generateKey<Person>());
+    final key2 = graph.getKeyForId('people', '43');
     final key2b = adapter.keyForModelOrId('43');
     expect(key2, key2b);
 

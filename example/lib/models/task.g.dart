@@ -9,7 +9,19 @@ part of 'task.dart';
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $TaskLocalAdapter on LocalAdapter<Task> {
-  static final Map<String, RelationshipMeta> _kTaskRelationshipMetas = {
+  static final Map<String, FieldMeta> _kTaskFieldMetas = {
+    'completed': AttributeMeta<Task>(
+      name: 'completed',
+      type: 'bool',
+      nullable: false,
+      internalType: 'bool',
+    ),
+    'title': AttributeMeta<Task>(
+      name: 'title',
+      type: 'String',
+      nullable: false,
+      internalType: 'String',
+    ),
     'user': RelationshipMeta<User>(
       name: 'user',
       inverseName: 'tasks',
@@ -20,8 +32,7 @@ mixin $TaskLocalAdapter on LocalAdapter<Task> {
   };
 
   @override
-  Map<String, RelationshipMeta> get relationshipMetas =>
-      _kTaskRelationshipMetas;
+  Map<String, FieldMeta> get fieldMetas => _kTaskFieldMetas;
 
   @override
   Task deserialize(map) {
@@ -39,13 +50,13 @@ mixin $TaskLocalAdapter on LocalAdapter<Task> {
 final _tasksFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $TaskHiveLocalAdapter = HiveLocalAdapter<Task> with $TaskLocalAdapter;
+class $TaskIsarLocalAdapter = IsarLocalAdapter<Task> with $TaskLocalAdapter;
 
 class $TaskRemoteAdapter = RemoteAdapter<Task> with JSONServerAdapter<Task>;
 
 final internalTasksRemoteAdapterProvider = Provider<RemoteAdapter<Task>>(
     (ref) => $TaskRemoteAdapter(
-        $TaskHiveLocalAdapter(ref.read), InternalHolder(_tasksFinders)));
+        $TaskIsarLocalAdapter(ref.read), InternalHolder(_tasksFinders)));
 
 final tasksRepositoryProvider =
     Provider<Repository<Task>>((ref) => Repository<Task>(ref.read));
@@ -57,8 +68,8 @@ extension TaskDataRepositoryX on Repository<Task> {
 
 extension TaskRelationshipGraphNodeX on RelationshipGraphNode<Task> {
   RelationshipGraphNode<User> get user {
-    final meta = $TaskLocalAdapter._kTaskRelationshipMetas['user']
-        as RelationshipMeta<User>;
+    final meta =
+        $TaskLocalAdapter._kTaskFieldMetas['user'] as RelationshipMeta<User>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }

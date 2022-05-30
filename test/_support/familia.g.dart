@@ -9,13 +9,12 @@ part of 'familia.dart';
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $FamiliaLocalAdapter on LocalAdapter<Familia> {
-  static final Map<String, RelationshipMeta> _kFamiliaRelationshipMetas = {
-    'persons': RelationshipMeta<Person>(
-      name: 'persons',
-      inverseName: 'familia',
-      type: 'people',
-      kind: 'HasMany',
-      instance: (_) => (_ as Familia).persons,
+  static final Map<String, FieldMeta> _kFamiliaFieldMetas = {
+    'surname': AttributeMeta<Familia>(
+      name: 'surname',
+      type: 'String',
+      nullable: false,
+      internalType: 'String',
     ),
     'cottage_id': RelationshipMeta<House>(
       name: 'cottage',
@@ -24,24 +23,30 @@ mixin $FamiliaLocalAdapter on LocalAdapter<Familia> {
       kind: 'BelongsTo',
       instance: (_) => (_ as Familia).cottage,
     ),
+    'dogs': RelationshipMeta<Dog>(
+      name: 'dogs',
+      type: 'dogs',
+      kind: 'HasMany',
+      instance: (_) => (_ as Familia).dogs,
+    ),
+    'persons': RelationshipMeta<Person>(
+      name: 'persons',
+      inverseName: 'familia',
+      type: 'people',
+      kind: 'HasMany',
+      instance: (_) => (_ as Familia).persons,
+    ),
     'residence': RelationshipMeta<House>(
       name: 'residence',
       inverseName: 'owner',
       type: 'houses',
       kind: 'BelongsTo',
       instance: (_) => (_ as Familia).residence,
-    ),
-    'dogs': RelationshipMeta<Dog>(
-      name: 'dogs',
-      type: 'dogs',
-      kind: 'HasMany',
-      instance: (_) => (_ as Familia).dogs,
     )
   };
 
   @override
-  Map<String, RelationshipMeta> get relationshipMetas =>
-      _kFamiliaRelationshipMetas;
+  Map<String, FieldMeta> get fieldMetas => _kFamiliaFieldMetas;
 
   @override
   Familia deserialize(map) {
@@ -59,14 +64,14 @@ mixin $FamiliaLocalAdapter on LocalAdapter<Familia> {
 final _familiaFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $FamiliaHiveLocalAdapter = HiveLocalAdapter<Familia>
+class $FamiliaIsarLocalAdapter = IsarLocalAdapter<Familia>
     with $FamiliaLocalAdapter;
 
 class $FamiliaRemoteAdapter = RemoteAdapter<Familia> with NothingMixin;
 
 final internalFamiliaRemoteAdapterProvider = Provider<RemoteAdapter<Familia>>(
     (ref) => $FamiliaRemoteAdapter(
-        $FamiliaHiveLocalAdapter(ref.read), InternalHolder(_familiaFinders)));
+        $FamiliaIsarLocalAdapter(ref.read), InternalHolder(_familiaFinders)));
 
 final familiaRepositoryProvider =
     Provider<Repository<Familia>>((ref) => Repository<Familia>(ref.read));
@@ -74,30 +79,30 @@ final familiaRepositoryProvider =
 extension FamiliaDataRepositoryX on Repository<Familia> {}
 
 extension FamiliaRelationshipGraphNodeX on RelationshipGraphNode<Familia> {
-  RelationshipGraphNode<Person> get persons {
-    final meta = $FamiliaLocalAdapter._kFamiliaRelationshipMetas['persons']
-        as RelationshipMeta<Person>;
-    return meta.clone(
-        parent: this is RelationshipMeta ? this as RelationshipMeta : null);
-  }
-
   RelationshipGraphNode<House> get cottage {
-    final meta = $FamiliaLocalAdapter._kFamiliaRelationshipMetas['cottage_id']
-        as RelationshipMeta<House>;
-    return meta.clone(
-        parent: this is RelationshipMeta ? this as RelationshipMeta : null);
-  }
-
-  RelationshipGraphNode<House> get residence {
-    final meta = $FamiliaLocalAdapter._kFamiliaRelationshipMetas['residence']
+    final meta = $FamiliaLocalAdapter._kFamiliaFieldMetas['cottage_id']
         as RelationshipMeta<House>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 
   RelationshipGraphNode<Dog> get dogs {
-    final meta = $FamiliaLocalAdapter._kFamiliaRelationshipMetas['dogs']
+    final meta = $FamiliaLocalAdapter._kFamiliaFieldMetas['dogs']
         as RelationshipMeta<Dog>;
+    return meta.clone(
+        parent: this is RelationshipMeta ? this as RelationshipMeta : null);
+  }
+
+  RelationshipGraphNode<Person> get persons {
+    final meta = $FamiliaLocalAdapter._kFamiliaFieldMetas['persons']
+        as RelationshipMeta<Person>;
+    return meta.clone(
+        parent: this is RelationshipMeta ? this as RelationshipMeta : null);
+  }
+
+  RelationshipGraphNode<House> get residence {
+    final meta = $FamiliaLocalAdapter._kFamiliaFieldMetas['residence']
+        as RelationshipMeta<House>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }

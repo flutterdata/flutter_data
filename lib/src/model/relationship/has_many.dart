@@ -25,7 +25,7 @@ class HasMany<E extends DataModel<E>> extends Relationship<E, Set<E>> {
   /// See also: [IterableRelationshipExtension<E>.asHasMany]
   HasMany([Set<E>? models]) : super(models);
 
-  HasMany._(Set<String>? keys) : super._(keys);
+  HasMany._(Set<int>? keys) : super._(keys);
 
   HasMany.remove() : super._remove();
 
@@ -35,54 +35,82 @@ class HasMany<E extends DataModel<E>> extends Relationship<E, Set<E>> {
     return HasMany._({...map['_']});
   }
 
+  @override
+  IsarLinkBase<E> link = IsarLinks();
+
+  IsarLinks<E> get _links {
+    print(
+        'link (${link.hashCode}) in hasmany, owner $_ownerKey rel hashcode $hashCode');
+    return link as IsarLinks<E>;
+  }
+
   /// Add a [value] to this [Relationship]
   ///
   /// Attempting to add an existing [value] has no effect as this is a [Set]
   bool add(E value, {bool notify = true}) {
-    return _add(value, notify: notify);
-  }
+    final wasAdded = _links.add(value);
 
-  bool contains(Object? element) {
-    return _contains(element);
+    if (wasAdded && notify) {
+      _graph._notify(
+        [_ownerKey!, value._key],
+        metadata: _name,
+        type: DataGraphEventType.addEdge,
+      );
+    }
+    return wasAdded;
   }
 
   /// Removes a [value] from this [Relationship]
-  bool remove(Object? value, {bool notify = true}) {
-    return _remove(value, notify: notify);
+  bool remove(E? value, {bool notify = true}) {
+    if (value == null) return false;
+    final wasRemoved = _links.remove(value);
+
+    if (wasRemoved && notify) {
+      _graph._notify(
+        [_ownerKey!, value._key],
+        metadata: _name,
+        type: DataGraphEventType.removeEdge,
+      );
+    }
+
+    return wasRemoved;
   }
 
   /// Returns keys in this relationship.
-  Set<String> get keys => _keys;
+  Set<int> get keys {
+    if (!isInitialized) return {};
+    // if (!_links.isLoaded) _links.loadSync();
+    // print(
+    //     'links $this [owner $_ownerKey] ($hashCode) after loadSync ${_links.toSet()}');
+    return {for (final e in _links) e.__key!};
+  }
 
   /// Returns IDs in this relationship.
-  Set<Object> get ids => _ids;
+  Set<Object> get ids =>
+      {for (final key in keys) key.typifyWith(_internalType)};
+
+  @override
+  bool get isPresent => _links.isNotEmpty;
 
   // iterable utils
 
-  Set<E> toSet() => _iterable.toSet();
+  bool contains(E value) => _links.contains(value);
 
-  List<E> toList() => _iterable.toList();
+  Set<E> toSet() => _links;
 
-  int get length => _iterable.length;
+  List<E> toList() => _links.toList();
 
-  E get first => _iterable.first;
+  int get length => _links.length;
 
-  bool get isEmpty => _iterable.isEmpty;
+  E get first => _links.first;
 
-  bool get isNotEmpty => _iterable.isNotEmpty;
+  bool get isEmpty => _links.isEmpty;
 
-  Iterable<E> where(bool Function(E) test) => _iterable.where(test);
+  bool get isNotEmpty => _links.isNotEmpty;
 
-  Iterable<T> map<T>(T Function(E) f) => _iterable.map(f);
+  Iterable<E> where(bool Function(E) test) => _links.where(test);
 
-  //
-
-  /// Returns a [StateNotifier] which emits the latest [Set<E>] representing
-  /// this [HasMany] relationship.
-  @override
-  DelayedStateNotifier<Set<E>> watch() {
-    return _relationshipEventNotifier.map((e) => toSet());
-  }
+  Iterable<T> map<T>(T Function(E) f) => _links.map(f);
 
   @override
   String toString() => 'HasMany<$E>(${super.toString()})';

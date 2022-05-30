@@ -11,15 +11,16 @@ abstract class DataModel<T extends DataModel<T>> {
     remoteAdapter.initModel(_this);
   }
 
-  String? __key;
+  String get _internalType => DataHelpers.getType<T>();
+
+  int? __key;
   String get _key {
     if (__key == null) {
       throw AssertionError('Model must be initialized in order to get its key');
     }
-    return __key!;
+    return __key!.typifyWith(_internalType);
   }
 
-  String get _internalType => DataHelpers.getType<T>();
   DataStateNotifier<T?>? _notifier;
   T get _this => this as T;
 
@@ -35,12 +36,12 @@ abstract class DataModel<T extends DataModel<T>> {
   DataStateNotifier<T?>? get notifier => _notifier;
 
   Map<String, RelationshipMeta> get relationshipMetas =>
-      remoteAdapter.localAdapter.relationshipMetas;
+      remoteAdapter.localAdapter.fieldMetas.relationships;
 
   // methods
 
   T saveLocal() {
-    remoteAdapter.localAdapter.save(_key, _this);
+    remoteAdapter.localAdapter.save(_this);
     return _this;
   }
 
@@ -71,16 +72,16 @@ abstract class DataModel<T extends DataModel<T>> {
 
       final oldKey = oldModel._key;
       if (_key != newModel._key) {
-        __key = newModel._key;
+        __key = newModel.__key;
       }
       if (_key != oldModel._key) {
-        oldModel.__key = _key;
-        remoteAdapter.graph.removeKey(oldKey);
+        oldModel.__key = __key;
+        // remoteAdapter.graph.removeKey(oldKey);
       }
 
       if (oldModel.id != null) {
-        remoteAdapter.graph
-            .removeId(_internalType, oldModel.id!, notify: false);
+        // remoteAdapter.graph
+        //     .removeId(_internalType, oldModel.id!, notify: false);
         remoteAdapter.graph
             .getKeyForId(_internalType, oldModel.id, keyIfAbsent: _key);
       }
@@ -91,7 +92,8 @@ abstract class DataModel<T extends DataModel<T>> {
   /// Get all non-null [Relationship]s for this model.
   Map<String, Relationship> getRelationships() {
     return {
-      for (final meta in remoteAdapter.localAdapter.relationshipMetas.values)
+      for (final meta
+          in remoteAdapter.localAdapter.fieldMetas.relationships.values)
         if (meta.instance(this) != null) meta.name: meta.instance(this)!,
     };
   }
@@ -143,7 +145,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
 
   /// Get the refreshed version from local storage.
   T? refresh() {
-    return remoteAdapter.localAdapter.findOne(_key);
+    return remoteAdapter.localAdapter.findOne(__key);
   }
 
   /// Re-fetch this model through a call equivalent to [Repository.findOne].
@@ -168,7 +170,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
 /// Returns a model's `_key` private attribute.
 ///
 /// Useful for testing, debugging or usage in [RemoteAdapter] subclasses.
-String? keyFor<T extends DataModel<T>>(T model) => model._key;
+int? keyFor<T extends DataModel<T>>(T model) => model.__key;
 
 @visibleForTesting
 @protected

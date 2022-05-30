@@ -7,18 +7,19 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
     final map =
         localAdapter.serialize(model, withRelationships: withRelationships);
 
+    // TODO
     // essentially converts keys to IDs
-    for (final key in localAdapter.relationshipMetas.keys) {
-      if (map[key] is Iterable) {
-        map[key] = (map[key] as Iterable)
-            .map((k) => graph.getIdForKey(k.toString()))
-            .filterNulls
-            .toList();
-      } else if (map[key] != null) {
-        map[key] = graph.getIdForKey(map[key].toString());
-      }
-      if (map[key] == null) map.remove(key);
-    }
+    // for (final key in localAdapter._relationshipMetas.keys) {
+    //   if (map[key] is Iterable) {
+    //     map[key] = (map[key] as Iterable)
+    //         .map((k) => graph.getIdForKey(k.toString()))
+    //         .filterNulls
+    //         .toList();
+    //   } else if (map[key] != null) {
+    //     map[key] = graph.getIdForKey(map[key].toString());
+    //   }
+    //   if (map[key] == null) map.remove(key);
+    // }
     return map;
   }
 
@@ -35,8 +36,9 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
         id = data.model!.id;
       }
       if (id != null && adapter != null) {
-        return graph.getKeyForId(adapter.internalType, id,
-            keyIfAbsent: DataHelpers.generateKey(adapter.internalType));
+        // TODO fix
+        // return graph.getKeyForId(adapter.internalType, id,
+        //     keyIfAbsent: DataHelpers.generateKey(adapter.internalType));
       }
       return null;
     }
@@ -46,7 +48,7 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
     }
 
     // since data is not null, touch local storage
-    localAdapter._touchLocalStorage();
+    // localAdapter._touchLocalStorage();
 
     if (data is Map<String, dynamic>) {
       data = [data];
@@ -57,7 +59,7 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
         final mapIn = Map<String, dynamic>.from(map as Map);
         final mapOut = <String, dynamic>{};
 
-        final relationships = localAdapter.relationshipMetas;
+        final relationships = localAdapter.fieldMetas.relationships;
 
         // - process includes
         // - transform ids into keys to pass to the local deserializer

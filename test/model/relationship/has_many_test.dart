@@ -77,46 +77,46 @@ void main() async {
     expect(familia.persons.contains(person), isTrue);
   });
 
-  test('watch', () async {
-    final familia = Familia(
-      id: '1',
-      surname: 'Smith',
-      persons: HasMany<Person>(),
-    );
+  // test('watch', () async {
+  //   final familia = Familia(
+  //     id: '1',
+  //     surname: 'Smith',
+  //     persons: HasMany<Person>(),
+  //   );
 
-    final notifier = familia.persons.watch();
-    final listener = Listener<Set<Person>>();
-    dispose = notifier.addListener(listener, fireImmediately: false);
+  //   final notifier = familia.persons.watch();
+  //   final listener = Listener<Set<Person>>();
+  //   dispose = notifier.addListener(listener, fireImmediately: false);
 
-    final p1 = Person(name: 'a', age: 1);
-    final p2 = Person(name: 'b', age: 2);
+  //   final p1 = Person(name: 'a', age: 1);
+  //   final p2 = Person(name: 'b', age: 2);
 
-    familia.persons.add(p1);
-    await oneMs();
+  //   familia.persons.add(p1);
+  //   await oneMs();
 
-    verify(listener({p1})).called(1);
+  //   verify(listener({p1})).called(1);
 
-    familia.persons.add(p2);
-    await oneMs();
+  //   familia.persons.add(p2);
+  //   await oneMs();
 
-    verify(listener({p1, p2})).called(1);
+  //   verify(listener({p1, p2})).called(1);
 
-    familia.persons.add(p2);
-    await oneMs();
+  //   familia.persons.add(p2);
+  //   await oneMs();
 
-    // doesn't show up as p2 was already present!
-    verifyNever(listener({p1, p2}));
+  //   // doesn't show up as p2 was already present!
+  //   verifyNever(listener({p1, p2}));
 
-    familia.persons.remove(p1);
-    await oneMs();
+  //   familia.persons.remove(p1);
+  //   await oneMs();
 
-    verify(listener({p2})).called(1);
+  //   verify(listener({p2})).called(1);
 
-    familia.persons.add(p1);
-    await oneMs();
+  //   familia.persons.add(p1);
+  //   await oneMs();
 
-    verify(listener({p1, p2})).called(1);
-  });
+  //   verify(listener({p1, p2})).called(1);
+  // });
 
   test('remove relationship', () async {
     final b1 = Book(id: 1, ardentSupporters: HasMany());

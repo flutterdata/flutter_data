@@ -134,24 +134,25 @@ void main() async {
   test('should reuse key', () {
     // id-less person
     final p1 = Person(name: 'Frank', age: 20);
-    expect(
-        (container.people.remoteAdapter.localAdapter
-                as HiveLocalAdapter<Person>)
-            .box!
-            .keys,
-        contains(keyFor(p1)));
+    // expect(
+    //     (container.people.remoteAdapter.localAdapter
+    //             as HiveLocalAdapter<Person>)
+    //         .box!
+    //         .keys,
+    //     contains(keyFor(p1)));
 
     // person with new id, reusing existing key
-    graph.getKeyForId('people', '221', keyIfAbsent: keyFor(p1));
+    graph.getKeyForId('people', '221',
+        keyIfAbsent: keyFor(p1)!.typifyWith('people'));
     final p2 = Person(id: '221', name: 'Frank2', age: 32);
     expect(keyFor(p1), keyFor(p2));
 
-    expect(
-        (container.people.remoteAdapter.localAdapter
-                as HiveLocalAdapter<Person>)
-            .box!
-            .keys,
-        contains(keyFor(p2)));
+    // expect(
+    //     (container.people.remoteAdapter.localAdapter
+    //             as HiveLocalAdapter<Person>)
+    //         .box!
+    //         .keys,
+    //     contains(keyFor(p2)));
   });
 
   test('equality', () async {

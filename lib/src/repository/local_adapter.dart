@@ -4,7 +4,7 @@ part of flutter_data;
 ///
 /// Identity in this layer is enforced by keys.
 ///
-/// See also: [HiveLocalAdapter]
+/// See also: [IsarLocalAdapter]
 abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
   @protected
   LocalAdapter(Reader read) : graph = read(graphNotifierProvider);
@@ -20,21 +20,21 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
   List<T>? findAll();
 
   /// Finds model of type [T] by [key] in local storage.
-  T? findOne(String? key);
+  T? findOne(int? key);
 
-  /// Saves model of type [T] with [key] in local storage.
+  /// Saves model of type [T] with its key in local storage.
   ///
   /// By default notifies this modification to the associated [GraphNotifier].
   @protected
   @visibleForTesting
-  Future<T> save(String key, T model, {bool notify = true});
+  int save(T model, {bool notify = true});
 
   /// Deletes model of type [T] with [key] from local storage.
   ///
   /// By default notifies this modification to the associated [GraphNotifier].
   @protected
   @visibleForTesting
-  Future<void> delete(String key);
+  Future<void> delete(int key);
 
   /// Deletes all models of type [T] in local storage.
   @protected
@@ -47,13 +47,13 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
 
   T deserialize(Map<String, dynamic> map);
 
-  Map<String, RelationshipMeta> get relationshipMetas;
+  Map<String, FieldMeta> get fieldMetas;
 
   // helpers
 
   Map<String, dynamic> transformSerialize(Map<String, dynamic> map,
       {bool withRelationships = true}) {
-    for (final e in relationshipMetas.entries) {
+    for (final e in fieldMetas.relationships.entries) {
       final key = e.key;
       if (withRelationships) {
         final ignored = e.value.serialize == false;
@@ -76,7 +76,7 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
   Map<String, dynamic> transformDeserialize(Map<String, dynamic> map) {
     // ensure value is dynamic (argument might come in as Map<String, String>)
     map = Map<String, dynamic>.from(map);
-    for (final e in relationshipMetas.entries) {
+    for (final e in fieldMetas.relationships.entries) {
       final key = e.key;
       final keyset = map[key] is Iterable
           ? {...(map[key] as Iterable)}
@@ -88,11 +88,4 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
     }
     return map;
   }
-
-  // private
-
-  // ignore: unused_element
-  bool get _isLocalStorageTouched;
-
-  void _touchLocalStorage();
 }

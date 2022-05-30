@@ -159,11 +159,9 @@ ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<Str
   ${isFlutter ? '  baseDirFn ??= () => \'\';' : ''}
   ${isFlutter ? '}' : ''}
   
-  return hiveLocalStorageProvider
-    .overrideWithProvider(Provider((ref) => HiveLocalStorage(
-            hive: ref.read(hiveProvider),
+  return isarLocalStorageProvider
+      .overrideWithProvider(Provider((ref) => IsarLocalStorage(
             baseDirFn: baseDirFn,
-            encryptionKey: encryptionKey,
             clear: clear,
           )));
 };
@@ -194,12 +192,6 @@ final repositoryInitializerProvider =
     for (final repository in internalRepositories.values) {
       await repository.remoteAdapter.internalInitializeModels();
     }
-
-    ref.onDispose(() {
-      for (final repository in internalRepositories.values) {
-        repository.dispose();
-      }
-    });
 
     return RepositoryInitializer();
 });

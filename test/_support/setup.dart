@@ -1,11 +1,14 @@
 import 'dart:async';
+import 'dart:ffi';
+import 'dart:io';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:isar/isar.dart';
 
-import '../mocks.dart';
 import 'book.dart';
 import 'familia.dart';
+import 'fruit.dart';
 import 'house.dart';
 import 'node.dart';
 import 'person.dart';
@@ -37,18 +40,34 @@ void setUpFn() async {
           }
         });
       })),
-      hiveProvider.overrideWithValue(HiveFake()),
+      isarLocalStorageProvider.overrideWithValue(
+        IsarLocalStorage(
+          baseDirFn: () => Directory.systemTemp.createTempSync().path,
+          clear: true,
+        ),
+      ),
     ],
+  );
+
+  await Isar.initializeIsarCore(
+    libraries: {
+      if (Platform.isMacOS)
+        Abi.macosX64:
+            File('test/_support/resources/isar/libisar.dylib').absolute.path,
+      if (Platform.isMacOS)
+        Abi.macosArm64:
+            File('test/_support/resources/isar/libisar.dylib').absolute.path,
+    },
   );
 
   graph = container.read(graphNotifierProvider);
   // IMPORTANT: disable namespace assertions
   // in order to test un-namespaced (key, id)
-  graph.debugAssert(false);
+  // graph.debugAssert(false);
 
   // Equivalent to generated in `main.data.dart`
 
-  await container.read(graphNotifierProvider).initialize();
+  // await container.read(graphNotifierProvider).initialize();
 
   final adapterGraph = <String, RemoteAdapter<DataModel>>{
     'houses': container.read(internalHousesRemoteAdapterProvider),
@@ -58,6 +77,12 @@ void setUpFn() async {
     'bookAuthors': container.read(internalBookAuthorsRemoteAdapterProvider),
     'books': container.read(internalBooksRemoteAdapterProvider),
   };
+
+  await container.read(isarLocalStorageProvider).initialize([
+    ...adapterGraph.values,
+    container.read(internalNodesRemoteAdapterProvider),
+    container.read(internalFruitsRemoteAdapterProvider),
+  ]);
 
   internalRepositories['houses'] = await container
       .read(housesRepositoryProvider)
@@ -92,6 +117,14 @@ void setUpFn() async {
   );
 
   dogsRepository.logLevel = 2;
+
+  internalRepositories['fruits'] =
+      await container.read(fruitsRepositoryProvider).initialize(
+    remote: false,
+    adapters: {
+      'fruits': container.read(internalFruitsRemoteAdapterProvider),
+    },
+  );
 }
 
 void tearDownFn() async {
@@ -109,6 +142,9 @@ void tearDownFn() async {
 
   logging.clear();
   await oneMs();
+
+  final path = container.read(isarLocalStorageProvider).path;
+  Directory(path).deleteSync(recursive: true);
 }
 
 // utils
@@ -164,12 +200,15 @@ extension ProviderContainerX on ProviderContainer {
       _watch(peopleRepositoryProvider)..remoteAdapter.internalWatch = _watch;
   Repository<Dog> get dogs =>
       _watch(dogsRepositoryProvider)..remoteAdapter.internalWatch = _watch;
-
-  Repository<Node> get nodes =>
-      _watch(nodesRepositoryProvider)..remoteAdapter.internalWatch = _watch;
   Repository<BookAuthor> get bookAuthors =>
       _watch(bookAuthorsRepositoryProvider)
         ..remoteAdapter.internalWatch = _watch;
   Repository<Book> get books =>
       _watch(booksRepositoryProvider)..remoteAdapter.internalWatch = _watch;
+
+  Repository<Node> get nodes =>
+      _watch(nodesRepositoryProvider)..remoteAdapter.internalWatch = _watch;
+
+  Repository<Fruit> get fruits =>
+      _watch(fruitsRepositoryProvider)..remoteAdapter.internalWatch = _watch;
 }

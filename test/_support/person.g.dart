@@ -9,7 +9,19 @@ part of 'person.dart';
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $PersonLocalAdapter on LocalAdapter<Person> {
-  static final Map<String, RelationshipMeta> _kPersonRelationshipMetas = {
+  static final Map<String, FieldMeta> _kPersonFieldMetas = {
+    'age': AttributeMeta<Person>(
+      name: 'age',
+      type: 'int',
+      nullable: true,
+      internalType: 'int',
+    ),
+    'name': AttributeMeta<Person>(
+      name: 'name',
+      type: 'String',
+      nullable: false,
+      internalType: 'String',
+    ),
     'familia': RelationshipMeta<Familia>(
       name: 'familia',
       inverseName: 'persons',
@@ -20,8 +32,7 @@ mixin $PersonLocalAdapter on LocalAdapter<Person> {
   };
 
   @override
-  Map<String, RelationshipMeta> get relationshipMetas =>
-      _kPersonRelationshipMetas;
+  Map<String, FieldMeta> get fieldMetas => _kPersonFieldMetas;
 
   @override
   Person deserialize(map) {
@@ -39,7 +50,7 @@ mixin $PersonLocalAdapter on LocalAdapter<Person> {
 final _peopleFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $PersonHiveLocalAdapter = HiveLocalAdapter<Person>
+class $PersonIsarLocalAdapter = IsarLocalAdapter<Person>
     with $PersonLocalAdapter;
 
 class $PersonRemoteAdapter = RemoteAdapter<Person>
@@ -50,7 +61,7 @@ class $PersonRemoteAdapter = RemoteAdapter<Person>
 
 final internalPeopleRemoteAdapterProvider = Provider<RemoteAdapter<Person>>(
     (ref) => $PersonRemoteAdapter(
-        $PersonHiveLocalAdapter(ref.read), InternalHolder(_peopleFinders)));
+        $PersonIsarLocalAdapter(ref.read), InternalHolder(_peopleFinders)));
 
 final peopleRepositoryProvider =
     Provider<Repository<Person>>((ref) => Repository<Person>(ref.read));
@@ -66,7 +77,7 @@ extension PersonDataRepositoryX on Repository<Person> {
 
 extension PersonRelationshipGraphNodeX on RelationshipGraphNode<Person> {
   RelationshipGraphNode<Familia> get familia {
-    final meta = $PersonLocalAdapter._kPersonRelationshipMetas['familia']
+    final meta = $PersonLocalAdapter._kPersonFieldMetas['familia']
         as RelationshipMeta<Familia>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);

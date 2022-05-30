@@ -25,7 +25,7 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
   /// See also: [DataModelRelationshipExtension<E>.asBelongsTo]
   BelongsTo([E? model]) : super(model != null ? {model} : null);
 
-  BelongsTo._(Set<String>? keys) : super._(keys);
+  BelongsTo._(Set<int>? keys) : super._(keys);
 
   BelongsTo.remove() : super._remove();
 
@@ -35,8 +35,13 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
     return BelongsTo._({...map['_']});
   }
 
+  @override
+  IsarLinkBase<E> link = IsarLink();
+
+  IsarLink<E> get _link => link as IsarLink<E>;
+
   /// Obtains the single [E] value of this relationship (`null` if not present).
-  E? get value => _iterable.isNotEmpty ? _iterable.first : null;
+  E? get value => _link.value;
 
   /// Sets the single [E] value of this relationship, replacing any previous [value].
   ///
@@ -46,11 +51,11 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
     final isUpdate = value != null && newValue != null;
     final isRemoval = value != null && newValue == null;
 
-    if (isRemoval || isUpdate) {
-      super._remove(value!, notify: false);
+    if (isRemoval) {
+      _link.value = null;
     }
     if (isAddition || isUpdate) {
-      super._add(newValue!, notify: false);
+      _link.value = newValue;
     }
 
     // handle events
@@ -66,26 +71,20 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
         type: eventType,
       );
     }
-    assert(_iterable.length <= 1);
   }
 
   /// Returns the [value]'s `key`.
-  String? get key => super._keys.safeFirst;
+  int? get key {
+    if (!isInitialized) return null;
+    // if (!_link.isLoaded) _link.loadSync();
+    return _link.value?.__key;
+  }
 
   /// Returns the [value]'s `id`.
-  Object? get id => super._ids.safeFirst;
+  Object? get id => key?.typifyWith(_internalType);
 
-  /// Returns a [StateNotifier] which emits the latest [value] of
-  /// this [BelongsTo] relationship.
   @override
-  DelayedStateNotifier<E?> watch() {
-    return _relationshipEventNotifier.map((e) {
-      return [DataGraphEventType.removeNode, DataGraphEventType.removeEdge]
-              .contains(e.type)
-          ? null
-          : value;
-    });
-  }
+  bool get isPresent => _link.value != null;
 
   @override
   String toString() {

@@ -54,7 +54,7 @@ class Person extends DataModel<Person> {
 
   @override
   String toString() {
-    return 'Person $name ($age)';
+    return 'Person#$id: $name (age $age)';
   }
 
   //

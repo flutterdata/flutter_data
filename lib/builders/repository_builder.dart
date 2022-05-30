@@ -9,7 +9,6 @@ import 'package:build/build.dart';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:source_gen/source_gen.dart';
-import 'package:source_helper/source_helper.dart';
 
 import 'utils.dart';
 
@@ -29,18 +28,6 @@ class RepositoryGenerator extends GeneratorForAnnotation<DataRepository> {
     } catch (e) {
       throw UnsupportedError(
           "Can't generate repository for $classType. Please use @DataRepository on a class.");
-    }
-
-    final annot = TypeChecker.fromRuntime(JsonSerializable);
-
-    var fieldRename = annot
-        .firstAnnotationOfExact(classElement, throwOnUnresolved: false)
-        ?.getField('fieldRename');
-    if (fieldRename == null && classElement.freezedConstructor != null) {
-      fieldRename = annot
-          .firstAnnotationOfExact(classElement.freezedConstructor!,
-              throwOnUnresolved: false)
-          ?.getField('fieldRename');
     }
 
     void _checkIsFinal(final ClassElement? element, String? name) {
@@ -122,32 +109,8 @@ and execute a code generation build again.
 
       // prepare metadata
 
-      // try to guess correct key name in json_serializable
-      var keyName = jsonKeyAnnotation?.getField('name')?.toStringValue();
-
-      if (keyName == null && fieldRename != null) {
-        final fieldCase = fieldRename.getField('_name')?.toStringValue();
-        switch (fieldCase) {
-          case 'kebab':
-            keyName = field.name.kebab;
-            break;
-          case 'snake':
-            keyName = field.name.snake;
-            break;
-          case 'pascal':
-            keyName = field.name.pascal;
-            break;
-          case 'none':
-            keyName = field.name;
-            break;
-          default:
-        }
-      }
-
-      keyName ??= field.name;
-
       result.add({
-        'key': keyName,
+        'key': field.finalNameFor(classElement),
         'name': field.name,
         'inverseName': inverse,
         'kind': field.type.element?.name,
@@ -158,7 +121,25 @@ and execute a code generation build again.
       return result;
     }).toList();
 
-    final relationshipMeta = {
+    //
+
+    // for (final field in classElement.attributeFields) {
+    //   // print(
+    //   //     '''-> field ${field.name} is nullable? ${field.type.isNullableType} -
+    //   //     [generic: ${(field.type as ParameterizedType).typeArguments}]
+    //   //     display ${field.type.element?.name}''');
+    //   print('-> ${field.name} (${field.type}) => ${field.internalType}');
+    // }
+
+    List<String> temp;
+    final fieldMetas = {
+      for (final field in classElement.attributeFields)
+        '\'${field.finalNameFor(classElement)}\'': '''AttributeMeta<$classType>(
+          name: '${field.name}',
+          type: '${(temp = field.internalType)[0]}',
+          nullable: ${temp[1] == 'true'},
+          internalType: '${temp[2]}',
+          )''',
       for (final rel in relationships)
         '\'${rel['key']}\'': '''RelationshipMeta<${rel['type']}>(
             name: '${rel['name']}',
@@ -174,7 +155,7 @@ and execute a code generation build again.
       for (final rel in relationships)
         '''
 RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
-  final meta = \$${classType}LocalAdapter._k${classType}RelationshipMetas['${rel['key']}']
+  final meta = \$${classType}LocalAdapter._k${classType}FieldMetas['${rel['key']}']
       as RelationshipMeta<${rel['type']}>;
   return meta.clone(parent: this is RelationshipMeta ? this as RelationshipMeta : null);
 }
@@ -256,11 +237,11 @@ RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin \$${classType}LocalAdapter on LocalAdapter<$classType> {
-  static final Map<String, RelationshipMeta> _k${classType}RelationshipMetas = 
-    $relationshipMeta;
+  static final Map<String, FieldMeta> _k${classType}FieldMetas = 
+    $fieldMetas;
 
   @override
-  Map<String, RelationshipMeta> get relationshipMetas => _k${classType}RelationshipMetas;
+  Map<String, FieldMeta> get fieldMetas => _k${classType}FieldMetas;
 
   @override
   $classType deserialize(map) {
@@ -280,13 +261,13 @@ final _${typeLowerCased}Finders = <String, dynamic>{
 };
 
 // ignore: must_be_immutable
-class \$${classType}HiveLocalAdapter = HiveLocalAdapter<$classType> with \$${classType}LocalAdapter;
+class \$${classType}IsarLocalAdapter = IsarLocalAdapter<$classType> with \$${classType}LocalAdapter;
 
 class \$${classType}RemoteAdapter = RemoteAdapter<$classType> with ${mixins.join(', ')};
 
 final internal${typeLowerCased.capitalize()}RemoteAdapterProvider =
     Provider<RemoteAdapter<$classType>>(
-        (ref) => \$${classType}RemoteAdapter(\$${classType}HiveLocalAdapter(ref.read), InternalHolder(_${typeLowerCased}Finders)));
+        (ref) => \$${classType}RemoteAdapter(\$${classType}IsarLocalAdapter(ref.read), InternalHolder(_${typeLowerCased}Finders)));
 
 final ${typeLowerCased}RepositoryProvider =
     Provider<Repository<$classType>>((ref) => Repository<$classType>(ref.read));

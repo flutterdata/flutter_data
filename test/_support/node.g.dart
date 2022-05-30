@@ -9,13 +9,12 @@ part of 'node.dart';
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $NodeLocalAdapter on LocalAdapter<Node> {
-  static final Map<String, RelationshipMeta> _kNodeRelationshipMetas = {
-    'parent': RelationshipMeta<Node>(
-      name: 'parent',
-      inverseName: 'children',
-      type: 'nodes',
-      kind: 'BelongsTo',
-      instance: (_) => (_ as Node).parent,
+  static final Map<String, FieldMeta> _kNodeFieldMetas = {
+    'name': AttributeMeta<Node>(
+      name: 'name',
+      type: 'String',
+      nullable: true,
+      internalType: 'String',
     ),
     'children': RelationshipMeta<Node>(
       name: 'children',
@@ -23,12 +22,18 @@ mixin $NodeLocalAdapter on LocalAdapter<Node> {
       type: 'nodes',
       kind: 'HasMany',
       instance: (_) => (_ as Node).children,
+    ),
+    'parent': RelationshipMeta<Node>(
+      name: 'parent',
+      inverseName: 'children',
+      type: 'nodes',
+      kind: 'BelongsTo',
+      instance: (_) => (_ as Node).parent,
     )
   };
 
   @override
-  Map<String, RelationshipMeta> get relationshipMetas =>
-      _kNodeRelationshipMetas;
+  Map<String, FieldMeta> get fieldMetas => _kNodeFieldMetas;
 
   @override
   Node deserialize(map) {
@@ -46,13 +51,13 @@ mixin $NodeLocalAdapter on LocalAdapter<Node> {
 final _nodesFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $NodeHiveLocalAdapter = HiveLocalAdapter<Node> with $NodeLocalAdapter;
+class $NodeIsarLocalAdapter = IsarLocalAdapter<Node> with $NodeLocalAdapter;
 
 class $NodeRemoteAdapter = RemoteAdapter<Node> with NodeAdapter;
 
 final internalNodesRemoteAdapterProvider = Provider<RemoteAdapter<Node>>(
     (ref) => $NodeRemoteAdapter(
-        $NodeHiveLocalAdapter(ref.read), InternalHolder(_nodesFinders)));
+        $NodeIsarLocalAdapter(ref.read), InternalHolder(_nodesFinders)));
 
 final nodesRepositoryProvider =
     Provider<Repository<Node>>((ref) => Repository<Node>(ref.read));
@@ -62,16 +67,16 @@ extension NodeDataRepositoryX on Repository<Node> {
 }
 
 extension NodeRelationshipGraphNodeX on RelationshipGraphNode<Node> {
-  RelationshipGraphNode<Node> get parent {
-    final meta = $NodeLocalAdapter._kNodeRelationshipMetas['parent']
+  RelationshipGraphNode<Node> get children {
+    final meta = $NodeLocalAdapter._kNodeFieldMetas['children']
         as RelationshipMeta<Node>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 
-  RelationshipGraphNode<Node> get children {
-    final meta = $NodeLocalAdapter._kNodeRelationshipMetas['children']
-        as RelationshipMeta<Node>;
+  RelationshipGraphNode<Node> get parent {
+    final meta =
+        $NodeLocalAdapter._kNodeFieldMetas['parent'] as RelationshipMeta<Node>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }

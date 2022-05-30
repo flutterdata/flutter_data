@@ -122,7 +122,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 
   @protected
   DataStateNotifier<T?> watchOneNotifier(
-    String key, {
+    int key, {
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
@@ -130,7 +130,8 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     String? finder,
     DataRequestLabel? label,
   }) {
-    final id = graph.getIdForKey(key);
+    // final id = graph.getIdForKey(key);
+    final id = ''; // TODO
 
     remote ??= _remote;
     final maybeFinder = _internalHolder?.finders[finder]?.call(this);
@@ -139,7 +140,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     // we can't use `findOne`'s default internal label
     // because we need a label to handle events
     label ??=
-        DataRequestLabel('watchOne', id: key.detypify(), type: internalType);
+        DataRequestLabel('watchOne', id: key.toString(), type: internalType);
 
     var alsoWatchPairs = <List<String>>{};
 
@@ -240,7 +241,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     final dispose = throttledGraph.addListener((events) {
       if (!notifier.mounted) return;
 
-      key = bufferModel?._key ?? key;
+      key = bufferModel?.__key ?? key;
 
       // get the latest updated model with watchable relationships
       // (_alsoWatchPairs) in order to determine whether there is
@@ -351,14 +352,24 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     final relationship = meta?.instance(model);
     if (relationship == null) return {};
 
+    if (relationship is BelongsTo) {
+      return {
+        [relationship._ownerKey!, relationship.key!.typifyWith(type)],
+        ..._getPairsForMeta(
+            meta!.child, (relationship.link as IsarLink).value as DataModel),
+      };
+    }
+
     return {
       // include key pairs of (owner, key)
-      for (final key in relationship._keys) [relationship._ownerKey!, key],
+      for (final key in (relationship as HasMany).keys)
+        [
+          relationship._ownerKey!,
+          key.typifyWith(type)
+        ], // TODO should be internal type!
       // recursively include key pairs for other requested relationships
-      for (final childModel in relationship._iterable)
-        _getPairsForMeta(meta!.child, childModel as DataModel)
-            .expand((_) => _)
-            .toList()
+      for (final childModel in relationship.link as IsarLinks)
+        ..._getPairsForMeta(meta!.child, childModel as DataModel)
     };
   }
 }

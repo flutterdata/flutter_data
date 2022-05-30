@@ -9,13 +9,12 @@ part of 'house.dart';
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $HouseLocalAdapter on LocalAdapter<House> {
-  static final Map<String, RelationshipMeta> _kHouseRelationshipMetas = {
-    'owner': RelationshipMeta<Familia>(
-      name: 'owner',
-      inverseName: 'residence',
-      type: 'familia',
-      kind: 'BelongsTo',
-      instance: (_) => (_ as House).owner,
+  static final Map<String, FieldMeta> _kHouseFieldMetas = {
+    'address': AttributeMeta<House>(
+      name: 'address',
+      type: 'String',
+      nullable: false,
+      internalType: 'String',
     ),
     'currentLibrary': RelationshipMeta<Book>(
       name: 'currentLibrary',
@@ -25,19 +24,17 @@ mixin $HouseLocalAdapter on LocalAdapter<House> {
       serialize: false,
       instance: (_) => (_ as House).currentLibrary,
     ),
-    'house': RelationshipMeta<House>(
-      name: 'house',
-      inverseName: 'house',
-      type: 'houses',
+    'owner': RelationshipMeta<Familia>(
+      name: 'owner',
+      inverseName: 'residence',
+      type: 'familia',
       kind: 'BelongsTo',
-      serialize: false,
-      instance: (_) => (_ as House).house,
+      instance: (_) => (_ as House).owner,
     )
   };
 
   @override
-  Map<String, RelationshipMeta> get relationshipMetas =>
-      _kHouseRelationshipMetas;
+  Map<String, FieldMeta> get fieldMetas => _kHouseFieldMetas;
 
   @override
   House deserialize(map) {
@@ -55,13 +52,13 @@ mixin $HouseLocalAdapter on LocalAdapter<House> {
 final _housesFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $HouseHiveLocalAdapter = HiveLocalAdapter<House> with $HouseLocalAdapter;
+class $HouseIsarLocalAdapter = IsarLocalAdapter<House> with $HouseLocalAdapter;
 
 class $HouseRemoteAdapter = RemoteAdapter<House> with NothingMixin;
 
 final internalHousesRemoteAdapterProvider = Provider<RemoteAdapter<House>>(
     (ref) => $HouseRemoteAdapter(
-        $HouseHiveLocalAdapter(ref.read), InternalHolder(_housesFinders)));
+        $HouseIsarLocalAdapter(ref.read), InternalHolder(_housesFinders)));
 
 final housesRepositoryProvider =
     Provider<Repository<House>>((ref) => Repository<House>(ref.read));
@@ -69,23 +66,16 @@ final housesRepositoryProvider =
 extension HouseDataRepositoryX on Repository<House> {}
 
 extension HouseRelationshipGraphNodeX on RelationshipGraphNode<House> {
-  RelationshipGraphNode<Familia> get owner {
-    final meta = $HouseLocalAdapter._kHouseRelationshipMetas['owner']
-        as RelationshipMeta<Familia>;
-    return meta.clone(
-        parent: this is RelationshipMeta ? this as RelationshipMeta : null);
-  }
-
   RelationshipGraphNode<Book> get currentLibrary {
-    final meta = $HouseLocalAdapter._kHouseRelationshipMetas['currentLibrary']
+    final meta = $HouseLocalAdapter._kHouseFieldMetas['currentLibrary']
         as RelationshipMeta<Book>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 
-  RelationshipGraphNode<House> get house {
-    final meta = $HouseLocalAdapter._kHouseRelationshipMetas['house']
-        as RelationshipMeta<House>;
+  RelationshipGraphNode<Familia> get owner {
+    final meta = $HouseLocalAdapter._kHouseFieldMetas['owner']
+        as RelationshipMeta<Familia>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
@@ -105,12 +95,11 @@ House _$HouseFromJson(Map<String, dynamic> json) => House(
           ? null
           : HasMany<Book>.fromJson(
               json['currentLibrary'] as Map<String, dynamic>),
-    )..house = BelongsTo<House>.fromJson(json['house'] as Map<String, dynamic>);
+    );
 
 Map<String, dynamic> _$HouseToJson(House instance) => <String, dynamic>{
       'id': instance.id,
       'address': instance.address,
       'owner': instance.owner,
       'currentLibrary': instance.currentLibrary,
-      'house': instance.house,
     };

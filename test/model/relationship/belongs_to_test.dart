@@ -66,34 +66,34 @@ void main() async {
     expect(familia.residence.value, house);
   });
 
-  test('watch', () async {
-    final familia = Familia(
-      id: '22',
-      surname: 'Besson',
-      residence: BelongsTo<House>(),
-    );
+  // test('watch', () async {
+  //   final familia = Familia(
+  //     id: '22',
+  //     surname: 'Besson',
+  //     residence: BelongsTo<House>(),
+  //   );
 
-    final notifier = familia.residence.watch();
-    final listener = Listener<House?>();
-    dispose = notifier.addListener(listener, fireImmediately: false);
+  //   final notifier = familia.residence.watch();
+  //   final listener = Listener<House?>();
+  //   dispose = notifier.addListener(listener, fireImmediately: false);
 
-    familia.residence.value = House(id: '2', address: '456 Main St');
+  //   familia.residence.value = House(id: '2', address: '456 Main St');
 
-    verify(listener(argThat(
-      isA<House>().having((h) => h.address, 'address', startsWith('456')),
-    ))).called(1);
+  //   verify(listener(argThat(
+  //     isA<House>().having((h) => h.address, 'address', startsWith('456')),
+  //   ))).called(1);
 
-    familia.residence.value = House(id: '1', address: '123 Main St');
+  //   familia.residence.value = House(id: '1', address: '123 Main St');
 
-    verify(listener(argThat(
-      isA<House>().having((h) => h.address, 'address', startsWith('123')),
-    ))).called(1);
+  //   verify(listener(argThat(
+  //     isA<House>().having((h) => h.address, 'address', startsWith('123')),
+  //   ))).called(1);
 
-    familia.residence.value = null;
+  //   familia.residence.value = null;
 
-    verify(listener(argThat(isNull))).called(1);
-    verifyNoMoreInteractions(listener);
-  });
+  //   verify(listener(argThat(isNull))).called(1);
+  //   verifyNoMoreInteractions(listener);
+  // });
 
   test('inverses work when reusing a relationship', () {
     final person = Person(name: 'Cecil', age: 2);
@@ -133,8 +133,8 @@ void main() async {
     expect(b1.originalAuthor!.isPresent, isFalse);
   });
 
-  test('self ref', () {
-    final house = House(address: '22 Peak Rd');
-    expect(house.house.value, house);
-  });
+  // test('self ref', () {
+  //   final house = House(address: '22 Peak Rd');
+  //   expect(house.house.value, house);
+  // });
 }

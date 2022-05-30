@@ -166,10 +166,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   // lifecycle methods
 
   @mustCallSuper
-  Future<void> onInitialized() async {
-    // wipe out orphans
-    graph.removeOrphanNodes();
-  }
+  Future<void> onInitialized() async {}
 
   @mustCallSuper
   @nonVirtual
@@ -385,7 +382,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     headers = await defaultHeaders & headers;
 
     // ensure model is saved
-    await localAdapter.save(model._key, model);
+    localAdapter.save(model);
 
     label = DataRequestLabel('save',
         type: internalType,
@@ -699,21 +696,23 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   }
 
   // model
+  final random = math.Random();
+
+  static int kMinKey = -9223372035854775807;
 
   T initModel(T model, {bool save = true}) {
     // ignore if already initialized
     if (model._isInitialized) return model;
-    model.__key = graph.getKeyForId(internalType, model.id,
-        keyIfAbsent: DataHelpers.generateKey<T>())!;
-    if (save) {
-      localAdapter.save(model._key, model, notify: false);
-    }
+
+    model.__key = model.id != null
+        ? int.tryParse(model.id!.toString())
+        : (-9223372036854775807 + random.nextInt(1000000000));
     _initializeRelationships(model);
     return model;
   }
 
   void _initializeRelationships(T model) {
-    final metadatas = localAdapter.relationshipMetas.values;
+    final metadatas = localAdapter.fieldMetas.relationships.values;
     for (final metadata in metadatas) {
       final relationship = metadata.instance(model);
       relationship?.initialize(
@@ -743,20 +742,21 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @visibleForTesting
   @nonVirtual
   Set<OfflineOperation<T>> get offlineOperations {
-    final node = graph._getNode(_offlineAdapterKey, orAdd: true)!;
-    return node.entries
-        .map((e) {
-          // extract type from e.g. _offline:findOne/users#3@d7bcc9
-          final label = DataRequestLabel.parse(e.key.denamespace());
-          if (label.type == internalType) {
-            // get first edge value
-            final map = json.decode(e.value.first) as Map<String, dynamic>;
-            return OfflineOperation<T>.fromJson(
-                label, map, this as RemoteAdapter<T>);
-          }
-        })
-        .filterNulls
-        .toSet();
+    return {};
+    // final node = graph._getNode(_offlineAdapterKey);
+    // return node
+    //     .map((e) {
+    //       // extract type from e.g. _offline:findOne/users#3@d7bcc9
+    //       final label = DataRequestLabel.parse(e.from.denamespace());
+    //       if (label.type == internalType) {
+    //         // get first edge value
+    //         final map = json.decode(e.tos.first) as Map<String, dynamic>;
+    //         return OfflineOperation<T>.fromJson(
+    //             label, map, this as RemoteAdapter<T>);
+    //       }
+    //     })
+    //     .filterNulls
+    //     .toSet();
   }
 
   Object? _resolveId(Object obj) {
@@ -766,14 +766,14 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @protected
   @visibleForTesting
   @nonVirtual
-  String? keyForModelOrId(Object model) {
+  int? keyForModelOrId(Object model) {
     if (model is T) {
-      return model._key;
+      return model.__key;
     } else {
       final id = _resolveId(model);
       if (id != null) {
-        return graph.getKeyForId(internalType, id,
-            keyIfAbsent: DataHelpers.generateKey<T>())!;
+        // keyIfAbsent: DataHelpers.generateKey<T>()
+        return graph.getKeyForId(internalType, id)!;
       } else {
         return null;
       }

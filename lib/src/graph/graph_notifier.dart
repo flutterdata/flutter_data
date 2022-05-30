@@ -1,56 +1,29 @@
 part of flutter_data;
 
-const _kGraphBoxName = '_graph';
-
 /// A bidirected graph data structure that notifies
 /// modification events through a [StateNotifier].
 ///
 /// It's a core framework component as it holds all
 /// relationship information.
 ///
-/// Watchers like [Repository.watchAllNotifier] or [BelongsTo.watch]
+/// Watchers like [Repository.watchAllNotifier]
 /// make use of it.
 ///
 /// Its public API requires all keys and metadata to be namespaced
 /// i.e. `manager:key`
-class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
-    with _Lifecycle {
+class GraphNotifier extends DelayedStateNotifier<DataGraphEvent> {
   final Reader read;
   @protected
   GraphNotifier(this.read);
 
-  HiveLocalStorage get _hiveLocalStorage => read(hiveLocalStorageProvider);
+  // IsarCollection<GraphEdge> get _nodes =>
+  //     read(isarLocalStorageProvider)._isar!.getCollection();
 
-  @protected
-  Box<Map>? box;
-  bool _doAssert = true;
+  // bool _doAssert = true;
 
-  /// Initializes Hive local storage and box it depends on
-  Future<GraphNotifier> initialize() async {
-    if (isInitialized) return this;
-    await _hiveLocalStorage.initialize();
-    if (_hiveLocalStorage.clear) {
-      await _hiveLocalStorage.deleteBox(_kGraphBoxName);
-    }
-    box = await _hiveLocalStorage.openBox(_kGraphBoxName);
-
-    return this;
-  }
-
-  @override
-  void dispose() {
-    if (isInitialized) {
-      box?.close();
-      super.dispose();
-    }
-  }
-
-  Future<void> clear() async {
-    await box?.clear();
-  }
-
-  @override
-  bool get isInitialized => box?.isOpen ?? false;
+  // Future<void> clear() async {
+  //   await _nodes.clear();
+  // }
 
   // key-related methods
 
@@ -61,411 +34,318 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   ///    (if provided)
   ///  - It associates [keyIfAbsent] with the supplied [type]/[id]
   ///    (if both [keyIfAbsent] & [type]/[id] were provided)
-  String? getKeyForId(String type, Object? id, {String? keyIfAbsent}) {
+  int? getKeyForId(String type, Object? id, {String? keyIfAbsent}) {
     type = DataHelpers.getType(type);
-    if (id != null) {
-      final namespace = id is int ? '_id_int' : '_id';
-      final namespacedId =
-          id.toString().typifyWith(type).namespaceWith(namespace);
+    // if (id != null) {
+    //   final namespace = id is int ? '_id_int' : '_id';
+    //   final namespacedId =
+    //       id.toString().typifyWith(type).namespaceWith(namespace);
 
-      if (_getNode(namespacedId) != null) {
-        final tos = _getEdge(namespacedId, metadata: '_key');
-        if (tos.isNotEmpty) {
-          final key = tos.first;
-          return key;
-        }
-      }
+    //   final key = _getEdge(namespacedId, metadata: '_key')?.tos.safeFirst;
+    //   if (key != null) return key;
 
-      if (keyIfAbsent != null) {
-        // this means the method is instructed to
-        // create nodes and edges
-
-        _addNode(keyIfAbsent, notify: false);
-        _addNode(namespacedId, notify: false);
-        _removeEdges(keyIfAbsent,
-            metadata: '_id', inverseMetadata: '_key', notify: false);
-        _addEdge(keyIfAbsent, namespacedId,
-            metadata: '_id', inverseMetadata: '_key', notify: false);
-        return keyIfAbsent;
-      }
-    } else if (keyIfAbsent != null) {
-      // if no ID is supplied but keyIfAbsent is, create node for key
-      _addNode(keyIfAbsent, notify: false);
-      return keyIfAbsent;
-    }
+    //   if (keyIfAbsent != null) {
+    //     _removeEdge(keyIfAbsent,
+    //         metadata: '_id', inverseMetadata: '_key', notify: false);
+    //     _addEdge(keyIfAbsent,
+    //         metadata: '_id',
+    //         inverseMetadata: '_key',
+    //         tos: [namespacedId],
+    //         notify: false);
+    //     return keyIfAbsent;
+    //   }
+    // } else if (keyIfAbsent != null) {
+    //   // if no ID is supplied but keyIfAbsent is, create node for key
+    //   // _addNode(keyIfAbsent, notify: false);
+    //   return keyIfAbsent;
+    // }
     return null;
   }
 
-  /// Removes key (and its edges) from graph
-  void removeKey(String key) => _removeNode(key);
+  // /// Removes key (and its edges) from graph
+  // void removeKey(String key) => _removeNode(key);
 
   /// Finds an ID in the graph, given a [key].
   Object? getIdForKey(String key) {
-    final tos = _getEdge(key, metadata: '_id');
-    if (tos.isEmpty) {
-      return null;
-    }
-    final isInt = tos.first.namespace == '_id_int';
-    final id = tos.first.denamespace().detypify();
-    return isInt ? int.tryParse(id) : id;
+    return null;
+    // final edge = _getEdge(key, metadata: '_id');
+    // if (edge?.tos.isEmpty ?? true) {
+    //   return null;
+    // }
+    // final isInt = edge!.tos.first.namespace == '_id_int';
+    // final id = edge.tos.first.denamespace().detypify();
+    // return isInt ? int.tryParse(id) : id;
   }
 
-  /// Removes [type]/[id] (and its edges) from graph
-  void removeId(String type, Object id, {bool notify = true}) =>
-      _removeNode(id.toString().typifyWith(type).namespaceWith('_id'),
-          notify: notify);
+  // /// Removes [type]/[id] (and its edges) from graph
+  // void removeId(String type, Object id, {bool notify = true}) =>
+  //     _removeNode(id.toString().typifyWith(type).namespaceWith('_id'),
+  //         notify: notify);
 
   // nodes
 
-  void _assertKey(String key) {
-    if (_doAssert) {
-      if (key.split(':').length != 2 || key.startsWith('_')) {
-        throw AssertionError('''
-Key "$key":
-  - Key must be namespaced (my:key)
-  - Key can't contain a colon (my:precious:key)
-  - Namespace can't start with an underscore (_my:key)
-''');
-      }
-    }
-  }
+//   void _assertKey(String key) {
+//     if (_doAssert) {
+//       if (key.split(':').length != 2 || key.startsWith('_')) {
+//         throw AssertionError('''
+// Key "$key":
+//   - Key must be namespaced (my:key)
+//   - Key can't contain a colon (my:precious:key)
+//   - Namespace can't start with an underscore (_my:key)
+// ''');
+//       }
+//     }
+//   }
 
-  /// Adds a node, [key] MUST be namespaced (e.g. `manager:key`)
-  void addNode(String key, {bool notify = true}) {
-    _assertKey(key);
-    _addNode(key, notify: notify);
-  }
+//   /// Obtains a node (i.e. list of edges)
+//   List<GraphEdge> getNode(String key, {bool notify = true}) {
+//     return _getNode(key, notify: notify);
+//   }
 
-  /// Adds nodes, all [keys] MUST be namespaced (e.g. `manager:key`)
-  void addNodes(Iterable<String> keys, {bool notify = true}) {
-    for (final key in keys) {
-      _assertKey(key);
-    }
-    _addNodes(keys, notify: notify);
-  }
+//   /// Removes a node, [key] MUST be namespaced (e.g. `manager:key`)
+//   void removeNode(String key) {
+//     _assertKey(key);
+//     return _removeNode(key);
+//   }
 
-  /// Obtains a node
-  Map<String, List<String>>? getNode(String key,
-      {bool orAdd = false, bool notify = true}) {
-    return _getNode(key, orAdd: orAdd, notify: notify);
-  }
+//   // edges
 
-  /// Returns whether [key] is present in this graph.
-  ///
-  /// [key] MUST be namespaced (e.g. `manager:key`)
-  bool hasNode(String key) {
-    return _hasNode(key);
-  }
+//   /// See [addEdge]
+//   void addEdge(String from,
+//       {required String metadata,
+//       required Iterable<String> tos,
+//       String? inverseMetadata,
+//       bool addNode = false,
+//       bool notify = true}) {
+//     _assertKey(from);
+//     for (final to in tos) {
+//       _assertKey(to);
+//     }
+//     _assertKey(metadata);
+//     if (inverseMetadata != null) {
+//       _assertKey(inverseMetadata);
+//     }
+//     _addEdge(from,
+//         metadata: metadata, tos: tos, inverseMetadata: inverseMetadata);
+//   }
 
-  /// Removes a node, [key] MUST be namespaced (e.g. `manager:key`)
-  void removeNode(String key) {
-    _assertKey(key);
-    return _removeNode(key);
-  }
+//   /// Returns edge by [metadata]
+//   ///
+//   /// [key] and [metadata] MUST be namespaced (e.g. `manager:key`)
+//   GraphEdge? getEdge(String key, {required String metadata}) {
+//     _assertKey(key);
+//     _assertKey(metadata);
+//     return _getEdge(key, metadata: metadata);
+//   }
 
-  // edges
+//   /// See [removeEdge]
+//   void removeEdge(String from,
+//       {required String metadata,
+//       Iterable<String> tos = const [],
+//       String? inverseMetadata,
+//       bool notify = true}) {
+//     _assertKey(from);
+//     for (final to in tos) {
+//       _assertKey(to);
+//     }
+//     _assertKey(metadata);
+//     if (inverseMetadata != null) {
+//       _assertKey(inverseMetadata);
+//     }
+//     return _removeEdge(from,
+//         metadata: metadata, inverseMetadata: inverseMetadata, notify: notify);
+//   }
 
-  /// See [addEdge]
-  void addEdges(String from,
-      {required String metadata,
-      required Iterable<String> tos,
-      String? inverseMetadata,
-      bool addNode = false,
-      bool notify = true}) {
-    _assertKey(from);
-    for (final to in tos) {
-      _assertKey(to);
-    }
-    _assertKey(metadata);
-    if (inverseMetadata != null) {
-      _assertKey(inverseMetadata);
-    }
-    _addEdges(from,
-        metadata: metadata,
-        tos: tos,
-        addNode: addNode,
-        inverseMetadata: inverseMetadata);
-  }
+//   /// Returns whether the requested edge is present in this graph.
+//   ///
+//   /// [key] and [metadata] MUST be namespaced (e.g. `manager:key`)
+//   bool hasEdge(String key, {required String metadata}) {
+//     _assertKey(key);
+//     _assertKey(metadata);
+//     return _hasEdge(key, metadata: metadata);
+//   }
 
-  /// Returns edge by [metadata]
-  ///
-  /// [key] and [metadata] MUST be namespaced (e.g. `manager:key`)
-  List<String> getEdge(String key, {required String metadata}) {
-    _assertKey(key);
-    _assertKey(metadata);
-    return _getEdge(key, metadata: metadata);
-  }
+//   // utils
 
-  /// Adds a bidirectional edge:
-  ///
-  ///  - [from]->[to] with [metadata]
-  ///  - [to]->[from] with [inverseMetadata]
-  ///
-  /// [from], [metadata] & [inverseMetadata] MUST be namespaced (e.g. `manager:key`)
-  void addEdge(String from, String to,
-      {required String metadata,
-      String? inverseMetadata,
-      bool addNode = false,
-      bool notify = true}) {
-    _assertKey(from);
-    _assertKey(to);
-    _assertKey(metadata);
-    if (inverseMetadata != null) {
-      _assertKey(inverseMetadata);
-    }
-    return _addEdge(from, to,
-        metadata: metadata,
-        inverseMetadata: inverseMetadata,
-        addNode: addNode,
-        notify: notify);
-  }
+//   /// Returns a [Map] representation of this graph.
+//   Map<String, Map> toMap() => _toMap();
 
-  /// See [removeEdge]
-  void removeEdges(String from,
-      {required String metadata,
-      Iterable<String> tos = const [],
-      String? inverseMetadata,
-      bool notify = true}) {
-    _assertKey(from);
-    for (final to in tos) {
-      _assertKey(to);
-    }
-    _assertKey(metadata);
-    if (inverseMetadata != null) {
-      _assertKey(inverseMetadata);
-    }
-    return _removeEdges(from,
-        metadata: metadata, inverseMetadata: inverseMetadata, notify: notify);
-  }
+//   @protected
+//   @visibleForTesting
+//   void debugAssert(bool value) => _doAssert = value;
 
-  /// Removes a bidirectional edge:
-  ///
-  ///  - [from]->[to] with [metadata]
-  ///  - [to]->[from] with [inverseMetadata]
-  ///
-  /// [from], [metadata] & [inverseMetadata] MUST be namespaced (e.g. `manager:key`)
-  void removeEdge(String from, String to,
-      {required String metadata, String? inverseMetadata, bool notify = true}) {
-    _assertKey(from);
-    _assertKey(to);
-    _assertKey(metadata);
-    if (inverseMetadata != null) {
-      _assertKey(inverseMetadata);
-    }
-    return _removeEdge(from, to,
-        metadata: metadata, inverseMetadata: inverseMetadata, notify: notify);
-  }
+//   // private API
 
-  /// Returns whether the requested edge is present in this graph.
-  ///
-  /// [key] and [metadata] MUST be namespaced (e.g. `manager:key`)
-  bool hasEdge(String key, {required String metadata}) {
-    _assertKey(key);
-    _assertKey(metadata);
-    return _hasEdge(key, metadata: metadata);
-  }
+//   Query<GraphEdge> _q(String key, {String? metadata}) =>
+//       _nodes.buildQuery<GraphEdge>(
+//         whereClauses: [
+//           IndexWhereClause.equalTo(indexName: 'from', value: [key]),
+//           // or
+//           IndexWhereClause.equalTo(indexName: 'tos', value: [key]),
+//         ],
+//         filter: metadata == null
+//             ? null
+//             : FilterGroup.or([
+//                 FilterGroup.and([
+//                   FilterCondition(
+//                     type: ConditionType.eq,
+//                     property: 'from',
+//                     value: key,
+//                     caseSensitive: false,
+//                   ),
+//                   FilterCondition(
+//                     type: ConditionType.eq,
+//                     property: 'metadata',
+//                     value: metadata,
+//                     caseSensitive: false,
+//                   ),
+//                 ]),
+//                 FilterGroup.and([
+//                   FilterCondition(
+//                     type: ConditionType.contains,
+//                     property: 'tos',
+//                     value: key,
+//                     caseSensitive: false,
+//                   ),
+//                   FilterCondition(
+//                     type: ConditionType.eq,
+//                     property: 'inverseMetadata',
+//                     value: metadata,
+//                     caseSensitive: false,
+//                   ),
+//                 ]),
+//               ]),
+//       );
 
-  /// Removes orphan nodes (i.e. nodes without edges)
-  @protected
-  @visibleForTesting
-  void removeOrphanNodes() {
-    final orphanEntries = {...toMap()}.entries.where((e) => e.value.isEmpty);
-    for (final e in orphanEntries) {
-      _removeNode(e.key);
-    }
-  }
+//   GraphEdge _w(GraphEdge edge) {
+//     _nodes.isar.writeTxnSync((isar) => _nodes.putSync(edge));
+//     return edge;
+//   }
 
-  // utils
+//   void _d(GraphEdge edge) {
+//     _nodes.isar.writeTxnSync((isar) => _nodes.deleteSync(edge.id!));
+//   }
 
-  /// Returns a [Map] representation of this graph, the underlying Hive [box].
-  Map<String, Map> toMap() => _toMap();
+//   //
 
-  @protected
-  @visibleForTesting
-  void debugAssert(bool value) => _doAssert = value;
+//   List<GraphEdge> _getNode(String from, {bool notify = true}) {
+//     return _q(from).findAllSync().map((e) {
+//       if (e.from == from) {
+//         return e;
+//       } else {
+//         // invert direction
+//         return GraphEdge(from, metadata: e.inverseMetadata!, tos: [e.from]);
+//       }
+//     }).toList();
+//   }
 
-  // private API
+//   void _removeNode(String from, {bool notify = true}) {
+//     final edges = _q(from);
+//     _nodes.isar.writeTxnSync((_) => edges.deleteAllSync());
 
-  Map<String, List<String>>? _getNode(String key,
-      {bool orAdd = false, bool notify = true}) {
-    if (orAdd) _addNode(key, notify: notify);
-    return box?.get(key)?.cast<String, List<String>>();
-  }
+//     if (notify) {
+//       state = DataGraphEvent(keys: [from], type: DataGraphEventType.removeNode);
+//     }
+//   }
 
-  bool _hasNode(String key) {
-    return box?.containsKey(key) ?? false;
-  }
+//   Set<String> _getEdge(String from,
+//       {required String metadata,
+//       Iterable<String>? orAddWith,
+//       String? inverseMetadata}) {
+//     final tos = _q(from, metadata: metadata).findAllSync().tos;
 
-  List<String> _getEdge(String key, {required String metadata}) {
-    final node = _getNode(key);
-    if (node != null) {
-      return node[metadata] ?? [];
-    }
-    return [];
-  }
+//     if (tos.isEmpty && orAddWith != null) {
+//       return _addEdge(
+//         from,
+//         metadata: metadata,
+//         inverseMetadata: inverseMetadata,
+//         tos: orAddWith,
+//       );
+//     }
+//     return tos.toSet();
+//   }
 
-  bool _hasEdge(String key, {required String metadata}) {
-    final fromNode = _getNode(key);
-    return fromNode?.keys.contains(metadata) ?? false;
-  }
+//   bool _hasEdge(String key, {required String metadata}) {
+//     return _q(key, metadata: metadata).countSync() > 0;
+//   }
 
-  // write
+//   // write
 
-  void _addNodes(Iterable<String> keys, {bool notify = true}) {
-    for (final key in keys) {
-      _addNode(key, notify: notify);
-    }
-  }
+//   Set<String> _addEdge(String from,
+//       {required String metadata,
+//       required Iterable<String> tos,
+//       bool overwriteTos = false,
+//       String? inverseMetadata,
+//       bool notify = true}) {
+//     final edges = _q(from, metadata: metadata).findAllSync();
 
-  void _addNode(String key, {bool notify = true}) {
-    if (!_hasNode(key)) {
-      box?.put(key, {});
-      if (notify) {
-        state = DataGraphEvent(keys: [key], type: DataGraphEventType.addNode);
-      }
-    }
-  }
+//     if (edges.isEmpty) {
+//       _w(GraphEdge(
+//         from,
+//         metadata: metadata,
+//         inverseMetadata: inverseMetadata,
+//         tos: tos,
+//       ));
+//       return tos.toSet();
+//     } else {
+//       final currentTos = edges.tos;
 
-  void _removeNode(String key, {bool notify = true}) {
-    final fromNode = _getNode(key);
+//       // if we have tos currently, need to update adding them
+//       _w(GraphEdge(
+//         from,
+//         metadata: metadata,
+//         inverseMetadata: inverseMetadata,
+//         tos: {if (!overwriteTos) ...currentTos, ...tos},
+//       ));
+//       if (notify) {
+//         state = DataGraphEvent(
+//           keys: [from, ...tos],
+//           metadata: metadata,
+//           type: DataGraphEventType.addEdge,
+//         );
+//       }
+//       return edge.tos.toSet();
+//     }
+//   }
 
-    if (fromNode == null) {
-      return;
-    }
+//   void _removeEdge(String from,
+//       {required String metadata,
+//       Iterable<String>? tos,
+//       String? inverseMetadata,
+//       bool notify = true}) {
+//     final edge =
+//         _getEdge(from, metadata: metadata, inverseMetadata: inverseMetadata);
+//     if (edge != null) {
+//       if (tos?.isEmpty ?? true) {
+//         // if no specified tos, delete the whole edge
+//         _d(edge);
 
-    // sever all incoming edges
-    for (final toKey in _connectedKeys(key)) {
-      final toNode = _getNode(toKey);
-      // remove deleted key from all metadatas
-      if (toNode != null) {
-        for (final entry in toNode.entries.toSet()) {
-          _removeEdge(toKey, key, metadata: entry.key, notify: notify);
-        }
-      }
-    }
+//         if (notify) {
+//           state = DataGraphEvent(
+//             keys: [from, ...edge.tos],
+//             metadata: metadata,
+//             type: DataGraphEventType.removeEdge,
+//           );
+//         }
+//       } else {
+//         // update edge removing specified tos
+//         _w(GraphEdge(
+//           from,
+//           metadata: metadata,
+//           inverseMetadata: inverseMetadata,
+//           tos: edge.tos..removeWhere(tos!.contains),
+//         )..id = edge.id);
 
-    box?.delete(key);
-
-    if (notify) {
-      state = DataGraphEvent(keys: [key], type: DataGraphEventType.removeNode);
-    }
-  }
-
-  void _addEdge(String from, String to,
-      {required String metadata,
-      String? inverseMetadata,
-      bool addNode = false,
-      bool notify = true}) {
-    _addEdges(from,
-        tos: [to],
-        metadata: metadata,
-        inverseMetadata: inverseMetadata,
-        addNode: addNode,
-        notify: notify);
-  }
-
-  void _addEdges(String from,
-      {required String metadata,
-      required Iterable<String> tos,
-      String? inverseMetadata,
-      bool addNode = false,
-      bool notify = true}) {
-    final fromNode = _getNode(from, orAdd: addNode, notify: notify)!;
-
-    if (tos.isEmpty) {
-      return;
-    }
-
-    // use a set to ensure resulting list elements are unique
-    fromNode[metadata] = {...?fromNode[metadata], ...tos}.toList();
-    // persist change
-    box?.put(from, fromNode);
-
-    if (notify) {
-      state = DataGraphEvent(
-        keys: [from, ...tos],
-        metadata: metadata,
-        type: DataGraphEventType.addEdge,
-      );
-    }
-
-    if (inverseMetadata != null) {
-      for (final to in tos) {
-        // get or create toNode
-        final toNode = _getNode(to, orAdd: true, notify: notify)!;
-
-        // use a set to ensure resulting list elements are unique
-        toNode[inverseMetadata] = {...?toNode[inverseMetadata], from}.toList();
-        // persist change
-        box?.put(to, toNode);
-      }
-    }
-  }
-
-  void _removeEdge(String from, String to,
-      {required String metadata, String? inverseMetadata, bool notify = true}) {
-    _removeEdges(from,
-        tos: [to],
-        metadata: metadata,
-        inverseMetadata: inverseMetadata,
-        notify: notify);
-  }
-
-  void _removeEdges(String from,
-      {required String metadata,
-      Iterable<String>? tos,
-      String? inverseMetadata,
-      bool notify = true}) {
-    if (!_hasNode(from)) return;
-
-    final fromNode = _getNode(from)!;
-
-    if (tos != null && fromNode[metadata] != null) {
-      // remove all tos from fromNode[metadata]
-      fromNode[metadata]?.removeWhere(tos.contains);
-      if (fromNode[metadata]?.isEmpty ?? false) {
-        fromNode.remove(metadata);
-      }
-      // persist change
-      box?.put(from, fromNode);
-    } else {
-      // tos == null as argument means ALL
-      // remove metadata and retrieve all tos
-
-      if (fromNode.containsKey(metadata)) {
-        tos = fromNode.remove(metadata);
-      }
-      // persist change
-      box?.put(from, fromNode);
-    }
-
-    if (notify) {
-      state = DataGraphEvent(
-        keys: [from, ...?tos],
-        metadata: metadata,
-        type: DataGraphEventType.removeEdge,
-      );
-    }
-
-    if (tos != null) {
-      for (final to in tos) {
-        final toNode = _getNode(to);
-        if (toNode != null &&
-            inverseMetadata != null &&
-            toNode[inverseMetadata] != null) {
-          toNode[inverseMetadata]?.remove(from);
-          if (toNode[inverseMetadata]?.isEmpty ?? false) {
-            toNode.remove(inverseMetadata);
-          }
-          // persist change
-          box?.put(to, toNode);
-        }
-        if (toNode == null || toNode.isEmpty) {
-          _removeNode(to, notify: notify);
-        }
-      }
-    }
-  }
+//         if (notify) {
+//           state = DataGraphEvent(
+//             keys: [from, ...tos],
+//             metadata: metadata,
+//             type: DataGraphEventType.removeEdge,
+//           );
+//         }
+//       }
+//     }
+//   }
 
   void _notify(List<String> keys,
       {String? metadata, required DataGraphEventType type}) {
@@ -476,22 +356,24 @@ Key "$key":
 
   // misc
 
-  Set<String> _connectedKeys(String key, {Iterable<String>? metadatas}) {
-    final node = _getNode(key);
-    if (node == null) {
-      return {};
-    }
+  // Map<String, Map> _toMap() {
+  //   final map = _nodes.where().findAllSync().groupListsBy((edge) => edge.from);
 
-    return node.entries.fold({}, (acc, entry) {
-      if (metadatas != null && !metadatas.contains(entry.key)) {
-        return acc;
-      }
-      return acc..addAll(entry.value);
-    });
-  }
-
-  Map<String, Map> _toMap() => box!.toMap().cast();
+  //   return {
+  //     for (final e in map.entries)
+  //       e.key: {
+  //         for (final e2 in e.value.groupListsBy((e) => e.metadata).entries)
+  //           e2.key: e2.value.map((e) => e.tos).toSet(),
+  //       },
+  //   };
+  // }
 }
+
+// extension _ASX on List<GraphEdge> {
+//   Set<String> get tos {
+//     return fold<Set<String>>({}, (acc, e) => {...acc, ...e.tos});
+//   }
+// }
 
 enum DataGraphEventType {
   addNode,

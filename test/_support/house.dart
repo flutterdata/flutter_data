@@ -21,8 +21,9 @@ class House extends DataModel<House> {
   final HasMany<Book>? currentLibrary;
 
   // self-referential relationship
-  @DataRelationship(serialize: false)
-  late BelongsTo<House> house = asBelongsTo;
+  // TODO restore
+  // @DataRelationship(serialize: false)
+  // late BelongsTo<House> house = asBelongsTo;
 
   House({
     this.id,

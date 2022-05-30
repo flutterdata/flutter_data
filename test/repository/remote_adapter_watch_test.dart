@@ -375,10 +375,9 @@ void main() async {
           expect(state.isLoading, isFalse);
         } else if (i <= count) {
           expect(state.model, List.generate(i, (_) => matcher));
-          final adapter = container.people.remoteAdapter.localAdapter
-              as HiveLocalAdapter<Person>;
+          final adapter = container.people.remoteAdapter.localAdapter;
           // check box has all the keys
-          expect(adapter.box!.keys.length, i);
+          expect(adapter.findAll()!.length, i);
         } else {
           // one less because of emitting the deletion,
           // and one less because of the now missing model
@@ -810,14 +809,14 @@ void main() async {
 
   test('watchargs', () {
     final a1 = WatchArgs<Person>(
-        key: 'e23f44',
+        key: 44,
         remote: false,
         alsoWatch: (p) => {p.familia}, // is ignored
         relationshipMetas: [],
         finder: 'finder');
 
     final a2 = WatchArgs<Person>(
-      key: 'e23f44',
+      key: 44,
       remote: false,
       finder: 'finder',
       relationshipMetas: [],

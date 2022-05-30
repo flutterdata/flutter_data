@@ -8,7 +8,7 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
   final String httpRequest;
   final Map<String, String>? headers;
   final String? body;
-  late final String? key;
+  late final int? key;
   final _OnSuccessGeneric<T>? onSuccess;
   final _OnErrorGeneric<T>? onError;
   final RemoteAdapter<T> adapter;
@@ -18,12 +18,12 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
     required this.httpRequest,
     this.headers,
     this.body,
-    String? key,
+    int? key,
     this.onSuccess,
     this.onError,
     required this.adapter,
   }) {
-    this.key = key ?? label.model?._key;
+    this.key = key ?? label.model?.__key;
   }
 
   /// Metadata format:
@@ -47,7 +47,7 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
     final operation = OfflineOperation(
       label: label,
       httpRequest: json['r'] as String,
-      key: json['k'] as String?,
+      key: json['k'] as int?,
       body: json['b'] as String?,
       headers:
           json['h'] == null ? null : Map<String, String>.from(json['h'] as Map),
@@ -78,11 +78,13 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
   void add() {
     // DO NOT proceed if operation is in queue
     if (!adapter.offlineOperations.contains(this)) {
-      final node = json.encode(toJson());
+      // TODO
+      // final node = json.encode(toJson());
       final metadata = metadataFor(label);
 
       adapter.log(label, 'offline/add $metadata');
-      adapter.graph._addEdge(_offlineAdapterKey, node, metadata: metadata);
+      // adapter.graph
+      //     ._addEdge(_offlineAdapterKey, tos: [node], metadata: metadata);
 
       // keep callbacks in memory
       adapter.read(_offlineCallbackProvider)[metadata] ??= [];
@@ -99,12 +101,12 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
   /// Removes all edges from the `_offlineAdapterKey` for
   /// current metadata, as well as callbacks from memory.
   static void remove(DataRequestLabel label, RemoteAdapter adapter) {
-    final metadata = metadataFor(label);
-    if (adapter.graph._hasEdge(_offlineAdapterKey, metadata: metadata)) {
-      adapter.graph._removeEdges(_offlineAdapterKey, metadata: metadata);
-      adapter.log(label, 'offline/remove $metadata');
-      adapter.read(_offlineCallbackProvider).remove(metadata);
-    }
+    // final metadata = metadataFor(label);
+    // if (adapter.graph._hasEdge(_offlineAdapterKey, metadata: metadata)) {
+    //   adapter.graph._removeEdge(_offlineAdapterKey, metadata: metadata);
+    //   adapter.log(label, 'offline/remove $metadata');
+    //   adapter.read(_offlineCallbackProvider).remove(metadata);
+    // }
   }
 
   Future<void> retry() async {
@@ -154,12 +156,14 @@ extension OfflineOperationsX on Set<OfflineOperation<DataModel>> {
     }
     final adapter = first.adapter;
     // removes node and severs edges
-    if (adapter.graph._hasNode(_offlineAdapterKey)) {
-      final node = adapter.graph._getNode(_offlineAdapterKey);
-      for (final metadata in (node ?? {}).keys.toImmutableList()) {
-        adapter.graph._removeEdges(_offlineAdapterKey, metadata: metadata);
-      }
-    }
+
+    // adapter.graph._removeNode(_offlineAdapterKey);
+
+    // final node = adapter.graph._getNode(_offlineAdapterKey);
+    // for (final metadata in (node ?? {}).keys.toImmutableList()) {
+    //   adapter.graph._removeEdges(_offlineAdapterKey, metadata: metadata);
+    // }
+
     adapter.read(_offlineCallbackProvider).clear();
   }
 
@@ -183,9 +187,11 @@ final pendingOfflineTypesProvider =
   final graph = ref.watch(graphNotifierProvider);
 
   Set<String> _pendingTypes() {
-    final node = graph._getNode(_offlineAdapterKey, orAdd: true)!;
+    // TODO
+    return {};
+    // final node = _graph._getNode(_offlineAdapterKey);
     // obtain types from metadata e.g. _offline:users#4:findOne
-    return node.keys.map((m) => m.split(':')[1].split('#')[0]).toSet();
+    // return node.map((e) => e.metadata.split(':')[1].split('#')[0]).toSet();
   }
 
   final notifier = DelayedStateNotifier<Set<String>>();

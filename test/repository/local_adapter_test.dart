@@ -2,6 +2,7 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
 import '../_support/familia.dart';
+import '../_support/fruit.dart';
 import '../_support/house.dart';
 import '../_support/person.dart';
 import '../_support/setup.dart';
@@ -10,17 +11,52 @@ void main() async {
   setUp(setUpFn);
   tearDown(tearDownFn);
 
-  test('findOne with null key', () {
-    final familia = container.familia.remoteAdapter.localAdapter.findOne(null);
-    expect(familia, isNull);
-  });
-
-  test('save without ID', () async {
+  test('local adapter roundtrip 1', () async {
     final p = Person(name: 'Luis');
     await container.people.save(p);
-    final p2 = container.people.remoteAdapter.localAdapter.findOne(keyFor(p))!;
-    expect(p, p2);
-    expect(keyFor(p), keyFor(p2));
+    final pb = container.people.remoteAdapter.localAdapter.findOne(keyFor(p))!;
+    expect(p, pb);
+    expect(keyFor(p), keyFor(pb));
+
+    final p2 = Person(id: '2', name: 'Martin');
+    await container.people.save(p2);
+    final p2b =
+        container.people.remoteAdapter.localAdapter.findOne(keyFor(p2))!;
+    expect(p2, p2b);
+    expect(keyFor(p2), keyFor(p2b));
+  });
+
+  test('local adapter roundtrip 2', () async {
+    final fruit = Fruit(
+      id: 34,
+      boolean: true,
+      date: DateTime.now(),
+      integer: 1,
+      listMaybeBoolean: [false, null],
+      listMaybeDate: [DateTime.now(), null],
+      listMaybeInteger: [6, null],
+      listMaybeString: ['a', null],
+      string: 'a',
+      maybeBoolean: false,
+      maybeDate: null,
+      maybeListMaybeDate: [DateTime.now()],
+      maybeInteger: 2,
+      bigInt: BigInt.from(2),
+      classification: Classification.closed,
+      delimitedString: {'a', 'b'},
+      duration: Duration(seconds: 28),
+      iterable: ['1', '2', '3'],
+      map: {'a': 1, 'b': 2},
+      boolMap: {'a': true, 'b': false, 'c': false},
+      set: {'a', 'b', 'z'},
+      uri: Uri.parse('https://flutterdata.dev'),
+    )..classification = Classification.closed;
+
+    await container.fruits.save(fruit);
+    print(keyFor(fruit));
+    final fruit2 =
+        container.fruits.remoteAdapter.localAdapter.findOne(keyFor(fruit));
+    expect(fruit, fruit2);
   });
 
   test('current and deserialized equals share same key', () async {
@@ -32,33 +68,20 @@ void main() async {
   });
 
   test('deserialize existing (with save)', () {
-    final familiaLocalAdapter = container.familia.remoteAdapter.localAdapter
-        as HiveLocalAdapter<Familia>;
-    final familia = Familia(surname: 'Moletto');
-
-    // simulate "save"
-    graph.getKeyForId('familia', '1098', keyIfAbsent: keyFor(familia));
+    final familiaLocalAdapter = container.familia.remoteAdapter.localAdapter;
     final familia2 =
         familiaLocalAdapter.deserialize({'id': '1098', 'surname': 'Moletto'});
-
     expect(familia2, Familia(id: '1098', surname: 'Moletto'));
-    expect(familiaLocalAdapter.box!.keys, [keyFor(familia2)]);
   });
 
   test('deserialize many local for same remote ID', () {
     final familiaLocalAdapter = container.familia.remoteAdapter.localAdapter;
-    final familia = Familia(surname: 'Moletto');
-    final familia2 = Familia(surname: 'Zandiver');
 
-    // simulate "save" for familia
-    graph.getKeyForId('familia', '1298', keyIfAbsent: keyFor(familia));
     final familia1b = familiaLocalAdapter.deserialize({
       'id': '1298',
       'surname': 'Helsinki',
     });
 
-    // simulate "save" for familia2
-    graph.getKeyForId('familia', '1298', keyIfAbsent: keyFor(familia2));
     final familia2b = familiaLocalAdapter.deserialize({
       'id': '1298',
       'surname': 'Oslo',
@@ -70,8 +93,11 @@ void main() async {
 
   test('local serialize with and without relationships', () {
     final familiaLocalAdapter = container.familia.remoteAdapter.localAdapter;
-    final person = Person(id: '4', name: 'Franco', age: 28);
-    final house = House(id: '1', address: '123 Main St');
+    final person = Person(id: '4', name: 'Franco', age: 28).saveLocal();
+
+    final house = House(id: '1', address: '123 Main St').saveLocal();
+
+    print('***');
 
     final familia = Familia(
         id: '1',
@@ -80,6 +106,8 @@ void main() async {
         persons: {person}.asHasMany);
 
     final map = familiaLocalAdapter.serialize(familia);
+    print(map);
+
     expect(map, {
       'id': '1',
       'surname': 'Smith',
@@ -146,13 +174,13 @@ void main() async {
     expect(familia.persons.first.age, 21);
   });
 
-  test('hive adapter typeId', () {
-    final a1 = container.familia.remoteAdapter.localAdapter
-        as HiveLocalAdapter<Familia>;
-    final a2 =
-        container.houses.remoteAdapter.localAdapter as HiveLocalAdapter<House>;
-    expect(a1.typeId, isNot(a2.typeId));
-  });
+  // test('hive adapter typeId', () {
+  //   final a1 = container.familia.remoteAdapter.localAdapter;
+  //       // as HiveLocalAdapter<Familia>;
+  //   final a2 =
+  //       container.houses.remoteAdapter.localAdapter; // as HiveLocalAdapter<House>;
+  //   expect(a1.typeId, isNot(a2.typeId));
+  // });
 
   test('relationships with serialized=false', () {
     final familia = Familia(id: '1', surname: 'Test');

@@ -9,7 +9,13 @@ part of 'user.dart';
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $UserLocalAdapter on LocalAdapter<User> {
-  static final Map<String, RelationshipMeta> _kUserRelationshipMetas = {
+  static final Map<String, FieldMeta> _kUserFieldMetas = {
+    'name': AttributeMeta<User>(
+      name: 'name',
+      type: 'String',
+      nullable: false,
+      internalType: 'String',
+    ),
     'tasks': RelationshipMeta<Task>(
       name: 'tasks',
       inverseName: 'user',
@@ -20,8 +26,7 @@ mixin $UserLocalAdapter on LocalAdapter<User> {
   };
 
   @override
-  Map<String, RelationshipMeta> get relationshipMetas =>
-      _kUserRelationshipMetas;
+  Map<String, FieldMeta> get fieldMetas => _kUserFieldMetas;
 
   @override
   User deserialize(map) {
@@ -39,13 +44,13 @@ mixin $UserLocalAdapter on LocalAdapter<User> {
 final _usersFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $UserHiveLocalAdapter = HiveLocalAdapter<User> with $UserLocalAdapter;
+class $UserIsarLocalAdapter = IsarLocalAdapter<User> with $UserLocalAdapter;
 
 class $UserRemoteAdapter = RemoteAdapter<User> with JSONServerAdapter<User>;
 
 final internalUsersRemoteAdapterProvider = Provider<RemoteAdapter<User>>(
     (ref) => $UserRemoteAdapter(
-        $UserHiveLocalAdapter(ref.read), InternalHolder(_usersFinders)));
+        $UserIsarLocalAdapter(ref.read), InternalHolder(_usersFinders)));
 
 final usersRepositoryProvider =
     Provider<Repository<User>>((ref) => Repository<User>(ref.read));
@@ -57,8 +62,8 @@ extension UserDataRepositoryX on Repository<User> {
 
 extension UserRelationshipGraphNodeX on RelationshipGraphNode<User> {
   RelationshipGraphNode<Task> get tasks {
-    final meta = $UserLocalAdapter._kUserRelationshipMetas['tasks']
-        as RelationshipMeta<Task>;
+    final meta =
+        $UserLocalAdapter._kUserFieldMetas['tasks'] as RelationshipMeta<Task>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }

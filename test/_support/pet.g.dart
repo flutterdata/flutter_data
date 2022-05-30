@@ -9,10 +9,17 @@ part of 'pet.dart';
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $DogLocalAdapter on LocalAdapter<Dog> {
-  static final Map<String, RelationshipMeta> _kDogRelationshipMetas = {};
+  static final Map<String, FieldMeta> _kDogFieldMetas = {
+    'name': AttributeMeta<Dog>(
+      name: 'name',
+      type: 'String',
+      nullable: false,
+      internalType: 'String',
+    )
+  };
 
   @override
-  Map<String, RelationshipMeta> get relationshipMetas => _kDogRelationshipMetas;
+  Map<String, FieldMeta> get fieldMetas => _kDogFieldMetas;
 
   @override
   Dog deserialize(map) {
@@ -30,13 +37,13 @@ mixin $DogLocalAdapter on LocalAdapter<Dog> {
 final _dogsFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $DogHiveLocalAdapter = HiveLocalAdapter<Dog> with $DogLocalAdapter;
+class $DogIsarLocalAdapter = IsarLocalAdapter<Dog> with $DogLocalAdapter;
 
 class $DogRemoteAdapter = RemoteAdapter<Dog> with NothingMixin;
 
 final internalDogsRemoteAdapterProvider = Provider<RemoteAdapter<Dog>>((ref) =>
     $DogRemoteAdapter(
-        $DogHiveLocalAdapter(ref.read), InternalHolder(_dogsFinders)));
+        $DogIsarLocalAdapter(ref.read), InternalHolder(_dogsFinders)));
 
 final dogsRepositoryProvider =
     Provider<Repository<Dog>>((ref) => Repository<Dog>(ref.read));
@@ -48,10 +55,17 @@ extension DogRelationshipGraphNodeX on RelationshipGraphNode<Dog> {}
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $CatLocalAdapter on LocalAdapter<Cat> {
-  static final Map<String, RelationshipMeta> _kCatRelationshipMetas = {};
+  static final Map<String, FieldMeta> _kCatFieldMetas = {
+    'meow': AttributeMeta<Cat>(
+      name: 'meow',
+      type: 'bool',
+      nullable: false,
+      internalType: 'bool',
+    )
+  };
 
   @override
-  Map<String, RelationshipMeta> get relationshipMetas => _kCatRelationshipMetas;
+  Map<String, FieldMeta> get fieldMetas => _kCatFieldMetas;
 
   @override
   Cat deserialize(map) {
@@ -69,13 +83,13 @@ mixin $CatLocalAdapter on LocalAdapter<Cat> {
 final _catsFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $CatHiveLocalAdapter = HiveLocalAdapter<Cat> with $CatLocalAdapter;
+class $CatIsarLocalAdapter = IsarLocalAdapter<Cat> with $CatLocalAdapter;
 
 class $CatRemoteAdapter = RemoteAdapter<Cat> with NothingMixin;
 
 final internalCatsRemoteAdapterProvider = Provider<RemoteAdapter<Cat>>((ref) =>
     $CatRemoteAdapter(
-        $CatHiveLocalAdapter(ref.read), InternalHolder(_catsFinders)));
+        $CatIsarLocalAdapter(ref.read), InternalHolder(_catsFinders)));
 
 final catsRepositoryProvider =
     Provider<Repository<Cat>>((ref) => Repository<Cat>(ref.read));

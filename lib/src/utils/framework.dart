@@ -21,11 +21,6 @@ class DataHelpers {
   static String generateShortKey<T>() {
     return uuid.v1().substring(0, 6);
   }
-
-  static String generateKey<T>([String? type]) {
-    type = getType<T>(type);
-    return uuid.v1().substring(0, 8).typifyWith(type);
-  }
 }
 
 class OfflineException extends DataException {
@@ -103,13 +98,33 @@ typedef Watcher = W Function<W>(ProviderListenable<W> provider);
 
 // relationships + alsoWatch
 
+class FieldMeta<T extends DataModel<T>> with EquatableMixin {
+  final String name;
+  final String type;
+
+  FieldMeta({required this.name, required this.type});
+
+  @override
+  List<Object?> get props => [name, type];
+}
+
+class AttributeMeta<T extends DataModel<T>> extends FieldMeta<T> {
+  final bool nullable;
+  final String internalType;
+
+  AttributeMeta({
+    required String name,
+    required String type,
+    required this.nullable,
+    required this.internalType,
+  }) : super(name: name, type: type);
+}
+
 class RelationshipGraphNode<T extends DataModel<T>> {}
 
-class RelationshipMeta<T extends DataModel<T>>
+class RelationshipMeta<T extends DataModel<T>> extends FieldMeta<T>
     with RelationshipGraphNode<T>, EquatableMixin {
-  final String name;
   final String? inverseName;
-  final String type;
   final String kind;
   final bool serialize;
   final Relationship? Function(DataModel) instance;
@@ -117,13 +132,13 @@ class RelationshipMeta<T extends DataModel<T>>
   RelationshipMeta? child;
 
   RelationshipMeta({
-    required this.name,
+    required String name,
+    required String type,
     this.inverseName,
-    required this.type,
     required this.kind,
     this.serialize = true,
     required this.instance,
-  });
+  }) : super(name: name, type: type);
 
   // get topmost parent
   RelationshipMeta get _top {
@@ -149,7 +164,7 @@ class RelationshipMeta<T extends DataModel<T>>
   }
 
   @override
-  List<Object?> get props => [name, inverseName, type, kind, serialize];
+  List<Object?> get props => [...super.props, inverseName, kind, serialize];
 }
 
 typedef AlsoWatch<T extends DataModel<T>> = Iterable<RelationshipGraphNode>
@@ -170,7 +185,7 @@ class WatchArgs<T extends DataModel<T>> with EquatableMixin {
     this.label,
   });
 
-  final String? key;
+  final int? key;
   final bool? remote;
   final Map<String, dynamic>? params;
   final Map<String, String>? headers;

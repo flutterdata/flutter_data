@@ -9,7 +9,13 @@ part of 'book.dart';
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $BookAuthorLocalAdapter on LocalAdapter<BookAuthor> {
-  static final Map<String, RelationshipMeta> _kBookAuthorRelationshipMetas = {
+  static final Map<String, FieldMeta> _kBookAuthorFieldMetas = {
+    'name': AttributeMeta<BookAuthor>(
+      name: 'name',
+      type: 'String',
+      nullable: true,
+      internalType: 'String',
+    ),
     'books': RelationshipMeta<Book>(
       name: 'books',
       inverseName: 'originalAuthor',
@@ -20,8 +26,7 @@ mixin $BookAuthorLocalAdapter on LocalAdapter<BookAuthor> {
   };
 
   @override
-  Map<String, RelationshipMeta> get relationshipMetas =>
-      _kBookAuthorRelationshipMetas;
+  Map<String, FieldMeta> get fieldMetas => _kBookAuthorFieldMetas;
 
   @override
   BookAuthor deserialize(map) {
@@ -41,7 +46,7 @@ final _bookAuthorsFinders = <String, dynamic>{
 };
 
 // ignore: must_be_immutable
-class $BookAuthorHiveLocalAdapter = HiveLocalAdapter<BookAuthor>
+class $BookAuthorIsarLocalAdapter = IsarLocalAdapter<BookAuthor>
     with $BookAuthorLocalAdapter;
 
 class $BookAuthorRemoteAdapter = RemoteAdapter<BookAuthor>
@@ -49,7 +54,7 @@ class $BookAuthorRemoteAdapter = RemoteAdapter<BookAuthor>
 
 final internalBookAuthorsRemoteAdapterProvider =
     Provider<RemoteAdapter<BookAuthor>>((ref) => $BookAuthorRemoteAdapter(
-        $BookAuthorHiveLocalAdapter(ref.read),
+        $BookAuthorIsarLocalAdapter(ref.read),
         InternalHolder(_bookAuthorsFinders)));
 
 final bookAuthorsRepositoryProvider =
@@ -62,7 +67,7 @@ extension BookAuthorDataRepositoryX on Repository<BookAuthor> {
 extension BookAuthorRelationshipGraphNodeX
     on RelationshipGraphNode<BookAuthor> {
   RelationshipGraphNode<Book> get books {
-    final meta = $BookAuthorLocalAdapter._kBookAuthorRelationshipMetas['books']
+    final meta = $BookAuthorLocalAdapter._kBookAuthorFieldMetas['books']
         as RelationshipMeta<Book>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
@@ -72,13 +77,24 @@ extension BookAuthorRelationshipGraphNodeX
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
 mixin $BookLocalAdapter on LocalAdapter<Book> {
-  static final Map<String, RelationshipMeta> _kBookRelationshipMetas = {
-    'original_author_id': RelationshipMeta<BookAuthor>(
-      name: 'originalAuthor',
-      inverseName: 'books',
-      type: 'bookAuthors',
-      kind: 'BelongsTo',
-      instance: (_) => (_ as Book).originalAuthor,
+  static final Map<String, FieldMeta> _kBookFieldMetas = {
+    'number_of_sales': AttributeMeta<Book>(
+      name: 'numberOfSales',
+      type: 'int',
+      nullable: false,
+      internalType: 'int',
+    ),
+    'title': AttributeMeta<Book>(
+      name: 'title',
+      type: 'String',
+      nullable: true,
+      internalType: 'String',
+    ),
+    'ardent_supporters': RelationshipMeta<Person>(
+      name: 'ardentSupporters',
+      type: 'people',
+      kind: 'HasMany',
+      instance: (_) => (_ as Book).ardentSupporters,
     ),
     'house': RelationshipMeta<House>(
       name: 'house',
@@ -87,17 +103,17 @@ mixin $BookLocalAdapter on LocalAdapter<Book> {
       kind: 'BelongsTo',
       instance: (_) => (_ as Book).house,
     ),
-    'ardent_supporters': RelationshipMeta<Person>(
-      name: 'ardentSupporters',
-      type: 'people',
-      kind: 'HasMany',
-      instance: (_) => (_ as Book).ardentSupporters,
+    'original_author_id': RelationshipMeta<BookAuthor>(
+      name: 'originalAuthor',
+      inverseName: 'books',
+      type: 'bookAuthors',
+      kind: 'BelongsTo',
+      instance: (_) => (_ as Book).originalAuthor,
     )
   };
 
   @override
-  Map<String, RelationshipMeta> get relationshipMetas =>
-      _kBookRelationshipMetas;
+  Map<String, FieldMeta> get fieldMetas => _kBookFieldMetas;
 
   @override
   Book deserialize(map) {
@@ -115,13 +131,13 @@ mixin $BookLocalAdapter on LocalAdapter<Book> {
 final _booksFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $BookHiveLocalAdapter = HiveLocalAdapter<Book> with $BookLocalAdapter;
+class $BookIsarLocalAdapter = IsarLocalAdapter<Book> with $BookLocalAdapter;
 
 class $BookRemoteAdapter = RemoteAdapter<Book> with NothingMixin;
 
 final internalBooksRemoteAdapterProvider = Provider<RemoteAdapter<Book>>(
     (ref) => $BookRemoteAdapter(
-        $BookHiveLocalAdapter(ref.read), InternalHolder(_booksFinders)));
+        $BookIsarLocalAdapter(ref.read), InternalHolder(_booksFinders)));
 
 final booksRepositoryProvider =
     Provider<Repository<Book>>((ref) => Repository<Book>(ref.read));
@@ -129,23 +145,23 @@ final booksRepositoryProvider =
 extension BookDataRepositoryX on Repository<Book> {}
 
 extension BookRelationshipGraphNodeX on RelationshipGraphNode<Book> {
-  RelationshipGraphNode<BookAuthor> get originalAuthor {
-    final meta = $BookLocalAdapter._kBookRelationshipMetas['original_author_id']
-        as RelationshipMeta<BookAuthor>;
+  RelationshipGraphNode<Person> get ardentSupporters {
+    final meta = $BookLocalAdapter._kBookFieldMetas['ardent_supporters']
+        as RelationshipMeta<Person>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 
   RelationshipGraphNode<House> get house {
-    final meta = $BookLocalAdapter._kBookRelationshipMetas['house']
-        as RelationshipMeta<House>;
+    final meta =
+        $BookLocalAdapter._kBookFieldMetas['house'] as RelationshipMeta<House>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 
-  RelationshipGraphNode<Person> get ardentSupporters {
-    final meta = $BookLocalAdapter._kBookRelationshipMetas['ardent_supporters']
-        as RelationshipMeta<Person>;
+  RelationshipGraphNode<BookAuthor> get originalAuthor {
+    final meta = $BookLocalAdapter._kBookFieldMetas['original_author_id']
+        as RelationshipMeta<BookAuthor>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
