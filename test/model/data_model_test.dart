@@ -19,9 +19,6 @@ void main() async {
         Person(id: '1', name: 'John', age: 27, familia: familia.asBelongsTo);
     await person.save();
 
-    // redundantly init'ing has no effect
-    person.init();
-
     // (1) it wires up the relationship
     expect(person.familia.key, graph.getKeyForId('familia', '55'));
 
@@ -81,31 +78,23 @@ void main() async {
     expect(graph.getKeyForId('people', '8'), keyFor(p7));
   });
 
-  test('manual init', () {
-    // Node has autoInitialization set to false
-    // if child node is not initialized, it can't be passed to a relationship
-    expect(
-        () => Node(name: 'parent', children: {Node(name: 'child')}.asHasMany),
-        throwsA(isA<AssertionError>()));
+  test('overridden init with save: false', () async {
+    final child = Node(id: 3, name: 'child');
+    final node = Node(name: 'parent', children: {child}.asHasMany);
+    expect(node.children!.keys, {keyFor(child)});
 
-    // now that it is, ensure keys and toString work properly
-    final node =
-        Node(name: 'parent', children: {Node(name: 'child').init()}.asHasMany);
-    expect(node.children!.keys, isEmpty);
+    // model is not auto-saved, so it should not find it
+    expect(await container.nodes.findOne(3), isNull);
 
     // since testing on web is a complete pain in the ass, skip this last part
     const kIsWeb = identical(0, 0.0);
     if (kIsWeb) return;
 
     expect(node.toString(),
-        'Node(id: null, name: parent, parent: null, children: HasMany<Node>())');
+        'Node(id: null, name: parent, parent: null, children: HasMany<Node>(3))');
 
     final n = Node(name: 'parent');
-    // can't get key because `n` was not initialized
-    expect(() => n.copyWith(name: 'parent2').was(n),
-        throwsA(isA<AssertionError>()));
-
-    final n2 = n.init();
+    final n2 = n;
     n2.copyWith(name: 'parent2').was(n2);
   });
 

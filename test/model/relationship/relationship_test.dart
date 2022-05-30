@@ -214,11 +214,11 @@ void main() async {
   });
 
   test('self-ref with freezed', () {
-    // manually init Node as it has `autoInitialize=false`
-    final parent = Node(name: 'parent', children: HasMany()).init();
+    // manually save nodes as they have an overridden init with save: false
+    final parent = Node(name: 'parent', children: HasMany()).saveLocal();
     final child =
         Node(name: 'child', parent: parent.asBelongsTo, children: HasMany())
-            .init();
+            .saveLocal();
 
     // since child has children defined, the rel is empty
     expect(child.children, isEmpty);

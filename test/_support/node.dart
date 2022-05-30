@@ -18,5 +18,7 @@ class Node extends DataModel<Node> with _$Node {
 
 mixin NodeAdapter on RemoteAdapter<Node> {
   @override
-  bool get autoInitializeModels => false;
+  Node initModel(Node model, {bool save = true}) {
+    return super.initModel(model, save: false);
+  }
 }

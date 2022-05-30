@@ -81,8 +81,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   // ignore: prefer_final_fields
   int _logLevel = 0;
 
-  bool get autoInitializeModels => true;
-
   /// Returns the base URL for this type [T].
   ///
   /// Typically used in a generic adapter (i.e. one shared by all types)
@@ -202,7 +200,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     final models = localAdapter.findAll();
     if (models != null) {
       for (final model in models) {
-        model.init(save: false);
+        initModel(model, save: false);
       }
     }
   }
@@ -697,6 +695,32 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       final timestamp =
           '${now.second.toString().padLeft(2, '0')}:${now.millisecond.toString().padLeft(3, '0')}';
       print('$timestamp ${' ' * label.indentation * 2}[$label] $message');
+    }
+  }
+
+  // model
+
+  T initModel(T model, {bool save = true}) {
+    // ignore if already initialized
+    if (model._isInitialized) return model;
+    model.__key = graph.getKeyForId(internalType, model.id,
+        keyIfAbsent: DataHelpers.generateKey<T>())!;
+    if (save) {
+      localAdapter.save(model._key, model, notify: false);
+    }
+    _initializeRelationships(model);
+    return model;
+  }
+
+  void _initializeRelationships(T model) {
+    final metadatas = localAdapter.relationshipMetas.values;
+    for (final metadata in metadatas) {
+      final relationship = metadata.instance(model);
+      relationship?.initialize(
+        owner: model,
+        name: metadata.name,
+        inverseName: metadata.inverseName,
+      );
     }
   }
 

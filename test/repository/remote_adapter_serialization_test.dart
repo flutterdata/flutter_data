@@ -54,10 +54,10 @@ void main() async {
     // also test a class without @JsonSerializable(explicitToJson: true)
     // (and manual init!)
     final children = {
-      Node(id: 2, name: 'a1').init(),
-      Node(id: 3, name: 'a2').init(),
+      Node(id: 2, name: 'a1'),
+      Node(id: 3, name: 'a2'),
     };
-    final n1 = Node(id: 1, name: 'a', children: children.asHasMany).init();
+    final n1 = Node(id: 1, name: 'a', children: children.asHasMany);
     final s2 = await container.nodes.remoteAdapter.serialize(n1);
     expect(s2, {
       'id': 1,

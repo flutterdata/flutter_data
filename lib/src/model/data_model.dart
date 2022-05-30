@@ -8,8 +8,10 @@ abstract class DataModel<T extends DataModel<T>> {
   Object? get id;
 
   DataModel() {
-    final isRepoInitialized = internalRepositories.containsKey(_internalType);
-    if (isRepoInitialized && remoteAdapter.autoInitializeModels) init();
+    final repository = internalRepositories[_internalType];
+    if (repository != null) {
+      repository.remoteAdapter.initModel(this);
+    }
   }
 
   String? __key;
@@ -50,24 +52,10 @@ abstract class DataModel<T extends DataModel<T>> {
     _notifier = value;
   }
 
-  // init
-
-  T init({bool save = true}) {
-    // ignore if already initialized
-    if (_isInitialized) return _this;
-    __key = remoteAdapter.graph.getKeyForId(_internalType, id,
-        keyIfAbsent: DataHelpers.generateKey<T>())!;
-    if (save) {
-      remoteAdapter.localAdapter.save(_key, _this, notify: false);
-    }
-    _initializeRelationships();
-    return _this;
-  }
-
   /// Copy identity (internal key) from an old model to a new one
   /// to signal they are the same.
   T was(T model, {bool ignoreId = false}) {
-    init();
+    remoteAdapter.initModel(model);
     if (model._key != _key) {
       T oldModel;
       T newModel;
@@ -109,18 +97,6 @@ abstract class DataModel<T extends DataModel<T>> {
       for (final meta in remoteAdapter.localAdapter.relationshipMetas.values)
         if (meta.instance(this) != null) meta.name: meta.instance(this)!,
     };
-  }
-
-  void _initializeRelationships() {
-    final metadatas = remoteAdapter.localAdapter.relationshipMetas.values;
-    for (final metadata in metadatas) {
-      final relationship = metadata.instance(_this);
-      relationship?.initialize(
-        owner: this,
-        name: metadata.name,
-        inverseName: metadata.inverseName,
-      );
-    }
   }
 }
 
