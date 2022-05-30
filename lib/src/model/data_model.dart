@@ -8,7 +8,9 @@ abstract class DataModel<T extends DataModel<T>> {
   Object? get id;
 
   DataModel() {
-    remoteAdapter.initModel(_this);
+    if (this is! _GraphEdge) {
+      remoteAdapter.initModel(_this);
+    }
   }
 
   String get _internalType => DataHelpers.getType<T>();

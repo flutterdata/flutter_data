@@ -33,9 +33,9 @@ dependencies:
   state_notifier: ^0.7.0
   uuid: ^3.0.4
 
-dependency_overrides:
-  isar:
-    path: ../../../projects/sandbox/isar/packages/isar
+# dependency_overrides:
+#   isar:
+#     path: ../../../projects/sandbox/isar/packages/isar
 
 dev_dependencies:
   build_runner: ^2.0.4

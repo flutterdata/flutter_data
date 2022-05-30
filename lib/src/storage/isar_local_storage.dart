@@ -42,13 +42,14 @@ Widget build(context) {
         await Isar.open(
           name: 'flutter_data',
           schemas: [
+            if (adapters.isNotEmpty) _GraphEdgeLocalAdapter(null).schema,
             for (final adapter in adapters)
               (adapter.localAdapter as IsarLocalAdapter).schema,
           ],
           directory: path,
           // inspector: true,
         );
-    if (clear) _isar!.writeTxnSync(() => _isar!.clearSync());
+    if (clear) _isar!.writeTxnSync((_) => _isar!.clearSync());
   }
 }
 

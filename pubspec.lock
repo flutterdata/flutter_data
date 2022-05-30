@@ -270,9 +270,9 @@ packages:
   isar:
     dependency: "direct main"
     description:
-      path: "../../sandbox/isar/packages/isar"
-      relative: true
-    source: path
+      name: isar
+      url: "https://pub.dartlang.org"
+    source: hosted
     version: "3.0.0-dev.0"
   js:
     dependency: transitive

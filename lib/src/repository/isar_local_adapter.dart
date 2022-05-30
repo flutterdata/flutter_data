@@ -6,14 +6,14 @@ abstract class IsarLocalAdapter<T extends DataModel<T>>
     extends LocalAdapter<T> {
   IsarLocalAdapter(this.read) : super(read);
 
-  final Reader read;
+  final Reader? read;
   late final IsarCollection<T> _collection;
 
   String get _internalType => DataHelpers.getType<T>();
 
   @override
   Future<IsarLocalAdapter<T>> initialize() async {
-    _collection = read(isarLocalStorageProvider)._isar!.getCollection<T>();
+    _collection = read!(isarLocalStorageProvider)._isar!.getCollection<T>();
     _isInit = true;
     return this;
   }
@@ -41,7 +41,8 @@ abstract class IsarLocalAdapter<T extends DataModel<T>>
 
   @override
   int save(T model, {bool notify = true}) {
-    final key = _collection.isar.writeTxnSync(() => _collection.putSync(model));
+    final key =
+        _collection.isar.writeTxnSync((_) => _collection.putSync(model));
 
     if (notify) {
       graph._notify(
@@ -69,12 +70,17 @@ abstract class IsarLocalAdapter<T extends DataModel<T>>
 
   CollectionSchema get schema {
     final attributeMetas = fieldMetas.attributes.values.toList();
+    final indexAttributeMetas =
+        fieldMetas.attributes.values.where((e) => e.index != null).toList();
+    print(indexAttributeMetas);
     final relationshipMetas = fieldMetas.relationships.values.toList();
 
-    return CollectionSchema<T>(
-      name: _internalType,
+    final schemaName = _internalType == '_GraphEdges' ? 'graph' : _internalType;
+
+    final schema = CollectionSchema<T>(
+      name: schemaName,
       schema: json.encode({
-        'name': _internalType,
+        'name': schemaName,
         'idName': '__key',
         'properties': [
           for (final meta in attributeMetas)
@@ -83,7 +89,24 @@ abstract class IsarLocalAdapter<T extends DataModel<T>>
               'type': _getNativeTypeFor(meta.internalType),
             }
         ],
-        'indexes': [],
+        'indexes': [
+          for (final e
+              in attributeMetas.groupListsBy((meta) => meta.index).entries)
+            if (e.key != null)
+              {
+                'name': e.key,
+                'unique': false,
+                'replace': false,
+                'properties': [
+                  for (final meta in e.value)
+                    {
+                      'name': meta.name,
+                      'type': 'Hash',
+                      'caseSensitive': true,
+                    }
+                ]
+              }
+        ],
         'links': [
           for (final meta in relationshipMetas)
             {
@@ -92,7 +115,7 @@ abstract class IsarLocalAdapter<T extends DataModel<T>>
             }
         ],
       }),
-      idName: '__key', // is this really needed?
+      idName: '__key',
       propertyIds: {
         for (var i = 0; i < attributeMetas.length; i++)
           attributeMetas[i].name: i,
@@ -101,17 +124,16 @@ abstract class IsarLocalAdapter<T extends DataModel<T>>
         for (final e in attributeMetas)
           if (e.internalType.startsWith('List')) e.name,
       },
-      indexIds: {},
-      indexValueTypes: {},
-      linkIds: {
-        for (var i = 0; i < relationshipMetas.length; i++)
-          relationshipMetas[i].name: i,
+      indexIds: {
+        for (var i = 0; i < indexAttributeMetas.length; i++)
+          indexAttributeMetas[i].index!: i,
       },
-      backlinkLinkNames: {
-        for (var i = 0; i < relationshipMetas.length; i++)
-          if (relationshipMetas[i].inverseName != null)
-            relationshipMetas[i].name: relationshipMetas[i].inverseName!,
+      indexValueTypes: {
+        for (final e in indexAttributeMetas)
+          e.index!: [IndexValueType.stringHash],
       },
+      linkIds: {},
+      backlinkLinkNames: {},
       getId: internalGetId,
       setId: internalSetId,
       getLinks: internalGetLinks,
@@ -124,6 +146,10 @@ abstract class IsarLocalAdapter<T extends DataModel<T>>
       deserializePropWeb: internalDeserializePropWeb,
       version: 4,
     );
+    print(
+        'iids ${schema.indexIds} ivt ${schema.indexValueTypes} p ${schema.propertyIds}');
+    print('p ${schema.schema}');
+    return schema;
   }
 
   int? internalGetId(T object) => object.__key;
@@ -148,14 +174,15 @@ abstract class IsarLocalAdapter<T extends DataModel<T>>
     AdapterAlloc alloc,
   ) {
     final metaMap = fieldMetas.attributes;
-    final _map = serialize(object, withRelationships: false);
+    final map = serialize(object, withRelationships: false);
+    print('just serialized $map');
 
     var dynamicSize = 0;
 
     final isarMap = <String, dynamic>{};
 
     for (final meta in metaMap.entries) {
-      final value = _map[meta.key];
+      final value = map[meta.key];
       final type = meta.value.type;
       final internalType = meta.value.internalType;
 
@@ -225,12 +252,13 @@ abstract class IsarLocalAdapter<T extends DataModel<T>>
     var i = 0;
     final map = <String, dynamic>{
       // if id was not a local auto-generated
-      if (id > _RemoteAdapter.kMinKey) '_id': id.toString(), // TODO fix
+      if (id > _RemoteAdapter.kMinKey) 'id': id.toString(), // TODO fix
       for (final e in fieldMetas.attributes.entries)
         e.key: _getValueFor(reader, offsets[i++], e.value.type,
             e.value.internalType, e.value.nullable, e.key),
     };
 
+    print('about to deserialize $map -- ${fieldMetas.attributes.keys}');
     final model = deserialize(map);
     model.__key = id;
     return model;

@@ -71,7 +71,7 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
     final models =
         a._collection.getAllSync(_uninitializedKeys!.toList()).cast<E>();
 
-    a._collection.isar.writeTxnSync(() {
+    a._collection.isar.writeTxnSync((_) {
       // print(
       //     'adding $models to link ${link.hashCode} in rel hashcode $hashCode [owner $_ownerKey]');
 

@@ -7,10 +7,12 @@ part of flutter_data;
 /// See also: [IsarLocalAdapter]
 abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
   @protected
-  LocalAdapter(Reader read) : graph = read(graphNotifierProvider);
+  LocalAdapter(Reader? read) : _graph = read?.call(graphNotifierProvider);
+
+  final GraphNotifier? _graph;
 
   @protected
-  final GraphNotifier graph;
+  GraphNotifier get graph => _graph!;
 
   FutureOr<LocalAdapter<T>> initialize();
 

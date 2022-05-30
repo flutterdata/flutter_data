@@ -111,12 +111,14 @@ class FieldMeta<T extends DataModel<T>> with EquatableMixin {
 class AttributeMeta<T extends DataModel<T>> extends FieldMeta<T> {
   final bool nullable;
   final String internalType;
+  final String? index;
 
   AttributeMeta({
     required String name,
     required String type,
     required this.nullable,
     required this.internalType,
+    this.index,
   }) : super(name: name, type: type);
 }
 
