@@ -407,10 +407,15 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     final serialized = await serialize(model);
     final body = json.encode(serialized);
 
-    log(label, 'requesting');
+    final uri = baseUrl.asUri / urlForSave(model.id, params) & params;
+    final method = methodForSave(model.id, params);
+
+    log(label,
+        'requesting${_logLevel > 1 ? ' [HTTP ${method.toShortString()}] $uri' : ''}');
+
     final result = await sendRequest<T>(
-      baseUrl.asUri / urlForSave(model.id, params) & params,
-      method: methodForSave(model.id, params),
+      uri,
+      method: method,
       headers: headers,
       body: body,
       label: label,
@@ -613,7 +618,10 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
       final e = DataException(error ?? data!,
           stackTrace: stackTrace, statusCode: code);
-      log(label, e.error.toString());
+      log(label, '$e${_logLevel > 1 ? ' $uri' : ''}');
+      if (_logLevel > 1 && stackTrace != null) {
+        log(label, stackTrace.toString());
+      }
       return await onError(e, label);
     }
   }
@@ -678,8 +686,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   ///
   /// NOTE: `onError` arguments throughout the API are used
   /// to override this default behavior.
-  @protected
-  @visibleForTesting
   FutureOr<R?> onError<R>(
     DataException e,
     DataRequestLabel? label,
@@ -690,7 +696,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     throw e;
   }
 
-  @protected
   void log(DataRequestLabel label, String message, {int logLevel = 1}) {
     if (_logLevel >= logLevel) {
       final now = DateTime.now();

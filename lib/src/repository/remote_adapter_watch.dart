@@ -174,8 +174,13 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       data: DataState(_getUpdatedModel(), isLoading: remote!),
     );
 
+    final alsoWatchNames = alsoWatch
+            ?.call(RelationshipGraphNode<T>())
+            .whereType<RelationshipMeta>()
+            .map((m) => m.name) ??
+        {};
     log(label,
-        'initializing${alsoWatch != null ? ' (with relationships)' : ''}');
+        'initializing${alsoWatchNames.isNotEmpty ? ' (and also watching: ${alsoWatchNames.join(', ')})' : ''}');
 
     notifier._reloadFn = () async {
       if (!notifier.mounted || id == null) return;
