@@ -21,8 +21,8 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent> {
 
   bool _doAssert = true;
 
-  Future<void> clear() async {
-    await _collection.clear();
+  void clear() async {
+    _collection.isar.writeTxnSync((_) => _collection.clearSync());
   }
 
   // key-related methods
@@ -35,7 +35,8 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent> {
   ///  - It associates [keyIfAbsent] with the supplied [type]/[id]
   ///    (if both [keyIfAbsent] & [type]/[id] were provided)
   int? getKeyForId(String type, Object? id, {String? keyIfAbsent}) {
-    type = DataHelpers.getType(type);
+    if (id == null) return null;
+    return int.tryParse(id.toString());
     // if (id != null) {
     //   final namespace = id is int ? '_id_int' : '_id';
     //   final namespacedId =
@@ -59,15 +60,14 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent> {
     //   // _addNode(keyIfAbsent, notify: false);
     //   return keyIfAbsent;
     // }
-    return null;
   }
 
   // /// Removes key (and its edges) from graph
   // void removeKey(String key) => _removeNode(key);
 
   /// Finds an ID in the graph, given a [key].
-  Object? getIdForKey(String key) {
-    return null;
+  Object? getIdForKey(int key) {
+    return key;
     // final edge = _getEdge(key, metadata: '_id');
     // if (edge?.tos.isEmpty ?? true) {
     //   return null;
@@ -98,8 +98,13 @@ Key "$key":
   }
 
   /// Obtains a node (i.e. list of edges)
-  List<_GraphEdge> getNode(String key, {bool notify = true}) {
-    return _getNode(key, notify: notify);
+  List<_GraphEdge> getNode(String key) {
+    return _getNode(key);
+  }
+
+  //
+  bool hasNode(String key) {
+    return _hasNode(key);
   }
 
   /// Removes a node, [key] MUST be namespaced (e.g. `manager:key`)
@@ -138,24 +143,23 @@ Key "$key":
     return _getEdges(key, metadata: metadata);
   }
 
-  /// See [removeEdge]
-  void removeEdge(String from,
+  void removeEdges(String from,
       {required String metadata,
-      required String to,
-      String? inverseMetadata,
+      Iterable<String> tos = const [],
+      // String? inverseMetadata,
       bool notify = true}) {
     _assertKey(from);
-    // for (final to in tos) {
-    _assertKey(to);
-    // }
-    _assertKey(metadata);
-    if (inverseMetadata != null) {
-      _assertKey(inverseMetadata);
+    for (final to in tos) {
+      _assertKey(to);
     }
-    return _removeEdge(from,
-        to: to,
+    _assertKey(metadata);
+    // if (inverseMetadata != null) {
+    //   _assertKey(inverseMetadata);
+    // }
+    return _removeEdges(from,
+        tos: tos,
         metadata: metadata,
-        inverseMetadata: inverseMetadata,
+        // inverseMetadata: inverseMetadata,
         notify: notify);
   }
 
@@ -179,7 +183,8 @@ Key "$key":
 
   // private API
 
-  Query<_GraphEdge> _q(String key, {String? metadata}) =>
+  Query<_GraphEdge> _q(String key,
+          {Iterable<String> tos = const [], String? metadata}) =>
       _collection.buildQuery<_GraphEdge>(
         whereClauses: [
           IndexWhereClause.equalTo(indexName: 'from', value: [key]),
@@ -201,6 +206,9 @@ Key "$key":
                     property: 'metadata',
                     value: '$metadata#',
                   ),
+                  for (final to in tos)
+                    FilterCondition(
+                        type: ConditionType.eq, property: 'to', value: to),
                 ]),
                 FilterGroup.and([
                   FilterCondition(
@@ -213,6 +221,9 @@ Key "$key":
                     property: 'metadata',
                     value: '#$metadata',
                   ),
+                  for (final to in tos)
+                    FilterCondition(
+                        type: ConditionType.eq, property: 'from', value: to),
                 ]),
               ]),
       );
@@ -222,16 +233,16 @@ Key "$key":
     return edge;
   }
 
-  void _d(_GraphEdge edge) {
-    _collection.isar.writeTxnSync((_) => _collection.deleteSync(edge.id!));
-  }
-
   //
 
-  List<_GraphEdge> _getNode(String from, {bool notify = true}) {
-    return _q(from).findAllSync().map((e) {
-      return e.from == from ? e : e.invert();
+  List<_GraphEdge> _getNode(String key) {
+    return _q(key).findAllSync().map((e) {
+      return e.from == key ? e : e.invert();
     }).toList();
+  }
+
+  bool _hasNode(String key) {
+    return _q(key).countSync() > 0;
   }
 
   void _removeNode(String from, {bool notify = true}) {
@@ -248,15 +259,13 @@ Key "$key":
       Iterable<String> orAddWithTo = const [],
       String? orAddInverseMetadata}) {
     var edges = _q(key, metadata: metadata).findAllSync();
-    print('found edges $edges for $key / $metadata');
 
     if (edges.isEmpty && orAddWithTo.isNotEmpty) {
       edges = _addEdges(
         key,
         tos: orAddWithTo,
         metadata: metadata,
-        // TODO add inverse meta
-        // inverseMetadata: orAddInverseMetadata,
+        inverseMetadata: orAddInverseMetadata,
       ).toList();
     }
     return edges.map((e) => key == e.from ? e : e.invert());
@@ -276,7 +285,7 @@ Key "$key":
       metadata: metadata,
       inverseMetadata: inverseMetadata,
     );
-    // need to be written in order
+    // needs to be written in order
     if (edge.from.compareTo(edge.to) > 0) {
       edge = edge.invert();
     }
@@ -291,7 +300,6 @@ Key "$key":
     final edges = tos.map((to) {
       final edge = _getOrderedEdge(from, to,
           metadata: metadata, inverseMetadata: inverseMetadata);
-      print('adding $edge');
       return _w(edge);
     }).toList();
     if (notify) {
@@ -304,16 +312,17 @@ Key "$key":
     return edges;
   }
 
-  void _removeEdge(String from,
-      {required String to,
+  void _removeEdges(String from,
+      {Iterable<String> tos = const [],
       required String metadata,
-      String? inverseMetadata,
       bool notify = true}) {
-    _d(_getOrderedEdge(from, to, metadata: metadata));
+    _collection.isar.writeTxnSync((isar) {
+      _q(from, tos: tos, metadata: metadata).deleteAllSync();
+    });
 
     if (notify) {
       state = DataGraphEvent(
-        keys: [from, to],
+        keys: [from],
         metadata: metadata,
         type: DataGraphEventType.removeEdge,
       );
@@ -332,8 +341,6 @@ Key "$key":
   Map<String, Map> _toMap() {
     final map =
         _collection.where().findAllSync().groupListsBy((edge) => edge.from);
-    print('__map $map // ${_collection.where().countSync()}');
-
     return {
       for (final e in map.entries)
         e.key: {
@@ -343,12 +350,6 @@ Key "$key":
     };
   }
 }
-
-// extension _ASX on List<_GraphEdge> {
-//   Set<String> get tos {
-//     return fold<Set<String>>({}, (acc, e) => {...acc, ...e.tos});
-//   }
-// }
 
 enum DataGraphEventType {
   addNode,

@@ -79,3 +79,9 @@ mixin _$GraphEdgeLocalAdapter on LocalAdapter<_GraphEdge> {
 
 class _GraphEdgeLocalAdapter = IsarLocalAdapter<_GraphEdge>
     with _$GraphEdgeLocalAdapter;
+
+typedef GraphNode = Iterable<_GraphEdge>;
+
+extension GraphNodeX on GraphNode {
+  Iterable<String> get tos => map((e) => e.to);
+}

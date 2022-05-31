@@ -72,9 +72,7 @@ abstract class IsarLocalAdapter<T extends DataModel<T>>
     final attributeMetas = fieldMetas.attributes.values.toList();
     final indexAttributeMetas =
         fieldMetas.attributes.values.where((e) => e.index != null).toList();
-    print(indexAttributeMetas);
     final relationshipMetas = fieldMetas.relationships.values.toList();
-
     final schemaName = _internalType == '_GraphEdges' ? 'graph' : _internalType;
 
     final schema = CollectionSchema<T>(
@@ -146,9 +144,6 @@ abstract class IsarLocalAdapter<T extends DataModel<T>>
       deserializePropWeb: internalDeserializePropWeb,
       version: 4,
     );
-    print(
-        'iids ${schema.indexIds} ivt ${schema.indexValueTypes} p ${schema.propertyIds}');
-    print('p ${schema.schema}');
     return schema;
   }
 
@@ -157,10 +152,7 @@ abstract class IsarLocalAdapter<T extends DataModel<T>>
   void internalSetId(T object, int id) => object.__key = id;
 
   List<IsarLinkBase> internalGetLinks(T object) {
-    return [
-      for (final meta in fieldMetas.relationships.values)
-        meta.instance(object)!.link,
-    ];
+    return [];
   }
 
   // serialization
@@ -175,7 +167,6 @@ abstract class IsarLocalAdapter<T extends DataModel<T>>
   ) {
     final metaMap = fieldMetas.attributes;
     final map = serialize(object, withRelationships: false);
-    print('just serialized $map');
 
     var dynamicSize = 0;
 
@@ -258,7 +249,6 @@ abstract class IsarLocalAdapter<T extends DataModel<T>>
             e.value.internalType, e.value.nullable, e.key),
     };
 
-    print('about to deserialize $map -- ${fieldMetas.attributes.keys}');
     final model = deserialize(map);
     model.__key = id;
     return model;

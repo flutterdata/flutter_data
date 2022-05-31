@@ -368,7 +368,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
           key.typifyWith(type)
         ], // TODO should be internal type!
       // recursively include key pairs for other requested relationships
-      for (final childModel in relationship.link as IsarLinks)
+      for (final childModel in relationship._iterable)
         ..._getPairsForMeta(meta!.child, childModel as DataModel)
     };
   }

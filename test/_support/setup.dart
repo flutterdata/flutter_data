@@ -61,13 +61,12 @@ void setUpFn() async {
   );
 
   graph = container.read(graphNotifierProvider);
+
   // IMPORTANT: disable namespace assertions
   // in order to test un-namespaced (key, id)
-  // graph.debugAssert(false);
+  graph.debugAssert(false);
 
   // Equivalent to generated in `main.data.dart`
-
-  // await container.read(graphNotifierProvider).initialize();
 
   final adapterGraph = <String, RemoteAdapter<DataModel>>{
     'houses': container.read(internalHousesRemoteAdapterProvider),

@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
@@ -11,69 +9,48 @@ import '../_support/setup.dart';
 void main() async {
   setUp(setUpFn);
 
-  // test('add/remove nodes', () {
-  //   graph.addEdge('b1', metadata: '', tos: []);
-  //   expect(graph.getNode('b1'), isNotEmpty);
-  //   graph.removeNode('b1');
-  //   expect(graph.getNode('b1'), isEmpty);
-  // });
-
   test('add/remove edges with metadata', () {
-    graph.debugAssert(false);
     graph.addEdges('h1',
         tos: ['b1', 'b2'], metadata: 'blogs', inverseMetadata: 'host');
 
-    expect(graph.getEdges('b1', metadata: 'host').map((e) => e.to), {'h1'});
+    expect(graph.getEdges('b1', metadata: 'host').tos, {'h1'});
 
-    expect(
-        graph.getEdges('h1', metadata: 'blogs').map((e) => e.to), {'b1', 'b2'});
+    expect(graph.getEdges('h1', metadata: 'blogs').tos, {'b1', 'b2'});
 
-    graph.removeEdge('h1',
-        to: 'b2', metadata: 'blogs', inverseMetadata: 'host');
+    graph.removeEdges('h1', tos: {'b2'}, metadata: 'blogs');
 
-    return;
+    final map = graph.toMap();
+    expect(map['b1'], {
+      'host': {'h1'}
+    });
 
-    // final _map = graph.toMap();
-    // expect(_map['h1'], {
-    //   'blogs': {'b1'}
-    // });
-    // expect(_map['b1'], {
-    //   'host': {'h1'}
-    // });
+    expect(graph.getEdges('b2', metadata: 'host').tos, isEmpty);
 
-    // expect(graph.getEdge('b2', metadata: 'host')!.tos, isEmpty);
+    graph.addEdges('h1',
+        tos: ['hosts#1'], metadata: 'id', inverseMetadata: 'key');
+    expect(graph.getEdges('h1', metadata: 'id').tos, contains('hosts#1'));
+    expect(graph.getEdges('hosts#1', metadata: 'key').tos, contains('h1'));
+    // all edges without filtering by metadata
+    expect(graph.getNode('h1'), hasLength(2));
 
-    // // graph.addNode('hosts#1');
-    // graph.addEdge('h1',
-    //     tos: ['hosts#1'], metadata: 'id', inverseMetadata: 'key');
-    // expect(graph.getEdge('h1', metadata: 'id')!.tos, contains('hosts#1'));
-    // expect(graph.getEdge('hosts#1', metadata: 'key')!.tos, contains('h1'));
-    // // all edges without filtering by metadata
-    // expect(graph.getNode('h1'), [
-    //   GraphEdge('h1', metadata: 'blogs', tos: ['b1', 'hosts#1']),
-    // ]);
-
-    // graph.removeEdge('h1', metadata: 'blogs');
-    // expect(graph.getNode('h1'), {
-    //   'id': {'hosts#1'}
-    // });
+    graph.removeEdges('h1', metadata: 'blogs');
+    expect(graph.getEdges('h1', metadata: 'id').tos, {'hosts#1'});
   });
 
-  // test('addNode/orAdd', () {
-  //   graph.addEdge('h1',
-  //       tos: ['b1', 'b2'],
-  //       metadata: 'blogs',
-  //       addNode: true,
-  //       inverseMetadata: 'host');
+  test('addNode/orAdd', () {
+    graph.addEdges('h1',
+        tos: ['b1', 'b2'],
+        metadata: 'blogs',
+        addNode: true,
+        inverseMetadata: 'host');
 
-  //   expect(graph.getEdge('h1', metadata: 'blogs'), hasLength(2));
-  // });
+    expect(graph.getEdges('h1', metadata: 'blogs'), hasLength(2));
+  });
 
   // test('produces a new key', () {
   //   var key = graph.getKeyForId('people', '1');
   //   expect(key, isNull);
-  //   key = graph.getKeyForId('people', '1',
-  //       keyIfAbsent: DataHelpers.generateKey<Person>());
+  //   key = graph.getKeyForId('people', '1');
   //   expect(key, startsWith('people#'));
   // });
 
@@ -208,72 +185,58 @@ void main() async {
   //       hasLength(length));
   // });
 
-  // test('namespaced keys crud', () {
-  //   // enable namespace assertions for this test
-  //   graph.debugAssert(true);
+  test('namespaced keys crud', () {
+    // enable namespace assertions for this test
+    graph.debugAssert(true);
 
-  //   expect(() => graph.addNode('superman'), throwsA(isA<AssertionError>()));
+    // trying to write private nodes will throw, reading them not
+    expect(() => graph.getNode('_superman:1'),
+        isNot(throwsA(isA<AssertionError>())));
+    expect(() => graph.hasNode('_superman:1'),
+        isNot(throwsA(isA<AssertionError>())));
 
-  //   // trying to write private nodes will throw, reading them not
-  //   expect(() => graph.addNode('_superman:1'), throwsA(isA<AssertionError>()));
-  //   expect(() => graph.getNode('_superman:1'),
-  //       isNot(throwsA(isA<AssertionError>())));
-  //   expect(() => graph.hasNode('_superman:1'),
-  //       isNot(throwsA(isA<AssertionError>())));
+    expect(
+        () => graph.addEdges('superman:1',
+            tos: ['superman:to'], metadata: 'nonamespace'),
+        throwsA(isA<AssertionError>()));
+    expect(
+        () => graph.addEdges('superman:1',
+            tos: ['to'], metadata: 'superman:prefix'),
+        throwsA(isA<AssertionError>()));
 
-  //   graph.addNode('superman:1');
-  //   expect(graph.getNode('superman:1'), isA<Map<String, List<String>>>());
+    graph.addEdges('superman:1',
+        tos: ['superman:to'], metadata: 'superman:prefix');
+    expect(graph.getEdges('superman:1', metadata: 'superman:prefix').tos,
+        containsAll(['superman:to']));
+    graph.removeEdges('superman:1', metadata: 'superman:prefix');
+    expect(graph.hasEdge('superman:1', metadata: 'superman:prefix'), false);
+    expect(graph.hasNode('superman:to'), false);
 
-  //   expect(
-  //       () =>
-  //           graph.addEdge('superman:1', 'superman:to', metadata: 'nonamespace'),
-  //       throwsA(isA<AssertionError>()));
-  //   expect(() => graph.addEdge('superman:1', 'to', metadata: 'superman:prefix'),
-  //       throwsA(isA<AssertionError>()));
+    graph.removeNode('superman:1');
+    expect(graph.hasNode('superman:1'), isFalse);
+  });
 
-  //   graph.addEdge('superman:1', 'superman:to', metadata: 'superman:prefix');
-  //   expect(graph.getEdge('superman:1', metadata: 'superman:prefix'),
-  //       containsAll(['superman:to']));
-  //   graph.removeEdges('superman:1', metadata: 'superman:prefix');
-  //   expect(graph.hasEdge('superman:1', metadata: 'superman:prefix'), false);
-  //   expect(graph.hasNode('superman:to'), false);
+  test('namespace', () {
+    expect('a9'.typifyWith('posts').namespaceWith('id'), 'id:posts#a9');
+    expect('278#12'.typifyWith('animals').namespaceWith('zzz'),
+        'zzz:animals#278#12');
+  });
 
-  //   graph.removeNode('superman:1');
-  //   expect(graph.hasNode('superman:1'), isFalse);
+  test('denamespace', () {
+    expect('superman:1'.denamespace(), '1');
+    expect('id:posts#a9'.denamespace().detypify(), 'a9');
+  });
 
-  //   expect(() => graph.addNode('super:man:1'), throwsA(isA<AssertionError>()));
-  // });
+  test('event', () {
+    final event =
+        DataGraphEvent(keys: ['a', 'b'], type: DataGraphEventType.addEdge);
+    expect(event.toString(), 'addEdge: [a, b]');
+  });
 
-  // test('namespace', () {
-  //   expect('a9'.typifyWith('posts').namespaceWith('id'), 'id:posts#a9');
-  //   expect('278#12'.typifyWith('animals').namespaceWith('zzz'),
-  //       'zzz:animals#278#12');
-  // });
-
-  // test('denamespace', () {
-  //   expect('superman:1'.denamespace(), '1');
-  //   expect('id:posts#a9'.denamespace().detypify(), 'a9');
-  // });
-
-  // test('remove orphans', () {
-  //   // graph.addNode('a');
-  //   // graph.addNode('b');
-  //   // graph.removeOrphanNodes();
-  //   // expect(graph.hasNode('a'), isFalse);
-  //   // expect(graph.hasNode('b'), isFalse);
-  // });
-
-  // test('event', () {
-  //   final event =
-  //       DataGraphEvent(keys: ['a', 'b'], type: DataGraphEventType.addEdge);
-  //   expect(event.toString(), 'addEdge: [a, b]');
-  // });
-
-  // test('clear', () {
-  //   // graph.addNode('a');
-  //   // graph.addNode('b');
-  //   expect(graph.toMap(), isNotEmpty);
-  //   graph.clear();
-  //   expect(graph.toMap(), isEmpty);
-  // });
+  test('clear', () {
+    graph.addEdges('a', tos: ['b', 'c'], metadata: 'm');
+    expect(graph.toMap(), isNotEmpty);
+    graph.clear();
+    expect(graph.toMap(), isEmpty);
+  });
 }

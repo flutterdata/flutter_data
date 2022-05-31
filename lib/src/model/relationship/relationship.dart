@@ -21,9 +21,6 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
   String? _name;
   String? _inverseName;
 
-  @protected
-  IsarLinkBase<E> get link;
-
   RemoteAdapter<E> get _adapter =>
       internalRepositories[_internalType]!.remoteAdapter as RemoteAdapter<E>;
   GraphNotifier get _graph => _adapter.localAdapter.graph;
@@ -45,67 +42,74 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
     _name = name;
     _inverseName = inverseName;
 
-    // print(
-    //     'initializing rel of owner type ${owner._internalType} with $_ownerKey , $_name hashcode $hashCode - $this (and uninit $_uninitializedKeys)');
-
-    //
-
-    final a = (_adapter.localAdapter as IsarLocalAdapter<E>);
-    final ownerAdapter = owner.remoteAdapter.localAdapter as IsarLocalAdapter;
-    // ignore: invalid_use_of_protected_member
-    link.attach(ownerAdapter._collection, a._collection, _name!, owner.__key);
-    link.loadSync();
-    if (link is IsarLinks) {
-      print('loaded for $_ownerKey, $_name and link is $link');
-      // for (final e in link as IsarLinks<E>) {
-      //   (this as HasMany).add(e);
-      // }
-    }
-
     // means it was omitted (remote-omitted, or loaded locally), so skip
     if (_uninitializedKeys == null) return this;
 
-    // print(
-    //     'initializing with $_uninitializedKeys of $E and attached? ${(link as IsarLinkBaseImpl).isAttached}');
+    // setting up from scratch, remove all and add keys
 
-    final models =
-        a._collection.getAllSync(_uninitializedKeys!.toList()).cast<E>();
+    _graph._removeEdges(_ownerKey!, metadata: _name!, notify: false);
 
-    a._collection.isar.writeTxnSync((_) {
-      // print(
-      //     'adding $models to link ${link.hashCode} in rel hashcode $hashCode [owner $_ownerKey]');
-
-      // (link as IsarLinksCommon).updateSync(link: models);
-
-      // print(
-      //     'before saving: link loaded? ${link.isLoaded} - changed> ${link.isChanged}');
-      if (link is IsarLinks) {
-        (link as IsarLinks).addAll(models);
-      }
-      if (link is IsarLink) {
-        (link as IsarLink).value = models.first;
-      }
-      link.saveSync();
-      link.loadSync();
-
-      // (link as IsarLinkBaseImpl)
-      //     .updateIdsInternalSync([..._uninitializedKeys!], [], true);
-
-      // print(
-      //     'done saving: link loaded? ${link.isLoaded} - changed> ${link.isChanged}');
-    });
-
-    _graph._notify(
-      [
-        _ownerKey!,
-        ..._uninitializedKeys!.map((e) => e.typifyWith(_internalType)),
-      ],
-      type: DataGraphEventType.addEdge, // or update?
+    _graph._addEdges(
+      _ownerKey!,
+      tos: _uninitializedKeys!.map((key) => key.typifyWith(_internalType)),
       metadata: _name!,
+      inverseMetadata: _inverseName,
+      notify: false,
     );
     _uninitializedKeys!.clear();
 
+    // TODO notify?
+
     return this;
+  }
+
+  // collection-like methods
+
+  bool _add(E value, {bool notify = true}) {
+    if (_contains(value)) {
+      return false;
+    }
+    _graph._addEdges(_ownerKey!,
+        tos: [value._key],
+        metadata: _name!,
+        inverseMetadata: _inverseName,
+        notify: notify);
+    return true;
+  }
+
+  bool _contains(Object? element) {
+    return _iterable.contains(element);
+  }
+
+  bool _remove(Object? value, {bool notify = true}) {
+    assert(value is E);
+    final model = value as E;
+
+    _graph._removeEdges(
+      _ownerKey!,
+      tos: [model._key],
+      metadata: _name!,
+      notify: notify,
+    );
+    return true;
+  }
+
+  // support methods
+
+  Iterable<E> get _iterable {
+    return _keys.map((key) => _adapter.localAdapter.findOne(key)).filterNulls;
+  }
+
+  Set<int> get _keys {
+    if (!isInitialized) return {};
+    return _graph
+        ._getEdges(_ownerKey!, metadata: _name!)
+        .map((e) => e.to._detypifyInt())
+        .toSet();
+  }
+
+  Set<Object> get _ids {
+    return _keys.map((key) => _graph.getIdForKey(key)).filterNulls.toSet();
   }
 
   /// This is used to make `json_serializable`'s `explicitToJson` transparent.
@@ -121,10 +125,9 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
 
   @override
   String toString() {
-    // final keysWithoutId =
-    //     _keys.where((k) => _graph.getIdForKey(k) == null).map((k) => '[$k]');
-    // return '${{..._ids, ...keysWithoutId}.join(', ')}';
-    return '';
+    final keysWithoutId =
+        _keys.where((k) => _graph.getIdForKey(k) == null).map((k) => '[$k]');
+    return {..._ids, ...keysWithoutId}.join(', ');
   }
 }
 

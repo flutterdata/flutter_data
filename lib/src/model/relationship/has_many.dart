@@ -35,82 +35,48 @@ class HasMany<E extends DataModel<E>> extends Relationship<E, Set<E>> {
     return HasMany._({...map['_']});
   }
 
-  @override
-  IsarLinkBase<E> link = IsarLinks();
-
-  IsarLinks<E> get _links {
-    print(
-        'link (${link.hashCode}) in hasmany, owner $_ownerKey rel hashcode $hashCode');
-    return link as IsarLinks<E>;
-  }
-
   /// Add a [value] to this [Relationship]
   ///
   /// Attempting to add an existing [value] has no effect as this is a [Set]
   bool add(E value, {bool notify = true}) {
-    final wasAdded = _links.add(value);
-
-    if (wasAdded && notify) {
-      _graph._notify(
-        [_ownerKey!, value._key],
-        metadata: _name,
-        type: DataGraphEventType.addEdge,
-      );
-    }
-    return wasAdded;
+    return _add(value, notify: notify);
   }
 
   /// Removes a [value] from this [Relationship]
   bool remove(E? value, {bool notify = true}) {
-    if (value == null) return false;
-    final wasRemoved = _links.remove(value);
-
-    if (wasRemoved && notify) {
-      _graph._notify(
-        [_ownerKey!, value._key],
-        metadata: _name,
-        type: DataGraphEventType.removeEdge,
-      );
-    }
-
-    return wasRemoved;
+    return _remove(value, notify: notify);
   }
 
   /// Returns keys in this relationship.
   Set<int> get keys {
-    if (!isInitialized) return {};
-    // if (!_links.isLoaded) _links.loadSync();
-    // print(
-    //     'links $this [owner $_ownerKey] ($hashCode) after loadSync ${_links.toSet()}');
-    return {for (final e in _links) e.__key!};
+    return _keys;
   }
 
   /// Returns IDs in this relationship.
-  Set<Object> get ids =>
-      {for (final key in keys) key.typifyWith(_internalType)};
+  Set<Object> get ids => _ids;
 
   @override
-  bool get isPresent => _links.isNotEmpty;
+  bool get isPresent => _keys.isNotEmpty;
 
   // iterable utils
 
-  bool contains(E value) => _links.contains(value);
+  bool contains(E value) => _contains(value);
 
-  Set<E> toSet() => _links;
+  Set<E> toSet() => _iterable.toSet();
 
-  List<E> toList() => _links.toList();
+  List<E> toList() => _iterable.toList();
 
-  int get length => _links.length;
+  int get length => _iterable.length;
 
-  E get first => _links.first;
+  E get first => _iterable.first;
 
-  bool get isEmpty => _links.isEmpty;
+  bool get isEmpty => _iterable.isEmpty;
 
-  bool get isNotEmpty => _links.isNotEmpty;
+  bool get isNotEmpty => _iterable.isNotEmpty;
 
-  Iterable<E> where(bool Function(E) test) => _links.where(test);
+  Iterable<E> where(bool Function(E) test) => _iterable.where(test);
 
-  Iterable<T> map<T>(T Function(E) f) => _links.map(f);
+  Iterable<T> map<T>(T Function(E) f) => _iterable.map(f);
 
   @override
   String toString() => 'HasMany<$E>(${super.toString()})';
