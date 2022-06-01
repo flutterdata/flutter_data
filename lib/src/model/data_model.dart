@@ -8,7 +8,10 @@ abstract class DataModel<T extends DataModel<T>> {
   Object? get id;
 
   DataModel() {
-    remoteAdapter.initModel(_this);
+    final repository = internalRepositories[_internalType];
+    if (repository != null) {
+      repository.remoteAdapter.initModel(this);
+    }
   }
 
   String? __key;
