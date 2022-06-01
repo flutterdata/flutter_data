@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.4.2] - June 1st, 2022
+
+- Hotfix: revert 9854a590fca5f73063636750911fe63bd4327f79
+
 ## [1.4.1] - June 1st, 2022
 
 - Allow easier overriding of `init`
