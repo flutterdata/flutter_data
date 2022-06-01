@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.4.1] - June 1st, 2022
+
+- Allow easier overriding of `init`
+- Improved logging
+
 ## [1.4.0] - May 28th, 2022
 
 - `init` is no longer by default required (can be switched off via `autoInitializeModels`)

@@ -9,11 +9,7 @@
 
 ## Persistent reactive models in Flutter with zero boilerplate
 
-Flutter Data is an offline-first persistence framework that gives you a configurable REST client and powerful model relationships.
-
-Heavily inspired by [Ember Data](https://github.com/emberjs/data) and [ActiveRecord](https://guides.rubyonrails.org/active_record_basics.html)
-
----
+Flutter Data is an offline-first persistence framework that provides a powerful convention-over-configuration REST client and model relationships. Inspired by [Ember Data](https://github.com/emberjs/data) and [ActiveRecord](https://guides.rubyonrails.org/active_record_basics.html).
 
 ## Features
 
@@ -30,22 +26,18 @@ Heavily inspired by [Ember Data](https://github.com/emberjs/data) and [ActiveRec
   - Automatically synchronized, fully traversable relationship graph
   - Reactive relationships
 
-**Check out the [Documentation](https://flutterdata.dev) or the [Tutorial](https://flutterdata.dev/tutorial) 📚 where we build a TO-DO app from the ground up in record time.**
-
-## Set up
-
-See the [quickstart guide](https://flutterdata.dev/docs/quickstart/) for setup and boot configuration.
-
-Prefer an example? Here's the Flutter Data [sample setup app](https://github.com/flutterdata/flutter_data_setup_app) with support for Riverpod, Provider and get_it.
+**Check out the [Tutorial](https://flutterdata.dev/tutorial) 📚 where we build a TO-DO app from the ground up in record time.**
 
 ## 👩🏾‍💻 Usage
+
+(See the [quickstart guide](https://flutterdata.dev/docs/quickstart/) for setup and boot configuration.)
 
 For a given `User` model annotated with `@DataRepository`:
 
 ```dart
 @JsonSerializable()
 @DataRepository([MyJSONServerAdapter])
-class User with DataModel<User> {
+class User extends DataModel<User> {
   @override
   final int? id; // ID can be of any type
   final String name;
@@ -59,8 +51,7 @@ mixin MyJSONServerAdapter on RemoteAdapter<User> {
 }
 ```
 
-After a code-gen build, Flutter Data will generate a `Repository<User>`
-and utilities such as `userProvider` and `ref.users.watchOne` (Riverpod only):
+After a code-gen build, Flutter Data will generate a `Repository<User>` (and shortcuts like `ref.users` for Riverpod):
 
 ```dart
 @override
@@ -74,9 +65,7 @@ Widget build(BuildContext context, WidgetRef ref) {
 }
 ```
 
-`ref.users.watchOne(1)` is a handy shortcut to the `userProvider` which provides `ref.watch(usersRepositoryProvider).watchOneNotifier(1)`.
-
-Let's see how to update the user:
+Update the user:
 
 ```dart
 TextButton(
@@ -85,7 +74,7 @@ TextButton(
 ),
 ```
 
-`ref.users.watchOne(1)` will make an HTTP request (to `https://my-json-server.typicode.com/flutterdata/demo/users/1` in this case), parse the incoming JSON and listen for any further changes to the `User` – whether those are local or remote!
+`ref.users.watchOne(1)` will make a background HTTP request (to `https://my-json-server.typicode.com/flutterdata/demo/users/1` in this case), deserialize data and listen for any further changes to the `User` – whether those are local or remote!
 
 `state` is of type `DataState` which has loading, error and data substates.
 
@@ -93,22 +82,21 @@ In addition to the reactivity, `DataModel`s get extensions and automatic relatio
 
 ```dart
 GestureDetector(
-  onTap: () =>
-      User(id: 1, name: 'Updated').init(ref.read).save(),
+  onTap: () => User(id: 1, name: 'Updated').save(),
   child: Text('Update')
 ),
 ```
 
-Some other examples:
+More examples:
 
 ```dart
-final todo = await Todo(title: 'Finish docs').init(ref.read).save();
+final todo = await Todo(title: 'Finish docs').save();
 // or its equivalent:
 final todo = await ref.todos.save(Todo(title: 'Finish docs'));
 // POST https://my-json-server.typicode.com/flutterdata/demo/todos/
 print(todo.id); // 201
 
-final user = await repository.findOne(1, params: { '_embed': 'todos' });
+final user = await repository.findOne(1, params: {'_embed': 'todos'});
 // (remember repository can be accessed via ref.users)
 // GET https://my-json-server.typicode.com/flutterdata/demo/users/1?_embed=todos
 print(user.todos.length); // 20
@@ -117,8 +105,6 @@ await user.todos.last.delete();
 ```
 
 **Explore the [Documentation](https://flutterdata.dev/docs/).**
-
-Fully functional app built with Flutter Data? See the code for the finished **[Flutter Data Tasks App](https://github.com/flutterdata/tutorial)**.
 
 ## Compatibility
 
@@ -182,7 +168,7 @@ Fully compatible with the tools we know and love:
   </tbody>
 </table>
 
-## 📲 Apps using Flutter Data
+## 📲 Apps using Flutter Data in production
 
 ![logos](https://user-images.githubusercontent.com/66403/115444364-79053f80-a1e2-11eb-9498-ee86718a4be5.png)
 
