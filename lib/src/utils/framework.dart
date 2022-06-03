@@ -201,18 +201,18 @@ extension _ToStringX on DataRequestMethod {
 }
 
 typedef _OnSuccessGeneric<R> = FutureOr<R?> Function(
-    Object? data, DataRequestLabel? label);
+    Object? data, DataRequestLabel label);
 typedef OnSuccessOne<T extends DataModel<T>> = FutureOr<T?> Function(
-    Object? data, DataRequestLabel? label, RemoteAdapter<T> adapter);
+    Object? data, DataRequestLabel label, RemoteAdapter<T> adapter);
 typedef OnSuccessAll<T extends DataModel<T>> = FutureOr<List<T>?> Function(
-    Object? data, DataRequestLabel? label, RemoteAdapter<T> adapter);
+    Object? data, DataRequestLabel label, RemoteAdapter<T> adapter);
 
 typedef _OnErrorGeneric<R> = FutureOr<R?> Function(
-    DataException e, DataRequestLabel? label);
+    DataException e, DataRequestLabel label);
 typedef OnErrorOne<T extends DataModel<T>> = FutureOr<T?> Function(
-    DataException e, DataRequestLabel? label, RemoteAdapter<T> adapter);
+    DataException e, DataRequestLabel label, RemoteAdapter<T> adapter);
 typedef OnErrorAll<T extends DataModel<T>> = FutureOr<List<T>?> Function(
-    DataException e, DataRequestLabel? label, RemoteAdapter<T> adapter);
+    DataException e, DataRequestLabel label, RemoteAdapter<T> adapter);
 
 /// Data request information holder.
 ///
@@ -225,6 +225,7 @@ class DataRequestLabel with EquatableMixin {
   late final String type;
   final String? id;
   DataModel? model;
+  final timestamp = DateTime.now();
   final _requestIds = <String>[];
 
   String get requestId => _requestIds.first;

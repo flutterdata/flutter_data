@@ -10,7 +10,7 @@ abstract class DataModel<T extends DataModel<T>> {
   DataModel() {
     final repository = internalRepositories[_internalType];
     if (repository != null) {
-      repository.remoteAdapter.initModel(this);
+      repository.remoteAdapter._initModel(this);
     }
   }
 
@@ -55,7 +55,6 @@ abstract class DataModel<T extends DataModel<T>> {
   /// Copy identity (internal key) from an old model to a new one
   /// to signal they are the same.
   T was(T model, {bool ignoreId = false}) {
-    remoteAdapter.initModel(model);
     if (model._key != _key) {
       T oldModel;
       T newModel;

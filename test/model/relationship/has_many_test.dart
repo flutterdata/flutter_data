@@ -24,26 +24,10 @@ void main() async {
     expect(f1.persons.toString(), 'HasMany<Person>(1, 2, [${keyFor(p1)}])');
   });
 
-  test('behaves like a collection (without init/models)', () {
-    final anne = Person(name: 'Anne', age: 59);
-    final f1 = Familia(surname: 'Mayer', persons: {anne}.asHasMany);
-
-    f1.persons.add(anne);
-    f1.persons.add(anne);
-    expect(f1.persons.length, 1);
-
-    final agnes = Person(name: 'Agnes', age: 29);
-    f1.persons.add(agnes);
-    expect(f1.persons.length, 2);
-
-    f1.persons.remove(anne);
-    expect(f1.persons.toSet(), {agnes});
-  });
-
-  test('behaves like a collection (with init)', () {
-    final pete = Person(name: 'Pete', age: 29);
-    final anne = Person(name: 'Anne', age: 59);
-    final residence = House(address: '1322 Hill Rd');
+  test('behaves like a collection', () {
+    final pete = Person(name: 'Pete', age: 29).saveLocal();
+    final anne = Person(name: 'Anne', age: 59).saveLocal();
+    final residence = House(address: '1322 Hill Rd').saveLocal();
     final f2 = Familia(
       surname: 'Sumberg',
       persons: {pete}.asHasMany,
@@ -67,8 +51,9 @@ void main() async {
   });
 
   test('assignment with relationship initialized & uninitialized', () {
-    final familia = Familia(id: '1', surname: 'Smith', persons: HasMany());
-    final person = Person(id: '1', name: 'Flavio', age: 12);
+    final familia =
+        Familia(id: '1', surname: 'Smith', persons: HasMany()).saveLocal();
+    final person = Person(id: '1', name: 'Flavio', age: 12).saveLocal();
 
     familia.persons.add(person);
     expect(familia.persons.contains(person), isTrue);
@@ -82,14 +67,14 @@ void main() async {
       id: '1',
       surname: 'Smith',
       persons: HasMany<Person>(),
-    );
+    ).saveLocal();
 
     final notifier = familia.persons.watch();
     final listener = Listener<Set<Person>>();
     dispose = notifier.addListener(listener, fireImmediately: false);
 
-    final p1 = Person(name: 'a', age: 1);
-    final p2 = Person(name: 'b', age: 2);
+    final p1 = Person(name: 'a', age: 1).saveLocal();
+    final p2 = Person(name: 'b', age: 2).saveLocal();
 
     familia.persons.add(p1);
     await oneMs();

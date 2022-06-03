@@ -16,7 +16,7 @@ void main() async {
 
   test('watchAllNotifier/findAll and findOne', () async {
     // cause network issue
-    container.read(responseProvider.notifier).state = TestResponse(text: (_) {
+    container.read(responseProvider.notifier).state = TestResponse((_) {
       throw HandshakeException('Connection terminated during handshake');
     });
 
@@ -67,7 +67,7 @@ void main() async {
 
     // network issue persisting familia
     container.read(responseProvider.notifier).state =
-        TestResponse(text: (_) => throw SocketException('unreachable'));
+        TestResponse((_) => throw SocketException('unreachable'));
 
     await container.familia.save(
       familia,
@@ -139,7 +139,7 @@ void main() async {
 
     // change the response to: success for familia, failure for familia2
     container.read(responseProvider.notifier).state = TestResponse(
-      text: (req) {
+      (req) async {
         if (req.url.pathSegments.last == '1') {
           return '{"id": "1", "surname": "${req.headers['X-Override-Name']} ${req.url.queryParameters['overrideSecondName']}"}';
         }
@@ -156,7 +156,7 @@ void main() async {
         equals([familia2]));
 
     // change response to success for both familia and familia2
-    container.read(responseProvider.notifier).state = TestResponse(text: (req) {
+    container.read(responseProvider.notifier).state = TestResponse((req) async {
       return '{"id": "${req.url.pathSegments.last}", "surname": "Jones ${req.url.pathSegments.last}"}';
     });
 
@@ -169,7 +169,7 @@ void main() async {
 
     // simulate a network issue once again for familia3
     container.read(responseProvider.notifier).state =
-        TestResponse(text: (_) => throw SocketException('unreachable'));
+        TestResponse((_) => throw SocketException('unreachable'));
 
     final familia3 = Familia(id: '3', surname: 'Zweck');
     try {
@@ -204,8 +204,7 @@ void main() async {
 
     dispose = notifier.addListener(listener);
 
-    // init a familia
-    final familia = Familia(id: '1', surname: 'Smith');
+    final familia = Familia(id: '1', surname: 'Smith').saveLocal();
     await oneMs();
 
     // should show up through watchAllNotifier
@@ -214,7 +213,7 @@ void main() async {
     )).called(1);
 
     // network issue deleting familia
-    container.read(responseProvider.notifier).state = TestResponse(text: (_) {
+    container.read(responseProvider.notifier).state = TestResponse((_) {
       throw SocketException('unreachable');
     });
 
@@ -282,7 +281,7 @@ void main() async {
     await oneMs();
 
     // network issues
-    container.read(responseProvider.notifier).state = TestResponse(text: (_) {
+    container.read(responseProvider.notifier).state = TestResponse((_) {
       throw SocketException('unreachable');
     });
 
@@ -358,7 +357,7 @@ void main() async {
 
   test('custom request with body', () async {
     // network issue
-    container.read(responseProvider.notifier).state = TestResponse(text: (_) {
+    container.read(responseProvider.notifier).state = TestResponse((_) {
       throw SocketException('unreachable');
     });
 
@@ -385,7 +384,7 @@ void main() async {
 
     // return a success response
     container.read(responseProvider.notifier).state = TestResponse(
-      text: (req) {
+      (req) async {
         // assert headers are included in the retry
         expect(req.headers['X-Sats'], equals('9389173717732'));
         expect(json.decode(req.body), {'a': 2});
@@ -420,7 +419,7 @@ void main() async {
 
   test('findOne scenario issue #118', () async {
     // cause network issue
-    container.read(responseProvider.notifier).state = TestResponse(text: (_) {
+    container.read(responseProvider.notifier).state = TestResponse((_) {
       throw HandshakeException('Connection terminated during handshake');
     });
 
@@ -433,7 +432,7 @@ void main() async {
     await container.familia.findOne('1', remote: true);
 
     // cause network issue
-    container.read(responseProvider.notifier).state = TestResponse(text: (_) {
+    container.read(responseProvider.notifier).state = TestResponse((_) {
       throw HandshakeException('Connection terminated during handshake');
     });
 

@@ -50,7 +50,7 @@ void main() async {
   });
 
   test('create and save', () async {
-    final house = House(id: '25', address: '12 Lincoln Rd');
+    final house = House(id: '25', address: '12 Lincoln Rd').saveLocal();
     // repo.findOne works because the House repo is remote=false
     expect(await container.houses.remoteAdapter.findOne(house.id!), house);
   });
@@ -66,7 +66,7 @@ void main() async {
 
   test('delete', () async {
     final adapter = container.people.remoteAdapter;
-    // init a person
+
     final person = Person(id: '1', name: 'John', age: 21);
     // it does have a key
     expect(graph.getKeyForId('people', person.id), isNotNull);
@@ -90,12 +90,12 @@ void main() async {
     expect(await adapter.hello(), 'hello');
 
     container.read(responseProvider.notifier).state =
-        TestResponse(text: (req) => req.headers['response']!);
+        TestResponse((req) async => req.headers['response']!);
     expect(await adapter.hello(useDefaultHeaders: true),
         'not the message you sent');
 
     container.read(responseProvider.notifier).state =
-        TestResponse(text: (req) => '{"url" : "${req.url.toString()}"}');
+        TestResponse((req) async => '{"url" : "${req.url.toString()}"}');
     expect(await adapter.url({'a': 1}),
         'https://override-base-url-in-adapter/url?a=1');
     expect(await adapter.url({'b': 2}, useDefaultParams: true),
@@ -214,5 +214,70 @@ void main() async {
     final key3 = adapter.keyForModelOrId(p3);
     final key3b = graph.getKeyForId('people', '22');
     expect(key3, key3b);
+  });
+
+  test('ordered save requests', () async {
+    final p1 = Person(id: '1', name: 'Frank');
+
+    // we use age as a counter
+    container.read(responseProvider.notifier).state = TestResponse((_) =>
+        Future.delayed(Duration(milliseconds: 1),
+            () => '{"_id": "1", "name":"Frank","age":1}'));
+
+    p1.save(remote: true).then((value) => expect(value.age, 1));
+
+    // need to await to give time to register the TestResponse
+    await oneMs();
+
+    container.read(responseProvider.notifier).state =
+        TestResponse((_) async => '{"_id": "1", "name":"Frank","age":2}');
+
+    p1.save(remote: true).then((value) => expect(value.age, 2));
+
+    // await for callbacks
+    await oneMs();
+
+    // the latest response (ordered by request time) `age` is 2, assert that
+    final latest = await container.people.findOne('1', remote: false);
+    expect(latest!.age, 2);
+  });
+
+  test('ordered find requests', () async {
+    container.read(responseProvider.notifier).state = TestResponse((_) =>
+        Future.delayed(Duration(milliseconds: 1),
+            () => '{"_id": "1", "name":"Frank","age":1}'));
+
+    container.people
+        .findOne('1', remote: true)
+        .then((value) => expect(value!.age, 1));
+
+    // need to await to give time to register the TestResponse
+    await oneMs();
+
+    container.read(responseProvider.notifier).state =
+        TestResponse((_) async => '{"_id": "1", "name":"Frank","age":2}');
+
+    container.people
+        .findOne('1', remote: true)
+        .then((value) => expect(value!.age, 2));
+
+    // need to await to give time to register the TestResponse
+    await oneMs();
+
+    // this will be for sure the slowest response - but the last so it should prevail
+    container.read(responseProvider.notifier).state = TestResponse((_) =>
+        Future.delayed(Duration(milliseconds: 6),
+            () => '{"_id": "1", "name":"Frank","age":4}'));
+
+    container.people
+        .findOne('1', remote: true)
+        .then((value) => expect(value!.age, 4));
+
+    // await for all callbacks
+    await Future.delayed(Duration(milliseconds: 9));
+
+    // the latest response (ordered by request time) `age` is 4, assert that
+    final latest = await container.people.findOne('1', remote: false);
+    expect(latest!.age, 4);
   });
 }

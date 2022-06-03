@@ -34,7 +34,7 @@ void main() async {
   test('deserialize existing (with save)', () {
     final familiaLocalAdapter = container.familia.remoteAdapter.localAdapter
         as HiveLocalAdapter<Familia>;
-    final familia = Familia(surname: 'Moletto');
+    final familia = Familia(surname: 'Moletto').saveLocal();
 
     // simulate "save"
     graph.getKeyForId('familia', '1098', keyIfAbsent: keyFor(familia));
@@ -138,8 +138,10 @@ void main() async {
     };
 
     final familia = familiaLocalAdapter.deserialize(obj);
-    House(id: '1', address: '123 Main St', owner: familia.asBelongsTo);
-    Person(id: '1', name: 'John', age: 21, familia: familia.asBelongsTo);
+    House(id: '1', address: '123 Main St', owner: familia.asBelongsTo)
+        .saveLocal();
+    Person(id: '1', name: 'John', age: 21, familia: familia.asBelongsTo)
+        .saveLocal();
 
     expect(familia, Familia(id: '1', surname: 'Smith'));
     expect(familia.residence.value!.address, '123 Main St');
@@ -155,7 +157,7 @@ void main() async {
   });
 
   test('relationships with serialized=false', () {
-    final familia = Familia(id: '1', surname: 'Test');
+    final familia = Familia(id: '1', surname: 'Test').saveLocal();
     var house = container.houses.remoteAdapter.localAdapter.deserialize({
       'id': '99',
       'address': '456 Far Trail',
@@ -164,7 +166,7 @@ void main() async {
     final book = container.books.remoteAdapter.localAdapter.deserialize({
       'id': 1,
       'house': keyFor(house), // since it's a localAdapter deserialization
-    });
+    }).saveLocal();
     expect(house.currentLibrary!.toList(), {book});
 
     final map = container.houses.remoteAdapter.localAdapter.serialize(house);

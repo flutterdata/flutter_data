@@ -11,9 +11,9 @@ void main() async {
   setUp(setUpFn);
   tearDown(tearDownFn);
 
-  test('init', () async {
+  test('save', () async {
     final familia = Familia(id: '55', surname: 'Kelley');
-    expect(await container.familia.findOne('55', remote: false), isNotNull);
+    expect(await container.familia.findOne('55', remote: false), isNull);
 
     final person =
         Person(id: '1', name: 'John', age: 27, familia: familia.asBelongsTo);
@@ -24,6 +24,12 @@ void main() async {
 
     // (2) it saves the model locally
     expect(person, await container.people.findOne(person.id!, remote: false));
+  });
+
+  test('on model init', () async {
+    final child = Node(id: 3, name: 'child');
+    // child is saved on model init, so it should find it
+    expect(await container.nodes.findOne(3), child);
   });
 
   test('was', () {
@@ -78,26 +84,6 @@ void main() async {
     expect(graph.getKeyForId('people', '8'), keyFor(p7));
   });
 
-  test('overridden init with save: false', () async {
-    final child = Node(id: 3, name: 'child');
-    final node = Node(name: 'parent', children: {child}.asHasMany);
-    expect(node.children!.keys, {keyFor(child)});
-
-    // model is not auto-saved, so it should not find it
-    expect(await container.nodes.findOne(3), isNull);
-
-    // since testing on web is a complete pain in the ass, skip this last part
-    const kIsWeb = identical(0, 0.0);
-    if (kIsWeb) return;
-
-    expect(node.toString(),
-        'Node(id: null, name: parent, parent: null, children: HasMany<Node>(3))');
-
-    final n = Node(name: 'parent');
-    final n2 = n;
-    n2.copyWith(name: 'parent2').was(n2);
-  });
-
   test('findOne (remote reload)', () async {
     var familia = await Familia(id: '1', surname: 'Perez').save(remote: true);
     familia = Familia(id: '1', surname: 'Perez Gomez');
@@ -115,7 +101,7 @@ void main() async {
   test('delete model with and without ID', () async {
     final adapter = container.people.remoteAdapter.localAdapter;
     // create a person WITH ID and assert it's there
-    final person = Person(id: '21103', name: 'John', age: 54);
+    final person = Person(id: '21103', name: 'John', age: 54).saveLocal();
     expect(adapter.findAll(), hasLength(1));
 
     // delete that person and assert it's not there
@@ -123,7 +109,7 @@ void main() async {
     expect(adapter.findAll(), hasLength(0));
 
     // create a person WITHOUT ID and assert it's there
-    final person2 = Person(name: 'Peter', age: 101);
+    final person2 = Person(name: 'Peter', age: 101).saveLocal();
     expect(adapter.findAll(), hasLength(1));
 
     // delete that person and assert it's not there
@@ -133,7 +119,7 @@ void main() async {
 
   test('should reuse key', () {
     // id-less person
-    final p1 = Person(name: 'Frank', age: 20);
+    final p1 = Person(name: 'Frank', age: 20).saveLocal();
     expect(
         (container.people.remoteAdapter.localAdapter
                 as HiveLocalAdapter<Person>)
@@ -164,8 +150,8 @@ void main() async {
   });
 
   test('should work with subclasses', () {
-    final dog = Dog(id: '2', name: 'Walker');
-    final f = Familia(surname: 'Walker', dogs: {dog}.asHasMany);
+    final dog = Dog(id: '2', name: 'Walker').saveLocal();
+    final f = Familia(surname: 'Walker', dogs: {dog}.asHasMany).saveLocal();
     expect(f.dogs!.first.name, 'Walker');
   });
 

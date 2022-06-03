@@ -42,7 +42,7 @@ void main() async {
     final listener = Listener<DataState<List<Familia>?>?>();
 
     container.read(responseProvider.notifier).state =
-        TestResponse(text: (_) => throw Exception('unreachable'));
+        TestResponse((_) => throw Exception('unreachable'));
     final notifier = container.familia.watchAllNotifier();
 
     dispose = notifier.addListener(listener);
@@ -125,7 +125,7 @@ void main() async {
     final listener = Listener<DataState<Familia?>?>();
 
     container.read(responseProvider.notifier).state = TestResponse(
-      text: (_) => throw Exception('whatever'),
+      (_) => throw Exception('whatever'),
     );
     final notifier = container.familia.watchOneNotifier('1');
 
@@ -142,7 +142,7 @@ void main() async {
     verifyNoMoreInteractions(listener);
 
     container.read(responseProvider.notifier).state =
-        TestResponse(text: (_) => throw Exception('unreachable'));
+        TestResponse((_) => throw Exception('unreachable'));
 
     await notifier.reload();
     await oneMs();
@@ -261,7 +261,8 @@ void main() async {
       () async {
     // simulate Familia that exists in local storage
     // important to keep to test `alsoWatch` assignment order
-    final familia = Familia(id: '1', surname: 'Paez', persons: HasMany());
+    final familia =
+        Familia(id: '1', surname: 'Paez', persons: HasMany()).saveLocal();
 
     final listener = Listener<DataState<Familia?>?>();
 
@@ -271,7 +272,7 @@ void main() async {
     // we don't want it to immediately notify the default local model
     dispose = notifier.addListener(listener, fireImmediately: false);
 
-    familia.persons.add(Person(id: '1', name: 'Ricky'));
+    familia.persons.add(Person(id: '1', name: 'Ricky').saveLocal());
     await oneMs();
 
     verify(listener(DataState(familia))).called(1);
@@ -433,16 +434,16 @@ void main() async {
     verifyNever(listener(DataState([p3], isLoading: false)));
     verifyNoMoreInteractions(listener);
 
-    expect(container.people.watchAll(), DataState<List<Person>?>([p3]));
+    expect(container.people.watchAll(), DataState<List<Person>?>([p2]));
   });
 
   test('watchAllNotifier with where/map', () async {
     final listener = Listener<DataState<List<Person>?>>();
 
-    Person(id: '1', name: 'Zof', age: 23);
-    Person(id: '2', name: 'Sarah', age: 50);
-    Person(id: '3', name: 'Walter', age: 11);
-    Person(id: '4', name: 'Koen', age: 92);
+    Person(id: '1', name: 'Zof', age: 23).saveLocal();
+    Person(id: '2', name: 'Sarah', age: 50).saveLocal();
+    Person(id: '3', name: 'Walter', age: 11).saveLocal();
+    Person(id: '4', name: 'Koen', age: 92).saveLocal();
 
     final notifier = container.people
         .watchAllNotifier()
@@ -502,8 +503,8 @@ void main() async {
   });
 
   test('watchOneNotifier reads latest version', () async {
-    Person(id: '345', name: 'Frank', age: 30);
-    Person(id: '345', name: 'Steve-O', age: 34);
+    Person(id: '345', name: 'Frank', age: 30).saveLocal();
+    Person(id: '345', name: 'Steve-O', age: 34).saveLocal();
 
     final notifier = container.people.watchOneNotifier('345');
 
@@ -513,13 +514,15 @@ void main() async {
   });
 
   test('watchOneNotifier with custom finder', () async {
-    // initialize a book in local storage, so we can later link it to the author
-    final author = BookAuthor(id: 1, name: 'Robert', books: HasMany());
+    // save a book in local storage, so we can later link it to the author
+    final author =
+        BookAuthor(id: 1, name: 'Robert', books: HasMany()).saveLocal();
     Book(
-        id: 1,
-        title: 'Choice',
-        originalAuthor: author.asBelongsTo,
-        ardentSupporters: HasMany());
+            id: 1,
+            title: 'Choice',
+            originalAuthor: author.asBelongsTo,
+            ardentSupporters: HasMany())
+        .saveLocal();
 
     // update the author
     container.read(responseProvider.notifier).state = TestResponse.text('''
@@ -550,7 +553,7 @@ void main() async {
       persons: HasMany(),
       residence: BelongsTo(),
       cottage: BelongsTo(),
-    );
+    ).saveLocal();
 
     final listener = Listener<DataState<Familia?>?>();
 
@@ -562,7 +565,7 @@ void main() async {
 
     dispose = notifier.addListener(listener);
 
-    final p1 = Person(id: '1', name: 'Frank', age: 16);
+    final p1 = Person(id: '1', name: 'Frank', age: 16).saveLocal();
 
     final matcher = isA<DataState>()
         .having((s) => s.model.persons!, 'persons', isEmpty)
@@ -583,7 +586,7 @@ void main() async {
 
     verify(listener(argThat(matcher2))).called(1);
 
-    f1.persons.add(Person(name: 'Martin', age: 44)); // this time without init
+    f1.persons.add(Person(name: 'Martin', age: 44).saveLocal());
     await oneMs();
 
     verify(listener(argThat(
@@ -591,7 +594,7 @@ void main() async {
     ))).called(1);
     verifyNoMoreInteractions(listener);
 
-    f1.residence.value = House(address: '123 Main St'); // no init
+    f1.residence.value = House(address: '123 Main St').saveLocal();
     await oneMs();
 
     verify(listener(argThat(
@@ -609,7 +612,7 @@ void main() async {
     verifyNoMoreInteractions(listener);
 
     // a non-watched relationship does not trigger
-    f1.cottage.value = House(address: '7342 Mountain Rd');
+    f1.cottage.value = House(address: '7342 Mountain Rd').saveLocal();
     await oneMs();
 
     verifyNever(listener(any));
@@ -758,7 +761,8 @@ void main() async {
   });
 
   test('notifier equality', () async {
-    final bookAuthor = BookAuthor(id: 1, name: 'Billy', books: HasMany());
+    final bookAuthor =
+        BookAuthor(id: 1, name: 'Billy', books: HasMany()).saveLocal();
 
     final defaultNotifier = container.bookAuthors.watchOneNotifier(1);
 

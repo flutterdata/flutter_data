@@ -67,7 +67,7 @@ void main() async {
   test('findAll with error', () async {
     expect(() async {
       container.read(responseProvider.notifier).state = TestResponse(
-          text: (_) => '''&*@~&^@^&!(@*(@#{ "id": "1", "surname": "Smith" }''',
+          (_) async => '''&*@~&^@^&!(@*(@#{ "id": "1", "surname": "Smith" }''',
           statusCode: 203);
       await container.familia.findAll();
     }, throwsA(isA<DataException>()));
@@ -143,7 +143,7 @@ void main() async {
 
     expect(() async {
       container.read(responseProvider.notifier).state = TestResponse(
-          text: (_) => '''&*@~&^@^&!(@*(@#{ "id": "1", "surname": "Smith" }''',
+          (_) async => '''&*@~&^@^&!(@*(@#{ "id": "1", "surname": "Smith" }''',
           statusCode: 203);
       await container.familia.findOne('1');
     }, throwsA(error203));
@@ -163,7 +163,8 @@ void main() async {
   test('not found does not throw by default', () async {
     expect(() async {
       container.read(responseProvider.notifier).state = TestResponse(
-          text: (_) => '{ "error": "not found" }', statusCode: 404);
+          (_) async => '{ "error": "not found" }',
+          statusCode: 404);
       await container.familia.findOne('2');
     }, returnsNormally);
 
@@ -174,7 +175,8 @@ void main() async {
 
     expect(() async {
       container.read(responseProvider.notifier).state = TestResponse(
-          text: (_) => '{ "error": "not found" }', statusCode: 404);
+          (_) async => '{ "error": "not found" }',
+          statusCode: 404);
       await container.familia.findOne('2', onError: (e, _, __) => throw e);
     },
         throwsA(isA<DataException>().having(
@@ -189,7 +191,7 @@ void main() async {
 
   test('socket exception does not throw by default', () async {
     container.read(responseProvider.notifier).state =
-        TestResponse(text: (_) => throw SocketException('unreachable'));
+        TestResponse((_) => throw SocketException('unreachable'));
     await container.familia.findOne(
       'error',
       onError: (e, _, __) {
@@ -207,6 +209,7 @@ void main() async {
     final familia = Familia(id: '1', surname: 'Smith');
     container.read(responseProvider.notifier).state = TestResponse.text('');
     await container.familia.save(familia);
+
     // and it can be found again locally
     expect(familia, await container.familia.findOne('1', remote: false));
 
@@ -214,14 +217,14 @@ void main() async {
     container.read(responseProvider.notifier).state =
         TestResponse.text('{"id": "2", "surname": "Jones Saved"}');
     await container.familia.save(Familia(id: '2', surname: 'Jones'));
+
     // and it can be found again locally
     final familia2 = await container.familia.findOne('2', remote: false);
     expect(familia2!.surname, 'Jones Saved');
   });
 
   test('delete', () async {
-    // init a person
-    final person = Person(id: '1', name: 'John', age: 21);
+    final person = Person(id: '1', name: 'John', age: 21).saveLocal();
     // it does have a key
     expect(keyFor(person), isNotNull);
 
@@ -355,7 +358,7 @@ void main() async {
 
     try {
       container.read(responseProvider.notifier).state =
-          TestResponse(text: (_) => '^@!@#(#(@#)#@', statusCode: 500);
+          TestResponse((_) async => '^@!@#(#(@#)#@', statusCode: 500);
       await container.dogs.findOne('1', remote: true);
     } catch (_) {
       expect(logging.last, contains('FormatException'));
@@ -370,7 +373,7 @@ void main() async {
 
   test('find one with utf8 characters', () async {
     container.read(responseProvider.notifier).state = TestResponse(
-      text: (req) => '{ "id": "1", "surname": "عمر" }',
+      (req) async => '{ "id": "1", "surname": "عمر" }',
       headers: {'content-type': 'application/json; charset=utf-8'},
     );
     final familia = await container.familia.findOne(1);

@@ -14,16 +14,16 @@ void main() async {
   tearDown(tearDownFn);
 
   test('id + toString', () {
-    final person = Person(name: 'Test', familia: BelongsTo());
-    person.familia.value = Familia(id: '1', surname: 'Sanchez');
+    final person = Person(name: 'Test', familia: BelongsTo()).saveLocal();
+    person.familia.value = Familia(id: '1', surname: 'Sanchez').saveLocal();
     expect(person.familia.value!.id, person.familia.id);
     expect(person.familia.toString(), 'BelongsTo<Familia>(1)');
   });
 
-  test('set owner in relationships (before & after init)', () {
-    final person = Person(id: '1', name: 'John', age: 37);
-    final house = House(id: '31', address: '123 Main St');
-    final house2 = House(id: '2', address: '456 Main St');
+  test('set owner in relationships', () {
+    final person = Person(id: '1', name: 'John', age: 37).saveLocal();
+    final house = House(id: '31', address: '123 Main St').saveLocal();
+    final house2 = House(id: '2', address: '456 Main St').saveLocal();
 
     final familia = Familia(
         id: '1',
@@ -31,12 +31,6 @@ void main() async {
         residence: BelongsTo<House>(house),
         persons: HasMany<Person>({person}));
 
-    // values are there even if familia (and its relationships) are not init'd
-    expect(familia.residence.value, house);
-    expect(familia.persons.toSet(), {person});
-    expect(familia.persons, equals(familia.persons));
-
-    // after init, values remain the same
     expect(familia.residence.value, house);
     expect(familia.persons.toSet(), {person});
     expect(familia.persons, equals(familia.persons));
@@ -56,8 +50,9 @@ void main() async {
 
   test('assignment with relationship initialized & uninitialized', () {
     final familia =
-        Familia(id: '1', surname: 'Smith', residence: BelongsTo<House>());
-    final house = House(id: '1', address: '456 Lemon Rd');
+        Familia(id: '1', surname: 'Smith', residence: BelongsTo<House>())
+            .saveLocal();
+    final house = House(id: '1', address: '456 Lemon Rd').saveLocal();
 
     familia.residence.value = house;
     expect(familia.residence.value, house);
@@ -71,19 +66,21 @@ void main() async {
       id: '22',
       surname: 'Besson',
       residence: BelongsTo<House>(),
-    );
+    ).saveLocal();
 
     final notifier = familia.residence.watch();
     final listener = Listener<House?>();
     dispose = notifier.addListener(listener, fireImmediately: false);
 
-    familia.residence.value = House(id: '2', address: '456 Main St');
+    familia.residence.value =
+        House(id: '2', address: '456 Main St').saveLocal();
 
     verify(listener(argThat(
       isA<House>().having((h) => h.address, 'address', startsWith('456')),
     ))).called(1);
 
-    familia.residence.value = House(id: '1', address: '123 Main St');
+    familia.residence.value =
+        House(id: '1', address: '123 Main St').saveLocal();
 
     verify(listener(argThat(
       isA<House>().having((h) => h.address, 'address', startsWith('123')),
@@ -96,26 +93,29 @@ void main() async {
   });
 
   test('inverses work when reusing a relationship', () {
-    final person = Person(name: 'Cecil', age: 2);
-    final house = House(id: '1', address: '21 Coconut Trail');
+    final person = Person(name: 'Cecil', age: 2).saveLocal();
+    final house = House(id: '1', address: '21 Coconut Trail').saveLocal();
     final familia = Familia(
       id: '2',
       surname: 'Raoult',
       residence: house.asBelongsTo,
       persons: {person}.asHasMany,
-    );
+    ).saveLocal();
 
     // adds the inverse relationship
     expect(familia.persons.length, 1);
-    Person(name: 'Junior', age: 12, familia: house.owner.value!.asBelongsTo);
+    Person(name: 'Junior', age: 12, familia: house.owner.value!.asBelongsTo)
+        .saveLocal();
     expect(familia.persons.length, 2);
 
     // an empty reused relationship should not fail
     final house2 =
-        House(id: '17', address: '798 Birkham Rd', owner: BelongsTo<Familia>());
+        House(id: '17', address: '798 Birkham Rd', owner: BelongsTo<Familia>())
+            .saveLocal();
 
     // trying to add walter to a null familia does nothing
-    Person(name: 'Walter', age: 55, familia: house2.owner.value?.asBelongsTo);
+    Person(name: 'Walter', age: 55, familia: house2.owner.value?.asBelongsTo)
+        .saveLocal();
 
     expect(familia.persons.length, 2);
   });
@@ -134,7 +134,7 @@ void main() async {
   });
 
   test('self ref', () {
-    final house = House(address: '22 Peak Rd');
+    final house = House(address: '22 Peak Rd').saveLocal();
     expect(house.house.value, house);
   });
 }

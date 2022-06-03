@@ -54,6 +54,6 @@ mixin BookAuthorAdapter on RemoteAdapter<BookAuthor> {
     DataRequestLabel? label,
   }) async {
     final model = await findOne(id, remote: remote);
-    return model!.copyWith(name: model.name?.toUpperCase());
+    return model!.copyWith(name: model.name?.toUpperCase()).saveLocal();
   }
 }

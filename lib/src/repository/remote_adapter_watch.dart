@@ -147,6 +147,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     T? _getUpdatedModel({DataStateNotifier<T?>? withNotifier}) {
       final model = localAdapter.findOne(key);
       if (model != null) {
+        _initModel(model);
         // get all metas provided via `alsoWatch`
         final metas = alsoWatch
             ?.call(RelationshipGraphNode<T>())

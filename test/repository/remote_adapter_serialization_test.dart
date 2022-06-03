@@ -52,7 +52,6 @@ void main() async {
     expect(json.encode(serialized), isA<String>());
 
     // also test a class without @JsonSerializable(explicitToJson: true)
-    // (and manual init!)
     final children = {
       Node(id: 2, name: 'a1'),
       Node(id: 3, name: 'a2'),
@@ -92,7 +91,7 @@ void main() async {
     ]))
         .model!;
 
-    Familia(id: '1', surname: 'Kong');
+    Familia(id: '1', surname: 'Kong').saveLocal();
 
     expect(p.familia.key, isNull);
 
@@ -101,15 +100,16 @@ void main() async {
     ]);
     final p1 = p1d.model!;
 
-    Familia(id: '332', surname: 'Tao');
+    Familia(id: '332', surname: 'Tao').saveLocal();
 
     expect(p1.familia.value!.id, '332');
 
     final p2 = Person(
-        id: '27',
-        name: 'Ko',
-        age: 24,
-        familia: Familia(id: '332', surname: 'Tao').asBelongsTo);
+            id: '27',
+            name: 'Ko',
+            age: 24,
+            familia: Familia(id: '332', surname: 'Tao').asBelongsTo)
+        .saveLocal();
 
     expect(p1, p2);
 
@@ -169,12 +169,15 @@ void main() async {
     );
 
     final f1 = data.model!;
-    final f2 = Familia(id: '1', surname: 'Byrde');
+    for (final include in data.included) {
+      include.saveLocal();
+    }
+    final f2 = Familia(id: '1', surname: 'Byrde').saveLocal();
 
     expect(f1, f2);
 
-    final p1 = Person(id: '1', name: 'Wendy', age: 58);
-    final p2 = Person(id: '2', name: 'Marty', age: 60);
+    final p1 = Person(id: '1', name: 'Wendy', age: 58).saveLocal();
+    final p2 = Person(id: '2', name: 'Marty', age: 60).saveLocal();
 
     // check included instead
     expect(data.included, [p1, p2, House(id: '1', address: '12345 Long Rd')]);
@@ -209,7 +212,7 @@ void main() async {
 
   test('deserializes/serializes with overriden json key for relationship',
       () async {
-    BookAuthor(id: 332, name: 'Zhung', books: HasMany());
+    BookAuthor(id: 332, name: 'Zhung', books: HasMany()).saveLocal();
 
     final deserialized = await container.books.remoteAdapter.deserialize([
       {'id': 27, 'title': 'Ko', 'original_author_id': 332}

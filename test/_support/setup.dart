@@ -27,7 +27,7 @@ void setUpFn() async {
         return MockClient((req) async {
           try {
             final response = ref.watch(responseProvider);
-            final text = response.text(req);
+            final text = await response.callback(req);
             return http.Response(text, response.statusCode,
                 headers: response.headers);
           } on ProviderException catch (e) {
@@ -140,19 +140,17 @@ final responseProvider =
     StateProvider<TestResponse>((_) => TestResponse.text(''));
 
 class TestResponse {
-  final String Function(http.Request) text;
+  final Future<String> Function(http.Request) callback;
   final int statusCode;
   final Map<String, String> headers;
 
-  const TestResponse({
-    required this.text,
+  const TestResponse(
+    this.callback, {
     this.statusCode = 200,
     this.headers = const {},
   });
 
-  factory TestResponse.text(String text) {
-    return TestResponse(text: (_) => text);
-  }
+  factory TestResponse.text(String text) => TestResponse((_) async => text);
 }
 
 extension ProviderContainerX on ProviderContainer {

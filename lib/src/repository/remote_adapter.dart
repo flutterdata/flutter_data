@@ -195,16 +195,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @override
   bool get isInitialized => localAdapter.isInitialized;
 
-  /// ONLY FOR FLUTTER DATA INTERNAL USE
-  Future<void> internalInitializeModels() async {
-    final models = localAdapter.findAll();
-    if (models != null) {
-      for (final model in models) {
-        initModel(model, save: false);
-      }
-    }
-  }
-
   @override
   void dispose() {
     localAdapter.dispose();
@@ -367,9 +357,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     }
   }
 
-  FutureOr<T?> onSuccessOne(Object? data, DataRequestLabel? label) =>
-      onSuccess<T>(data, label);
-
   Future<T> save(
     T model, {
     bool? remote,
@@ -480,6 +467,22 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @visibleForTesting
   http.Client get httpClient => http.Client();
 
+  final List<DataRequestLabel> _requestQueue = [];
+
+  bool _removeRequestAndEarlier(DataRequestLabel label) {
+    // remove any labels of the same kind prior to this one
+    // to bypass saving from stale responses
+    for (final _label in _requestQueue.toList()) {
+      if (_label.timestamp.isBefore(label.timestamp) &&
+          _label.type == label.type &&
+          _label.id == label.id &&
+          _label.kind == label.kind) {
+        _requestQueue.remove(_label);
+      }
+    }
+    return _requestQueue.remove(label);
+  }
+
   /// The function used to perform an HTTP request and return an [R].
   ///
   /// **IMPORTANT**:
@@ -545,6 +548,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       if (body != null) {
         request.body = body;
       }
+      // mark the request as sent with a label
+      _requestQueue.add(label);
       final stream = await client.send(request);
       response = await http.Response.fromStream(stream);
     } catch (err, stack) {
@@ -619,27 +624,31 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     }
   }
 
-  FutureOr<R?> onSuccess<R>(Object? data, DataRequestLabel? label) async {
+  FutureOr<R?> onSuccess<R>(Object? data, DataRequestLabel label) async {
     // remove all operations with this label
-    OfflineOperation.remove(label!, this as RemoteAdapter);
+    OfflineOperation.remove(label, this as RemoteAdapter);
+
+    final save = _removeRequestAndEarlier(label);
 
     if (label.kind == 'save') {
       if (label.model == null) {
         return null;
       }
-      var model = label.model as T;
-
       if (data == null) {
         // return original model if response was empty
-        return model as R?;
+        return label.model as R?;
       }
 
       // deserialize already inits models
       // if model had a key already, reuse it
       final deserialized = await deserialize(data as Map<String, dynamic>);
-      model = deserialized.model!.was(model).saveLocal();
+      final model = deserialized.model!.was(label.model as T);
 
-      log(label, 'saved in local storage and remote');
+      if (save) {
+        model.saveLocal();
+        log(label, 'saved in local storage and remote');
+      }
+
       return model as R?;
     }
 
@@ -649,22 +658,33 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     }
 
     final deserialized = await deserialize(data);
-    deserialized._log(this as RemoteAdapter, label);
 
     final isFindAll = label.kind.startsWith('findAll');
     final isFindOne = label.kind.startsWith('findOne');
     final isCustom = label.kind == 'custom';
 
     if (isFindAll || (isCustom && deserialized.model == null)) {
-      for (final model in [...deserialized.models, ...deserialized.included]) {
-        model.saveLocal();
+      if (save) {
+        for (final model in [
+          ...deserialized.models,
+          ...deserialized.included
+        ]) {
+          model.saveLocal();
+        }
+        deserialized._log(this as RemoteAdapter, label);
       }
       return deserialized.models as R?;
     }
 
     if (isFindOne || (isCustom && deserialized.model != null)) {
-      for (final model in [...deserialized.models, ...deserialized.included]) {
-        model.saveLocal();
+      if (save) {
+        for (final model in [
+          ...deserialized.models,
+          ...deserialized.included
+        ]) {
+          model.saveLocal();
+        }
+        deserialized._log(this as RemoteAdapter, label);
       }
       return deserialized.model as R?;
     }
@@ -683,6 +703,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     DataException e,
     DataRequestLabel? label,
   ) {
+    _requestQueue.remove(label);
     if (e.statusCode == 404 || e is OfflineException) {
       return null;
     }
@@ -698,17 +719,16 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     }
   }
 
-  // model
+  // model initialization
 
-  T initModel(T model, {bool save = true}) {
-    // ignore if already initialized
+  void onModelInit(T model) {}
+
+  T _initModel(T model) {
     if (model._isInitialized) return model;
     model.__key = graph.getKeyForId(internalType, model.id,
         keyIfAbsent: DataHelpers.generateKey<T>())!;
-    if (save) {
-      localAdapter.save(model._key, model, notify: false);
-    }
     _initializeRelationships(model);
+    onModelInit.call(model);
     return model;
   }
 
