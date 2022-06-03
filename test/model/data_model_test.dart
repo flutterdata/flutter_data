@@ -56,18 +56,36 @@ void main() async {
     p4.withKeyOf(p3);
     expect(keyFor(p3), keyFor(p4));
 
-    //
+    // passing in a null-ID model, old ID prevails
 
     final p5 = Person(name: 'Thiago');
     final p6 = Person(id: '7', name: 'Thiaga');
+    final p6k = keyFor(p6);
 
-    expect(keyFor(p5), isNot(keyFor(p6)));
+    expect(keyFor(p5), isNot(p6k));
 
     p6.withKeyOf(p5);
-    expect(keyFor(p5), keyFor(p6));
 
-    // now the original key is associated to id=7
-    expect(graph.getKeyForId('people', '7'), keyFor(p5));
+    // the original key remains associated to id=7
+    expect(graph.getKeyForId('people', '7'), p6k);
+    // and p5 has the old key
+    expect(keyFor(p5), p6k);
+
+    // force passed-in model's key
+
+    final p5b = Person(name: 'Thiago');
+    final p6b = Person(id: '17', name: 'Thiaga');
+    final p5bk = keyFor(p5b);
+    final p6bk = keyFor(p6b);
+
+    expect(p5bk, isNot(p6bk));
+
+    p6b.withKeyOf(p5b, force: true);
+
+    // the new key is associated to id=17
+    expect(graph.getKeyForId('people', '17'), p5bk);
+    // and p6b (original model) has the new key
+    expect(keyFor(p5b), keyFor(p6b));
 
     //
 

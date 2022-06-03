@@ -56,14 +56,16 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   /// final walter = Person(name: 'Walter');
   /// person.copyWith(age: 56).withKeyOf(walter);
   /// ```
-  T withKeyOf(T model) {
+  ///
+  /// [force] will set [model]'s key even if its `id` is null.
+  T withKeyOf(T model, {bool force = false}) {
     if (model._key != _key) {
       T oldModel;
       T newModel;
 
       // if the passed-in model has no ID
       // then treat the original as prevalent
-      if (model.id == null && id != null) {
+      if (force == false && model.id == null && id != null) {
         oldModel = model;
         newModel = _this;
       } else {
