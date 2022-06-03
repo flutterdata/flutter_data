@@ -39,7 +39,7 @@ dev_dependencies:
   freezed: ^2.0.2
   freezed_annotation: ^2.0.1
   json_serializable: ^6.1.4
-  lints: ^2.0.0
+  lints: ^1.0.0
   matcher: ^0.12.10
   mockito: ^5.0.9
   source_gen_test: ^1.0.0
