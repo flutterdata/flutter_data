@@ -409,6 +409,11 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     return result ?? model;
   }
 
+  T saveLocal(T model, {bool notify = true}) {
+    localAdapter.save(model._key!, model, notify: notify);
+    return model;
+  }
+
   Future<T?> delete(
     Object model, {
     bool? remote,
@@ -453,6 +458,10 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       );
     }
     return null;
+  }
+
+  void deleteLocal(T model, {bool notify = true}) {
+    localAdapter.delete(model._key!, notify: notify);
   }
 
   Future<void> clear() => localAdapter.clear();

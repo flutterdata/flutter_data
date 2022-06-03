@@ -89,7 +89,7 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
   }
 
   @override
-  Future<void> delete(String key) async {
+  Future<void> delete(String key, {bool notify = true}) async {
     if (box == null) return;
     final delete = box!.delete(key); // delete in bg
     // id will become orphan & purged

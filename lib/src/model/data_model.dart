@@ -161,18 +161,11 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   // locals
 
   /// Saves this model to local storage.
-  T saveLocal() {
-    _remoteAdapter.localAdapter.save(_key!, _this);
-    return _this;
-  }
+  T saveLocal() => _remoteAdapter.saveLocal(_this);
 
   /// Deletes this model from local storage.
-  void deleteLocal() {
-    _remoteAdapter.localAdapter.delete(_key!);
-  }
+  void deleteLocal() => _remoteAdapter.deleteLocal(_this);
 
   /// Reload model from local storage.
-  T? reloadLocal() {
-    return _remoteAdapter.localAdapter.findOne(_key);
-  }
+  T? reloadLocal() => _remoteAdapter.localAdapter.findOne(_key);
 }

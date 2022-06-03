@@ -34,7 +34,7 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
   /// By default notifies this modification to the associated [GraphNotifier].
   @protected
   @visibleForTesting
-  Future<void> delete(String key);
+  Future<void> delete(String key, {bool notify = true});
 
   /// Deletes all models of type [T] in local storage.
   @protected
