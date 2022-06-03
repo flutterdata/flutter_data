@@ -372,7 +372,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     headers = await defaultHeaders & headers;
 
     // ensure model is saved
-    await localAdapter.save(model._key, model);
+    await localAdapter.save(model._key!, model);
 
     label = DataRequestLabel('save',
         type: internalType,
@@ -642,7 +642,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       // deserialize already inits models
       // if model had a key already, reuse it
       final deserialized = await deserialize(data as Map<String, dynamic>);
-      final model = deserialized.model!.was(label.model as T);
+      final model = deserialized.model!.withKeyOf(label.model as T);
 
       if (save) {
         model.saveLocal();
@@ -669,7 +669,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
           ...deserialized.models,
           ...deserialized.included
         ]) {
-          model.saveLocal();
+          model._remoteAdapter.localAdapter.save(model._key!, model);
         }
         deserialized._log(this as RemoteAdapter, label);
       }
@@ -682,7 +682,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
           ...deserialized.models,
           ...deserialized.included
         ]) {
-          model.saveLocal();
+          model._remoteAdapter.localAdapter.save(model._key!, model);
         }
         deserialized._log(this as RemoteAdapter, label);
       }
@@ -721,14 +721,11 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
   // model initialization
 
-  void onModelInit(T model) {}
-
   T _initModel(T model) {
-    if (model._isInitialized) return model;
-    model.__key = graph.getKeyForId(internalType, model.id,
+    model._key = graph.getKeyForId(internalType, model.id,
         keyIfAbsent: DataHelpers.generateKey<T>())!;
     _initializeRelationships(model);
-    onModelInit.call(model);
+    onModelInitialized.call(model);
     return model;
   }
 
@@ -743,6 +740,10 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       );
     }
   }
+
+  /// After model initialization hook
+  @protected
+  void onModelInitialized(T model) {}
 
   // offline
 

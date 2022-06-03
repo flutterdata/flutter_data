@@ -61,7 +61,7 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
 
     if (eventType != null) {
       _graph._notify(
-        [_ownerKey!, if (newValue != null) newValue._key],
+        [_ownerKey!, if (newValue != null) newValue._key!],
         metadata: _name,
         type: eventType,
       );

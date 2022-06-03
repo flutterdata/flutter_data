@@ -4,7 +4,7 @@ part of flutter_data;
 /// and their a [DataModel] owner. Backed by a [GraphNotifier].
 abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
   @protected
-  Relationship(Set<E>? models) : this._(models?.map((m) => m._key).toSet());
+  Relationship(Set<E>? models) : this._(models?.map((m) => m._key!).toSet());
 
   Relationship._(this._uninitializedKeys);
 
@@ -65,11 +65,11 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
       return false;
     }
 
-    _graph._addEdge(_ownerKey!, value._key,
+    _graph._addEdge(_ownerKey!, value._key!,
         metadata: _name!, inverseMetadata: _inverseName, notify: false);
     if (notify) {
       _graph._notify(
-        [_ownerKey!, value._key],
+        [_ownerKey!, value._key!],
         metadata: _name,
         type: DataGraphEventType.addEdge,
       );
@@ -88,14 +88,14 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
 
     _graph._removeEdge(
       _ownerKey!,
-      model._key,
+      model._key!,
       metadata: _name!,
       inverseMetadata: _inverseName,
       notify: false,
     );
     if (notify) {
       _graph._notify(
-        [_ownerKey!, value._key],
+        [_ownerKey!, value._key!],
         metadata: _name,
         type: DataGraphEventType.removeEdge,
       );

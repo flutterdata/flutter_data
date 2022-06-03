@@ -101,9 +101,7 @@ void main() async {
         .having((s) => s.isLoading, 'isLoading', isFalse)
         .having((s) => s.model.id, 'id', '1')
         .having((s) => s.model.age, 'age', 23)
-        .having((s) => s.model.name, 'name', 'Charlie')
-        // ensure the notifier has been attached
-        .having((s) => s.model.notifier, 'notifier', isNotNull);
+        .having((s) => s.model.name, 'name', 'Charlie');
 
     verify(listener(argThat(charlie))).called(1);
     verifyNoMoreInteractions(listener);
@@ -657,7 +655,7 @@ void main() async {
     verifyNever(listener(argThat(matcher)));
     verifyNoMoreInteractions(listener);
 
-    final steve = Person(name: 'Steve-O', age: 30).was(frank).saveLocal();
+    final steve = Person(name: 'Steve-O', age: 30).withKeyOf(frank).saveLocal();
     await oneMs();
 
     verify(listener(argThat(matcher))).called(1);
@@ -676,7 +674,7 @@ void main() async {
     verifyNoMoreInteractions(listener);
 
     Familia(surname: 'Thomson', cottage: cottage.asBelongsTo)
-        .was(familia)
+        .withKeyOf(familia)
         .saveLocal();
     await oneMs();
 
@@ -690,7 +688,7 @@ void main() async {
     verifyNoMoreInteractions(listener);
 
     Familia(surname: 'Thomson', cottage: BelongsTo.remove())
-        .was(familia)
+        .withKeyOf(familia)
         .saveLocal();
     await oneMs();
 
@@ -810,6 +808,18 @@ void main() async {
 
     final model = container.bookAuthors.watch(bookAuthor);
     expect(model, bookAuthor);
+  });
+
+  test('notifier for', () async {
+    // notifierFor (obtainer notifier for local watcher)
+    final book = Book(id: 1, ardentSupporters: HasMany()).saveLocal();
+    final notifier = container.books.notifierFor(book);
+    // should be the same as calling watchOneNotifier(model, remote: false)
+    expect(notifier, container.books.watchOneNotifier(book, remote: false));
+
+    // try reloading, because why not
+    await notifier.reload();
+    expect(notifier.data.model, book);
   });
 
   test('watchargs', () {

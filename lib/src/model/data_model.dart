@@ -14,54 +14,56 @@ abstract class DataModel<T extends DataModel<T>> {
     }
   }
 
-  String? __key;
-  String get _key {
-    if (__key == null) {
-      throw AssertionError('Model must be initialized in order to get its key');
-    }
-    return __key!;
-  }
-
+  String? _key;
   String get _internalType => DataHelpers.getType<T>();
-  DataStateNotifier<T?>? _notifier;
   T get _this => this as T;
 
-  bool get _isInitialized => __key != null;
-
   /// Exposes this type's [RemoteAdapter]
-  RemoteAdapter<T> get remoteAdapter =>
+  RemoteAdapter<T> get _remoteAdapter =>
       internalRepositories[_internalType]!.remoteAdapter as RemoteAdapter<T>;
 
-  /// Exposes the [DataStateNotifier] that fetched this model;
-  /// typically used to access `notifier.reload()`.
-  /// ONLY available if loaded via [Repository.watchOneNotifier].
-  DataStateNotifier<T?>? get notifier => _notifier;
+  // data model helpers
 
-  Map<String, RelationshipMeta> get relationshipMetas =>
-      remoteAdapter.localAdapter.relationshipMetas;
+  /// Returns a model's `_key` private attribute.
+  ///
+  /// Useful for testing, debugging or usage in [RemoteAdapter] subclasses.
+  static String keyFor(DataModel model) => model._key!;
 
-  // methods
-
-  T saveLocal() {
-    remoteAdapter.localAdapter.save(_key, _this);
-    return _this;
+  /// Returns a model's non-null relationships.
+  static Map<String, Relationship> relationshipsFor<T extends DataModel<T>>(
+      T model) {
+    return {
+      for (final meta
+          in model._remoteAdapter.localAdapter.relationshipMetas.values)
+        if (meta.instance(model) != null) meta.name: meta.instance(model)!,
+    };
   }
 
-  // privately set the notifier
-  void _updateNotifier(DataStateNotifier<T?>? value) {
-    _notifier = value;
-  }
+  /// Returns a model [RemoteAdapter]
+  static RemoteAdapter adapterFor(DataModel model) => model._remoteAdapter;
+}
 
+/// Extension that adds syntax-sugar to data classes,
+/// linking them to common [Repository] methods such as
+/// [save] and [delete].
+extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   /// Copy identity (internal key) from an old model to a new one
   /// to signal they are the same.
-  T was(T model, {bool ignoreId = false}) {
+  ///
+  /// **Only makes sense to use if model is immutable and has no ID!**
+  ///
+  /// ```
+  /// final walter = Person(name: 'Walter');
+  /// person.copyWith(age: 56).withKeyOf(walter);
+  /// ```
+  T withKeyOf(T model) {
     if (model._key != _key) {
       T oldModel;
       T newModel;
 
       // if the passed-in model has no ID
       // then treat the original as prevalent
-      if (ignoreId == false && model.id == null && id != null) {
+      if (model.id == null && id != null) {
         oldModel = model;
         newModel = _this;
       } else {
@@ -73,36 +75,23 @@ abstract class DataModel<T extends DataModel<T>> {
 
       final oldKey = oldModel._key;
       if (_key != newModel._key) {
-        __key = newModel._key;
+        _key = newModel._key;
       }
       if (_key != oldModel._key) {
-        oldModel.__key = _key;
-        remoteAdapter.graph.removeKey(oldKey);
+        oldModel._key = _key;
+        _remoteAdapter.graph.removeKey(oldKey!);
       }
 
       if (oldModel.id != null) {
-        remoteAdapter.graph
+        _remoteAdapter.graph
             .removeId(_internalType, oldModel.id!, notify: false);
-        remoteAdapter.graph
+        _remoteAdapter.graph
             .getKeyForId(_internalType, oldModel.id, keyIfAbsent: _key);
       }
     }
     return _this;
   }
 
-  /// Get all non-null [Relationship]s for this model.
-  Map<String, Relationship> getRelationships() {
-    return {
-      for (final meta in remoteAdapter.localAdapter.relationshipMetas.values)
-        if (meta.instance(this) != null) meta.name: meta.instance(this)!,
-    };
-  }
-}
-
-/// Extension that adds syntax-sugar to data classes,
-/// linking them to common [Repository] methods such as
-/// [save] and [delete].
-extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   /// Saves this model through a call equivalent to [Repository.save].
   ///
   /// Usage: `await post.save()`, `author.save(remote: false, params: {'a': 'x'})`.
@@ -113,7 +102,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     OnSuccessOne<T>? onSuccess,
     OnErrorOne<T>? onError,
   }) async {
-    return await remoteAdapter.save(
+    return await _remoteAdapter.save(
       _this,
       remote: remote,
       params: params,
@@ -124,8 +113,6 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   }
 
   /// Deletes this model through a call equivalent to [Repository.delete].
-  ///
-  /// Usage: `await post.delete()`
   Future<T?> delete({
     bool? remote,
     Map<String, dynamic>? params,
@@ -133,7 +120,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     OnSuccessOne<T>? onSuccess,
     OnErrorOne<T>? onError,
   }) async {
-    return await remoteAdapter.delete(
+    return await _remoteAdapter.delete(
       this,
       remote: remote,
       params: params,
@@ -143,36 +130,40 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
     );
   }
 
-  /// Get the refreshed version from local storage.
-  T? refresh() {
-    return remoteAdapter.localAdapter.findOne(_key);
-  }
-
-  /// Re-fetch this model through a call equivalent to [Repository.findOne].
+  /// Reload this model through a call equivalent to [Repository.findOne].
   /// with the current object/[id]
   Future<T?> reload({
+    bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     bool? background,
     DataRequestLabel? label,
   }) async {
-    return await remoteAdapter.findOne(
+    return await _remoteAdapter.findOne(
       this,
-      remote: true,
+      remote: remote,
       params: params,
       headers: headers,
       background: background,
       label: label,
     );
   }
+
+  // locals
+
+  /// Saves this model to local storage.
+  T saveLocal() {
+    _remoteAdapter.localAdapter.save(_key!, _this);
+    return _this;
+  }
+
+  /// Deletes this model from local storage.
+  void deleteLocal() {
+    _remoteAdapter.localAdapter.delete(_key!);
+  }
+
+  /// Reload model from local storage.
+  T? reloadLocal() {
+    return _remoteAdapter.localAdapter.findOne(_key);
+  }
 }
-
-/// Returns a model's `_key` private attribute.
-///
-/// Useful for testing, debugging or usage in [RemoteAdapter] subclasses.
-String? keyFor<T extends DataModel<T>>(T model) => model._key;
-
-@visibleForTesting
-@protected
-RemoteAdapter? adapterFor<T extends DataModel<T>>(T model) =>
-    model.remoteAdapter;

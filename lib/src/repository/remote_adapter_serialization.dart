@@ -107,7 +107,7 @@ class DeserializedData<T extends DataModel<T>> {
 
   void _log(RemoteAdapter adapter, DataRequestLabel label) {
     adapter.log(label, '${models.toShortLog()} fetched from remote');
-    final groupedIncluded = included.groupListsBy((m) => m.remoteAdapter.type);
+    final groupedIncluded = included.groupListsBy((m) => m._remoteAdapter.type);
     for (final e in groupedIncluded.entries) {
       if (e.value.isNotEmpty) {
         adapter.log(label, '  - with ${e.key} ${e.value.toShortLog()} ');

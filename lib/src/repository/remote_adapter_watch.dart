@@ -144,10 +144,9 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     var alsoWatchPairs = <List<String>>{};
 
     // closure to get latest model and watchable relationship pairs
-    T? _getUpdatedModel({DataStateNotifier<T?>? withNotifier}) {
+    T? _getUpdatedModel() {
       final model = localAdapter.findOne(key);
       if (model != null) {
-        _initModel(model);
         // get all metas provided via `alsoWatch`
         final metas = alsoWatch
             ?.call(RelationshipGraphNode<T>())
@@ -161,9 +160,6 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
               .filterNulls
               .expand((_) => _)
         };
-        if (withNotifier != null) {
-          model._updateNotifier(withNotifier);
-        }
       } else {
         // if there is no model nothing should be watched, reset pairs
         alsoWatchPairs = {};
@@ -247,7 +243,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       // (_alsoWatchPairs) in order to determine whether there is
       // something that will cause an event (with the introduction
       // of `andEach` even seemingly unrelated models could trigger)
-      bufferModel = _getUpdatedModel(withNotifier: notifier);
+      bufferModel = _getUpdatedModel();
 
       for (final event in events) {
         if (event.keys.contains(key)) {

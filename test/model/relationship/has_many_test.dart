@@ -45,9 +45,10 @@ void main() async {
     f2.persons.remove(anne);
     expect(f2.persons.toSet(), {pete});
 
-    expect(f2.getRelationships().values,
+    expect(DataModel.relationshipsFor(f2).values,
         unorderedEquals([f2.persons, f2.residence, f2.cottage]));
-    expect(f2.getRelationships().values.whereType<HasMany>(), [f2.persons]);
+    expect(DataModel.relationshipsFor(f2).values.whereType<HasMany>(),
+        [f2.persons]);
   });
 
   test('assignment with relationship initialized & uninitialized', () {

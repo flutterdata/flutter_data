@@ -182,8 +182,6 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
 
   /// Deletes all models of type [T] in local storage.
   ///
-  ///
-  ///
   /// If you need to clear all models, use the
   /// `repositoryProviders` map exposed on your `main.data.dart`.
   Future<void> clear() => remoteAdapter.clear();
@@ -375,9 +373,14 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     ).notifier);
   }
 
-  /// Watch this model
+  /// Watch this model (local)
   T watch(T model) {
     return watchOne(model, remote: false).model!;
+  }
+
+  /// Notifier for watched model (local)
+  DataStateNotifier<T?> notifierFor(T model) {
+    return watchOneNotifier(model, remote: false);
   }
 
   /// Logs messages for a specific label when `verbose` is `true`.

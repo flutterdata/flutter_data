@@ -32,13 +32,13 @@ void main() async {
     expect(await container.nodes.findOne(3), child);
   });
 
-  test('was', () {
+  test('withKeyOf', () {
     final p = Person(id: '1', name: 'Peter');
     final p2 = Person(id: '2', name: 'Petera');
     // keys are different
     expect(keyFor(p), isNot(keyFor(p2)));
 
-    p2.was(p);
+    p2.withKeyOf(p);
 
     // now both objects have the same key
     expect(keyFor(p), keyFor(p2));
@@ -53,8 +53,7 @@ void main() async {
     final p4 = Person(name: 'Roberta');
 
     expect(keyFor(p3), isNot(keyFor(p4)));
-
-    p4.was(p3);
+    p4.withKeyOf(p3);
     expect(keyFor(p3), keyFor(p4));
 
     //
@@ -64,7 +63,7 @@ void main() async {
 
     expect(keyFor(p5), isNot(keyFor(p6)));
 
-    p6.was(p5);
+    p6.withKeyOf(p5);
     expect(keyFor(p5), keyFor(p6));
 
     // now the original key is associated to id=7
@@ -77,7 +76,7 @@ void main() async {
 
     expect(keyFor(p7), isNot(keyFor(p8)));
 
-    p8.was(p7);
+    p8.withKeyOf(p7);
     expect(keyFor(p7), keyFor(p8));
 
     // now no key is associated to id=8
@@ -112,8 +111,8 @@ void main() async {
     final person2 = Person(name: 'Peter', age: 101).saveLocal();
     expect(adapter.findAll(), hasLength(1));
 
-    // delete that person and assert it's not there
-    await person2.delete();
+    // delete that person (this time via `deleteLocal`) and assert it's not there
+    person2.deleteLocal();
     expect(adapter.findAll(), hasLength(0));
   });
 

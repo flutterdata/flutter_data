@@ -14,6 +14,9 @@ import 'pet.dart';
 // copied from https://api.flutter.dev/flutter/foundation/kIsWeb-constant.html
 const _kIsWeb = identical(0, 0.0);
 
+// keyFor alias
+final keyFor = DataModel.keyFor;
+
 late ProviderContainer container;
 late GraphNotifier graph;
 Function? dispose;

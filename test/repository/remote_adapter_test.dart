@@ -78,7 +78,7 @@ void main() async {
     expect(await adapter.findOne(person.id!), isNull);
 
     // and now key & id are both non-existent
-    expect(graph.getNode(keyFor(person)!), isNull);
+    expect(graph.getNode(keyFor(person)), isNull);
     expect(graph.getKeyForId('people', person.id), isNull);
   });
 
@@ -104,7 +104,7 @@ void main() async {
 
   test('can override type', () {
     final author = BookAuthor(id: 15, name: 'Walter', books: HasMany());
-    final adapter = adapterFor(author)!;
+    final adapter = DataModel.adapterFor(author);
     expect(adapter.type, 'writers');
     expect(adapter.internalType, 'bookAuthors');
 
@@ -138,7 +138,7 @@ void main() async {
       Person(id: '2', name: 'John', age: 44)
     ]);
 
-    final originalKey = keyFor(models.first)!;
+    final originalKey = keyFor(models.first);
 
     // simulate app restart
     container.familia.dispose();
@@ -203,7 +203,7 @@ void main() async {
     final adapter = container.people.remoteAdapter;
     final p1 = Person(name: 'Ludwig');
     final key1 = adapter.keyForModelOrId(p1);
-    expect(key1, keyFor(p1)!);
+    expect(key1, keyFor(p1));
 
     final key2 = graph.getKeyForId('people', '43',
         keyIfAbsent: DataHelpers.generateKey<Person>());
