@@ -41,6 +41,45 @@ abstract class DataModel<T extends DataModel<T>> {
 
   /// Returns a model [RemoteAdapter]
   static RemoteAdapter adapterFor(DataModel model) => model._remoteAdapter;
+
+  /// Apply [model]'s key to [applyTo].
+  static DataModel withKeyOf(DataModel model,
+      {required DataModel applyTo, bool force = false}) {
+    final _this = applyTo;
+    if (model._key != _this._key) {
+      DataModel oldModel;
+      DataModel newModel;
+
+      // if the passed-in model has no ID
+      // then treat the original as prevalent
+      if (force == false && model.id == null && _this.id != null) {
+        oldModel = model;
+        newModel = _this;
+      } else {
+        // in all other cases, treat the passed-in
+        // model as prevalent
+        oldModel = _this;
+        newModel = model;
+      }
+
+      final oldKey = oldModel._key;
+      if (_this._key != newModel._key) {
+        _this._key = newModel._key;
+      }
+      if (_this._key != oldModel._key) {
+        oldModel._key = _this._key;
+        _this._remoteAdapter.graph.removeKey(oldKey!);
+      }
+
+      if (oldModel.id != null) {
+        _this._remoteAdapter.graph
+            .removeId(_this._internalType, oldModel.id!, notify: false);
+        _this._remoteAdapter.graph.getKeyForId(_this._internalType, oldModel.id,
+            keyIfAbsent: _this._key);
+      }
+    }
+    return _this;
+  }
 }
 
 /// Extension that adds syntax-sugar to data classes,
@@ -59,39 +98,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   ///
   /// [force] will set [model]'s key even if its `id` is null.
   T withKeyOf(T model, {bool force = false}) {
-    if (model._key != _key) {
-      T oldModel;
-      T newModel;
-
-      // if the passed-in model has no ID
-      // then treat the original as prevalent
-      if (force == false && model.id == null && id != null) {
-        oldModel = model;
-        newModel = _this;
-      } else {
-        // in all other cases, treat the passed-in
-        // model as prevalent
-        oldModel = _this;
-        newModel = model;
-      }
-
-      final oldKey = oldModel._key;
-      if (_key != newModel._key) {
-        _key = newModel._key;
-      }
-      if (_key != oldModel._key) {
-        oldModel._key = _key;
-        _remoteAdapter.graph.removeKey(oldKey!);
-      }
-
-      if (oldModel.id != null) {
-        _remoteAdapter.graph
-            .removeId(_internalType, oldModel.id!, notify: false);
-        _remoteAdapter.graph
-            .getKeyForId(_internalType, oldModel.id, keyIfAbsent: _key);
-      }
-    }
-    return _this;
+    return DataModel.withKeyOf(model, applyTo: this, force: force) as T;
   }
 
   /// Saves this model through a call equivalent to [Repository.save].
