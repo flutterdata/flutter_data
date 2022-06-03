@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.3] - June 3rd, 2022
+
+- Ordered requests feature: if a previous request arrives later it won't be saved in local storage
+- Models are always automatically initialized and never automatically saved
+- Reorganized and cleaned up `DataModel` API
+
 ## [1.4.2] - June 1st, 2022
 
 - Hotfix: revert 9854a590fca5f73063636750911fe63bd4327f79
