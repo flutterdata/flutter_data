@@ -237,13 +237,13 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     final dispose = throttledGraph.addListener((events) {
       if (!notifier.mounted) return;
 
-      key = bufferModel?._key ?? key;
-
       // get the latest updated model with watchable relationships
       // (_alsoWatchPairs) in order to determine whether there is
       // something that will cause an event (with the introduction
       // of `andEach` even seemingly unrelated models could trigger)
       bufferModel = _getUpdatedModel();
+
+      key = bufferModel?._key ?? key;
 
       for (final event in events) {
         if (event.keys.contains(key)) {

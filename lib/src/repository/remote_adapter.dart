@@ -391,6 +391,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     final uri = baseUrl.asUri / urlForSave(model.id, params) & params;
     final method = methodForSave(model.id, params);
 
+    // mark the request as sent with a label
+    _requestQueue.add(label);
+
     final result = await sendRequest<T>(
       uri,
       method: method,
@@ -557,8 +560,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       if (body != null) {
         request.body = body;
       }
-      // mark the request as sent with a label
-      _requestQueue.add(label);
       final stream = await client.send(request);
       response = await http.Response.fromStream(stream);
     } catch (err, stack) {
@@ -673,28 +674,20 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     final isCustom = label.kind == 'custom';
 
     if (isFindAll || (isCustom && deserialized.model == null)) {
-      if (save) {
-        for (final model in [
-          ...deserialized.models,
-          ...deserialized.included
-        ]) {
-          model._remoteAdapter.localAdapter.save(model._key!, model);
-        }
-        deserialized._log(this as RemoteAdapter, label);
+      for (final model in [...deserialized.models, ...deserialized.included]) {
+        model._remoteAdapter.localAdapter.save(model._key!, model);
       }
+      deserialized._log(this as RemoteAdapter, label);
+
       return deserialized.models as R?;
     }
 
     if (isFindOne || (isCustom && deserialized.model != null)) {
-      if (save) {
-        for (final model in [
-          ...deserialized.models,
-          ...deserialized.included
-        ]) {
-          model._remoteAdapter.localAdapter.save(model._key!, model);
-        }
-        deserialized._log(this as RemoteAdapter, label);
+      for (final model in [...deserialized.models, ...deserialized.included]) {
+        model._remoteAdapter.localAdapter.save(model._key!, model);
       }
+      deserialized._log(this as RemoteAdapter, label);
+
       return deserialized.model as R?;
     }
 
@@ -725,28 +718,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       final timestamp =
           '${now.second.toString().padLeft(2, '0')}:${now.millisecond.toString().padLeft(3, '0')}';
       print('$timestamp ${' ' * label.indentation * 2}[$label] $message');
-    }
-  }
-
-  // model initialization
-
-  T _initModel(T model) {
-    model._key = graph.getKeyForId(internalType, model.id,
-        keyIfAbsent: DataHelpers.generateKey<T>())!;
-    _initializeRelationships(model);
-    onModelInitialized.call(model);
-    return model;
-  }
-
-  void _initializeRelationships(T model) {
-    final metadatas = localAdapter.relationshipMetas.values;
-    for (final metadata in metadatas) {
-      final relationship = metadata.instance(model);
-      relationship?.initialize(
-        owner: model,
-        name: metadata.name,
-        inverseName: metadata.inverseName,
-      );
     }
   }
 

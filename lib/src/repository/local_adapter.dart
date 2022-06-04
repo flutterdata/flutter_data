@@ -41,6 +41,11 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
   @visibleForTesting
   Future<void> clear();
 
+  // model initialization
+
+  @protected
+  T initModel(T model, {Function(T)? onModelInitialized});
+
   // public abstract methods
 
   Map<String, dynamic> serialize(T model, {bool withRelationships = true});

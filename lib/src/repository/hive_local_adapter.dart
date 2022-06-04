@@ -102,6 +102,30 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
     await box?.clear();
   }
 
+  // model initialization
+
+  @override
+  @nonVirtual
+  T initModel(T model, {Function(T)? onModelInitialized}) {
+    model._key ??= graph.getKeyForId(_internalType, model.id,
+        keyIfAbsent: DataHelpers.generateKey<T>())!;
+    _initializeRelationships(model);
+    onModelInitialized?.call(model);
+    return model;
+  }
+
+  void _initializeRelationships(T model) {
+    final metadatas = relationshipMetas.values;
+    for (final metadata in metadatas) {
+      final relationship = metadata.instance(model);
+      relationship?.initialize(
+        owner: model,
+        name: metadata.name,
+        inverseName: metadata.inverseName,
+      );
+    }
+  }
+
   // Touching local storage means the box has received data;
   // this is used to know whether `findAll` should return
   // null, or its models (possibly empty)
@@ -164,7 +188,7 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
     };
 
     final model = deserialize(map);
-    return model;
+    return initModel(model);
   }
 
   @override

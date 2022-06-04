@@ -10,7 +10,10 @@ abstract class DataModel<T extends DataModel<T>> {
   DataModel() {
     final repository = internalRepositories[_internalType];
     if (repository != null) {
-      repository.remoteAdapter._initModel(this);
+      repository.remoteAdapter.localAdapter.initModel(
+        this,
+        onModelInitialized: repository.remoteAdapter.onModelInitialized,
+      );
     }
   }
 
