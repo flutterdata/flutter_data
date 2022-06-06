@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.4.4] - June 6th, 2022
+
+- Revert (temporarily) request ordering
+- Clean up
+
 ## [1.4.3] - June 3rd, 2022
 
 - Ordered requests feature: if a previous request arrives later it won't be saved in local storage
