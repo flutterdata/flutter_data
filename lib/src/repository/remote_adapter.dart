@@ -391,9 +391,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     final uri = baseUrl.asUri / urlForSave(model.id, params) & params;
     final method = methodForSave(model.id, params);
 
-    // mark the request as sent with a label
-    _requestQueue.add(label);
-
     final result = await sendRequest<T>(
       uri,
       method: method,
@@ -478,22 +475,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @protected
   @visibleForTesting
   http.Client get httpClient => http.Client();
-
-  final List<DataRequestLabel> _requestQueue = [];
-
-  bool _removeRequestAndEarlier(DataRequestLabel label) {
-    // remove any labels of the same kind prior to this one
-    // to bypass saving from stale responses
-    for (final _label in _requestQueue.toList()) {
-      if (_label.timestamp.isBefore(label.timestamp) &&
-          _label.type == label.type &&
-          _label.id == label.id &&
-          _label.kind == label.kind) {
-        _requestQueue.remove(_label);
-      }
-    }
-    return _requestQueue.remove(label);
-  }
 
   /// The function used to perform an HTTP request and return an [R].
   ///
@@ -638,8 +619,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     // remove all operations with this label
     OfflineOperation.remove(label, this as RemoteAdapter);
 
-    final save = _removeRequestAndEarlier(label);
-
     if (label.kind == 'save') {
       if (label.model == null) {
         return null;
@@ -654,10 +633,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       final deserialized = await deserialize(data as Map<String, dynamic>);
       final model = deserialized.model!.withKeyOf(label.model as T);
 
-      if (save) {
-        model.saveLocal();
-        log(label, 'saved in local storage and remote');
-      }
+      model.saveLocal();
+      log(label, 'saved in local storage and remote');
 
       return model as R?;
     }
@@ -705,7 +682,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     DataException e,
     DataRequestLabel? label,
   ) {
-    _requestQueue.remove(label);
     if (e.statusCode == 404 || e is OfflineException) {
       return null;
     }
