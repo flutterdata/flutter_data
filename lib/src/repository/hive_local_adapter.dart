@@ -13,8 +13,6 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
   final _hiveAdapterNs = '_adapter_hive';
   String get _hiveAdapterKey => 'key'.namespaceWith(_hiveAdapterNs);
 
-  String get _internalType => DataHelpers.getType<T>();
-
   @protected
   @visibleForTesting
   Box<T>? get box => (_box?.isOpen ?? false) ? _box : null;
@@ -25,7 +23,7 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
     if (isInitialized) return this;
     final hive = _hiveLocalStorage.hive;
 
-    if (!hive.isBoxOpen(_internalType)) {
+    if (!hive.isBoxOpen(internalType)) {
       if (!hive.isAdapterRegistered(typeId)) {
         hive.registerAdapter(this);
       }
@@ -33,9 +31,9 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
 
     try {
       if (_hiveLocalStorage.clear) {
-        await _hiveLocalStorage.deleteBox(_internalType);
+        await _hiveLocalStorage.deleteBox(internalType);
       }
-      _box = await _hiveLocalStorage.openBox<T>(_internalType);
+      _box = await _hiveLocalStorage.openBox<T>(internalType);
     } catch (e, stackTrace) {
       print('[flutter_data] Box failed to open:\n$stackTrace');
     }
@@ -102,30 +100,6 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
     await box?.clear();
   }
 
-  // model initialization
-
-  @override
-  @nonVirtual
-  T initModel(T model, {Function(T)? onModelInitialized}) {
-    model._key ??= graph.getKeyForId(_internalType, model.id,
-        keyIfAbsent: DataHelpers.generateKey<T>())!;
-    _initializeRelationships(model);
-    onModelInitialized?.call(model);
-    return model;
-  }
-
-  void _initializeRelationships(T model) {
-    final metadatas = relationshipMetas.values;
-    for (final metadata in metadatas) {
-      final relationship = metadata.instance(model);
-      relationship?.initialize(
-        owner: model,
-        name: metadata.name,
-        inverseName: metadata.inverseName,
-      );
-    }
-  }
-
   // Touching local storage means the box has received data;
   // this is used to know whether `findAll` should return
   // null, or its models (possibly empty)
@@ -158,7 +132,7 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
     final typesNode =
         graph._getNode(_hiveAdapterKey, orAdd: true, notify: false)!;
 
-    final edge = typesNode[_internalType.namespaceWith(_hiveAdapterNs)];
+    final edge = typesNode[internalType.namespaceWith(_hiveAdapterNs)];
 
     if (edge != null && edge.isNotEmpty) {
       // first is of format: _adapter_hive:1
@@ -175,7 +149,7 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
 
     graph._addEdge(
         _hiveAdapterKey, index.toString().namespaceWith(_hiveAdapterNs),
-        metadata: _internalType.namespaceWith(_hiveAdapterNs), notify: false);
+        metadata: internalType.namespaceWith(_hiveAdapterNs), notify: false);
     return index;
   }
 
@@ -188,7 +162,13 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
     };
 
     final model = deserialize(map);
-    return initModel(model);
+
+    // deserialize (local or remote) should not auto-init
+    // as there are cases that should not be init, but
+    // hive local deserialization should always be init:
+    initModel(model);
+
+    return model;
   }
 
   @override

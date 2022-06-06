@@ -14,6 +14,8 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
 
   FutureOr<LocalAdapter<T>> initialize();
 
+  String get internalType => DataHelpers.getType<T>();
+
   // protected API
 
   /// Returns all models of type [T] in local storage.
@@ -44,7 +46,26 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
   // model initialization
 
   @protected
-  T initModel(T model, {Function(T)? onModelInitialized});
+  @nonVirtual
+  T initModel(T model, {Function(T)? onModelInitialized}) {
+    model._key ??= graph.getKeyForId(internalType, model.id,
+        keyIfAbsent: DataHelpers.generateKey<T>())!;
+    _initializeRelationships(model);
+    onModelInitialized?.call(model);
+    return model;
+  }
+
+  void _initializeRelationships(T model) {
+    final metadatas = relationshipMetas.values;
+    for (final metadata in metadatas) {
+      final relationship = metadata.instance(model);
+      relationship?.initialize(
+        owner: model,
+        name: metadata.name,
+        inverseName: metadata.inverseName,
+      );
+    }
+  }
 
   // public abstract methods
 
