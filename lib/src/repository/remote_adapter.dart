@@ -290,7 +290,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       },
     );
 
-    if (background && models != null) {
+    if (background) {
       // ignore: unawaited_futures
       future.then((_) => Future.value(_));
       return models;
@@ -348,7 +348,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       },
     );
 
-    if (background && model != null) {
+    if (background) {
       // ignore: unawaited_futures
       future.then((_) => Future.value(_));
       return model;

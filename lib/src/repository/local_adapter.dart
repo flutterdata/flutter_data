@@ -48,10 +48,12 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
   @protected
   @nonVirtual
   T initModel(T model, {Function(T)? onModelInitialized}) {
-    model._key ??= graph.getKeyForId(internalType, model.id,
-        keyIfAbsent: DataHelpers.generateKey<T>())!;
-    _initializeRelationships(model);
-    onModelInitialized?.call(model);
+    if (model._key == null) {
+      model._key = graph.getKeyForId(internalType, model.id,
+          keyIfAbsent: DataHelpers.generateKey<T>())!;
+      _initializeRelationships(model);
+      onModelInitialized?.call(model);
+    }
     return model;
   }
 

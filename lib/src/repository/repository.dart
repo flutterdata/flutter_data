@@ -1,6 +1,6 @@
 part of flutter_data;
 
-/// Thin wrapper on the [RemoteAdapter] API
+/// Repository is the API used to interact with models whether local or remote.
 class Repository<T extends DataModel<T>> with _Lifecycle {
   final Reader _read;
   Repository(this._read);
@@ -35,7 +35,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     return this;
   }
 
-  /// Returns whether this [Repository] is initialized
+  /// Whether this [Repository] is initialized
   /// (when its underlying [RemoteAdapter] is).
   @override
   bool get isInitialized => _isInit && remoteAdapter.isInitialized;

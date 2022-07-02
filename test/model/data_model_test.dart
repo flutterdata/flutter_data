@@ -101,7 +101,7 @@ void main() async {
     expect(graph.getKeyForId('people', '8'), keyFor(p7));
   });
 
-  test('findOne (remote reload)', () async {
+  test('findOne (remote and local reload)', () async {
     var familia = await Familia(id: '1', surname: 'Perez').save(remote: true);
     familia = Familia(id: '1', surname: 'Perez Gomez');
 
@@ -113,6 +113,11 @@ void main() async {
     expect(familia, Familia(id: '1', surname: 'Perez'));
     expect(await container.familia.findOne('1'),
         Familia(id: '1', surname: 'Perez'));
+
+    Familia(id: '1', surname: 'Perez Lopez').saveLocal();
+    expect(familia.surname, isNot('Perez Lopez'));
+    familia = familia.reloadLocal()!;
+    expect(familia.surname, equals('Perez Lopez'));
   });
 
   test('delete model with and without ID', () async {

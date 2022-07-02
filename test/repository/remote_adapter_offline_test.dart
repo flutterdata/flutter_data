@@ -222,23 +222,18 @@ void main() async {
       remote: true,
       onError: (e, _, __) async {
         await oneMs();
-        notifier.updateWith(exception: e);
+        expect(e, isA<OfflineException>());
+        expect(e.error, isA<SocketException>());
         return null;
       },
     );
+
+    await oneMs();
 
     // verify the model in local storage has been deleted
     verify(listener(
       argThat(isA<DataState>().having((s) => s.model, 'model', isEmpty)),
     )).called(1);
-
-    await oneMs();
-
-    // and that we actually got an OfflineException
-    verify(listener(argThat(
-      isA<DataState>()
-          .having((s) => s.exception, 'exception', isA<OfflineException>()),
-    ))).called(1);
 
     // familia is remembered as failed to persist
     expect(
@@ -312,7 +307,7 @@ void main() async {
     verify(listener(argThat(
       isA<DataState>()
           .having((s) => s.exception, 'exception', isA<OfflineException>()),
-    ))).called(2);
+    ))).called(1);
 
     // should see the failed save queued
     expect(

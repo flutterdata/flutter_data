@@ -69,16 +69,9 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     // kick off
     notifier.reload();
 
-    late DelayedStateNotifier<List<DataGraphEvent>> throttledGraph;
-
     final throttleDuration = read(graphNotifierThrottleDurationProvider);
-    if (throttleDuration != null) {
-      throttledGraph = graph.throttle(() => throttleDuration);
-    } else {
-      // if no throttle is required, use map to
-      // convert a single event in a list of events
-      throttledGraph = graph.map((_) => [_]);
-    }
+    final DelayedStateNotifier<List<DataGraphEvent>> throttledGraph =
+        graph.throttle(() => throttleDuration);
 
     final states = <DataState<List<T>?>>[];
 
@@ -220,16 +213,9 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     // local buffer useful to reduce amount of notifier updates
     var bufferModel = notifier.data.model;
 
-    late DelayedStateNotifier<List<DataGraphEvent>> throttledGraph;
-
     final throttleDuration = read(graphNotifierThrottleDurationProvider);
-    if (throttleDuration != null) {
-      throttledGraph = graph.throttle(() => throttleDuration);
-    } else {
-      // if no throttle is required, use map to
-      // convert a single event in a list of events
-      throttledGraph = graph.map((_) => [_]);
-    }
+    final DelayedStateNotifier<List<DataGraphEvent>> throttledGraph =
+        graph.throttle(() => throttleDuration);
 
     final states = <DataState<T?>>[];
 
@@ -361,4 +347,4 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
 }
 
 final graphNotifierThrottleDurationProvider =
-    Provider<Duration?>((ref) => null);
+    Provider<Duration>((ref) => Duration.zero);

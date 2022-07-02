@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
@@ -38,15 +36,6 @@ void main() async {
     final adapter = container.familia.remoteAdapter;
     final model = await adapter.findOne('123', remote: false);
     expect(model, isNull);
-  });
-
-  test('findOne with includes', () async {
-    final data =
-        await container.familia.remoteAdapter.deserialize(json.decode('''
-      { "id": "1", "surname": "Smith", "persons": [{"_id": "1", "name": "Stan", "age": 31}] }
-    ''') as Object);
-    expect(data.model, Familia(id: '1', surname: 'Smith'));
-    expect(data.included, [Person(id: '1', name: 'Stan', age: 31)]);
   });
 
   test('create and save', () async {

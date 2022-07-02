@@ -1,8 +1,9 @@
 part of flutter_data;
 
-/// A mixin to "tag" and ensure the implementation of an [id] getter
-/// in data classes managed through Flutter Data.
+/// Data classes extending this class are marked to be managed
+/// through Flutter Data.
 ///
+/// It enforces the implementation of an [id] getter.
 /// It contains private state and methods to track the model's identity.
 abstract class DataModel<T extends DataModel<T>> {
   Object? get id;

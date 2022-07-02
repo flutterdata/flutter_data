@@ -64,6 +64,19 @@ void main() async {
     expect(await container.familia.findAll(remote: false), familia3);
   });
 
+  test('findAll in background', () async {
+    container.read(responseProvider.notifier).state = TestResponse.text('''
+        [{ "id": "1", "surname": "Smith" }, { "id": "2", "surname": "Jones" }]
+      ''');
+    final familias = await container.familia.findAll(background: true);
+    expect(familias, isNull);
+
+    await oneMs();
+
+    final familias2 = await container.familia.findAll(remote: false);
+    expect(familias2, hasLength(2));
+  });
+
   test('findAll with error', () async {
     expect(() async {
       container.read(responseProvider.notifier).state = TestResponse(
@@ -134,6 +147,19 @@ void main() async {
     // as well as the included Person
     expect(await container.people.findOne('1', remote: false),
         Person(id: '1', name: 'Stan', age: 31));
+  });
+
+  test('findOne in background', () async {
+    container.read(responseProvider.notifier).state = TestResponse.text('''
+        { "id": "1", "surname": "Smith" }
+      ''');
+    final familia = await container.familia.findOne('1', background: true);
+    expect(familia, isNull);
+
+    await oneMs();
+
+    final familia2 = await container.familia.findOne('1', remote: false);
+    expect(familia2, Familia(id: '1', surname: 'Smith'));
   });
 
   test('findOne with errors', () async {
@@ -272,7 +298,6 @@ void main() async {
   });
 
   test('custom with auto deserialization', () async {
-    // network issue
     container.read(responseProvider.notifier).state =
         TestResponse.text('[{"id": "19", "surname": "Pandan"}]');
 
@@ -281,7 +306,6 @@ void main() async {
       method: DataRequestMethod.POST,
       body: json.encode({'a': 2}),
       label: DataRequestLabel('custom', type: 'familia'),
-      onSuccess: container.familia.remoteAdapter.onSuccess,
     );
     expect(f1, Familia(id: '19', surname: 'Pandan'));
   });

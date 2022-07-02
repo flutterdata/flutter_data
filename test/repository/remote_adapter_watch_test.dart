@@ -212,6 +212,8 @@ void main() async {
         Person(id: '1', name: 'Martin', age: 44, familia: familia.asBelongsTo)
             .saveLocal();
 
+    await oneMs();
+
     verify(listener(argThat(isA<DataState>()
             .having((s) => s.model.persons!.toSet(), 'rel', {martin}).having(
                 (s) => s.isLoading, 'loading', false))))
@@ -220,6 +222,8 @@ void main() async {
 
     // update person
     martin = Person(id: '1', name: 'Martin', age: 45).saveLocal();
+
+    await oneMs();
 
     verify(listener(argThat(isA<DataState>().having(
         (s) => s.model.persons!.toSet(),
@@ -250,6 +254,9 @@ void main() async {
 
     // remove person
     familia.persons.remove(martin);
+
+    await oneMs();
+
     verify(listener(argThat(isA<DataState>().having(
         (s) => s.model.persons!.toSet(), 'rel', {eve, maria})))).called(1);
     verifyNoMoreInteractions(listener);
@@ -619,14 +626,9 @@ void main() async {
     await f1.delete();
     await oneMs();
 
-    // 1 event for node removal
-    // 1 event for persons relationship removed
-    // 1 event for residence relationship removed
-    // 1 event for cottage relationship removed
-    // a few extra for?!
     verify(listener(argThat(
       isA<DataState>().having((s) => s.model, 'model', isNull),
-    ))).called(7);
+    ))).called(1);
     verifyNoMoreInteractions(listener);
   });
 
@@ -740,22 +742,16 @@ void main() async {
     dispose = notifier.addListener(listener);
 
     verify(listener(DataState(null, isLoading: false))).called(1);
+    verifyNoMoreInteractions(listener);
 
-    // ignore: missing_return
     await container.familia.save(
       Familia(id: '1', surname: 'Smith'),
       onError: (e, _, __) async {
-        notifier.updateWith(exception: e);
+        expect(e.error, isA<FormatException>());
         return null;
       },
     );
     await oneMs();
-
-    verify(listener(argThat(
-      isA<DataState>().having((s) {
-        return s.exception!.error;
-      }, 'exception', isA<FormatException>()),
-    ))).called(1);
   });
 
   test('notifier equality', () async {

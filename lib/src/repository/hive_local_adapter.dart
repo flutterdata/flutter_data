@@ -163,9 +163,9 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
 
     final model = deserialize(map);
 
-    // deserialize (local or remote) should not auto-init
-    // as there are cases that should not be init, but
-    // hive local deserialization should always be init:
+    // Model initialization is necessary here as `DataModel`s
+    // auto-initialization is not ready at this point
+    // (reading adapters during FD initialization)
     initModel(model);
 
     return model;
