@@ -10,7 +10,7 @@ part 'book.freezed.dart';
 part 'book.g.dart';
 
 @freezed
-@DataRepository([BookAuthorAdapter], remote: false)
+@DataRepository([BookAuthorAdapter], remote: false, typeId: 8)
 class BookAuthor extends DataModel<BookAuthor> with _$BookAuthor {
   BookAuthor._();
   factory BookAuthor({

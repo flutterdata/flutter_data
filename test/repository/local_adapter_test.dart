@@ -1,9 +1,12 @@
 import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
+import '../_support/book.dart';
 import '../_support/familia.dart';
 import '../_support/house.dart';
+import '../_support/node.dart';
 import '../_support/person.dart';
+import '../_support/pet.dart';
 import '../_support/setup.dart';
 
 void main() async {
@@ -149,12 +152,28 @@ void main() async {
   });
 
   test('hive adapter typeId', () {
-    final a1 = container.familia.remoteAdapter.localAdapter
-        as HiveLocalAdapter<Familia>;
-    final a2 =
+    final housesAdapter =
         container.houses.remoteAdapter.localAdapter as HiveLocalAdapter<House>;
-    expect(a1.typeId, 23);
-    expect(a1.typeId, isNot(a2.typeId));
+    final familiaAdapter = container.familia.remoteAdapter.localAdapter
+        as HiveLocalAdapter<Familia>;
+    final peopleAdapter =
+        container.people.remoteAdapter.localAdapter as HiveLocalAdapter<Person>;
+    final dogsAdapter =
+        container.dogs.remoteAdapter.localAdapter as HiveLocalAdapter<Dog>;
+    final nodesAdapter =
+        container.nodes.remoteAdapter.localAdapter as HiveLocalAdapter<Node>;
+    final booksAdapter =
+        container.books.remoteAdapter.localAdapter as HiveLocalAdapter<Book>;
+    final bookAuthorsAdapter = container.bookAuthors.remoteAdapter.localAdapter
+        as HiveLocalAdapter<BookAuthor>;
+
+    expect(housesAdapter.typeId, 1);
+    expect(familiaAdapter.typeId, 5);
+    expect(peopleAdapter.typeId, 6);
+    expect(dogsAdapter.typeId, 7);
+    expect(bookAuthorsAdapter.typeId, 8);
+    expect(booksAdapter.typeId, 9);
+    expect(nodesAdapter.typeId, 10);
   });
 
   test('relationships with serialized=false', () {

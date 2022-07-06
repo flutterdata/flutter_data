@@ -125,41 +125,43 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
 
   @override
   int get typeId {
+    late final int id;
+
     // if `typeId` was supplied, use it
     if (_typeId != null) {
-      return _typeId!;
+      id = _typeId!;
+    } else {
+      // otherwise auto-calculate (and persist)
+
+      // _adapter_hive:key: {
+      //   '_adapter_hive:posts': ['_adapter_hive:1'],
+      //   '_adapter_hive:comments': ['_adapter_hive:2'],
+      //   '_adapter_hive:houses': ['_adapter_hive:3'],
+      // }
+
+      final typesNode =
+          graph._getNode(_hiveAdapterKey, orAdd: true, notify: false)!;
+
+      final edge = typesNode[internalType.namespaceWith(_hiveAdapterNs)];
+
+      if (edge != null && edge.isNotEmpty) {
+        // first is of format: _adapter_hive:1
+        return int.parse(edge.first.denamespace());
+      }
+
+      // get namespaced indices
+      id = typesNode.values
+              // denamespace and parse single
+              .map((e) => int.parse(e.first.denamespace()))
+              // find max
+              .fold(0, math.max) +
+          1;
     }
 
-    // otherwise auto-calculate (and persist)
-
-    // _adapter_hive:key: {
-    //   '_adapter_hive:posts': ['_adapter_hive:1'],
-    //   '_adapter_hive:comments': ['_adapter_hive:2'],
-    //   '_adapter_hive:houses': ['_adapter_hive:3'],
-    // }
-
-    final typesNode =
-        graph._getNode(_hiveAdapterKey, orAdd: true, notify: false)!;
-
-    final edge = typesNode[internalType.namespaceWith(_hiveAdapterNs)];
-
-    if (edge != null && edge.isNotEmpty) {
-      // first is of format: _adapter_hive:1
-      return int.parse(edge.first.denamespace());
-    }
-
-    // get namespaced indices
-    final index = typesNode.values
-            // denamespace and parse single
-            .map((e) => int.parse(e.first.denamespace()))
-            // find max
-            .fold(0, math.max) +
-        1;
-
-    graph._addEdge(
-        _hiveAdapterKey, index.toString().namespaceWith(_hiveAdapterNs),
+    graph._addEdge(_hiveAdapterKey, id.toString().namespaceWith(_hiveAdapterNs),
         metadata: internalType.namespaceWith(_hiveAdapterNs), notify: false);
-    return index;
+
+    return id;
   }
 
   @override

@@ -49,7 +49,7 @@ class $BookAuthorRemoteAdapter = RemoteAdapter<BookAuthor>
 
 final internalBookAuthorsRemoteAdapterProvider =
     Provider<RemoteAdapter<BookAuthor>>((ref) => $BookAuthorRemoteAdapter(
-        $BookAuthorHiveLocalAdapter(ref.read, typeId: null),
+        $BookAuthorHiveLocalAdapter(ref.read, typeId: 8),
         InternalHolder(_bookAuthorsFinders)));
 
 final bookAuthorsRepositoryProvider =
