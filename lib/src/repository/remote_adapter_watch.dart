@@ -70,8 +70,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     notifier.reload();
 
     final throttleDuration = read(graphNotifierThrottleDurationProvider);
-    final DelayedStateNotifier<List<DataGraphEvent>> throttledGraph =
-        graph.throttle(() => throttleDuration);
+    final throttledGraph = graph.throttle(() => throttleDuration);
 
     final states = <DataState<List<T>?>>[];
 
@@ -214,8 +213,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     var bufferModel = notifier.data.model;
 
     final throttleDuration = read(graphNotifierThrottleDurationProvider);
-    final DelayedStateNotifier<List<DataGraphEvent>> throttledGraph =
-        graph.throttle(() => throttleDuration);
+    final throttledGraph = graph.throttle(() => throttleDuration);
 
     final states = <DataState<T?>>[];
 
@@ -311,8 +309,10 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     return notifier;
   }
 
+  // `S` could be `T` or `List<T>`
   void _updateFromStates<S>(
       List<DataState<S>> states, DataStateNotifier<S> notifier) {
+    // calculate final state & drain
     final mergedState = states.fold<DataState<S>?>(null, (acc, state) {
       return acc == null ? state : acc.merge(state);
     });
