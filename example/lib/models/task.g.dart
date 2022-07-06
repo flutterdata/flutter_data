@@ -44,8 +44,8 @@ class $TaskHiveLocalAdapter = HiveLocalAdapter<Task> with $TaskLocalAdapter;
 class $TaskRemoteAdapter = RemoteAdapter<Task> with JSONServerAdapter<Task>;
 
 final internalTasksRemoteAdapterProvider = Provider<RemoteAdapter<Task>>(
-    (ref) => $TaskRemoteAdapter(
-        $TaskHiveLocalAdapter(ref.read), InternalHolder(_tasksFinders)));
+    (ref) => $TaskRemoteAdapter($TaskHiveLocalAdapter(ref.read, typeId: null),
+        InternalHolder(_tasksFinders)));
 
 final tasksRepositoryProvider =
     Provider<Repository<Task>>((ref) => Repository<Task>(ref.read));

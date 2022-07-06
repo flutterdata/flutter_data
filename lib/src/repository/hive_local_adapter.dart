@@ -4,10 +4,12 @@ part of flutter_data;
 // ignore: must_be_immutable
 abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
     with TypeAdapter<T> {
-  HiveLocalAdapter(Reader read)
-      : _hiveLocalStorage = read(hiveLocalStorageProvider),
+  HiveLocalAdapter(Reader read, {int? typeId})
+      : _typeId = typeId,
+        _hiveLocalStorage = read(hiveLocalStorageProvider),
         super(read);
 
+  final int? _typeId;
   final HiveLocalStorage _hiveLocalStorage;
 
   final _hiveAdapterNs = '_adapter_hive';
@@ -35,7 +37,7 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
       }
       _box = await _hiveLocalStorage.openBox<T>(internalType);
     } catch (e, stackTrace) {
-      print('[flutter_data] Box failed to open:\n$stackTrace');
+      print('[flutter_data] Box failed to open:\n$e\n$stackTrace');
     }
 
     return this;
@@ -123,6 +125,13 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
 
   @override
   int get typeId {
+    // if `typeId` was supplied, use it
+    if (_typeId != null) {
+      return _typeId!;
+    }
+
+    // otherwise auto-calculate (and persist)
+
     // _adapter_hive:key: {
     //   '_adapter_hive:posts': ['_adapter_hive:1'],
     //   '_adapter_hive:comments': ['_adapter_hive:2'],

@@ -417,5 +417,6 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
 class DataRepository {
   final List<Type> adapters;
   final bool remote;
-  const DataRepository(this.adapters, {this.remote = true});
+  final int? typeId;
+  const DataRepository(this.adapters, {this.remote = true, this.typeId});
 }

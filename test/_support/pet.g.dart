@@ -35,8 +35,8 @@ class $DogHiveLocalAdapter = HiveLocalAdapter<Dog> with $DogLocalAdapter;
 class $DogRemoteAdapter = RemoteAdapter<Dog> with NothingMixin;
 
 final internalDogsRemoteAdapterProvider = Provider<RemoteAdapter<Dog>>((ref) =>
-    $DogRemoteAdapter(
-        $DogHiveLocalAdapter(ref.read), InternalHolder(_dogsFinders)));
+    $DogRemoteAdapter($DogHiveLocalAdapter(ref.read, typeId: null),
+        InternalHolder(_dogsFinders)));
 
 final dogsRepositoryProvider =
     Provider<Repository<Dog>>((ref) => Repository<Dog>(ref.read));
@@ -74,8 +74,8 @@ class $CatHiveLocalAdapter = HiveLocalAdapter<Cat> with $CatLocalAdapter;
 class $CatRemoteAdapter = RemoteAdapter<Cat> with NothingMixin;
 
 final internalCatsRemoteAdapterProvider = Provider<RemoteAdapter<Cat>>((ref) =>
-    $CatRemoteAdapter(
-        $CatHiveLocalAdapter(ref.read), InternalHolder(_catsFinders)));
+    $CatRemoteAdapter($CatHiveLocalAdapter(ref.read, typeId: null),
+        InternalHolder(_catsFinders)));
 
 final catsRepositoryProvider =
     Provider<Repository<Cat>>((ref) => Repository<Cat>(ref.read));

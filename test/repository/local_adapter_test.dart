@@ -153,6 +153,7 @@ void main() async {
         as HiveLocalAdapter<Familia>;
     final a2 =
         container.houses.remoteAdapter.localAdapter as HiveLocalAdapter<House>;
+    expect(a1.typeId, 23);
     expect(a1.typeId, isNot(a2.typeId));
   });
 

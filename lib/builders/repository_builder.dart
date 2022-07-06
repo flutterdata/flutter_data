@@ -250,6 +250,9 @@ RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
       mixins.add('NothingMixin');
     }
 
+    final typeIdReader = annotation.read('typeId');
+    final typeId = typeIdReader.isNull ? null : typeIdReader.intValue;
+
     // template
 
     return '''
@@ -286,7 +289,7 @@ class \$${classType}RemoteAdapter = RemoteAdapter<$classType> with ${mixins.join
 
 final internal${typeLowerCased.capitalize()}RemoteAdapterProvider =
     Provider<RemoteAdapter<$classType>>(
-        (ref) => \$${classType}RemoteAdapter(\$${classType}HiveLocalAdapter(ref.read), InternalHolder(_${typeLowerCased}Finders)));
+        (ref) => \$${classType}RemoteAdapter(\$${classType}HiveLocalAdapter(ref.read, typeId: $typeId), InternalHolder(_${typeLowerCased}Finders)));
 
 final ${typeLowerCased}RepositoryProvider =
     Provider<Repository<$classType>>((ref) => Repository<$classType>(ref.read));
