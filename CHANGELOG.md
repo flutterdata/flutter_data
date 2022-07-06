@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.6] - July 6th, 2022
+
+- Allow passing hive typeIds manually
+- Make graph throttle duration zero for tests
+- More documentation, tests and coverage
+
 ## [1.4.4] - June 6th, 2022
 
 - Revert (temporarily) request ordering

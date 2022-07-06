@@ -127,6 +127,10 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
   int get typeId {
     late final int id;
 
+    // initialize typesNode
+    final typesNode =
+        graph._getNode(_hiveAdapterKey, orAdd: true, notify: false)!;
+
     // if `typeId` was supplied, use it
     if (_typeId != null) {
       id = _typeId!;
@@ -138,9 +142,6 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
       //   '_adapter_hive:comments': ['_adapter_hive:2'],
       //   '_adapter_hive:houses': ['_adapter_hive:3'],
       // }
-
-      final typesNode =
-          graph._getNode(_hiveAdapterKey, orAdd: true, notify: false)!;
 
       final edge = typesNode[internalType.namespaceWith(_hiveAdapterNs)];
 
