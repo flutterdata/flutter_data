@@ -434,12 +434,10 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     label = DataRequestLabel('delete',
         type: internalType, id: id.toString(), withParent: label);
 
-    if (key != null) {
-      if (remote == false) {
-        log(label, 'deleted in local storage only');
-      }
-      await localAdapter.delete(key);
+    if (remote == false) {
+      log(label, 'deleted in local storage only');
     }
+    await localAdapter.delete(key);
 
     if (remote == true && id != null) {
       return await sendRequest(
@@ -723,13 +721,19 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     final node = graph._getNode(_offlineAdapterKey, orAdd: true)!;
     return node.entries
         .map((e) {
-          // extract type from e.g. _offline:findOne/users#3@d7bcc9
-          final label = DataRequestLabel.parse(e.key.denamespace());
-          if (label.type == internalType) {
-            // get first edge value
-            final map = json.decode(e.value.first) as Map<String, dynamic>;
-            return OfflineOperation<T>.fromJson(
-                label, map, this as RemoteAdapter<T>);
+          try {
+            // extract type from e.g. _offline:findOne/users#3@d7bcc9
+            final label = DataRequestLabel.parse(e.key.denamespace());
+            if (label.type == internalType) {
+              // get first edge value
+              final map = json.decode(e.value.first) as Map<String, dynamic>;
+              return OfflineOperation<T>.fromJson(
+                  label, map, this as RemoteAdapter<T>);
+            }
+          } catch (_) {
+            // if there were any errors parsing labels or json ignore and remove
+            graph._removeEdges(_offlineAdapterKey,
+                metadata: e.key, notify: false);
           }
         })
         .filterNulls
@@ -743,17 +747,12 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @protected
   @visibleForTesting
   @nonVirtual
-  String? keyForModelOrId(Object model) {
+  String keyForModelOrId(Object model) {
     if (model is T) {
-      return model._key;
+      return model._key!;
     } else {
-      final id = _resolveId(model);
-      if (id != null) {
-        return graph.getKeyForId(internalType, id,
-            keyIfAbsent: DataHelpers.generateKey<T>())!;
-      } else {
-        return null;
-      }
+      return graph.getKeyForId(internalType, model,
+          keyIfAbsent: DataHelpers.generateKey<T>())!;
     }
   }
 
