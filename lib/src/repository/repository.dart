@@ -302,7 +302,6 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     DataRequestLabel? label,
   }) {
     final key = remoteAdapter.keyForModelOrId(model);
-    final id = remoteAdapter._resolveId(model);
 
     remote ??= remoteAdapter._remote;
     final relationshipMetas = alsoWatch
@@ -313,7 +312,6 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     return _watchOneProvider(
       WatchArgs(
         key: key,
-        id: id,
         remote: remote,
         params: params,
         headers: headers,

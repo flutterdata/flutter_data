@@ -168,7 +168,6 @@ typedef AlsoWatch<T extends DataModel<T>> = Iterable<RelationshipGraphNode>
 class WatchArgs<T extends DataModel<T>> with EquatableMixin {
   WatchArgs({
     this.key,
-    this.id,
     this.remote,
     this.params,
     this.headers,
@@ -180,7 +179,6 @@ class WatchArgs<T extends DataModel<T>> with EquatableMixin {
   });
 
   final String? key;
-  final Object? id;
   final bool? remote;
   final Map<String, dynamic>? params;
   final Map<String, String>? headers;
@@ -193,7 +191,6 @@ class WatchArgs<T extends DataModel<T>> with EquatableMixin {
   @override
   List<Object?> get props => [
         key,
-        id,
         remote,
         params,
         headers,
