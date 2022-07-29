@@ -9,7 +9,9 @@
 
 ## Persistent reactive models in Flutter with zero boilerplate
 
-Flutter Data is an offline-first persistence framework that provides a powerful convention-over-configuration REST client and model relationships. Inspired by [Ember Data](https://github.com/emberjs/data) and [ActiveRecord](https://guides.rubyonrails.org/active_record_basics.html).
+Flutter Data is an offline-first data framework with a customizable REST client and powerful model relationships.
+
+<small>Inspired by [Ember Data](https://github.com/emberjs/data) and [ActiveRecord](https://guides.rubyonrails.org/active_record_basics.html).</small>
 
 ## Features
 
@@ -90,11 +92,11 @@ GestureDetector(
 More examples:
 
 ```dart
-final todo = await Task(title: 'Finish docs').save();
+final task = await Task(title: 'Finish docs').save();
 // or its equivalent:
-final todo = await ref.tasks.save(Todo(title: 'Finish docs'));
+final task = await ref.tasks.save(Task(title: 'Finish docs'));
 // POST https://my-json-server.typicode.com/flutterdata/demo/tasks/
-print(todo.id); // 201
+print(task.id); // 201
 
 final user = await repository.findOne(1, params: {'_embed': 'tasks'});
 // (remember repository can be accessed via ref.users)

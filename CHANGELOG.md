@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.7] - July 29th, 2022
+
+- Improve internal types to fix an issue with release mode on web
+- Ensure we always get a key initializing the provider
+- Ignore and delete malformed offline operations
+
 ## [1.4.6] - July 6th, 2022
 
 - Allow passing hive typeIds manually
