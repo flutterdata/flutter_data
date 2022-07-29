@@ -19,7 +19,7 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
   GraphNotifier get _graph => _adapter.localAdapter.graph;
 
   final Set<String>? _uninitializedKeys;
-  String get _internalType => DataHelpers.getType<E>();
+  String get _internalType => DataHelpers.getInternalType<E>();
 
   bool get isInitialized => _ownerKey != null;
 

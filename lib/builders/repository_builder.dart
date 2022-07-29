@@ -20,15 +20,15 @@ class RepositoryGenerator extends GeneratorForAnnotation<DataRepository> {
   @override
   Future<String> generateForAnnotatedElement(
       Element element, ConstantReader annotation, BuildStep buildStep) async {
-    final classType = element.name;
-    final typeLowerCased = DataHelpers.getType(classType);
+    final className = element.name!;
+    final classNameLower = DataHelpers.internalTypeFor(className);
     ClassElement classElement;
 
     try {
       classElement = element as ClassElement;
     } catch (e) {
       throw UnsupportedError(
-          "Can't generate repository for $classType. Please use @DataRepository on a class.");
+          "Can't generate repository for $className. Please use @DataRepository on a class.");
     }
 
     final annot = TypeChecker.fromRuntime(JsonSerializable);
@@ -49,7 +49,7 @@ class RepositoryGenerator extends GeneratorForAnnotation<DataRepository> {
             element.getSetter(name) != null &&
             !element.getField(name)!.isLate) {
           throw UnsupportedError(
-              "Can't generate repository for $classType. The `$name` field MUST be final");
+              "Can't generate repository for $className. The `$name` field MUST be final");
         }
         _checkIsFinal(element.supertype?.element, name);
       }
@@ -106,9 +106,9 @@ serializing and deserializing.
         if (possibleInverseElements.length > 1) {
           throw UnsupportedError('''
 Too many possible inverses for relationship `${field.name}`
-of type $classType: ${possibleInverseElements.map((e) => e.name).join(', ')}
+of type $className: ${possibleInverseElements.map((e) => e.name).join(', ')}
 
-Please specify the correct inverse in the $classType class, for example:
+Please specify the correct inverse in the $className class, for example:
 
 @DataRelationship(inverse: '${possibleInverseElements.first.name}')
 final BelongsTo<${relationshipClassElement.name}> ${field.name};
@@ -163,10 +163,10 @@ and execute a code generation build again.
         '\'${rel['key']}\'': '''RelationshipMeta<${rel['type']}>(
             name: '${rel['name']}',
             ${rel['inverseName'] != null ? 'inverseName: \'${rel['inverseName']}\',' : ''}
-            type: '${DataHelpers.getType(rel['type'])}',
+            type: '${DataHelpers.internalTypeFor(rel['type']!)}',
             kind: '${rel['kind']}',
             ${rel['serialize'] != null ? 'serialize: ${rel['serialize']},' : ''}
-            instance: (_) => (_ as $classType).${rel['name']},
+            instance: (_) => (_ as $className).${rel['name']},
           )''',
     };
 
@@ -174,7 +174,7 @@ and execute a code generation build again.
       for (final rel in relationships)
         '''
 RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
-  final meta = \$${classType}LocalAdapter._k${classType}RelationshipMetas['${rel['key']}']
+  final meta = \$${className}LocalAdapter._k${className}RelationshipMetas['${rel['key']}']
       as RelationshipMeta<${rel['type']}>;
   return meta.clone(parent: this is RelationshipMeta ? this as RelationshipMeta : null);
 }
@@ -186,8 +186,8 @@ RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
     final hasFromJson =
         classElement.constructors.any((c) => c.name == 'fromJson');
     final fromJson = hasFromJson
-        ? '$classType.fromJson(map)'
-        : '_\$${classType}FromJson(map)';
+        ? '$className.fromJson(map)'
+        : '_\$${className}FromJson(map)';
 
     final methods = [
       ...classElement.methods,
@@ -196,7 +196,7 @@ RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
     ];
     final hasToJson = methods.any((c) => c.name == 'toJson');
     final toJson =
-        hasToJson ? 'model.toJson()' : '_\$${classType}ToJson(model)';
+        hasToJson ? 'model.toJson()' : '_\$${className}ToJson(model)';
 
     // additional adapters
 
@@ -218,7 +218,7 @@ RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
 
       if (!remoteAdapterTypeChecker.isAssignableFromType(mixinType)) {
         throw UnsupportedError(
-            'Adapter `$mixinType` MUST have a constraint `on` RemoteAdapter<$classType>');
+            'Adapter `$mixinType` MUST have a constraint `on` RemoteAdapter<$className>');
       }
 
       final instantiatedMixinType = (mixinType.element as ClassElement)
@@ -258,15 +258,15 @@ RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
     return '''
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
-mixin \$${classType}LocalAdapter on LocalAdapter<$classType> {
-  static final Map<String, RelationshipMeta> _k${classType}RelationshipMetas = 
+mixin \$${className}LocalAdapter on LocalAdapter<$className> {
+  static final Map<String, RelationshipMeta> _k${className}RelationshipMetas = 
     $relationshipMeta;
 
   @override
-  Map<String, RelationshipMeta> get relationshipMetas => _k${classType}RelationshipMetas;
+  Map<String, RelationshipMeta> get relationshipMetas => _k${className}RelationshipMetas;
 
   @override
-  $classType deserialize(map) {
+  $className deserialize(map) {
     map = transformDeserialize(map);
     return $fromJson;
   }
@@ -278,27 +278,27 @@ mixin \$${classType}LocalAdapter on LocalAdapter<$classType> {
   }
 }
 
-final _${typeLowerCased}Finders = <String, dynamic>{
+final _${classNameLower}Finders = <String, dynamic>{
   ${finders.map((f) => '''  '$f': (_) => _.$f,''').join('\n')}
 };
 
 // ignore: must_be_immutable
-class \$${classType}HiveLocalAdapter = HiveLocalAdapter<$classType> with \$${classType}LocalAdapter;
+class \$${className}HiveLocalAdapter = HiveLocalAdapter<$className> with \$${className}LocalAdapter;
 
-class \$${classType}RemoteAdapter = RemoteAdapter<$classType> with ${mixins.join(', ')};
+class \$${className}RemoteAdapter = RemoteAdapter<$className> with ${mixins.join(', ')};
 
-final internal${typeLowerCased.capitalize()}RemoteAdapterProvider =
-    Provider<RemoteAdapter<$classType>>(
-        (ref) => \$${classType}RemoteAdapter(\$${classType}HiveLocalAdapter(ref.read, typeId: $typeId), InternalHolder(_${typeLowerCased}Finders)));
+final internal${classNameLower.capitalize()}RemoteAdapterProvider =
+    Provider<RemoteAdapter<$className>>(
+        (ref) => \$${className}RemoteAdapter(\$${className}HiveLocalAdapter(ref.read, typeId: $typeId), InternalHolder(_${classNameLower}Finders)));
 
-final ${typeLowerCased}RepositoryProvider =
-    Provider<Repository<$classType>>((ref) => Repository<$classType>(ref.read));
+final ${classNameLower}RepositoryProvider =
+    Provider<Repository<$className>>((ref) => Repository<$className>(ref.read));
 
-extension ${classType}DataRepositoryX on Repository<$classType> {
+extension ${className}DataRepositoryX on Repository<$className> {
 $mixinShortcuts
 }
 
-extension ${classType}RelationshipGraphNodeX on RelationshipGraphNode<$classType> {
+extension ${className}RelationshipGraphNodeX on RelationshipGraphNode<$className> {
   ${relationshipGraphNodeExtension.join('\n')}
 }
 ''';

@@ -62,7 +62,7 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   ///  - It associates [keyIfAbsent] with the supplied [type]/[id]
   ///    (if both [keyIfAbsent] & [type]/[id] were provided)
   String? getKeyForId(String type, Object? id, {String? keyIfAbsent}) {
-    type = DataHelpers.getType(type);
+    type = DataHelpers.internalTypeFor(type);
     if (id != null) {
       final namespace = id is int ? '_id_int' : '_id';
       final namespacedId =

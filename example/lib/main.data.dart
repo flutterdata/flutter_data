@@ -29,37 +29,29 @@ ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<Str
 };
 
 final repositoryProviders = <String, Provider<Repository<DataModel>>>{
-  'tasks': tasksRepositoryProvider,
+  'todos': tasksRepositoryProvider,
 'users': usersRepositoryProvider
 };
 
 final repositoryInitializerProvider =
   FutureProvider<RepositoryInitializer>((ref) async {
-    final adapters = <String, RemoteAdapter>{'tasks': ref.watch(internalTasksRemoteAdapterProvider), 'users': ref.watch(internalUsersRemoteAdapterProvider)};
-    final remotes = <String, bool>{'tasks': true, 'users': true};
+    DataHelpers.setInternalType<Task>('todos');
+DataHelpers.setInternalType<User>('users');
+    final adapters = <String, RemoteAdapter>{'todos': ref.watch(internalTasksRemoteAdapterProvider), 'users': ref.watch(internalUsersRemoteAdapterProvider)};
+    final remotes = <String, bool>{'todos': true, 'users': true};
 
     await ref.watch(graphNotifierProvider).initialize();
 
-    final _repoMap = {
-      for (final type in repositoryProviders.keys)
-        type: ref.watch(repositoryProviders[type]!)
-    };
-
-    for (final type in _repoMap.keys) {
-      final repository = _repoMap[type]!;
-      internalRepositories[type] = repository;
+    // initialize and register
+    for (final type in repositoryProviders.keys) {
+      final repository = ref.read(repositoryProviders[type]!);
       repository.dispose();
       await repository.initialize(
         remote: remotes[type],
         adapters: adapters,
       );
+      internalRepositories[type] = repository;
     }
-
-    ref.onDispose(() {
-      for (final repository in _repoMap.values) {
-        repository.dispose();
-      }
-    });
 
     return RepositoryInitializer();
 });

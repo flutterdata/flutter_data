@@ -19,7 +19,7 @@ abstract class DataModel<T extends DataModel<T>> {
   }
 
   String? _key;
-  String get _internalType => DataHelpers.getType<T>();
+  String get _internalType => DataHelpers.getInternalType<T>();
   T get _this => this as T;
 
   /// Exposes this type's [RemoteAdapter]

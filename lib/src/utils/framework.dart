@@ -5,25 +5,33 @@ typedef FutureFn<R> = FutureOr<R> Function();
 class DataHelpers {
   static final uuid = Uuid();
 
-  static final _types = <Object, String>{};
+  static final _internalTypes = <Object, String>{};
 
-  static String getType<T>([String? type]) {
-    if (T == dynamic && type == null) {
+  static String getInternalType<T>() {
+    if (T == dynamic) {
       throw UnsupportedError('Please supply a type');
     }
-    if (!_types.containsKey(type ?? T)) {
-      final newType = type ?? T.toString();
-      _types[type ?? T] = newType.decapitalize().pluralize();
-    }
-    return _types[type ?? T]!;
+    return _internalTypes[T]!;
   }
+
+  static void setInternalType<T>(String type) {
+    if (!_internalTypes.containsKey(T)) {
+      _internalTypes[T] = type;
+    }
+  }
+
+  static String internalTypeFor(String type) => type.decapitalize().pluralize();
 
   static String generateShortKey<T>() {
     return uuid.v1().substring(0, 6);
   }
 
   static String generateKey<T>([String? type]) {
-    type = getType<T>(type);
+    if (type != null) {
+      type = internalTypeFor(type);
+    } else {
+      type = getInternalType<T>();
+    }
     return uuid.v1().substring(0, 8).typifyWith(type);
   }
 }
@@ -160,6 +168,7 @@ typedef AlsoWatch<T extends DataModel<T>> = Iterable<RelationshipGraphNode>
 class WatchArgs<T extends DataModel<T>> with EquatableMixin {
   WatchArgs({
     this.key,
+    this.id,
     this.remote,
     this.params,
     this.headers,
@@ -171,6 +180,7 @@ class WatchArgs<T extends DataModel<T>> with EquatableMixin {
   });
 
   final String? key;
+  final Object? id;
   final bool? remote;
   final Map<String, dynamic>? params;
   final Map<String, String>? headers;
@@ -183,6 +193,7 @@ class WatchArgs<T extends DataModel<T>> with EquatableMixin {
   @override
   List<Object?> get props => [
         key,
+        id,
         remote,
         params,
         headers,
@@ -222,7 +233,7 @@ typedef OnErrorAll<T extends DataModel<T>> = FutureOr<List<T>?> Function(
 ///  - findAll/reports@b5d14c<c4a1bb
 class DataRequestLabel with EquatableMixin {
   final String kind;
-  late final String type;
+  final String type;
   final String? id;
   DataModel? model;
   final timestamp = DateTime.now();
@@ -233,7 +244,7 @@ class DataRequestLabel with EquatableMixin {
 
   DataRequestLabel(
     String kind, {
-    required String type,
+    required this.type,
     this.id,
     String? requestId,
     this.model,
@@ -246,7 +257,6 @@ class DataRequestLabel with EquatableMixin {
     if (requestId != null) {
       assert(!requestId.contains('@'));
     }
-    this.type = DataHelpers.getType(type);
     _requestIds.add(requestId ?? DataHelpers.generateShortKey());
 
     if (withParent != null) {

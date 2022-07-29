@@ -14,7 +14,7 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
 
   FutureOr<LocalAdapter<T>> initialize();
 
-  String get internalType => DataHelpers.getType<T>();
+  String get internalType => DataHelpers.getInternalType<T>();
 
   // protected API
 

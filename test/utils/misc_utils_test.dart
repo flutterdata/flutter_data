@@ -6,22 +6,23 @@ import '../_support/person.dart';
 import '../_support/pet.dart';
 
 void main() async {
-  test('getType', () {
-    expect(() => DataHelpers.getType(), throwsA(isA<UnsupportedError>()));
-    expect(DataHelpers.getType<Person>(), 'people');
-    expect(DataHelpers.getType('CreditCard'), 'creditCards');
+  test('internal types', () {
     expect(
-        DataHelpers.getType('Inameclasseslikeshit'), 'inameclasseslikeshits');
-    expect(DataHelpers.getType('Sheep'), 'sheep');
-    expect(DataHelpers.getType('Familia'), 'familia');
-    // `type` argument takes precedence
-    expect(DataHelpers.getType<Person>('animal'), 'animals');
+        () => DataHelpers.getInternalType(), throwsA(isA<UnsupportedError>()));
+
+    final type = DataHelpers.internalTypeFor('person');
+    expect(type, 'people');
+
+    // set/get simply read/write to/from the _types<T, String> map
+    DataHelpers.setInternalType<Person>('people');
+    expect(DataHelpers.getInternalType<Person>(), 'people');
   });
 
   test('generateKey', () {
     expect(() => DataHelpers.generateKey(), throwsA(isA<UnsupportedError>()));
-    expect(DataHelpers.generateKey<Person>(), isNotNull);
-    expect(DataHelpers.generateKey('robots'), isNotNull);
+    DataHelpers.setInternalType<Person>('people');
+    expect(DataHelpers.generateKey<Person>(), startsWith('people#'));
+    expect(DataHelpers.generateKey('robot'), startsWith('robots#'));
   });
 
   test('uri helpers', () {

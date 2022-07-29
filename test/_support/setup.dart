@@ -53,6 +53,13 @@ void setUpFn() async {
 
   await container.read(graphNotifierProvider).initialize();
 
+  DataHelpers.setInternalType<House>('houses');
+  DataHelpers.setInternalType<Familia>('familia');
+  DataHelpers.setInternalType<Person>('people');
+  DataHelpers.setInternalType<Dog>('dogs');
+  DataHelpers.setInternalType<BookAuthor>('bookAuthors');
+  DataHelpers.setInternalType<Book>('books');
+
   final adapterGraph = <String, RemoteAdapter<DataModel>>{
     'houses': container.read(internalHousesRemoteAdapterProvider),
     'familia': container.read(internalFamiliaRemoteAdapterProvider),
@@ -86,6 +93,7 @@ void setUpFn() async {
           );
 
   const nodesKey = _kIsWeb ? 'node1s' : 'nodes';
+  DataHelpers.setInternalType<Node>(nodesKey);
   internalRepositories[nodesKey] =
       await container.read(nodesRepositoryProvider).initialize(
     remote: false,

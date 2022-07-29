@@ -65,7 +65,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @visibleForTesting
   @protected
   @nonVirtual
-  String get internalType => DataHelpers.getType<T>();
+  String get internalType => DataHelpers.getInternalType<T>();
 
   /// The pluralized and downcased [DataHelpers.getType<T>] version of type [T]
   /// by default.

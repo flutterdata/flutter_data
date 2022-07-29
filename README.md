@@ -90,18 +90,18 @@ GestureDetector(
 More examples:
 
 ```dart
-final todo = await Todo(title: 'Finish docs').save();
+final todo = await Task(title: 'Finish docs').save();
 // or its equivalent:
-final todo = await ref.todos.save(Todo(title: 'Finish docs'));
-// POST https://my-json-server.typicode.com/flutterdata/demo/todos/
+final todo = await ref.tasks.save(Todo(title: 'Finish docs'));
+// POST https://my-json-server.typicode.com/flutterdata/demo/tasks/
 print(todo.id); // 201
 
-final user = await repository.findOne(1, params: {'_embed': 'todos'});
+final user = await repository.findOne(1, params: {'_embed': 'tasks'});
 // (remember repository can be accessed via ref.users)
-// GET https://my-json-server.typicode.com/flutterdata/demo/users/1?_embed=todos
-print(user.todos.length); // 20
+// GET https://my-json-server.typicode.com/flutterdata/demo/users/1?_embed=tasks
+print(user.tasks.length); // 20
 
-await user.todos.last.delete();
+await user.tasks.last.delete();
 ```
 
 **Explore the [Documentation](https://flutterdata.dev/docs/).**

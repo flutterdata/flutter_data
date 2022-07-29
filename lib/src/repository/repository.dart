@@ -7,7 +7,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
 
   var _isInit = false;
 
-  String get _internalType => DataHelpers.getType<T>();
+  String get _internalType => DataHelpers.getInternalType<T>();
 
   final _adapters = <String, RemoteAdapter>{};
 
@@ -302,6 +302,8 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     DataRequestLabel? label,
   }) {
     final key = remoteAdapter.keyForModelOrId(model);
+    final id = remoteAdapter._resolveId(model);
+
     remote ??= remoteAdapter._remote;
     final relationshipMetas = alsoWatch
         ?.call(RelationshipGraphNode<T>())
@@ -311,6 +313,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     return _watchOneProvider(
       WatchArgs(
         key: key,
+        id: id,
         remote: remote,
         params: params,
         headers: headers,
@@ -417,6 +420,8 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
 class DataRepository {
   final List<Type> adapters;
   final bool remote;
+  final String? internalType;
   final int? typeId;
-  const DataRepository(this.adapters, {this.remote = true, this.typeId});
+  const DataRepository(this.adapters,
+      {this.remote = true, this.internalType, this.typeId});
 }

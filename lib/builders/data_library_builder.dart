@@ -34,7 +34,10 @@ class DataExtensionIntermediateBuilder implements Builder {
           buildStep.inputId.changeExtension('.flutter_data.info'),
           members.map((member) {
             return [
-              member.element.name,
+              member.element.name!,
+              member.annotation.read('internalType').isNull
+                  ? DataHelpers.internalTypeFor(member.element.name!)
+                  : member.annotation.read('internalType').stringValue,
               member.element.location!.components.first,
               member.annotation.read('remote').boolValue,
             ].join('#');
@@ -63,12 +66,12 @@ class DataExtensionBuilder implements Builder {
     final classes = infos.fold<List<Map<String, String>>>([], (acc, line) {
       for (final e in line.split(';')) {
         final parts = e.split('#');
-        final type = DataHelpers.getType(parts[0]);
         acc.add({
-          'name': parts[0],
-          'type': type,
-          'path': parts[1],
-          'remote': parts[2],
+          'className': parts[0],
+          'classNameLower': DataHelpers.internalTypeFor(parts[0]),
+          'type': parts[1],
+          'path': parts[2],
+          'remote': parts[3],
         });
       }
       return acc;
@@ -88,7 +91,7 @@ class DataExtensionBuilder implements Builder {
     final adaptersMap = {
       for (final clazz in classes)
         '\'${clazz['type']}\'':
-            'ref.watch(internal${clazz['type'].toString().capitalize()}RemoteAdapterProvider)'
+            'ref.watch(internal${clazz['classNameLower'].toString().capitalize()}RemoteAdapterProvider)'
     };
 
     final remotesMap = {
@@ -123,7 +126,7 @@ class DataExtensionBuilder implements Builder {
       return '''
 ${hasWidgets ? '''
 extension RepositoryWidgetRefX on WidgetRef {
-${classes.map((clazz) => '  Repository<${clazz['name']}> get ${clazz['type']} => watch(${clazz['type']}RepositoryProvider)..remoteAdapter.internalWatch = watch;').join('\n')}
+${classes.map((clazz) => '  Repository<${clazz['className']}> get ${clazz['classNameLower']} => watch(${clazz['classNameLower']}RepositoryProvider)..remoteAdapter.internalWatch = watch;').join('\n')}
 }''' : ''}
 
 extension RepositoryRefX on ${hasWidgets ? 'Ref' : 'ProviderContainer'} {
@@ -132,7 +135,7 @@ E watch<E>(ProviderListenable<E> provider) {
   return readProviderElement(provider as ProviderBase<E>).readSelf();
 }
 '''}
-${classes.map((clazz) => '  Repository<${clazz['name']}> get ${clazz['type']} => watch(${clazz['type']}RepositoryProvider)..remoteAdapter.internalWatch = watch${hasWidgets ? ' as Watcher' : ''};').join('\n')}
+${classes.map((clazz) => '  Repository<${clazz['className']}> get ${clazz['classNameLower']} => watch(${clazz['classNameLower']}RepositoryProvider)..remoteAdapter.internalWatch = watch${hasWidgets ? ' as Watcher' : ''};').join('\n')}
 }''';
     }
 
@@ -169,11 +172,12 @@ ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<Str
 };
 
 final repositoryProviders = <String, Provider<Repository<DataModel>>>{
-  ${classes.map((clazz) => '\'' + clazz['type']! + '\': ' + clazz['type']! + 'RepositoryProvider').join(',\n')}
+  ${classes.map((clazz) => '\'' + clazz['type']! + '\': ' + clazz['classNameLower']! + 'RepositoryProvider').join(',\n')}
 };
 
 final repositoryInitializerProvider =
   FutureProvider<RepositoryInitializer>((ref) async {
+${classes.map((clazz) => '    DataHelpers.setInternalType<${clazz['className']}>(\'${clazz['type']}\');').join('\n')}
     final adapters = <String, RemoteAdapter>$adaptersMap;
     final remotes = <String, bool>$remotesMap;
 
