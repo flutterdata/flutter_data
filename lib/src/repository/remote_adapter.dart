@@ -705,13 +705,16 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   @protected
   @visibleForTesting
   bool isOfflineError(Object? error) {
-    // timeouts via http's `connectionTimeout` are
-    // also socket exceptions
-    // we check the exception like this in order not to import `dart:io`
-    final err = error.toString();
-    return err.startsWith('SocketException') ||
-        err.startsWith('Connection closed before full header was received') ||
-        err.startsWith('HandshakeException');
+    final commonExceptions = [
+      // timeouts via http's `connectionTimeout` are also socket exceptions
+      'SocketException',
+      'HttpException',
+      'HandshakeException'
+    ];
+
+    // we check exceptions with strings to avoid importing `dart:io`
+    final err = error.runtimeType.toString();
+    return commonExceptions.any(err.contains);
   }
 
   @protected

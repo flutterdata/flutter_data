@@ -57,7 +57,6 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
     if (operation.key != null) {
       final model = adapter.localAdapter.findOne(operation.key!);
       if (model != null) {
-        // adapter.initializeModel(model, key: operation.key);
         operation.label.model = model;
       }
     }
@@ -177,22 +176,22 @@ final _offlineCallbackProvider =
 /// removed from the queue, this will notify clients
 /// with all pending types (could be none) such that
 /// they can implement their own retry strategy.
-final pendingOfflineTypesProvider =
-    StateNotifierProvider<DelayedStateNotifier<Set<String>>, Set<String>?>(
-        (ref) {
+final offlineOperationsProvider = StateNotifierProvider<
+    DelayedStateNotifier<Set<OfflineOperation>>, Set<OfflineOperation>?>((ref) {
   final graph = ref.watch(graphNotifierProvider);
 
-  Set<String> _pendingTypes() {
-    final node = graph._getNode(_offlineAdapterKey, orAdd: true)!;
-    // obtain types from metadata e.g. _offline:users#4:findOne
-    return node.keys.map((m) => m.split(':')[1].split('#')[0]).toSet();
+  Set<OfflineOperation> _offlineOperations() {
+    return internalRepositories.values
+        .map((r) => r.remoteAdapter.offlineOperations)
+        .expand((e) => e)
+        .toSet();
   }
 
-  final notifier = DelayedStateNotifier<Set<String>>();
+  final notifier = DelayedStateNotifier<Set<OfflineOperation>>();
   // emit initial value
   Timer.run(() {
     if (notifier.mounted) {
-      notifier.state = _pendingTypes();
+      notifier.state = _offlineOperations();
     }
   });
 
@@ -204,8 +203,8 @@ final pendingOfflineTypesProvider =
         event.keys.containsFirst(_offlineAdapterKey);
   }).addListener((_) {
     if (notifier.mounted) {
-      // recalculate all pending types
-      notifier.state = _pendingTypes();
+      // recalculate all pending offline operations
+      notifier.state = _offlineOperations();
     }
   });
 
