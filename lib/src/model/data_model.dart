@@ -47,24 +47,11 @@ abstract class DataModel<T extends DataModel<T>> {
   static RemoteAdapter adapterFor(DataModel model) => model._remoteAdapter;
 
   /// Apply [model]'s key to [applyTo].
-  static DataModel withKeyOf(DataModel model,
-      {required DataModel applyTo, bool force = false}) {
+  static DataModel withKeyOf(DataModel model, {required DataModel applyTo}) {
     final _this = applyTo;
     if (model._key != _this._key) {
-      DataModel oldModel;
-      DataModel newModel;
-
-      // if the passed-in model has no ID
-      // then treat the original as prevalent
-      if (force == false && model.id == null && _this.id != null) {
-        oldModel = model;
-        newModel = _this;
-      } else {
-        // in all other cases, treat the passed-in
-        // model as prevalent
-        oldModel = _this;
-        newModel = model;
-      }
+      DataModel oldModel = _this;
+      DataModel newModel = model;
 
       final oldKey = oldModel._key;
       if (_this._key != newModel._key) {
@@ -102,7 +89,7 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   ///
   /// [force] will set [model]'s key even if its `id` is null.
   T withKeyOf(T model, {bool force = false}) {
-    return DataModel.withKeyOf(model, applyTo: this, force: force) as T;
+    return DataModel.withKeyOf(model, applyTo: this) as T;
   }
 
   /// Saves this model through a call equivalent to [Repository.save].

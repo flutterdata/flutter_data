@@ -277,24 +277,17 @@ void main() async {
         Familia(id: '2', surname: 'Oslo'));
   });
 
-  test('reconcile keys under same ID', () async {
-    // id=1 exists locally, has a key
-    final familia1 = Familia(id: '1', surname: 'Corleone');
+  test('save with no ID should assign server ID', () async {
+    final family = Familia(surname: 'Corleone');
 
-    // an id-less Familia is created (obviously with new key)
-    final familia2 = Familia(surname: 'Moletto');
+    container.read(responseProvider.notifier).state = TestResponse.text('''
+      {"id": "95", "surname": "Corleone"}''');
 
-    // therefore these objects have different keys
-    expect(keyFor(familia2), isNotNull);
-    expect(keyFor(familia1), isNot(keyFor(familia2)));
+    final updatedFamily = await family.save();
 
-    // it's saved to the server
-    container.read(responseProvider.notifier).state =
-        TestResponse.text('''{"id": "1", "surname": "Oslo"}''');
-    await container.familia.save(familia2);
-
-    // keys are reconciled and now both keys are equal
-    expect(keyFor(familia1), keyFor(familia2));
+    expect(keyFor(family), keyFor(updatedFamily));
+    expect(await container.familia.remoteAdapter.findAll(remote: false),
+        hasLength(1));
   });
 
   test('custom with auto deserialization', () async {
