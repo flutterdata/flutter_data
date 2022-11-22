@@ -69,7 +69,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     // kick off
     notifier.reload();
 
-    final throttleDuration = read(graphNotifierThrottleDurationProvider);
+    final throttleDuration = ref.read(graphNotifierThrottleDurationProvider);
     final throttledGraph = graph.throttle(() => throttleDuration);
 
     final states = <DataState<List<T>?>>[];
@@ -212,7 +212,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
     // local buffer useful to reduce amount of notifier updates
     var bufferModel = notifier.data.model;
 
-    final throttleDuration = read(graphNotifierThrottleDurationProvider);
+    final throttleDuration = ref.read(graphNotifierThrottleDurationProvider);
     final throttledGraph = graph.throttle(() => throttleDuration);
 
     final states = <DataState<T?>>[];

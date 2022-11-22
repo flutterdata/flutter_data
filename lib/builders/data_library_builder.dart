@@ -145,7 +145,7 @@ ${classes.map((clazz) => '  Repository<${clazz['className']}> get ${clazz['class
         finalAssetId,
         '''\n
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: directives_ordering, top_level_function_literal_block
+// ignore_for_file: directives_ordering, top_level_function_literal_block, depend_on_referenced_packages
 
 import 'package:flutter_data/flutter_data.dart';
 $flutterFoundationImport
@@ -162,13 +162,14 @@ ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<Str
   ${isFlutter ? '  baseDirFn ??= () => \'\';' : ''}
   ${isFlutter ? '}' : ''}
   
-  return hiveLocalStorageProvider
-    .overrideWithProvider(Provider((ref) => HiveLocalStorage(
-            hive: ref.read(hiveProvider),
-            baseDirFn: baseDirFn,
-            encryptionKey: encryptionKey,
-            clear: clear,
-          )));
+  return hiveLocalStorageProvider.overrideWith(
+    (ref) => HiveLocalStorage(
+      hive: ref.read(hiveProvider),
+      baseDirFn: baseDirFn,
+      encryptionKey: encryptionKey,
+      clear: clear,
+    ),
+  );
 };
 
 final repositoryProviders = <String, Provider<Repository<DataModel>>>{

@@ -84,8 +84,8 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
       adapter.graph._addEdge(_offlineAdapterKey, node, metadata: metadata);
 
       // keep callbacks in memory
-      adapter.read(_offlineCallbackProvider)[metadata] ??= [];
-      adapter
+      adapter.ref.read(_offlineCallbackProvider)[metadata] ??= [];
+      adapter.ref
           .read(_offlineCallbackProvider)[metadata]!
           .add([onSuccess, onError]);
     } else {
@@ -102,14 +102,14 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
     if (adapter.graph._hasEdge(_offlineAdapterKey, metadata: metadata)) {
       adapter.graph._removeEdges(_offlineAdapterKey, metadata: metadata);
       adapter.log(label, 'offline/remove $metadata');
-      adapter.read(_offlineCallbackProvider).remove(metadata);
+      adapter.ref.read(_offlineCallbackProvider).remove(metadata);
     }
   }
 
   Future<void> retry() async {
     final metadata = metadataFor(label);
     // look up callbacks (or provide defaults)
-    final fns = adapter.read(_offlineCallbackProvider)[metadata] ??
+    final fns = adapter.ref.read(_offlineCallbackProvider)[metadata] ??
         [
           [null, null]
         ];
@@ -159,7 +159,7 @@ extension OfflineOperationsX on Set<OfflineOperation<DataModel>> {
         adapter.graph._removeEdges(_offlineAdapterKey, metadata: metadata);
       }
     }
-    adapter.read(_offlineCallbackProvider).clear();
+    adapter.ref.read(_offlineCallbackProvider).clear();
   }
 
   /// Filter by [label] kind.

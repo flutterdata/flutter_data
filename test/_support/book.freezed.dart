@@ -34,38 +34,42 @@ mixin _$BookAuthor {
 abstract class $BookAuthorCopyWith<$Res> {
   factory $BookAuthorCopyWith(
           BookAuthor value, $Res Function(BookAuthor) then) =
-      _$BookAuthorCopyWithImpl<$Res>;
+      _$BookAuthorCopyWithImpl<$Res, BookAuthor>;
+  @useResult
   $Res call({int id, String? name, HasMany<Book> books});
 }
 
 /// @nodoc
-class _$BookAuthorCopyWithImpl<$Res> implements $BookAuthorCopyWith<$Res> {
+class _$BookAuthorCopyWithImpl<$Res, $Val extends BookAuthor>
+    implements $BookAuthorCopyWith<$Res> {
   _$BookAuthorCopyWithImpl(this._value, this._then);
 
-  final BookAuthor _value;
   // ignore: unused_field
-  final $Res Function(BookAuthor) _then;
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
 
+  @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = freezed,
+    Object? id = null,
     Object? name = freezed,
-    Object? books = freezed,
+    Object? books = null,
   }) {
     return _then(_value.copyWith(
-      id: id == freezed
+      id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
               as int,
-      name: name == freezed
+      name: freezed == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
               as String?,
-      books: books == freezed
+      books: null == books
           ? _value.books
           : books // ignore: cast_nullable_to_non_nullable
               as HasMany<Book>,
-    ));
+    ) as $Val);
   }
 }
 
@@ -76,35 +80,35 @@ abstract class _$$_BookAuthorCopyWith<$Res>
           _$_BookAuthor value, $Res Function(_$_BookAuthor) then) =
       __$$_BookAuthorCopyWithImpl<$Res>;
   @override
+  @useResult
   $Res call({int id, String? name, HasMany<Book> books});
 }
 
 /// @nodoc
-class __$$_BookAuthorCopyWithImpl<$Res> extends _$BookAuthorCopyWithImpl<$Res>
+class __$$_BookAuthorCopyWithImpl<$Res>
+    extends _$BookAuthorCopyWithImpl<$Res, _$_BookAuthor>
     implements _$$_BookAuthorCopyWith<$Res> {
   __$$_BookAuthorCopyWithImpl(
       _$_BookAuthor _value, $Res Function(_$_BookAuthor) _then)
-      : super(_value, (v) => _then(v as _$_BookAuthor));
+      : super(_value, _then);
 
-  @override
-  _$_BookAuthor get _value => super._value as _$_BookAuthor;
-
+  @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = freezed,
+    Object? id = null,
     Object? name = freezed,
-    Object? books = freezed,
+    Object? books = null,
   }) {
     return _then(_$_BookAuthor(
-      id: id == freezed
+      id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
               as int,
-      name: name == freezed
+      name: freezed == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
               as String?,
-      books: books == freezed
+      books: null == books
           ? _value.books
           : books // ignore: cast_nullable_to_non_nullable
               as HasMany<Book>,
@@ -137,27 +141,26 @@ class _$_BookAuthor extends _BookAuthor {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$_BookAuthor &&
-            const DeepCollectionEquality().equals(other.id, id) &&
-            const DeepCollectionEquality().equals(other.name, name) &&
-            const DeepCollectionEquality().equals(other.books, books));
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.books, books) || other.books == books));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      const DeepCollectionEquality().hash(id),
-      const DeepCollectionEquality().hash(name),
-      const DeepCollectionEquality().hash(books));
+  int get hashCode => Object.hash(runtimeType, id, name, books);
 
   @JsonKey(ignore: true)
   @override
+  @pragma('vm:prefer-inline')
   _$$_BookAuthorCopyWith<_$_BookAuthor> get copyWith =>
       __$$_BookAuthorCopyWithImpl<_$_BookAuthor>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_BookAuthorToJson(this);
+    return _$$_BookAuthorToJson(
+      this,
+    );
   }
 }
 
@@ -172,11 +175,11 @@ abstract class _BookAuthor extends BookAuthor {
       _$_BookAuthor.fromJson;
 
   @override
-  int get id => throw _privateConstructorUsedError;
+  int get id;
   @override
-  String? get name => throw _privateConstructorUsedError;
+  String? get name;
   @override
-  HasMany<Book> get books => throw _privateConstructorUsedError;
+  HasMany<Book> get books;
   @override
   @JsonKey(ignore: true)
   _$$_BookAuthorCopyWith<_$_BookAuthor> get copyWith =>
@@ -206,7 +209,8 @@ mixin _$Book {
 /// @nodoc
 abstract class $BookCopyWith<$Res> {
   factory $BookCopyWith(Book value, $Res Function(Book) then) =
-      _$BookCopyWithImpl<$Res>;
+      _$BookCopyWithImpl<$Res, Book>;
+  @useResult
   $Res call(
       {int id,
       String? title,
@@ -218,48 +222,51 @@ abstract class $BookCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$BookCopyWithImpl<$Res> implements $BookCopyWith<$Res> {
+class _$BookCopyWithImpl<$Res, $Val extends Book>
+    implements $BookCopyWith<$Res> {
   _$BookCopyWithImpl(this._value, this._then);
 
-  final Book _value;
   // ignore: unused_field
-  final $Res Function(Book) _then;
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
 
+  @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = freezed,
+    Object? id = null,
     Object? title = freezed,
-    Object? numberOfSales = freezed,
+    Object? numberOfSales = null,
     Object? originalAuthor = freezed,
     Object? house = freezed,
-    Object? ardentSupporters = freezed,
+    Object? ardentSupporters = null,
   }) {
     return _then(_value.copyWith(
-      id: id == freezed
+      id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
               as int,
-      title: title == freezed
+      title: freezed == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
               as String?,
-      numberOfSales: numberOfSales == freezed
+      numberOfSales: null == numberOfSales
           ? _value.numberOfSales
           : numberOfSales // ignore: cast_nullable_to_non_nullable
               as int,
-      originalAuthor: originalAuthor == freezed
+      originalAuthor: freezed == originalAuthor
           ? _value.originalAuthor
           : originalAuthor // ignore: cast_nullable_to_non_nullable
               as BelongsTo<BookAuthor>?,
-      house: house == freezed
+      house: freezed == house
           ? _value.house
           : house // ignore: cast_nullable_to_non_nullable
               as BelongsTo<House>?,
-      ardentSupporters: ardentSupporters == freezed
+      ardentSupporters: null == ardentSupporters
           ? _value.ardentSupporters
           : ardentSupporters // ignore: cast_nullable_to_non_nullable
               as HasMany<Person>,
-    ));
+    ) as $Val);
   }
 }
 
@@ -268,6 +275,7 @@ abstract class _$$_BookCopyWith<$Res> implements $BookCopyWith<$Res> {
   factory _$$_BookCopyWith(_$_Book value, $Res Function(_$_Book) then) =
       __$$_BookCopyWithImpl<$Res>;
   @override
+  @useResult
   $Res call(
       {int id,
       String? title,
@@ -279,45 +287,43 @@ abstract class _$$_BookCopyWith<$Res> implements $BookCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$_BookCopyWithImpl<$Res> extends _$BookCopyWithImpl<$Res>
+class __$$_BookCopyWithImpl<$Res> extends _$BookCopyWithImpl<$Res, _$_Book>
     implements _$$_BookCopyWith<$Res> {
   __$$_BookCopyWithImpl(_$_Book _value, $Res Function(_$_Book) _then)
-      : super(_value, (v) => _then(v as _$_Book));
+      : super(_value, _then);
 
-  @override
-  _$_Book get _value => super._value as _$_Book;
-
+  @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = freezed,
+    Object? id = null,
     Object? title = freezed,
-    Object? numberOfSales = freezed,
+    Object? numberOfSales = null,
     Object? originalAuthor = freezed,
     Object? house = freezed,
-    Object? ardentSupporters = freezed,
+    Object? ardentSupporters = null,
   }) {
     return _then(_$_Book(
-      id: id == freezed
+      id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
               as int,
-      title: title == freezed
+      title: freezed == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
               as String?,
-      numberOfSales: numberOfSales == freezed
+      numberOfSales: null == numberOfSales
           ? _value.numberOfSales
           : numberOfSales // ignore: cast_nullable_to_non_nullable
               as int,
-      originalAuthor: originalAuthor == freezed
+      originalAuthor: freezed == originalAuthor
           ? _value.originalAuthor
           : originalAuthor // ignore: cast_nullable_to_non_nullable
               as BelongsTo<BookAuthor>?,
-      house: house == freezed
+      house: freezed == house
           ? _value.house
           : house // ignore: cast_nullable_to_non_nullable
               as BelongsTo<House>?,
-      ardentSupporters: ardentSupporters == freezed
+      ardentSupporters: null == ardentSupporters
           ? _value.ardentSupporters
           : ardentSupporters // ignore: cast_nullable_to_non_nullable
               as HasMany<Person>,
@@ -365,36 +371,33 @@ class _$_Book extends _Book {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$_Book &&
-            const DeepCollectionEquality().equals(other.id, id) &&
-            const DeepCollectionEquality().equals(other.title, title) &&
-            const DeepCollectionEquality()
-                .equals(other.numberOfSales, numberOfSales) &&
-            const DeepCollectionEquality()
-                .equals(other.originalAuthor, originalAuthor) &&
-            const DeepCollectionEquality().equals(other.house, house) &&
-            const DeepCollectionEquality()
-                .equals(other.ardentSupporters, ardentSupporters));
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.title, title) || other.title == title) &&
+            (identical(other.numberOfSales, numberOfSales) ||
+                other.numberOfSales == numberOfSales) &&
+            (identical(other.originalAuthor, originalAuthor) ||
+                other.originalAuthor == originalAuthor) &&
+            (identical(other.house, house) || other.house == house) &&
+            (identical(other.ardentSupporters, ardentSupporters) ||
+                other.ardentSupporters == ardentSupporters));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      const DeepCollectionEquality().hash(id),
-      const DeepCollectionEquality().hash(title),
-      const DeepCollectionEquality().hash(numberOfSales),
-      const DeepCollectionEquality().hash(originalAuthor),
-      const DeepCollectionEquality().hash(house),
-      const DeepCollectionEquality().hash(ardentSupporters));
+  int get hashCode => Object.hash(runtimeType, id, title, numberOfSales,
+      originalAuthor, house, ardentSupporters);
 
   @JsonKey(ignore: true)
   @override
+  @pragma('vm:prefer-inline')
   _$$_BookCopyWith<_$_Book> get copyWith =>
       __$$_BookCopyWithImpl<_$_Book>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_BookToJson(this);
+    return _$$_BookToJson(
+      this,
+    );
   }
 }
 
@@ -412,19 +415,18 @@ abstract class _Book extends Book {
   factory _Book.fromJson(Map<String, dynamic> json) = _$_Book.fromJson;
 
   @override
-  int get id => throw _privateConstructorUsedError;
+  int get id;
   @override
-  String? get title => throw _privateConstructorUsedError;
+  String? get title;
   @override
-  int get numberOfSales => throw _privateConstructorUsedError;
+  int get numberOfSales;
   @override
   @JsonKey(name: 'original_author_id')
-  BelongsTo<BookAuthor>? get originalAuthor =>
-      throw _privateConstructorUsedError;
+  BelongsTo<BookAuthor>? get originalAuthor;
   @override
-  BelongsTo<House>? get house => throw _privateConstructorUsedError;
+  BelongsTo<House>? get house;
   @override
-  HasMany<Person> get ardentSupporters => throw _privateConstructorUsedError;
+  HasMany<Person> get ardentSupporters;
   @override
   @JsonKey(ignore: true)
   _$$_BookCopyWith<_$_Book> get copyWith => throw _privateConstructorUsedError;

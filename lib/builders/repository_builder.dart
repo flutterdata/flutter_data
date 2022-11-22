@@ -43,7 +43,7 @@ class RepositoryGenerator extends GeneratorForAnnotation<DataRepository> {
           ?.getField('fieldRename');
     }
 
-    void _checkIsFinal(final ClassElement? element, String? name) {
+    void _checkIsFinal(final InterfaceElement? element, String? name) {
       if (element != null) {
         if (name != null &&
             element.getSetter(name) != null &&
@@ -200,8 +200,6 @@ RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
 
     // additional adapters
 
-    final remoteAdapterTypeChecker = TypeChecker.fromRuntime(RemoteAdapter);
-
     final finders = <String>[];
 
     final mixins = annotation.read('adapters').listValue.map((obj) {
@@ -216,12 +214,15 @@ RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
             'Adapter `$mixinType` MUST have at most one type argument (T extends DataModel<T>) is supported for $mixinType');
       }
 
-      if (!remoteAdapterTypeChecker.isAssignableFromType(mixinType)) {
-        throw UnsupportedError(
-            'Adapter `$mixinType` MUST have a constraint `on` RemoteAdapter<$className>');
-      }
+      // TODO this stopped working, restore
+      // final remoteAdapterTypeChecker = TypeChecker.fromRuntime(RemoteAdapter);
+      // if (!remoteAdapterTypeChecker
+      //     .isAssignableFromType(mixinType)) {
+      //   throw UnsupportedError(
+      //       'Adapter `$mixinType` MUST have a constraint `on` RemoteAdapter<$className>');
+      // }
 
-      final instantiatedMixinType = (mixinType.element as ClassElement)
+      final instantiatedMixinType = (mixinType.element as MixinElement)
           .instantiate(
               typeArguments: [if (args.isNotEmpty) classElement.thisType],
               nullabilitySuffix: NullabilitySuffix.none);
@@ -229,7 +230,7 @@ RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
       displayName =
           instantiatedMixinType.getDisplayString(withNullability: false);
 
-// add finders
+      // add finders
       for (final field in mixinMethods) {
         final hasFinderAnnotation =
             TypeChecker.fromRuntime(DataFinder).hasAnnotationOfExact(field);
@@ -289,10 +290,10 @@ class \$${className}RemoteAdapter = RemoteAdapter<$className> with ${mixins.join
 
 final internal${classNameLower.capitalize()}RemoteAdapterProvider =
     Provider<RemoteAdapter<$className>>(
-        (ref) => \$${className}RemoteAdapter(\$${className}HiveLocalAdapter(ref.read, typeId: $typeId), InternalHolder(_${classNameLower}Finders)));
+        (ref) => \$${className}RemoteAdapter(\$${className}HiveLocalAdapter(ref${typeId != null ? ', typeId: $typeId' : ''}), InternalHolder(_${classNameLower}Finders)));
 
 final ${classNameLower}RepositoryProvider =
-    Provider<Repository<$className>>((ref) => Repository<$className>(ref.read));
+    Provider<Repository<$className>>((ref) => Repository<$className>(ref));
 
 extension ${className}DataRepositoryX on Repository<$className> {
 $mixinShortcuts

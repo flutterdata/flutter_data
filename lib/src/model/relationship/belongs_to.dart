@@ -50,7 +50,7 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
       super._remove(value!, notify: false);
     }
     if (isAddition || isUpdate) {
-      super._add(newValue!, notify: false);
+      super._add(newValue, notify: false);
     }
 
     // handle events

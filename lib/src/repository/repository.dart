@@ -2,8 +2,8 @@ part of flutter_data;
 
 /// Repository is the API used to interact with models whether local or remote.
 class Repository<T extends DataModel<T>> with _Lifecycle {
-  final Reader _read;
-  Repository(this._read);
+  final Ref _ref;
+  Repository(this._ref);
 
   var _isInit = false;
 
@@ -29,7 +29,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
     await remoteAdapter.initialize(
       remote: remote,
       adapters: adapters,
-      read: _read,
+      ref: _ref,
     );
     _isInit = true;
     return this;

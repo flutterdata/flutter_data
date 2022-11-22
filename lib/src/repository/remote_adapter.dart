@@ -48,7 +48,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   // None of these fields below can be late finals as they might be re-initialized
   Map<String, RemoteAdapter>? _adapters;
   bool? _remote;
-  Reader? _read;
+  Ref? _ref;
 
   /// All adapters for the relationship subgraph of [T] and their relationships.
   ///
@@ -59,7 +59,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
   /// Give access to the dependency injection system
   @nonVirtual
-  Reader get read => _read!;
+  Ref get ref => _ref!;
 
   /// INTERNAL: DO NOT USE
   @visibleForTesting
@@ -176,13 +176,13 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   Future<RemoteAdapter<T>> initialize(
       {bool? remote,
       required Map<String, RemoteAdapter> adapters,
-      required Reader read}) async {
+      required Ref ref}) async {
     if (isInitialized) return this as RemoteAdapter<T>;
 
     // initialize attributes
     _adapters = adapters;
     _remote = remote ?? true;
-    _read = read;
+    _ref = ref;
 
     await localAdapter.initialize();
 
@@ -528,7 +528,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     Object? error;
     StackTrace? stackTrace;
 
-    final client = _isTesting ? read(httpClientProvider)! : httpClient;
+    final client = _isTesting ? ref.read(httpClientProvider)! : httpClient;
 
     log(label,
         'requesting${_logLevel > 1 ? ' [HTTP ${method.toShortString()}] $uri' : ''}');
@@ -760,7 +760,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   }
 
   bool get _isTesting {
-    return read(httpClientProvider) != null;
+    return ref.read(httpClientProvider) != null;
   }
 }
 

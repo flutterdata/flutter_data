@@ -26,20 +26,20 @@ final logging = [];
 void setUpFn() async {
   container = ProviderContainer(
     overrides: [
-      httpClientProvider.overrideWithProvider(Provider((ref) {
+      httpClientProvider.overrideWith((ref) {
         return MockClient((req) async {
-          try {
-            final response = ref.watch(responseProvider);
-            final text = await response.callback(req);
-            return http.Response(text, response.statusCode,
-                headers: response.headers);
-          } on ProviderException catch (e) {
-            // unwrap provider exception
-            // ignore: only_throw_errors
-            throw e.exception;
-          }
+          // try {
+          final response = ref.watch(responseProvider);
+          final text = await response.callback(req);
+          return http.Response(text, response.statusCode,
+              headers: response.headers);
+          // } on Exception catch (e) {
+          //   // unwrap provider exception
+          //   // ignore: only_throw_errors
+          //   throw e.exception;
+          // }
         });
-      })),
+      }),
       hiveProvider.overrideWithValue(HiveFake()),
     ],
   );
@@ -131,7 +131,10 @@ Future<void> oneMs() async {
 
 // home baked watcher
 E _watch<E>(ProviderListenable<E> provider) {
-  return container.readProviderElement(provider as ProviderBase<E>).readSelf();
+  if (provider is ProviderBase<E>) {
+    return container.readProviderElement(provider).readSelf();
+  }
+  return container.listen<E>(provider, ((_, next) => next)).read();
 }
 
 Function() overridePrint(dynamic Function() testFn) => () {

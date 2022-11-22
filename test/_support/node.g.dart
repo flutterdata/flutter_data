@@ -51,11 +51,11 @@ class $NodeHiveLocalAdapter = HiveLocalAdapter<Node> with $NodeLocalAdapter;
 class $NodeRemoteAdapter = RemoteAdapter<Node> with NodeAdapter;
 
 final internalNodesRemoteAdapterProvider = Provider<RemoteAdapter<Node>>(
-    (ref) => $NodeRemoteAdapter($NodeHiveLocalAdapter(ref.read, typeId: null),
-        InternalHolder(_nodesFinders)));
+    (ref) => $NodeRemoteAdapter(
+        $NodeHiveLocalAdapter(ref), InternalHolder(_nodesFinders)));
 
 final nodesRepositoryProvider =
-    Provider<Repository<Node>>((ref) => Repository<Node>(ref.read));
+    Provider<Repository<Node>>((ref) => Repository<Node>(ref));
 
 extension NodeDataRepositoryX on Repository<Node> {
   NodeAdapter get nodeAdapter => remoteAdapter as NodeAdapter;

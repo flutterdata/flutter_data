@@ -1,7 +1,7 @@
 
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: directives_ordering, top_level_function_literal_block
+// ignore_for_file: directives_ordering, top_level_function_literal_block, depend_on_referenced_packages
 
 import 'package:flutter_data/flutter_data.dart';
 
@@ -19,13 +19,14 @@ ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<Str
   
   
   
-  return hiveLocalStorageProvider
-    .overrideWithProvider(Provider((ref) => HiveLocalStorage(
-            hive: ref.read(hiveProvider),
-            baseDirFn: baseDirFn,
-            encryptionKey: encryptionKey,
-            clear: clear,
-          )));
+  return hiveLocalStorageProvider.overrideWith(
+    (ref) => HiveLocalStorage(
+      hive: ref.read(hiveProvider),
+      baseDirFn: baseDirFn,
+      encryptionKey: encryptionKey,
+      clear: clear,
+    ),
+  );
 };
 
 final repositoryProviders = <String, Provider<Repository<DataModel>>>{
@@ -36,7 +37,7 @@ final repositoryProviders = <String, Provider<Repository<DataModel>>>{
 final repositoryInitializerProvider =
   FutureProvider<RepositoryInitializer>((ref) async {
     DataHelpers.setInternalType<Task>('todos');
-DataHelpers.setInternalType<User>('users');
+    DataHelpers.setInternalType<User>('users');
     final adapters = <String, RemoteAdapter>{'todos': ref.watch(internalTasksRemoteAdapterProvider), 'users': ref.watch(internalUsersRemoteAdapterProvider)};
     final remotes = <String, bool>{'todos': true, 'users': true};
 

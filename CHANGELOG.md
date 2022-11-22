@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.5.0] - November 22nd, 2022
+
+- Upgrade dependencies, including Riverpod 2.x
+- Improve offline
+
 ## [1.4.7] - July 29th, 2022
 
 - Improve internal types to fix an issue with release mode on web

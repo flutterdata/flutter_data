@@ -49,11 +49,11 @@ class $BookAuthorRemoteAdapter = RemoteAdapter<BookAuthor>
 
 final internalBookAuthorsRemoteAdapterProvider =
     Provider<RemoteAdapter<BookAuthor>>((ref) => $BookAuthorRemoteAdapter(
-        $BookAuthorHiveLocalAdapter(ref.read, typeId: 8),
+        $BookAuthorHiveLocalAdapter(ref, typeId: 8),
         InternalHolder(_bookAuthorsFinders)));
 
 final bookAuthorsRepositoryProvider =
-    Provider<Repository<BookAuthor>>((ref) => Repository<BookAuthor>(ref.read));
+    Provider<Repository<BookAuthor>>((ref) => Repository<BookAuthor>(ref));
 
 extension BookAuthorDataRepositoryX on Repository<BookAuthor> {
   BookAuthorAdapter get bookAuthorAdapter => remoteAdapter as BookAuthorAdapter;
@@ -120,11 +120,11 @@ class $BookHiveLocalAdapter = HiveLocalAdapter<Book> with $BookLocalAdapter;
 class $BookRemoteAdapter = RemoteAdapter<Book> with NothingMixin;
 
 final internalBooksRemoteAdapterProvider = Provider<RemoteAdapter<Book>>(
-    (ref) => $BookRemoteAdapter($BookHiveLocalAdapter(ref.read, typeId: null),
-        InternalHolder(_booksFinders)));
+    (ref) => $BookRemoteAdapter(
+        $BookHiveLocalAdapter(ref), InternalHolder(_booksFinders)));
 
 final booksRepositoryProvider =
-    Provider<Repository<Book>>((ref) => Repository<Book>(ref.read));
+    Provider<Repository<Book>>((ref) => Repository<Book>(ref));
 
 extension BookDataRepositoryX on Repository<Book> {}
 

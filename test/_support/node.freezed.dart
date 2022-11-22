@@ -35,7 +35,8 @@ mixin _$Node {
 /// @nodoc
 abstract class $NodeCopyWith<$Res> {
   factory $NodeCopyWith(Node value, $Res Function(Node) then) =
-      _$NodeCopyWithImpl<$Res>;
+      _$NodeCopyWithImpl<$Res, Node>;
+  @useResult
   $Res call(
       {int? id,
       String? name,
@@ -44,13 +45,16 @@ abstract class $NodeCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$NodeCopyWithImpl<$Res> implements $NodeCopyWith<$Res> {
+class _$NodeCopyWithImpl<$Res, $Val extends Node>
+    implements $NodeCopyWith<$Res> {
   _$NodeCopyWithImpl(this._value, this._then);
 
-  final Node _value;
   // ignore: unused_field
-  final $Res Function(Node) _then;
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
 
+  @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? id = freezed,
@@ -59,23 +63,23 @@ class _$NodeCopyWithImpl<$Res> implements $NodeCopyWith<$Res> {
     Object? children = freezed,
   }) {
     return _then(_value.copyWith(
-      id: id == freezed
+      id: freezed == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
               as int?,
-      name: name == freezed
+      name: freezed == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
               as String?,
-      parent: parent == freezed
+      parent: freezed == parent
           ? _value.parent
           : parent // ignore: cast_nullable_to_non_nullable
               as BelongsTo<Node>?,
-      children: children == freezed
+      children: freezed == children
           ? _value.children
           : children // ignore: cast_nullable_to_non_nullable
               as HasMany<Node>?,
-    ));
+    ) as $Val);
   }
 }
 
@@ -84,6 +88,7 @@ abstract class _$$_NodeCopyWith<$Res> implements $NodeCopyWith<$Res> {
   factory _$$_NodeCopyWith(_$_Node value, $Res Function(_$_Node) then) =
       __$$_NodeCopyWithImpl<$Res>;
   @override
+  @useResult
   $Res call(
       {int? id,
       String? name,
@@ -92,14 +97,12 @@ abstract class _$$_NodeCopyWith<$Res> implements $NodeCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$_NodeCopyWithImpl<$Res> extends _$NodeCopyWithImpl<$Res>
+class __$$_NodeCopyWithImpl<$Res> extends _$NodeCopyWithImpl<$Res, _$_Node>
     implements _$$_NodeCopyWith<$Res> {
   __$$_NodeCopyWithImpl(_$_Node _value, $Res Function(_$_Node) _then)
-      : super(_value, (v) => _then(v as _$_Node));
+      : super(_value, _then);
 
-  @override
-  _$_Node get _value => super._value as _$_Node;
-
+  @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? id = freezed,
@@ -108,19 +111,19 @@ class __$$_NodeCopyWithImpl<$Res> extends _$NodeCopyWithImpl<$Res>
     Object? children = freezed,
   }) {
     return _then(_$_Node(
-      id: id == freezed
+      id: freezed == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
               as int?,
-      name: name == freezed
+      name: freezed == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
               as String?,
-      parent: parent == freezed
+      parent: freezed == parent
           ? _value.parent
           : parent // ignore: cast_nullable_to_non_nullable
               as BelongsTo<Node>?,
-      children: children == freezed
+      children: freezed == children
           ? _value.children
           : children // ignore: cast_nullable_to_non_nullable
               as HasMany<Node>?,
@@ -161,29 +164,28 @@ class _$_Node extends _Node {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$_Node &&
-            const DeepCollectionEquality().equals(other.id, id) &&
-            const DeepCollectionEquality().equals(other.name, name) &&
-            const DeepCollectionEquality().equals(other.parent, parent) &&
-            const DeepCollectionEquality().equals(other.children, children));
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.parent, parent) || other.parent == parent) &&
+            (identical(other.children, children) ||
+                other.children == children));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      const DeepCollectionEquality().hash(id),
-      const DeepCollectionEquality().hash(name),
-      const DeepCollectionEquality().hash(parent),
-      const DeepCollectionEquality().hash(children));
+  int get hashCode => Object.hash(runtimeType, id, name, parent, children);
 
   @JsonKey(ignore: true)
   @override
+  @pragma('vm:prefer-inline')
   _$$_NodeCopyWith<_$_Node> get copyWith =>
       __$$_NodeCopyWithImpl<_$_Node>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_NodeToJson(this);
+    return _$$_NodeToJson(
+      this,
+    );
   }
 }
 
@@ -199,15 +201,15 @@ abstract class _Node extends Node {
   factory _Node.fromJson(Map<String, dynamic> json) = _$_Node.fromJson;
 
   @override
-  int? get id => throw _privateConstructorUsedError;
+  int? get id;
   @override
-  String? get name => throw _privateConstructorUsedError;
+  String? get name;
   @override
   @DataRelationship(inverse: 'children')
-  BelongsTo<Node>? get parent => throw _privateConstructorUsedError;
+  BelongsTo<Node>? get parent;
   @override
   @DataRelationship(inverse: 'parent')
-  HasMany<Node>? get children => throw _privateConstructorUsedError;
+  HasMany<Node>? get children;
   @override
   @JsonKey(ignore: true)
   _$$_NodeCopyWith<_$_Node> get copyWith => throw _privateConstructorUsedError;

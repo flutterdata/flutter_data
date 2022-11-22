@@ -50,11 +50,10 @@ class $PersonRemoteAdapter = RemoteAdapter<Person>
 
 final internalPeopleRemoteAdapterProvider = Provider<RemoteAdapter<Person>>(
     (ref) => $PersonRemoteAdapter(
-        $PersonHiveLocalAdapter(ref.read, typeId: null),
-        InternalHolder(_peopleFinders)));
+        $PersonHiveLocalAdapter(ref), InternalHolder(_peopleFinders)));
 
 final peopleRepositoryProvider =
-    Provider<Repository<Person>>((ref) => Repository<Person>(ref.read));
+    Provider<Repository<Person>>((ref) => Repository<Person>(ref));
 
 extension PersonDataRepositoryX on Repository<Person> {
   PersonLoginAdapter get personLoginAdapter =>
