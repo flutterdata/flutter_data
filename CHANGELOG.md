@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.5.1] - November 22nd, 2022
+
+- Upgrade `test` dependency to version `1.22.0` 
+
 ## [1.5.0] - November 22nd, 2022
 
 - Upgrade dependencies, including Riverpod 2.x
@@ -39,7 +43,7 @@
 
 ## [1.4.0] - May 28th, 2022
 
-- `init` is no longer by default required (can be switched off via `autoInitializeModels`)
+- `init is no longer by default required (can be switched off via `autoInitializeModels`)
 - Everything is now only accessed via `ref.$model`
 - Support for `background` loading
 - New labels API to log and track requests, multiple log levels, nested labels
