@@ -51,7 +51,7 @@ class RepositoryGenerator extends GeneratorForAnnotation<DataRepository> {
           throw UnsupportedError(
               "Can't generate repository for $className. The `$name` field MUST be final");
         }
-        _checkIsFinal(element.supertype?.element, name);
+        _checkIsFinal(element.supertype?.element2, name);
       }
     }
 
@@ -99,7 +99,7 @@ serializing and deserializing.
           return (elem.type as ParameterizedType)
                   .typeArguments
                   .single
-                  .element ==
+                  .element2 ==
               classElement;
         });
 
@@ -150,7 +150,7 @@ and execute a code generation build again.
         'key': keyName,
         'name': field.name,
         'inverseName': inverse,
-        'kind': field.type.element?.name,
+        'kind': field.type.element2?.name,
         'type': relationshipClassElement.name,
         if (!serialize) 'serialize': 'false',
       });
@@ -222,7 +222,7 @@ RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
       //       'Adapter `$mixinType` MUST have a constraint `on` RemoteAdapter<$className>');
       // }
 
-      final instantiatedMixinType = (mixinType.element as MixinElement)
+      final instantiatedMixinType = (mixinType.element2 as MixinElement)
           .instantiate(
               typeArguments: [if (args.isNotEmpty) classElement.thisType],
               nullabilitySuffix: NullabilitySuffix.none);
