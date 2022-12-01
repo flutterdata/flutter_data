@@ -32,7 +32,7 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
     }
 
     try {
-      if (_hiveLocalStorage.clear) {
+      if (_hiveLocalStorage.clear == LocalStorageClearStrategy.always) {
         await _hiveLocalStorage.deleteBox(internalType);
       }
       _box = await _hiveLocalStorage.openBox<T>(internalType);

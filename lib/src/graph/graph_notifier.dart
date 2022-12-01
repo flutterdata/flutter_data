@@ -29,7 +29,7 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   Future<GraphNotifier> initialize() async {
     if (isInitialized) return this;
     await _hiveLocalStorage.initialize();
-    if (_hiveLocalStorage.clear) {
+    if (_hiveLocalStorage.clear == LocalStorageClearStrategy.always) {
       await _hiveLocalStorage.deleteBox(_kGraphBoxName);
     }
     box = await _hiveLocalStorage.openBox(_kGraphBoxName);

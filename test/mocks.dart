@@ -94,6 +94,9 @@ class HiveFake extends Fake implements HiveInterface {
     String? collection,
     @Deprecated('Use encryptionCipher instead') List<int>? encryptionKey,
   }) async {
+    if (name == '_error') {
+      throw HiveError('fake error');
+    }
     final box = FakeBox<E>();
     _boxes[name] = box;
     return box;

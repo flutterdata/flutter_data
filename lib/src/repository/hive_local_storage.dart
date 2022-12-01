@@ -10,15 +10,15 @@ class HiveLocalStorage {
     required this.hive,
     this.baseDirFn,
     List<int>? encryptionKey,
-    bool? clear,
+    LocalStorageClearStrategy? clear,
   })  : encryptionCipher =
             encryptionKey != null ? HiveAesCipher(encryptionKey) : null,
-        clear = clear ?? false;
+        clear = clear ?? LocalStorageClearStrategy.never;
 
   final HiveInterface hive;
   final HiveAesCipher? encryptionCipher;
   final FutureOr<String> Function()? baseDirFn;
-  final bool clear;
+  final LocalStorageClearStrategy clear;
   late final String path;
 
   final _boxes = <String>[];
@@ -55,7 +55,7 @@ Widget build(context) {
     isInitialized = true;
   }
 
-  Future<Box<B>> openBox<B>(String name) async {
+  Future<Box<B>> openBox<B>(String name, {bool retry = true}) async {
     // start using snake_case name only if box
     // does not exist in order not to break present boxes
     if (!await hive.boxExists(name)) {
@@ -68,7 +68,17 @@ Widget build(context) {
       }
     }
     _boxes.add(name);
-    return await hive.openBox<B>(name, encryptionCipher: encryptionCipher);
+    try {
+      return await hive.openBox<B>(name, encryptionCipher: encryptionCipher);
+    } on HiveError catch (_) {
+      if (clear == LocalStorageClearStrategy.whenError && retry) {
+        // if box is corrupted, remove and open a new one (retry only once)
+        await deleteBox(name);
+        return await openBox(name, retry: false);
+      } else {
+        rethrow;
+      }
+    }
   }
 
   Future<void> deleteBox(String name) async {
@@ -103,7 +113,14 @@ Widget build(context) {
   }
 }
 
-final hiveLocalStorageProvider = Provider<HiveLocalStorage>((ref) =>
-    HiveLocalStorage(hive: ref.read(hiveProvider), baseDirFn: () => ''));
+enum LocalStorageClearStrategy {
+  always,
+  never,
+  whenError,
+}
+
+final hiveLocalStorageProvider = Provider<HiveLocalStorage>(
+  (ref) => HiveLocalStorage(hive: ref.read(hiveProvider), baseDirFn: () => ''),
+);
 
 final hiveProvider = Provider<HiveInterface>((_) => Hive);

@@ -16,7 +16,7 @@ void main() async {
         configureRepositoryLocalStorage(
           baseDirFn: () => _dir.path,
           encryptionKey: _encryptionKey,
-          clear: true,
+          clear: LocalStorageClearStrategy.always,
         ),
       ],
     );

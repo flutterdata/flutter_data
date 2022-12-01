@@ -19,7 +19,7 @@ void main() async {
     final storage = HiveLocalStorage(
       baseDirFn: () => dir.path,
       encryptionKey: Hive.generateSecureKey(),
-      clear: true,
+      clear: LocalStorageClearStrategy.always,
       hive: hive,
     );
     await storage.initialize();
@@ -30,7 +30,7 @@ void main() async {
         hive: hive,
         baseDirFn: null,
         encryptionKey: Hive.generateSecureKey(),
-        clear: false,
+        clear: LocalStorageClearStrategy.never,
       ).initialize();
     }, throwsA(isA<UnsupportedError>()));
 
@@ -59,5 +59,22 @@ void main() async {
     for (final name in ['posts', 'libraries']) {
       expect(await hive.boxExists(name), isFalse);
     }
+  });
+
+  test('hive local storage clear when error', () async {
+    late final Directory dir;
+    final hive = HiveFake();
+
+    dir = await Directory('tmp').create();
+    final storage = HiveLocalStorage(
+      baseDirFn: () => dir.path,
+      clear: LocalStorageClearStrategy.whenError,
+      hive: hive,
+    );
+    await storage.initialize();
+
+    expect(() async {
+      await storage.openBox('_error');
+    }, throwsA(isA<HiveError>()));
   });
 }
