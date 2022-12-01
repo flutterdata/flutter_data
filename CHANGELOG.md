@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.1] - December 1st, 2022
+
+- Gracefully recover from corrupt boxes (LocalStorageClearStrategy.whenError)
+- Fix key overrides (issue #180)
+- Relax dependency constraints so it can be used with dart 2.17
+
 ## [1.5.0] - November 22nd, 2022
 
 - Upgrade dependencies, including Riverpod 2.x
