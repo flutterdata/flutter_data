@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.5.2] - December 7th, 2022
+
+- Offline auto-retry and other improvements
+
 ## [1.5.1] - December 1st, 2022
 
 - Gracefully recover from corrupt boxes (LocalStorageClearStrategy.whenError)
