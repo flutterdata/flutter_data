@@ -398,6 +398,7 @@ void main() async {
     final o1 = OfflineOperation<Familia>(
       label: DataRequestLabel('findAll', type: 'familia', requestId: 'test'),
       httpRequest: 'GET /familia',
+      timestamp: 1,
       headers: {'X-Header': 'dang'},
       adapter: container.familia.remoteAdapter,
     );
@@ -405,6 +406,7 @@ void main() async {
     final o2 = OfflineOperation<Familia>(
       label: DataRequestLabel('findAll', type: 'familia', requestId: 'test'),
       httpRequest: 'GET /familia',
+      timestamp: 1,
       headers: {'X-Header': 'dang'},
       adapter: container.familia.remoteAdapter,
     );

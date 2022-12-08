@@ -571,6 +571,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
           OfflineOperation<T>(
             httpRequest: '${method.toShortString()} $uri',
             label: label,
+            timestamp: DateTime.now().millisecondsSinceEpoch,
             body: body,
             headers: headers,
             onSuccess: onSuccess as _OnSuccessGeneric<T>,
@@ -709,7 +710,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       // timeouts via http's `connectionTimeout` are also socket exceptions
       'SocketException',
       'HttpException',
-      'HandshakeException'
+      'HandshakeException',
+      'TimeoutException',
     ];
 
     // we check exceptions with strings to avoid importing `dart:io`

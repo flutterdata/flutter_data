@@ -32,6 +32,10 @@ extension IterableNullX<T> on Iterable<T?> {
   Iterable<T> get filterNulls => where((elem) => elem != null).cast();
 }
 
+extension _ListX<T> on List<T> {
+  T? getSafe(int index) => (length > index) ? this[index] : null;
+}
+
 extension StringUtilsX on String {
   String capitalize() =>
       isEmpty ? '' : '${this[0].toUpperCase()}${substring(1)}';

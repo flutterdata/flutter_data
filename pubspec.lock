@@ -345,7 +345,7 @@ packages:
     source: hosted
     version: "1.8.2"
   pool:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: pool
       url: "https://pub.dartlang.org"
@@ -372,6 +372,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.1.0"
+  retry:
+    dependency: "direct main"
+    description:
+      name: retry
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.1.0"
   riverpod:
     dependency: "direct main"
     description:

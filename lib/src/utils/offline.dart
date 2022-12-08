@@ -6,6 +6,7 @@ const _offlineAdapterKey = '_offline:keys';
 class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
   final DataRequestLabel label;
   final String httpRequest;
+  final int timestamp;
   final Map<String, String>? headers;
   final String? body;
   late final String? key;
@@ -16,6 +17,7 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
   OfflineOperation({
     required this.label,
     required this.httpRequest,
+    required this.timestamp,
     this.headers,
     this.body,
     String? key,
@@ -33,6 +35,7 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'r': httpRequest,
+      't': timestamp,
       'k': key,
       'b': body,
       'h': headers,
@@ -47,6 +50,7 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
     final operation = OfflineOperation(
       label: label,
       httpRequest: json['r'] as String,
+      timestamp: json['t'] as int,
       key: json['k'] as String?,
       body: json['b'] as String?,
       headers:
@@ -140,9 +144,7 @@ extension OfflineOperationsX on Set<OfflineOperation<DataModel>> {
   /// Retries all offline operations for current type.
   FutureOr<void> retry() async {
     if (isNotEmpty) {
-      await Future.wait(map((operation) {
-        return operation.retry();
-      }));
+      await Future.wait(map((op) => op.retry()));
     }
   }
 
@@ -172,14 +174,7 @@ extension OfflineOperationsX on Set<OfflineOperation<DataModel>> {
 final _offlineCallbackProvider =
     StateProvider<Map<String, List<List<Function?>>>>((_) => {});
 
-/// Every time there is an offline operation added to/
-/// removed from the queue, this will notify clients
-/// with all pending types (could be none) such that
-/// they can implement their own retry strategy.
-final offlineOperationsProvider = StateNotifierProvider<
-    DelayedStateNotifier<Set<OfflineOperation>>, Set<OfflineOperation>?>((ref) {
-  final graph = ref.watch(graphNotifierProvider);
-
+final offlineRetryProvider = StreamProvider<void>((ref) async* {
   Set<OfflineOperation> _offlineOperations() {
     return internalRepositories.values
         .map((r) => r.remoteAdapter.offlineOperations)
@@ -187,28 +182,39 @@ final offlineOperationsProvider = StateNotifierProvider<
         .toSet();
   }
 
-  final notifier = DelayedStateNotifier<Set<OfflineOperation>>();
-  // emit initial value
-  Timer.run(() {
-    if (notifier.mounted) {
-      notifier.state = _offlineOperations();
+  final pool = Pool(4, timeout: Duration(seconds: 30));
+
+  var _counter = 0;
+
+  while (true) {
+    // sort operations by timestamp
+    final ops = _offlineOperations().toList()
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+    if (ops.isEmpty) {
+      _counter = 0;
+      await Future.delayed(Duration(milliseconds: backoffFn(2)));
+      continue;
     }
-  });
 
-  final dispose = graph.where((event) {
-    // filter the right events
-    return [DataGraphEventType.addEdge, DataGraphEventType.removeEdge]
-            .contains(event.type) &&
-        event.keys.length == 2 &&
-        event.keys.containsFirst(_offlineAdapterKey);
-  }).addListener((_) {
-    if (notifier.mounted) {
-      // recalculate all pending offline operations
-      notifier.state = _offlineOperations();
+    print(
+        '[offline] retrying ${ops.length} operations: ${ops.map((op) => op.label)}');
+
+    try {
+      final result = pool.forEach(
+        ops,
+        (OfflineOperation op) async => op.retry(),
+      );
+      await for (final _ in result) {}
+    } finally {
+      final duration =
+          Duration(milliseconds: backoffFn(_counter) + ops.length * 50);
+      print('[offline] waiting $duration to try again');
+      await Future.delayed(duration);
+      _counter++;
     }
-  });
-
-  notifier.onDispose = dispose;
-
-  return notifier;
+  }
 });
+
+final backoffFn =
+    (int i) => [400, 800, 1600, 3200, 6400, 12800, 12800].getSafe(i) ?? 25600;
