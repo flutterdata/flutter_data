@@ -55,10 +55,11 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
 
   @override
   List<T>? findAll() {
-    if (_isLocalStorageTouched) {
-      return box?.values.toImmutableList();
+    final models = box?.values.toImmutableList();
+    if ((models?.isEmpty ?? true) && !_isLocalStorageTouched) {
+      return null;
     }
-    return null;
+    return models;
   }
 
   @override
