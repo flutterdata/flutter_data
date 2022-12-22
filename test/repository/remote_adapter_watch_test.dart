@@ -415,7 +415,7 @@ void main() async {
     }
   });
 
-  test('watchAllNotifier updates, watchAll', () async {
+  test('watchAllNotifier and watchAll updates and removals', () async {
     final listener = Listener<DataState<List<Person>?>>();
 
     final p1 = Person(id: '1', name: 'Zof', age: 23).saveLocal();
@@ -440,6 +440,12 @@ void main() async {
     verifyNoMoreInteractions(listener);
 
     expect(container.people.watchAll(), DataState<List<Person>?>([p2]));
+
+    await container.people.clear();
+    await oneMs();
+
+    verify(listener(DataState([], isLoading: false))).called(1);
+    verifyNoMoreInteractions(listener);
   });
 
   test('watchAllNotifier with where/map', () async {
