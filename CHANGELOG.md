@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.5.3] - December 22nd, 2022
+
+- Local findAll only return null if not touched and empty
+- Clear should also notify watchers
+
 ## [1.5.2] - December 7th, 2022
 
 - Offline auto-retry and other improvements
