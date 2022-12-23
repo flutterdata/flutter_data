@@ -100,6 +100,12 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
             stackTrace: notifier.data.stackTrace,
           ));
         }
+
+        if (event.type == DataGraphEventType.clear &&
+            event.keys.first.startsWith(internalType)) {
+          log(label!, 'clear local storage', logLevel: 2);
+          states.add(DataState([], isLoading: false, exception: null));
+        }
       }
 
       _updateFromStates(states, notifier);
@@ -262,7 +268,8 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
         }
 
         // handle deletion
-        if (event.type == DataGraphEventType.removeNode &&
+        if ([DataGraphEventType.removeNode, DataGraphEventType.clear]
+                .contains(event.type) &&
             bufferModel == null) {
           log(label!, 'removed node ${event.keys}', logLevel: 2);
           states.add(DataState(

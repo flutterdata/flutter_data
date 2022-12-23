@@ -446,6 +446,8 @@ void main() async {
 
     verify(listener(DataState([], isLoading: false))).called(1);
     verifyNoMoreInteractions(listener);
+
+    expect(container.people.watchAll(), DataState<List<Person>?>([]));
   });
 
   test('watchAllNotifier with where/map', () async {
@@ -511,6 +513,12 @@ void main() async {
     // also ensure watchers return expected state
     expect(container.people.watchOne('1'),
         DataState<Person?>(Person(id: '1', name: 'Liam', age: 36)));
+
+    // if local storage is cleared then it should update to null
+    await container.people.clear();
+    await oneMs();
+
+    expect(container.people.watchOne('1'), DataState<Person?>(null));
   });
 
   test('watchOneNotifier reads latest version', () async {

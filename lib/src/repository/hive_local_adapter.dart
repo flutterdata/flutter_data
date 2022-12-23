@@ -101,13 +101,8 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
   @override
   Future<void> clear() async {
     if (box == null) return;
-    for (final key in box!.keys
-        .map((k) => k.toString())
-        .where((k) => k.startsWith(internalType))) {
-      graph.removeKey(key);
-    }
-
     await box!.clear();
+    graph._notify([internalType], type: DataGraphEventType.clear);
   }
 
   // Touching local storage means the box has received data;

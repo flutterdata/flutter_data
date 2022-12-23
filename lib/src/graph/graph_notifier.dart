@@ -497,6 +497,7 @@ enum DataGraphEventType {
   addNode,
   removeNode,
   updateNode,
+  clear,
   addEdge,
   removeEdge,
   updateEdge,
