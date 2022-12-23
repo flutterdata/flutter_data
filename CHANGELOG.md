@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.5.4] - December 23rd, 2022
+
+- Fix and improve clear watcher updates
+
 ## [1.5.3] - December 22nd, 2022
 
 - Local findAll only return null if not touched and empty
