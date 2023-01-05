@@ -124,9 +124,9 @@ void tearDownFn() async {
 
 // utils
 
-/// Waits 1 millisecond (tests have a throttle of Duration.zero)
+/// Waits 10 millisecond (tests have a throttle of Duration.zero)
 Future<void> oneMs() async {
-  await Future.delayed(const Duration(milliseconds: 1));
+  await Future.delayed(const Duration(milliseconds: 10));
 }
 
 // home baked watcher
