@@ -70,8 +70,8 @@ void main() async {
       persons: HasMany<Person>(),
     ).saveLocal();
 
-    final notifier = familia.persons.watch();
-    final listener = Listener<Set<Person>>();
+    final notifier = container.watch(familia.persons.watchProvider.notifier);
+    final listener = Listener<DataState<Set<Person>>>();
     dispose = notifier.addListener(listener, fireImmediately: false);
 
     final p1 = Person(name: 'a', age: 1).saveLocal();
@@ -80,28 +80,34 @@ void main() async {
     familia.persons.add(p1);
     await oneMs();
 
-    verify(listener({p1})).called(1);
+    verify(listener(DataState({p1}))).called(1);
 
     familia.persons.add(p2);
     await oneMs();
 
-    verify(listener({p1, p2})).called(1);
+    verify(listener(DataState({p1, p2}))).called(1);
 
     familia.persons.add(p2);
     await oneMs();
 
     // doesn't show up as p2 was already present!
-    verifyNever(listener({p1, p2}));
+    verifyNever(listener(DataState({p1, p2})));
 
     familia.persons.remove(p1);
     await oneMs();
 
-    verify(listener({p2})).called(1);
+    verify(listener(DataState({p2}))).called(1);
 
     familia.persons.add(p1);
     await oneMs();
 
-    verify(listener({p1, p2})).called(1);
+    verify(listener(DataState({p1, p2}))).called(1);
+
+    final p3 =
+        Person(name: 'c', age: 3, familia: familia.asBelongsTo).saveLocal();
+    await oneMs();
+
+    verify(listener(DataState({p1, p2, p3}))).called(1);
   });
 
   test('remove relationship', () async {

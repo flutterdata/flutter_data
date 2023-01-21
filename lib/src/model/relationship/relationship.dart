@@ -126,8 +126,6 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
     });
   }
 
-  DelayedStateNotifier<N> watch();
-
   /// This is used to make `json_serializable`'s `explicitToJson` transparent.
   ///
   /// For internal use. Does not return valid JSON.

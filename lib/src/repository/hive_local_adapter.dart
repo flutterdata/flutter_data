@@ -83,6 +83,13 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
             ? DataGraphEventType.updateNode
             : DataGraphEventType.addNode,
       );
+
+      // also notify relationship additions/updates
+      final rels = DataModel.relationshipsFor(model).values;
+      for (final rel in rels) {
+        graph._notify([...rel._keys, key],
+            metadata: rel._inverseName, type: DataGraphEventType.updateEdge);
+      }
     }
 
     await save;

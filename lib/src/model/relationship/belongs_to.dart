@@ -77,15 +77,26 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
 
   /// Returns a [StateNotifier] which emits the latest [value] of
   /// this [BelongsTo] relationship.
-  @override
-  DelayedStateNotifier<E?> watch() {
-    return _relationshipEventNotifier.map((e) {
-      return [DataGraphEventType.removeNode, DataGraphEventType.removeEdge]
-              .contains(e.type)
+  late final watchProvider =
+      StateNotifierProvider.autoDispose<DataStateNotifier<E?>, DataState<E?>>(
+          (ref) {
+    final notifier = DataStateNotifier<E?>(
+      data: DataState(value),
+    );
+    final dispose = _relationshipEventNotifier.addListener((e) {
+      final model = [
+        DataGraphEventType.removeNode,
+        DataGraphEventType.removeEdge
+      ].contains(e.type)
           ? null
           : value;
+      notifier.updateWith(model: model);
     });
-  }
+    notifier.onDispose = () {
+      dispose();
+    };
+    return notifier;
+  });
 
   @override
   String toString() {

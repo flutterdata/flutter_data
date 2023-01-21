@@ -68,27 +68,40 @@ void main() async {
       residence: BelongsTo<House>(),
     ).saveLocal();
 
-    final notifier = familia.residence.watch();
-    final listener = Listener<House?>();
+    final notifier = container.watch(familia.residence.watchProvider.notifier);
+    final listener = Listener<DataState<House?>?>();
     dispose = notifier.addListener(listener, fireImmediately: false);
 
-    familia.residence.value =
-        House(id: '2', address: '456 Main St').saveLocal();
+    final h2 = House(id: '2', address: '456 Main St').saveLocal();
+    familia.residence.value = h2;
 
     verify(listener(argThat(
-      isA<House>().having((h) => h.address, 'address', startsWith('456')),
+      isA<DataState<House?>>().having(
+          (state) => state.model!.address, 'address', startsWith('456')),
     ))).called(1);
 
     familia.residence.value =
         House(id: '1', address: '123 Main St').saveLocal();
 
     verify(listener(argThat(
-      isA<House>().having((h) => h.address, 'address', startsWith('123')),
+      isA<DataState<House?>>().having(
+          (state) => state.model!.address, 'address', startsWith('123')),
     ))).called(1);
 
     familia.residence.value = null;
 
-    verify(listener(argThat(isNull))).called(1);
+    verify(listener(argThat(
+      isA<DataState<House?>>().having((state) => state.model, 'model', isNull),
+    ))).called(1);
+
+    House(id: '2', address: '456 Main St', owner: familia.asBelongsTo)
+        .saveLocal();
+
+    verify(listener(argThat(
+      isA<DataState<House?>>().having(
+          (state) => state.model!.address, 'address', startsWith('456')),
+    ))).called(1);
+
     verifyNoMoreInteractions(listener);
   });
 
