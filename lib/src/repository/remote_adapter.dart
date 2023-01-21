@@ -508,7 +508,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     final Uri uri, {
     DataRequestMethod method = DataRequestMethod.GET,
     Map<String, String>? headers,
-    String? body,
+    Object? body,
     _OnSuccessGeneric<R>? onSuccess,
     _OnErrorGeneric<R>? onError,
     bool omitDefaultParams = false,
@@ -524,7 +524,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     onError ??= this.onError;
 
     http.Response? response;
-    Object? data;
+    Object? responseBody;
     Object? error;
     StackTrace? stackTrace;
 
@@ -536,9 +536,19 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     try {
       final request = http.Request(method.toShortString(), uri & params);
       request.headers.addAll(headers);
+
       if (body != null) {
-        request.body = body;
+        if (body is String) {
+          request.body = body;
+        } else if (body is List) {
+          request.bodyBytes = body.cast<int>();
+        } else if (body is Map) {
+          request.bodyFields = body.cast<String, String>();
+        } else {
+          throw ArgumentError('Invalid request body "$body".');
+        }
       }
+
       final stream = await client.send(request);
       response = await http.Response.fromStream(stream);
     } catch (err, stack) {
@@ -552,7 +562,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
     try {
       if (response?.body.isNotEmpty ?? false) {
-        data = json.decode(response!.body);
+        responseBody = json.decode(response!.body);
       }
     } on FormatException catch (e) {
       error = e;
@@ -561,6 +571,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     final code = response?.statusCode;
 
     if (error == null && code != null && code >= 200 && code < 300) {
+      final data = DataResponse(
+          body: responseBody, statusCode: code, headers: response!.headers);
       return onSuccess(data, label);
     } else {
       if (isOfflineError(error)) {
@@ -572,7 +584,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
             httpRequest: '${method.toShortString()} $uri',
             label: label,
             timestamp: DateTime.now().millisecondsSinceEpoch,
-            body: body,
+            body: body?.toString(),
             headers: headers,
             onSuccess: onSuccess as _OnSuccessGeneric<T>,
             onError: onError as _OnErrorGeneric<T>,
@@ -604,7 +616,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       // remove all operations with this request
       OfflineOperation.remove(label, this as RemoteAdapter<T>);
 
-      final e = DataException(error ?? data!,
+      final e = DataException(error ?? responseBody!,
           stackTrace: stackTrace, statusCode: code);
       log(label, '$e${_logLevel > 1 ? ' $uri' : ''}');
       if (_logLevel > 1 && stackTrace != null) {
@@ -614,22 +626,24 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     }
   }
 
-  FutureOr<R?> onSuccess<R>(Object? data, DataRequestLabel label) async {
+  FutureOr<R?> onSuccess<R>(DataResponse data, DataRequestLabel label) async {
     // remove all operations with this label
     OfflineOperation.remove(label, this as RemoteAdapter);
+
+    final body = data.body;
 
     if (label.kind == 'save') {
       if (label.model == null) {
         return null;
       }
-      if (data == null) {
+      if (body == null) {
         // return original model if response was empty
         return label.model as R?;
       }
 
       // deserialize already inits models
       // if model had a key already, reuse it
-      final deserialized = await deserialize(data as Map<String, dynamic>);
+      final deserialized = await deserialize(body as Map<String, dynamic>);
       final model = deserialized.model!.withKeyOf(label.model as T);
 
       model.saveLocal();
@@ -643,7 +657,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       return null;
     }
 
-    final deserialized = await deserialize(data);
+    final deserialized = await deserialize(body);
 
     final isFindAll = label.kind.startsWith('findAll');
     final isFindOne = label.kind.startsWith('findOne');

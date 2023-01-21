@@ -78,6 +78,12 @@ void main() async {
         TestResponse.text('{"message": "hello"}');
     expect(await adapter.hello(), 'hello');
 
+    container.read(responseProvider.notifier).state = TestResponse(
+      (_) async => '{"message": "hello"}',
+      headers: {'X-Url': 'http://example.com'},
+    );
+    expect(await adapter.example(), 'http://example.com');
+
     container.read(responseProvider.notifier).state =
         TestResponse((req) async => req.headers['response']!);
     expect(await adapter.hello(useDefaultHeaders: true),

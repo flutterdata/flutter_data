@@ -209,11 +209,11 @@ extension _ToStringX on DataRequestMethod {
 }
 
 typedef _OnSuccessGeneric<R> = FutureOr<R?> Function(
-    Object? data, DataRequestLabel label);
+    DataResponse data, DataRequestLabel label);
 typedef OnSuccessOne<T extends DataModel<T>> = FutureOr<T?> Function(
-    Object? data, DataRequestLabel label, RemoteAdapter<T> adapter);
+    DataResponse data, DataRequestLabel label, RemoteAdapter<T> adapter);
 typedef OnSuccessAll<T extends DataModel<T>> = FutureOr<List<T>?> Function(
-    Object? data, DataRequestLabel label, RemoteAdapter<T> adapter);
+    DataResponse data, DataRequestLabel label, RemoteAdapter<T> adapter);
 
 typedef _OnErrorGeneric<R> = FutureOr<R?> Function(
     DataException e, DataRequestLabel label);
@@ -280,6 +280,15 @@ class DataRequestLabel with EquatableMixin {
 
   @override
   List<Object?> get props => [kind, type, id, _requestIds];
+}
+
+class DataResponse {
+  final Object? body;
+  final int statusCode;
+  final Map<String, String> headers;
+
+  const DataResponse(
+      {this.body, required this.statusCode, this.headers = const {}});
 }
 
 /// ONLY FOR FLUTTER DATA INTERNAL USE

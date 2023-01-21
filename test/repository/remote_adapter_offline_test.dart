@@ -366,7 +366,7 @@ void main() async {
         final result = await container.familia.remoteAdapter
             .onSuccess<Familia>(data, label);
         expect(
-            data,
+            data.body,
             equals([
               {'id': '19', 'surname': 'Ko Saved'}
             ]));
