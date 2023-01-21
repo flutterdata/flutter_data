@@ -70,7 +70,7 @@ Widget build(context) {
     _boxes.add(name);
     try {
       return await hive.openBox<B>(name, encryptionCipher: encryptionCipher);
-    } on HiveError catch (_) {
+    } catch (_) {
       if (clear == LocalStorageClearStrategy.whenError && retry) {
         // if box is corrupted, remove and open a new one (retry only once)
         await deleteBox(name);
