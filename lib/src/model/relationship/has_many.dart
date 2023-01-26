@@ -79,17 +79,13 @@ class HasMany<E extends DataModel<E>> extends Relationship<E, Set<E>> {
 
   /// Returns a [StateNotifier] which emits the latest [Set<E>] representing
   /// this [HasMany] relationship.
-  late final watchProvider = StateNotifierProvider.autoDispose<
-      DataStateNotifier<Set<E>>, DataState<Set<E>>>((ref) {
-    final notifier = DataStateNotifier<Set<E>>(
-      data: DataState(toSet()),
-    );
+  late final watchProvider =
+      StateNotifierProvider.autoDispose<ValueNotifier<Set<E>>, Set<E>>((ref) {
+    final notifier = ValueNotifier<Set<E>>(toSet());
     final dispose = _relationshipEventNotifier.addListener((_) {
-      notifier.updateWith(model: toSet());
+      notifier.updateWith(toSet());
     });
-    notifier.onDispose = () {
-      dispose();
-    };
+    notifier.onDispose = dispose;
     return notifier;
   });
 
