@@ -83,7 +83,9 @@ class HasMany<E extends DataModel<E>> extends Relationship<E, Set<E>> {
       StateNotifierProvider.autoDispose<ValueNotifier<Set<E>>, Set<E>>((ref) {
     final notifier = ValueNotifier<Set<E>>(toSet());
     final dispose = _relationshipEventNotifier.addListener((_) {
-      notifier.updateWith(toSet());
+      if (notifier.mounted) {
+        notifier.updateWith(toSet());
+      }
     });
     notifier.onDispose = dispose;
     return notifier;

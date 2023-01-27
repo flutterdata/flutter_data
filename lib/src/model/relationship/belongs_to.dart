@@ -87,7 +87,9 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
       ].contains(e.type)
           ? null
           : value;
-      notifier.updateWith(model);
+      if (notifier.mounted) {
+        notifier.updateWith(model);
+      }
     });
     notifier.onDispose = dispose;
     return notifier;
