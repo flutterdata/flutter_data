@@ -529,7 +529,7 @@ void main() async {
 
     dispose = notifier.addListener(expectAsync1((state) {
       expect(state.model!.name, 'Steve-O');
-    }));
+    }, count: 1));
   });
 
   test('watchOneNotifier with custom finder', () async {
