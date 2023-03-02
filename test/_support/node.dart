@@ -5,7 +5,7 @@ part 'node.freezed.dart';
 part 'node.g.dart';
 
 @freezed
-@DataRepository([NodeAdapter], remote: false)
+@DataRepository([NodeAdapter], localAdapters: [NodeLocalAdapter], remote: false)
 class Node extends DataModel<Node> with _$Node {
   Node._();
   factory Node(
@@ -19,4 +19,12 @@ class Node extends DataModel<Node> with _$Node {
 mixin NodeAdapter on RemoteAdapter<Node> {
   @override
   void onModelInitialized(Node model) => model.saveLocal();
+}
+
+mixin NodeLocalAdapter on LocalAdapter<Node> {
+  @override
+  Node deserialize(Map<String, dynamic> map) {
+    map['name'] = map['name'] + 'y';
+    return super.deserialize(map);
+  }
 }

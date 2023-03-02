@@ -151,6 +151,18 @@ void main() async {
     expect(familia.persons.first.age, 21);
   });
 
+  test('local deserialize with custom local adapter', () {
+    final nodeLocalAdapter = container.nodes.remoteAdapter.localAdapter;
+
+    final obj = {
+      'id': 1,
+      'name': 'node',
+    };
+
+    final node = nodeLocalAdapter.deserialize(obj);
+    expect(node.name, 'nodey');
+  });
+
   test('hive adapter typeId', () {
     final housesAdapter =
         container.houses.remoteAdapter.localAdapter as HiveLocalAdapter<House>;

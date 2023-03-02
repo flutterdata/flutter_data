@@ -242,6 +242,28 @@ RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
       return displayName;
     }).toSet();
 
+    final localMixins = annotation.read('localAdapters').listValue.map((obj) {
+      final mixinType = obj.toTypeValue() as ParameterizedType;
+      final mixinMethods = <MethodElement>[];
+      String displayName;
+
+      final args = mixinType.typeArguments;
+
+      if (args.length > 1) {
+        throw UnsupportedError(
+            'LocalAdapter `$mixinType` MUST have at most one type argument (T extends DataModel<T>) is supported for $mixinType');
+      }
+
+      final instantiatedMixinType = (mixinType.element2 as MixinElement)
+          .instantiate(
+              typeArguments: [if (args.isNotEmpty) classElement.thisType],
+              nullabilitySuffix: NullabilitySuffix.none);
+      mixinMethods.addAll(instantiatedMixinType.methods);
+      displayName =
+          instantiatedMixinType.getDisplayString(withNullability: false);
+      return displayName;
+    }).toSet();
+
     final mixinShortcuts = mixins.map((mixin) {
       final mixinB = mixin.replaceAll(RegExp('<.*?>'), '').decapitalize();
       return '$mixin get $mixinB => remoteAdapter as $mixin;';
@@ -284,7 +306,7 @@ final _${classNameLower}Finders = <String, dynamic>{
 };
 
 // ignore: must_be_immutable
-class \$${className}HiveLocalAdapter = HiveLocalAdapter<$className> with \$${className}LocalAdapter;
+class \$${className}HiveLocalAdapter = HiveLocalAdapter<$className> with \$${className}LocalAdapter${localMixins.map((m) => ', $m').join('')};
 
 class \$${className}RemoteAdapter = RemoteAdapter<$className> with ${mixins.join(', ')};
 

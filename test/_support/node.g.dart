@@ -46,7 +46,8 @@ mixin $NodeLocalAdapter on LocalAdapter<Node> {
 final _nodesFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $NodeHiveLocalAdapter = HiveLocalAdapter<Node> with $NodeLocalAdapter;
+class $NodeHiveLocalAdapter = HiveLocalAdapter<Node>
+    with $NodeLocalAdapter, NodeLocalAdapter;
 
 class $NodeRemoteAdapter = RemoteAdapter<Node> with NodeAdapter;
 
