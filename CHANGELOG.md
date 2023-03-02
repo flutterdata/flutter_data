@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.5] - March 2nd, 2023
+
+- Allow overriding `LocalAdapter` (useful for Hive migrations by overriding `deserialize`)
+- Support Flutter web again (thanks @ariejan)
+- `sendRequest` supports binary data
+
 ## [1.5.4] - December 23rd, 2022
 
 - Fix and improve clear watcher updates
