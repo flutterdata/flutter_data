@@ -129,6 +129,14 @@ Future<void> oneMs() async {
   await Future.delayed(const Duration(milliseconds: 10));
 }
 
+// home baked watcher
+E _watch<E>(ProviderListenable<E> provider) {
+  if (provider is ProviderBase<E>) {
+    return container.readProviderElement(provider).readSelf();
+  }
+  return container.listen<E>(provider, ((_, next) => next)).read();
+}
+
 Function() overridePrint(dynamic Function() testFn) => () {
       final spec = ZoneSpecification(print: (_, __, ___, String msg) {
         // Add to log instead of printing to stdout
@@ -160,27 +168,20 @@ class TestResponse {
 }
 
 extension ProviderContainerX on ProviderContainer {
-  E watch<E>(ProviderListenable<E> provider) {
-    // home baked watcher
-    if (provider is ProviderBase<E>) {
-      return readProviderElement(provider).readSelf();
-    }
-    return listen<E>(provider, ((_, next) => next)).read();
-  }
-
   Repository<House> get houses =>
-      watch(housesRepositoryProvider)..remoteAdapter.internalWatch = watch;
+      _watch(housesRepositoryProvider)..remoteAdapter.internalWatch = _watch;
   Repository<Familia> get familia =>
-      watch(familiaRepositoryProvider)..remoteAdapter.internalWatch = watch;
+      _watch(familiaRepositoryProvider)..remoteAdapter.internalWatch = _watch;
   Repository<Person> get people =>
-      watch(peopleRepositoryProvider)..remoteAdapter.internalWatch = watch;
+      _watch(peopleRepositoryProvider)..remoteAdapter.internalWatch = _watch;
   Repository<Dog> get dogs =>
-      watch(dogsRepositoryProvider)..remoteAdapter.internalWatch = watch;
+      _watch(dogsRepositoryProvider)..remoteAdapter.internalWatch = _watch;
 
   Repository<Node> get nodes =>
-      watch(nodesRepositoryProvider)..remoteAdapter.internalWatch = watch;
+      _watch(nodesRepositoryProvider)..remoteAdapter.internalWatch = _watch;
   Repository<BookAuthor> get bookAuthors =>
-      watch(bookAuthorsRepositoryProvider)..remoteAdapter.internalWatch = watch;
+      _watch(bookAuthorsRepositoryProvider)
+        ..remoteAdapter.internalWatch = _watch;
   Repository<Book> get books =>
-      watch(booksRepositoryProvider)..remoteAdapter.internalWatch = watch;
+      _watch(booksRepositoryProvider)..remoteAdapter.internalWatch = _watch;
 }

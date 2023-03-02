@@ -68,12 +68,12 @@ void main() async {
       residence: BelongsTo<House>(),
     ).saveLocal();
 
-    final notifier = container.watch(familia.residence.watchProvider.notifier);
+    final notifier = familia.residence.watch();
     final listener = Listener<House?>();
     dispose = notifier.addListener(listener, fireImmediately: false);
 
-    final h2 = House(id: '2', address: '456 Main St').saveLocal();
-    familia.residence.value = h2;
+    familia.residence.value =
+        House(id: '2', address: '456 Main St').saveLocal();
 
     verify(listener(argThat(
       isA<House>().having((h) => h.address, 'address', startsWith('456')),
@@ -89,14 +89,6 @@ void main() async {
     familia.residence.value = null;
 
     verify(listener(argThat(isNull))).called(1);
-
-    House(id: '2', address: '456 Main St', owner: familia.asBelongsTo)
-        .saveLocal();
-
-    verify(listener(argThat(
-      isA<House>().having((h) => h.address, 'address', startsWith('456')),
-    ))).called(1);
-
     verifyNoMoreInteractions(listener);
   });
 

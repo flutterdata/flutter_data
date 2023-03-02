@@ -291,18 +291,5 @@ class DataResponse {
       {this.body, required this.statusCode, this.headers = const {}});
 }
 
-class ValueNotifier<E> extends StateNotifier<E> {
-  Function? onDispose;
-  ValueNotifier(E value) : super(value);
-
-  void updateWith(E value) => state = value;
-
-  @override
-  dispose() {
-    onDispose?.call();
-    super.dispose();
-  }
-}
-
 /// ONLY FOR FLUTTER DATA INTERNAL USE
 final internalRepositories = <String, Repository>{};

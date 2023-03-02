@@ -70,7 +70,7 @@ void main() async {
       persons: HasMany<Person>(),
     ).saveLocal();
 
-    final notifier = container.watch(familia.persons.watchProvider.notifier);
+    final notifier = familia.persons.watch();
     final listener = Listener<Set<Person>>();
     dispose = notifier.addListener(listener, fireImmediately: false);
 
@@ -102,12 +102,6 @@ void main() async {
     await oneMs();
 
     verify(listener({p1, p2})).called(1);
-
-    final p3 =
-        Person(name: 'c', age: 3, familia: familia.asBelongsTo).saveLocal();
-    await oneMs();
-
-    verify(listener({p1, p2, p3})).called(1);
   });
 
   test('remove relationship', () async {

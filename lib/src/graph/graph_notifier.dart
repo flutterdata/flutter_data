@@ -8,7 +8,7 @@ const _kGraphBoxName = '_graph';
 /// It's a core framework component as it holds all
 /// relationship information.
 ///
-/// Watchers like [Repository.watchAllNotifier] or [BelongsTo.watchProvider]
+/// Watchers like [Repository.watchAllNotifier] or [BelongsTo.watch]
 /// make use of it.
 ///
 /// Its public API requires all keys and metadata to be namespaced
