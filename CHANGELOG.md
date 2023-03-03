@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.5.6] - March 3rd, 2023
+
+- Upgrade dependencies
+
 ## [1.5.5] - March 2nd, 2023
 
 - Allow overriding `LocalAdapter` (useful for Hive migrations by overriding `deserialize`)

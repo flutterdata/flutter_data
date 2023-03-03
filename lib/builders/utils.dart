@@ -20,16 +20,16 @@ extension ClassElementX on ClassElement {
 
     map = {
       for (final field in fields)
-        if (field.type.element2 is ClassElement &&
+        if (field.type.element is ClassElement &&
             field.isPublic &&
-            (field.type.element2 as ClassElement).supertype != null &&
-            relationshipTypeChecker.isSuperOf(field.type.element2!))
+            (field.type.element as ClassElement).supertype != null &&
+            relationshipTypeChecker.isSuperOf(field.type.element!))
           field.name: field,
       // also check freezed
       if (freezedConstructor != null)
         for (final param in freezedConstructor!.parameters)
-          if (param.type.element2 != null &&
-              relationshipTypeChecker.isSuperOf(param.type.element2!))
+          if (param.type.element != null &&
+              relationshipTypeChecker.isSuperOf(param.type.element!))
             param.name: param,
     };
 
@@ -39,7 +39,7 @@ extension ClassElementX on ClassElement {
 
 extension VariableElementX on VariableElement {
   ClassElement get typeElement =>
-      (type as ParameterizedType).typeArguments.single.element2 as ClassElement;
+      (type as ParameterizedType).typeArguments.single.element as ClassElement;
 }
 
 Future<bool> isDependency(String package, BuildStep buildStep,

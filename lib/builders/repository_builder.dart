@@ -51,7 +51,7 @@ class RepositoryGenerator extends GeneratorForAnnotation<DataRepository> {
           throw UnsupportedError(
               "Can't generate repository for $className. The `$name` field MUST be final");
         }
-        _checkIsFinal(element.supertype?.element2, name);
+        _checkIsFinal(element.supertype?.element, name);
       }
     }
 
@@ -99,7 +99,7 @@ serializing and deserializing.
           return (elem.type as ParameterizedType)
                   .typeArguments
                   .single
-                  .element2 ==
+                  .element ==
               classElement;
         });
 
@@ -150,7 +150,7 @@ and execute a code generation build again.
         'key': keyName,
         'name': field.name,
         'inverseName': inverse,
-        'kind': field.type.element2?.name,
+        'kind': field.type.element?.name,
         'type': relationshipClassElement.name,
         if (!serialize) 'serialize': 'false',
       });
@@ -214,15 +214,7 @@ RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
             'Adapter `$mixinType` MUST have at most one type argument (T extends DataModel<T>) is supported for $mixinType');
       }
 
-      // TODO this stopped working, restore
-      // final remoteAdapterTypeChecker = TypeChecker.fromRuntime(RemoteAdapter);
-      // if (!remoteAdapterTypeChecker
-      //     .isAssignableFromType(mixinType)) {
-      //   throw UnsupportedError(
-      //       'Adapter `$mixinType` MUST have a constraint `on` RemoteAdapter<$className>');
-      // }
-
-      final instantiatedMixinType = (mixinType.element2 as MixinElement)
+      final instantiatedMixinType = (mixinType.element as MixinElement)
           .instantiate(
               typeArguments: [if (args.isNotEmpty) classElement.thisType],
               nullabilitySuffix: NullabilitySuffix.none);
@@ -254,7 +246,7 @@ RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
             'LocalAdapter `$mixinType` MUST have at most one type argument (T extends DataModel<T>) is supported for $mixinType');
       }
 
-      final instantiatedMixinType = (mixinType.element2 as MixinElement)
+      final instantiatedMixinType = (mixinType.element as MixinElement)
           .instantiate(
               typeArguments: [if (args.isNotEmpty) classElement.thisType],
               nullabilitySuffix: NullabilitySuffix.none);
