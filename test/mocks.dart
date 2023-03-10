@@ -28,6 +28,13 @@ class FakeBox<T> extends Fake implements Box<T> {
   }
 
   @override
+  Future<void> deleteAll(keys) async {
+    for (final key in keys) {
+      _map.remove(key);
+    }
+  }
+
+  @override
   Map<dynamic, T> toMap() => _map;
 
   @override

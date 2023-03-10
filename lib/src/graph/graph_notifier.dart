@@ -158,9 +158,9 @@ Key "$key":
   }
 
   /// Removes a node, [key] MUST be namespaced (e.g. `manager:key`)
-  void removeNode(String key) {
+  void removeNode(String key, {bool notify = true}) {
     _assertKey(key);
-    return _removeNode(key);
+    return _removeNode(key, notify: notify);
   }
 
   // edges

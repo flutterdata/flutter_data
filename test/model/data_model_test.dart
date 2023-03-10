@@ -183,4 +183,31 @@ void main() async {
     expect(DataException([exception], statusCode: 410),
         isNot(DataException(exception, statusCode: 410)));
   });
+
+  test('delete models in iterable', () async {
+    final adapter =
+        container.dogs.remoteAdapter.localAdapter as HiveLocalAdapter;
+
+    // grab initial length of box and graph
+    final initialLength = adapter.box!.length;
+    final graphInitialLength = adapter.graph.toMap().length;
+
+    final dogs = [
+      Dog(id: '91', name: 'A').saveLocal(),
+      Dog(id: '92', name: 'B').saveLocal(),
+      Dog(id: '93', name: 'C').saveLocal(),
+      Dog(id: '94', name: 'D').saveLocal()
+    ];
+
+    // box should now be initial + amount of saved dogs
+    expect(adapter.box!.length, initialLength + dogs.length);
+    // graph should now be initial + amount of saved dogs times 2 (saves keys/IDs)
+    expect(adapter.graph.toMap().length, graphInitialLength + dogs.length * 2);
+
+    dogs.deleteAll();
+
+    // after deleting the iterable, we should be back where we started
+    expect(adapter.box!.length, initialLength);
+    expect(adapter.graph.toMap().length, graphInitialLength);
+  });
 }
