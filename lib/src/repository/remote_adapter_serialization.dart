@@ -45,9 +45,6 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
       return result;
     }
 
-    // since data is not null, touch local storage
-    localAdapter._touchLocalStorage();
-
     if (data is Map<String, dynamic>) {
       data = [data];
     }

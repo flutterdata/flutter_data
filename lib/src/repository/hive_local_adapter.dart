@@ -54,12 +54,8 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
   // protected API
 
   @override
-  List<T>? findAll() {
-    final models = box?.values.toImmutableList();
-    if ((models?.isEmpty ?? true) && !_isLocalStorageTouched) {
-      return null;
-    }
-    return models;
+  List<T> findAll() {
+    return box?.values.toImmutableList() ?? [];
   }
 
   @override
@@ -71,8 +67,6 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
   @override
   Future<T> save(String key, T model, {bool notify = true}) async {
     if (box == null) return model;
-
-    _touchLocalStorage();
 
     final keyExisted = box!.containsKey(key);
     final save = box!.put(key, model);
@@ -93,7 +87,10 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
   Future<void> delete(String key, {bool notify = true}) async {
     if (box == null) return;
     final delete = box!.delete(key); // delete in bg
-    // id will become orphan & purged
+    final id = graph.getIdForKey(key);
+    if (id != null) {
+      graph.removeId(internalType, id, notify: false);
+    }
     graph.removeKey(key);
     await delete;
   }
@@ -103,25 +100,6 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
     if (box == null) return;
     await box!.clear();
     graph._notify([internalType], type: DataGraphEventType.clear);
-  }
-
-  // Touching local storage means the box has received data;
-  // this is used to know whether `findAll` should return
-  // null, or its models (possibly empty)
-
-  // _boxMetadata: {
-  //   '_boxMetadata:touched': ['_'],
-  // }
-
-  @override
-  bool get _isLocalStorageTouched {
-    return graph._hasEdge('_boxMetadata', metadata: '_boxMetadata:touched');
-  }
-
-  @override
-  void _touchLocalStorage() {
-    graph._addEdge('_boxMetadata', '_',
-        metadata: '_boxMetadata:touched', addNode: true, notify: false);
   }
 
   // hive adapter

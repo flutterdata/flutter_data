@@ -27,7 +27,7 @@ void main() async {
 
     dispose = notifier.addListener(listener);
 
-    verify(listener(DataState(null, isLoading: true))).called(1);
+    verify(listener(DataState([], isLoading: true))).called(1);
     await oneMs();
 
     verify(listener(DataState([
@@ -47,7 +47,7 @@ void main() async {
 
     dispose = notifier.addListener(listener);
 
-    verify(listener(DataState(null, isLoading: true))).called(1);
+    verify(listener(DataState([], isLoading: true))).called(1);
     await oneMs();
 
     // finished loading but found the network unreachable
@@ -300,8 +300,7 @@ void main() async {
     verify(listener(argThat(
       isA<DataState>()
           .having((s) => s.isLoading, 'loading', true)
-          // local storage should be null at this point
-          .having((s) => s.model, 'model', null),
+          .having((s) => s.model, 'model', []),
     ))).called(1);
 
     await oneMs();
@@ -377,7 +376,7 @@ void main() async {
     dispose = notifier.addListener(
       expectAsync1((state) {
         if (i == 0) {
-          expect(state.model, isNull);
+          expect(state.model, isEmpty);
           expect(state.isLoading, isFalse);
         } else if (i <= count) {
           expect(state.model, List.generate(i, (_) => matcher));
@@ -393,7 +392,6 @@ void main() async {
         i++;
         // 1 extra count because of the initial `null` state
         // 1 extra count because of the deletion in the loop below
-        // 1 extra count because of the self-ref due to the deletion
       }, count: count + 2),
     );
 
@@ -755,7 +753,7 @@ void main() async {
 
     dispose = notifier.addListener(listener);
 
-    verify(listener(DataState(null, isLoading: false))).called(1);
+    verify(listener(DataState([], isLoading: false))).called(1);
     verifyNoMoreInteractions(listener);
 
     await container.familia.save(

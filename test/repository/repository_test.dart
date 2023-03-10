@@ -69,7 +69,7 @@ void main() async {
         [{ "id": "1", "surname": "Smith" }, { "id": "2", "surname": "Jones" }]
       ''');
     final familias = await container.familia.findAll(background: true);
-    expect(familias, isNull);
+    expect(familias, isEmpty);
 
     await oneMs();
 

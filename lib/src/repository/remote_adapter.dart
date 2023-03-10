@@ -262,11 +262,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     late List<T>? models;
 
     if (!shouldLoadRemoteAll(remote!, params, headers) || background) {
-      models = localAdapter.findAll()?.toImmutableList();
-      if (models != null) {
-        log(label,
-            'returned ${models.toShortLog()} from local storage${background ? ' and loading in the background' : ''}');
-      }
+      models = localAdapter.findAll().toImmutableList();
+      log(label,
+          'returned ${models.toShortLog()} from local storage${background ? ' and loading in the background' : ''}');
       if (!background) {
         return models;
       }

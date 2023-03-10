@@ -233,7 +233,7 @@ void main() async {
     // verify the model in local storage has been deleted
     verify(listener(
       argThat(isA<DataState>().having((s) => s.model, 'model', isEmpty)),
-    )).called(1);
+    )).called(2);
 
     // familia is remembered as failed to persist
     expect(

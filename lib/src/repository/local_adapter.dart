@@ -10,6 +10,7 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
   LocalAdapter(Ref ref) : graph = ref.read(graphNotifierProvider);
 
   @protected
+  @visibleForTesting
   final GraphNotifier graph;
 
   FutureOr<LocalAdapter<T>> initialize();
@@ -19,7 +20,7 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
   // protected API
 
   /// Returns all models of type [T] in local storage.
-  List<T>? findAll();
+  List<T> findAll();
 
   /// Finds model of type [T] by [key] in local storage.
   T? findOne(String? key);
@@ -116,11 +117,4 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
     }
     return map;
   }
-
-  // private
-
-  // ignore: unused_element
-  bool get _isLocalStorageTouched;
-
-  void _touchLocalStorage();
 }
