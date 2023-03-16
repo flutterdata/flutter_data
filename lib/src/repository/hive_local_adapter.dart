@@ -98,6 +98,18 @@ abstract class HiveLocalAdapter<T extends DataModel<T>> extends LocalAdapter<T>
   @override
   Future<void> clear() async {
     if (box == null) return;
+
+    final keys = box!.keys;
+
+    for (final key in keys) {
+      key as String;
+      final id = graph.getIdForKey(key);
+      if (id != null) {
+        graph.removeId(internalType, id);
+      }
+      graph._removeNode(key, notify: false);
+    }
+
     await box!.clear();
     graph._notify([internalType], type: DataGraphEventType.clear);
   }

@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.7] - March 15th, 2023
+
+- Make localAdapter findAll non-nullable again
+- Remove keys in graph when calling `clear`, deleteAll extension
+- Upgrade dependencies
+
 ## [1.5.6] - March 3rd, 2023
 
 - Upgrade dependencies
