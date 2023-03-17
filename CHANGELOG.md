@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.5.8] - March 17th, 2023
+
+- Move graph clearing to standalone `compact()` function
+
 ## [1.5.7] - March 15th, 2023
 
 - Make localAdapter findAll non-nullable again
