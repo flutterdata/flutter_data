@@ -255,14 +255,6 @@ void main() async {
     expect('id:posts#a9'.denamespace().detypify(), 'a9');
   });
 
-  test('remove orphans', () {
-    graph.addNode('a');
-    graph.addNode('b');
-    graph.removeOrphanNodes();
-    expect(graph.hasNode('a'), isFalse);
-    expect(graph.hasNode('b'), isFalse);
-  });
-
   test('event', () {
     final event =
         DataGraphEvent(keys: ['a', 'b'], type: DataGraphEventType.addEdge);

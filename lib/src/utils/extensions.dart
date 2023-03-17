@@ -34,14 +34,6 @@ extension DeleteAllX<T extends DataModel<T>> on Iterable<DataModel<T>> {
     final keys = map((e) => e._key).filterNulls;
 
     adapter._box!.deleteAll(keys);
-
-    for (final key in keys) {
-      final id = adapter.graph.getIdForKey(key);
-      if (id != null) {
-        adapter.graph.removeId(adapter.internalType, id);
-      }
-      adapter.graph._removeNode(key, notify: false);
-    }
   }
 }
 

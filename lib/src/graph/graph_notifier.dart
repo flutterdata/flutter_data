@@ -265,13 +265,52 @@ Key "$key":
     return _hasEdge(key, metadata: metadata);
   }
 
-  /// Removes orphan nodes (i.e. nodes without edges)
-  @protected
-  @visibleForTesting
-  void removeOrphanNodes() {
-    final orphanEntries = {...toMap()}.entries.where((e) => e.value.isEmpty);
-    for (final e in orphanEntries) {
-      _removeNode(e.key);
+  /// This will remove all non-referenced key/ID entries in the graph
+  /// for certain `type`s. Typically used after `clear()`ing one or more
+  /// types in local storage. USE WITH CAUTION!
+  void compact({required List<String> removeTypes}) {
+    // find all keys in the box that are not internal
+    final allKeys = box!.keys
+        .map((e) => e.toString())
+        .where((e) => !e.startsWith('_'))
+        .toImmutableList();
+
+    // find all non-internal keys that reference other keys
+    final referencedKeys = allKeys.fold<Set<String>>({}, (acc, k) {
+      return {
+        ...acc,
+        for (final metadataValues in _getNode(k)!.values)
+          for (final refKey in metadataValues)
+            if (!refKey.startsWith('_')) refKey
+      };
+    });
+
+    final typeKeys = allKeys.where((e) {
+      // this performs and OR checking against all supplied types
+      return removeTypes.fold<bool>(false, (acc, type) {
+        return acc || e.startsWith('$type#');
+      });
+    });
+
+    // find all nodes that are orphan
+    for (final key in typeKeys) {
+      final node = _getNode(key);
+      if (node == null) return;
+
+      // If node is empty, it's orphan so remove
+      // If node only has an _id and it's not referenced, it's orphan so remove
+      //
+      // Example: books#8cb3c7a0: {_id: [_id_int:books#1]} -- if 8cb3c7a0 is not
+      // referenced in any metadata anywhere, and the model itself is deleted,
+      // then it's safe to remove
+      if (node.isEmpty ||
+          (node.keys.length == 1 &&
+              node.keys.first == '_id' &&
+              !referencedKeys.contains(key))) {
+        _removeNode(key);
+        final idKey = node['_id']!.first;
+        _removeNode(idKey);
+      }
     }
   }
 

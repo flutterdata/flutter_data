@@ -208,29 +208,55 @@ void main() async {
     expect(map.containsKey('owner'), isTrue);
   });
 
-  test('clear', () async {
+  test('clear and compact graph', () async {
     final adapter =
         container.dogs.remoteAdapter.localAdapter as HiveLocalAdapter;
 
     // grab initial length of graph
     final graphInitialLength = adapter.graph.toMap().length;
+    expect(graphInitialLength, 1); // hive adapters
 
-    final dogs = [
+    final dogs = {
       Dog(id: '91', name: 'A').saveLocal(),
       Dog(id: '92', name: 'B').saveLocal(),
       Dog(id: '93', name: 'C').saveLocal(),
       Dog(id: '94', name: 'D').saveLocal()
-    ];
+    };
+    Dog(id: '95', name: 'E').saveLocal();
+
+    final f1 =
+        Familia(id: '1', surname: 'Smith', dogs: HasMany(dogs)).saveLocal();
+    Book(id: 1, title: 'Models', ardentSupporters: HasMany()).saveLocal();
+
+    final totalModels = 7;
 
     // box should now be amount of saved dogs
-    expect(adapter.box!.length, dogs.length);
-    // graph should now be initial + amount of saved dogs times 2 (saves keys/IDs)
-    expect(adapter.graph.toMap().length, graphInitialLength + dogs.length * 2);
+    expect(adapter.box!.length, 5);
 
-    adapter.clear();
+    // graph should now be initial + amount of saved dogs times 2 (saves keys/IDs) + family key/id
+    expect(adapter.graph.toMap().length, graphInitialLength + totalModels * 2);
+
+    await adapter.clear();
+    adapter.graph.compact(removeTypes: [adapter.internalType]);
+
+    expect(f1.dogs, isEmpty);
 
     // after deleting the iterable, we should be back where we started
     expect(adapter.box!.length, 0);
-    expect(adapter.graph.toMap().length, graphInitialLength);
+
+    // graph should now be initial + amount of non-orphan models times 2 (saves keys/IDs)
+    // basically it should be the same as before except without dog 95
+    expect(adapter.graph.toMap().length,
+        graphInitialLength + (totalModels - 1) * 2);
+
+    // restore dogs
+    final _ = {
+      Dog(id: '91', name: 'A').saveLocal(),
+      Dog(id: '92', name: 'B').saveLocal(),
+      Dog(id: '93', name: 'C').saveLocal(),
+      Dog(id: '94', name: 'D').saveLocal()
+    };
+    // relationships should be maintained
+    expect(f1.dogs, hasLength(4));
   });
 }

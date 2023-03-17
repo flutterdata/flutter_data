@@ -166,10 +166,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
   // lifecycle methods
 
   @mustCallSuper
-  Future<void> onInitialized() async {
-    // wipe out orphans
-    graph.removeOrphanNodes();
-  }
+  Future<void> onInitialized() async {}
 
   @mustCallSuper
   @nonVirtual
