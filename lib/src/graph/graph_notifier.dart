@@ -275,22 +275,24 @@ Key "$key":
         .where((e) => !e.startsWith('_'))
         .toImmutableList();
 
-    // find all non-internal keys that reference other keys
-    final referencedKeys = allKeys.fold<Set<String>>({}, (acc, k) {
+    // find all keys that reference `removeTypes` keys
+    final referencedKeys =
+        box!.values.toList().fold<Set<String>>({}, (acc, metadataMap) {
+      final relEntries =
+          metadataMap.entries.where((e) => !e.key.toString().startsWith('_'));
       return {
         ...acc,
-        for (final metadataValues in _getNode(k)!.values)
-          for (final refKey in metadataValues)
-            if (!refKey.startsWith('_')) refKey
+        ...relEntries.fold<Set<String>>({}, (acc2, e2) {
+          return {
+            ...acc2,
+            for (final key in e2.value)
+              if (key.toString().hasTypeOf(removeTypes)) key.toString()
+          };
+        })
       };
     });
 
-    final typeKeys = allKeys.where((e) {
-      // this performs and OR checking against all supplied types
-      return removeTypes.fold<bool>(false, (acc, type) {
-        return acc || e.startsWith('$type#');
-      });
-    });
+    final typeKeys = allKeys.where((key) => key.hasTypeOf(removeTypes));
 
     // find all nodes that are orphan
     for (final key in typeKeys) {
@@ -574,6 +576,15 @@ class DataGraphEvent {
 
 extension _DataGraphEventX on DataGraphEventType {
   String toShortString() => toString().split('.').last;
+}
+
+extension on String {
+  bool hasTypeOf(List<String> types) {
+    // this performs and OR checking against all supplied types
+    return types.fold<bool>(false, (acc, type) {
+      return acc || startsWith('$type#');
+    });
+  }
 }
 
 final graphNotifierProvider =
