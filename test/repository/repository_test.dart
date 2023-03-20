@@ -118,13 +118,14 @@ void main() async {
 
   test('findOne with changing IDs works', () async {
     container.read(responseProvider.notifier).state = TestResponse.text('''
-        { "id": "new", "surname": "Smith" }
+        { "id": "97", "surname": "Smith" }
       ''');
-    final familia = await container.familia.findOne('');
+    // query for ID=1 but receive ID=97
+    final familia = await container.familia.findOne('1');
     expect(familia, isNotNull);
 
-    // and it can be found again locally with its new ID
-    expect(familia, await container.familia.findOne('new', remote: false));
+    // and it can be found again locally with its new ID=97
+    expect(familia, await container.familia.findOne('97', remote: false));
   });
 
   test('findOne with empty response', () async {
