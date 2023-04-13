@@ -557,7 +557,22 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
     try {
       if (response?.body.isNotEmpty ?? false) {
-        responseBody = json.decode(response!.body);
+        late String body;
+        if (response!.headers['content-encoding'] == 'br') {
+          final codec = BrotliCodec(level: 0);
+          body = utf8.decode(codec.decode(response.bodyBytes));
+        } else {
+          body = response.body;
+        }
+
+        if (response.headers['content-type']
+                ?.toString()
+                .contains('application/json') ??
+            false) {
+          responseBody = json.decode(body);
+        } else {
+          responseBody = body;
+        }
       }
     } on FormatException catch (e) {
       error = e;
@@ -565,7 +580,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
     final code = response?.statusCode;
 
-    if (error == null && code != null && code >= 200 && code < 300) {
+    if (error == null && code != null && code >= 200 && code < 400) {
       final data = DataResponse(
           body: responseBody, statusCode: code, headers: response!.headers);
       return onSuccess(data, label);
@@ -611,7 +626,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       // remove all operations with this request
       OfflineOperation.remove(label, this as RemoteAdapter<T>);
 
-      final e = DataException(error ?? responseBody!,
+      final e = DataException(error ?? responseBody ?? '',
           stackTrace: stackTrace, statusCode: code);
       log(label, '$e${_logLevel > 1 ? ' $uri' : ''}');
       if (_logLevel > 1 && stackTrace != null) {
@@ -621,11 +636,12 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     }
   }
 
-  FutureOr<R?> onSuccess<R>(DataResponse data, DataRequestLabel label) async {
+  FutureOr<R?> onSuccess<R>(
+      DataResponse response, DataRequestLabel label) async {
     // remove all operations with this label
     OfflineOperation.remove(label, this as RemoteAdapter);
 
-    final body = data.body;
+    final body = response.body;
 
     if (label.kind == 'save') {
       if (label.model == null) {
@@ -658,22 +674,42 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     final isFindOne = label.kind.startsWith('findOne');
     final isCustom = label.kind == 'custom';
 
+    final adapter = this as RemoteAdapter;
+
+    if (isCustom && response.headers['content-type'] != 'application/json') {
+      return response.body as R?;
+    }
+
     if (isFindAll || (isCustom && deserialized.model == null)) {
       for (final model in [...deserialized.models, ...deserialized.included]) {
         model._remoteAdapter.localAdapter.save(model._key!, model);
       }
-      deserialized._log(this as RemoteAdapter, label);
+      deserialized._log(adapter, label);
 
-      return deserialized.models as R?;
+      late R? models;
+      if (response.statusCode == 304) {
+        models = await adapter.findAll(remote: false) as R?;
+      } else {
+        models = deserialized.models as R?;
+      }
+
+      return models;
     }
 
     if (isFindOne || (isCustom && deserialized.model != null)) {
       for (final model in [...deserialized.models, ...deserialized.included]) {
         model._remoteAdapter.localAdapter.save(model._key!, model);
       }
-      deserialized._log(this as RemoteAdapter, label);
+      deserialized._log(adapter, label);
 
-      return deserialized.model as R?;
+      late R? model;
+      if (response.statusCode == 304) {
+        model = await adapter.findOne(label.id!, remote: false) as R?;
+      } else {
+        model = deserialized.model as R?;
+      }
+
+      return model;
     }
 
     return null;

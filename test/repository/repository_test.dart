@@ -20,7 +20,7 @@ void main() async {
     final familia1 = Familia(id: '1', surname: 'Smith');
     final familia2 = Familia(id: '2', surname: 'Jones');
 
-    container.read(responseProvider.notifier).state = TestResponse.text('''
+    container.read(responseProvider.notifier).state = TestResponse.json('''
         [{ "id": "1", "surname": "Smith" }, { "id": "2", "surname": "Jones" }]
       ''');
     final familia = await container.familia.findAll();
@@ -38,14 +38,14 @@ void main() async {
     final familia1 = Familia(id: '1', surname: 'Smith');
     final familia2 = Familia(id: '2', surname: 'Jones');
 
-    container.read(responseProvider.notifier).state = TestResponse.text('''
+    container.read(responseProvider.notifier).state = TestResponse.json('''
         [{ "id": "1", "surname": "Smith" }, { "id": "2", "surname": "Jones" }]
       ''');
     final familia1all = await container.familia.findAll();
 
     expect(familia1all, [familia1, familia2]);
 
-    container.read(responseProvider.notifier).state = TestResponse.text('''
+    container.read(responseProvider.notifier).state = TestResponse.json('''
         [{ "id": "1", "surname": "Smith" }]
       ''');
     final familia2all = await container.familia.findAll(syncLocal: false);
@@ -65,7 +65,7 @@ void main() async {
   });
 
   test('findAll in background', () async {
-    container.read(responseProvider.notifier).state = TestResponse.text('''
+    container.read(responseProvider.notifier).state = TestResponse.json('''
         [{ "id": "1", "surname": "Smith" }, { "id": "2", "surname": "Jones" }]
       ''');
     final familias = await container.familia.findAll(background: true);
@@ -80,8 +80,10 @@ void main() async {
   test('findAll with error', () async {
     expect(() async {
       container.read(responseProvider.notifier).state = TestResponse(
-          (_) async => '''&*@~&^@^&!(@*(@#{ "id": "1", "surname": "Smith" }''',
-          statusCode: 203);
+        (_) async => '''&*@~&^@^&!(@*(@#{ "id": "1", "surname": "Smith" }''',
+        statusCode: 203,
+        headers: {'content-type': 'application/json'},
+      );
       await container.familia.findAll();
     }, throwsA(isA<DataException>()));
 
@@ -95,7 +97,7 @@ void main() async {
   });
 
   test('findOne', () async {
-    container.read(responseProvider.notifier).state = TestResponse.text('''
+    container.read(responseProvider.notifier).state = TestResponse.json('''
         { "id": "1", "surname": "Smith" }
       ''');
     final familia = await container.familia.findOne('1');
@@ -106,7 +108,7 @@ void main() async {
   });
 
   test('findOne with empty (non-null) ID works', () async {
-    container.read(responseProvider.notifier).state = TestResponse.text('''
+    container.read(responseProvider.notifier).state = TestResponse.json('''
         { "id": "", "surname": "Smith" }
       ''');
     final familia = await container.familia.findOne('');
@@ -117,7 +119,7 @@ void main() async {
   });
 
   test('findOne with changing IDs works', () async {
-    container.read(responseProvider.notifier).state = TestResponse.text('''
+    container.read(responseProvider.notifier).state = TestResponse.json('''
         { "id": "97", "surname": "Smith" }
       ''');
     // query for ID=1 but receive ID=97
@@ -129,13 +131,13 @@ void main() async {
   });
 
   test('findOne with empty response', () async {
-    container.read(responseProvider.notifier).state = TestResponse.text('');
+    container.read(responseProvider.notifier).state = TestResponse.json('');
     final familia = await container.familia.findOne('1');
     expect(familia, isNull);
   });
 
   test('findOne with includes', () async {
-    container.read(responseProvider.notifier).state = TestResponse.text('''
+    container.read(responseProvider.notifier).state = TestResponse.json('''
         { "id": "1", "surname": "Smith", "persons": [{"_id": "1", "name": "Stan", "age": 31}] }
       ''');
     final familia =
@@ -151,7 +153,7 @@ void main() async {
   });
 
   test('findOne in background', () async {
-    container.read(responseProvider.notifier).state = TestResponse.text('''
+    container.read(responseProvider.notifier).state = TestResponse.json('''
         { "id": "1", "surname": "Smith" }
       ''');
     final familia = await container.familia.findOne('1', background: true);
@@ -170,8 +172,10 @@ void main() async {
 
     expect(() async {
       container.read(responseProvider.notifier).state = TestResponse(
-          (_) async => '''&*@~&^@^&!(@*(@#{ "id": "1", "surname": "Smith" }''',
-          statusCode: 203);
+        (_) async => '''&*@~&^@^&!(@*(@#{ "id": "1", "surname": "Smith" }''',
+        statusCode: 203,
+        headers: {'content-type': 'application/json'},
+      );
       await container.familia.findOne('1');
     }, throwsA(error203));
 
@@ -190,8 +194,10 @@ void main() async {
   test('not found does not throw by default', () async {
     expect(() async {
       container.read(responseProvider.notifier).state = TestResponse(
-          (_) async => '{ "error": "not found" }',
-          statusCode: 404);
+        (_) async => '{ "error": "not found" }',
+        statusCode: 404,
+        headers: {'content-type': 'application/json'},
+      );
       await container.familia.findOne('2');
     }, returnsNormally);
 
@@ -202,8 +208,10 @@ void main() async {
 
     expect(() async {
       container.read(responseProvider.notifier).state = TestResponse(
-          (_) async => '{ "error": "not found" }',
-          statusCode: 404);
+        (_) async => '{ "error": "not found" }',
+        statusCode: 404,
+        headers: {'content-type': 'application/json'},
+      );
       await container.familia.findOne('2', onError: (e, _, __) => throw e);
     },
         throwsA(isA<DataException>().having(
@@ -234,7 +242,7 @@ void main() async {
 
     // with empty response
     final familia = Familia(id: '1', surname: 'Smith');
-    container.read(responseProvider.notifier).state = TestResponse.text('');
+    container.read(responseProvider.notifier).state = TestResponse.json('');
     await container.familia.save(familia);
 
     // and it can be found again locally
@@ -242,7 +250,7 @@ void main() async {
 
     // with non-empty response
     container.read(responseProvider.notifier).state =
-        TestResponse.text('{"id": "2", "surname": "Jones Saved"}');
+        TestResponse.json('{"id": "2", "surname": "Jones Saved"}');
     await container.familia.save(Familia(id: '2', surname: 'Jones'));
 
     // and it can be found again locally
@@ -256,7 +264,7 @@ void main() async {
     expect(keyFor(person), isNotNull);
 
     // now delete
-    container.read(responseProvider.notifier).state = TestResponse.text('');
+    container.read(responseProvider.notifier).state = TestResponse.json('');
     await container.people.delete(person.id!, remote: true);
 
     // so fetching by id again is null
@@ -269,7 +277,7 @@ void main() async {
 
     // returns 2, not the requested 1
     container.read(responseProvider.notifier).state =
-        TestResponse.text('''{"id": "2", "surname": "Oslo"}''');
+        TestResponse.json('''{"id": "2", "surname": "Oslo"}''');
     await container.familia.findOne('1');
     // (no model will show up in a watchOneNotifier('1') situation)
 
@@ -281,7 +289,7 @@ void main() async {
   test('save with no ID should assign server ID', () async {
     final family = Familia(surname: 'Corleone');
 
-    container.read(responseProvider.notifier).state = TestResponse.text('''
+    container.read(responseProvider.notifier).state = TestResponse.json('''
       {"id": "95", "surname": "Corleone"}''');
 
     final updatedFamily = await family.save();
@@ -293,7 +301,7 @@ void main() async {
 
   test('custom with auto deserialization', () async {
     container.read(responseProvider.notifier).state =
-        TestResponse.text('[{"id": "19", "surname": "Pandan"}]');
+        TestResponse.json('[{"id": "19", "surname": "Pandan"}]');
 
     final f1 = await container.familia.remoteAdapter.sendRequest<Familia>(
       '/family'.asUri,
@@ -307,7 +315,7 @@ void main() async {
   test('custom login adapter with repo extension', () async {
     // this crappy login uses password as token
     container.read(responseProvider.notifier).state =
-        TestResponse.text('''{ "token": "zzz1" }''');
+        TestResponse.json('''{ "token": "zzz1" }''');
 
     final token = await container.people.personLoginAdapter
         .login('email@email.com', 'zzz1');
@@ -320,7 +328,7 @@ void main() async {
     // (instead of the standard DataException)
     expect(() async {
       container.read(responseProvider.notifier).state =
-          TestResponse.text('''&*@%%*#@!''');
+          TestResponse.json('''&*@%%*#@!''');
       await container.people.personLoginAdapter.login(null, null);
     }, throwsA(isA<UnsupportedError>()));
 
@@ -328,7 +336,7 @@ void main() async {
   });
 
   test('logging', overridePrint(() async {
-    container.read(responseProvider.notifier).state = TestResponse.text('''
+    container.read(responseProvider.notifier).state = TestResponse.json('''
       [
         {"id": "1", "name": "Jackson"},
         {"id": "2", "name": "Ada"},
@@ -375,8 +383,11 @@ void main() async {
     logging.clear();
 
     try {
-      container.read(responseProvider.notifier).state =
-          TestResponse((_) async => '^@!@#(#(@#)#@', statusCode: 500);
+      container.read(responseProvider.notifier).state = TestResponse(
+        (_) async => '^@!@#(#(@#)#@',
+        statusCode: 500,
+        headers: {'content-type': 'application/json'},
+      );
       await container.dogs.findOne('1', remote: true);
     } catch (_) {
       expect(logging.last, contains('FormatException'));

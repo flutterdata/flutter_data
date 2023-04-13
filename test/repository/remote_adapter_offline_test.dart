@@ -46,7 +46,7 @@ void main() async {
 
     // now make the response a success
     container.read(responseProvider.notifier).state =
-        TestResponse.text('{"id": 19, "name": "Author Saved"}');
+        TestResponse.json('{"id": 19, "name": "Author Saved"}');
 
     // try findOne again this time without errors
     final model = await container.bookAuthors.findOne(19, remote: true);
@@ -145,6 +145,7 @@ void main() async {
         }
         throw SocketException('unreachable');
       },
+      headers: {'content-type': 'application/json'},
     );
 
     // retry
@@ -156,9 +157,12 @@ void main() async {
         equals([familia2]));
 
     // change response to success for both familia and familia2
-    container.read(responseProvider.notifier).state = TestResponse((req) async {
-      return '{"id": "${req.url.pathSegments.last}", "surname": "Jones ${req.url.pathSegments.last}"}';
-    });
+    container.read(responseProvider.notifier).state = TestResponse(
+      (req) async {
+        return '{"id": "${req.url.pathSegments.last}", "surname": "Jones ${req.url.pathSegments.last}"}';
+      },
+      headers: {'content-type': 'application/json'},
+    );
 
     // retry
     await container.familia.offlineOperations.retry();
@@ -254,7 +258,7 @@ void main() async {
         ['1']);
 
     // change the response to success
-    container.read(responseProvider.notifier).state = TestResponse.text('');
+    container.read(responseProvider.notifier).state = TestResponse.json('');
 
     // retry
     await container.familia.offlineOperations.retry();
@@ -341,7 +345,7 @@ void main() async {
     expect(container.familia.offlineOperations, hasLength(2));
 
     // change the response to success
-    container.read(responseProvider.notifier).state = TestResponse.text('');
+    container.read(responseProvider.notifier).state = TestResponse.json('');
 
     // retry
     await container.familia.offlineOperations.retry();
@@ -385,6 +389,7 @@ void main() async {
         expect(json.decode(req.body), {'a': 2});
         return '[{"id": "19", "surname": "Ko Saved"}]';
       },
+      headers: {'content-type': 'application/json'},
     );
 
     // retry
@@ -423,7 +428,7 @@ void main() async {
     final familia1 = await container.familia.findOne('1', remote: false);
     expect(familia1, isNull);
 
-    container.read(responseProvider.notifier).state = TestResponse.text('''
+    container.read(responseProvider.notifier).state = TestResponse.json('''
         { "id": "1", "surname": "Smith" }
       ''');
     await container.familia.findOne('1', remote: true);

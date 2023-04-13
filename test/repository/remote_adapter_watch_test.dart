@@ -20,7 +20,7 @@ void main() async {
   test('watchAll', () async {
     final listener = Listener<DataState<List<Familia>?>>();
 
-    container.read(responseProvider.notifier).state = TestResponse.text('''
+    container.read(responseProvider.notifier).state = TestResponse.json('''
         [{ "id": "1", "surname": "Corleone" }, { "id": "2", "surname": "Soprano" }]
       ''');
     final notifier = container.familia.watchAllNotifier();
@@ -58,7 +58,7 @@ void main() async {
     verifyNoMoreInteractions(listener);
 
     // now server will successfully respond with two familia
-    container.read(responseProvider.notifier).state = TestResponse.text('''
+    container.read(responseProvider.notifier).state = TestResponse.json('''
         [{ "id": "1", "surname": "Corleone" }, { "id": "2", "surname": "Soprano" }]
       ''');
 
@@ -85,7 +85,7 @@ void main() async {
   test('watchOne with remote=true', () async {
     final listener = Listener<DataState<Person?>?>();
 
-    container.read(responseProvider.notifier).state = TestResponse.text(
+    container.read(responseProvider.notifier).state = TestResponse.json(
       '''{ "_id": "1", "name": "Charlie", "age": 23 }''',
     );
 
@@ -162,7 +162,7 @@ void main() async {
 
     // now server will successfully respond with a familia
     final familia = Familia(id: '1', surname: 'Corleone');
-    container.read(responseProvider.notifier).state = TestResponse.text('''
+    container.read(responseProvider.notifier).state = TestResponse.json('''
         { "id": "1", "surname": "Corleone" }
       ''');
 
@@ -190,7 +190,7 @@ void main() async {
     final listener = Listener<DataState<Familia?>?>();
 
     container.read(responseProvider.notifier).state =
-        TestResponse.text('''{ "id": "22", "surname": "Paez" }''');
+        TestResponse.json('''{ "id": "22", "surname": "Paez" }''');
     final notifier =
         container.familia.watchOneNotifier('22', alsoWatch: (f) => {f.persons});
 
@@ -232,7 +232,7 @@ void main() async {
     verifyNoMoreInteractions(listener);
 
     // update another person through deserialization
-    container.read(responseProvider.notifier).state = TestResponse.text(
+    container.read(responseProvider.notifier).state = TestResponse.json(
         '''{ "_id": "2", "name": "Eve", "age": 20, "familia": "22" }''');
     final eve = await container.people.findOne('2', remote: true);
     await oneMs();
@@ -292,7 +292,7 @@ void main() async {
       () async {
     final listener = Listener<DataState<List<Familia>?>?>();
 
-    container.read(responseProvider.notifier).state = TestResponse.text('[]');
+    container.read(responseProvider.notifier).state = TestResponse.json('[]');
     final notifier = container.familia.watchAllNotifier(remote: true);
 
     dispose = notifier.addListener(listener);
@@ -333,7 +333,7 @@ void main() async {
   test('watchAllNotifier syncLocal', () async {
     final listener = Listener<DataState<List<Familia>?>>();
 
-    container.read(responseProvider.notifier).state = TestResponse.text(
+    container.read(responseProvider.notifier).state = TestResponse.json(
         '''[{ "id": "22", "surname": "Paez" }, { "id": "12", "surname": "Brunez" }]''');
 
     final notifier = container.familia.watchAllNotifier(syncLocal: true);
@@ -348,7 +348,7 @@ void main() async {
         .called(1);
 
     container.read(responseProvider.notifier).state =
-        TestResponse.text('''[{ "id": "22", "surname": "Paez" }]''');
+        TestResponse.json('''[{ "id": "22", "surname": "Paez" }]''');
     await notifier.reload();
     await oneMs();
 
@@ -542,7 +542,7 @@ void main() async {
         .saveLocal();
 
     // update the author
-    container.read(responseProvider.notifier).state = TestResponse.text('''
+    container.read(responseProvider.notifier).state = TestResponse.json('''
         { "id": 1, "name": "Frank" }
       ''');
 
@@ -745,7 +745,7 @@ void main() async {
 
   test('save with error', () async {
     container.read(responseProvider.notifier).state =
-        TestResponse.text('@**&#*#&');
+        TestResponse.json('@**&#*#&');
 
     // overrides error handling with notifier
     final listener = Listener<DataState<List<Familia>?>?>();

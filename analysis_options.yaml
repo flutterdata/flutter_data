@@ -22,7 +22,6 @@ linter:
     - directives_ordering
     - empty_statements
     - implementation_imports
-    - invariant_booleans
     - iterable_contains_unrelated_type
     - list_remove_unrelated_type
     - no_adjacent_strings_in_list

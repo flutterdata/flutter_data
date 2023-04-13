@@ -7,6 +7,7 @@ import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
+import 'package:es_compression/brotli.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:inflection3/inflection3.dart' as inflection;
@@ -40,8 +41,8 @@ part 'src/repository/remote_adapter.dart';
 part 'src/repository/remote_adapter_serialization.dart';
 part 'src/repository/remote_adapter_watch.dart';
 part 'src/repository/repository.dart';
+part 'src/utils/data_state.dart';
 part 'src/utils/extensions.dart';
 part 'src/utils/framework.dart';
 part 'src/utils/initialization.dart';
-part 'src/utils/data_state.dart';
 part 'src/utils/offline.dart';

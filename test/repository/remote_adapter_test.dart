@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:es_compression/brotli.dart';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
@@ -75,22 +78,29 @@ void main() async {
     final adapter = container.people.personLoginAdapter;
 
     container.read(responseProvider.notifier).state =
-        TestResponse.text('{"message": "hello"}');
+        TestResponse.json('{"message": "hello"}');
     expect(await adapter.hello(), 'hello');
 
     container.read(responseProvider.notifier).state = TestResponse(
       (_) async => '{"message": "hello"}',
-      headers: {'X-Url': 'http://example.com'},
+      headers: {
+        'X-Url': 'http://example.com',
+        'content-type': 'application/json'
+      },
     );
     expect(await adapter.example(), 'http://example.com');
 
-    container.read(responseProvider.notifier).state =
-        TestResponse((req) async => req.headers['response']!);
+    container.read(responseProvider.notifier).state = TestResponse(
+      (req) async => req.headers['response']!,
+      headers: {'content-type': 'application/json'},
+    );
     expect(await adapter.hello(useDefaultHeaders: true),
         'not the message you sent');
 
-    container.read(responseProvider.notifier).state =
-        TestResponse((req) async => '{"url" : "${req.url.toString()}"}');
+    container.read(responseProvider.notifier).state = TestResponse(
+      (req) async => '{"url" : "${req.url.toString()}"}',
+      headers: {'content-type': 'application/json'},
+    );
     expect(await adapter.url({'a': 1}),
         'https://override-base-url-in-adapter/url?a=1');
     expect(await adapter.url({'b': 2}, useDefaultParams: true),
@@ -110,7 +120,7 @@ void main() async {
   });
 
   test('issue 148', () async {
-    container.read(responseProvider.notifier).state = TestResponse.text('''[
+    container.read(responseProvider.notifier).state = TestResponse.json('''[
           {"id": "1", "surname": "Smith", "persons": [
               {
                 "_id": "1",
@@ -209,5 +219,49 @@ void main() async {
     final key3 = adapter.keyForModelOrId(p3);
     final key3b = graph.getKeyForId('people', '22');
     expect(key3, key3b);
+  });
+
+  test('brotli content encoding', () async {
+    final adapter = container.people.remoteAdapter;
+
+    container.read(responseProvider.notifier).state = TestResponse(
+      (_) async {
+        final codec = BrotliCodec(level: 0);
+        return codec.encode(utf8.encode('{"_id": "1", "name": "Martin"}'));
+      },
+      headers: {'content-encoding': 'br', 'content-type': 'application/json'},
+    );
+
+    expect(await adapter.findOne('1', remote: true),
+        isA<Person>().having((p) => p.name, 'name', 'Martin'));
+  });
+
+  test('304 not modified', () async {
+    final adapter = container.people.remoteAdapter;
+
+    Person(id: '2', name: 'Julian').saveLocal();
+
+    container.read(responseProvider.notifier).state = TestResponse(
+      (_) async {
+        return '';
+      },
+      statusCode: 304,
+    );
+
+    expect(await adapter.findOne('2', remote: true),
+        isA<Person>().having((p) => p.name, 'name', 'Julian'));
+
+    expect(await adapter.findAll(remote: true),
+        isA<List<Person>>().having((p) => p.first.name, 'name', 'Julian'));
+  });
+
+  test('plain text', () async {
+    container.read(responseProvider.notifier).state = TestResponse(
+        (_) async => 'plain text',
+        headers: {'content-type': 'text/plain'});
+
+    final text =
+        await container.familia.remoteAdapter.sendRequest('/plain'.asUri);
+    expect(text, 'plain text');
   });
 }

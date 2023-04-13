@@ -104,7 +104,7 @@ void main() async {
     var familia = await Familia(id: '1', surname: 'Perez').save(remote: true);
     familia = Familia(id: '1', surname: 'Perez Gomez');
 
-    container.read(responseProvider.notifier).state = TestResponse.text('''
+    container.read(responseProvider.notifier).state = TestResponse.json('''
         { "id": "1", "surname": "Perez" }
       ''');
 

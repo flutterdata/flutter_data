@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -31,13 +32,15 @@ void setUpFn() async {
           // try {
           final response = ref.watch(responseProvider);
           final text = await response.callback(req);
-          return http.Response(text, response.statusCode,
-              headers: response.headers);
-          // } on Exception catch (e) {
-          //   // unwrap provider exception
-          //   // ignore: only_throw_errors
-          //   throw e.exception;
-          // }
+          if (text is String) {
+            return http.Response(text, response.statusCode,
+                headers: response.headers);
+          } else if (text is List<int>) {
+            return http.Response.bytes(text, response.statusCode,
+                headers: response.headers);
+          } else {
+            throw UnsupportedError('text is not of right type');
+          }
         });
       }),
       hiveProvider.overrideWithValue(HiveFake()),
@@ -151,10 +154,10 @@ class Bloc {
 }
 
 final responseProvider =
-    StateProvider<TestResponse>((_) => TestResponse.text(''));
+    StateProvider<TestResponse>((_) => TestResponse.json(''));
 
 class TestResponse {
-  final Future<String> Function(http.Request) callback;
+  final Future<Object> Function(http.Request) callback;
   final int statusCode;
   final Map<String, String> headers;
 
@@ -164,7 +167,9 @@ class TestResponse {
     this.headers = const {},
   });
 
-  factory TestResponse.text(String text) => TestResponse((_) async => text);
+  factory TestResponse.json(String text) =>
+      TestResponse((_) async => utf8.encode(text),
+          headers: {'content-type': 'application/json'});
 }
 
 extension ProviderContainerX on ProviderContainer {

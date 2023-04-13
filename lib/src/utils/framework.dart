@@ -209,11 +209,11 @@ extension _ToStringX on DataRequestMethod {
 }
 
 typedef _OnSuccessGeneric<R> = FutureOr<R?> Function(
-    DataResponse data, DataRequestLabel label);
+    DataResponse response, DataRequestLabel label);
 typedef OnSuccessOne<T extends DataModel<T>> = FutureOr<T?> Function(
-    DataResponse data, DataRequestLabel label, RemoteAdapter<T> adapter);
+    DataResponse response, DataRequestLabel label, RemoteAdapter<T> adapter);
 typedef OnSuccessAll<T extends DataModel<T>> = FutureOr<List<T>?> Function(
-    DataResponse data, DataRequestLabel label, RemoteAdapter<T> adapter);
+    DataResponse response, DataRequestLabel label, RemoteAdapter<T> adapter);
 
 typedef _OnErrorGeneric<R> = FutureOr<R?> Function(
     DataException e, DataRequestLabel label);
