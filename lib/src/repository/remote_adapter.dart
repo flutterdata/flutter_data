@@ -557,14 +557,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
     try {
       if (response?.body.isNotEmpty ?? false) {
-        late String body;
-        if (response!.headers['content-encoding'] == 'br') {
-          final codec = BrotliCodec(level: 0);
-          body = utf8.decode(codec.decode(response.bodyBytes));
-        } else {
-          body = response.body;
-        }
-
+        final body = response!.body;
         if (response.headers['content-type']
                 ?.toString()
                 .contains('application/json') ??
@@ -574,8 +567,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
           responseBody = body;
         }
       }
-    } on FormatException catch (e) {
+    } on FormatException catch (e, stack) {
       error = e;
+      stackTrace = stack;
     }
 
     final code = response?.statusCode;
@@ -628,10 +622,15 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
       final e = DataException(error ?? responseBody ?? '',
           stackTrace: stackTrace, statusCode: code);
-      log(label, '$e${_logLevel > 1 ? ' $uri' : ''}');
-      if (_logLevel > 1 && stackTrace != null) {
-        log(label, stackTrace.toString());
+      final sb = StringBuffer(e);
+      if (_logLevel > 1) {
+        sb.write(' $uri');
+        if (stackTrace != null) {
+          sb.write(stackTrace);
+        }
       }
+      log(label, sb.toString());
+
       return await onError(e, label);
     }
   }

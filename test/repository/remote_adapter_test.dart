@@ -1,6 +1,3 @@
-import 'dart:convert';
-
-import 'package:es_compression/brotli.dart';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
@@ -219,21 +216,6 @@ void main() async {
     final key3 = adapter.keyForModelOrId(p3);
     final key3b = graph.getKeyForId('people', '22');
     expect(key3, key3b);
-  });
-
-  test('brotli content encoding', () async {
-    final adapter = container.people.remoteAdapter;
-
-    container.read(responseProvider.notifier).state = TestResponse(
-      (_) async {
-        final codec = BrotliCodec(level: 0);
-        return codec.encode(utf8.encode('{"_id": "1", "name": "Martin"}'));
-      },
-      headers: {'content-encoding': 'br', 'content-type': 'application/json'},
-    );
-
-    expect(await adapter.findOne('1', remote: true),
-        isA<Person>().having((p) => p.name, 'name', 'Martin'));
   });
 
   test('304 not modified', () async {

@@ -7,7 +7,6 @@ import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
-import 'package:es_compression/brotli.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:inflection3/inflection3.dart' as inflection;

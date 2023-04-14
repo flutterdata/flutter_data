@@ -17,7 +17,6 @@ dependencies:
   collection: ^1.16.0
   crypto: ^3.0.1
   equatable: ^2.0.2
-  es_compression: ^2.0.10
   glob: ^2.0.1
   hive: ^2.0.4
   http: ^0.13.3
