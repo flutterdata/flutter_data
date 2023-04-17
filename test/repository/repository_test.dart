@@ -82,7 +82,6 @@ void main() async {
       container.read(responseProvider.notifier).state = TestResponse(
         (_) async => '''&*@~&^@^&!(@*(@#{ "id": "1", "surname": "Smith" }''',
         statusCode: 203,
-        headers: {'content-type': 'application/json'},
       );
       await container.familia.findAll();
     }, throwsA(isA<DataException>()));
@@ -174,7 +173,6 @@ void main() async {
       container.read(responseProvider.notifier).state = TestResponse(
         (_) async => '''&*@~&^@^&!(@*(@#{ "id": "1", "surname": "Smith" }''',
         statusCode: 203,
-        headers: {'content-type': 'application/json'},
       );
       await container.familia.findOne('1');
     }, throwsA(error203));
@@ -196,7 +194,6 @@ void main() async {
       container.read(responseProvider.notifier).state = TestResponse(
         (_) async => '{ "error": "not found" }',
         statusCode: 404,
-        headers: {'content-type': 'application/json'},
       );
       await container.familia.findOne('2');
     }, returnsNormally);
@@ -210,7 +207,6 @@ void main() async {
       container.read(responseProvider.notifier).state = TestResponse(
         (_) async => '{ "error": "not found" }',
         statusCode: 404,
-        headers: {'content-type': 'application/json'},
       );
       await container.familia.findOne('2', onError: (e, _, __) => throw e);
     },
@@ -386,7 +382,6 @@ void main() async {
       container.read(responseProvider.notifier).state = TestResponse(
         (_) async => '^@!@#(#(@#)#@',
         statusCode: 500,
-        headers: {'content-type': 'application/json'},
       );
       await container.dogs.findOne('1', remote: true);
     } catch (_) {

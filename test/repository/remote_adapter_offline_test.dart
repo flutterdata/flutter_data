@@ -145,7 +145,6 @@ void main() async {
         }
         throw SocketException('unreachable');
       },
-      headers: {'content-type': 'application/json'},
     );
 
     // retry
@@ -161,7 +160,6 @@ void main() async {
       (req) async {
         return '{"id": "${req.url.pathSegments.last}", "surname": "Jones ${req.url.pathSegments.last}"}';
       },
-      headers: {'content-type': 'application/json'},
     );
 
     // retry
@@ -389,7 +387,6 @@ void main() async {
         expect(json.decode(req.body), {'a': 2});
         return '[{"id": "19", "surname": "Ko Saved"}]';
       },
-      headers: {'content-type': 'application/json'},
     );
 
     // retry

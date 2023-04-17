@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.9] - PENDING
+
+- Support non-JSON responses, use content type if present
+- Handle HTTP 304
+- Improve graph compacting
+
 ## [1.5.8] - March 17th, 2023
 
 - Move graph clearing to standalone `compact()` function

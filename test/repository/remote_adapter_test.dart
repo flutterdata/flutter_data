@@ -89,14 +89,12 @@ void main() async {
 
     container.read(responseProvider.notifier).state = TestResponse(
       (req) async => req.headers['response']!,
-      headers: {'content-type': 'application/json'},
     );
     expect(await adapter.hello(useDefaultHeaders: true),
         'not the message you sent');
 
     container.read(responseProvider.notifier).state = TestResponse(
       (req) async => '{"url" : "${req.url.toString()}"}',
-      headers: {'content-type': 'application/json'},
     );
     expect(await adapter.url({'a': 1}),
         'https://override-base-url-in-adapter/url?a=1');

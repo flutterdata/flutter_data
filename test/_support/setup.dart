@@ -168,8 +168,7 @@ class TestResponse {
   });
 
   factory TestResponse.json(String text) =>
-      TestResponse((_) async => utf8.encode(text),
-          headers: {'content-type': 'application/json'});
+      TestResponse((_) async => utf8.encode(text));
 }
 
 extension ProviderContainerX on ProviderContainer {

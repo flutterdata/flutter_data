@@ -555,13 +555,13 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
     // response handling
 
+    var contentType = 'application/json';
+
     try {
       if (response?.body.isNotEmpty ?? false) {
-        final body = response!.body;
-        if (response.headers['content-type']
-                ?.toString()
-                .contains('application/json') ??
-            false) {
+        contentType = response!.headers['content-type'] ?? contentType;
+        final body = response.body;
+        if (contentType.contains('json')) {
           responseBody = json.decode(body);
         } else {
           responseBody = body;
@@ -576,7 +576,10 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
     if (error == null && code != null && code >= 200 && code < 400) {
       final data = DataResponse(
-          body: responseBody, statusCode: code, headers: response!.headers);
+        body: responseBody,
+        statusCode: code,
+        headers: {...response!.headers, 'content-type': contentType},
+      );
       return onSuccess(data, label);
     } else {
       if (isOfflineError(error)) {
@@ -675,7 +678,9 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
     final adapter = this as RemoteAdapter;
 
-    if (isCustom && response.headers['content-type'] != 'application/json') {
+    // custom non-JSON request, return as-is
+    if (isCustom &&
+        !(response.headers['content-type']?.contains('json') ?? false)) {
       return response.body as R?;
     }
 
