@@ -7,6 +7,7 @@ import 'package:test/test.dart';
 
 import '../_support/book.dart';
 import '../_support/familia.dart';
+import '../_support/house.dart';
 import '../_support/setup.dart';
 import '../mocks.dart';
 
@@ -62,8 +63,12 @@ void main() async {
 
     dispose = notifier.addListener(listener);
 
+    // sample house
+    final residence = House(address: '789 Long Rd').saveLocal();
+
     // sample familia
-    final familia = Familia(id: '1', surname: 'Smith');
+    final familia =
+        Familia(id: '1', surname: 'Smith', residence: residence.asBelongsTo);
 
     // network issue persisting familia
     container.read(responseProvider.notifier).state =
@@ -83,11 +88,14 @@ void main() async {
         return null;
       },
       onSuccess: (data, label, adapter) async {
-        final model = await adapter.onSuccess(data, label);
+        final model = await adapter.onSuccess<Familia>(data, label);
         // the surname follows `X-Override-Name` + `overrideSecondName`
         // as the save has been replayed with the original headers/params
-        expect(model, equals(Familia(id: '1', surname: 'Mantego Zorrilla')));
-        return model as Familia;
+        final f2 = Familia(id: '1', surname: 'Mantego Zorrilla');
+        expect(model, equals(f2));
+        expect(model!.residence.value, residence);
+        expect(residence.owner.value, f2);
+        return model;
       },
     );
     await oneMs();

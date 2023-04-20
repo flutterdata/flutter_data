@@ -33,71 +33,62 @@ void main() async {
   });
 
   test('withKeyOf', () {
-    final p = Person(id: '1', name: 'Peter');
-    final p2 = Person(id: '2', name: 'Petera');
-    // keys are different
-    expect(keyFor(p), isNot(keyFor(p2)));
+    final f1 = Familia(id: '1', surname: 'Tester').saveLocal();
 
-    p2.withKeyOf(p);
+    final pairs = [
+      // source without ID + destination with ID
+      [
+        Person(name: 'Peter', familia: f1.asBelongsTo),
+        Person(id: '1', name: 'Peter Updated', familia: f1.asBelongsTo)
+      ],
+      // source without ID + destination without ID
+      [
+        Person(name: 'Sonya', familia: f1.asBelongsTo),
+        Person(name: 'Sonya Updated', familia: f1.asBelongsTo)
+      ],
+      // source with ID + destination with same ID
+      [
+        Person(id: '2', name: 'Mark', familia: f1.asBelongsTo),
+        Person(id: '2', name: 'Mark Updated', familia: f1.asBelongsTo)
+      ],
+      // source with ID + destination with different ID
+      [
+        Person(id: '3', name: 'Daniel', familia: f1.asBelongsTo),
+        Person(id: '4', name: 'Daniel Updated', familia: f1.asBelongsTo)
+      ],
+      // source with ID + destination without ID
+      [
+        Person(id: '5', name: 'Peter', familia: f1.asBelongsTo),
+        Person(name: 'Peter Updated', familia: f1.asBelongsTo)
+      ],
+    ];
 
-    // now both objects have the same key
-    expect(keyFor(p), keyFor(p2));
+    for (final pair in pairs) {
+      // we receive an update from the server,
+      // gets initialized with a new key destination
+      final source = pair.first;
+      final destination = pair.last;
+      final destKeyBefore = keyFor(destination);
 
-    // now the original key is associated to id=2
-    expect(graph.getKeyForId('people', '1'), isNull);
-    expect(graph.getKeyForId('people', '2'), keyFor(p));
+      if (keyFor(source) != keyFor(destination)) {
+        expect(graph.getNode(destKeyBefore), isNotNull);
+      }
 
-    //
+      destination.withKeyOf(source);
 
-    final p3 = Person(name: 'Robert');
-    final p4 = Person(name: 'Roberta');
+      // now both objects have the same key
+      expect(keyFor(source), keyFor(destination));
 
-    expect(keyFor(p3), isNot(keyFor(p4)));
-    p4.withKeyOf(p3);
-    expect(keyFor(p3), keyFor(p4));
+      if (destination.id != null) {
+        // now the source key is associated to id=destination.id
+        expect(graph.getKeyForId('people', destination.id), keyFor(source));
+      }
+      expect(destination.familia.value, f1);
 
-    // passing in a null-ID model
-
-    final p5 = Person(name: 'Thiago');
-    final p6 = Person(id: '7', name: 'Thiaga');
-
-    expect(keyFor(p5), isNot(keyFor(p6)));
-
-    p6.withKeyOf(p5);
-
-    // the original key remains associated to id=7
-    expect(graph.getKeyForId('people', '7'), keyFor(p6));
-    // and p5 also has the old key
-    expect(keyFor(p5), keyFor(p6));
-
-    // force passed-in model's key
-
-    final p5b = Person(name: 'Thiago');
-    final p6b = Person(id: '17', name: 'Thiaga');
-    final p5bk = keyFor(p5b);
-    final p6bk = keyFor(p6b);
-
-    expect(p5bk, isNot(p6bk));
-
-    p6b.withKeyOf(p5b, force: true);
-
-    // the new key is associated to id=17
-    expect(graph.getKeyForId('people', '17'), p5bk);
-    // and p6b (original model) has the new key
-    expect(keyFor(p5b), keyFor(p6b));
-
-    //
-
-    final p7 = Person(id: '8', name: 'Evo');
-    final p8 = Person(name: 'Eva');
-
-    expect(keyFor(p7), isNot(keyFor(p8)));
-
-    p8.withKeyOf(p7);
-    expect(keyFor(p7), keyFor(p8));
-
-    // now no key is associated to id=8
-    expect(graph.getKeyForId('people', '8'), keyFor(p7));
+      if (keyFor(source) != keyFor(destination)) {
+        expect(graph.getNode(destKeyBefore), isNull);
+      }
+    }
   });
 
   test('findOne (remote and local reload)', () async {

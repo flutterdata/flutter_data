@@ -321,6 +321,8 @@ Key "$key":
   /// Returns a [Map] representation of this graph, the underlying Hive [box].
   Map<String, Map> toMap() => _toMap();
 
+  void debugMap() => _prettyPrintJson(_toMap());
+
   @protected
   @visibleForTesting
   void debugAssert(bool value) => _doAssert = value;
@@ -532,6 +534,13 @@ Key "$key":
   }
 
   Map<String, Map> _toMap() => box!.toMap().cast();
+
+  static JsonEncoder _encoder = JsonEncoder.withIndent('  ');
+  static void _prettyPrintJson(Map<String, dynamic> map) {
+    map.removeWhere((key, value) => key.startsWith('_adapter_hive:'));
+    final prettyString = _encoder.convert(map);
+    prettyString.split('\n').forEach((element) => print(element));
+  }
 }
 
 enum DataGraphEventType {

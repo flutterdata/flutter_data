@@ -58,7 +58,7 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
     return model;
   }
 
-  void _initializeRelationships(T model) {
+  void _initializeRelationships(T model, {bool force = false}) {
     final metadatas = relationshipMetas.values;
     for (final metadata in metadatas) {
       final relationship = metadata.instance(model);
@@ -66,6 +66,7 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
         owner: model,
         name: metadata.name,
         inverseName: metadata.inverseName,
+        force: force,
       );
     }
   }

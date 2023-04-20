@@ -46,30 +46,28 @@ abstract class DataModel<T extends DataModel<T>> {
   /// Returns a model [RemoteAdapter]
   static RemoteAdapter adapterFor(DataModel model) => model._remoteAdapter;
 
-  /// Apply [model]'s key to [applyTo].
-  static DataModel withKeyOf(DataModel model, {required DataModel applyTo}) {
-    final _this = applyTo;
-    if (model._key != _this._key) {
-      DataModel oldModel = _this;
-      DataModel newModel = model;
+  /// Apply [source]'s key to [destination].
+  static T withKeyOf<T extends DataModel<T>>(
+      {required T source, required T destination}) {
+    final graph = source._remoteAdapter.graph;
+    final type = source._internalType;
 
-      final oldKey = oldModel._key;
-      if (_this._key != newModel._key) {
-        _this._key = newModel._key;
-      }
-      if (_this._key != oldModel._key) {
-        oldModel._key = _this._key;
-        _this._remoteAdapter.graph.removeKey(oldKey!);
-      }
+    // destination is the updated model, we don't care about it's new key
+    // only thing we care about from source is the key (maybe ID)
+    if (source._key != destination._key) {
+      final destKey = destination._key!;
+      destination._key = source._key;
+      graph._removeNode(destKey);
 
-      if (oldModel.id != null) {
-        _this._remoteAdapter.graph
-            .removeId(_this._internalType, oldModel.id!, notify: false);
-        _this._remoteAdapter.graph.getKeyForId(_this._internalType, oldModel.id,
-            keyIfAbsent: _this._key);
+      if (destination.id != null) {
+        graph.removeId(type, destination.id!, notify: false);
+        // associate ID with source key
+        graph.getKeyForId(type, destination.id, keyIfAbsent: source._key);
       }
+      destination._remoteAdapter.localAdapter
+          ._initializeRelationships(destination, force: true);
     }
-    return _this;
+    return destination;
   }
 }
 
@@ -86,10 +84,8 @@ extension DataModelExtension<T extends DataModel<T>> on DataModel<T> {
   /// final walter = Person(name: 'Walter');
   /// person.copyWith(age: 56).withKeyOf(walter);
   /// ```
-  ///
-  /// [force] will set [model]'s key even if its `id` is null.
-  T withKeyOf(T model, {bool force = false}) {
-    return DataModel.withKeyOf(model, applyTo: this) as T;
+  T withKeyOf(T model) {
+    return DataModel.withKeyOf<T>(source: model, destination: this as T);
   }
 
   /// Saves this model through a call equivalent to [Repository.save].

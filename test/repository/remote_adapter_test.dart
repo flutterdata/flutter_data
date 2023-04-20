@@ -244,4 +244,24 @@ void main() async {
         await container.familia.remoteAdapter.sendRequest('/plain'.asUri);
     expect(text, 'plain text');
   });
+
+  test('issue 218', () async {
+    final f1 = Familia(surname: 'Gomez').saveLocal();
+    container.read(responseProvider.notifier).state = TestResponse.json('''
+        {"_id": "1", "name": "Jack", "age": 31}
+      ''');
+
+    final person = Person(name: 'Jack', familia: f1.asBelongsTo).saveLocal();
+    expect(person.familia.value, f1);
+    expect(f1.persons.toSet(), {person});
+
+    // call remote save as it uses withKeyOf, relationship should be omitted
+    final personUpdated = await person.save(remote: true);
+
+    // keys should be the same
+    expect(keyFor(person), keyFor(personUpdated));
+    // the relationship should be intact
+    expect(personUpdated.familia.value, f1);
+    expect(f1.persons.toSet(), {personUpdated});
+  });
 }

@@ -18,25 +18,32 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
       internalRepositories[_internalType]!.remoteAdapter as RemoteAdapter<E>;
   GraphNotifier get _graph => _adapter.localAdapter.graph;
 
-  final Set<String>? _uninitializedKeys;
+  Set<String>? _uninitializedKeys;
   String get _internalType => DataHelpers.getInternalType<E>();
 
   bool get isInitialized => _ownerKey != null;
 
   /// Initializes this relationship (typically when initializing the owner
   /// in [DataModel]) by supplying the owner, and related metadata.
+  /// [force] ignores if the relationship was previously initialized.
   Relationship<E, N> initialize(
       {required final DataModel owner,
       required final String name,
-      final String? inverseName}) {
-    if (isInitialized) return this;
+      final String? inverseName,
+      bool force = false}) {
+    if (!force && isInitialized) return this;
 
     _ownerKey = owner._key;
     _name = name;
     _inverseName = inverseName;
 
-    // means it was omitted (remote-omitted, or loaded locally), so skip
-    if (_uninitializedKeys == null) return this;
+    if (force) {
+      // if reinitialization is forced (for `withKeyOf`), use the current keys
+      _uninitializedKeys = _keys;
+    } else if (_uninitializedKeys == null) {
+      // means it was omitted (remote-omitted, or loaded locally), so skip
+      return this;
+    }
 
     // setting up from scratch, remove all and add keys
 
