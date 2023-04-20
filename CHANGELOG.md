@@ -1,10 +1,11 @@
 # Changelog
 
-## [1.5.9] - PENDING
+## [1.5.9] - April 20th, 2023
 
 - Support non-JSON responses, use content type if present
 - Handle HTTP 304
 - Improve graph compacting
+- `withKeyOf` bugfix (#218)
 
 ## [1.5.8] - March 17th, 2023
 
