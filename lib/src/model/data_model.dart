@@ -52,20 +52,29 @@ abstract class DataModel<T extends DataModel<T>> {
     final graph = source._remoteAdapter.graph;
     final type = source._internalType;
 
-    // destination is the updated model, we don't care about it's new key
-    // only thing we care about from source is the key (maybe ID)
+    // ONLY data we keep from source is its key
+    // ONLY data we remove from destination is its key
     if (source._key != destination._key) {
       final destKey = destination._key!;
+
+      // assign correct key to destination
       destination._key = source._key;
+
+      // migrate relationships to new key
+      destination._remoteAdapter.localAdapter._initializeRelationships(
+        destination,
+        from: source,
+      );
+
+      // remove node
       graph._removeNode(destKey);
 
       if (destination.id != null) {
+        // if present, remove existent ID association
         graph.removeId(type, destination.id!, notify: false);
-        // associate ID with source key
+        // and associate ID with source key
         graph.getKeyForId(type, destination.id, keyIfAbsent: source._key);
       }
-      destination._remoteAdapter.localAdapter
-          ._initializeRelationships(destination, force: true);
     }
     return destination;
   }

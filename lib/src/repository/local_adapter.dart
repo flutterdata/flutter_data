@@ -58,16 +58,28 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
     return model;
   }
 
-  void _initializeRelationships(T model, {bool force = false}) {
+  void _initializeRelationships(T model, {DataModel? from}) {
     final metadatas = relationshipMetas.values;
     for (final metadata in metadatas) {
       final relationship = metadata.instance(model);
-      relationship?.initialize(
-        owner: model,
-        name: metadata.name,
-        inverseName: metadata.inverseName,
-        force: force,
-      );
+
+      if (from != null) {
+        final sourceRelationship = metadata.instance(from);
+        relationship?.initialize(
+          owner: model,
+          name: metadata.name,
+          inverseName: metadata.inverseName,
+          // pass keys from the source that will be copied over
+          // to the relationships on model
+          overrideKeys: sourceRelationship?._keys,
+        );
+      } else {
+        relationship?.initialize(
+          owner: model,
+          name: metadata.name,
+          inverseName: metadata.inverseName,
+        );
+      }
     }
   }
 

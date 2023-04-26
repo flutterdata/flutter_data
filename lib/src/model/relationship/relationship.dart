@@ -25,21 +25,20 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
 
   /// Initializes this relationship (typically when initializing the owner
   /// in [DataModel]) by supplying the owner, and related metadata.
-  /// [force] ignores if the relationship was previously initialized.
+  /// [overrideKeys] ignores if the relationship was previously initialized.
   Relationship<E, N> initialize(
       {required final DataModel owner,
       required final String name,
       final String? inverseName,
-      bool force = false}) {
-    if (!force && isInitialized) return this;
+      Set<String>? overrideKeys}) {
+    if (overrideKeys == null && isInitialized) return this;
 
     _ownerKey = owner._key;
     _name = name;
     _inverseName = inverseName;
 
-    if (force) {
-      // if reinitialization is forced (for `withKeyOf`), use the current keys
-      _uninitializedKeys = _keys;
+    if (overrideKeys != null) {
+      _uninitializedKeys = overrideKeys;
     } else if (_uninitializedKeys == null) {
       // means it was omitted (remote-omitted, or loaded locally), so skip
       return this;

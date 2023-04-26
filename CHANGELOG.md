@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.5.10] - April 26th, 2023
+
+- `withKeyOf` bug with Freezed classes fixed
+
 ## [1.5.9] - April 20th, 2023
 
 - Support non-JSON responses, use content type if present
