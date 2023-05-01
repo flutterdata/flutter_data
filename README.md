@@ -129,7 +129,7 @@ Fully compatible with the tools we know and love:
     <tr class="bg-yellow-50">
       <td class="font-bold px-4 py-2"><strong>Flutter Web</strong></td>
       <td class="px-4 py-2">✅</td>
-      <td class="px-4 py-2 text-sm">Supported!</td>
+      <td class="px-4 py-2 text-sm">Supported (untested)</td>
     </tr>
     <tr>
       <td class="font-bold px-4 py-2"><strong>json_serializable</strong></td>
@@ -143,16 +143,6 @@ Fully compatible with the tools we know and love:
       <td class="px-4 py-2 text-sm">Supported &amp; automatically wired up</td>
     </tr>
     <tr>
-      <td class="font-bold px-4 py-2"><strong>Provider</strong></td>
-      <td class="px-4 py-2">✅</td>
-      <td class="px-4 py-2 text-sm">Supported with minimal extra code</td>
-    </tr>
-    <tr class="bg-yellow-50">
-      <td class="font-bold px-4 py-2"><strong>get_it</strong></td>
-      <td class="px-4 py-2">✅</td>
-      <td class="px-4 py-2 text-sm">Supported with minimal extra code</td>
-    </tr>
-    <tr>
       <td class="font-bold px-4 py-2"><strong>Classic JSON REST API</strong></td>
       <td class="px-4 py-2">✅</td>
       <td class="px-4 py-2 text-sm">Built-in support!</td>
@@ -161,6 +151,11 @@ Fully compatible with the tools we know and love:
       <td class="font-bold px-4 py-2"><strong>JSON:API</strong></td>
       <td class="px-4 py-2">✅</td>
       <td class="px-4 py-2 text-sm">Supported via <a href="https://pub.dev/packages/flutter_data_json_api_adapter">external adapter</a></td>
+    </tr>
+    <tr class="bg-yellow-50">
+      <td class="font-bold px-4 py-2"><strong>Firebase, Supabase, GraphQL</strong></td>
+      <td class="px-4 py-2">✅</td>
+      <td class="px-4 py-2 text-sm">Can be fully supported by writing <a href="https://flutterdata.dev/docs/adapters/">custom adapters</a></td>
     </tr>
     <tr>
       <td class="font-bold px-4 py-2"><strong>Freezed</strong></td>
@@ -178,9 +173,7 @@ Fully compatible with the tools we know and love:
 
 Please use Github to ask questions, open issues and send PRs. Thanks!
 
-On Twitter: [@flutterdata](https://twitter.com/flutterdata)
-
-Tests can be run with: `pub run test`
+Tests can be run with: `dart test`
 
 ## 📝 License
 
