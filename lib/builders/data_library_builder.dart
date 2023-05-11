@@ -59,7 +59,7 @@ class DataExtensionBuilder implements Builder {
     final finalAssetId = AssetId(b.inputId.package, 'lib/main.data.dart');
 
     final infos = [
-      await for (final file in b.findAssets(Glob('**/*.info')))
+      await for (final file in b.findAssets(Glob('**/*.flutter_data.info')))
         await b.readAsString(file)
     ];
 
