@@ -11,7 +11,7 @@ part of flutter_data;
 ///  - Access to the [_RemoteAdapter.graph] for subclasses or mixins
 ///
 /// This class is meant to be extended via mixing in new adapters.
-/// This can be done with the [DataRepository] annotation on a [DataModel] class:
+/// This can be done with the [DataRepository] annotation on a [DataModelMixin] class:
 ///
 /// ```
 /// @JsonSerializable()
@@ -28,10 +28,10 @@ part of flutter_data;
 ///
 /// Identity in this layer is enforced by IDs.
 // ignore: library_private_types_in_public_api
-class RemoteAdapter<T extends DataModel<T>> = _RemoteAdapter<T>
+class RemoteAdapter<T extends DataModelMixin<T>> = _RemoteAdapter<T>
     with _RemoteAdapterSerialization<T>, _RemoteAdapterWatch<T>;
 
-abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
+abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   @protected
   _RemoteAdapter(this.localAdapter, [this._internalHolder]);
 

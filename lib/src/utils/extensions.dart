@@ -14,7 +14,7 @@ extension IterableX<T> on Iterable<T> {
   List<T> toImmutableList() => List.unmodifiable(this);
 }
 
-extension _DataModelListX on Iterable<DataModel> {
+extension _DataModelListX on Iterable<DataModelMixin> {
   String toShortLog() {
     final ids = map((m) => m.id).toSet();
     return ids.isEmpty
@@ -26,7 +26,8 @@ extension _DataModelListX on Iterable<DataModel> {
   }
 }
 
-extension DeleteAllX<T extends DataModel<T>> on Iterable<DataModel<T>> {
+extension DeleteAllX<T extends DataModelMixin<T>>
+    on Iterable<DataModelMixin<T>> {
   void deleteAll() {
     if (isEmpty) return;
 

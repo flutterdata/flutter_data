@@ -62,14 +62,16 @@ void setUpFn() async {
   DataHelpers.setInternalType<Dog>('dogs');
   DataHelpers.setInternalType<BookAuthor>('bookAuthors');
   DataHelpers.setInternalType<Book>('books');
+  DataHelpers.setInternalType<Library>('libraries');
 
-  final adapterGraph = <String, RemoteAdapter<DataModel>>{
+  final adapterGraph = <String, RemoteAdapter<DataModelMixin>>{
     'houses': container.read(internalHousesRemoteAdapterProvider),
     'familia': container.read(internalFamiliaRemoteAdapterProvider),
     'people': container.read(internalPeopleRemoteAdapterProvider),
     'dogs': container.read(internalDogsRemoteAdapterProvider),
     'bookAuthors': container.read(internalBookAuthorsRemoteAdapterProvider),
     'books': container.read(internalBooksRemoteAdapterProvider),
+    'libraries': container.read(internalLibrariesRemoteAdapterProvider),
   };
 
   internalRepositories['houses'] = await container
@@ -91,6 +93,11 @@ void setUpFn() async {
           );
   internalRepositories['books'] =
       await container.read(booksRepositoryProvider).initialize(
+            remote: false,
+            adapters: adapterGraph,
+          );
+  internalRepositories['libraries'] =
+      await container.read(librariesRepositoryProvider).initialize(
             remote: false,
             adapters: adapterGraph,
           );
@@ -119,6 +126,7 @@ void tearDownFn() async {
   container.nodes.dispose();
   container.books.dispose();
   container.bookAuthors.dispose();
+  container.libraries.dispose();
   graph.dispose();
 
   logging.clear();
@@ -188,4 +196,6 @@ extension ProviderContainerX on ProviderContainer {
         ..remoteAdapter.internalWatch = _watch;
   Repository<Book> get books =>
       _watch(booksRepositoryProvider)..remoteAdapter.internalWatch = _watch;
+  Repository<Library> get libraries =>
+      _watch(librariesRepositoryProvider)..remoteAdapter.internalWatch = _watch;
 }

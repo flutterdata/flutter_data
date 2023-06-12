@@ -3,7 +3,7 @@ part of flutter_data;
 const _offlineAdapterKey = '_offline:keys';
 
 /// Represents an offline request that is pending to be retried.
-class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
+class OfflineOperation<T extends DataModelMixin<T>> with EquatableMixin {
   final DataRequestLabel label;
   final String httpRequest;
   final int timestamp;
@@ -140,7 +140,7 @@ class OfflineOperation<T extends DataModel<T>> with EquatableMixin {
   bool get stringify => true;
 }
 
-extension OfflineOperationsX on Set<OfflineOperation<DataModel>> {
+extension OfflineOperationsX on Set<OfflineOperation<DataModelMixin>> {
   /// Retries all offline operations for current type.
   FutureOr<void> retry() async {
     if (isNotEmpty) {

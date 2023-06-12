@@ -431,3 +431,171 @@ abstract class _Book extends Book {
   @JsonKey(ignore: true)
   _$$_BookCopyWith<_$_Book> get copyWith => throw _privateConstructorUsedError;
 }
+
+Library _$LibraryFromJson(Map<String, dynamic> json) {
+  return _Library.fromJson(json);
+}
+
+/// @nodoc
+mixin _$Library {
+  int get id => throw _privateConstructorUsedError;
+  String get name => throw _privateConstructorUsedError;
+  HasMany<Book> get books => throw _privateConstructorUsedError;
+
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  @JsonKey(ignore: true)
+  $LibraryCopyWith<Library> get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $LibraryCopyWith<$Res> {
+  factory $LibraryCopyWith(Library value, $Res Function(Library) then) =
+      _$LibraryCopyWithImpl<$Res, Library>;
+  @useResult
+  $Res call({int id, String name, HasMany<Book> books});
+}
+
+/// @nodoc
+class _$LibraryCopyWithImpl<$Res, $Val extends Library>
+    implements $LibraryCopyWith<$Res> {
+  _$LibraryCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? name = null,
+    Object? books = null,
+  }) {
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      books: null == books
+          ? _value.books
+          : books // ignore: cast_nullable_to_non_nullable
+              as HasMany<Book>,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$_LibraryCopyWith<$Res> implements $LibraryCopyWith<$Res> {
+  factory _$$_LibraryCopyWith(
+          _$_Library value, $Res Function(_$_Library) then) =
+      __$$_LibraryCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({int id, String name, HasMany<Book> books});
+}
+
+/// @nodoc
+class __$$_LibraryCopyWithImpl<$Res>
+    extends _$LibraryCopyWithImpl<$Res, _$_Library>
+    implements _$$_LibraryCopyWith<$Res> {
+  __$$_LibraryCopyWithImpl(_$_Library _value, $Res Function(_$_Library) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? name = null,
+    Object? books = null,
+  }) {
+    return _then(_$_Library(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      books: null == books
+          ? _value.books
+          : books // ignore: cast_nullable_to_non_nullable
+              as HasMany<Book>,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$_Library extends _Library {
+  _$_Library({required this.id, required this.name, required this.books})
+      : super._();
+
+  factory _$_Library.fromJson(Map<String, dynamic> json) =>
+      _$$_LibraryFromJson(json);
+
+  @override
+  final int id;
+  @override
+  final String name;
+  @override
+  final HasMany<Book> books;
+
+  @override
+  String toString() {
+    return 'Library(id: $id, name: $name, books: $books)';
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$_Library &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.books, books) || other.books == books));
+  }
+
+  @JsonKey(ignore: true)
+  @override
+  int get hashCode => Object.hash(runtimeType, id, name, books);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$_LibraryCopyWith<_$_Library> get copyWith =>
+      __$$_LibraryCopyWithImpl<_$_Library>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$_LibraryToJson(
+      this,
+    );
+  }
+}
+
+abstract class _Library extends Library {
+  factory _Library(
+      {required final int id,
+      required final String name,
+      required final HasMany<Book> books}) = _$_Library;
+  _Library._() : super._();
+
+  factory _Library.fromJson(Map<String, dynamic> json) = _$_Library.fromJson;
+
+  @override
+  int get id;
+  @override
+  String get name;
+  @override
+  HasMany<Book> get books;
+  @override
+  @JsonKey(ignore: true)
+  _$$_LibraryCopyWith<_$_Library> get copyWith =>
+      throw _privateConstructorUsedError;
+}

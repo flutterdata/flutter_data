@@ -178,6 +178,8 @@ void main() async {
         container.books.remoteAdapter.localAdapter as HiveLocalAdapter<Book>;
     final bookAuthorsAdapter = container.bookAuthors.remoteAdapter.localAdapter
         as HiveLocalAdapter<BookAuthor>;
+    final librariesAdapter = container.libraries.remoteAdapter.localAdapter
+        as HiveLocalAdapter<Library>;
 
     expect(housesAdapter.typeId, 1);
     expect(familiaAdapter.typeId, 5);
@@ -185,7 +187,8 @@ void main() async {
     expect(dogsAdapter.typeId, 7);
     expect(bookAuthorsAdapter.typeId, 8);
     expect(booksAdapter.typeId, 9);
-    expect(nodesAdapter.typeId, 10);
+    expect(librariesAdapter.typeId, 10);
+    expect(nodesAdapter.typeId, 11);
   });
 
   test('relationships with serialized=false', () {

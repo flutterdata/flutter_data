@@ -38,6 +38,20 @@ class Book extends DataModel<Book> with _$Book {
   factory Book.fromJson(Map<String, dynamic> json) => _$BookFromJson(json);
 }
 
+@freezed
+@DataRepository([], remote: false)
+class Library with DataModelMixin<Library>, _$Library {
+  Library._();
+
+  factory Library({
+    required int id,
+    required String name,
+    required HasMany<Book> books,
+  }) = _Library;
+  factory Library.fromJson(Map<String, dynamic> json) =>
+      _$LibraryFromJson(json);
+}
+
 mixin BookAuthorAdapter on RemoteAdapter<BookAuthor> {
   @override
   String get type => 'writers';

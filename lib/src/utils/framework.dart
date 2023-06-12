@@ -52,7 +52,7 @@ abstract class _Lifecycle {
   void dispose();
 }
 
-class InternalHolder<T extends DataModel<T>> {
+class InternalHolder<T extends DataModelMixin<T>> {
   final Map<String, dynamic> finders;
   InternalHolder(this.finders);
 }
@@ -63,7 +63,7 @@ class DataFinder {
   const DataFinder();
 }
 
-typedef DataFinderAll<T extends DataModel<T>> = Future<List<T>?> Function({
+typedef DataFinderAll<T extends DataModelMixin<T>> = Future<List<T>?> Function({
   bool? remote,
   bool? background,
   Map<String, dynamic>? params,
@@ -74,7 +74,7 @@ typedef DataFinderAll<T extends DataModel<T>> = Future<List<T>?> Function({
   DataRequestLabel? label,
 });
 
-typedef DataFinderOne<T extends DataModel<T>> = Future<T?> Function(
+typedef DataFinderOne<T extends DataModelMixin<T>> = Future<T?> Function(
   Object model, {
   bool? remote,
   bool? background,
@@ -85,8 +85,8 @@ typedef DataFinderOne<T extends DataModel<T>> = Future<T?> Function(
   DataRequestLabel? label,
 });
 
-typedef DataWatcherAll<T extends DataModel<T>> = DataStateNotifier<List<T>?>
-    Function({
+typedef DataWatcherAll<T extends DataModelMixin<T>>
+    = DataStateNotifier<List<T>?> Function({
   bool? remote,
   Map<String, dynamic>? params,
   Map<String, String>? headers,
@@ -95,7 +95,8 @@ typedef DataWatcherAll<T extends DataModel<T>> = DataStateNotifier<List<T>?>
   DataRequestLabel? label,
 });
 
-typedef DataWatcherOne<T extends DataModel<T>> = DataStateNotifier<T?> Function(
+typedef DataWatcherOne<T extends DataModelMixin<T>> = DataStateNotifier<T?>
+    Function(
   Object model, {
   bool? remote,
   Map<String, dynamic>? params,
@@ -111,16 +112,16 @@ typedef Watcher = W Function<W>(ProviderListenable<W> provider);
 
 // relationships + alsoWatch
 
-class RelationshipGraphNode<T extends DataModel<T>> {}
+class RelationshipGraphNode<T extends DataModelMixin<T>> {}
 
-class RelationshipMeta<T extends DataModel<T>>
+class RelationshipMeta<T extends DataModelMixin<T>>
     with RelationshipGraphNode<T>, EquatableMixin {
   final String name;
   final String? inverseName;
   final String type;
   final String kind;
   final bool serialize;
-  final Relationship? Function(DataModel) instance;
+  final Relationship? Function(DataModelMixin) instance;
   RelationshipMeta? parent;
   RelationshipMeta? child;
 
@@ -160,12 +161,12 @@ class RelationshipMeta<T extends DataModel<T>>
   List<Object?> get props => [name, inverseName, type, kind, serialize];
 }
 
-typedef AlsoWatch<T extends DataModel<T>> = Iterable<RelationshipGraphNode>
+typedef AlsoWatch<T extends DataModelMixin<T>> = Iterable<RelationshipGraphNode>
     Function(RelationshipGraphNode<T>);
 
 /// This argument holder class is used internally with
 /// Riverpod `family`s.
-class WatchArgs<T extends DataModel<T>> with EquatableMixin {
+class WatchArgs<T extends DataModelMixin<T>> with EquatableMixin {
   WatchArgs({
     this.key,
     this.remote,
@@ -210,16 +211,16 @@ extension _ToStringX on DataRequestMethod {
 
 typedef _OnSuccessGeneric<R> = FutureOr<R?> Function(
     DataResponse response, DataRequestLabel label);
-typedef OnSuccessOne<T extends DataModel<T>> = FutureOr<T?> Function(
+typedef OnSuccessOne<T extends DataModelMixin<T>> = FutureOr<T?> Function(
     DataResponse response, DataRequestLabel label, RemoteAdapter<T> adapter);
-typedef OnSuccessAll<T extends DataModel<T>> = FutureOr<List<T>?> Function(
+typedef OnSuccessAll<T extends DataModelMixin<T>> = FutureOr<List<T>?> Function(
     DataResponse response, DataRequestLabel label, RemoteAdapter<T> adapter);
 
 typedef _OnErrorGeneric<R> = FutureOr<R?> Function(
     DataException e, DataRequestLabel label);
-typedef OnErrorOne<T extends DataModel<T>> = FutureOr<T?> Function(
+typedef OnErrorOne<T extends DataModelMixin<T>> = FutureOr<T?> Function(
     DataException e, DataRequestLabel label, RemoteAdapter<T> adapter);
-typedef OnErrorAll<T extends DataModel<T>> = FutureOr<List<T>?> Function(
+typedef OnErrorAll<T extends DataModelMixin<T>> = FutureOr<List<T>?> Function(
     DataException e, DataRequestLabel label, RemoteAdapter<T> adapter);
 
 /// Data request information holder.
@@ -232,7 +233,7 @@ class DataRequestLabel with EquatableMixin {
   final String kind;
   final String type;
   final String? id;
-  DataModel? model;
+  DataModelMixin? model;
   final timestamp = DateTime.now();
   final _requestIds = <String>[];
 

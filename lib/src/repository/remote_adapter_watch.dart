@@ -1,6 +1,6 @@
 part of flutter_data;
 
-mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
+mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
   @protected
   DataStateNotifier<List<T>?> watchAllNotifier({
     bool? remote,
@@ -336,7 +336,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
   }
 
   Iterable<List<String>> _getPairsForMeta(
-      RelationshipMeta? meta, DataModel model) {
+      RelationshipMeta? meta, DataModelMixin model) {
     // get instance of this relationship
     final relationship = meta?.instance(model);
     if (relationship == null) return {};
@@ -346,7 +346,7 @@ mixin _RemoteAdapterWatch<T extends DataModel<T>> on _RemoteAdapter<T> {
       for (final key in relationship._keys) [relationship._ownerKey!, key],
       // recursively include key pairs for other requested relationships
       for (final childModel in relationship._iterable)
-        _getPairsForMeta(meta!.child, childModel as DataModel)
+        _getPairsForMeta(meta!.child, childModel as DataModelMixin)
             .expand((_) => _)
             .toList()
     };

@@ -1,7 +1,7 @@
 part of flutter_data;
 
 /// Repository is the API used to interact with models whether local or remote.
-class Repository<T extends DataModel<T>> with _Lifecycle {
+class Repository<T extends DataModelMixin<T>> with _Lifecycle {
   final Ref _ref;
   Repository(this._ref);
 
@@ -395,7 +395,7 @@ class Repository<T extends DataModel<T>> with _Lifecycle {
   }
 }
 
-/// Annotation on a [DataModel] model to request a [Repository] be generated for it.
+/// Annotation on a [DataModelMixin] model to request a [Repository] be generated for it.
 ///
 /// Takes a list of [adapters] to be mixed into this [Repository].
 /// Public methods of these [adapters] mixins will be made available in the repository

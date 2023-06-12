@@ -1,6 +1,7 @@
 part of flutter_data;
 
-mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
+mixin _RemoteAdapterSerialization<T extends DataModelMixin<T>>
+    on _RemoteAdapter<T> {
   @override
   Future<Map<String, dynamic>> serialize(T model,
       {bool withRelationships = true}) async {
@@ -30,7 +31,7 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
       if (id is Map && adapter != null) {
         final data = await adapter.deserialize(id as Map<String, dynamic>);
         result.included
-          ..add(data.model as DataModel<DataModel>)
+          ..add(data.model as DataModelMixin<DataModelMixin>)
           ..addAll(data.included);
         id = data.model!.id;
       }
@@ -96,10 +97,10 @@ mixin _RemoteAdapterSerialization<T extends DataModel<T>> on _RemoteAdapter<T> {
 }
 
 /// A utility class used to return deserialized main [models] AND [included] models.
-class DeserializedData<T extends DataModel<T>> {
+class DeserializedData<T extends DataModelMixin<T>> {
   const DeserializedData(this.models, {this.included = const []});
   final List<T> models;
-  final List<DataModel> included;
+  final List<DataModelMixin> included;
   T? get model => models.singleOrNull;
 
   void _log(RemoteAdapter adapter, DataRequestLabel label) {

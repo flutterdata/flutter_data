@@ -5,7 +5,7 @@ part of flutter_data;
 /// Identity in this layer is enforced by keys.
 ///
 /// See also: [HiveLocalAdapter]
-abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
+abstract class LocalAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   @protected
   LocalAdapter(Ref ref) : graph = ref.read(graphNotifierProvider);
 
@@ -58,7 +58,7 @@ abstract class LocalAdapter<T extends DataModel<T>> with _Lifecycle {
     return model;
   }
 
-  void _initializeRelationships(T model, {DataModel? from}) {
+  void _initializeRelationships(T model, {DataModelMixin? from}) {
     final metadatas = relationshipMetas.values;
     for (final metadata in metadatas) {
       final relationship = metadata.instance(model);

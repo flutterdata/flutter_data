@@ -13,7 +13,7 @@ part of flutter_data;
 ///  Todo({this.id, this.title, this.author});
 /// }
 ///```
-class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
+class BelongsTo<E extends DataModelMixin<E>> extends Relationship<E, E?> {
   /// Creates a [BelongsTo] relationship, with an optional initial [E] model.
   ///
   /// Example:
@@ -93,8 +93,8 @@ class BelongsTo<E extends DataModel<E>> extends Relationship<E, E?> {
   }
 }
 
-extension DataModelRelationshipExtension<T extends DataModel<T>>
-    on DataModel<T> {
+extension DataModelRelationshipExtension<T extends DataModelMixin<T>>
+    on DataModelMixin<T> {
   /// Converts a [DataModel<T>] into a [BelongsTo<T>].
   ///
   /// Equivalent to using the constructor as `BelongsTo(model)`.

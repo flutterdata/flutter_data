@@ -6,7 +6,7 @@ import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:source_gen/source_gen.dart';
 
 final relationshipTypeChecker = TypeChecker.fromRuntime(Relationship);
-final dataModelTypeChecker = TypeChecker.fromRuntime(DataModel);
+final dataModelTypeChecker = TypeChecker.fromRuntime(DataModelMixin);
 
 extension ClassElementX on ClassElement {
   ConstructorElement? get freezedConstructor => constructors

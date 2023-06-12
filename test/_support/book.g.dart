@@ -151,6 +151,61 @@ extension BookRelationshipGraphNodeX on RelationshipGraphNode<Book> {
   }
 }
 
+// ignore_for_file: non_constant_identifier_names, duplicate_ignore
+
+mixin $LibraryLocalAdapter on LocalAdapter<Library> {
+  static final Map<String, RelationshipMeta> _kLibraryRelationshipMetas = {
+    'books': RelationshipMeta<Book>(
+      name: 'books',
+      type: 'books',
+      kind: 'HasMany',
+      instance: (_) => (_ as Library).books,
+    )
+  };
+
+  @override
+  Map<String, RelationshipMeta> get relationshipMetas =>
+      _kLibraryRelationshipMetas;
+
+  @override
+  Library deserialize(map) {
+    map = transformDeserialize(map);
+    return Library.fromJson(map);
+  }
+
+  @override
+  Map<String, dynamic> serialize(model, {bool withRelationships = true}) {
+    final map = model.toJson();
+    return transformSerialize(map, withRelationships: withRelationships);
+  }
+}
+
+final _librariesFinders = <String, dynamic>{};
+
+// ignore: must_be_immutable
+class $LibraryHiveLocalAdapter = HiveLocalAdapter<Library>
+    with $LibraryLocalAdapter;
+
+class $LibraryRemoteAdapter = RemoteAdapter<Library> with NothingMixin;
+
+final internalLibrariesRemoteAdapterProvider = Provider<RemoteAdapter<Library>>(
+    (ref) => $LibraryRemoteAdapter(
+        $LibraryHiveLocalAdapter(ref), InternalHolder(_librariesFinders)));
+
+final librariesRepositoryProvider =
+    Provider<Repository<Library>>((ref) => Repository<Library>(ref));
+
+extension LibraryDataRepositoryX on Repository<Library> {}
+
+extension LibraryRelationshipGraphNodeX on RelationshipGraphNode<Library> {
+  RelationshipGraphNode<Book> get books {
+    final meta = $LibraryLocalAdapter._kLibraryRelationshipMetas['books']
+        as RelationshipMeta<Book>;
+    return meta.clone(
+        parent: this is RelationshipMeta ? this as RelationshipMeta : null);
+  }
+}
+
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
@@ -202,3 +257,16 @@ Map<String, dynamic> _$$_BookToJson(_$_Book instance) {
   val['ardent_supporters'] = instance.ardentSupporters;
   return val;
 }
+
+_$_Library _$$_LibraryFromJson(Map<String, dynamic> json) => _$_Library(
+      id: json['id'] as int,
+      name: json['name'] as String,
+      books: HasMany<Book>.fromJson(json['books'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$$_LibraryToJson(_$_Library instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'books': instance.books,
+    };

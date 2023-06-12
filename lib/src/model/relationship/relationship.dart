@@ -1,8 +1,9 @@
 part of flutter_data;
 
-/// A `Set` that models a relationship between one or more [DataModel] objects
-/// and their a [DataModel] owner. Backed by a [GraphNotifier].
-abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
+/// A `Set` that models a relationship between one or more [DataModelMixin] objects
+/// and their a [DataModelMixin] owner. Backed by a [GraphNotifier].
+abstract class Relationship<E extends DataModelMixin<E>, N>
+    with EquatableMixin {
   @protected
   Relationship(Set<E>? models) : this._(models?.map((m) => m._key!).toSet());
 
@@ -24,10 +25,10 @@ abstract class Relationship<E extends DataModel<E>, N> with EquatableMixin {
   bool get isInitialized => _ownerKey != null;
 
   /// Initializes this relationship (typically when initializing the owner
-  /// in [DataModel]) by supplying the owner, and related metadata.
+  /// in [DataModelMixin]) by supplying the owner, and related metadata.
   /// [overrideKeys] ignores if the relationship was previously initialized.
   Relationship<E, N> initialize(
-      {required final DataModel owner,
+      {required final DataModelMixin owner,
       required final String name,
       final String? inverseName,
       Set<String>? overrideKeys}) {

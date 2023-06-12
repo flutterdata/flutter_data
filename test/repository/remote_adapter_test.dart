@@ -264,4 +264,12 @@ void main() async {
     expect(personUpdated.familia.value, f1);
     expect(f1.persons.toSet(), {personUpdated});
   });
+
+  test('DataModelMixin', () async {
+    final book1 = Book(id: 1, ardentSupporters: HasMany()).saveLocal();
+    final book2 = Book(id: 2, ardentSupporters: HasMany()).saveLocal();
+    final library =
+        Library(id: 1, name: 'Babel', books: {book1, book2}.asHasMany).init();
+    expect(library.books.toList(), [book1, book2]);
+  });
 }
