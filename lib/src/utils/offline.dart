@@ -177,7 +177,15 @@ final _offlineCallbackProvider =
 final offlineRetryProvider = StreamProvider<void>((ref) async* {
   Set<OfflineOperation> _offlineOperations() {
     return internalRepositories.values
-        .map((r) => r.remoteAdapter.offlineOperations)
+        .map((r) {
+          final adapter = r.remoteAdapter;
+          // if the stream is called before initialization
+          // (or after disposal) simply return an empty set
+          if (!adapter.isInitialized) {
+            return <OfflineOperation>{};
+          }
+          return adapter.offlineOperations;
+        })
         .expand((e) => e)
         .toSet();
   }
@@ -193,7 +201,7 @@ final offlineRetryProvider = StreamProvider<void>((ref) async* {
 
     if (ops.isEmpty) {
       _counter = 0;
-      await Future.delayed(Duration(milliseconds: backoffFn(2)));
+      await Future.delayed(Duration(milliseconds: backoffFn(4)));
       continue;
     }
 
