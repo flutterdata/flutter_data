@@ -66,7 +66,7 @@ class Repository<T extends DataModelMixin<T>> with _Lifecycle {
   /// The default is `syncLocal: false`.
   ///
   /// See also: [_RemoteAdapter.urlForFindAll], [_RemoteAdapter.methodForFindAll].
-  Future<List<T>?> findAll({
+  Future<List<T>> findAll({
     bool? remote,
     bool? background,
     Map<String, dynamic>? params,

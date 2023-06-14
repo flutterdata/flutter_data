@@ -238,7 +238,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
   // remote implementation
 
-  Future<List<T>?> findAll({
+  Future<List<T>> findAll({
     bool? remote,
     bool? background,
     Map<String, dynamic>? params,
@@ -256,7 +256,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
     label = DataRequestLabel('findAll', type: internalType, withParent: label);
 
-    late List<T>? models;
+    late List<T> models;
 
     if (!shouldLoadRemoteAll(remote!, params, headers) || background) {
       models = localAdapter.findAll().toImmutableList();

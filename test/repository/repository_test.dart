@@ -357,7 +357,7 @@ void main() async {
 
     logging.clear();
 
-    await container.dogs.save(dogs!.toList()[2], remote: false);
+    await container.dogs.save(dogs.toList()[2], remote: false);
 
     regexp = RegExp(r'^\d\d:\d\d\d \[save\/dogs#3@[a-z0-9]{6}\]');
     expect(logging.first, matches(regexp));

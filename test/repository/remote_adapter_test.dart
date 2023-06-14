@@ -133,7 +133,7 @@ void main() async {
 
     // remote comes back with relationships
     final models = await container.familia.findAll(remote: true);
-    expect(models!.first.persons.toList(), [
+    expect(models.first.persons.toList(), [
       Person(id: '1', name: 'Peter', age: 10),
       Person(id: '2', name: 'John', age: 44)
     ]);
@@ -151,7 +151,7 @@ void main() async {
 
     // local storage still comes back with relationships
     final models2 = await container.familia.findAll(remote: false);
-    expect(models2!.first.persons.toList(), [
+    expect(models2.first.persons.toList(), [
       Person(id: '1', name: 'Peter', age: 10),
       Person(id: '2', name: 'John', age: 44)
     ]);
