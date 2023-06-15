@@ -107,7 +107,7 @@ Widget build(context) {
 
   Future<void> destroy() async {
     final futures = [
-      for (final boxName in _boxes) hive.deleteBoxFromDisk(boxName),
+      for (final boxName in _boxes) deleteBox(boxName),
     ];
     await Future.wait(futures);
   }
