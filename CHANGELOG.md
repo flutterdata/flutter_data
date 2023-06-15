@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.11] - June 15th, 2023
+
+- Feature: Introduce `DataModelMixin`
+- Fix: Offline retries failures on reinitialization
+- Fix: Bug in local storage destroy method
+- Fix: findAll should not be nullable
+
 ## [1.5.10] - April 26th, 2023
 
 - `withKeyOf` bug with Freezed classes fixed
