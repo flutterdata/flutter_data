@@ -508,6 +508,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     _OnErrorGeneric<R>? onError,
     bool omitDefaultParams = false,
     DataRequestLabel? label,
+    bool closeClientAfterRequest = true,
   }) async {
     // defaults
     headers ??= await defaultHeaders;
@@ -550,7 +551,9 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
       error = err;
       stackTrace = stack;
     } finally {
-      client.close();
+      if (closeClientAfterRequest) {
+        client.close();
+      }
     }
 
     // response handling
