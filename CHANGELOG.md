@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.12] - June 16th, 2023
+
+- Feature: Optionally prevent client closing in `sendRequest`
+- Fix: builder to support `DataModelMixin`
+- Fix: guards and test for uninitialized models
+
 ## [1.5.11] - June 15th, 2023
 
 - Feature: Introduce `DataModelMixin`
