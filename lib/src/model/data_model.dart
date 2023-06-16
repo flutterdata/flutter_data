@@ -11,13 +11,17 @@ abstract class DataModel<T extends DataModel<T>> with DataModelMixin<T> {
   /// Apply [source]'s key to [destination].
   static T withKeyOf<T extends DataModelMixin<T>>(
       {required T source, required T destination}) {
+    if (source._key == null) {
+      throw Exception("Model must be initialized:\n\n$source");
+    }
+
     final graph = source._remoteAdapter.graph;
     final type = source._internalType;
 
     // ONLY data we keep from source is its key
     // ONLY data we remove from destination is its key
     if (source._key != destination._key) {
-      final destKey = destination._key!;
+      final destKey = destination._key;
 
       // assign correct key to destination
       destination._key = source._key;
@@ -28,8 +32,10 @@ abstract class DataModel<T extends DataModel<T>> with DataModelMixin<T> {
         from: source,
       );
 
-      // remove node
-      graph._removeNode(destKey);
+      if (destKey != null) {
+        // remove node
+        graph._removeNode(destKey);
+      }
 
       if (destination.id != null) {
         // if present, remove existent ID association
@@ -46,7 +52,9 @@ abstract class DataModel<T extends DataModel<T>> with DataModelMixin<T> {
   /// Returns a model's `_key` private attribute.
   ///
   /// Useful for testing, debugging or usage in [RemoteAdapter] subclasses.
-  static String keyFor(DataModelMixin model) => model._key!;
+  static String keyFor(DataModel model) {
+    return model._key!;
+  }
 
   /// Returns a model's non-null relationships.
   static Map<String, Relationship>
@@ -84,6 +92,10 @@ mixin DataModelMixin<T extends DataModelMixin<T>> {
       );
     }
     return this as T;
+  }
+
+  static String? keyFor(DataModelMixin model) {
+    return model._key;
   }
 }
 

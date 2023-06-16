@@ -170,7 +170,9 @@ void main() async {
 
     final f1 = data.model!;
     for (final include in data.included) {
-      DataModel.adapterFor(include).localAdapter.save(keyFor(include), include);
+      DataModel.adapterFor(include)
+          .localAdapter
+          .save(DataModelMixin.keyFor(include)!, include);
     }
     final f2 = Familia(id: '1', surname: 'Byrde').saveLocal();
 

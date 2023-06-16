@@ -112,6 +112,17 @@ void main() async {
 
     expect(keyFor(b1), keyFor(b2));
     expect(b2.house?.value, house);
+
+    // test library using DataModelMixin (that can be uninitialized)
+    final sourceLibrary = Library(id: 1, name: 'one', books: HasMany());
+    final destinationLibrary = Library(id: 2, name: 'two', books: HasMany());
+
+    expect(() => destinationLibrary.withKeyOf(sourceLibrary), throwsException);
+
+    final initializedSourceLibrary = sourceLibrary.init();
+    destinationLibrary.withKeyOf(initializedSourceLibrary);
+    expect(DataModelMixin.keyFor(initializedSourceLibrary),
+        DataModelMixin.keyFor(destinationLibrary));
   });
 
   test('findOne (remote and local reload)', () async {

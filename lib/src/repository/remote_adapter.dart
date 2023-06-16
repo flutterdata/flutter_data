@@ -405,6 +405,9 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   }
 
   T saveLocal(T model, {bool notify = true}) {
+    if (model._key == null) {
+      throw Exception("Model must be initialized:\n\n$model");
+    }
     localAdapter.save(model._key!, model, notify: notify);
     return model;
   }
