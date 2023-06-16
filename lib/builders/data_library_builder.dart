@@ -172,7 +172,7 @@ ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<Str
   );
 };
 
-final repositoryProviders = <String, Provider<Repository<DataModel>>>{
+final repositoryProviders = <String, Provider<Repository<DataModelMixin>>>{
   ${classes.map((clazz) => '\'' + clazz['type']! + '\': ' + clazz['classNameLower']! + 'RepositoryProvider').join(',\n')}
 };
 
