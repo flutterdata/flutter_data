@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
@@ -249,9 +251,16 @@ void main() async {
     container.read(responseProvider.notifier).state =
         TestResponse((_) async => 'some text');
 
-    final response = await container.familia.remoteAdapter
-        .sendRequest<DataResponse>(''.asUri, returnBytes: true);
-    expect(response!.body, 'some text'.codeUnits);
+    final response =
+        await container.familia.remoteAdapter.sendRequest<Uint8List>(
+      ''.asUri,
+      returnBytes: true,
+      onSuccess: (response, label) async {
+        expect(response.body, 'some text'.codeUnits);
+        return response.body as Uint8List;
+      },
+    );
+    expect(response, 'some text'.codeUnits);
   });
 
   test('issue 218', () async {

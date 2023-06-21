@@ -585,9 +585,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
         statusCode: code,
         headers: {...?response?.headers, 'content-type': contentType},
       );
-      if (returnBytes) {
-        return data as R;
-      }
       return onSuccess(data, label);
     } else {
       if (isOfflineError(error)) {
@@ -653,6 +650,11 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
     final body = response.body;
 
+    // this will happen when `returnBytes` is requested
+    if (body is Uint8List) {
+      return response as R;
+    }
+
     if (label.kind == 'save') {
       if (label.model == null) {
         return null;
@@ -678,8 +680,6 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       return null;
     }
 
-    final deserialized = await deserialize(body);
-
     final isFindAll = label.kind.startsWith('findAll');
     final isFindOne = label.kind.startsWith('findOne');
     final isCustom = label.kind == 'custom';
@@ -691,6 +691,8 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
         !(response.headers['content-type']?.contains('json') ?? false)) {
       return response.body as R?;
     }
+
+    final deserialized = await deserialize(body);
 
     if (isFindAll || (isCustom && deserialized.model == null)) {
       for (final model in [...deserialized.models, ...deserialized.included]) {
