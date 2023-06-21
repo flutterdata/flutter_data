@@ -245,6 +245,15 @@ void main() async {
     expect(text, 'plain text');
   });
 
+  test('body bytes', () async {
+    container.read(responseProvider.notifier).state =
+        TestResponse((_) async => 'some text');
+
+    final response = await container.familia.remoteAdapter
+        .sendRequest<DataResponse>(''.asUri, returnBytes: true);
+    expect(response!.body, 'some text'.codeUnits);
+  });
+
   test('issue 218', () async {
     final f1 = Familia(surname: 'Gomez').saveLocal();
     container.read(responseProvider.notifier).state = TestResponse.json('''

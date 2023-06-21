@@ -507,6 +507,7 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
     _OnSuccessGeneric<R>? onSuccess,
     _OnErrorGeneric<R>? onError,
     bool omitDefaultParams = false,
+    bool returnBytes = false,
     DataRequestLabel? label,
   }) async {
     // defaults
@@ -555,16 +556,20 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
 
     // response handling
 
-    var contentType = 'application/json';
+    var contentType = '';
 
     try {
-      if (response?.body.isNotEmpty ?? false) {
-        contentType = response!.headers['content-type'] ?? contentType;
-        final body = response.body;
-        if (contentType.contains('json')) {
-          responseBody = json.decode(body);
-        } else {
-          responseBody = body;
+      if (response != null) {
+        contentType = response.headers['content-type'] ?? 'application/json';
+        if (returnBytes) {
+          responseBody = response.bodyBytes;
+        } else if (response.body.isNotEmpty) {
+          final body = response.body;
+          if (contentType.contains('json')) {
+            responseBody = json.decode(body);
+          } else {
+            responseBody = body;
+          }
         }
       }
     } on FormatException catch (e, stack) {
@@ -578,8 +583,11 @@ abstract class _RemoteAdapter<T extends DataModel<T>> with _Lifecycle {
       final data = DataResponse(
         body: responseBody,
         statusCode: code,
-        headers: {...response!.headers, 'content-type': contentType},
+        headers: {...?response?.headers, 'content-type': contentType},
       );
+      if (returnBytes) {
+        return data as R;
+      }
       return onSuccess(data, label);
     } else {
       if (isOfflineError(error)) {
