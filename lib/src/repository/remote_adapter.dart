@@ -510,6 +510,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     _OnSuccessGeneric<R>? onSuccess,
     _OnErrorGeneric<R>? onError,
     bool omitDefaultParams = false,
+    bool returnBytes = false,
     DataRequestLabel? label,
     bool closeClientAfterRequest = true,
   }) async {
@@ -561,16 +562,20 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
     // response handling
 
-    var contentType = 'application/json';
+    var contentType = '';
 
     try {
-      if (response?.body.isNotEmpty ?? false) {
-        contentType = response!.headers['content-type'] ?? contentType;
-        final body = response.body;
-        if (contentType.contains('json')) {
-          responseBody = json.decode(body);
-        } else {
-          responseBody = body;
+      if (response != null) {
+        contentType = response.headers['content-type'] ?? 'application/json';
+        if (returnBytes) {
+          responseBody = response.bodyBytes;
+        } else if (response.body.isNotEmpty) {
+          final body = response.body;
+          if (contentType.contains('json')) {
+            responseBody = json.decode(body);
+          } else {
+            responseBody = body;
+          }
         }
       }
     } on FormatException catch (e, stack) {
@@ -584,7 +589,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
       final data = DataResponse(
         body: responseBody,
         statusCode: code,
-        headers: {...response!.headers, 'content-type': contentType},
+        headers: {...?response?.headers, 'content-type': contentType},
       );
       return onSuccess(data, label);
     } else {
@@ -651,6 +656,11 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
     final body = response.body;
 
+    // this will happen when `returnBytes` is requested
+    if (body is Uint8List) {
+      return response as R;
+    }
+
     if (label.kind == 'save') {
       if (label.model == null) {
         return null;
@@ -676,8 +686,6 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
       return null;
     }
 
-    final deserialized = await deserialize(body);
-
     final isFindAll = label.kind.startsWith('findAll');
     final isFindOne = label.kind.startsWith('findOne');
     final isCustom = label.kind == 'custom';
@@ -689,6 +697,8 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
         !(response.headers['content-type']?.contains('json') ?? false)) {
       return response.body as R?;
     }
+
+    final deserialized = await deserialize(body);
 
     if (isFindAll || (isCustom && deserialized.model == null)) {
       for (final model in [...deserialized.models, ...deserialized.included]) {
