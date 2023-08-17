@@ -31,12 +31,12 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: dart-lang/setup-dart@v1.3
+      - uses: dart-lang/setup-dart@v1.5
       - uses: actions/checkout@v2
       - name: Install dependencies
         run: dart pub get
       - name: Run tests
-        run: dart test --reporter expanded ${{ matrix.dartTestArgs }}
+        run: dart test
       - name: Generate coverage
         if: runner.os == 'macOS'
         run: dart run coverage:test_with_coverage
