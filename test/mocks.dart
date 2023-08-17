@@ -35,6 +35,11 @@ class FakeBox<T> extends Fake implements Box<T> {
   }
 
   @override
+  Future<void> flush() async {
+    // no-op
+  }
+
+  @override
   Map<dynamic, T> toMap() => _map;
 
   @override

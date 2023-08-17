@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.5.13] - August 16th, 2023
+
+- Fix: Flush Hive on relationship save
+
 ## [1.5.12] - June 16th, 2023
 
 - Feature: Optionally prevent client closing in `sendRequest`

@@ -169,6 +169,8 @@ Fully compatible with the tools we know and love:
 
 ![logos](https://user-images.githubusercontent.com/66403/115444364-79053f80-a1e2-11eb-9498-ee86718a4be5.png)
 
+ - [Drexbible](https://snapcraft.io/drexbible)
+
 ## ➕ Questions and collaborating
 
 Please use Github to ask questions, open issues and send PRs. Thanks!
