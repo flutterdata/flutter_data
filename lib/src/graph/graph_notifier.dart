@@ -30,10 +30,9 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
     if (isInitialized) return this;
     await _hiveLocalStorage.initialize();
     if (_hiveLocalStorage.clear == LocalStorageClearStrategy.always) {
-      await _hiveLocalStorage.deleteBox(_kGraphBoxName);
+      Hive.box(name: _kGraphBoxName).deleteFromDisk();
     }
-    box = await _hiveLocalStorage.openBox(_kGraphBoxName);
-
+    box = Hive.box(name: _kGraphBoxName);
     return this;
   }
 
@@ -45,8 +44,8 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
     }
   }
 
-  Future<void> clear() async {
-    await box?.clear();
+  void clear() {
+    box?.clear();
   }
 
   @override
@@ -276,8 +275,11 @@ Key "$key":
         .toImmutableList();
 
     // find all keys that reference `removeTypes` keys
-    final referencedKeys =
-        box!.values.toList().fold<Set<String>>({}, (acc, metadataMap) {
+    final referencedKeys = box!
+        .getAll(box!.keys)
+        .filterNulls
+        .toList()
+        .fold<Set<String>>({}, (acc, metadataMap) {
       final relEntries =
           metadataMap.entries.where((e) => !e.key.toString().startsWith('_'));
       return {
@@ -533,7 +535,9 @@ Key "$key":
     });
   }
 
-  Map<String, Map> _toMap() => box!.toMap().cast();
+  // TODO optimize
+  Map<String, Map> _toMap() =>
+      {for (final key in box!.keys) key: box!.get(key)!};
 
   static JsonEncoder _encoder = JsonEncoder.withIndent('  ');
   static void _prettyPrintJson(Map<String, dynamic> map) {

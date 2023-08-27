@@ -65,8 +65,8 @@ class $FamiliaHiveLocalAdapter = HiveLocalAdapter<Familia>
 class $FamiliaRemoteAdapter = RemoteAdapter<Familia> with NothingMixin;
 
 final internalFamiliaRemoteAdapterProvider = Provider<RemoteAdapter<Familia>>(
-    (ref) => $FamiliaRemoteAdapter($FamiliaHiveLocalAdapter(ref, typeId: 5),
-        InternalHolder(_familiaFinders)));
+    (ref) => $FamiliaRemoteAdapter(
+        $FamiliaHiveLocalAdapter(ref), InternalHolder(_familiaFinders)));
 
 final familiaRepositoryProvider =
     Provider<Repository<Familia>>((ref) => Repository<Familia>(ref));

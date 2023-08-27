@@ -60,7 +60,6 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
       inverseMetadata: _inverseName,
       notify: false,
     );
-    _graph.box!.flush();
 
     _uninitializedKeys!.clear();
 
@@ -76,7 +75,6 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
 
     _graph._addEdge(_ownerKey!, value._key!,
         metadata: _name!, inverseMetadata: _inverseName, notify: false);
-    _graph.box!.flush();
 
     if (notify) {
       _graph._notify(
@@ -104,7 +102,6 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
       inverseMetadata: _inverseName,
       notify: false,
     );
-    _graph.box!.flush();
 
     if (notify) {
       _graph._notify(

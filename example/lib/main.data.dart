@@ -9,7 +9,7 @@ import 'package:jsonplaceholder_example/models/user.dart';
 // ignore: prefer_function_declarations_over_variables
 ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = (
     {FutureFn<String>? baseDirFn,
-    List<int>? encryptionKey,
+    String? encryptionKey,
     LocalStorageClearStrategy? clear}) {
   return hiveLocalStorageProvider.overrideWith(
     (ref) => HiveLocalStorage(

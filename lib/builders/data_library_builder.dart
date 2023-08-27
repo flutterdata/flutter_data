@@ -155,7 +155,7 @@ $riverpodFlutterImport
 $modelImports
 
 // ignore: prefer_function_declarations_over_variables
-ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<String>? baseDirFn, List<int>? encryptionKey, LocalStorageClearStrategy? clear}) {
+ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<String>? baseDirFn, String? encryptionKey, LocalStorageClearStrategy? clear}) {
   ${isFlutter ? 'if (!kIsWeb) {' : ''}
     $autoBaseDirFn
   ${isFlutter ? '} else {' : ''}

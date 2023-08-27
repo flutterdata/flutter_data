@@ -3,7 +3,6 @@ library flutter_data;
 // import external packages
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:collection/collection.dart';

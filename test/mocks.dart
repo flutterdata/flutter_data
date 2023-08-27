@@ -1,9 +1,6 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:hive/hive.dart';
-import 'package:hive/src/box/default_compaction_strategy.dart';
-import 'package:hive/src/box/default_key_comparator.dart';
 import 'package:mockito/mockito.dart';
 
 class FakeBox<T> extends Fake implements Box<T> {
@@ -23,32 +20,21 @@ class FakeBox<T> extends Fake implements Box<T> {
   }
 
   @override
-  Future<void> delete(key) async {
+  bool delete(key) {
     _map.remove(key);
+    return true;
   }
 
   @override
-  Future<void> deleteAll(keys) async {
+  int deleteAll(keys) {
     for (final key in keys) {
       _map.remove(key);
     }
+    return keys.length;
   }
 
   @override
-  Future<void> flush() async {
-    // no-op
-  }
-
-  @override
-  Map<dynamic, T> toMap() => _map;
-
-  @override
-  Iterable get keys => _map.keys;
-
-  @override
-  Iterable<T> get values {
-    return _map.values;
-  }
+  List<String> get keys => _map.keys.cast<String>().toList();
 
   @override
   bool containsKey(key) => _map.containsKey(key);
@@ -58,7 +44,7 @@ class FakeBox<T> extends Fake implements Box<T> {
 
   @override
   Future<void> deleteFromDisk() async {
-    await clear();
+    clear();
   }
 
   @override
@@ -68,9 +54,8 @@ class FakeBox<T> extends Fake implements Box<T> {
   bool get isNotEmpty => !isEmpty;
 
   @override
-  Future<int> clear() {
+  void clear({bool notify = false}) {
     _map.clear();
-    return Future.value(0);
   }
 
   @override
@@ -79,51 +64,7 @@ class FakeBox<T> extends Fake implements Box<T> {
   }
 }
 
-class HiveFake extends Fake implements HiveInterface {
-  final _boxes = <String, Box>{};
-
-  @override
-  bool isBoxOpen(String name) => _boxes[name]?.isOpen ?? false;
-
-  @override
-  void init(String? path,
-      {HiveStorageBackendPreference backendPreference =
-          HiveStorageBackendPreference.native}) {}
-
-  @override
-  Future<bool> boxExists(String name, {String? path}) async =>
-      _boxes.containsKey(name);
-
-  @override
-  Future<Box<E>> openBox<E>(
-    String name, {
-    HiveCipher? encryptionCipher,
-    KeyComparator keyComparator = defaultKeyComparator,
-    CompactionStrategy compactionStrategy = defaultCompactionStrategy,
-    bool crashRecovery = true,
-    String? path,
-    Uint8List? bytes,
-    String? collection,
-    @Deprecated('Use encryptionCipher instead') List<int>? encryptionKey,
-  }) async {
-    if (name == '_error') {
-      throw HiveError('fake error');
-    }
-    final box = FakeBox<E>();
-    _boxes[name] = box;
-    return box;
-  }
-
-  @override
-  Future<void> deleteBoxFromDisk(String name, {String? path}) async {
-    _boxes.remove(name);
-  }
-
-  @override
-  bool isAdapterRegistered(int typeId) {
-    return true;
-  }
-}
+class HiveFake extends Fake implements Hive {}
 
 class Listener<T> extends Mock {
   void call(T value);

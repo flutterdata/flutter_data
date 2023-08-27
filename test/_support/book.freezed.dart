@@ -216,7 +216,7 @@ abstract class $BookCopyWith<$Res> {
       String? title,
       int numberOfSales,
       @JsonKey(name: 'original_author_id')
-          BelongsTo<BookAuthor>? originalAuthor,
+      BelongsTo<BookAuthor>? originalAuthor,
       BelongsTo<House>? house,
       HasMany<Person> ardentSupporters});
 }
@@ -281,7 +281,7 @@ abstract class _$$_BookCopyWith<$Res> implements $BookCopyWith<$Res> {
       String? title,
       int numberOfSales,
       @JsonKey(name: 'original_author_id')
-          BelongsTo<BookAuthor>? originalAuthor,
+      BelongsTo<BookAuthor>? originalAuthor,
       BelongsTo<House>? house,
       HasMany<Person> ardentSupporters});
 }
@@ -407,7 +407,7 @@ abstract class _Book extends Book {
       final String? title,
       final int numberOfSales,
       @JsonKey(name: 'original_author_id')
-          final BelongsTo<BookAuthor>? originalAuthor,
+      final BelongsTo<BookAuthor>? originalAuthor,
       final BelongsTo<House>? house,
       required final HasMany<Person> ardentSupporters}) = _$_Book;
   _Book._() : super._();

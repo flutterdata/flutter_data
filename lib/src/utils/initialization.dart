@@ -2,7 +2,7 @@ part of flutter_data;
 
 typedef ConfigureRepositoryLocalStorage = Override Function(
     {FutureFn<String>? baseDirFn,
-    List<int>? encryptionKey,
+    String? encryptionKey,
     LocalStorageClearStrategy? clear});
 
 typedef RepositoryInitializerProvider = FutureProvider<RepositoryInitializer>

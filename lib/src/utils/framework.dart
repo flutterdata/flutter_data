@@ -44,7 +44,7 @@ class OfflineException extends DataException {
   }
 }
 
-abstract class _Lifecycle {
+mixin _Lifecycle {
   @protected
   @visibleForTesting
   bool get isInitialized;
@@ -112,7 +112,7 @@ typedef Watcher = W Function<W>(ProviderListenable<W> provider);
 
 // relationships + alsoWatch
 
-class RelationshipGraphNode<T extends DataModelMixin<T>> {}
+mixin class RelationshipGraphNode<T extends DataModelMixin<T>> {}
 
 class RelationshipMeta<T extends DataModelMixin<T>>
     with RelationshipGraphNode<T>, EquatableMixin {

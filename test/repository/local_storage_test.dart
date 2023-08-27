@@ -5,7 +5,6 @@
 import 'dart:io';
 
 import 'package:flutter_data/flutter_data.dart';
-import 'package:hive/hive.dart';
 import 'package:test/test.dart';
 
 import '../mocks.dart';
@@ -18,18 +17,17 @@ void main() async {
     dir = await Directory('tmp').create();
     final storage = HiveLocalStorage(
       baseDirFn: () => dir.path,
-      encryptionKey: Hive.generateSecureKey(),
+      encryptionKey: 'zzz',
       clear: LocalStorageClearStrategy.always,
       hive: hive,
     );
     await storage.initialize();
-    expect(storage.encryptionCipher, isA<HiveAesCipher>());
 
     expect(() {
       return HiveLocalStorage(
         hive: hive,
         baseDirFn: null,
-        encryptionKey: Hive.generateSecureKey(),
+        encryptionKey: 'zzz',
         clear: LocalStorageClearStrategy.never,
       ).initialize();
     }, throwsA(isA<UnsupportedError>()));
