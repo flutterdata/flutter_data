@@ -7,7 +7,7 @@ import 'user.dart';
 part 'task.g.dart';
 
 @JsonSerializable()
-@DataRepository([JSONServerAdapter], internalType: 'todos')
+@DataRepository([JSONServerAdapter])
 class Task extends DataModel<Task> {
   @override
   final int? id;

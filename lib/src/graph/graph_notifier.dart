@@ -22,7 +22,7 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   HiveLocalStorage get _hiveLocalStorage => ref.read(hiveLocalStorageProvider);
 
   @protected
-  Box<Map>? box;
+  Box<Map<String, dynamic>>? box;
   bool _doAssert = true;
 
   /// Initializes Hive local storage and box it depends on
@@ -334,7 +334,9 @@ Key "$key":
   Map<String, List<String>>? _getNode(String key,
       {bool orAdd = false, bool notify = true}) {
     if (orAdd) _addNode(key, notify: notify);
-    return box?.get(key)?.cast<String, List<String>>();
+    // TODO check
+    return box?.get(key)?.map(
+        (key, value) => MapEntry<String, List<String>>(key, List.from(value)));
   }
 
   bool _hasNode(String key) {
@@ -344,7 +346,7 @@ Key "$key":
   List<String> _getEdge(String key, {required String metadata}) {
     final node = _getNode(key);
     if (node != null) {
-      return node[metadata] ?? [];
+      return node[metadata]?.cast<String>() ?? [];
     }
     return [];
   }

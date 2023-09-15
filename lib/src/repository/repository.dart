@@ -419,11 +419,6 @@ class DataRepository {
   final List<Type> adapters;
   final List<Type> localAdapters;
   final bool remote;
-  final String? internalType;
-  final int? typeId;
   const DataRepository(this.adapters,
-      {this.localAdapters = const [],
-      this.remote = true,
-      this.internalType,
-      this.typeId});
+      {this.localAdapters = const [], this.remote = true});
 }

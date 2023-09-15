@@ -21,7 +21,7 @@ void main() async {
     final p = Person(name: 'Luis');
     await container.people.save(p);
     final p2 = container.people.remoteAdapter.localAdapter.findOne(keyFor(p))!;
-    expect(p, p2);
+    expect(p2, p.reloadLocal());
     expect(keyFor(p), keyFor(p2));
   });
 
@@ -186,10 +186,6 @@ void main() async {
     final adapter =
         container.dogs.remoteAdapter.localAdapter as HiveLocalAdapter;
 
-    // grab initial length of graph
-    final graphInitialLength = adapter.graph.toMap().length;
-    expect(graphInitialLength, 1); // hive adapters
-
     final dogs = {
       Dog(id: '91', name: 'A').saveLocal(),
       Dog(id: '92', name: 'B').saveLocal(),
@@ -208,7 +204,7 @@ void main() async {
     expect(adapter.box!.length, 5);
 
     // graph should now be initial + amount of saved dogs times 2 (saves keys/IDs) + family key/id
-    expect(adapter.graph.toMap().length, graphInitialLength + totalModels * 2);
+    expect(adapter.graph.toMap().length, totalModels * 2);
 
     await adapter.clear();
     adapter.graph.compact(removeTypes: [adapter.internalType]);
@@ -220,8 +216,7 @@ void main() async {
 
     // graph should now be initial + amount of non-orphan models times 2 (saves keys/IDs)
     // basically it should be the same as before except without dog 95
-    expect(adapter.graph.toMap().length,
-        graphInitialLength + (totalModels - 1) * 2);
+    expect(adapter.graph.toMap().length, (totalModels - 1) * 2);
 
     // restore dogs
     final _ = {

@@ -42,4 +42,4 @@ void main() async {
   }
 }
 
-const String _encryptionKey = 'zzz';
+const String _encryptionKey = '_encryptionKey';

@@ -12,15 +12,12 @@ abstract class HiveLocalAdapter<T extends DataModelMixin<T>>
 
   @protected
   @visibleForTesting
-  Box<T>? get box => _box!;
-  Box<T>? _box;
+  Box<Map<String, dynamic>>? get box => _box!;
+  Box<Map<String, dynamic>>? _box;
 
   @override
   Future<HiveLocalAdapter<T>> initialize() async {
     if (isInitialized) return this;
-
-    Hive.registerAdapter<T>(
-        internalType, (json) => deserialize(json as Map<String, dynamic>));
 
     try {
       if (_hiveLocalStorage.clear == LocalStorageClearStrategy.always) {
@@ -35,7 +32,7 @@ abstract class HiveLocalAdapter<T extends DataModelMixin<T>>
   }
 
   @override
-  bool get isInitialized => _box != null;
+  bool get isInitialized => _box?.isOpen ?? false;
 
   @override
   void dispose() {
@@ -47,13 +44,14 @@ abstract class HiveLocalAdapter<T extends DataModelMixin<T>>
   @override
   List<T> findAll() {
     final keys = _box?.keys ?? [];
-    return _box?.getAll(keys).filterNulls.toList() ?? [];
+    return _box?.getAll(keys).filterNulls.map(deserialize).toList() ?? [];
   }
 
   @override
   T? findOne(String? key) {
     if (key == null) return null;
-    return _box?.get(key);
+    final map = _box?.get(key);
+    return map != null ? (deserialize(map).._key = key) : null;
   }
 
   @override
@@ -61,7 +59,7 @@ abstract class HiveLocalAdapter<T extends DataModelMixin<T>>
     if (_box == null) return model;
 
     final keyExisted = _box!.containsKey(key);
-    _box!.put(key, model);
+    _box!.put(key, serialize(model, withRelationships: false));
     if (notify) {
       graph._notify(
         [key],

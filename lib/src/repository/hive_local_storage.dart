@@ -6,13 +6,11 @@ import 'package:path/path.dart' as path_helper;
 
 class HiveLocalStorage {
   HiveLocalStorage({
-    required this.hive,
     this.baseDirFn,
     this.encryptionKey,
     LocalStorageClearStrategy? clear,
   }) : clear = clear ?? LocalStorageClearStrategy.never;
 
-  final Hive hive;
   final String? encryptionKey;
   final FutureOr<String> Function()? baseDirFn;
   final LocalStorageClearStrategy clear;
@@ -62,7 +60,5 @@ enum LocalStorageClearStrategy {
 }
 
 final hiveLocalStorageProvider = Provider<HiveLocalStorage>(
-  (ref) => HiveLocalStorage(hive: ref.read(hiveProvider), baseDirFn: () => ''),
+  (ref) => HiveLocalStorage(baseDirFn: () => ''),
 );
-
-final hiveProvider = Provider<Hive>((_) => Hive.new());

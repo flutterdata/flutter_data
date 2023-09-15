@@ -144,6 +144,7 @@ void main() async {
 
     // simulate app restart
     container.familia.dispose();
+
     await container.read(familiaRepositoryProvider).initialize(
           // ignore: invalid_use_of_protected_member
           adapters: container.familia.remoteAdapter.adapters,
@@ -288,6 +289,6 @@ void main() async {
     final book2 = Book(id: 2, ardentSupporters: HasMany()).saveLocal();
     final library =
         Library(id: 1, name: 'Babel', books: {book1, book2}.asHasMany).init();
-    expect(library.books.toList(), [book1, book2]);
+    expect(library.books.toList(), [book1.reloadLocal(), book2.reloadLocal()]);
   });
 }

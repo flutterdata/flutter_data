@@ -10,6 +10,7 @@ import '../_support/setup.dart';
 
 void main() async {
   setUp(setUpFn);
+  tearDown(tearDownFn);
 
   test('add/remove nodes', () {
     graph.addNode('b1');

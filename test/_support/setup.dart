@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:isar/isar.dart';
+import 'package:path/path.dart' as path;
 
-import '../mocks.dart';
 import 'book.dart';
 import 'familia.dart';
 import 'house.dart';
@@ -14,6 +16,7 @@ import 'pet.dart';
 
 // copied from https://api.flutter.dev/flutter/foundation/kIsWeb-constant.html
 const _kIsWeb = identical(0, 0.0);
+const kTestsPath = '/tmp';
 
 // keyFor alias
 final keyFor = DataModel.keyFor;
@@ -24,7 +27,8 @@ Function? dispose;
 
 final logging = [];
 
-void setUpFn() async {
+Future<void> setUpFn() async {
+  await setUpIsar();
   container = ProviderContainer(
     overrides: [
       httpClientProvider.overrideWith((ref) {
@@ -43,7 +47,12 @@ void setUpFn() async {
           }
         });
       }),
-      hiveProvider.overrideWithValue(HiveFake()),
+      hiveLocalStorageProvider.overrideWith(
+        (ref) => HiveLocalStorage(
+          baseDirFn: () => kTestsPath,
+          clear: LocalStorageClearStrategy.always,
+        ),
+      ),
     ],
   );
 
@@ -115,7 +124,28 @@ void setUpFn() async {
   dogsRepository.logLevel = 2;
 }
 
-void tearDownFn() async {
+Future<void> setUpIsar() async {
+  // create flutter_data dir for Isar files
+  final dir = Directory(path.join(kTestsPath, 'flutter_data'));
+  dir.createSync();
+
+  // initialize Isar Core
+  final binaryName = Platform.isWindows
+      ? 'isar.dll'
+      : Platform.isMacOS
+          ? 'libisar.dylib'
+          : 'libisar.so';
+
+  final p = File('tmp/$binaryName').absolute.path;
+  await Isar.initialize(p);
+}
+
+Future<void> tearDownIsar() async {
+  final dir = Directory(path.join(kTestsPath, 'flutter_data'));
+  dir.deleteSync(recursive: true);
+}
+
+Future<void> tearDownFn() async {
   // Equivalent to generated in `main.data.dart`
   dispose?.call();
   container.houses.dispose();
@@ -131,6 +161,8 @@ void tearDownFn() async {
 
   logging.clear();
   await oneMs();
+
+  await tearDownIsar();
 }
 
 // utils

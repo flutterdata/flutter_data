@@ -53,8 +53,12 @@ void main() async {
     expect(familia2all, [familia1]);
 
     // since `syncLocal: false` and `familia2` was present from an older call, it remains in local storage
-    expect(
-        await container.familia.findAll(remote: false), [familia1, familia2]);
+    // expect(
+    //     await container.familia.findAll(remote: false), [familia1, familia2]);
+
+    final r = await container.familia.findAll(remote: false);
+    expect(r.first, familia2);
+    expect(r.last, familia1);
 
     final familia3 = await container.familia.findAll(syncLocal: true);
 

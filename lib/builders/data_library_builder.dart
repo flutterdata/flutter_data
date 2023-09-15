@@ -35,9 +35,7 @@ class DataExtensionIntermediateBuilder implements Builder {
           members.map((member) {
             return [
               member.element.name!,
-              member.annotation.read('internalType').isNull
-                  ? DataHelpers.internalTypeFor(member.element.name!)
-                  : member.annotation.read('internalType').stringValue,
+              DataHelpers.internalTypeFor(member.element.name!),
               member.element.location!.components.first,
               member.annotation.read('remote').boolValue,
             ].join('#');
@@ -164,7 +162,6 @@ ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<Str
   
   return hiveLocalStorageProvider.overrideWith(
     (ref) => HiveLocalStorage(
-      hive: ref.read(hiveProvider),
       baseDirFn: baseDirFn,
       encryptionKey: encryptionKey,
       clear: clear,
