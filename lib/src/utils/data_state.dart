@@ -124,8 +124,8 @@ class _FunctionalDataStateNotifier<T, W> extends DataStateNotifier<W> {
       if (state.hasModel) {
         W model;
 
-        if (_typesEqual<W, List<T>?>()) {
-          model = (state.model as List<T>?)?.where(test).toList() as W;
+        if (_typesEqual<W, List<T>>()) {
+          model = (state.model as List<T>).where(test).toList() as W;
         } else if (_typesEqual<W, T?>()) {
           model = test(state.model as T) ? state.model : null as W;
         } else {
@@ -190,10 +190,10 @@ class _FunctionalDataStateNotifier<T, W> extends DataStateNotifier<W> {
 }
 
 /// Functional utilities for [DataStateNotifier]
-extension DataStateNotifierListX<T> on DataStateNotifier<List<T>?> {
+extension DataStateNotifierListX<T> on DataStateNotifier<List<T>> {
   /// Filters all models of the list (if present) through [test]
-  DataStateNotifier<List<T>?> where(bool Function(T) test) {
-    return _FunctionalDataStateNotifier<T, List<T>?>(this).where(test);
+  DataStateNotifier<List<T>> where(bool Function(T) test) {
+    return _FunctionalDataStateNotifier<T, List<T>>(this).where(test);
   }
 
   /// Maps all models of the list (if present) through [convert]

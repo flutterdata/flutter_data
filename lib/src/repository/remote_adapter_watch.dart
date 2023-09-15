@@ -2,7 +2,7 @@ part of flutter_data;
 
 mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
   @protected
-  DataStateNotifier<List<T>?> watchAllNotifier({
+  DataStateNotifier<List<T>> watchAllNotifier({
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
@@ -23,11 +23,11 @@ mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
     log(label, 'initializing');
 
     // closure to get latest models
-    List<T>? _getUpdatedModels() {
+    List<T> _getUpdatedModels() {
       return localAdapter.findAll();
     }
 
-    final notifier = DataStateNotifier<List<T>?>(
+    final notifier = DataStateNotifier<List<T>>(
       data: DataState(_getUpdatedModels(), isLoading: remote!),
     );
 
