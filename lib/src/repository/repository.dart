@@ -203,7 +203,7 @@ class Repository<T extends DataModelMixin<T>> with _Lifecycle {
   /// ```
   /// ref.books.watchAll();
   /// ```
-  DataState<List<T>?> watchAll({
+  DataState<List<T>> watchAll({
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
@@ -256,8 +256,8 @@ class Repository<T extends DataModelMixin<T>> with _Lifecycle {
 
   // providers
 
-  AutoDisposeStateNotifierProvider<DataStateNotifier<List<T>?>,
-      DataState<List<T>?>> watchAllProvider({
+  AutoDisposeStateNotifierProvider<DataStateNotifier<List<T>>,
+      DataState<List<T>>> watchAllProvider({
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
@@ -279,7 +279,7 @@ class Repository<T extends DataModelMixin<T>> with _Lifecycle {
   }
 
   late final _watchAllProvider = StateNotifierProvider.autoDispose
-      .family<DataStateNotifier<List<T>?>, DataState<List<T>?>, WatchArgs<T>>(
+      .family<DataStateNotifier<List<T>>, DataState<List<T>>, WatchArgs<T>>(
           (ref, args) {
     return remoteAdapter.watchAllNotifier(
       remote: args.remote,
@@ -338,7 +338,7 @@ class Repository<T extends DataModelMixin<T>> with _Lifecycle {
 
   // notifiers
 
-  DataStateNotifier<List<T>?> watchAllNotifier(
+  DataStateNotifier<List<T>> watchAllNotifier(
       {bool? remote,
       Map<String, dynamic>? params,
       Map<String, String>? headers,
