@@ -276,11 +276,17 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
         if (syncLocal!) {
           await localAdapter.clear();
         }
-        onSuccess ??= (data, label, _) => this.onSuccess<List<T>>(data, label);
+        onSuccess ??= (data, label, _) async {
+          final result = await this.onSuccess<List<T>>(data, label);
+          return result as List<T>;
+        };
         return onSuccess!.call(data, label, this as RemoteAdapter<T>);
       },
       onError: (e, label) async {
-        onError ??= (e, label, _) => this.onError<List<T>>(e, label);
+        onError ??= (e, label, _) async {
+          final result = await this.onError<List<T>>(e, label);
+          return result as List<T>;
+        };
         return onError!.call(e, label, this as RemoteAdapter<T>);
       },
     );

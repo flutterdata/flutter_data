@@ -2,7 +2,7 @@ part of flutter_data;
 
 mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
   @protected
-  DataStateNotifier<List<T>?> watchAllNotifier({
+  DataStateNotifier<List<T>> watchAllNotifier({
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
@@ -23,11 +23,11 @@ mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
     log(label, 'initializing');
 
     // closure to get latest models
-    List<T>? _getUpdatedModels() {
+    List<T> _getUpdatedModels() {
       return localAdapter.findAll();
     }
 
-    final notifier = DataStateNotifier<List<T>?>(
+    final notifier = DataStateNotifier<List<T>>(
       data: DataState(_getUpdatedModels(), isLoading: remote!),
     );
 
@@ -57,7 +57,7 @@ mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
           if (notifier.mounted) {
             notifier.updateWith(isLoading: false, exception: e);
           }
-          return null;
+          return [];
         },
       );
       if (remote) {
@@ -72,7 +72,7 @@ mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
     final throttleDuration = ref.read(graphNotifierThrottleDurationProvider);
     final throttledGraph = graph.throttle(() => throttleDuration);
 
-    final states = <DataState<List<T>?>>[];
+    final states = <DataState<List<T>>>[];
 
     final dispose = throttledGraph.addListener((events) {
       if (!notifier.mounted) {

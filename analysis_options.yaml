@@ -1,8 +1,6 @@
 analyzer:
   exclude:
     - "**/*.freezed.dart"
-  strong-mode:
-    implicit-casts: false
   errors:
     invalid_use_of_protected_member: error
     always_declare_return_types: error
@@ -22,8 +20,7 @@ linter:
     - directives_ordering
     - empty_statements
     - implementation_imports
-    - iterable_contains_unrelated_type
-    - list_remove_unrelated_type
+    - collection_methods_unrelated_type
     - no_adjacent_strings_in_list
     - non_constant_identifier_names
     - only_throw_errors

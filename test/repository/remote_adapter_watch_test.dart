@@ -18,7 +18,7 @@ void main() async {
   tearDown(tearDownFn);
 
   test('watchAll', () async {
-    final listener = Listener<DataState<List<Familia>?>>();
+    final listener = Listener<DataState<List<Familia>>>();
 
     container.read(responseProvider.notifier).state = TestResponse.json('''
         [{ "id": "1", "surname": "Corleone" }, { "id": "2", "surname": "Soprano" }]
@@ -39,7 +39,7 @@ void main() async {
   });
 
   test('watchAll with error', () async {
-    final listener = Listener<DataState<List<Familia>?>?>();
+    final listener = Listener<DataState<List<Familia>>?>();
 
     container.read(responseProvider.notifier).state =
         TestResponse((_) => throw Exception('unreachable'));
@@ -290,7 +290,7 @@ void main() async {
 
   test('watchAllNotifier updates isLoading even in an empty response',
       () async {
-    final listener = Listener<DataState<List<Familia>?>?>();
+    final listener = Listener<DataState<List<Familia>>?>();
 
     container.read(responseProvider.notifier).state = TestResponse.json('[]');
     final notifier = container.familia.watchAllNotifier(remote: true);
@@ -331,7 +331,7 @@ void main() async {
   });
 
   test('watchAllNotifier syncLocal', () async {
-    final listener = Listener<DataState<List<Familia>?>>();
+    final listener = Listener<DataState<List<Familia>>>();
 
     container.read(responseProvider.notifier).state = TestResponse.json(
         '''[{ "id": "22", "surname": "Paez" }, { "id": "12", "surname": "Brunez" }]''');
@@ -414,7 +414,7 @@ void main() async {
   });
 
   test('watchAllNotifier and watchAll updates and removals', () async {
-    final listener = Listener<DataState<List<Person>?>>();
+    final listener = Listener<DataState<List<Person>>>();
 
     final p1 = Person(id: '1', name: 'Zof', age: 23).saveLocal();
     final notifier = container.people.watchAllNotifier(remote: true);
@@ -437,7 +437,7 @@ void main() async {
     verifyNever(listener(DataState([p3], isLoading: false)));
     verifyNoMoreInteractions(listener);
 
-    expect(container.people.watchAll(), DataState<List<Person>?>([p2]));
+    expect(container.people.watchAll(), DataState<List<Person>>([p2]));
 
     await container.people.clear();
     await oneMs();
@@ -445,11 +445,11 @@ void main() async {
     verify(listener(DataState([], isLoading: false))).called(1);
     verifyNoMoreInteractions(listener);
 
-    expect(container.people.watchAll(), DataState<List<Person>?>([]));
+    expect(container.people.watchAll(), DataState<List<Person>>([]));
   });
 
   test('watchAllNotifier with where/map', () async {
-    final listener = Listener<DataState<List<Person>?>>();
+    final listener = Listener<DataState<List<Person>>>();
 
     Person(id: '1', name: 'Zof', age: 23).saveLocal();
     Person(id: '2', name: 'Sarah', age: 50).saveLocal();
@@ -748,7 +748,7 @@ void main() async {
         TestResponse.json('@**&#*#&');
 
     // overrides error handling with notifier
-    final listener = Listener<DataState<List<Familia>?>?>();
+    final listener = Listener<DataState<List<Familia>>?>();
     final notifier = container.familia.watchAllNotifier(remote: false);
 
     dispose = notifier.addListener(listener);

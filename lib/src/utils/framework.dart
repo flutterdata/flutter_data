@@ -63,7 +63,7 @@ class DataFinder {
   const DataFinder();
 }
 
-typedef DataFinderAll<T extends DataModelMixin<T>> = Future<List<T>?> Function({
+typedef DataFinderAll<T extends DataModelMixin<T>> = Future<List<T>> Function({
   bool? remote,
   bool? background,
   Map<String, dynamic>? params,
@@ -85,8 +85,8 @@ typedef DataFinderOne<T extends DataModelMixin<T>> = Future<T?> Function(
   DataRequestLabel? label,
 });
 
-typedef DataWatcherAll<T extends DataModelMixin<T>>
-    = DataStateNotifier<List<T>?> Function({
+typedef DataWatcherAll<T extends DataModelMixin<T>> = DataStateNotifier<List<T>>
+    Function({
   bool? remote,
   Map<String, dynamic>? params,
   Map<String, String>? headers,
@@ -213,14 +213,14 @@ typedef _OnSuccessGeneric<R> = FutureOr<R?> Function(
     DataResponse response, DataRequestLabel label);
 typedef OnSuccessOne<T extends DataModelMixin<T>> = FutureOr<T?> Function(
     DataResponse response, DataRequestLabel label, RemoteAdapter<T> adapter);
-typedef OnSuccessAll<T extends DataModelMixin<T>> = FutureOr<List<T>?> Function(
+typedef OnSuccessAll<T extends DataModelMixin<T>> = FutureOr<List<T>> Function(
     DataResponse response, DataRequestLabel label, RemoteAdapter<T> adapter);
 
 typedef _OnErrorGeneric<R> = FutureOr<R?> Function(
     DataException e, DataRequestLabel label);
 typedef OnErrorOne<T extends DataModelMixin<T>> = FutureOr<T?> Function(
     DataException e, DataRequestLabel label, RemoteAdapter<T> adapter);
-typedef OnErrorAll<T extends DataModelMixin<T>> = FutureOr<List<T>?> Function(
+typedef OnErrorAll<T extends DataModelMixin<T>> = FutureOr<List<T>> Function(
     DataException e, DataRequestLabel label, RemoteAdapter<T> adapter);
 
 /// Data request information holder.

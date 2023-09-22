@@ -90,7 +90,7 @@ void main() async {
       // ignore: missing_return
       onError: (e, _, __) {
         expect(e, isA<DataException>());
-        return null;
+        return [];
       },
     );
   });

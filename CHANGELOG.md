@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.5.14] - September 22nd, 2023
+
+- Fix: all-watchers should be non-nullable, consistent with non-nullable all-finders
+- Chore: Dependency upgrades
+
 ## [1.5.13] - August 16th, 2023
 
 - Fix: Flush Hive on relationship save
