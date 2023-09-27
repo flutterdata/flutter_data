@@ -25,6 +25,9 @@ abstract class LocalAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   /// Finds model of type [T] by [key] in local storage.
   T? findOne(String? key);
 
+  /// Whether [key] exists in local storage.
+  bool exists(String key);
+
   /// Saves model of type [T] with [key] in local storage.
   ///
   /// By default notifies this modification to the associated [GraphNotifier].
@@ -58,20 +61,22 @@ abstract class LocalAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     return model;
   }
 
-  void _initializeRelationships(T model, {DataModelMixin? from}) {
+  void _initializeRelationships(T model, {String? fromKey}) {
     final metadatas = relationshipMetas.values;
     for (final metadata in metadatas) {
       final relationship = metadata.instance(model);
 
-      if (from != null) {
-        final sourceRelationship = metadata.instance(from);
+      if (fromKey != null) {
+        // final sourceRelationship = metadata.instance(from);
+        final keys = graph._getEdge(fromKey, metadata: metadata.name).toSet();
+
         relationship?.initialize(
           owner: model,
           name: metadata.name,
           inverseName: metadata.inverseName,
           // pass keys from the source that will be copied over
           // to the relationships on model
-          overrideKeys: sourceRelationship?._keys,
+          overrideKeys: keys,
         );
       } else {
         relationship?.initialize(

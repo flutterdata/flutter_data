@@ -42,12 +42,12 @@ class HasMany<E extends DataModelMixin<E>> extends Relationship<E, Set<E>> {
     return _add(value, notify: notify);
   }
 
-  bool contains(Object? element) {
+  bool contains(E? element) {
     return _contains(element);
   }
 
   /// Removes a [value] from this [Relationship]
-  bool remove(Object? value, {bool notify = true}) {
+  bool remove(E? value, {bool notify = true}) {
     return _remove(value, notify: notify);
   }
 
@@ -63,13 +63,11 @@ class HasMany<E extends DataModelMixin<E>> extends Relationship<E, Set<E>> {
 
   List<E> toList() => _iterable.toList();
 
-  int get length => _iterable.length;
-
   E get first => _iterable.first;
 
-  bool get isEmpty => _iterable.isEmpty;
+  bool get isEmpty => length == 0;
 
-  bool get isNotEmpty => _iterable.isNotEmpty;
+  bool get isNotEmpty => length > 0;
 
   Iterable<E> where(bool Function(E) test) => _iterable.where(test);
 

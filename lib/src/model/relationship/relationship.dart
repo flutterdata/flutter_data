@@ -87,7 +87,7 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
     return true;
   }
 
-  bool _contains(Object? element) {
+  bool _contains(E? element) {
     return _iterable.contains(element);
   }
 
@@ -143,8 +143,11 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
   /// For internal use. Does not return valid JSON.
   dynamic toJson() => this;
 
+  int get length =>
+      _keys.map(_adapter.localAdapter.exists).where((e) => e == true).length;
+
   /// Whether the relationship has a value.
-  bool get isPresent => _iterable.isNotEmpty;
+  bool get isPresent => length > 0;
 
   @override
   List<Object?> get props => [_ownerKey, _name, _inverseName];

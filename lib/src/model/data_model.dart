@@ -8,28 +8,24 @@ abstract class DataModel<T extends DataModel<T>> with DataModelMixin<T> {
   /// Returns a model [RemoteAdapter]
   static RemoteAdapter adapterFor(DataModelMixin model) => model._remoteAdapter;
 
-  /// Apply [source]'s key to [destination].
-  static T withKeyOf<T extends DataModelMixin<T>>(
-      {required T source, required T destination}) {
-    if (source._key == null) {
-      throw Exception("Model must be initialized:\n\n$source");
-    }
-
-    final graph = source._remoteAdapter.graph;
-    final type = source._internalType;
+  /// Apply [sourceKey] to [applyTo].
+  static T withKey<T extends DataModelMixin<T>>(String sourceKey,
+      {required T applyTo}) {
+    final graph = applyTo._remoteAdapter.graph;
+    final type = applyTo._internalType;
 
     // ONLY data we keep from source is its key
     // ONLY data we remove from destination is its key
-    if (source._key != destination._key) {
-      final destKey = destination._key;
+    if (sourceKey != applyTo._key) {
+      final destKey = applyTo._key;
 
       // assign correct key to destination
-      destination._key = source._key;
+      applyTo._key = sourceKey;
 
       // migrate relationships to new key
-      destination._remoteAdapter.localAdapter._initializeRelationships(
-        destination,
-        from: source,
+      applyTo._remoteAdapter.localAdapter._initializeRelationships(
+        applyTo,
+        fromKey: sourceKey,
       );
 
       if (destKey != null) {
@@ -37,14 +33,14 @@ abstract class DataModel<T extends DataModel<T>> with DataModelMixin<T> {
         graph._removeNode(destKey);
       }
 
-      if (destination.id != null) {
+      if (applyTo.id != null) {
         // if present, remove existent ID association
-        graph.removeId(type, destination.id!, notify: false);
+        graph.removeId(type, applyTo.id!, notify: false);
         // and associate ID with source key
-        graph.getKeyForId(type, destination.id, keyIfAbsent: source._key);
+        graph.getKeyForId(type, applyTo.id, keyIfAbsent: sourceKey);
       }
     }
-    return destination;
+    return applyTo;
   }
 
   // data model helpers
@@ -113,7 +109,10 @@ extension DataModelExtension<T extends DataModelMixin<T>> on DataModelMixin<T> {
   /// person.copyWith(age: 56).withKeyOf(walter);
   /// ```
   T withKeyOf(T model) {
-    return DataModel.withKeyOf<T>(source: model, destination: this as T);
+    if (model._key == null) {
+      throw Exception("Model must be initialized:\n\n$model");
+    }
+    return DataModel.withKey<T>(model._key!, applyTo: this as T);
   }
 
   /// Saves this model through a call equivalent to [Repository.save].

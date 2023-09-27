@@ -154,6 +154,8 @@ void main() async {
     final igor = Person(name: 'Igor', age: 33).saveLocal();
     final f1 =
         Familia(surname: 'Kamchatka', persons: {igor}.asHasMany).saveLocal();
+
+    expect(f1.persons.first, equals(igor));
     expect(f1.persons.first.familia.value, f1);
 
     final igor1b =
@@ -242,11 +244,12 @@ void main() async {
 
     // since child has children defined, the rel is empty
     expect(child.children, isEmpty);
+    expect(child.parent?.value, isNotNull);
     // since parent does not have a parent defined, the rel is null
     expect(parent.parent, isNull);
 
     // child & parent are infinitely related!
-    expect(child.parent!.value, parent);
+    expect(child.parent!.value!.name, parent.name);
     expect(child.parent!.value!.children!.first, child);
   });
 

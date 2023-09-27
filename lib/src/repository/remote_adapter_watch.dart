@@ -154,7 +154,7 @@ mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
         // from top to bottom (e.g. `p`, `p.familia`, `p.familia.cottage`)
         alsoWatchPairs = {
           ...?metas
-              ?.map((meta) => _getPairsForMeta(meta._top, model))
+              ?.map((meta) => _getPairsForMeta(meta._top, model._key!))
               .filterNulls
               .expand((_) => _)
         };
@@ -336,19 +336,20 @@ mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
   }
 
   Iterable<List<String>> _getPairsForMeta(
-      RelationshipMeta? meta, DataModelMixin model) {
+      RelationshipMeta? meta, String ownerKey) {
+    if (meta == null) return {};
     // get instance of this relationship
-    final relationship = meta?.instance(model);
-    if (relationship == null) return {};
+    // final relationship = meta.instance(model);
+
+    final relationshipKeys =
+        graph._getEdge(ownerKey, metadata: meta.name).toSet();
 
     return {
       // include key pairs of (owner, key)
-      for (final key in relationship._keys) [relationship._ownerKey!, key],
+      for (final key in relationshipKeys) [ownerKey, key],
       // recursively include key pairs for other requested relationships
-      for (final childModel in relationship._iterable)
-        _getPairsForMeta(meta!.child, childModel as DataModelMixin)
-            .expand((_) => _)
-            .toList()
+      for (final childKey in relationshipKeys)
+        _getPairsForMeta(meta.child, childKey).expand((_) => _).toList()
     };
   }
 }

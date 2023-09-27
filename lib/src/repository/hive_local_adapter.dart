@@ -51,7 +51,22 @@ abstract class HiveLocalAdapter<T extends DataModelMixin<T>>
   T? findOne(String? key) {
     if (key == null) return null;
     final map = _box?.get(key);
-    return map != null ? (deserialize(map).._key = key) : null;
+    if (map != null) {
+      var model = deserialize(map);
+      if (model.id == null) {
+        // if model has no ID, deserializing will assign a new key
+        // but we want to keep the supplied one, so we use `withKey`
+        model = DataModel.withKey(key, applyTo: model);
+      }
+      return model;
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  bool exists(String key) {
+    return _box!.containsKey(key);
   }
 
   @override

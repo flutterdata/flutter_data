@@ -672,7 +672,7 @@ void main() async {
     final steve = Person(name: 'Steve-O', age: 30).withKeyOf(frank).saveLocal();
     await oneMs();
 
-    // verify(listener(argThat(matcher))).called(1);
+    verify(listener(argThat(matcher))).called(1);
     verifyNoMoreInteractions(listener);
 
     final cottage = House(id: '32769', address: '32769 Winding Road');
@@ -775,8 +775,10 @@ void main() async {
     final capsNotifier = container.read(container.bookAuthors
         .watchOneProvider(bookAuthor, finder: 'caps')
         .notifier);
+
     final capsNotifier2 =
         container.bookAuthors.watchOneNotifier(1, finder: 'caps');
+
     final capsNotifier3 =
         container.bookAuthors.watchOneNotifier(1, finder: 'caps');
 
@@ -816,6 +818,9 @@ void main() async {
 
     final model = container.bookAuthors.watch(bookAuthor);
     expect(model, bookAuthor);
+
+    // need to await before teardown for some reason
+    await oneMs();
   });
 
   test('notifier for', () async {
