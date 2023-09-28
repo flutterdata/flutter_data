@@ -154,13 +154,9 @@ extension OfflineOperationsX on Set<OfflineOperation<DataModelMixin>> {
       return;
     }
     final adapter = first.adapter;
-    // removes node and severs edges
-    if (adapter.graph._hasNode(_offlineAdapterKey)) {
-      final node = adapter.graph._getNode(_offlineAdapterKey);
-      for (final metadata in (node ?? {}).keys.toImmutableList()) {
-        adapter.graph._removeEdges(_offlineAdapterKey, metadata: metadata);
-      }
-    }
+
+    adapter.graph._removeNode(_offlineAdapterKey);
+
     adapter.ref.read(_offlineCallbackProvider).clear();
   }
 

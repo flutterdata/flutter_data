@@ -69,7 +69,7 @@ void main() async {
     expect(await adapter.findOne(person.id!), isNull);
 
     // and now key & id are both non-existent
-    expect(graph.getNode(keyFor(person)), isNull);
+    expect(graph.getNode(keyFor(person)), isEmpty);
     expect(graph.getKeyForId('people', person.id), isNull);
   });
 
@@ -135,10 +135,12 @@ void main() async {
 
     // remote comes back with relationships
     final models = await container.familia.findAll(remote: true);
-    expect(models.first.persons.toList(), [
-      Person(id: '1', name: 'Peter', age: 10),
-      Person(id: '2', name: 'John', age: 44)
-    ]);
+    expect(
+        models.first.persons.toSet(),
+        unorderedEquals({
+          Person(id: '1', name: 'Peter', age: 10),
+          Person(id: '2', name: 'John', age: 44)
+        }));
 
     final originalKey = keyFor(models.first);
 
@@ -154,10 +156,12 @@ void main() async {
 
     // local storage still comes back with relationships
     final models2 = await container.familia.findAll(remote: false);
-    expect(models2.first.persons.toList(), [
-      Person(id: '1', name: 'Peter', age: 10),
-      Person(id: '2', name: 'John', age: 44)
-    ]);
+    expect(
+        models2.first.persons.toList(),
+        unorderedEquals([
+          Person(id: '1', name: 'Peter', age: 10),
+          Person(id: '2', name: 'John', age: 44)
+        ]));
   });
 
   test('DataRequestLabel', () {
@@ -289,6 +293,7 @@ void main() async {
     final book2 = Book(id: 2, ardentSupporters: HasMany()).saveLocal();
     final library =
         Library(id: 1, name: 'Babel', books: {book1, book2}.asHasMany).init();
-    expect(library.books.toList(), [book1.reloadLocal(), book2.reloadLocal()]);
+    expect(library.books.toList(),
+        unorderedEquals([book1.reloadLocal(), book2.reloadLocal()]));
   });
 }

@@ -50,18 +50,19 @@ abstract class HiveLocalAdapter<T extends DataModelMixin<T>>
   @override
   T? findOne(String? key) {
     if (key == null) return null;
-    final map = _box?.get(key);
-    if (map != null) {
-      var model = deserialize(map);
-      if (model.id == null) {
-        // if model has no ID, deserializing will assign a new key
-        // but we want to keep the supplied one, so we use `withKey`
-        model = DataModel.withKey(key, applyTo: model);
-      }
-      return model;
-    } else {
-      return null;
-    }
+    return _deserialize(_box?.get(key), key);
+  }
+
+  @override
+  List<T> findMany(Iterable<String> keys) {
+    final _keys = keys.toList();
+    return _box
+            ?.getAll(_keys)
+            .filterNulls
+            .mapIndexed((i, map) => _deserialize(map, _keys[i]))
+            .filterNulls
+            .toList() ??
+        [];
   }
 
   @override
@@ -102,5 +103,19 @@ abstract class HiveLocalAdapter<T extends DataModelMixin<T>>
     if (_box == null) return;
     _box!.clear();
     graph._notify([internalType], type: DataGraphEventType.clear);
+  }
+
+  T? _deserialize(Map<String, dynamic>? map, String key) {
+    if (map != null) {
+      var model = deserialize(map);
+      if (model.id == null) {
+        // if model has no ID, deserializing will assign a new key
+        // but we want to keep the supplied one, so we use `withKey`
+        model = DataModel.withKey(key, applyTo: model);
+      }
+      return model;
+    } else {
+      return null;
+    }
   }
 }

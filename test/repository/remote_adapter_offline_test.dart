@@ -133,7 +133,7 @@ void main() async {
             .only(DataRequestLabel('save', type: 'familia'))
             .map((o) => o.label.id)
             .toList(),
-        [familia.id, familia2.id]);
+        unorderedEquals([familia.id, familia2.id]));
 
     // retry saving both
     await container.familia.offlineOperations.retry();

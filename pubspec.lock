@@ -306,7 +306,7 @@ packages:
     source: hosted
     version: "1.0.4"
   isar:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: isar
       sha256: ebf74d87c400bd9f7da14acb31932b50c2407edbbd40930da3a6c2a8143f85a8

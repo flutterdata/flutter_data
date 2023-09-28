@@ -47,7 +47,7 @@ void main() async {
       // we expect persons: [] as it's default in the Familia class
       'persons': [],
       'residence': '1',
-      'dogs': ['1', '2']
+      'dogs': unorderedEquals(['1', '2'])
     });
     expect(json.encode(serialized), isA<String>());
 
@@ -61,7 +61,7 @@ void main() async {
     expect(s2, {
       'id': 1,
       'name': 'a',
-      'children': [2, 3],
+      'children': unorderedEquals([2, 3]),
     });
     expect(json.encode(s2), isA<String>());
   });

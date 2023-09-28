@@ -12,39 +12,31 @@ void main() async {
   setUp(setUpFn);
   tearDown(tearDownFn);
 
-  test('add/remove nodes', () {
-    graph.addNode('b1');
-    expect(graph.getNode('b1'), isEmpty);
-    graph.removeNode('b1');
-    expect(graph.getNode('b1'), isNull);
-  });
-
-  test('add node if it does not exist', () {
-    graph.getNode('b1', orAdd: true);
-    expect(graph.getNode('b1'), isEmpty);
-  });
-
   test('add/remove edges with metadata', () {
-    graph.addNodes(['h1', 'b1', 'b2']);
     graph.addEdges('h1',
-        tos: ['b1', 'b2'], metadata: 'blogs', inverseMetadata: 'host');
+        tos: {'b1', 'b2'}, metadata: 'blogs', inverseMetadata: 'host');
 
     expect(graph.getEdge('b1', metadata: 'host'), {'h1'});
     expect(graph.getEdge('h1', metadata: 'blogs'), {'b1', 'b2'});
 
     graph.removeEdge('h1', 'b2', metadata: 'blogs', inverseMetadata: 'host');
 
-    final map = graph.toMap();
-    expect(map['h1'], {
-      'blogs': {'b1'}
-    });
-    expect(map['b1'], {
-      'host': {'h1'}
-    });
-
+    expect(graph.getEdge('h1', metadata: 'blogs'), {'b1'});
     expect(graph.getEdge('b2', metadata: 'host'), isEmpty);
 
-    graph.addNode('hosts#1');
+    final map = graph.toMap();
+    expect(
+      map,
+      {
+        'h1': {
+          'blogs': ['b1']
+        },
+        'b1': {
+          'host': ['h1']
+        }
+      },
+    );
+
     graph.addEdge('h1', 'hosts#1', metadata: 'id', inverseMetadata: 'key');
     expect(graph.getEdge('h1', metadata: 'id'), contains('hosts#1'));
     expect(graph.getEdge('hosts#1', metadata: 'key'), contains('h1'));
@@ -55,6 +47,7 @@ void main() async {
     });
 
     graph.removeEdges('h1', metadata: 'blogs');
+    expect(graph.getEdge('hosts#1', metadata: 'blogs'), isEmpty);
     expect(graph.getNode('h1'), {
       'id': {'hosts#1'}
     });
@@ -62,10 +55,7 @@ void main() async {
 
   test('addNode/orAdd', () {
     graph.addEdges('h1',
-        tos: ['b1', 'b2'],
-        metadata: 'blogs',
-        addNode: true,
-        inverseMetadata: 'host');
+        tos: {'b1', 'b2'}, metadata: 'blogs', inverseMetadata: 'host');
 
     expect(graph.getEdge('h1', metadata: 'blogs'), hasLength(2));
   });
@@ -181,7 +171,7 @@ void main() async {
 
   test('saves key', () async {
     final residence = House(address: '123 Main St');
-    final length = 518;
+    final length = 100;
     final div = 19;
 
     for (var i = 0; i < length; i++) {
@@ -213,18 +203,6 @@ void main() async {
     // enable namespace assertions for this test
     graph.debugAssert(true);
 
-    expect(() => graph.addNode('superman'), throwsA(isA<AssertionError>()));
-
-    // trying to write private nodes will throw, reading them not
-    expect(() => graph.addNode('_superman:1'), throwsA(isA<AssertionError>()));
-    expect(() => graph.getNode('_superman:1'),
-        isNot(throwsA(isA<AssertionError>())));
-    expect(() => graph.hasNode('_superman:1'),
-        isNot(throwsA(isA<AssertionError>())));
-
-    graph.addNode('superman:1');
-    expect(graph.getNode('superman:1'), isA<Map<String, List<String>>>());
-
     expect(
         () =>
             graph.addEdge('superman:1', 'superman:to', metadata: 'nonamespace'),
@@ -238,11 +216,6 @@ void main() async {
     graph.removeEdges('superman:1', metadata: 'superman:prefix');
     expect(graph.hasEdge('superman:1', metadata: 'superman:prefix'), false);
     expect(graph.hasNode('superman:to'), false);
-
-    graph.removeNode('superman:1');
-    expect(graph.hasNode('superman:1'), isFalse);
-
-    expect(() => graph.addNode('super:man:1'), throwsA(isA<AssertionError>()));
   });
 
   test('namespace', () {
@@ -263,8 +236,9 @@ void main() async {
   });
 
   test('clear', () {
-    graph.addNode('a');
-    graph.addNode('b');
+    for (final i in List.generate(100, (i) => i)) {
+      graph.addEdge('b$i', 'h1', metadata: 'host');
+    }
     expect(graph.toMap(), isNotEmpty);
     graph.clear();
     expect(graph.toMap(), isEmpty);

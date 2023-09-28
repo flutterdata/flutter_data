@@ -296,9 +296,9 @@ void main() async {
     expect(books.first.originalAuthor!.value, books.last.originalAuthor!.value);
 
     expect(books.first.originalAuthor.toString(), 'BelongsTo<BookAuthor>(15)');
-    expect(author.books.toString(), 'HasMany<Book>(23, 24)');
-    expect(author.books.first.originalAuthor!.value.toString(),
-        'BookAuthor(id: 15, name: Steve-O, books: HasMany<Book>(23, 24))');
+    expect(author.books.ids, unorderedEquals([23, 24]));
+    expect(author.books.first.originalAuthor!.value!.books.ids,
+        unorderedEquals([23, 24]));
   });
 
   test('HasMany iterable proxies', () {

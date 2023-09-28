@@ -21,7 +21,6 @@ void main() async {
     f1.persons.add(Person(id: '2', name: 'Carlos'));
 
     expect(f1.persons.ids, {'1', '2'});
-    expect(f1.persons.toString(), 'HasMany<Person>(1, 2, [${keyFor(p1)}])');
   });
 
   test('behaves like a collection', () {

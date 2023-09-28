@@ -794,7 +794,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   @visibleForTesting
   @nonVirtual
   Set<OfflineOperation<T>> get offlineOperations {
-    final node = graph._getNode(_offlineAdapterKey, orAdd: true)!;
+    final node = graph._getNode(_offlineAdapterKey);
     return node.entries
         .map((e) {
           try {

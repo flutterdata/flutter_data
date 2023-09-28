@@ -21,6 +21,7 @@ dependencies:
   hive: ^4.0.0-dev.2
   http: ^0.13.3
   inflection3: ^0.5.3+2
+  isar: ^4.0.0-dev.14
   json_annotation: ^4.8.0
   meta: ^1.7.0
   path: ^1.8.0

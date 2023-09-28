@@ -25,6 +25,9 @@ abstract class LocalAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   /// Finds model of type [T] by [key] in local storage.
   T? findOne(String? key);
 
+  /// Finds many models of type [T] by [keys] in local storage.
+  List<T> findMany(Iterable<String> keys);
+
   /// Whether [key] exists in local storage.
   bool exists(String key);
 

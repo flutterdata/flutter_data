@@ -28,7 +28,6 @@ void main() async {
     expect(person, await container.people.findOne(person.id!, remote: false));
   });
 
-  // TODO check how the fuck this worked before
   test('on model init', () async {
     Node(id: 3, name: 'child');
     // child is saved on model init, so it should find it

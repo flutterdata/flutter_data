@@ -50,9 +50,6 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
     _graph._removeEdges(_ownerKey!,
         metadata: _name!, inverseMetadata: _inverseName, notify: false);
 
-    // in case node was removed during removeEdges
-    _graph._addNode(_ownerKey!);
-
     _graph._addEdges(
       _ownerKey!,
       tos: _uninitializedKeys!,
@@ -116,7 +113,7 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
   // support methods
 
   Iterable<E> get _iterable {
-    return _keys.map((key) => _adapter.localAdapter.findOne(key)).filterNulls;
+    return _adapter.localAdapter.findMany(_keys);
   }
 
   Set<String> get _keys {
