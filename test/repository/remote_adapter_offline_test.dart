@@ -12,6 +12,8 @@ import '../_support/setup.dart';
 import '../mocks.dart';
 
 void main() async {
+  setUpAll(setUpIsar);
+  tearDownAll(tearDownIsar);
   setUp(setUpFn);
   tearDown(tearDownFn);
 

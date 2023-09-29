@@ -9,6 +9,8 @@ import '../_support/person.dart';
 import '../_support/setup.dart';
 
 void main() async {
+  setUpAll(setUpIsar);
+  tearDownAll(tearDownIsar);
   setUp(setUpFn);
   tearDown(tearDownFn);
 
@@ -56,7 +58,6 @@ void main() async {
   test('addNode/orAdd', () {
     graph.addEdges('h1',
         tos: {'b1', 'b2'}, metadata: 'blogs', inverseMetadata: 'host');
-
     expect(graph.getEdge('h1', metadata: 'blogs'), hasLength(2));
   });
 
@@ -94,7 +95,7 @@ void main() async {
   });
 
   test('does not associate a key when id is null', () {
-    var key = graph.getKeyForId('people', null,
+    final key = graph.getKeyForId('people', null,
         keyIfAbsent: DataHelpers.generateKey<Person>())!;
     expect(graph.getIdForKey(key), isNull);
   });
@@ -157,13 +158,15 @@ void main() async {
     graph.getKeyForId('people', 'a1a1a1', keyIfAbsent: 'people#a2a2a2');
     expect(graph.getKeyForId('people', 'a1a1a1'), 'people#a2a2a2');
     expect(
-        graph.toMap().keys.toSet(),
+        graph.toIdMap().keys.toSet(),
         containsAll({
           'people#a2a2a2',
           'people#a1a1a1',
-          '_id:people#a1a1a1',
-          '_id:people#1'
         }));
+
+    expect(graph.toIdMap().values.toSet(),
+        containsAll({'people#a1a1a1', 'people#1'}));
+
     expect(graph.getKeyForId('people', '1'), 'people#a1a1a1');
     graph.removeKey('people#a1a1a1');
     expect(graph.getKeyForId('people', '1'), isNull);

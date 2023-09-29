@@ -11,12 +11,11 @@ class Edge {
       this.inverseName});
 
   int get id => Isar.fastHash('$from-$to-$name');
-  // TODO restore, can't query fromNameEqualTo('f', 'n')
-  @Index() // hash: true, composite: ['name']
+  @Index(hash: true, composite: ['name'])
   final String from;
   final String name;
 
-  @Index() // hash: true, composite: ['inverseName']
+  @Index(hash: true, composite: ['name'])
   final String to;
   final String? inverseName;
 

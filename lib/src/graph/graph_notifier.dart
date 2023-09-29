@@ -1,7 +1,5 @@
 part of flutter_data;
 
-const _kGraphBoxName = '_graph';
-
 /// A bidirected graph data structure that notifies
 /// modification events through a [StateNotifier].
 ///
@@ -32,8 +30,8 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
     await _hiveLocalStorage.initialize();
 
     _isar = Isar.open(
-      name: _kGraphBoxName,
-      schemas: [EdgeSchema],
+      name: '_graph',
+      schemas: [EdgeSchema, InternalIdSchema],
       directory: Hive.defaultDirectory!,
     );
 
@@ -59,9 +57,9 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   @override
   bool get isInitialized => _isInitialized;
 
-  // key-related methods
+  // Key-related methods
 
-  /// Finds a model's key in the graph.
+  /// Finds a model's key.
   ///
   ///  - Attempts a lookup by [type]/[id]
   ///  - If the key was not found, it returns a default [keyIfAbsent]
@@ -71,54 +69,50 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   String? getKeyForId(String type, Object? id, {String? keyIfAbsent}) {
     type = DataHelpers.internalTypeFor(type);
     if (id != null) {
-      final namespace = id is int ? '_id_int' : '_id';
-      final namespacedId =
-          id.toString().typifyWith(type).namespaceWith(namespace);
-
-      final tos = _getEdge(namespacedId, metadata: '_key');
-      if (tos.isNotEmpty) {
-        final key = tos.first;
-        return key;
+      final idMapping = _isar.idMappings
+          .where()
+          .idEqualTo(id.toString().typifyWith(type))
+          .findFirst();
+      if (idMapping != null) {
+        return idMapping.key;
       }
-
       if (keyIfAbsent != null) {
-        // this means the method is instructed to
-        // create nodes and edges
-
-        // _addNode(keyIfAbsent, notify: false);
-        // _addNode(namespacedId, notify: false);
-        _removeEdges(keyIfAbsent,
-            metadata: '_id', inverseMetadata: '_key', notify: false);
-        _addEdge(keyIfAbsent, namespacedId,
-            metadata: '_id', inverseMetadata: '_key', notify: false);
-        return keyIfAbsent;
+        final idMapping = IdMapping(
+            key: keyIfAbsent,
+            id: id.toString().typifyWith(type),
+            isInt: id is int);
+        _isar.write((isar) => isar.idMappings.put(idMapping));
+        return idMapping.key;
       }
     } else if (keyIfAbsent != null) {
-      // if no ID is supplied but keyIfAbsent is, create node for key
-      // _addNode(keyIfAbsent, notify: false);
       return keyIfAbsent;
     }
     return null;
   }
 
-  /// Removes key (and its edges) from graph
-  void removeKey(String key) => _removeNode(key);
-
-  /// Finds an ID in the graph, given a [key].
-  Object? getIdForKey(String key) {
-    final tos = _getEdge(key, metadata: '_id');
-    if (tos.isEmpty) {
-      return null;
-    }
-    final isInt = tos.first.namespace == '_id_int';
-    final id = tos.first.denamespace().detypify();
-    return isInt ? int.tryParse(id) : id;
+  /// Removes key
+  void removeKey(String key) {
+    _isar.write((isar) => isar.idMappings.delete(Isar.fastHash(key)));
+    state = DataGraphEvent(keys: [key], type: DataGraphEventType.removeNode);
   }
 
-  /// Removes [type]/[id] (and its edges) from graph
-  void removeId(String type, Object id, {bool notify = true}) =>
-      _removeNode(id.toString().typifyWith(type).namespaceWith('_id'),
-          notify: notify);
+  /// Finds an ID, given a [key].
+  Object? getIdForKey(String key) {
+    final idMapping = _isar.idMappings.get(Isar.fastHash(key));
+    if (idMapping == null) {
+      return null;
+    }
+    final id = idMapping.id.detypify();
+    return idMapping.isInt ? int.parse(id) : id;
+  }
+
+  /// Removes [type]/[id] mapping
+  void removeId(String type, Object id, {bool notify = true}) {
+    final typeId = id.toString().typifyWith(type);
+    _isar
+        .write((isar) => isar.idMappings.where().idEqualTo(typeId).deleteAll());
+    state = DataGraphEvent(keys: [typeId], type: DataGraphEventType.removeNode);
+  }
 
   // nodes
 
@@ -251,6 +245,12 @@ Key "$key":
 
   /// Returns a [Map] representation of this graph from the underlying storage.
   Map<String, Map<String, List<String>>> toMap() => _toMap();
+
+  /// Returns a [Map] representation of the internal ID db
+  Map<String, String> toIdMap() {
+    final iids = _isar.idMappings.where().findAll();
+    return {for (final iid in iids) iid.key: iid.id};
+  }
 
   void debugMap() => _prettyPrintJson(_toMap());
 

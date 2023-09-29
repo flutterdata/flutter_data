@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_data/src/graph/edge.dart';
+import 'package:flutter_data/src/graph/id_mapping.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:inflection3/inflection3.dart' as inflection;

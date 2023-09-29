@@ -39,20 +39,22 @@ const EdgeSchema = IsarGeneratedSchema(
     ],
     indexes: [
       IsarIndexSchema(
-        name: 'from',
+        name: 'from_name',
         properties: [
           "from",
+          "name",
         ],
         unique: false,
-        hash: false,
+        hash: true,
       ),
       IsarIndexSchema(
-        name: 'to',
+        name: 'to_name',
         properties: [
           "to",
+          "name",
         ],
         unique: false,
-        hash: false,
+        hash: true,
       ),
     ],
   ),

@@ -28,7 +28,6 @@ Function? dispose;
 final logging = [];
 
 Future<void> setUpFn() async {
-  await setUpIsar();
   container = ProviderContainer(
     overrides: [
       httpClientProvider.overrideWith((ref) {
@@ -161,8 +160,6 @@ Future<void> tearDownFn() async {
 
   logging.clear();
   await oneMs();
-
-  await tearDownIsar();
 }
 
 // utils
@@ -230,4 +227,11 @@ extension ProviderContainerX on ProviderContainer {
       _watch(booksRepositoryProvider)..remoteAdapter.internalWatch = _watch;
   Repository<Library> get libraries =>
       _watch(librariesRepositoryProvider)..remoteAdapter.internalWatch = _watch;
+}
+
+void logTime(String name, Function cb) {
+  final a1 = DateTime.now().millisecondsSinceEpoch;
+  cb();
+  final a2 = DateTime.now().millisecondsSinceEpoch;
+  print('$name: ${a2 - a1}ms');
 }
