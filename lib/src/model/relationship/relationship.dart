@@ -45,16 +45,14 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
       return this;
     }
 
-    // setting up from scratch, remove all and add keys
-
-    _graph._removeEdges(_ownerKey!,
-        metadata: _name!, inverseMetadata: _inverseName, notify: false);
+    // setting up from scratch, add edges (removing existing)
 
     _graph._addEdges(
       _ownerKey!,
       tos: _uninitializedKeys!,
       metadata: _name!,
       inverseMetadata: _inverseName,
+      clearExisting: true,
       notify: false,
     );
 
@@ -96,7 +94,6 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
       _ownerKey!,
       model._key!,
       metadata: _name!,
-      inverseMetadata: _inverseName,
       notify: false,
     );
 

@@ -210,8 +210,7 @@ Key "$key":
     if (inverseMetadata != null) {
       _assertKey(inverseMetadata);
     }
-    return _removeEdges(from,
-        metadata: metadata, inverseMetadata: inverseMetadata, notify: notify);
+    return _removeEdges(from, metadata: metadata, notify: notify);
   }
 
   /// Removes a bidirectional edge:
@@ -228,8 +227,7 @@ Key "$key":
     if (inverseMetadata != null) {
       _assertKey(inverseMetadata);
     }
-    return _removeEdge(from, to,
-        metadata: metadata, inverseMetadata: inverseMetadata, notify: notify);
+    return _removeEdge(from, to, metadata: metadata, notify: notify);
   }
 
   /// Returns whether the requested edge is present in this graph.
@@ -317,8 +315,14 @@ Key "$key":
       {required String metadata,
       required Set<String> tos,
       String? inverseMetadata,
+      bool clearExisting = false,
       bool notify = true}) {
     if (tos.isEmpty) {
+      if (clearExisting) {
+        _isar.write((isar) {
+          _getRemoveEdgesQuery(isar, from, metadata: metadata).deleteAll();
+        });
+      }
       return;
     }
 
@@ -326,10 +330,20 @@ Key "$key":
         Edge(from: from, name: metadata, to: to, inverseName: inverseMetadata));
 
     _isar.write((isar) {
+      if (clearExisting) {
+        _getRemoveEdgesQuery(isar, from, metadata: metadata).deleteAll();
+      }
       isar.edges.putAll(edges.toList());
     });
 
     if (notify) {
+      if (clearExisting) {
+        state = DataGraphEvent(
+          keys: [from, ...tos],
+          metadata: metadata,
+          type: DataGraphEventType.removeEdge,
+        );
+      }
       state = DataGraphEvent(
         keys: [from, ...tos],
         metadata: metadata,
@@ -339,37 +353,36 @@ Key "$key":
   }
 
   void _removeEdge(String from, String to,
-      {required String metadata, String? inverseMetadata, bool notify = true}) {
-    _removeEdges(from,
-        tos: {to},
-        metadata: metadata,
-        inverseMetadata: inverseMetadata,
-        notify: notify);
+      {required String metadata, bool notify = true}) {
+    _removeEdges(from, tos: {to}, metadata: metadata, notify: notify);
+  }
+
+  QueryBuilder<Edge, Edge, QAfterFilterCondition> _getRemoveEdgesQuery(
+      Isar isar, String from,
+      {required String metadata, Set<String>? tos}) {
+    return isar.edges
+        .where()
+        .group((q) => q
+            .fromEqualTo(from)
+            .and()
+            .nameEqualTo(metadata)
+            .and()
+            .optional(tos != null,
+                (q) => q.allOf(tos!, (q3, String to) => q3.toEqualTo(to))))
+        .or()
+        .group((q) => q
+            .toEqualTo(from)
+            .and()
+            .inverseNameEqualTo(metadata)
+            .and()
+            .optional(tos != null,
+                (q) => q.allOf(tos!, (q3, String to) => q3.fromEqualTo(to))));
   }
 
   void _removeEdges(String from,
-      {required String metadata,
-      Set<String>? tos,
-      String? inverseMetadata,
-      bool notify = true}) {
+      {required String metadata, Set<String>? tos, bool notify = true}) {
     _isar.write((isar) {
-      isar.edges
-          .where()
-          .group((q) => q
-              .fromEqualTo(from)
-              .and()
-              .nameEqualTo(metadata)
-              .and()
-              .optional(tos != null,
-                  (q) => q.allOf(tos!, (q3, String to) => q3.toEqualTo(to))))
-          .or()
-          .group((q) => q
-              .toEqualTo(from)
-              .and()
-              .inverseNameEqualTo(metadata)
-              .and()
-              .optional(tos != null,
-                  (q) => q.allOf(tos!, (q3, String to) => q3.fromEqualTo(to))))
+      _getRemoveEdgesQuery(isar, from, metadata: metadata, tos: tos)
           .deleteAll();
     });
 
