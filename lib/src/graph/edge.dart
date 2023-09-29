@@ -5,12 +5,15 @@ part 'edge.g.dart';
 @collection
 class Edge {
   Edge(
-      {required this.from,
+      {required this.id,
+      required this.from,
       required this.name,
       required this.to,
       this.inverseName});
 
-  int get id => Isar.fastHash('$from-$to-$name');
+  @Id()
+  final int id;
+
   @Index(hash: true, composite: ['name'])
   final String from;
   final String name;

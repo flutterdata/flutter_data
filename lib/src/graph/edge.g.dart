@@ -84,6 +84,8 @@ int serializeEdge(IsarWriter writer, Edge object) {
 
 @isarProtected
 Edge deserializeEdge(IsarReader reader) {
+  final int _id;
+  _id = IsarCore.readId(reader);
   final String _from;
   _from = IsarCore.readString(reader, 1) ?? '';
   final String _name;
@@ -93,6 +95,7 @@ Edge deserializeEdge(IsarReader reader) {
   final String? _inverseName;
   _inverseName = IsarCore.readString(reader, 4);
   final object = Edge(
+    id: _id,
     from: _from,
     name: _name,
     to: _to,
@@ -104,6 +107,8 @@ Edge deserializeEdge(IsarReader reader) {
 @isarProtected
 dynamic deserializeEdgeProp(IsarReader reader, int property) {
   switch (property) {
+    case 0:
+      return IsarCore.readId(reader);
     case 1:
       return IsarCore.readString(reader, 1) ?? '';
     case 2:
@@ -112,8 +117,6 @@ dynamic deserializeEdgeProp(IsarReader reader, int property) {
       return IsarCore.readString(reader, 3) ?? '';
     case 4:
       return IsarCore.readString(reader, 4);
-    case 0:
-      return IsarCore.readId(reader);
     default:
       throw ArgumentError('Unknown property: $property');
   }
@@ -264,6 +267,86 @@ extension EdgeQueryBuilderUpdate on QueryBuilder<Edge, Edge, QOperations> {
 }
 
 extension EdgeQueryFilter on QueryBuilder<Edge, Edge, QFilterCondition> {
+  QueryBuilder<Edge, Edge, QAfterFilterCondition> idEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 0,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Edge, Edge, QAfterFilterCondition> idGreaterThan(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 0,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Edge, Edge, QAfterFilterCondition> idGreaterThanOrEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 0,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Edge, Edge, QAfterFilterCondition> idLessThan(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(
+          property: 0,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Edge, Edge, QAfterFilterCondition> idLessThanOrEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 0,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Edge, Edge, QAfterFilterCondition> idBetween(
+    int lower,
+    int upper,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 0,
+          lower: lower,
+          upper: upper,
+        ),
+      );
+    });
+  }
+
   QueryBuilder<Edge, Edge, QAfterFilterCondition> fromEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -958,91 +1041,23 @@ extension EdgeQueryFilter on QueryBuilder<Edge, Edge, QFilterCondition> {
       );
     });
   }
-
-  QueryBuilder<Edge, Edge, QAfterFilterCondition> idEqualTo(
-    int value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 0,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Edge, Edge, QAfterFilterCondition> idGreaterThan(
-    int value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 0,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Edge, Edge, QAfterFilterCondition> idGreaterThanOrEqualTo(
-    int value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 0,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Edge, Edge, QAfterFilterCondition> idLessThan(
-    int value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 0,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Edge, Edge, QAfterFilterCondition> idLessThanOrEqualTo(
-    int value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 0,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Edge, Edge, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 0,
-          lower: lower,
-          upper: upper,
-        ),
-      );
-    });
-  }
 }
 
 extension EdgeQueryObject on QueryBuilder<Edge, Edge, QFilterCondition> {}
 
 extension EdgeQuerySortBy on QueryBuilder<Edge, Edge, QSortBy> {
+  QueryBuilder<Edge, Edge, QAfterSortBy> sortById() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(0);
+    });
+  }
+
+  QueryBuilder<Edge, Edge, QAfterSortBy> sortByIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(0, sort: Sort.desc);
+    });
+  }
+
   QueryBuilder<Edge, Edge, QAfterSortBy> sortByFrom(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1125,21 +1140,21 @@ extension EdgeQuerySortBy on QueryBuilder<Edge, Edge, QSortBy> {
       );
     });
   }
+}
 
-  QueryBuilder<Edge, Edge, QAfterSortBy> sortById() {
+extension EdgeQuerySortThenBy on QueryBuilder<Edge, Edge, QSortThenBy> {
+  QueryBuilder<Edge, Edge, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(0);
     });
   }
 
-  QueryBuilder<Edge, Edge, QAfterSortBy> sortByIdDesc() {
+  QueryBuilder<Edge, Edge, QAfterSortBy> thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(0, sort: Sort.desc);
     });
   }
-}
 
-extension EdgeQuerySortThenBy on QueryBuilder<Edge, Edge, QSortThenBy> {
   QueryBuilder<Edge, Edge, QAfterSortBy> thenByFrom(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1194,18 +1209,6 @@ extension EdgeQuerySortThenBy on QueryBuilder<Edge, Edge, QSortThenBy> {
       return query.addSortBy(4, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
-
-  QueryBuilder<Edge, Edge, QAfterSortBy> thenById() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(0);
-    });
-  }
-
-  QueryBuilder<Edge, Edge, QAfterSortBy> thenByIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(0, sort: Sort.desc);
-    });
-  }
 }
 
 extension EdgeQueryWhereDistinct on QueryBuilder<Edge, Edge, QDistinct> {
@@ -1239,6 +1242,12 @@ extension EdgeQueryWhereDistinct on QueryBuilder<Edge, Edge, QDistinct> {
 }
 
 extension EdgeQueryProperty1 on QueryBuilder<Edge, Edge, QProperty> {
+  QueryBuilder<Edge, int, QAfterProperty> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(0);
+    });
+  }
+
   QueryBuilder<Edge, String, QAfterProperty> fromProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(1);
@@ -1262,15 +1271,15 @@ extension EdgeQueryProperty1 on QueryBuilder<Edge, Edge, QProperty> {
       return query.addProperty(4);
     });
   }
+}
 
-  QueryBuilder<Edge, int, QAfterProperty> idProperty() {
+extension EdgeQueryProperty2<R> on QueryBuilder<Edge, R, QAfterProperty> {
+  QueryBuilder<Edge, (R, int), QAfterProperty> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(0);
     });
   }
-}
 
-extension EdgeQueryProperty2<R> on QueryBuilder<Edge, R, QAfterProperty> {
   QueryBuilder<Edge, (R, String), QAfterProperty> fromProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(1);
@@ -1294,16 +1303,16 @@ extension EdgeQueryProperty2<R> on QueryBuilder<Edge, R, QAfterProperty> {
       return query.addProperty(4);
     });
   }
-
-  QueryBuilder<Edge, (R, int), QAfterProperty> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(0);
-    });
-  }
 }
 
 extension EdgeQueryProperty3<R1, R2>
     on QueryBuilder<Edge, (R1, R2), QAfterProperty> {
+  QueryBuilder<Edge, (R1, R2, int), QOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(0);
+    });
+  }
+
   QueryBuilder<Edge, (R1, R2, String), QOperations> fromProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(1);
@@ -1325,12 +1334,6 @@ extension EdgeQueryProperty3<R1, R2>
   QueryBuilder<Edge, (R1, R2, String?), QOperations> inverseNameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(4);
-    });
-  }
-
-  QueryBuilder<Edge, (R1, R2, int), QOperations> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(0);
     });
   }
 }

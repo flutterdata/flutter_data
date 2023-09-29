@@ -326,8 +326,14 @@ Key "$key":
       return;
     }
 
-    final edges = tos.map((to) =>
-        Edge(from: from, name: metadata, to: to, inverseName: inverseMetadata));
+    final edges = tos.map(
+      (to) => Edge(
+          id: _isar.edges.autoIncrement(),
+          from: from,
+          name: metadata,
+          to: to,
+          inverseName: inverseMetadata),
+    );
 
     _isar.write((isar) {
       if (clearExisting) {
