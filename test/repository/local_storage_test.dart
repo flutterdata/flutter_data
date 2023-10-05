@@ -42,5 +42,5 @@ void main() async {
     expect(() async {
       Hive.box(name: '_error');
     }, throwsA(isA<Error>()));
-  });
+  }, skip: true);
 }

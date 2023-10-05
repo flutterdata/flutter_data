@@ -88,6 +88,11 @@ class Repository<T extends DataModelMixin<T>> with _Lifecycle {
     );
   }
 
+  /// Returns all models of type [T] in local storage.
+  List<T> findAllLocal() {
+    return remoteAdapter.findAllLocal();
+  }
+
   /// Returns model of type [T] by [id].
   ///
   /// If [_RemoteAdapter.shouldLoadRemoteOne] (function of [remote]) is `true`,
@@ -120,6 +125,11 @@ class Repository<T extends DataModelMixin<T>> with _Lifecycle {
     );
   }
 
+  /// Returns model of type [T] by [id] in local storage.
+  T? findOneLocal(Object id) {
+    return remoteAdapter.findOneLocal(id);
+  }
+
   /// Saves [model] of type [T].
   ///
   /// If [remote] is `true`, it will initiate an HTTP call.
@@ -150,6 +160,11 @@ class Repository<T extends DataModelMixin<T>> with _Lifecycle {
     );
   }
 
+  /// Saves [model] of type [T] in local storage.
+  T saveLocal(T model) {
+    return remoteAdapter.saveLocal(model);
+  }
+
   /// Deletes [model] of type [T].
   ///
   /// If [remote] is `true`, it will initiate an HTTP call.
@@ -178,6 +193,11 @@ class Repository<T extends DataModelMixin<T>> with _Lifecycle {
       onError: onError,
       label: label,
     );
+  }
+
+  /// Deletes [model] of type [T] in local storage.
+  void deleteLocal(T model) {
+    return remoteAdapter.deleteLocal(model);
   }
 
   /// Deletes all models of type [T] in local storage.

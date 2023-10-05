@@ -259,7 +259,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     late List<T> models;
 
     if (!shouldLoadRemoteAll(remote!, params, headers) || background) {
-      models = localAdapter.findAll().toImmutableList();
+      models = findAllLocal();
       log(label,
           'returned ${models.toShortLog()} from local storage${background ? ' and loading in the background' : ''}');
       if (!background) {
@@ -300,6 +300,10 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     }
   }
 
+  List<T> findAllLocal() {
+    return localAdapter.findAll().toImmutableList();
+  }
+
   Future<T?> findOne(
     Object id, {
     bool? remote,
@@ -315,16 +319,13 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
 
-    final resolvedId = _resolveId(id);
     late T? model;
 
     label = DataRequestLabel('findOne',
-        type: internalType, id: resolvedId?.toString(), withParent: label);
+        type: internalType, id: _resolveId(id)?.toString(), withParent: label);
 
     if (!shouldLoadRemoteOne(id, remote!, params, headers) || background) {
-      final key = graph.getKeyForId(internalType, resolvedId,
-          keyIfAbsent: id is T ? id._key : null);
-      model = localAdapter.findOne(key);
+      model = findOneLocal(id);
       if (model != null) {
         log(label,
             'returned from local storage${background ? ' and loading in the background' : ''}');
@@ -356,6 +357,12 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     } else {
       return await future;
     }
+  }
+
+  T? findOneLocal(Object id) {
+    final key = graph.getKeyForId(internalType, _resolveId(id),
+        keyIfAbsent: id is T ? id._key : null);
+    return localAdapter.findOne(key);
   }
 
   Future<T> save(
