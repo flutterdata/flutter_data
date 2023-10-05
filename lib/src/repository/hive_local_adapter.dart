@@ -43,14 +43,22 @@ abstract class HiveLocalAdapter<T extends DataModelMixin<T>>
 
   @override
   List<T> findAll() {
-    final keys = _box?.keys ?? [];
-    return _box?.getAll(keys).filterNulls.map(deserialize).toList() ?? [];
+    final keys = _box?.keys;
+    if (keys == null) {
+      return [];
+    }
+    return _box
+            ?.getAll(keys)
+            .filterNulls
+            .map((e) => initModel(deserialize(e)))
+            .toList() ??
+        [];
   }
 
   @override
   T? findOne(String? key) {
     if (key == null) return null;
-    return _deserialize(_box?.get(key), key);
+    return _deserializeWithKey(_box?.get(key), key);
   }
 
   @override
@@ -59,7 +67,7 @@ abstract class HiveLocalAdapter<T extends DataModelMixin<T>>
     return _box
             ?.getAll(_keys)
             .filterNulls
-            .mapIndexed((i, map) => _deserialize(map, _keys[i]))
+            .mapIndexed((i, map) => _deserializeWithKey(map, _keys[i]))
             .filterNulls
             .toList() ??
         [];
@@ -105,7 +113,7 @@ abstract class HiveLocalAdapter<T extends DataModelMixin<T>>
     graph._notify([internalType], type: DataGraphEventType.clear);
   }
 
-  T? _deserialize(Map<String, dynamic>? map, String key) {
+  T? _deserializeWithKey(Map<String, dynamic>? map, String key) {
     if (map != null) {
       var model = deserialize(map);
       if (model.id == null) {
@@ -113,7 +121,7 @@ abstract class HiveLocalAdapter<T extends DataModelMixin<T>>
         // but we want to keep the supplied one, so we use `withKey`
         model = DataModel.withKey(key, applyTo: model);
       }
-      return model;
+      return initModel(model);
     } else {
       return null;
     }

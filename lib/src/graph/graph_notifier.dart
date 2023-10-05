@@ -32,7 +32,7 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
     _isar = Isar.open(
       name: '_graph',
       schemas: [EdgeSchema, InternalIdSchema],
-      directory: Hive.defaultDirectory!,
+      directory: _hiveLocalStorage.path,
     );
 
     if (_hiveLocalStorage.clear == LocalStorageClearStrategy.always) {

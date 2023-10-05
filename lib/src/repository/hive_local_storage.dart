@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter_data/flutter_data.dart';
 import 'package:hive/hive.dart';
-import 'package:path/path.dart' as path_helper;
 
 class HiveLocalStorage {
   HiveLocalStorage({
@@ -41,8 +40,7 @@ Widget build(context) {
     child: MaterialApp(
 ''');
     }
-
-    path = path_helper.join(await baseDirFn!(), 'flutter_data');
+    path = await baseDirFn!();
     Hive.defaultDirectory = path;
 
     isInitialized = true;
