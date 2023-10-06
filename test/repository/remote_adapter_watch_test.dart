@@ -385,7 +385,7 @@ void main() async {
           final adapter = container.people.remoteAdapter.localAdapter
               as HiveLocalAdapter<Person>;
           // check box has all the keys
-          expect(adapter.box!.keys.length, i);
+          expect(adapter.box.keys.length, i);
         } else {
           // one less because of emitting the deletion,
           // and one less because of the now missing model
@@ -441,7 +441,7 @@ void main() async {
 
     expect(container.people.watchAll(), DataState<List<Person>>([p2]));
 
-    await container.people.clear();
+    container.people.clear();
     await oneMs();
 
     verify(listener(DataState([], isLoading: false))).called(1);
@@ -515,7 +515,7 @@ void main() async {
         DataState<Person?>(Person(id: '1', name: 'Liam', age: 36)));
 
     // if local storage is cleared then it should update to null
-    await container.people.clear();
+    container.people.clear();
     await oneMs();
 
     expect(container.people.watchOne('1'), DataState<Person?>(null));

@@ -274,7 +274,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
       label: label,
       onSuccess: (data, label) async {
         if (syncLocal!) {
-          await localAdapter.clear();
+          localAdapter.clear();
         }
         onSuccess ??= (data, label, _) async {
           final result = await this.onSuccess<List<T>>(data, label);
@@ -473,7 +473,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     localAdapter.delete(model._key!, notify: notify);
   }
 
-  Future<void> clear() => localAdapter.clear();
+  void clear() => localAdapter.clear();
 
   // http
 

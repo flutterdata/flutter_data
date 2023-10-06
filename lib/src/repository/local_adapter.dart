@@ -48,7 +48,7 @@ abstract class LocalAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   /// Deletes all models of type [T] in local storage.
   @protected
   @visibleForTesting
-  Future<void> clear();
+  void clear();
 
   // model initialization
 

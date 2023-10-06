@@ -204,7 +204,7 @@ class Repository<T extends DataModelMixin<T>> with _Lifecycle {
   ///
   /// If you need to clear all models, use the
   /// `repositoryProviders` map exposed on your `main.data.dart`.
-  Future<void> clear() => remoteAdapter.clear();
+  void clear() => remoteAdapter.clear();
 
   // offline
 
