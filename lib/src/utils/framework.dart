@@ -26,14 +26,14 @@ class DataHelpers {
     return uuid.v1().substring(0, 6);
   }
 
-  static String generateKey<T>([String? type]) {
-    if (type != null) {
-      type = internalTypeFor(type);
-    } else {
-      type = getInternalType<T>();
-    }
-    return uuid.v1().substring(0, 8).typifyWith(type);
-  }
+  // static String generateKey<T>([String? type]) {
+  //   if (type != null) {
+  //     type = internalTypeFor(type);
+  //   } else {
+  //     type = getInternalType<T>();
+  //   }
+  //   return uuid.v1().substring(0, 8).typifyWith(type);
+  // }
 }
 
 class OfflineException extends DataException {

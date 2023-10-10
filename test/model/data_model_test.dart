@@ -17,7 +17,7 @@ void main() async {
 
   test('save', () async {
     final familia = Familia(id: '55', surname: 'Kelley');
-    expect(await container.familia.findOne('55', remote: false), isNull);
+    expect(container.familia.findOneLocal('55'), isNull);
 
     final person =
         Person(id: '1', name: 'John', age: 27, familia: familia.asBelongsTo);
@@ -27,7 +27,7 @@ void main() async {
     expect(person.familia.key, graph.getKeyForId('familia', '55'));
 
     // (2) it saves the model locally
-    expect(person, await container.people.findOne(person.id!, remote: false));
+    expect(person, container.people.findOneLocal(person.id!));
   });
 
   test('on model init', () async {
@@ -171,7 +171,6 @@ void main() async {
     expect(
         (container.people.remoteAdapter.localAdapter
                 as HiveLocalAdapter<Person>)
-            .box!
             .keys,
         contains(keyFor(p1)));
 
@@ -183,7 +182,6 @@ void main() async {
     expect(
         (container.people.remoteAdapter.localAdapter
                 as HiveLocalAdapter<Person>)
-            .box!
             .keys,
         contains(keyFor(p2)));
   });
@@ -215,7 +213,7 @@ void main() async {
     final adapter =
         container.dogs.remoteAdapter.localAdapter as HiveLocalAdapter;
 
-    final initialLength = adapter.box!.length;
+    final initialLength = adapter.count;
 
     final dogs = [
       Dog(id: '91', name: 'A').saveLocal(),
@@ -225,11 +223,11 @@ void main() async {
     ];
 
     // box should now be initial + amount of saved dogs
-    expect(adapter.box!.length, initialLength + dogs.length);
+    expect(adapter.count, initialLength + dogs.length);
 
     dogs.deleteAll();
 
     // after deleting the iterable, we should be back where we started
-    expect(adapter.box!.length, initialLength);
+    expect(adapter.count, initialLength);
   });
 }

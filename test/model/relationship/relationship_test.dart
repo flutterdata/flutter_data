@@ -11,7 +11,6 @@ import '../../_support/node.dart';
 import '../../_support/person.dart';
 import '../../_support/pet.dart';
 import '../../_support/setup.dart';
-import '../../mocks.dart';
 
 void main() async {
   setUpAll(setUpIsar);
@@ -91,12 +90,12 @@ void main() async {
     final h1 = houseLocalAdapter.deserialize({
       'id': '1',
       'address': '123 Main St',
-      'owner': 'familia#a1a1a1'
+      'owner': 'familia#111'
     }).saveLocal();
     expect(h1.owner.value, isNull);
     expect(keyFor(h1), isNotNull);
 
-    graph.getKeyForId('familia', '1', keyIfAbsent: 'familia#a1a1a1');
+    graph.getKeyForId('familia', '1', keyIfAbsent: 'familia#111');
 
     // once it does
     final familia =
@@ -112,21 +111,22 @@ void main() async {
       id: '1',
       surname: 'Jones',
       persons: HasMany.fromJson({
-        '_': {'people#c1c1c1', 'people#c2c2c2', 'people#c3c3c3'}
+        '_': {'people#111', 'people#222', 'people#333'}
       }),
       residence: BelongsTo.fromJson({
-        '_': {'houses#c98d1b'}
+        '_': {'houses#777'}
       }),
     ).saveLocal();
 
     expect(familia.residence.key, isNotNull);
+    expect(familia.residence.value, isNull);
     expect(familia.persons.keys.length, 3);
 
     // associate ids with keys
-    graph.getKeyForId('people', '1', keyIfAbsent: 'people#c1c1c1');
-    graph.getKeyForId('people', '2', keyIfAbsent: 'people#c2c2c2');
-    graph.getKeyForId('people', '3', keyIfAbsent: 'people#c3c3c3');
-    graph.getKeyForId('houses', '98', keyIfAbsent: 'houses#c98d1b');
+    graph.getKeyForId('people', '1', keyIfAbsent: 'people#111');
+    graph.getKeyForId('people', '2', keyIfAbsent: 'people#222');
+    graph.getKeyForId('people', '3', keyIfAbsent: 'people#333');
+    graph.getKeyForId('houses', '98', keyIfAbsent: 'houses#777');
 
     // no people have been loaded
     expect(familia.persons.toList(), isEmpty);
@@ -221,10 +221,10 @@ void main() async {
     final familia5 = container.familia.remoteAdapter.localAdapter.deserialize({
       'id': '229',
       'surname': 'Rose',
-      'persons': ['people#231aaa']
+      'persons': ['people#231456']
     });
 
-    graph.getKeyForId('people', '231', keyIfAbsent: 'people#231aaa');
+    graph.getKeyForId('people', '231', keyIfAbsent: 'people#231456');
     final axl = Person(id: '231', name: 'Axl', age: 58).saveLocal();
     expect(familia5.persons.toSet(), {axl});
   });

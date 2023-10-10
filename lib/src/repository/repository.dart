@@ -5,7 +5,8 @@ class Repository<T extends DataModelMixin<T>> with _Lifecycle {
   final Ref _ref;
   Repository(this._ref);
 
-  var _isInit = false;
+  @override
+  var isInitialized = false;
 
   String get _internalType => DataHelpers.getInternalType<T>();
 
@@ -31,21 +32,16 @@ class Repository<T extends DataModelMixin<T>> with _Lifecycle {
       adapters: adapters,
       ref: _ref,
     );
-    _isInit = true;
+    isInitialized = true;
     return this;
   }
-
-  /// Whether this [Repository] is initialized
-  /// (when its underlying [RemoteAdapter] is).
-  @override
-  bool get isInitialized => _isInit && remoteAdapter.isInitialized;
 
   /// Disposes this [Repository] and everything that depends on it.
   @override
   void dispose() {
     if (isInitialized) {
       remoteAdapter.dispose();
-      _isInit = false;
+      isInitialized = false;
     }
   }
 

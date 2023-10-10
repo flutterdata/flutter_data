@@ -165,6 +165,9 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
   // lifecycle methods
 
+  @override
+  var isInitialized = false;
+
   @mustCallSuper
   Future<void> onInitialized() async {}
 
@@ -181,16 +184,11 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     _remote = remote ?? true;
     _ref = ref;
 
-    await localAdapter.initialize();
-
     // hook for clients
     await onInitialized();
 
     return this as RemoteAdapter<T>;
   }
-
-  @override
-  bool get isInitialized => localAdapter.isInitialized;
 
   @override
   void dispose() {
@@ -360,9 +358,9 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   }
 
   T? findOneLocal(Object id) {
-    final key = graph.getKeyForId(internalType, _resolveId(id),
-        keyIfAbsent: id is T ? id._key : null);
-    return localAdapter.findOne(key);
+    // final key = graph.getKeyForId(internalType, _resolveId(id),
+    //     keyIfAbsent: id is T ? id._key : null);
+    return localAdapter.findOneById(id);
   }
 
   Future<T> save(
@@ -835,7 +833,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
       return model._key!;
     } else {
       return graph.getKeyForId(internalType, model,
-          keyIfAbsent: DataHelpers.generateKey<T>())!;
+          keyIfAbsent: graph.generateKey<T>())!;
     }
   }
 

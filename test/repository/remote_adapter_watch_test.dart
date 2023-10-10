@@ -11,7 +11,6 @@ import '../_support/familia.dart';
 import '../_support/house.dart';
 import '../_support/person.dart';
 import '../_support/setup.dart';
-import '../mocks.dart';
 
 void main() async {
   setUpAll(setUpIsar);
@@ -385,7 +384,7 @@ void main() async {
           final adapter = container.people.remoteAdapter.localAdapter
               as HiveLocalAdapter<Person>;
           // check box has all the keys
-          expect(adapter.box.keys.length, i);
+          expect(adapter.keys.length, i);
         } else {
           // one less because of emitting the deletion,
           // and one less because of the now missing model

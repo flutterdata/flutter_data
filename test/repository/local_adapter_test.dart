@@ -44,7 +44,7 @@ void main() async {
         familiaLocalAdapter.deserialize({'id': '1098', 'surname': 'Moletto'});
 
     expect(familia2, Familia(id: '1098', surname: 'Moletto'));
-    expect(familiaLocalAdapter.box!.keys, [keyFor(familia2)]);
+    expect(familiaLocalAdapter.keys, [keyFor(familia2)]);
   });
 
   test('deserialize many local for same remote ID', () {

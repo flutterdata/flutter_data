@@ -13,8 +13,6 @@ abstract class LocalAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   @visibleForTesting
   final GraphNotifier graph;
 
-  FutureOr<LocalAdapter<T>> initialize();
-
   String get internalType => DataHelpers.getInternalType<T>();
 
   // protected API
@@ -24,6 +22,9 @@ abstract class LocalAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
   /// Finds model of type [T] by [key] in local storage.
   T? findOne(String? key);
+
+  /// Finds model of type [T] by [id] in local storage.
+  T? findOneById(Object? id);
 
   /// Finds many models of type [T] by [keys] in local storage.
   List<T> findMany(Iterable<String> keys);
@@ -50,6 +51,12 @@ abstract class LocalAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   @visibleForTesting
   void clear();
 
+  /// Counts all models of type [T] in local storage.
+  int get count;
+
+  /// Gets all keys of type [T] in local storage.
+  List<String> get keys;
+
   // model initialization
 
   @protected
@@ -57,7 +64,7 @@ abstract class LocalAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   T initModel(T model, {Function(T)? onModelInitialized}) {
     if (model._key == null) {
       model._key = graph.getKeyForId(internalType, model.id,
-          keyIfAbsent: DataHelpers.generateKey<T>())!;
+          keyIfAbsent: graph.generateKey<T>())!;
       _initializeRelationships(model);
       onModelInitialized?.call(model);
     }

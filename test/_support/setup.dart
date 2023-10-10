@@ -5,6 +5,7 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:isar/isar.dart';
+import 'package:mockito/mockito.dart';
 import 'package:path/path.dart' as path;
 
 import 'book.dart';
@@ -124,10 +125,6 @@ Future<void> setUpFn() async {
 }
 
 Future<void> setUpIsar() async {
-  // create flutter_data dir for Isar files
-  final dir = Directory(path.join(kTestsPath, 'flutter_data'));
-  dir.createSync();
-
   // initialize Isar Core
   final binaryName = Platform.isWindows
       ? 'isar.dll'
@@ -140,8 +137,12 @@ Future<void> setUpIsar() async {
 }
 
 Future<void> tearDownIsar() async {
-  final dir = Directory(path.join(kTestsPath, 'flutter_data'));
-  dir.deleteSync(recursive: true);
+  try {
+    File(path.join(kTestsPath, 'flutter_data.isar')).deleteSync();
+    File(path.join(kTestsPath, 'flutter_data.isar.lock')).deleteSync();
+  } on PathNotFoundException {
+    // ignore
+  }
 }
 
 Future<void> tearDownFn() async {
@@ -227,6 +228,10 @@ extension ProviderContainerX on ProviderContainer {
       _watch(booksRepositoryProvider)..remoteAdapter.internalWatch = _watch;
   Repository<Library> get libraries =>
       _watch(librariesRepositoryProvider)..remoteAdapter.internalWatch = _watch;
+}
+
+class Listener<T> extends Mock {
+  void call(T value);
 }
 
 void logTime(String name, Function cb) {

@@ -18,13 +18,6 @@ void main() async {
     expect(DataHelpers.getInternalType<Person>(), 'people');
   });
 
-  test('generateKey', () {
-    expect(() => DataHelpers.generateKey(), throwsA(isA<UnsupportedError>()));
-    DataHelpers.setInternalType<Person>('people');
-    expect(DataHelpers.generateKey<Person>(), startsWith('people#'));
-    expect(DataHelpers.generateKey('robot'), startsWith('robots#'));
-  });
-
   test('uri helpers', () {
     final uri =
         'http://example.com/namespace/'.asUri / 'path/' / '../path' / '/./sub' &

@@ -249,14 +249,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.1"
-  hive:
-    dependency: "direct main"
-    description:
-      name: hive
-      sha256: "10819524df282842ebae12870e2e0e9ebc3e5c4637bec741ad39b919c589cb20"
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.0.0-dev.2"
   html:
     dependency: transitive
     description:
@@ -361,6 +353,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.12.16"
+  messagepack:
+    dependency: "direct main"
+    description:
+      name: messagepack
+      sha256: "11e69dd79ba84ba901261558881b42ac8b24155a7846a344875a32c8b0866d71"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.1"
   meta:
     dependency: "direct main"
     description:

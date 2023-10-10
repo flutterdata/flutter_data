@@ -4,86 +4,91 @@ part of flutter_data;
 // ignore: must_be_immutable
 abstract class HiveLocalAdapter<T extends DataModelMixin<T>>
     extends LocalAdapter<T> {
-  HiveLocalAdapter(Ref ref)
-      : _hiveLocalStorage = ref.read(hiveLocalStorageProvider),
-        super(ref);
-
-  final HiveLocalStorage _hiveLocalStorage;
+  HiveLocalAdapter(Ref ref) : super(ref);
 
   @protected
   @visibleForTesting
-  Box<Map<String, dynamic>>? get box => _box!;
-  Box<Map<String, dynamic>>? _box;
+  Isar get isar => graph._isar;
 
   @override
-  Future<HiveLocalAdapter<T>> initialize() async {
-    if (isInitialized) return this;
-
-    try {
-      if (_hiveLocalStorage.clear == LocalStorageClearStrategy.always) {
-        Hive.box(name: internalType).deleteFromDisk();
-      }
-      _box = Hive.box(name: internalType);
-    } catch (e, stackTrace) {
-      print('[flutter_data] Box failed to open:\n$e\n$stackTrace');
-    }
-
-    return this;
-  }
+  bool get isInitialized => true;
 
   @override
-  bool get isInitialized => _box?.isOpen ?? false;
-
-  @override
-  void dispose() {
-    _box?.close();
-  }
+  void dispose() {}
 
   // protected API
 
   @override
   List<T> findAll() {
-    final keys = _box?.keys;
-    if (keys == null) {
-      return [];
-    }
-    return _box
-            ?.getAll(keys)
-            .filterNulls
-            .map((e) => initModel(deserialize(e)))
-            .toList() ??
-        [];
+    return isar.storedModels
+        .where()
+        .typeEqualTo(internalType)
+        .dataIsNotEmpty()
+        .findAll()
+        .map((e) => initModel(deserialize(e.toJson()!)))
+        .toList();
   }
 
   @override
   T? findOne(String? key) {
     if (key == null) return null;
-    return _deserializeWithKey(_box?.get(key), key);
+    final internalKey = graph.intKey(key);
+    final json = isar.storedModels.get(internalKey)?.toJson();
+    return _deserializeWithKey(json, internalKey);
+  }
+
+  @override
+  T? findOneById(Object? id) {
+    if (id == null) return null;
+    final model = isar.storedModels
+        .where()
+        .typeEqualTo(internalType)
+        .idEqualTo(id.toString())
+        .findFirst();
+    return _deserializeWithKey(model?.toJson(), model?.key);
   }
 
   @override
   List<T> findMany(Iterable<String> keys) {
-    final _keys = keys.toList();
-    return _box
-            ?.getAll(_keys)
-            .filterNulls
-            .mapIndexed((i, map) => _deserializeWithKey(map, _keys[i]))
-            .filterNulls
-            .toList() ??
-        [];
+    final _keys = keys.map(graph.intKey).toList();
+    return graph._isar.storedModels
+        .getAll(_keys)
+        .filterNulls
+        .mapIndexed((i, map) => _deserializeWithKey(map.toJson(), _keys[i]))
+        .filterNulls
+        .toList();
   }
 
   @override
   bool exists(String key) {
-    return _box!.containsKey(key);
+    return graph._isar.storedModels
+            .where()
+            .keyEqualTo(graph.intKey(key))
+            .dataIsNotNull()
+            .count() >
+        0;
   }
 
   @override
   Future<T> save(String key, T model, {bool notify = true}) async {
-    if (_box == null) return model;
+    final keyExisted = exists(key);
 
-    final keyExisted = _box!.containsKey(key);
-    _box!.put(key, serialize(model, withRelationships: false));
+    final packer = Packer();
+    // TODO could avoid saving ID
+    packer.packJson(serialize(model, withRelationships: false));
+
+    // TODO if key exists then only update, otherwise save
+    // TODO use some lower level to only push data bytes
+
+    final storedModel = StoredModel(
+      id: model.id?.toString(),
+      isIdInt: model.id is int,
+      type: internalType,
+      key: graph.intKey(key),
+      data: packer.takeBytes(),
+    );
+
+    isar.write((isar) => isar.storedModels.put(storedModel));
     if (notify) {
       graph._notify(
         [key],
@@ -97,29 +102,43 @@ abstract class HiveLocalAdapter<T extends DataModelMixin<T>>
 
   @override
   Future<void> delete(String key, {bool notify = true}) async {
-    if (_box == null) return;
-    _box!.delete(key);
-    final id = graph.getIdForKey(key);
-    if (id != null) {
-      graph.removeId(internalType, id, notify: false);
-    }
-    graph.removeKey(key);
+    isar.write((isar) => isar.storedModels.delete(graph.intKey(key)));
+    graph._notify([key], type: DataGraphEventType.removeNode);
   }
 
   @override
   Future<void> clear() async {
-    if (_box == null) return;
-    _box!.clear();
+    graph._isar.write((isar) => isar.clear());
     graph._notify([internalType], type: DataGraphEventType.clear);
   }
 
-  T? _deserializeWithKey(Map<String, dynamic>? map, String key) {
+  @override
+  int get count {
+    return isar.storedModels.where().typeEqualTo(internalType).count();
+  }
+
+  @override
+  List<String> get keys {
+    return isar.storedModels
+        .where()
+        .typeEqualTo(internalType)
+        .keyProperty()
+        .findAll()
+        .map((k) => k.toString().typifyWith(internalType))
+        .toList();
+  }
+
+  ///
+
+  T? _deserializeWithKey(Map<String, dynamic>? map, int? internalKey) {
     if (map != null) {
       var model = deserialize(map);
       if (model.id == null) {
         // if model has no ID, deserializing will assign a new key
         // but we want to keep the supplied one, so we use `withKey`
-        model = DataModel.withKey(key, applyTo: model);
+        model = DataModel.withKey(
+            internalKey.toString().typifyWith(internalType),
+            applyTo: model);
       }
       return initModel(model);
     } else {

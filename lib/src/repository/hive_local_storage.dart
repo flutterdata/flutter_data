@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter_data/flutter_data.dart';
-import 'package:hive/hive.dart';
 
 class HiveLocalStorage {
   HiveLocalStorage({
@@ -15,7 +14,7 @@ class HiveLocalStorage {
   final LocalStorageClearStrategy clear;
   late final String path;
 
-  bool isInitialized = false;
+  var isInitialized = false;
 
   Future<void> initialize() async {
     if (isInitialized) return;
@@ -41,13 +40,12 @@ Widget build(context) {
 ''');
     }
     path = await baseDirFn!();
-    Hive.defaultDirectory = path;
-
     isInitialized = true;
   }
 
   Future<void> destroy() async {
-    Hive.deleteAllBoxesFromDisk();
+    // TODO restore Hive features here?
+    // Hive.deleteAllBoxesFromDisk();
   }
 }
 

@@ -7,7 +7,6 @@ import '../../_support/familia.dart';
 import '../../_support/house.dart';
 import '../../_support/person.dart';
 import '../../_support/setup.dart';
-import '../../mocks.dart';
 
 void main() async {
   setUpAll(setUpIsar);

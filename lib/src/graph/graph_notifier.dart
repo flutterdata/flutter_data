@@ -20,7 +20,9 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   HiveLocalStorage get _hiveLocalStorage => ref.read(hiveLocalStorageProvider);
 
   bool _doAssert = true;
-  bool _isInitialized = false;
+
+  @override
+  bool isInitialized = false;
 
   late Isar _isar;
 
@@ -29,23 +31,29 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
     if (isInitialized) return this;
     await _hiveLocalStorage.initialize();
 
-    _isar = Isar.open(
-      name: '_graph',
-      schemas: [EdgeSchema, InternalIdSchema],
-      directory: _hiveLocalStorage.path,
-    );
+    try {
+      _isar = Isar.open(
+        name: 'flutter_data',
+        schemas: [EdgeSchema, StoredModelSchema],
+        directory: _hiveLocalStorage.path,
+      );
+    } catch (e, stackTrace) {
+      print('[flutter_data] Isar failed to open:\n$e\n$stackTrace');
+    }
 
     if (_hiveLocalStorage.clear == LocalStorageClearStrategy.always) {
       _isar.write((isar) => isar.clear());
     }
 
+    isInitialized = true;
     return this;
   }
 
   @override
   void dispose() {
     if (isInitialized) {
-      _isar.close();
+      // _isar.close();
+      isInitialized = false;
       super.dispose();
     }
   }
@@ -54,8 +62,14 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
     _isar.write((isar) => isar.edges.clear());
   }
 
-  @override
-  bool get isInitialized => _isInitialized;
+  String generateKey<T>([String? type]) {
+    if (type != null) {
+      type = DataHelpers.internalTypeFor(type);
+    } else {
+      type = DataHelpers.getInternalType<T>();
+    }
+    return _isar.storedModels.autoIncrement().toString().typifyWith(type);
+  }
 
   // Key-related methods
 
@@ -69,20 +83,23 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   String? getKeyForId(String type, Object? id, {String? keyIfAbsent}) {
     type = DataHelpers.internalTypeFor(type);
     if (id != null) {
-      final idMapping = _isar.idMappings
+      final key = _isar.storedModels
           .where()
-          .idEqualTo(id.toString().typifyWith(type))
+          .typeEqualTo(type)
+          .idEqualTo(id.toString())
+          .keyProperty()
           .findFirst();
-      if (idMapping != null) {
-        return idMapping.key;
+      if (key != null) {
+        return key.toString().typifyWith(type);
       }
       if (keyIfAbsent != null) {
-        final idMapping = IdMapping(
-            key: keyIfAbsent,
-            id: id.toString().typifyWith(type),
-            isInt: id is int);
-        _isar.write((isar) => isar.idMappings.put(idMapping));
-        return idMapping.key;
+        final storedModel = StoredModel(
+            key: intKey(keyIfAbsent),
+            id: id.toString(),
+            type: type,
+            isIdInt: id is int);
+        _isar.write((isar) => isar.storedModels.put(storedModel));
+        return storedModel.key.toString().typifyWith(type);
       }
     } else if (keyIfAbsent != null) {
       return keyIfAbsent;
@@ -90,28 +107,34 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
     return null;
   }
 
-  /// Removes key
-  void removeKey(String key) {
-    _isar.write((isar) => isar.idMappings.delete(Isar.fastHash(key)));
-    state = DataGraphEvent(keys: [key], type: DataGraphEventType.removeNode);
-  }
-
   /// Finds an ID, given a [key].
   Object? getIdForKey(String key) {
-    final idMapping = _isar.idMappings.get(Isar.fastHash(key));
-    if (idMapping == null) {
+    final tuple = _isar.storedModels
+        .where()
+        .keyEqualTo(intKey(key))
+        .idProperty()
+        .isIdIntProperty()
+        .findFirst();
+    if (tuple == null || tuple.$1 == null) {
       return null;
     }
-    final id = idMapping.id.detypify();
-    return idMapping.isInt ? int.parse(id) : id;
+    final (id, isInt) = tuple;
+    return isInt ? int.parse(id!) : id;
   }
 
   /// Removes [type]/[id] mapping
   void removeId(String type, Object id, {bool notify = true}) {
+    _isar.write((isar) => isar.storedModels
+        .where()
+        .typeEqualTo(type)
+        .idEqualTo(id.toString())
+        .updateAll(id: null));
     final typeId = id.toString().typifyWith(type);
-    _isar
-        .write((isar) => isar.idMappings.where().idEqualTo(typeId).deleteAll());
     state = DataGraphEvent(keys: [typeId], type: DataGraphEventType.removeNode);
+  }
+
+  int intKey(String key) {
+    return int.parse(key.detypify());
   }
 
   // nodes
@@ -246,8 +269,17 @@ Key "$key":
 
   /// Returns a [Map] representation of the internal ID db
   Map<String, String> toIdMap() {
-    final iids = _isar.idMappings.where().findAll();
-    return {for (final iid in iids) iid.key: iid.id};
+    final triples = _isar.storedModels
+        .where()
+        .idIsNotNull()
+        .keyProperty()
+        .typeProperty()
+        .idProperty()
+        .findAll();
+    return {
+      for (final t in triples)
+        t.$1.toString().typifyWith(t.$2): t.$3.toString().typifyWith(t.$2)
+    };
   }
 
   void debugMap() => _prettyPrintJson(_toMap());
@@ -483,3 +515,109 @@ extension _DataGraphEventX on DataGraphEventType {
 
 final graphNotifierProvider =
     Provider<GraphNotifier>((ref) => GraphNotifier(ref));
+
+extension PackerX on Packer {
+  void packJson(Map<String, dynamic> map) {
+    packMapLength(map.length);
+    map.forEach((key, v) {
+      packString(key);
+      packDynamic(v);
+    });
+  }
+
+  void packListDynamic(List list) {
+    packListLength(list.length);
+    for (final v in list) {
+      packDynamic(v);
+    }
+  }
+
+  void packDynamic(dynamic value) {
+    if (value is Map) {
+      packInt(5);
+      return packJson(Map<String, dynamic>.from(value));
+    }
+
+    final type = value.runtimeType;
+    if (type == Null) {
+      packInt(0);
+      return packNull();
+    }
+    if (type == String) {
+      packInt(1);
+      return packString(value);
+    }
+    if (type == int) {
+      // WORKAROUND: for some reason negative ints are not working
+      // so we save it as a special string (prefixed with $n:)
+      if ((value as int).isNegative) {
+        packInt(1);
+        return packString('\$n:$value');
+      }
+      packInt(2);
+      return packInt(value);
+    }
+    if (type == double) {
+      packInt(3);
+      return packDouble(value);
+    }
+    if (type == bool) {
+      packInt(4);
+      return packBool(value);
+    }
+    // List of any type
+    if (type.toString().startsWith('List')) {
+      packInt(6);
+      return packListDynamic(value);
+    }
+    throw Exception('missing type $type ($value)');
+  }
+}
+
+extension UnpackerX on Unpacker {
+  Map<String, dynamic> unpackJson() {
+    final map = <String, dynamic>{};
+    final length = unpackMapLength();
+    for (var i = 0; i < length; i++) {
+      final key = unpackString();
+      map[key!] = unpackDynamic();
+    }
+    return map;
+  }
+
+  List unpackListDynamic() {
+    final list = [];
+    final length = unpackListLength();
+    for (var i = 0; i < length; i++) {
+      list.add(unpackDynamic());
+    }
+    return list;
+  }
+
+  dynamic unpackDynamic() {
+    final type = unpackInt();
+    switch (type) {
+      case 0:
+        return unpackString();
+      case 1:
+        final str = unpackString();
+        // WORKAROUND: we unpack a negative int (encoded with the $n: prefix)
+        if (str != null && str.startsWith('\$n:-')) {
+          return int.parse(str.split(':').last);
+        }
+        return str;
+      case 2:
+        return unpackInt();
+      case 3:
+        return unpackDouble();
+      case 4:
+        return unpackBool();
+      case 5:
+        return unpackJson();
+      case 6:
+        return unpackListDynamic();
+      default:
+        throw Exception('missing type $type');
+    }
+  }
+}

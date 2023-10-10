@@ -37,7 +37,7 @@ mixin _RemoteAdapterSerialization<T extends DataModelMixin<T>>
       }
       if (id != null && adapter != null) {
         return graph.getKeyForId(adapter.internalType, id,
-            keyIfAbsent: DataHelpers.generateKey(adapter.internalType));
+            keyIfAbsent: graph.generateKey(adapter.internalType));
       }
       return null;
     }

@@ -32,9 +32,10 @@ extension DeleteAllX<T extends DataModelMixin<T>>
     if (isEmpty) return;
 
     final adapter = first._remoteAdapter.localAdapter as HiveLocalAdapter<T>;
-    final keys = map((e) => e._key).filterNulls;
-
-    adapter._box!.deleteAll(keys);
+    final keys =
+        map((e) => e._key != null ? adapter.graph.intKey(e._key!) : null)
+            .filterNulls;
+    adapter.isar.write((isar) => isar.storedModels.deleteAll(keys.toList()));
   }
 }
 

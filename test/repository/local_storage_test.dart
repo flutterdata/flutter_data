@@ -5,7 +5,6 @@
 import 'dart:io';
 
 import 'package:flutter_data/flutter_data.dart';
-import 'package:hive/hive.dart';
 import 'package:test/test.dart';
 
 void main() async {
@@ -28,19 +27,4 @@ void main() async {
       ).initialize();
     }, throwsA(isA<UnsupportedError>()));
   });
-
-  test('hive local storage clear when error', () async {
-    late final Directory dir;
-
-    dir = await Directory('tmp').create();
-    final storage = HiveLocalStorage(
-      baseDirFn: () => dir.path,
-      clear: LocalStorageClearStrategy.whenError,
-    );
-    await storage.initialize();
-
-    expect(() async {
-      Hive.box(name: '_error');
-    }, throwsA(isA<Error>()));
-  }, skip: true);
 }
