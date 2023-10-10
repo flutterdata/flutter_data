@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_data/flutter_data.dart';
 
-class HiveLocalStorage {
-  HiveLocalStorage({
+class IsarLocalStorage {
+  IsarLocalStorage({
     this.baseDirFn,
     this.encryptionKey,
     LocalStorageClearStrategy? clear,
@@ -55,6 +55,6 @@ enum LocalStorageClearStrategy {
   whenError,
 }
 
-final hiveLocalStorageProvider = Provider<HiveLocalStorage>(
-  (ref) => HiveLocalStorage(baseDirFn: () => ''),
+final hiveLocalStorageProvider = Provider<IsarLocalStorage>(
+  (ref) => IsarLocalStorage(baseDirFn: () => ''),
 );

@@ -41,7 +41,7 @@ final _bookAuthorsFinders = <String, dynamic>{
 };
 
 // ignore: must_be_immutable
-class $BookAuthorHiveLocalAdapter = HiveLocalAdapter<BookAuthor>
+class $BookAuthorIsarLocalAdapter = IsarLocalAdapter<BookAuthor>
     with $BookAuthorLocalAdapter;
 
 class $BookAuthorRemoteAdapter = RemoteAdapter<BookAuthor>
@@ -49,7 +49,7 @@ class $BookAuthorRemoteAdapter = RemoteAdapter<BookAuthor>
 
 final internalBookAuthorsRemoteAdapterProvider =
     Provider<RemoteAdapter<BookAuthor>>((ref) => $BookAuthorRemoteAdapter(
-        $BookAuthorHiveLocalAdapter(ref), InternalHolder(_bookAuthorsFinders)));
+        $BookAuthorIsarLocalAdapter(ref), InternalHolder(_bookAuthorsFinders)));
 
 final bookAuthorsRepositoryProvider =
     Provider<Repository<BookAuthor>>((ref) => Repository<BookAuthor>(ref));
@@ -114,13 +114,13 @@ mixin $BookLocalAdapter on LocalAdapter<Book> {
 final _booksFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $BookHiveLocalAdapter = HiveLocalAdapter<Book> with $BookLocalAdapter;
+class $BookIsarLocalAdapter = IsarLocalAdapter<Book> with $BookLocalAdapter;
 
 class $BookRemoteAdapter = RemoteAdapter<Book> with NothingMixin;
 
 final internalBooksRemoteAdapterProvider = Provider<RemoteAdapter<Book>>(
     (ref) => $BookRemoteAdapter(
-        $BookHiveLocalAdapter(ref), InternalHolder(_booksFinders)));
+        $BookIsarLocalAdapter(ref), InternalHolder(_booksFinders)));
 
 final booksRepositoryProvider =
     Provider<Repository<Book>>((ref) => Repository<Book>(ref));
@@ -182,14 +182,14 @@ mixin $LibraryLocalAdapter on LocalAdapter<Library> {
 final _librariesFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $LibraryHiveLocalAdapter = HiveLocalAdapter<Library>
+class $LibraryIsarLocalAdapter = IsarLocalAdapter<Library>
     with $LibraryLocalAdapter;
 
 class $LibraryRemoteAdapter = RemoteAdapter<Library> with NothingMixin;
 
 final internalLibrariesRemoteAdapterProvider = Provider<RemoteAdapter<Library>>(
     (ref) => $LibraryRemoteAdapter(
-        $LibraryHiveLocalAdapter(ref), InternalHolder(_librariesFinders)));
+        $LibraryIsarLocalAdapter(ref), InternalHolder(_librariesFinders)));
 
 final librariesRepositoryProvider =
     Provider<Repository<Library>>((ref) => Repository<Library>(ref));

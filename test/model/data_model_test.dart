@@ -170,7 +170,7 @@ void main() async {
     final p1 = Person(name: 'Frank', age: 20).saveLocal();
     expect(
         (container.people.remoteAdapter.localAdapter
-                as HiveLocalAdapter<Person>)
+                as IsarLocalAdapter<Person>)
             .keys,
         contains(keyFor(p1)));
 
@@ -181,7 +181,7 @@ void main() async {
 
     expect(
         (container.people.remoteAdapter.localAdapter
-                as HiveLocalAdapter<Person>)
+                as IsarLocalAdapter<Person>)
             .keys,
         contains(keyFor(p2)));
   });
@@ -211,7 +211,7 @@ void main() async {
 
   test('delete models in iterable', () async {
     final adapter =
-        container.dogs.remoteAdapter.localAdapter as HiveLocalAdapter;
+        container.dogs.remoteAdapter.localAdapter as IsarLocalAdapter;
 
     final initialLength = adapter.count;
 

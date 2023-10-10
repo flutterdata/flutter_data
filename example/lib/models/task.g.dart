@@ -39,13 +39,13 @@ mixin $TaskLocalAdapter on LocalAdapter<Task> {
 final _tasksFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $TaskHiveLocalAdapter = HiveLocalAdapter<Task> with $TaskLocalAdapter;
+class $TaskIsarLocalAdapter = IsarLocalAdapter<Task> with $TaskLocalAdapter;
 
 class $TaskRemoteAdapter = RemoteAdapter<Task> with JSONServerAdapter<Task>;
 
 final internalTasksRemoteAdapterProvider = Provider<RemoteAdapter<Task>>(
     (ref) => $TaskRemoteAdapter(
-        $TaskHiveLocalAdapter(ref), InternalHolder(_tasksFinders)));
+        $TaskIsarLocalAdapter(ref), InternalHolder(_tasksFinders)));
 
 final tasksRepositoryProvider =
     Provider<Repository<Task>>((ref) => Repository<Task>(ref));

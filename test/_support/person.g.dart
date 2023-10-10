@@ -39,7 +39,7 @@ mixin $PersonLocalAdapter on LocalAdapter<Person> {
 final _peopleFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $PersonHiveLocalAdapter = HiveLocalAdapter<Person>
+class $PersonIsarLocalAdapter = IsarLocalAdapter<Person>
     with $PersonLocalAdapter;
 
 class $PersonRemoteAdapter = RemoteAdapter<Person>
@@ -50,7 +50,7 @@ class $PersonRemoteAdapter = RemoteAdapter<Person>
 
 final internalPeopleRemoteAdapterProvider = Provider<RemoteAdapter<Person>>(
     (ref) => $PersonRemoteAdapter(
-        $PersonHiveLocalAdapter(ref), InternalHolder(_peopleFinders)));
+        $PersonIsarLocalAdapter(ref), InternalHolder(_peopleFinders)));
 
 final peopleRepositoryProvider =
     Provider<Repository<Person>>((ref) => Repository<Person>(ref));

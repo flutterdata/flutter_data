@@ -48,7 +48,7 @@ Future<void> setUpFn() async {
         });
       }),
       hiveLocalStorageProvider.overrideWith(
-        (ref) => HiveLocalStorage(
+        (ref) => IsarLocalStorage(
           baseDirFn: () => kTestsPath,
           clear: LocalStorageClearStrategy.always,
         ),

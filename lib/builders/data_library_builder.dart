@@ -160,8 +160,8 @@ ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<Str
   ${isFlutter ? '  baseDirFn ??= () => \'\';' : ''}
   ${isFlutter ? '}' : ''}
   
-  return hiveLocalStorageProvider.overrideWith(
-    (ref) => HiveLocalStorage(
+  return isarLocalStorageProvider.overrideWith(
+    (ref) => IsarLocalStorage(
       baseDirFn: baseDirFn,
       encryptionKey: encryptionKey,
       clear: clear,

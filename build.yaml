@@ -1,6 +1,10 @@
 targets:
   $default:
     builders:
+      json_serializable:
+        generate_for:
+          - test/_support/*
+          - example/lib/models/*
       flutter_data|data_repository_builder:
         generate_for:
           - test/_support/*
@@ -13,6 +17,8 @@ targets:
         generate_for:
           - /*
           - example/*
+      isar|isar_generator:
+        enabled: false
 
 builders:
   data_repository_builder:

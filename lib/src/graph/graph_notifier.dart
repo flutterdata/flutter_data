@@ -17,7 +17,7 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   @protected
   GraphNotifier(this.ref);
 
-  HiveLocalStorage get _hiveLocalStorage => ref.read(hiveLocalStorageProvider);
+  IsarLocalStorage get _hiveLocalStorage => ref.read(hiveLocalStorageProvider);
 
   bool _doAssert = true;
 

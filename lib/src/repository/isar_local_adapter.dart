@@ -2,9 +2,9 @@ part of flutter_data;
 
 /// Hive implementation of [LocalAdapter].
 // ignore: must_be_immutable
-abstract class HiveLocalAdapter<T extends DataModelMixin<T>>
+abstract class IsarLocalAdapter<T extends DataModelMixin<T>>
     extends LocalAdapter<T> {
-  HiveLocalAdapter(Ref ref) : super(ref);
+  IsarLocalAdapter(Ref ref) : super(ref);
 
   @protected
   @visibleForTesting
@@ -77,9 +77,6 @@ abstract class HiveLocalAdapter<T extends DataModelMixin<T>>
     // TODO could avoid saving ID
     packer.packJson(serialize(model, withRelationships: false));
 
-    // TODO if key exists then only update, otherwise save
-    // TODO use some lower level to only push data bytes
-
     final storedModel = StoredModel(
       id: model.id?.toString(),
       isIdInt: model.id is int,
@@ -87,8 +84,8 @@ abstract class HiveLocalAdapter<T extends DataModelMixin<T>>
       key: graph.intKey(key),
       data: packer.takeBytes(),
     );
-
     isar.write((isar) => isar.storedModels.put(storedModel));
+
     if (notify) {
       graph._notify(
         [key],

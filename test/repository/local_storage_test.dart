@@ -12,7 +12,7 @@ void main() async {
     late final Directory dir;
 
     dir = await Directory('tmp').create();
-    final storage = HiveLocalStorage(
+    final storage = IsarLocalStorage(
       baseDirFn: () => dir.path,
       encryptionKey: '_encryptionKey',
       clear: LocalStorageClearStrategy.always,
@@ -20,7 +20,7 @@ void main() async {
     await storage.initialize();
 
     expect(() {
-      return HiveLocalStorage(
+      return IsarLocalStorage(
         baseDirFn: null,
         encryptionKey: '_encryptionKey',
         clear: LocalStorageClearStrategy.never,

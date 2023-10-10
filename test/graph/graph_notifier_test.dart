@@ -168,9 +168,6 @@ void main() async {
         containsAll({'people#111', 'people#1'}));
 
     expect(graph.getKeyForId('people', '1'), 'people#111');
-    // TODO restore?
-    // graph.removeKey('people#a1a1a1');
-    // expect(graph.getKeyForId('people', '1'), isNull);
   });
 
   test('saves key', () async {

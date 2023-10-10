@@ -46,14 +46,14 @@ mixin $NodeLocalAdapter on LocalAdapter<Node> {
 final _nodesFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $NodeHiveLocalAdapter = HiveLocalAdapter<Node>
+class $NodeIsarLocalAdapter = IsarLocalAdapter<Node>
     with $NodeLocalAdapter, NodeLocalAdapter;
 
 class $NodeRemoteAdapter = RemoteAdapter<Node> with NodeAdapter;
 
 final internalNodesRemoteAdapterProvider = Provider<RemoteAdapter<Node>>(
     (ref) => $NodeRemoteAdapter(
-        $NodeHiveLocalAdapter(ref), InternalHolder(_nodesFinders)));
+        $NodeIsarLocalAdapter(ref), InternalHolder(_nodesFinders)));
 
 final nodesRepositoryProvider =
     Provider<Repository<Node>>((ref) => Repository<Node>(ref));

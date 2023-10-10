@@ -55,13 +55,13 @@ mixin $HouseLocalAdapter on LocalAdapter<House> {
 final _housesFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $HouseHiveLocalAdapter = HiveLocalAdapter<House> with $HouseLocalAdapter;
+class $HouseIsarLocalAdapter = IsarLocalAdapter<House> with $HouseLocalAdapter;
 
 class $HouseRemoteAdapter = RemoteAdapter<House> with NothingMixin;
 
 final internalHousesRemoteAdapterProvider = Provider<RemoteAdapter<House>>(
     (ref) => $HouseRemoteAdapter(
-        $HouseHiveLocalAdapter(ref), InternalHolder(_housesFinders)));
+        $HouseIsarLocalAdapter(ref), InternalHolder(_housesFinders)));
 
 final housesRepositoryProvider =
     Provider<Repository<House>>((ref) => Repository<House>(ref));
