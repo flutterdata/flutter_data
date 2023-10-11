@@ -22,7 +22,7 @@ class IsarLocalStorage {
     if (baseDirFn == null) {
       throw UnsupportedError('''
 A base directory path MUST be supplied to
-the hiveLocalStorageProvider via the `baseDirFn`
+the localStorageProvider via the `baseDirFn`
 callback.
 
 In Flutter, `baseDirFn` will be supplied automatically if
@@ -55,6 +55,6 @@ enum LocalStorageClearStrategy {
   whenError,
 }
 
-final hiveLocalStorageProvider = Provider<IsarLocalStorage>(
+final localStorageProvider = Provider<IsarLocalStorage>(
   (ref) => IsarLocalStorage(baseDirFn: () => ''),
 );

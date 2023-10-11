@@ -8,7 +8,7 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
 void main() async {
-  test('hive local storage', () async {
+  test('local storage', () async {
     late final Directory dir;
 
     dir = await Directory('tmp').create();

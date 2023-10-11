@@ -17,7 +17,7 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   @protected
   GraphNotifier(this.ref);
 
-  IsarLocalStorage get _hiveLocalStorage => ref.read(hiveLocalStorageProvider);
+  IsarLocalStorage get _localStorage => ref.read(localStorageProvider);
 
   bool _doAssert = true;
 
@@ -29,19 +29,19 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   /// Initializes storage systems
   Future<GraphNotifier> initialize() async {
     if (isInitialized) return this;
-    await _hiveLocalStorage.initialize();
+    await _localStorage.initialize();
 
     try {
       _isar = Isar.open(
         name: 'flutter_data',
         schemas: [EdgeSchema, StoredModelSchema],
-        directory: _hiveLocalStorage.path,
+        directory: _localStorage.path,
       );
     } catch (e, stackTrace) {
       print('[flutter_data] Isar failed to open:\n$e\n$stackTrace');
     }
 
-    if (_hiveLocalStorage.clear == LocalStorageClearStrategy.always) {
+    if (_localStorage.clear == LocalStorageClearStrategy.always) {
       _isar.write((isar) => isar.clear());
     }
 
@@ -525,9 +525,9 @@ extension PackerX on Packer {
     });
   }
 
-  void packListDynamic(List list) {
-    packListLength(list.length);
-    for (final v in list) {
+  void packIterableDynamic(Iterable iterable) {
+    packListLength(iterable.length);
+    for (final v in iterable) {
       packDynamic(v);
     }
   }
@@ -549,10 +549,10 @@ extension PackerX on Packer {
     }
     if (type == int) {
       // WORKAROUND: for some reason negative ints are not working
-      // so we save it as a special string (prefixed with $n:)
+      // so we save it as a special string (prefixed with $__fd_n:)
       if ((value as int).isNegative) {
         packInt(1);
-        return packString('\$n:$value');
+        return packString('\$__fd_n:$value');
       }
       packInt(2);
       return packInt(value);
@@ -566,9 +566,9 @@ extension PackerX on Packer {
       return packBool(value);
     }
     // List of any type
-    if (type.toString().startsWith('List')) {
+    if (value is Iterable) {
       packInt(6);
-      return packListDynamic(value);
+      return packIterableDynamic(value.toList());
     }
     throw Exception('missing type $type ($value)');
   }
@@ -601,8 +601,8 @@ extension UnpackerX on Unpacker {
         return unpackString();
       case 1:
         final str = unpackString();
-        // WORKAROUND: we unpack a negative int (encoded with the $n: prefix)
-        if (str != null && str.startsWith('\$n:-')) {
+        // WORKAROUND: we unpack a negative int (encoded with the $__fd_n: prefix)
+        if (str != null && str.startsWith('\$__fd_n:-')) {
           return int.parse(str.split(':').last);
         }
         return str;

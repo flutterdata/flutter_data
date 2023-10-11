@@ -160,7 +160,7 @@ ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<Str
   ${isFlutter ? '  baseDirFn ??= () => \'\';' : ''}
   ${isFlutter ? '}' : ''}
   
-  return isarLocalStorageProvider.overrideWith(
+  return localStorageProvider.overrideWith(
     (ref) => IsarLocalStorage(
       baseDirFn: baseDirFn,
       encryptionKey: encryptionKey,

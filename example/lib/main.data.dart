@@ -11,7 +11,7 @@ ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = (
     {FutureFn<String>? baseDirFn,
     String? encryptionKey,
     LocalStorageClearStrategy? clear}) {
-  return hiveLocalStorageProvider.overrideWith(
+  return localStorageProvider.overrideWith(
     (ref) => IsarLocalStorage(
       baseDirFn: baseDirFn,
       encryptionKey: encryptionKey,
