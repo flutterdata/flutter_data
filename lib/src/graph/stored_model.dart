@@ -1,30 +1,26 @@
 import 'package:flutter_data/flutter_data.dart';
-import 'package:isar/isar.dart';
 import 'package:messagepack/messagepack.dart';
+import 'package:objectbox/objectbox.dart';
 
-part 'stored_model.g.dart';
-
-@collection
+@Entity()
 class StoredModel {
-  const StoredModel({
+  StoredModel({
     required this.key,
-    required this.type,
-    this.id,
-    this.isIdInt = false,
+    required this.typeId,
     this.data,
   });
 
-  @Id()
-  final int key;
+  @Id(assignable: true)
+  int key;
 
-  @Index(hash: true, composite: ['type'])
-  final String? id;
+  @Index(type: IndexType.value)
+  final String typeId;
 
-  final bool isIdInt;
+  final List<int>? data;
 
-  final String type;
-
-  final List<byte>? data;
+  String get type {
+    return typeId.split('#')[0];
+  }
 
   Map<String, dynamic>? toJson() {
     if (data == null) {
@@ -32,6 +28,8 @@ class StoredModel {
     }
     final unpacker = Unpacker.fromList(data!);
     final map = unpacker.unpackJson();
+    // ignore: unnecessary_nullable_for_final_variable_declarations
+    final id = typeId.detypify();
 
     return {
       'id': id,
@@ -42,6 +40,6 @@ class StoredModel {
 
   @override
   String toString() {
-    return '<StoredModel>${toJson()}';
+    return '<StoredModel k:$key t:$typeId>${toJson()}';
   }
 }

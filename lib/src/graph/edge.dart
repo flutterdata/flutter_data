@@ -1,8 +1,6 @@
-import 'package:isar/isar.dart';
+import 'package:objectbox/objectbox.dart';
 
-part 'edge.g.dart';
-
-@collection
+@Entity()
 class Edge {
   Edge(
       {required this.id,
@@ -12,13 +10,15 @@ class Edge {
       this.inverseName});
 
   @Id()
-  final int id;
+  int id;
 
-  @Index(hash: true, composite: ['name'])
+  // @Index(hash: true, composite: ['name'])
+  @Index(type: IndexType.hash)
   final String from;
   final String name;
 
-  @Index(hash: true, composite: ['name'])
+  // @Index(hash: true, composite: ['name'])
+  @Index(type: IndexType.hash)
   final String to;
   final String? inverseName;
 

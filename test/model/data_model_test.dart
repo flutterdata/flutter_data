@@ -27,7 +27,8 @@ void main() async {
     expect(person.familia.key, graph.getKeyForId('familia', '55'));
 
     // (2) it saves the model locally
-    expect(person, container.people.findOneLocal(person.id!));
+    final e2 = container.people.findOneLocal(person.id!);
+    expect(person, e2);
   });
 
   test('on model init', () async {
@@ -130,6 +131,9 @@ void main() async {
   test('findOne (remote and local reload)', () async {
     var familia = await Familia(id: '1', surname: 'Perez').save(remote: true);
     familia = Familia(id: '1', surname: 'Perez Gomez');
+
+    // ignore: invalid_use_of_protected_member
+    container.familia.remoteAdapter.graph.debugStore();
 
     container.read(responseProvider.notifier).state = TestResponse.json('''
         { "id": "1", "surname": "Perez" }

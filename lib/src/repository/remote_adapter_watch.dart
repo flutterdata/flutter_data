@@ -136,8 +136,8 @@ mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
 
     // we can't use `findOne`'s default internal label
     // because we need a label to handle events
-    label ??=
-        DataRequestLabel('watchOne', id: key.detypify(), type: internalType);
+    label ??= DataRequestLabel('watchOne',
+        id: key.detypify().toString(), type: internalType);
 
     var alsoWatchPairs = <List<String>>{};
 

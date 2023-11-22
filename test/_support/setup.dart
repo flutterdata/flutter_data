@@ -1,12 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:isar/isar.dart';
 import 'package:mockito/mockito.dart';
-import 'package:path/path.dart' as path;
 
 import 'book.dart';
 import 'familia.dart';
@@ -126,23 +123,24 @@ Future<void> setUpFn() async {
 
 Future<void> setUpIsar() async {
   // initialize Isar Core
-  final binaryName = Platform.isWindows
-      ? 'isar.dll'
-      : Platform.isMacOS
-          ? 'libisar.dylib'
-          : 'libisar.so';
+  // final binaryName = Platform.isWindows
+  //     ? 'isar.dll'
+  //     : Platform.isMacOS
+  //         ? 'libisar.dylib'
+  //         : 'libisar.so';
 
-  final p = File('tmp/$binaryName').absolute.path;
-  await Isar.initialize(p);
+  // final p = File('tmp/$binaryName').absolute.path;
+  // await Isar.initialize(p);
 }
 
 Future<void> tearDownIsar() async {
-  try {
-    File(path.join(kTestsPath, 'flutter_data.isar')).deleteSync();
-    File(path.join(kTestsPath, 'flutter_data.isar.lock')).deleteSync();
-  } on PathNotFoundException {
-    // ignore
-  }
+  // TODO tear down OB
+  // try {
+  //   File(path.join(kTestsPath, 'flutter_data.isar')).deleteSync();
+  //   File(path.join(kTestsPath, 'flutter_data.isar.lock')).deleteSync();
+  // } on PathNotFoundException {
+  //   // ignore
+  // }
 }
 
 Future<void> tearDownFn() async {

@@ -35,7 +35,7 @@ extension DeleteAllX<T extends DataModelMixin<T>>
     final keys =
         map((e) => e._key != null ? adapter.graph.intKey(e._key!) : null)
             .filterNulls;
-    adapter.isar.write((isar) => isar.storedModels.deleteAll(keys.toList()));
+    adapter.store.box<StoredModel>().removeMany(keys.toList());
   }
 }
 
@@ -67,12 +67,10 @@ extension StringUtilsX on String {
     return '$prefix:$this';
   }
 
-  String typifyWith(String type) {
+  String typifyWith(String type, {bool isInt = false}) {
+    // TODO do not assert, throw; also throw if id starts with #
     assert(!type.contains('#'));
-    if (isEmpty) {
-      return type;
-    }
-    return '$type#$this';
+    return '$type#${isNotEmpty ? ('${isInt ? '#' : ''}$this') : ''}';
   }
 
   String? get namespace => split(':').safeFirst;
@@ -84,9 +82,22 @@ extension StringUtilsX on String {
     return (split(':')..removeAt(0)).join(':');
   }
 
-  String detypify() {
-    // need to re-join with # in case there were other #s in the id
-    return (split('#')..removeAt(0)).join('#');
+  Object? detypify({forceInt = false}) {
+    final [_, maybeId, ...rest] = split('#');
+    if (forceInt) {
+      return int.parse(maybeId);
+    }
+    if (maybeId.isEmpty) {
+      if (rest.isEmpty) {
+        // means it has no assigned ID: people#
+        return null;
+      }
+      // means it's an int: e.g people##1
+      return int.parse(rest.first);
+    } else {
+      // need to re-join with # in case there were other #s in the id
+      return [maybeId, ...rest].join('#');
+    }
   }
 }
 

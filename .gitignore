@@ -21,3 +21,4 @@ coverage_badge.svg
 .pub/
 build/
 tmp/
+download/

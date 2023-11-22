@@ -37,14 +37,14 @@ abstract class LocalAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   /// By default notifies this modification to the associated [GraphNotifier].
   @protected
   @visibleForTesting
-  Future<T> save(String key, T model, {bool notify = true});
+  T save(String key, T model, {bool notify = true});
 
   /// Deletes model of type [T] with [key] from local storage.
   ///
   /// By default notifies this modification to the associated [GraphNotifier].
   @protected
   @visibleForTesting
-  Future<void> delete(String key, {bool notify = true});
+  void delete(String key, {bool notify = true});
 
   /// Deletes all models of type [T] in local storage.
   @protected
@@ -57,6 +57,8 @@ abstract class LocalAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   /// Gets all keys of type [T] in local storage.
   List<String> get keys;
 
+  Future<void> bulkSave(Iterable<DataModel> models, {bool notify = true});
+
   // model initialization
 
   @protected
@@ -64,7 +66,7 @@ abstract class LocalAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   T initModel(T model, {Function(T)? onModelInitialized}) {
     if (model._key == null) {
       model._key = graph.getKeyForId(internalType, model.id,
-          keyIfAbsent: graph.generateKey<T>())!;
+          keyIfAbsent: DataHelpers.generateKey<T>())!;
       _initializeRelationships(model);
       onModelInitialized?.call(model);
     }

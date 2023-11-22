@@ -24,7 +24,9 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   @override
   bool isInitialized = false;
 
-  late Isar _isar;
+  late Store _store;
+  late Box<StoredModel> _storedModelBox;
+  late Box<Edge> _edgeBox;
 
   /// Initializes storage systems
   Future<GraphNotifier> initialize() async {
@@ -32,17 +34,20 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
     await _localStorage.initialize();
 
     try {
-      _isar = Isar.open(
-        name: 'flutter_data',
-        schemas: [EdgeSchema, StoredModelSchema],
+      _store = openStore(
         directory: _localStorage.path,
+        queriesCaseSensitiveDefault: false,
       );
+      _storedModelBox = _store.box<StoredModel>();
+      _edgeBox = _store.box<Edge>();
     } catch (e, stackTrace) {
       print('[flutter_data] Isar failed to open:\n$e\n$stackTrace');
     }
 
     if (_localStorage.clear == LocalStorageClearStrategy.always) {
-      _isar.write((isar) => isar.clear());
+      // TODO no way of removing everything?
+      await _store.box<Edge>().removeAllAsync();
+      await _store.box<StoredModel>().removeAllAsync();
     }
 
     isInitialized = true;
@@ -52,23 +57,14 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   @override
   void dispose() {
     if (isInitialized) {
-      // _isar.close();
+      _store.close();
       isInitialized = false;
       super.dispose();
     }
   }
 
   void clear() {
-    _isar.write((isar) => isar.edges.clear());
-  }
-
-  String generateKey<T>([String? type]) {
-    if (type != null) {
-      type = DataHelpers.internalTypeFor(type);
-    } else {
-      type = DataHelpers.getInternalType<T>();
-    }
-    return _isar.storedModels.autoIncrement().toString().typifyWith(type);
+    _edgeBox.removeAll();
   }
 
   // Key-related methods
@@ -83,22 +79,19 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   String? getKeyForId(String type, Object? id, {String? keyIfAbsent}) {
     type = DataHelpers.internalTypeFor(type);
     if (id != null) {
-      final key = _isar.storedModels
-          .where()
-          .typeEqualTo(type)
-          .idEqualTo(id.toString())
-          .keyProperty()
-          .findFirst();
-      if (key != null) {
-        return key.toString().typifyWith(type);
+      final keys = _storedModelBox
+          .query(StoredModel_.typeId.equals(id.toString().typifyWith(type)))
+          .build()
+          .property(StoredModel_.key)
+          .find();
+      if (keys.isNotEmpty) {
+        return '${keys.first}'.typifyWith(type);
       }
       if (keyIfAbsent != null) {
         final storedModel = StoredModel(
             key: intKey(keyIfAbsent),
-            id: id.toString(),
-            type: type,
-            isIdInt: id is int);
-        _isar.write((isar) => isar.storedModels.put(storedModel));
+            typeId: id.toString().typifyWith(type, isInt: id is int));
+        _storedModelBox.put(storedModel);
         return storedModel.key.toString().typifyWith(type);
       }
     } else if (keyIfAbsent != null) {
@@ -109,32 +102,36 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
 
   /// Finds an ID, given a [key].
   Object? getIdForKey(String key) {
-    final tuple = _isar.storedModels
-        .where()
-        .keyEqualTo(intKey(key))
-        .idProperty()
-        .isIdIntProperty()
-        .findFirst();
-    if (tuple == null || tuple.$1 == null) {
-      return null;
+    final typeIds = _storedModelBox
+        .query(StoredModel_.key.equals(intKey(key)))
+        .build()
+        .property(StoredModel_.typeId)
+        .find();
+
+    if (typeIds.isNotEmpty) {
+      return typeIds.first.detypify();
     }
-    final (id, isInt) = tuple;
-    return isInt ? int.parse(id!) : id;
+    return null;
   }
 
   /// Removes [type]/[id] mapping
   void removeId(String type, Object id, {bool notify = true}) {
-    _isar.write((isar) => isar.storedModels
-        .where()
-        .typeEqualTo(type)
-        .idEqualTo(id.toString())
-        .updateAll(id: null));
     final typeId = id.toString().typifyWith(type);
+    final ids = _store
+        .box<StoredModel>()
+        .query(StoredModel_.typeId.equals(typeId))
+        .build()
+        .property(StoredModel_.key)
+        .find();
+    if (ids.isNotEmpty) {
+      final newModel = StoredModel(key: ids.first, typeId: ''.typifyWith(type));
+      _store.box<StoredModel>().put(newModel);
+    }
     state = DataGraphEvent(keys: [typeId], type: DataGraphEventType.removeNode);
   }
 
   int intKey(String key) {
-    return int.parse(key.detypify());
+    return key.detypify(forceInt: true) as int;
   }
 
   // nodes
@@ -269,20 +266,16 @@ Key "$key":
 
   /// Returns a [Map] representation of the internal ID db
   Map<String, String> toIdMap() {
-    final triples = _isar.storedModels
-        .where()
-        .idIsNotNull()
-        .keyProperty()
-        .typeProperty()
-        .idProperty()
-        .findAll();
+    final models = _storedModelBox.getAll();
     return {
-      for (final t in triples)
-        t.$1.toString().typifyWith(t.$2): t.$3.toString().typifyWith(t.$2)
+      for (final m in models) m.key.toString().typifyWith(m.type): m.typeId
     };
   }
 
   void debugMap() => _prettyPrintJson(_toMap());
+
+  void debugStore() =>
+      print(_store.box<StoredModel>().getAll().map((e) => e.toJson()));
 
   @protected
   @visibleForTesting
@@ -291,8 +284,11 @@ Key "$key":
   // private API
 
   Map<String, Set<String>> _getNode(String key) {
-    final edges =
-        _isar.edges.where().fromEqualTo(key).or().toEqualTo(key).findAll();
+    final edges = _store
+        .box<Edge>()
+        .query(Edge_.from.equals(key) | Edge_.to.equals(key))
+        .build()
+        .find();
     final grouped = edges.groupListsBy((e) => e.name);
     return {
       for (final e in grouped.entries)
@@ -301,25 +297,30 @@ Key "$key":
   }
 
   bool _hasNode(String key) {
-    return _isar.edges.where().fromEqualTo(key).or().toEqualTo(key).count() > 0;
+    return _store
+            .box<Edge>()
+            .query(Edge_.from.equals(key) | Edge_.to.equals(key))
+            .build()
+            .count() >
+        0;
   }
 
   Set<String> _getEdge(String key, {required String metadata}) {
-    final edges = _isar.edges
-        .where()
-        .group((q) => q.fromEqualTo(key).and().nameEqualTo(metadata))
-        .or()
-        .group((q) => q.toEqualTo(key).and().inverseNameEqualTo(metadata))
-        .findAll();
+    final edges = _store
+        .box<Edge>()
+        .query((Edge_.from.equals(key).and(Edge_.name.equals(metadata)))
+            .or(Edge_.to.equals(key).and(Edge_.inverseName.equals(metadata))))
+        .build()
+        .find();
     return {for (final e in edges) e.from == key ? e.to : e.from};
   }
 
   bool _hasEdge(String key, {required String metadata}) {
-    return _isar.edges
-            .where()
-            .group((q) => q.fromEqualTo(key).and().nameEqualTo(metadata))
-            .or()
-            .group((q) => q.toEqualTo(key).and().inverseNameEqualTo(metadata))
+    return _store
+            .box<Edge>()
+            .query((Edge_.from.equals(key).and(Edge_.name.equals(metadata))).or(
+                Edge_.to.equals(key).and(Edge_.inverseName.equals(metadata))))
+            .build()
             .count() >
         0;
   }
@@ -327,8 +328,11 @@ Key "$key":
   // write
 
   void _removeNode(String key, {bool notify = true}) {
-    _isar.write((isar) =>
-        isar.edges.where().fromEqualTo(key).or().toEqualTo(key).deleteAll());
+    _store
+        .box<Edge>()
+        .query(Edge_.from.equals(key).or(Edge_.to.equals(key)))
+        .build()
+        .remove();
     if (notify) {
       state = DataGraphEvent(keys: [key], type: DataGraphEventType.removeNode);
     }
@@ -351,28 +355,26 @@ Key "$key":
       bool notify = true}) {
     if (tos.isEmpty) {
       if (clearExisting) {
-        _isar.write((isar) {
-          _getRemoveEdgesQuery(isar, from, metadata: metadata).deleteAll();
-        });
+        _getRemoveEdgesQuery(_store.box<Edge>(), from, metadata: metadata)
+            .remove();
       }
       return;
     }
 
     final edges = tos.map(
       (to) => Edge(
-          id: _isar.edges.autoIncrement(),
+          id: 0, // autoincrement
           from: from,
           name: metadata,
           to: to,
           inverseName: inverseMetadata),
     );
 
-    _isar.write((isar) {
-      if (clearExisting) {
-        _getRemoveEdgesQuery(isar, from, metadata: metadata).deleteAll();
-      }
-      isar.edges.putAll(edges.toList());
-    });
+    if (clearExisting) {
+      _getRemoveEdgesQuery(_store.box<Edge>(), from, metadata: metadata)
+          .remove();
+    }
+    _store.box<Edge>().putMany(edges.toList());
 
     if (notify) {
       if (clearExisting) {
@@ -395,34 +397,24 @@ Key "$key":
     _removeEdges(from, tos: {to}, metadata: metadata, notify: notify);
   }
 
-  QueryBuilder<Edge, Edge, QAfterFilterCondition> _getRemoveEdgesQuery(
-      Isar isar, String from,
+  Query<Edge> _getRemoveEdgesQuery(Box<Edge> box, String from,
       {required String metadata, Set<String>? tos}) {
-    return isar.edges
-        .where()
-        .group((q) => q
-            .fromEqualTo(from)
-            .and()
-            .nameEqualTo(metadata)
-            .and()
-            .optional(tos != null,
-                (q) => q.allOf(tos!, (q3, String to) => q3.toEqualTo(to))))
-        .or()
-        .group((q) => q
-            .toEqualTo(from)
-            .and()
-            .inverseNameEqualTo(metadata)
-            .and()
-            .optional(tos != null,
-                (q) => q.allOf(tos!, (q3, String to) => q3.fromEqualTo(to))));
+    var q1 = Edge_.from.equals(from) & Edge_.name.equals(metadata);
+    if (tos != null) {
+      q1 = q1.andAll(tos.map((to) => Edge_.to.equals(to)).toList());
+    }
+    var q2 = Edge_.to.equals(from) & Edge_.inverseName.equals(metadata);
+    if (tos != null) {
+      q2 = q2.andAll(tos.map((to) => Edge_.from.equals(to)).toList());
+    }
+
+    return box.query(q1.or(q2)).build();
   }
 
   void _removeEdges(String from,
       {required String metadata, Set<String>? tos, bool notify = true}) {
-    _isar.write((isar) {
-      _getRemoveEdgesQuery(isar, from, metadata: metadata, tos: tos)
-          .deleteAll();
-    });
+    _getRemoveEdgesQuery(_store.box<Edge>(), from, metadata: metadata, tos: tos)
+        .remove();
 
     if (notify) {
       state = DataGraphEvent(
@@ -445,7 +437,7 @@ Key "$key":
   Map<String, Map<String, List<String>>> _toMap() {
     final map = <String, Map<String, List<String>>>{};
 
-    final edges = _isar.edges.where().findAll();
+    final edges = _store.box<Edge>().getAll();
     for (final edge in edges) {
       map[edge.from] ??= {};
       map[edge.from]![edge.name] ??= [];
@@ -458,7 +450,6 @@ Key "$key":
         map[edge.to]![edge.inverseName!]!.add(edge.from);
       }
     }
-
     return map;
   }
 

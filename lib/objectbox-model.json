@@ -1,0 +1,97 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "2:558472238247110588",
+      "lastPropertyId": "6:4097118525468747544",
+      "name": "StoredModel",
+      "properties": [
+        {
+          "id": "1:4748409496125217799",
+          "name": "key",
+          "type": 6,
+          "flags": 129
+        },
+        {
+          "id": "5:1670691126551255771",
+          "name": "data",
+          "type": 27
+        },
+        {
+          "id": "6:4097118525468747544",
+          "name": "typeId",
+          "type": 9,
+          "flags": 8,
+          "indexId": "2:1851741414108672316"
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "4:2274314607667245351",
+      "lastPropertyId": "5:4149618469556355365",
+      "name": "Edge",
+      "properties": [
+        {
+          "id": "1:3715749524209619983",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:877310601265162898",
+          "name": "from",
+          "type": 9,
+          "flags": 2048,
+          "indexId": "3:4288075097524151755"
+        },
+        {
+          "id": "3:4404648571096838414",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "4:4576645711318044710",
+          "name": "to",
+          "type": 9,
+          "flags": 2048,
+          "indexId": "4:3330983748094731447"
+        },
+        {
+          "id": "5:4149618469556355365",
+          "name": "inverseName",
+          "type": 9
+        }
+      ],
+      "relations": []
+    }
+  ],
+  "lastEntityId": "4:2274314607667245351",
+  "lastIndexId": "4:3330983748094731447",
+  "lastRelationId": "0:0",
+  "lastSequenceId": "0:0",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [
+    774660918014734042,
+    4321048807070347777
+  ],
+  "retiredIndexUids": [
+    4475679244263981404
+  ],
+  "retiredPropertyUids": [
+    9125859889595128857,
+    6229123358566821214,
+    7023346375686282707,
+    5746187496170857728,
+    8735621994409590115,
+    7966431342472525511,
+    1272561439525881874,
+    6723244145385536321,
+    3614265771307477278
+  ],
+  "retiredRelationUids": [],
+  "version": 1
+}

@@ -3,7 +3,7 @@ part of flutter_data;
 typedef FutureFn<R> = FutureOr<R> Function();
 
 class DataHelpers {
-  static final uuid = Uuid();
+  static final rng = Random.secure();
 
   static final _internalTypes = <Object, String>{};
 
@@ -22,18 +22,22 @@ class DataHelpers {
 
   static String internalTypeFor(String type) => type.decapitalize().pluralize();
 
-  static String generateShortKey<T>() {
-    return uuid.v1().substring(0, 6);
+  static int _generateRandomNumber() {
+    return (rng.nextDouble() * 9223372036854775807).toInt();
   }
 
-  // static String generateKey<T>([String? type]) {
-  //   if (type != null) {
-  //     type = internalTypeFor(type);
-  //   } else {
-  //     type = getInternalType<T>();
-  //   }
-  //   return uuid.v1().substring(0, 8).typifyWith(type);
-  // }
+  static String generateShortKey() {
+    return _generateRandomNumber().toString().substring(0, 10);
+  }
+
+  static String generateKey<T>([String? type]) {
+    if (type != null) {
+      type = DataHelpers.internalTypeFor(type);
+    } else {
+      type = DataHelpers.getInternalType<T>();
+    }
+    return _generateRandomNumber().toString().typifyWith(type);
+  }
 }
 
 class OfflineException extends DataException {

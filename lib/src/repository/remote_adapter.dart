@@ -378,7 +378,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     headers = await defaultHeaders & headers;
 
     // ensure model is saved
-    await localAdapter.save(model._key!, model);
+    localAdapter.save(model._key!, model);
 
     label = DataRequestLabel('save',
         type: internalType,
@@ -446,7 +446,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     if (remote == false) {
       log(label, 'deleted in local storage only');
     }
-    await localAdapter.delete(key);
+    localAdapter.delete(key);
 
     if (remote == true && id != null) {
       return await sendRequest(
@@ -833,7 +833,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
       return model._key!;
     } else {
       return graph.getKeyForId(internalType, model,
-          keyIfAbsent: graph.generateKey<T>())!;
+          keyIfAbsent: DataHelpers.generateKey<T>())!;
     }
   }
 

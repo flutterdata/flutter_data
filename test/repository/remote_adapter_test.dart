@@ -153,7 +153,8 @@ void main() async {
           // ignore: invalid_use_of_protected_member
           adapters: container.familia.remoteAdapter.adapters,
         );
-    await container.familia.remoteAdapter.localAdapter
+
+    container.familia.remoteAdapter.localAdapter
         .save(originalKey, Familia(id: '1', surname: 'Smith'), notify: false);
 
     // local storage still comes back with relationships
@@ -215,7 +216,7 @@ void main() async {
     expect(key1, keyFor(p1));
 
     final key2 = graph.getKeyForId('people', '43',
-        keyIfAbsent: graph.generateKey<Person>());
+        keyIfAbsent: DataHelpers.generateKey<Person>());
     final key2b = adapter.keyForModelOrId('43');
     expect(key2, key2b);
 

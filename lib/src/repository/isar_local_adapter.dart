@@ -8,7 +8,7 @@ abstract class IsarLocalAdapter<T extends DataModelMixin<T>>
 
   @protected
   @visibleForTesting
-  Isar get isar => graph._isar;
+  Store get store => graph._store;
 
   @override
   bool get isInitialized => true;
@@ -20,11 +20,12 @@ abstract class IsarLocalAdapter<T extends DataModelMixin<T>>
 
   @override
   List<T> findAll() {
-    return isar.storedModels
-        .where()
-        .typeEqualTo(internalType)
-        .dataIsNotEmpty()
-        .findAll()
+    return store
+        .box<StoredModel>()
+        .query(StoredModel_.typeId.startsWith(internalType) &
+            StoredModel_.data.notNull())
+        .build()
+        .find()
         .map((e) => initModel(deserialize(e.toJson()!)))
         .toList();
   }
@@ -33,17 +34,18 @@ abstract class IsarLocalAdapter<T extends DataModelMixin<T>>
   T? findOne(String? key) {
     if (key == null) return null;
     final internalKey = graph.intKey(key);
-    final json = isar.storedModels.get(internalKey)?.toJson();
+    final json = store.box<StoredModel>().get(internalKey)?.toJson();
     return _deserializeWithKey(json, internalKey);
   }
 
   @override
   T? findOneById(Object? id) {
     if (id == null) return null;
-    final model = isar.storedModels
-        .where()
-        .typeEqualTo(internalType)
-        .idEqualTo(id.toString())
+    final model = store
+        .box<StoredModel>()
+        .query(StoredModel_.typeId
+            .equals(id.toString().typifyWith(internalType, isInt: id is int)))
+        .build()
         .findFirst();
     return _deserializeWithKey(model?.toJson(), model?.key);
   }
@@ -51,8 +53,9 @@ abstract class IsarLocalAdapter<T extends DataModelMixin<T>>
   @override
   List<T> findMany(Iterable<String> keys) {
     final _keys = keys.map(graph.intKey).toList();
-    return graph._isar.storedModels
-        .getAll(_keys)
+    return graph._store
+        .box<StoredModel>()
+        .getMany(_keys)
         .filterNulls
         .mapIndexed((i, map) => _deserializeWithKey(map.toJson(), _keys[i]))
         .filterNulls
@@ -61,30 +64,30 @@ abstract class IsarLocalAdapter<T extends DataModelMixin<T>>
 
   @override
   bool exists(String key) {
-    return graph._isar.storedModels
-            .where()
-            .keyEqualTo(graph.intKey(key))
-            .dataIsNotNull()
+    return graph._store
+            .box<StoredModel>()
+            .query(StoredModel_.key.equals(graph.intKey(key)) &
+                StoredModel_.data.notNull())
+            .build()
             .count() >
         0;
   }
 
   @override
-  Future<T> save(String key, T model, {bool notify = true}) async {
-    final keyExisted = exists(key);
-
+  T save(String key, T model, {bool notify = true}) {
     final packer = Packer();
-    // TODO could avoid saving ID
+    // TODO could avoid saving ID?
     packer.packJson(serialize(model, withRelationships: false));
 
     final storedModel = StoredModel(
-      id: model.id?.toString(),
-      isIdInt: model.id is int,
-      type: internalType,
+      typeId:
+          model.id.toString().typifyWith(internalType, isInt: model.id is int),
       key: graph.intKey(key),
       data: packer.takeBytes(),
     );
-    isar.write((isar) => isar.storedModels.put(storedModel));
+
+    bool keyExisted = exists(key);
+    store.box<StoredModel>().put(storedModel);
 
     if (notify) {
       graph._notify(
@@ -98,29 +101,81 @@ abstract class IsarLocalAdapter<T extends DataModelMixin<T>>
   }
 
   @override
+  Future<void> bulkSave(Iterable<DataModel> models,
+      {bool notify = true}) async {
+    // final intKeys = keys.map(graph.intKey).toList();
+    final storedModels = models.map((m) {
+      final key = DataModel.keyFor(m);
+      final packer = Packer();
+      final a = DataModel.adapterFor(m).localAdapter;
+      packer.packJson(a.serialize(m, withRelationships: false));
+      return StoredModel(
+        typeId: m.id.toString().typifyWith(internalType, isInt: m.id is int),
+        key: graph.intKey(key),
+        data: packer.takeBytes(),
+      );
+    }).toList();
+
+    final existingKeys =
+        await store.runInTransactionAsync(TxMode.write, (store, storedModels) {
+      final allKeys = storedModels.map((e) => e.key).toList();
+
+      final existingKeys = store
+          .box<StoredModel>()
+          .query(StoredModel_.key.oneOf(allKeys) & StoredModel_.data.notNull())
+          .build()
+          .property(StoredModel_.key)
+          .find()
+          .map((k) {
+        final m = storedModels.firstWhere((e) => e.key == k);
+        return k.toString().typifyWith(m.type);
+      }).toList();
+      store.box<StoredModel>().putMany(storedModels);
+      return existingKeys;
+    }, storedModels);
+
+    if (notify) {
+      graph._notify(
+        existingKeys,
+        type: DataGraphEventType.updateNode,
+      );
+      graph._notify(
+        existingKeys, // TODO fix: should be the non-existing keys
+        type: DataGraphEventType.addNode,
+      );
+    }
+  }
+
+  @override
   Future<void> delete(String key, {bool notify = true}) async {
-    isar.write((isar) => isar.storedModels.delete(graph.intKey(key)));
+    store.box<StoredModel>().remove(graph.intKey(key));
     graph._notify([key], type: DataGraphEventType.removeNode);
   }
 
   @override
   Future<void> clear() async {
-    graph._isar.write((isar) => isar.clear());
+    await graph._store.box<Edge>().removeAllAsync();
+    await graph._store.box<StoredModel>().removeAllAsync();
     graph._notify([internalType], type: DataGraphEventType.clear);
   }
 
   @override
   int get count {
-    return isar.storedModels.where().typeEqualTo(internalType).count();
+    return store
+        .box<StoredModel>()
+        .query(StoredModel_.typeId.startsWith(internalType))
+        .build()
+        .count();
   }
 
   @override
   List<String> get keys {
-    return isar.storedModels
-        .where()
-        .typeEqualTo(internalType)
-        .keyProperty()
-        .findAll()
+    return store
+        .box<StoredModel>()
+        .query(StoredModel_.typeId.startsWith(internalType))
+        .build()
+        .property(StoredModel_.key)
+        .find()
         .map((k) => k.toString().typifyWith(internalType))
         .toList();
   }

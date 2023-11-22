@@ -18,6 +18,8 @@ void main() async {
     graph.addEdges('h1',
         tos: {'b1', 'b2'}, metadata: 'blogs', inverseMetadata: 'host');
 
+    graph.debugMap();
+
     expect(graph.getEdge('b1', metadata: 'host'), {'h1'});
     expect(graph.getEdge('h1', metadata: 'blogs'), {'b1', 'b2'});
 
@@ -65,30 +67,31 @@ void main() async {
     var key = graph.getKeyForId('people', '1');
     expect(key, isNull);
     key = graph.getKeyForId('people', '1',
-        keyIfAbsent: graph.generateKey<Person>());
+        keyIfAbsent: DataHelpers.generateKey<Person>());
     expect(key, startsWith('people#'));
   });
 
   test('produces a key for empty string', () {
     final key = graph.getKeyForId('people', '',
-        keyIfAbsent: graph.generateKey<Person>());
+        keyIfAbsent: DataHelpers.generateKey<Person>());
     expect(key, startsWith('people#'));
   });
 
   test('gets back int id as int, else as string', () {
     final key = graph.getKeyForId('people', 1,
-        keyIfAbsent: graph.generateKey<Person>())!;
+        keyIfAbsent: DataHelpers.generateKey<Person>())!;
     expect(graph.getIdForKey(key), 1);
 
-    final dateTime = DateTime.now();
-    final key2 = graph.getKeyForId('people', dateTime,
-        keyIfAbsent: graph.generateKey<Person>())!;
-    expect(graph.getIdForKey(key2), dateTime.toString());
+    final now = DateTime.now();
+    final stringMillis = now.millisecondsSinceEpoch.toString();
+    final key2 = graph.getKeyForId('people', stringMillis,
+        keyIfAbsent: DataHelpers.generateKey<Person>())!;
+    expect(graph.getIdForKey(key2), stringMillis);
   });
 
   test('deletes a new key', () {
     final key = graph.getKeyForId('people', '1',
-        keyIfAbsent: graph.generateKey<Person>())!;
+        keyIfAbsent: DataHelpers.generateKey<Person>())!;
     expect(graph.getIdForKey(key), '1');
     graph.removeId('people', '1');
     expect(graph.getIdForKey(key), isNull);
@@ -96,7 +99,7 @@ void main() async {
 
   test('does not associate a key when id is null', () {
     final key = graph.getKeyForId('people', null,
-        keyIfAbsent: graph.generateKey<Person>())!;
+        keyIfAbsent: DataHelpers.generateKey<Person>())!;
     expect(graph.getIdForKey(key), isNull);
   });
 
@@ -140,9 +143,9 @@ void main() async {
 
   test('should prioritize ID', () {
     final key = graph.getKeyForId('people', '772',
-        keyIfAbsent: graph.generateKey<Person>());
+        keyIfAbsent: DataHelpers.generateKey<Person>());
 
-    final randomNewKey = graph.generateKey<Person>();
+    final randomNewKey = DataHelpers.generateKey<Person>();
 
     // we are telling manager to reuse the existing key
     // BUT a key for id=772 already exists, so that one will precede
@@ -174,6 +177,7 @@ void main() async {
     final residence = House(address: '123 Main St');
     final length = 100;
     final div = 19;
+    final familias = <Familia>[];
 
     for (var i = 0; i < length; i++) {
       final familia = Familia(
@@ -193,8 +197,10 @@ void main() async {
         familia.residence.value = null;
       }
 
-      await familia.save();
+      familias.add(familia);
     }
+
+    await container.familia.remoteAdapter.localAdapter.bulkSave(familias);
 
     expect(graph.toMap().keys.where((k) => k.startsWith('familia')),
         hasLength(length));
@@ -237,9 +243,8 @@ void main() async {
   });
 
   test('clear', () {
-    for (final i in List.generate(100, (i) => i)) {
-      graph.addEdge('b$i', 'h1', metadata: 'host');
-    }
+    graph.addEdges('h1',
+        tos: List.generate(100, (i) => '${i}b').toSet(), metadata: 'host');
     expect(graph.toMap(), isNotEmpty);
     graph.clear();
     expect(graph.toMap(), isEmpty);

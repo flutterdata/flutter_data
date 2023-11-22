@@ -3,22 +3,22 @@ library flutter_data;
 // import external packages
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' show Random;
 import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter_data/objectbox.g.dart';
 import 'package:flutter_data/src/graph/edge.dart';
 import 'package:flutter_data/src/graph/stored_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:inflection3/inflection3.dart' as inflection;
-import 'package:isar/isar.dart';
 import 'package:messagepack/messagepack.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path_helper;
 import 'package:pool/pool.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:state_notifier/state_notifier.dart';
-import 'package:uuid/uuid.dart';
 
 // import internal packages
 import 'src/graph/notifier_extension.dart';
