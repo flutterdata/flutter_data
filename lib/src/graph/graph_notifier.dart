@@ -17,7 +17,7 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   @protected
   GraphNotifier(this.ref);
 
-  IsarLocalStorage get _localStorage => ref.read(localStorageProvider);
+  ObjectboxLocalStorage get _localStorage => ref.read(localStorageProvider);
 
   bool _doAssert = true;
 
@@ -41,7 +41,7 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
       _storedModelBox = _store.box<StoredModel>();
       _edgeBox = _store.box<Edge>();
     } catch (e, stackTrace) {
-      print('[flutter_data] Isar failed to open:\n$e\n$stackTrace');
+      print('[flutter_data] Objectbox failed to open:\n$e\n$stackTrace');
     }
 
     if (_localStorage.clear == LocalStorageClearStrategy.always) {

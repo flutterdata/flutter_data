@@ -30,12 +30,14 @@ mixin $DogLocalAdapter on LocalAdapter<Dog> {
 final _dogsFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $DogIsarLocalAdapter = IsarLocalAdapter<Dog> with $DogLocalAdapter;
+class $DogObjectboxLocalAdapter = ObjectboxLocalAdapter<Dog>
+    with $DogLocalAdapter;
 
 class $DogRemoteAdapter = RemoteAdapter<Dog> with NothingMixin;
 
 final internalDogsRemoteAdapterProvider = Provider<RemoteAdapter<Dog>>((ref) =>
-    $DogRemoteAdapter($DogIsarLocalAdapter(ref), InternalHolder(_dogsFinders)));
+    $DogRemoteAdapter(
+        $DogObjectboxLocalAdapter(ref), InternalHolder(_dogsFinders)));
 
 final dogsRepositoryProvider =
     Provider<Repository<Dog>>((ref) => Repository<Dog>(ref));
@@ -68,12 +70,14 @@ mixin $CatLocalAdapter on LocalAdapter<Cat> {
 final _catsFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $CatIsarLocalAdapter = IsarLocalAdapter<Cat> with $CatLocalAdapter;
+class $CatObjectboxLocalAdapter = ObjectboxLocalAdapter<Cat>
+    with $CatLocalAdapter;
 
 class $CatRemoteAdapter = RemoteAdapter<Cat> with NothingMixin;
 
 final internalCatsRemoteAdapterProvider = Provider<RemoteAdapter<Cat>>((ref) =>
-    $CatRemoteAdapter($CatIsarLocalAdapter(ref), InternalHolder(_catsFinders)));
+    $CatRemoteAdapter(
+        $CatObjectboxLocalAdapter(ref), InternalHolder(_catsFinders)));
 
 final catsRepositoryProvider =
     Provider<Repository<Cat>>((ref) => Repository<Cat>(ref));

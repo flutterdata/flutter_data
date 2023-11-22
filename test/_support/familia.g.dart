@@ -59,14 +59,14 @@ mixin $FamiliaLocalAdapter on LocalAdapter<Familia> {
 final _familiaFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $FamiliaIsarLocalAdapter = IsarLocalAdapter<Familia>
+class $FamiliaObjectboxLocalAdapter = ObjectboxLocalAdapter<Familia>
     with $FamiliaLocalAdapter;
 
 class $FamiliaRemoteAdapter = RemoteAdapter<Familia> with NothingMixin;
 
 final internalFamiliaRemoteAdapterProvider = Provider<RemoteAdapter<Familia>>(
     (ref) => $FamiliaRemoteAdapter(
-        $FamiliaIsarLocalAdapter(ref), InternalHolder(_familiaFinders)));
+        $FamiliaObjectboxLocalAdapter(ref), InternalHolder(_familiaFinders)));
 
 final familiaRepositoryProvider =
     Provider<Repository<Familia>>((ref) => Repository<Familia>(ref));

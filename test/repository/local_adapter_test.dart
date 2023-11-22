@@ -35,7 +35,7 @@ void main() async {
 
   test('deserialize existing (with save)', () {
     final familiaLocalAdapter = container.familia.remoteAdapter.localAdapter
-        as IsarLocalAdapter<Familia>;
+        as ObjectboxLocalAdapter<Familia>;
     final familia = Familia(surname: 'Moletto').saveLocal();
 
     // simulate "save"

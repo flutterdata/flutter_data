@@ -4,7 +4,7 @@ part of flutter_data;
 ///
 /// Identity in this layer is enforced by keys.
 ///
-/// See also: [IsarLocalAdapter]
+/// See also: [ObjectboxLocalAdapter]
 abstract class LocalAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   @protected
   LocalAdapter(Ref ref) : graph = ref.read(graphNotifierProvider);

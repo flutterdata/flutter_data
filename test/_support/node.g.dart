@@ -46,14 +46,14 @@ mixin $NodeLocalAdapter on LocalAdapter<Node> {
 final _nodesFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $NodeIsarLocalAdapter = IsarLocalAdapter<Node>
+class $NodeObjectboxLocalAdapter = ObjectboxLocalAdapter<Node>
     with $NodeLocalAdapter, NodeLocalAdapter;
 
 class $NodeRemoteAdapter = RemoteAdapter<Node> with NodeAdapter;
 
 final internalNodesRemoteAdapterProvider = Provider<RemoteAdapter<Node>>(
     (ref) => $NodeRemoteAdapter(
-        $NodeIsarLocalAdapter(ref), InternalHolder(_nodesFinders)));
+        $NodeObjectboxLocalAdapter(ref), InternalHolder(_nodesFinders)));
 
 final nodesRepositoryProvider =
     Provider<Repository<Node>>((ref) => Repository<Node>(ref));

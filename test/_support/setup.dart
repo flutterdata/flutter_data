@@ -45,7 +45,7 @@ Future<void> setUpFn() async {
         });
       }),
       localStorageProvider.overrideWith(
-        (ref) => IsarLocalStorage(
+        (ref) => ObjectboxLocalStorage(
           baseDirFn: () => kTestsPath,
           clear: LocalStorageClearStrategy.always,
         ),

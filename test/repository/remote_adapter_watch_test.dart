@@ -382,7 +382,7 @@ void main() async {
         } else if (i <= count) {
           expect(state.model, List.generate(i, (_) => matcher));
           final adapter = container.people.remoteAdapter.localAdapter
-              as IsarLocalAdapter<Person>;
+              as ObjectboxLocalAdapter<Person>;
           // check box has all the keys
           expect(adapter.keys.length, i);
         } else {

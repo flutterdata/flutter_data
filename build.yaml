@@ -17,8 +17,6 @@ targets:
         generate_for:
           - /*
           - example/*
-      isar|isar_generator:
-        enabled: false
 
 builders:
   data_repository_builder:

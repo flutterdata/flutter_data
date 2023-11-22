@@ -161,7 +161,7 @@ ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<Str
   ${isFlutter ? '}' : ''}
   
   return localStorageProvider.overrideWith(
-    (ref) => IsarLocalStorage(
+    (ref) => ObjectboxLocalStorage(
       baseDirFn: baseDirFn,
       encryptionKey: encryptionKey,
       clear: clear,

@@ -2,9 +2,9 @@ part of flutter_data;
 
 /// Hive implementation of [LocalAdapter].
 // ignore: must_be_immutable
-abstract class IsarLocalAdapter<T extends DataModelMixin<T>>
+abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
     extends LocalAdapter<T> {
-  IsarLocalAdapter(Ref ref) : super(ref);
+  ObjectboxLocalAdapter(Ref ref) : super(ref);
 
   @protected
   @visibleForTesting

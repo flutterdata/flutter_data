@@ -295,13 +295,13 @@ final _${classNameLower}Finders = <String, dynamic>{
 };
 
 // ignore: must_be_immutable
-class \$${className}IsarLocalAdapter = IsarLocalAdapter<$className> with \$${className}LocalAdapter${localMixins.map((m) => ', $m').join('')};
+class \$${className}ObjectboxLocalAdapter = ObjectboxLocalAdapter<$className> with \$${className}LocalAdapter${localMixins.map((m) => ', $m').join('')};
 
 class \$${className}RemoteAdapter = RemoteAdapter<$className> with ${mixins.join(', ')};
 
 final internal${classNameLower.capitalize()}RemoteAdapterProvider =
     Provider<RemoteAdapter<$className>>(
-        (ref) => \$${className}RemoteAdapter(\$${className}IsarLocalAdapter(ref), InternalHolder(_${classNameLower}Finders)));
+        (ref) => \$${className}RemoteAdapter(\$${className}ObjectboxLocalAdapter(ref), InternalHolder(_${classNameLower}Finders)));
 
 final ${classNameLower}RepositoryProvider =
     Provider<Repository<$className>>((ref) => Repository<$className>(ref));

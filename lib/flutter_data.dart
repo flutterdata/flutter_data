@@ -22,14 +22,14 @@ import 'package:state_notifier/state_notifier.dart';
 
 // import internal packages
 import 'src/graph/notifier_extension.dart';
-import 'src/repository/isar_local_storage.dart';
+import 'src/repository/objectbox_local_storage.dart';
 
 // export external packages
 export 'package:riverpod/riverpod.dart' hide Family;
 
 // export internal packages
 export 'src/graph/notifier_extension.dart';
-export 'src/repository/isar_local_storage.dart';
+export 'src/repository/objectbox_local_storage.dart';
 
 part 'src/graph/graph_notifier.dart';
 // include parts
@@ -37,7 +37,7 @@ part 'src/model/data_model.dart';
 part 'src/model/relationship/belongs_to.dart';
 part 'src/model/relationship/has_many.dart';
 part 'src/model/relationship/relationship.dart';
-part 'src/repository/isar_local_adapter.dart';
+part 'src/repository/objectbox_local_adapter.dart';
 part 'src/repository/local_adapter.dart';
 part 'src/repository/remote_adapter.dart';
 part 'src/repository/remote_adapter_serialization.dart';

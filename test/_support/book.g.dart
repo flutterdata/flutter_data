@@ -41,7 +41,7 @@ final _bookAuthorsFinders = <String, dynamic>{
 };
 
 // ignore: must_be_immutable
-class $BookAuthorIsarLocalAdapter = IsarLocalAdapter<BookAuthor>
+class $BookAuthorObjectboxLocalAdapter = ObjectboxLocalAdapter<BookAuthor>
     with $BookAuthorLocalAdapter;
 
 class $BookAuthorRemoteAdapter = RemoteAdapter<BookAuthor>
@@ -49,7 +49,8 @@ class $BookAuthorRemoteAdapter = RemoteAdapter<BookAuthor>
 
 final internalBookAuthorsRemoteAdapterProvider =
     Provider<RemoteAdapter<BookAuthor>>((ref) => $BookAuthorRemoteAdapter(
-        $BookAuthorIsarLocalAdapter(ref), InternalHolder(_bookAuthorsFinders)));
+        $BookAuthorObjectboxLocalAdapter(ref),
+        InternalHolder(_bookAuthorsFinders)));
 
 final bookAuthorsRepositoryProvider =
     Provider<Repository<BookAuthor>>((ref) => Repository<BookAuthor>(ref));
@@ -114,13 +115,14 @@ mixin $BookLocalAdapter on LocalAdapter<Book> {
 final _booksFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $BookIsarLocalAdapter = IsarLocalAdapter<Book> with $BookLocalAdapter;
+class $BookObjectboxLocalAdapter = ObjectboxLocalAdapter<Book>
+    with $BookLocalAdapter;
 
 class $BookRemoteAdapter = RemoteAdapter<Book> with NothingMixin;
 
 final internalBooksRemoteAdapterProvider = Provider<RemoteAdapter<Book>>(
     (ref) => $BookRemoteAdapter(
-        $BookIsarLocalAdapter(ref), InternalHolder(_booksFinders)));
+        $BookObjectboxLocalAdapter(ref), InternalHolder(_booksFinders)));
 
 final booksRepositoryProvider =
     Provider<Repository<Book>>((ref) => Repository<Book>(ref));
@@ -182,14 +184,14 @@ mixin $LibraryLocalAdapter on LocalAdapter<Library> {
 final _librariesFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $LibraryIsarLocalAdapter = IsarLocalAdapter<Library>
+class $LibraryObjectboxLocalAdapter = ObjectboxLocalAdapter<Library>
     with $LibraryLocalAdapter;
 
 class $LibraryRemoteAdapter = RemoteAdapter<Library> with NothingMixin;
 
 final internalLibrariesRemoteAdapterProvider = Provider<RemoteAdapter<Library>>(
     (ref) => $LibraryRemoteAdapter(
-        $LibraryIsarLocalAdapter(ref), InternalHolder(_librariesFinders)));
+        $LibraryObjectboxLocalAdapter(ref), InternalHolder(_librariesFinders)));
 
 final librariesRepositoryProvider =
     Provider<Repository<Library>>((ref) => Repository<Library>(ref));

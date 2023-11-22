@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_data/flutter_data.dart';
 
-class IsarLocalStorage {
-  IsarLocalStorage({
+class ObjectboxLocalStorage {
+  ObjectboxLocalStorage({
     this.baseDirFn,
     this.encryptionKey,
     LocalStorageClearStrategy? clear,
@@ -55,6 +55,6 @@ enum LocalStorageClearStrategy {
   whenError,
 }
 
-final localStorageProvider = Provider<IsarLocalStorage>(
-  (ref) => IsarLocalStorage(baseDirFn: () => ''),
+final localStorageProvider = Provider<ObjectboxLocalStorage>(
+  (ref) => ObjectboxLocalStorage(baseDirFn: () => ''),
 );

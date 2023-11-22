@@ -39,13 +39,14 @@ mixin $UserLocalAdapter on LocalAdapter<User> {
 final _usersFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $UserIsarLocalAdapter = IsarLocalAdapter<User> with $UserLocalAdapter;
+class $UserObjectboxLocalAdapter = ObjectboxLocalAdapter<User>
+    with $UserLocalAdapter;
 
 class $UserRemoteAdapter = RemoteAdapter<User> with JSONServerAdapter<User>;
 
 final internalUsersRemoteAdapterProvider = Provider<RemoteAdapter<User>>(
     (ref) => $UserRemoteAdapter(
-        $UserIsarLocalAdapter(ref), InternalHolder(_usersFinders)));
+        $UserObjectboxLocalAdapter(ref), InternalHolder(_usersFinders)));
 
 final usersRepositoryProvider =
     Provider<Repository<User>>((ref) => Repository<User>(ref));
