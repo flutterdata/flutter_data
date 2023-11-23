@@ -44,7 +44,7 @@ Widget build(context) {
   }
 
   Future<void> destroy() async {
-    // TODO restore Hive features here?
+    // TODO destroy?
     // Hive.deleteAllBoxesFromDisk();
   }
 }

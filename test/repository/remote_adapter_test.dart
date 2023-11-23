@@ -10,8 +10,8 @@ import '../_support/person.dart';
 import '../_support/setup.dart';
 
 void main() async {
-  setUpAll(setUpIsar);
-  tearDownAll(tearDownIsar);
+  setUpAll(setUpLocalStorage);
+  tearDownAll(tearDownLocalStorage);
   setUp(setUpFn);
   tearDown(tearDownFn);
 
@@ -24,7 +24,7 @@ void main() async {
     await adapter.save(familia2);
     final familia = await adapter.findAll(remote: false);
 
-    expect(familia, [familia1, familia2]);
+    expect(familia, unorderedEquals([familia1, familia2]));
   });
 
   test('findOne', () async {
@@ -176,7 +176,7 @@ void main() async {
     final label2 = DataRequestLabel.parse('findOne/watch/dogs#1@7ebcc6');
     expect(label2.kind, 'findOne/watch');
     expect(label2.type, 'dogs');
-    expect(label2.id, '1');
+    expect(label2.id, 1);
     expect(label2.requestId, '7ebcc6');
     expect(label2.indentation, 0);
 
@@ -190,7 +190,7 @@ void main() async {
 
     // nested
     final parentLabel =
-        DataRequestLabel('findOne', id: '1', type: 'dogs', requestId: 'ee58b2');
+        DataRequestLabel('findOne', id: 1, type: 'dogs', requestId: 'ee58b2');
     final nestedLabel1 = DataRequestLabel('findAll',
         type: 'parks', requestId: 'ff01b1', withParent: parentLabel);
     final nestedLabel2 = DataRequestLabel('findAll',
@@ -278,7 +278,7 @@ void main() async {
       ''');
 
     final person = Person(name: 'Jack', familia: f1.asBelongsTo).saveLocal();
-    expect(person.familia.value, f1);
+    expect(person.familia.value, equals(f1));
     expect(f1.persons.toSet(), {person});
 
     // call remote save as it uses withKeyOf, relationship should be omitted

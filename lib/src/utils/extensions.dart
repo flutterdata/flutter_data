@@ -33,9 +33,8 @@ extension DeleteAllX<T extends DataModelMixin<T>>
 
     final adapter =
         first._remoteAdapter.localAdapter as ObjectboxLocalAdapter<T>;
-    final keys =
-        map((e) => e._key != null ? adapter.graph.intKey(e._key!) : null)
-            .filterNulls;
+    final keys = map((e) => e._key != null ? e._key!.detypify() as int : null)
+        .filterNulls;
     adapter.store.box<StoredModel>().removeMany(keys.toList());
   }
 }
@@ -48,6 +47,20 @@ extension IterableNullX<T> on Iterable<T?> {
 
 extension _ListX<T> on List<T> {
   T? getSafe(int index) => (length > index) ? this[index] : null;
+}
+
+extension DynamicX on dynamic {
+  // # separates integers, ## separates strings
+  String typifyWith(String type) {
+    final _this = this.toString();
+    if (type.contains('#') || _this.startsWith('#')) {
+      throw ArgumentError();
+    }
+    if (this == null || _this.isEmpty) {
+      return type;
+    }
+    return '$type#${_this.isNotEmpty ? ('${this is! int ? '#' : ''}$_this') : ''}';
+  }
 }
 
 extension StringUtilsX on String {
@@ -68,12 +81,6 @@ extension StringUtilsX on String {
     return '$prefix:$this';
   }
 
-  String typifyWith(String type, {bool isInt = false}) {
-    // TODO do not assert, throw; also throw if id starts with #
-    assert(!type.contains('#'));
-    return '$type#${isNotEmpty ? ('${isInt ? '#' : ''}$this') : ''}';
-  }
-
   String? get namespace => split(':').safeFirst;
 
   String? get type => split('#').safeFirst;
@@ -83,21 +90,25 @@ extension StringUtilsX on String {
     return (split(':')..removeAt(0)).join(':');
   }
 
-  Object? detypify({forceInt = false}) {
-    final [_, maybeId, ...rest] = split('#');
-    if (forceInt) {
-      return int.parse(maybeId);
+  Object? detypify() {
+    final [_, ...other] = split('#');
+    if (other.isEmpty) {
+      // enters here if there is only a type, e.g. `people`
+      return null;
     }
-    if (maybeId.isEmpty) {
+    final [intId, ...rest] = other;
+    if (intId.isEmpty) {
+      // means it is a string id people##
       if (rest.isEmpty) {
         // means it has no assigned ID: people#
         return null;
+      } else {
+        // need to re-join with # in case there were other #s in the id
+        return rest.join('#');
       }
-      // means it's an int: e.g people##1
-      return int.parse(rest.first);
     } else {
-      // need to re-join with # in case there were other #s in the id
-      return [maybeId, ...rest].join('#');
+      // means it's an int: e.g people#1
+      return int.parse(intId);
     }
   }
 }

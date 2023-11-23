@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:mockito/mockito.dart';
+import 'package:path/path.dart' as path;
 
 import 'book.dart';
 import 'familia.dart';
@@ -121,26 +123,15 @@ Future<void> setUpFn() async {
   dogsRepository.logLevel = 2;
 }
 
-Future<void> setUpIsar() async {
-  // initialize Isar Core
-  // final binaryName = Platform.isWindows
-  //     ? 'isar.dll'
-  //     : Platform.isMacOS
-  //         ? 'libisar.dylib'
-  //         : 'libisar.so';
+Future<void> setUpLocalStorage() async {}
 
-  // final p = File('tmp/$binaryName').absolute.path;
-  // await Isar.initialize(p);
-}
-
-Future<void> tearDownIsar() async {
-  // TODO tear down OB
-  // try {
-  //   File(path.join(kTestsPath, 'flutter_data.isar')).deleteSync();
-  //   File(path.join(kTestsPath, 'flutter_data.isar.lock')).deleteSync();
-  // } on PathNotFoundException {
-  //   // ignore
-  // }
+Future<void> tearDownLocalStorage() async {
+  try {
+    final dir = Directory(path.join(kTestsPath, 'flutter_data'));
+    dir.deleteSync(recursive: true);
+  } on PathNotFoundException {
+    // ignore
+  }
 }
 
 Future<void> tearDownFn() async {

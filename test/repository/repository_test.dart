@@ -9,8 +9,8 @@ import '../_support/person.dart';
 import '../_support/setup.dart';
 
 void main() async {
-  setUpAll(setUpIsar);
-  tearDownAll(tearDownIsar);
+  setUpAll(setUpLocalStorage);
+  tearDownAll(tearDownLocalStorage);
   setUp(setUpFn);
   tearDown(tearDownFn);
 
@@ -347,7 +347,7 @@ void main() async {
 
     final dogs = await container.dogs.findAll(params: {'a': 1}, remote: true);
 
-    var regexp = RegExp(r'^\d\d:\d\d\d \[findAll\/dogs@[a-z0-9]{6}\]');
+    var regexp = RegExp(r'^\d\d:\d\d\d \[findAll\/dogs@[0-9]{10}\]');
     expect(logging.first, matches(regexp));
     expect(
         logging.first,
@@ -361,7 +361,7 @@ void main() async {
 
     await container.dogs.save(dogs.toList()[2], remote: false);
 
-    regexp = RegExp(r'^\d\d:\d\d\d \[save\/dogs#3@[a-z0-9]{6}\]');
+    regexp = RegExp(r'^\d\d:\d\d\d \[save\/dogs##3@[0-9]{10}\]');
     expect(logging.first, matches(regexp));
     expect(logging.first, endsWith('saved in local storage only'));
 
@@ -369,7 +369,7 @@ void main() async {
 
     await container.dogs.delete('3', remote: true);
 
-    regexp = RegExp(r'^\d\d:\d\d\d \[delete\/dogs#3@[a-z0-9]{6}\]');
+    regexp = RegExp(r'^\d\d:\d\d\d \[delete\/dogs##3@[0-9]{10}\]');
     expect(logging.first, matches(regexp));
     expect(
         logging.first,

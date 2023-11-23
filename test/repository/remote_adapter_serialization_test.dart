@@ -12,8 +12,8 @@ import '../_support/pet.dart';
 import '../_support/setup.dart';
 
 void main() async {
-  setUpAll(setUpIsar);
-  tearDownAll(tearDownIsar);
+  setUpAll(setUpLocalStorage);
+  tearDownAll(tearDownLocalStorage);
   setUp(setUpFn);
   tearDown(tearDownFn);
 

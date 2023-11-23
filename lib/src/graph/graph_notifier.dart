@@ -35,7 +35,7 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
 
     try {
       _store = openStore(
-        directory: _localStorage.path,
+        directory: path_helper.join(_localStorage.path, 'flutter_data'),
         queriesCaseSensitiveDefault: false,
       );
       _storedModelBox = _store.box<StoredModel>();
@@ -46,8 +46,8 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
 
     if (_localStorage.clear == LocalStorageClearStrategy.always) {
       // TODO no way of removing everything?
-      await _store.box<Edge>().removeAllAsync();
-      await _store.box<StoredModel>().removeAllAsync();
+      _store.box<Edge>().removeAll();
+      _store.box<StoredModel>().removeAll();
     }
 
     isInitialized = true;
@@ -80,19 +80,20 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
     type = DataHelpers.internalTypeFor(type);
     if (id != null) {
       final keys = _storedModelBox
-          .query(StoredModel_.typeId.equals(id.toString().typifyWith(type)))
+          .query(StoredModel_.typeId.equals(id.typifyWith(type)))
           .build()
           .property(StoredModel_.key)
           .find();
       if (keys.isNotEmpty) {
-        return '${keys.first}'.typifyWith(type);
+        return keys.first.typifyWith(type);
       }
       if (keyIfAbsent != null) {
         final storedModel = StoredModel(
-            key: intKey(keyIfAbsent),
-            typeId: id.toString().typifyWith(type, isInt: id is int));
+          key: keyIfAbsent.detypify() as int,
+          typeId: id.typifyWith(type),
+        );
         _storedModelBox.put(storedModel);
-        return storedModel.key.toString().typifyWith(type);
+        return storedModel.key.typifyWith(type);
       }
     } else if (keyIfAbsent != null) {
       return keyIfAbsent;
@@ -103,7 +104,7 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   /// Finds an ID, given a [key].
   Object? getIdForKey(String key) {
     final typeIds = _storedModelBox
-        .query(StoredModel_.key.equals(intKey(key)))
+        .query(StoredModel_.key.equals(key.detypify() as int))
         .build()
         .property(StoredModel_.typeId)
         .find();
@@ -116,7 +117,7 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
 
   /// Removes [type]/[id] mapping
   void removeId(String type, Object id, {bool notify = true}) {
-    final typeId = id.toString().typifyWith(type);
+    final typeId = id.typifyWith(type);
     final ids = _store
         .box<StoredModel>()
         .query(StoredModel_.typeId.equals(typeId))
@@ -128,10 +129,6 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
       _store.box<StoredModel>().put(newModel);
     }
     state = DataGraphEvent(keys: [typeId], type: DataGraphEventType.removeNode);
-  }
-
-  int intKey(String key) {
-    return key.detypify(forceInt: true) as int;
   }
 
   // nodes
@@ -267,9 +264,7 @@ Key "$key":
   /// Returns a [Map] representation of the internal ID db
   Map<String, String> toIdMap() {
     final models = _storedModelBox.getAll();
-    return {
-      for (final m in models) m.key.toString().typifyWith(m.type): m.typeId
-    };
+    return {for (final m in models) m.key.typifyWith(m.type): m.typeId};
   }
 
   void debugMap() => _prettyPrintJson(_toMap());

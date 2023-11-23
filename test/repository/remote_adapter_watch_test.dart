@@ -13,8 +13,8 @@ import '../_support/person.dart';
 import '../_support/setup.dart';
 
 void main() async {
-  setUpAll(setUpIsar);
-  tearDownAll(tearDownIsar);
+  setUpAll(setUpLocalStorage);
+  tearDownAll(tearDownLocalStorage);
   setUp(setUpFn);
   tearDown(tearDownFn);
 
@@ -46,7 +46,10 @@ void main() async {
         TestResponse((_) => throw Exception('unreachable'));
     final notifier = container.familia.watchAllNotifier();
 
-    dispose = notifier.addListener(listener);
+    dispose = notifier.addListener((e) {
+      print('$e\n');
+      listener(e);
+    });
 
     verify(listener(DataState([], isLoading: true))).called(1);
     await oneMs();

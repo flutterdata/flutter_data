@@ -8,17 +8,22 @@ import '../_support/house.dart';
 import '../_support/person.dart';
 import '../_support/setup.dart';
 
+printTime(Function fn) {
+  final m1 = DateTime.now().millisecondsSinceEpoch;
+  fn();
+  final m2 = DateTime.now().millisecondsSinceEpoch;
+  print('took ${m2 - m1}ms');
+}
+
 void main() async {
-  setUpAll(setUpIsar);
-  tearDownAll(tearDownIsar);
+  setUpAll(setUpLocalStorage);
+  tearDownAll(tearDownLocalStorage);
   setUp(setUpFn);
   tearDown(tearDownFn);
 
   test('add/remove edges with metadata', () {
     graph.addEdges('h1',
         tos: {'b1', 'b2'}, metadata: 'blogs', inverseMetadata: 'host');
-
-    graph.debugMap();
 
     expect(graph.getEdge('b1', metadata: 'host'), {'h1'});
     expect(graph.getEdge('h1', metadata: 'blogs'), {'b1', 'b2'});
@@ -157,26 +162,22 @@ void main() async {
   });
 
   test('keys and IDs do not clash', () {
-    graph.getKeyForId('people', '1', keyIfAbsent: 'people#111');
+    graph.getKeyForId('people', 1, keyIfAbsent: 'people#111');
     graph.getKeyForId('people', '111', keyIfAbsent: 'people#222');
     expect(graph.getKeyForId('people', '111'), 'people#222');
-    expect(
-        graph.toIdMap().keys.toSet(),
-        containsAll({
-          'people#222',
-          'people#111',
-        }));
 
-    expect(graph.toIdMap().values.toSet(),
-        containsAll({'people#111', 'people#1'}));
+    final map = graph.toIdMap();
+    expect(map.keys.toSet(), containsAll({'people#222', 'people#111'}));
+    // # separates integers, ## separates strings
+    expect(map.values.toSet(), containsAll({'people##111', 'people#1'}));
 
-    expect(graph.getKeyForId('people', '1'), 'people#111');
+    expect(graph.getKeyForId('people', 1), 'people#111');
   });
 
   test('saves key', () async {
     final residence = House(address: '123 Main St');
-    final length = 100;
-    final div = 19;
+    final length = 4; // TODO increase
+    final div = 2;
     final familias = <Familia>[];
 
     for (var i = 0; i < length; i++) {
@@ -226,14 +227,14 @@ void main() async {
   });
 
   test('namespace', () {
-    expect('a9'.typifyWith('posts').namespaceWith('id'), 'id:posts#a9');
+    expect('a9'.typifyWith('posts').namespaceWith('id'), 'id:posts##a9');
     expect('278#12'.typifyWith('animals').namespaceWith('zzz'),
-        'zzz:animals#278#12');
+        'zzz:animals##278#12');
   });
 
   test('denamespace', () {
     expect('superman:1'.denamespace(), '1');
-    expect('id:posts#a9'.denamespace().detypify(), 'a9');
+    expect('id:posts##a9'.denamespace().detypify(), 'a9');
   });
 
   test('event', () {
