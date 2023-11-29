@@ -24,8 +24,10 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   @override
   bool isInitialized = false;
 
+  // key: (typeId?), we use a record to indicate removal with (null,)
   final Map<String, (String?,)> _mappingBuffer = {};
-  final Map<int, Set<Edge>> _edgeBuffer = {};
+  final Set<Edge> _unsavedEdges = {};
+  final Set<Edge> _unsavedRemovedEdges = {};
 
   late Store _store;
   late Box<StoredModel> _storedModelBox;
@@ -162,53 +164,53 @@ Key "$key":
   }
 
   /// Obtains a node
-  Map<String, Set<String>> getNode(String key) {
-    _assertKey(key);
-    return _getNode(key);
-  }
+  // Map<String, Set<String>> getNode(String key) {
+  //   _assertKey(key);
+  //   return _getNode(key);
+  // }
 
   /// Returns whether [key] is present in this graph.
   ///
   /// [key] MUST be namespaced (e.g. `manager:key`)
-  bool hasNode(String key) {
-    _assertKey(key);
-    return _hasNode(key);
-  }
+  // bool hasNode(String key) {
+  //   _assertKey(key);
+  //   return _hasNode(key);
+  // }
 
   /// Removes a node, [key] MUST be namespaced (e.g. `manager:key`)
-  void removeNode(String key, {bool notify = true}) {
-    _assertKey(key);
-    return _removeNode(key, notify: notify);
-  }
+  // void removeNode(String key, {bool notify = true}) {
+  //   _assertKey(key);
+  //   return _removeNode(key, notify: notify);
+  // }
 
   // edges
 
   /// See [addEdge]
-  void addEdges(String from,
-      {required String metadata,
-      required Set<String> tos,
-      String? inverseMetadata,
-      bool notify = true}) {
-    _assertKey(from);
-    for (final to in tos) {
-      _assertKey(to);
-    }
-    _assertKey(metadata);
-    if (inverseMetadata != null) {
-      _assertKey(inverseMetadata);
-    }
-    _addEdges(from,
-        metadata: metadata, tos: tos, inverseMetadata: inverseMetadata);
-  }
+  // void addEdges(String from,
+  //     {required String metadata,
+  //     required Set<String> tos,
+  //     String? inverseMetadata,
+  //     bool notify = true}) {
+  //   _assertKey(from);
+  //   for (final to in tos) {
+  //     _assertKey(to);
+  //   }
+  //   _assertKey(metadata);
+  //   if (inverseMetadata != null) {
+  //     _assertKey(inverseMetadata);
+  //   }
+  //   _addEdges(from,
+  //       metadata: metadata, tos: tos, inverseMetadata: inverseMetadata);
+  // }
 
   /// Returns edge by [metadata]
   ///
   /// [key] and [metadata] MUST be namespaced (e.g. `manager:key`)
-  Set<String> getEdge(String key, {required String metadata}) {
-    _assertKey(key);
-    _assertKey(metadata);
-    return _getEdge(key, metadata: metadata);
-  }
+  // Set<String> getEdge(String key, {required String metadata}) {
+  //   _assertKey(key);
+  //   _assertKey(metadata);
+  //   return _getEdge(key, metadata: metadata);
+  // }
 
   /// Adds a bidirectional edge:
   ///
@@ -216,34 +218,34 @@ Key "$key":
   ///  - [to]->[from] with [inverseMetadata]
   ///
   /// [from], [metadata] & [inverseMetadata] MUST be namespaced (e.g. `manager:key`)
-  void addEdge(String from, String to,
-      {required String metadata, String? inverseMetadata, bool notify = true}) {
-    _assertKey(from);
-    _assertKey(to);
-    _assertKey(metadata);
-    if (inverseMetadata != null) {
-      _assertKey(inverseMetadata);
-    }
-    return _addEdge(from, to,
-        metadata: metadata, inverseMetadata: inverseMetadata, notify: notify);
-  }
+  // void addEdge(String from, String to,
+  //     {required String metadata, String? inverseMetadata, bool notify = true}) {
+  //   _assertKey(from);
+  //   _assertKey(to);
+  //   _assertKey(metadata);
+  //   if (inverseMetadata != null) {
+  //     _assertKey(inverseMetadata);
+  //   }
+  //   return _addEdge(from, to,
+  //       metadata: metadata, inverseMetadata: inverseMetadata, notify: notify);
+  // }
 
   /// See [removeEdge]
-  void removeEdges(String from,
-      {required String metadata,
-      Iterable<String> tos = const [],
-      String? inverseMetadata,
-      bool notify = true}) {
-    _assertKey(from);
-    for (final to in tos) {
-      _assertKey(to);
-    }
-    _assertKey(metadata);
-    if (inverseMetadata != null) {
-      _assertKey(inverseMetadata);
-    }
-    return _removeEdges(from, metadata: metadata, notify: notify);
-  }
+  // void removeEdges(String from,
+  //     {required String metadata,
+  //     Iterable<String> tos = const [],
+  //     String? inverseMetadata,
+  //     bool notify = true}) {
+  //   _assertKey(from);
+  //   for (final to in tos) {
+  //     _assertKey(to);
+  //   }
+  //   _assertKey(metadata);
+  //   if (inverseMetadata != null) {
+  //     _assertKey(inverseMetadata);
+  //   }
+  //   return _removeEdges(from, metadata: metadata, notify: notify);
+  // }
 
   /// Removes a bidirectional edge:
   ///
@@ -251,25 +253,25 @@ Key "$key":
   ///  - [to]->[from] with [inverseMetadata]
   ///
   /// [from], [metadata] & [inverseMetadata] MUST be namespaced (e.g. `manager:key`)
-  void removeEdge(String from, String to,
-      {required String metadata, String? inverseMetadata, bool notify = true}) {
-    _assertKey(from);
-    _assertKey(to);
-    _assertKey(metadata);
-    if (inverseMetadata != null) {
-      _assertKey(inverseMetadata);
-    }
-    return _removeEdge(from, to, metadata: metadata, notify: notify);
-  }
+  // void removeEdge(String from, String to,
+  //     {required String metadata, String? inverseMetadata, bool notify = true}) {
+  //   _assertKey(from);
+  //   _assertKey(to);
+  //   _assertKey(metadata);
+  //   if (inverseMetadata != null) {
+  //     _assertKey(inverseMetadata);
+  //   }
+  //   return _removeEdge(from, to, metadata: metadata, notify: notify);
+  // }
 
   /// Returns whether the requested edge is present in this graph.
   ///
   /// [key] and [metadata] MUST be namespaced (e.g. `manager:key`)
-  bool hasEdge(String key, {required String metadata}) {
-    _assertKey(key);
-    _assertKey(metadata);
-    return _hasEdge(key, metadata: metadata);
-  }
+  // bool hasEdge(String key, {required String metadata}) {
+  //   _assertKey(key);
+  //   _assertKey(metadata);
+  //   return _hasEdge(key, metadata: metadata);
+  // }
 
   // utils
 
@@ -296,148 +298,148 @@ Key "$key":
 
   // private API
 
-  Map<String, Set<String>> _getNode(String key) {
-    final edges = _store
-        .box<Edge>()
-        .query(Edge_.from.equals(key) | Edge_.to.equals(key))
-        .build()
-        .find();
-    final grouped = edges.groupListsBy((e) => e.name);
-    return {
-      for (final e in grouped.entries)
-        e.key: e.value.map((e) => e.from == key ? e.to : e.from).toSet()
-    };
-  }
+  // reads
 
-  bool _hasNode(String key) {
-    return _store
-            .box<Edge>()
-            .query(Edge_.from.equals(key) | Edge_.to.equals(key))
-            .build()
-            .count() >
-        0;
-  }
+  // Map<String, Set<String>> _getNode(String key) {
+  //   final edges = _edgeBox
+  //       .query(Edge_.from.equals(key) | Edge_.to.equals(key))
+  //       .build()
+  //       .find();
+  //   final grouped = edges.groupListsBy((e) => e.name);
+  //   return {
+  //     for (final e in grouped.entries)
+  //       e.key: e.value.map((e) => e.from == key ? e.to : e.from).toSet()
+  //   };
+  // }
 
-  Set<String> _getEdge(String key, {required String metadata}) {
-    final edges = _store
-        .box<Edge>()
-        .query((Edge_.from.equals(key).and(Edge_.name.equals(metadata)))
-            .or(Edge_.to.equals(key).and(Edge_.inverseName.equals(metadata))))
-        .build()
-        .find();
-    return {for (final e in edges) e.from == key ? e.to : e.from};
-  }
+  // bool _hasNode(String key) {
+  //   return _store
+  //           .box<Edge>()
+  //           .query(Edge_.from.equals(key) | Edge_.to.equals(key))
+  //           .build()
+  //           .count() >
+  //       0;
+  // }
 
-  bool _hasEdge(String key, {required String metadata}) {
-    return _store
-            .box<Edge>()
-            .query((Edge_.from.equals(key).and(Edge_.name.equals(metadata))).or(
-                Edge_.to.equals(key).and(Edge_.inverseName.equals(metadata))))
-            .build()
-            .count() >
-        0;
-  }
+  // Set<String> _getEdge(String key, {required String metadata}) {
+  //   final edges = _store
+  //       .box<Edge>()
+  //       .query((Edge_.from.equals(key).and(Edge_.name.equals(metadata)))
+  //           .or(Edge_.to.equals(key).and(Edge_.inverseName.equals(metadata))))
+  //       .build()
+  //       .find();
+  //   return {for (final e in edges) e.from == key ? e.to : e.from};
+  // }
 
-  // write
+  // bool _hasEdge(String key, {required String metadata}) {
+  //   return _store
+  //           .box<Edge>()
+  //           .query((Edge_.from.equals(key).and(Edge_.name.equals(metadata))).or(
+  //               Edge_.to.equals(key).and(Edge_.inverseName.equals(metadata))))
+  //           .build()
+  //           .count() >
+  //       0;
+  // }
 
-  void _removeNode(String key, {bool notify = true}) {
-    _store
-        .box<Edge>()
-        .query(Edge_.from.equals(key).or(Edge_.to.equals(key)))
-        .build()
-        .remove();
-    if (notify) {
-      state = DataGraphEvent(keys: [key], type: DataGraphEventType.removeNode);
-    }
-  }
+  // writes
 
-  void _addEdge(String from, String to,
-      {required String metadata, String? inverseMetadata, bool notify = true}) {
-    _addEdges(from,
-        tos: {to},
-        metadata: metadata,
-        inverseMetadata: inverseMetadata,
-        notify: notify);
-  }
+  // void _removeNode(String key, {bool notify = true}) {
+  //   _edgeBox
+  //       .query(Edge_.from.equals(key) | Edge_.to.equals(key))
+  //       .build()
+  //       .remove();
+  //   if (notify) {
+  //     state = DataGraphEvent(keys: [key], type: DataGraphEventType.removeNode);
+  //   }
+  // }
 
-  void _addEdges(String from,
-      {required String metadata,
-      required Set<String> tos,
-      String? inverseMetadata,
-      bool clearExisting = false,
-      bool notify = true}) {
-    if (tos.isEmpty) {
-      if (clearExisting) {
-        _getRemoveEdgesQuery(_edgeBox, from, metadata: metadata).remove();
-      }
-      return;
-    }
+  // void _addEdge(String from, String to,
+  //     {required String metadata, String? inverseMetadata, bool notify = true}) {
+  //   _addEdges(from,
+  //       tos: {to},
+  //       metadata: metadata,
+  //       inverseMetadata: inverseMetadata,
+  //       notify: notify);
+  // }
 
-    final edges = tos.map(
-      (to) => Edge(
-          id: 0, // autoincrement
-          from: from,
-          name: metadata,
-          to: to,
-          inverseName: inverseMetadata),
-    );
+  // void _addEdges(String from,
+  //     {required String metadata,
+  //     required Set<String> tos,
+  //     String? inverseMetadata,
+  //     bool clearExisting = false,
+  //     bool notify = true}) {
+  //   if (tos.isEmpty) {
+  //     // empty tos means all
+  //     if (clearExisting) {
+  //       _getRemoveEdgesQuery(_edgeBox, from, metadata: metadata).remove();
+  //     }
+  //     return;
+  //   }
 
-    _store.runInTransaction(TxMode.write, () {
-      if (clearExisting) {
-        _getRemoveEdgesQuery(_edgeBox, from, metadata: metadata).remove();
-      }
-      for (final edge in edges) {
-        _edgeBox.put(edge);
-      }
-    });
+  //   final edges = tos.map(
+  //     (to) => Edge(
+  //         id: 0, // autoincrement
+  //         from: from,
+  //         name: metadata,
+  //         to: to,
+  //         inverseName: inverseMetadata),
+  //   );
 
-    if (notify) {
-      if (clearExisting) {
-        state = DataGraphEvent(
-          keys: [from, ...tos],
-          metadata: metadata,
-          type: DataGraphEventType.removeEdge,
-        );
-      }
-      state = DataGraphEvent(
-        keys: [from, ...tos],
-        metadata: metadata,
-        type: DataGraphEventType.addEdge,
-      );
-    }
-  }
+  //   if (clearExisting) {
+  //     _getRemoveEdgesQuery(_edgeBox, from, tos: tos, metadata: metadata)
+  //         .remove();
+  //   }
 
-  void _removeEdge(String from, String to,
-      {required String metadata, bool notify = true}) {
-    _removeEdges(from, tos: {to}, metadata: metadata, notify: notify);
-  }
+  //   for (final edge in edges) {
+  //     _edgeBuffer.add((edge, removed: false));
+  //   }
 
-  Query<Edge> _getRemoveEdgesQuery(Box<Edge> box, String from,
-      {required String metadata, Set<String>? tos}) {
-    var q1 = Edge_.from.equals(from) & Edge_.name.equals(metadata);
-    if (tos != null) {
-      q1 = q1.andAll(tos.map((to) => Edge_.to.equals(to)).toList());
-    }
-    var q2 = Edge_.to.equals(from) & Edge_.inverseName.equals(metadata);
-    if (tos != null) {
-      q2 = q2.andAll(tos.map((to) => Edge_.from.equals(to)).toList());
-    }
+  //   if (notify) {
+  //     if (clearExisting) {
+  //       state = DataGraphEvent(
+  //         keys: [from, ...tos],
+  //         metadata: metadata,
+  //         type: DataGraphEventType.removeEdge,
+  //       );
+  //     }
+  //     state = DataGraphEvent(
+  //       keys: [from, ...tos],
+  //       metadata: metadata,
+  //       type: DataGraphEventType.addEdge,
+  //     );
+  //   }
+  // }
 
-    return box.query(q1.or(q2)).build();
-  }
+  // void _removeEdge(String from, String to,
+  //     {required String metadata, bool notify = true}) {
+  //   _removeEdges(from, tos: {to}, metadata: metadata, notify: notify);
+  // }
 
-  void _removeEdges(String from,
-      {required String metadata, Set<String>? tos, bool notify = true}) {
-    _getRemoveEdgesQuery(_edgeBox, from, metadata: metadata, tos: tos).remove();
+  // Query<Edge> _getRemoveEdgesQuery(Box<Edge> box, String from,
+  //     {required String metadata, Set<String>? tos}) {
+  //   var q1 = Edge_.from.equals(from) & Edge_.name.equals(metadata);
+  //   if (tos != null) {
+  //     q1 = q1.andAll(tos.map((to) => Edge_.to.equals(to)).toList());
+  //   }
+  //   var q2 = Edge_.to.equals(from) & Edge_.inverseName.equals(metadata);
+  //   if (tos != null) {
+  //     q2 = q2.andAll(tos.map((to) => Edge_.from.equals(to)).toList());
+  //   }
+  //   return box.query(q1 | q2).build();
+  // }
 
-    if (notify) {
-      state = DataGraphEvent(
-        keys: [from, ...?tos],
-        metadata: metadata,
-        type: DataGraphEventType.removeEdge,
-      );
-    }
-  }
+  // void _removeEdges(String from,
+  //     {required String metadata, Set<String>? tos, bool notify = true}) {
+  //   _getRemoveEdgesQuery(_edgeBox, from, metadata: metadata, tos: tos).remove();
+
+  //   if (notify) {
+  //     state = DataGraphEvent(
+  //       keys: [from, ...?tos],
+  //       metadata: metadata,
+  //       type: DataGraphEventType.removeEdge,
+  //     );
+  //   }
+  // }
 
   void _notify(List<String> keys,
       {String? metadata, required DataGraphEventType type}) {
@@ -449,22 +451,23 @@ Key "$key":
   // misc
 
   Map<String, Map<String, List<String>>> _toMap() {
-    final map = <String, Map<String, List<String>>>{};
+    // final map = <String, Map<String, List<String>>>{};
 
-    final edges = _edgeBox.getAll();
-    for (final edge in edges) {
-      map[edge.from] ??= {};
-      map[edge.from]![edge.name] ??= [];
-      map[edge.from]![edge.name]!.add(edge.to);
-    }
-    for (final edge in edges) {
-      if (edge.inverseName != null) {
-        map[edge.to] ??= {};
-        map[edge.to]![edge.inverseName!] ??= [];
-        map[edge.to]![edge.inverseName!]!.add(edge.from);
-      }
-    }
-    return map;
+    // final edges = _edgeBox.getAll();
+    // for (final edge in edges) {
+    //   map[edge.from] ??= {};
+    //   map[edge.from]![edge.name] ??= [];
+    //   map[edge.from]![edge.name]!.add(edge.to);
+    // }
+    // for (final edge in edges) {
+    //   if (edge.inverseName != null) {
+    //     map[edge.to] ??= {};
+    //     map[edge.to]![edge.inverseName!] ??= [];
+    //     map[edge.to]![edge.inverseName!]!.add(edge.from);
+    //   }
+    // }
+    // return map;
+    return {};
   }
 
   static JsonEncoder _encoder = JsonEncoder.withIndent('  ');

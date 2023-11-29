@@ -33,16 +33,10 @@ extension DeleteAllX<T extends DataModelMixin<T>>
 
     final adapter =
         first._remoteAdapter.localAdapter as ObjectboxLocalAdapter<T>;
-    final keys = map((e) => e._key != null ? e._key!.detypify() as int : null)
-        .filterNulls;
+    final keys =
+        map((e) => e._key != null ? e._key!.detypify() as int : null).nonNulls;
     adapter.store.box<StoredModel>().removeMany(keys.toList());
   }
-}
-
-extension IterableNullX<T> on Iterable<T?> {
-  @protected
-  @visibleForTesting
-  Iterable<T> get filterNulls => where((elem) => elem != null).cast();
 }
 
 extension _ListX<T> on List<T> {

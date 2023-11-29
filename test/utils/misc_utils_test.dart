@@ -57,8 +57,8 @@ void main() async {
     expect([1, 2, 3].containsFirst(1), isTrue);
     expect([1, 2, 3].containsFirst(2), isFalse);
 
-    expect([1, null, 3, null].filterNulls, [1, 3]);
-    expect([1, 2, 3].filterNulls, [1, 2, 3]);
+    expect([1, null, 3, null].nonNulls, [1, 3]);
+    expect([1, 2, 3].nonNulls, [1, 2, 3]);
   });
 
   test('map utils', () {

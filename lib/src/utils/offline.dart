@@ -81,11 +81,12 @@ class OfflineOperation<T extends DataModelMixin<T>> with EquatableMixin {
   void add() {
     // DO NOT proceed if operation is in queue
     if (!adapter.offlineOperations.contains(this)) {
-      final node = json.encode(toJson());
       final metadata = metadataFor(label);
 
       adapter.log(label, 'offline/add $metadata');
-      adapter.graph._addEdge(_offlineAdapterKey, node, metadata: metadata);
+      // TODO FIX
+      // final node = json.encode(toJson());
+      // adapter.graph._addEdge(_offlineAdapterKey, node, metadata: metadata);
 
       // keep callbacks in memory
       adapter.ref.read(_offlineCallbackProvider)[metadata] ??= [];
@@ -102,12 +103,12 @@ class OfflineOperation<T extends DataModelMixin<T>> with EquatableMixin {
   /// Removes all edges from the `_offlineAdapterKey` for
   /// current metadata, as well as callbacks from memory.
   static void remove(DataRequestLabel label, RemoteAdapter adapter) {
-    final metadata = metadataFor(label);
-    if (adapter.graph._hasEdge(_offlineAdapterKey, metadata: metadata)) {
-      adapter.graph._removeEdges(_offlineAdapterKey, metadata: metadata);
-      adapter.log(label, 'offline/remove $metadata');
-      adapter.ref.read(_offlineCallbackProvider).remove(metadata);
-    }
+    // final metadata = metadataFor(label);
+    // if (adapter.graph._hasEdge(_offlineAdapterKey, metadata: metadata)) {
+    //   adapter.graph._removeEdges(_offlineAdapterKey, metadata: metadata);
+    //   adapter.log(label, 'offline/remove $metadata');
+    //   adapter.ref.read(_offlineCallbackProvider).remove(metadata);
+    // }
   }
 
   Future<void> retry() async {
@@ -155,7 +156,7 @@ extension OfflineOperationsX on Set<OfflineOperation<DataModelMixin>> {
     }
     final adapter = first.adapter;
 
-    adapter.graph._removeNode(_offlineAdapterKey);
+    // adapter.graph._removeNode(_offlineAdapterKey);
 
     adapter.ref.read(_offlineCallbackProvider).clear();
   }

@@ -799,26 +799,28 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   @visibleForTesting
   @nonVirtual
   Set<OfflineOperation<T>> get offlineOperations {
-    final node = graph._getNode(_offlineAdapterKey);
-    return node.entries
-        .map((e) {
-          try {
-            // extract type from e.g. _offline:findOne/users#3@d7bcc9
-            final label = DataRequestLabel.parse(e.key.denamespace());
-            if (label.type == internalType) {
-              // get first edge value
-              final map = json.decode(e.value.first) as Map<String, dynamic>;
-              return OfflineOperation<T>.fromJson(
-                  label, map, this as RemoteAdapter<T>);
-            }
-          } catch (_) {
-            // if there were any errors parsing labels or json ignore and remove
-            graph._removeEdges(_offlineAdapterKey,
-                metadata: e.key, notify: false);
-          }
-        })
-        .filterNulls
-        .toSet();
+    // TODO FIX
+    return {};
+    // final node = graph._getNode(_offlineAdapterKey);
+    // return node.entries
+    //     .map((e) {
+    //       try {
+    //         // extract type from e.g. _offline:findOne/users#3@d7bcc9
+    //         final label = DataRequestLabel.parse(e.key.denamespace());
+    //         if (label.type == internalType) {
+    //           // get first edge value
+    //           final map = json.decode(e.value.first) as Map<String, dynamic>;
+    //           return OfflineOperation<T>.fromJson(
+    //               label, map, this as RemoteAdapter<T>);
+    //         }
+    //       } catch (_) {
+    //         // if there were any errors parsing labels or json ignore and remove
+    //         graph._removeEdges(_offlineAdapterKey,
+    //             metadata: e.key, notify: false);
+    //       }
+    //     })
+    //     .nonNulls
+    //     .toSet();
   }
 
   Object? _resolveId(Object obj) {

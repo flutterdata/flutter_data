@@ -29,5 +29,5 @@ class Edge with EquatableMixin {
   }
 
   @override
-  List<Object?> get props => [id];
+  List<Object?> get props => [from, to, name, inverseName];
 }

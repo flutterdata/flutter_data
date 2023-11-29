@@ -55,9 +55,9 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
     return graph._store
         .box<StoredModel>()
         .getMany(_keys)
-        .filterNulls
+        .nonNulls
         .mapIndexed((i, map) => _deserializeWithKey(map.toJson(), _keys[i]))
-        .filterNulls
+        .nonNulls
         .toList();
   }
 

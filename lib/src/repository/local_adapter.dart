@@ -79,8 +79,9 @@ abstract class LocalAdapter<T extends DataModelMixin<T>> with _Lifecycle {
       final relationship = metadata.instance(model);
 
       if (fromKey != null) {
-        // final sourceRelationship = metadata.instance(from);
-        final keys = graph._getEdge(fromKey, metadata: metadata.name).toSet();
+        // final keys = graph._getEdge(fromKey, metadata: metadata.name).toSet();
+        // TODO FIX
+        final keys = <String>{};
 
         relationship?.initialize(
           owner: model,

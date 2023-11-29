@@ -45,31 +45,54 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
       return this;
     }
 
-    // setting up from scratch, add edges (removing existing)
-
-    _graph._addEdges(
-      _ownerKey!,
-      tos: _uninitializedKeys!,
-      metadata: _name!,
-      inverseMetadata: _inverseName,
-      clearExisting: true,
-      notify: false,
-    );
+    _graph._unsavedEdges.removeWhere((e) =>
+        (e.from == _ownerKey! && e.name == _name!) ||
+        (e.to == _ownerKey! && e.inverseName == _name!));
+    _graph._unsavedRemovedEdges.removeWhere((e) =>
+        (e.from == _ownerKey! && e.name == _name!) ||
+        (e.to == _ownerKey! && e.inverseName == _name!));
+    _graph._unsavedEdges.addAll(_uninitializedKeys!.map(_createEdgeTo));
 
     _uninitializedKeys!.clear();
 
     return this;
   }
 
+  _sync() {
+    // process buffer queue here
+
+    // clear existing
+    final q1 = Edge_.from.equals(_ownerKey!) & Edge_.name.equals(_name!);
+    final q2 = Edge_.to.equals(_ownerKey!) &
+        Edge_.inverseName.equals(_name!); // not inverseName!
+    _graph._edgeBox.query(q1 | q2).build().remove();
+  }
+
+  Edge _createEdgeTo(String to) {
+    return Edge(
+      id: 0, // autoincrement
+      from: _ownerKey!,
+      to: to,
+      name: _name!,
+      inverseName: _inverseName,
+    );
+  }
+
+  Set<Edge> get _localUnsavedEdges => _graph._unsavedEdges
+      .where((e) => e.from == _ownerKey && e.name == _name!)
+      .toSet();
+
   // implement collection-like methods
 
   bool _add(E value, {bool notify = true}) {
-    if (_contains(value)) {
+    final edge = _createEdgeTo(value._key!);
+    if (_graph._unsavedEdges.contains(edge)) {
       return false;
     }
 
-    _graph._addEdge(_ownerKey!, value._key!,
-        metadata: _name!, inverseMetadata: _inverseName, notify: false);
+    // Add to edges, remove from removed edges
+    _graph._unsavedEdges.add(edge);
+    _graph._unsavedRemovedEdges.remove(edge);
 
     if (notify) {
       _graph._notify(
@@ -86,16 +109,16 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
     return _iterable.contains(element);
   }
 
-  bool _remove(Object? value, {bool notify = true}) {
-    assert(value is E);
-    final model = value as E;
+  bool _remove(E value, {bool notify = true}) {
+    final edge =
+        _localUnsavedEdges.firstWhereOrNull((e) => e.to == value._key!);
+    if (edge == null) {
+      return false;
+    }
 
-    _graph._removeEdge(
-      _ownerKey!,
-      model._key!,
-      metadata: _name!,
-      notify: false,
-    );
+    // Remove from edges, add to removed edges
+    _graph._unsavedEdges.remove(edge);
+    _graph._unsavedRemovedEdges.add(edge);
 
     if (notify) {
       _graph._notify(
@@ -115,11 +138,23 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
 
   Set<String> get _keys {
     if (!isInitialized) return {};
-    return _graph._getEdge(_ownerKey!, metadata: _name!).toSet();
+    final key = _ownerKey!;
+    final inverseEdges = _graph._unsavedEdges
+        .where((e) => e.to == _ownerKey! && e.inverseName == _name!);
+
+    final edges = _graph._edgeBox
+        .query((Edge_.from.equals(key) & Edge_.name.equals(_name!)) |
+            (Edge_.to.equals(key) & Edge_.inverseName.equals(_name!)))
+        .build()
+        .find();
+    return {
+      for (final e in {..._localUnsavedEdges, ...inverseEdges, ...edges})
+        e.from == key ? e.to : e.from
+    };
   }
 
   Set<Object> get _ids {
-    return _keys.map((key) => _graph.getIdForKey(key)).filterNulls.toSet();
+    return _keys.map((key) => _graph.getIdForKey(key)).nonNulls.toSet();
   }
 
   DelayedStateNotifier<DataGraphEvent> get _relationshipEventNotifier {

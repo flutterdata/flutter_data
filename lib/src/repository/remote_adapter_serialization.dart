@@ -13,7 +13,7 @@ mixin _RemoteAdapterSerialization<T extends DataModelMixin<T>>
       if (map[key] is Iterable) {
         map[key] = (map[key] as Iterable)
             .map((k) => graph.getIdForKey(k.toString()))
-            .filterNulls
+            .nonNulls
             .toList();
       } else if (map[key] != null) {
         map[key] = graph.getIdForKey(map[key].toString());
@@ -79,7 +79,7 @@ mixin _RemoteAdapterSerialization<T extends DataModelMixin<T>>
               mapOut[mapKey] = [
                 for (final id in (mapIn[mapKey] as Iterable))
                   await _processIdAndAddInclude(id, adapters[relType]!)
-              ].filterNulls;
+              ].nonNulls;
             }
           } else {
             // regular field mapping

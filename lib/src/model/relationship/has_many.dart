@@ -42,12 +42,12 @@ class HasMany<E extends DataModelMixin<E>> extends Relationship<E, Set<E>> {
     return _add(value, notify: notify);
   }
 
-  bool contains(E? element) {
+  bool contains(E element) {
     return _contains(element);
   }
 
   /// Removes a [value] from this [Relationship]
-  bool remove(E? value, {bool notify = true}) {
+  bool remove(E value, {bool notify = true}) {
     return _remove(value, notify: notify);
   }
 

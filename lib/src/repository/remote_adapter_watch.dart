@@ -155,7 +155,7 @@ mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
         alsoWatchPairs = {
           ...?metas
               ?.map((meta) => _getPairsForMeta(meta._top, model._key!))
-              .filterNulls
+              .nonNulls
               .expand((_) => _)
         };
       } else {
@@ -337,11 +337,10 @@ mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
   Iterable<List<String>> _getPairsForMeta(
       RelationshipMeta? meta, String ownerKey) {
     if (meta == null) return {};
-    // get instance of this relationship
-    // final relationship = meta.instance(model);
 
-    final relationshipKeys =
-        graph._getEdge(ownerKey, metadata: meta.name).toSet();
+    // TODO copy query
+    final relationshipKeys = <String>{};
+    //     graph._getEdge(ownerKey, metadata: meta.name).toSet();
 
     return {
       // include key pairs of (owner, key)
