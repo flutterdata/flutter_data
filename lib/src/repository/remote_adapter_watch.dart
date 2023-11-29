@@ -246,8 +246,7 @@ mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
           }
 
           // add/update
-          if (event.type == DataGraphEventType.addNode ||
-              event.type == DataGraphEventType.updateNode) {
+          if (event.type == DataGraphEventType.updateNode) {
             if (notifier.data.isLoading == false) {
               log(label!, 'added/updated node ${event.keys}', logLevel: 2);
               states.add(DataState(

@@ -1,9 +1,10 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:messagepack/messagepack.dart';
 import 'package:objectbox/objectbox.dart';
 
 @Entity()
-class StoredModel {
+class StoredModel with EquatableMixin {
   StoredModel({
     required this.key,
     required this.typeId,
@@ -37,6 +38,9 @@ class StoredModel {
       ...map,
     };
   }
+
+  @override
+  List<Object?> get props => [key];
 
   @override
   String toString() {

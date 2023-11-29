@@ -24,6 +24,9 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   @override
   bool isInitialized = false;
 
+  final Map<String, (String?,)> _mappingBuffer = {};
+  final Map<int, Set<Edge>> _edgeBuffer = {};
+
   late Store _store;
   late Box<StoredModel> _storedModelBox;
   late Box<Edge> _edgeBox;
@@ -46,8 +49,8 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
 
     if (_localStorage.clear == LocalStorageClearStrategy.always) {
       // TODO no way of removing everything?
-      _store.box<Edge>().removeAll();
-      _store.box<StoredModel>().removeAll();
+      _storedModelBox.removeAll();
+      _edgeBox.removeAll();
     }
 
     isInitialized = true;
@@ -78,7 +81,18 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   ///    (if both [keyIfAbsent] & [type]/[id] were provided)
   String? getKeyForId(String type, Object? id, {String? keyIfAbsent}) {
     type = DataHelpers.internalTypeFor(type);
+
     if (id != null) {
+      var entry = _mappingBuffer.entries
+          .firstWhereOrNull((e) => e.value.$1 == id.typifyWith(type));
+      if (entry?.value != null) {
+        if (entry!.value.$1 == null) {
+          return null;
+        }
+        return entry.key;
+      }
+
+      // if it wasn't found fall back to DB (for reads)
       final keys = _storedModelBox
           .query(StoredModel_.typeId.equals(id.typifyWith(type)))
           .build()
@@ -88,12 +102,10 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
         return keys.first.typifyWith(type);
       }
       if (keyIfAbsent != null) {
-        final storedModel = StoredModel(
-          key: keyIfAbsent.detypify() as int,
-          typeId: id.typifyWith(type),
-        );
-        _storedModelBox.put(storedModel);
-        return storedModel.key.typifyWith(type);
+        // Buffer write
+        final typeId = id.typifyWith(type);
+        _mappingBuffer[keyIfAbsent] = (typeId,);
+        return keyIfAbsent;
       }
     } else if (keyIfAbsent != null) {
       return keyIfAbsent;
@@ -103,6 +115,14 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
 
   /// Finds an ID, given a [key].
   Object? getIdForKey(String key) {
+    final mapping = _mappingBuffer[key];
+    if (mapping != null) {
+      if (mapping.$1 == null) {
+        return null;
+      }
+      return mapping.$1!.detypify();
+    }
+
     final typeIds = _storedModelBox
         .query(StoredModel_.key.equals(key.detypify() as int))
         .build()
@@ -115,20 +135,15 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
     return null;
   }
 
-  /// Removes [type]/[id] mapping
-  void removeId(String type, Object id, {bool notify = true}) {
-    final typeId = id.typifyWith(type);
-    final ids = _store
-        .box<StoredModel>()
-        .query(StoredModel_.typeId.equals(typeId))
-        .build()
-        .property(StoredModel_.key)
-        .find();
-    if (ids.isNotEmpty) {
-      final newModel = StoredModel(key: ids.first, typeId: ''.typifyWith(type));
-      _store.box<StoredModel>().put(newModel);
-    }
-    state = DataGraphEvent(keys: [typeId], type: DataGraphEventType.removeNode);
+  /// Removes type-ID mapping for [key]
+  void removeIdForKey(String key,
+      {String? type, Object? id, bool notify = true}) {
+    final mapping = _mappingBuffer[key];
+    final typeId = mapping?.$1 ?? (id != null ? id.typifyWith(type!) : null);
+    _mappingBuffer[key] = (null,);
+    state = DataGraphEvent(
+        keys: [if (typeId != null) typeId],
+        type: DataGraphEventType.removeNode);
   }
 
   // nodes
@@ -264,13 +279,16 @@ Key "$key":
   /// Returns a [Map] representation of the internal ID db
   Map<String, String> toIdMap() {
     final models = _storedModelBox.getAll();
-    return {for (final m in models) m.key.typifyWith(m.type): m.typeId};
+    return {
+      for (final e in _mappingBuffer.entries)
+        if (e.value.$1 != null) e.key: e.value.$1!,
+      for (final m in models) m.key.typifyWith(m.type): m.typeId
+    };
   }
 
   void debugMap() => _prettyPrintJson(_toMap());
 
-  void debugStore() =>
-      print(_store.box<StoredModel>().getAll().map((e) => e.toJson()));
+  void debugStore() => print(_storedModelBox.getAll().map((e) => e.toJson()));
 
   @protected
   @visibleForTesting
@@ -350,8 +368,7 @@ Key "$key":
       bool notify = true}) {
     if (tos.isEmpty) {
       if (clearExisting) {
-        _getRemoveEdgesQuery(_store.box<Edge>(), from, metadata: metadata)
-            .remove();
+        _getRemoveEdgesQuery(_edgeBox, from, metadata: metadata).remove();
       }
       return;
     }
@@ -365,11 +382,14 @@ Key "$key":
           inverseName: inverseMetadata),
     );
 
-    if (clearExisting) {
-      _getRemoveEdgesQuery(_store.box<Edge>(), from, metadata: metadata)
-          .remove();
-    }
-    _store.box<Edge>().putMany(edges.toList());
+    _store.runInTransaction(TxMode.write, () {
+      if (clearExisting) {
+        _getRemoveEdgesQuery(_edgeBox, from, metadata: metadata).remove();
+      }
+      for (final edge in edges) {
+        _edgeBox.put(edge);
+      }
+    });
 
     if (notify) {
       if (clearExisting) {
@@ -408,8 +428,7 @@ Key "$key":
 
   void _removeEdges(String from,
       {required String metadata, Set<String>? tos, bool notify = true}) {
-    _getRemoveEdgesQuery(_store.box<Edge>(), from, metadata: metadata, tos: tos)
-        .remove();
+    _getRemoveEdgesQuery(_edgeBox, from, metadata: metadata, tos: tos).remove();
 
     if (notify) {
       state = DataGraphEvent(
@@ -432,7 +451,7 @@ Key "$key":
   Map<String, Map<String, List<String>>> _toMap() {
     final map = <String, Map<String, List<String>>>{};
 
-    final edges = _store.box<Edge>().getAll();
+    final edges = _edgeBox.getAll();
     for (final edge in edges) {
       map[edge.from] ??= {};
       map[edge.from]![edge.name] ??= [];
@@ -456,7 +475,6 @@ Key "$key":
 }
 
 enum DataGraphEventType {
-  addNode,
   removeNode,
   updateNode,
   clear,
@@ -468,7 +486,6 @@ enum DataGraphEventType {
 
 extension DataGraphEventTypeX on DataGraphEventType {
   bool get isNode => [
-        DataGraphEventType.addNode,
         DataGraphEventType.updateNode,
         DataGraphEventType.removeNode,
       ].contains(this);

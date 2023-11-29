@@ -29,13 +29,14 @@ abstract class DataModel<T extends DataModel<T>> with DataModelMixin<T> {
       );
 
       if (destKey != null) {
-        // remove node
-        graph._removeNode(destKey);
+        // remove mapping
+        graph.removeIdForKey(destKey);
       }
 
       if (applyTo.id != null) {
         // if present, remove existent ID association
-        graph.removeId(type, applyTo.id!, notify: false);
+        graph.removeIdForKey(sourceKey,
+            type: type, id: applyTo.id!, notify: false);
         // and associate ID with source key
         graph.getKeyForId(type, applyTo.id, keyIfAbsent: sourceKey);
       }

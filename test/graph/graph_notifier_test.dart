@@ -8,13 +8,6 @@ import '../_support/house.dart';
 import '../_support/person.dart';
 import '../_support/setup.dart';
 
-printTime(Function fn) {
-  final m1 = DateTime.now().millisecondsSinceEpoch;
-  fn();
-  final m2 = DateTime.now().millisecondsSinceEpoch;
-  print('took ${m2 - m1}ms');
-}
-
 void main() async {
   setUpAll(setUpLocalStorage);
   tearDownAll(tearDownLocalStorage);
@@ -98,7 +91,7 @@ void main() async {
     final key = graph.getKeyForId('people', '1',
         keyIfAbsent: DataHelpers.generateKey<Person>())!;
     expect(graph.getIdForKey(key), '1');
-    graph.removeId('people', '1');
+    graph.removeIdForKey(key, type: 'people', id: '1');
     expect(graph.getIdForKey(key), isNull);
   });
 
@@ -135,15 +128,14 @@ void main() async {
   });
 
   test('by key', () {
-    graph.getKeyForId('familia', '3', keyIfAbsent: 'familia#333');
-
     final key = 'familia#333';
-    expect(key, graph.getKeyForId('familia', '3'));
+    graph.getKeyForId('familia', '3', keyIfAbsent: key);
+    expect(graph.getKeyForId('familia', '3'), key);
   });
 
   test('two models with id should get the same key', () {
     expect(graph.getKeyForId('familia', '2812', keyIfAbsent: 'familia#19'),
-        graph.getKeyForId('familia', '2812', keyIfAbsent: 'familia#19'));
+        graph.getKeyForId('familia', '2812'));
   });
 
   test('should prioritize ID', () {
@@ -176,7 +168,7 @@ void main() async {
 
   test('saves key', () async {
     final residence = House(address: '123 Main St');
-    final length = 4; // TODO increase
+    final length = 100;
     final div = 2;
     final familias = <Familia>[];
 
@@ -201,7 +193,9 @@ void main() async {
       familias.add(familia);
     }
 
-    await container.familia.remoteAdapter.localAdapter.bulkSave(familias);
+    await logTime('bulk save', () async {
+      await container.familia.remoteAdapter.localAdapter.bulkSave(familias);
+    });
 
     expect(graph.toMap().keys.where((k) => k.startsWith('familia')),
         hasLength(length));

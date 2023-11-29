@@ -223,9 +223,9 @@ class Listener<T> extends Mock {
   void call(T value);
 }
 
-void logTime(String name, Function cb) {
+Future<void> logTime(String name, Future Function() cb) async {
   final a1 = DateTime.now().millisecondsSinceEpoch;
-  cb();
+  await cb();
   final a2 = DateTime.now().millisecondsSinceEpoch;
   print('$name: ${a2 - a1}ms');
 }

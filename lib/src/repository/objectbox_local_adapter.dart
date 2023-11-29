@@ -78,22 +78,25 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
     // TODO could avoid saving ID?
     packer.packJson(serialize(model, withRelationships: false));
 
+    final buffer = graph._mappingBuffer[key];
+    final typeId = switch (buffer) {
+      (String typeId,) => typeId, // ID mapping was added
+      (null,) => ''.typifyWith(internalType), // ID mapping was removed
+      null => model.id.typifyWith(internalType), // no mapping so assign default
+    };
+
     final storedModel = StoredModel(
-      typeId: model.id.typifyWith(internalType),
+      typeId: typeId,
       key: key.detypify() as int,
       data: packer.takeBytes(),
     );
 
-    bool keyExisted = exists(key);
-    store.box<StoredModel>().put(storedModel);
+    final savedKey =
+        store.box<StoredModel>().put(storedModel).typifyWith(internalType);
+    graph._mappingBuffer.remove(savedKey);
 
     if (notify) {
-      graph._notify(
-        [key],
-        type: keyExisted
-            ? DataGraphEventType.updateNode
-            : DataGraphEventType.addNode,
-      );
+      graph._notify([savedKey], type: DataGraphEventType.updateNode);
     }
     return model;
   }
@@ -101,55 +104,52 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
   @override
   Future<void> bulkSave(Iterable<DataModel> models,
       {bool notify = true}) async {
+    print('bulkSave');
     final storedModels = models.map((m) {
       final key = DataModel.keyFor(m);
       final packer = Packer();
       final a = DataModel.adapterFor(m).localAdapter;
       packer.packJson(a.serialize(m, withRelationships: false));
+      final buffer = graph._mappingBuffer[key];
+      final typeId = switch (buffer) {
+        (String typeId,) => typeId, // ID mapping was added
+        (null,) => ''.typifyWith(a.internalType), // ID mapping was removed
+        null => m.id.typifyWith(a.internalType), // no mapping so assign default
+      };
       return StoredModel(
-        typeId: m.id.typifyWith(internalType),
+        typeId: typeId,
         key: key.detypify() as int,
         data: packer.takeBytes(),
       );
     }).toList();
 
-    final existingKeys = store.runInTransaction(TxMode.read, () {
-      final allKeys = storedModels.map((e) => e.key).toList();
-      return store
-          .box<StoredModel>()
-          .query(StoredModel_.key.oneOf(allKeys) & StoredModel_.data.notNull())
-          .build()
-          .property(StoredModel_.key)
-          .find()
-          .map((k) {
-        final m = storedModels.firstWhere((e) => e.key == k);
-        return k.typifyWith(m.type);
-      }).toList();
-    });
-
     final savedKeys =
         await store.runInTransactionAsync(TxMode.write, (store, storedModels) {
-      return store.box<StoredModel>().putMany(storedModels);
+      return storedModels.map((m) {
+        return store.box<StoredModel>().put(m).typifyWith(m.type);
+      }).toList();
     }, storedModels);
 
     if (storedModels.length != savedKeys.length) {
+      // TODO ok?
       print('WARNING! Not all models stored!');
+    }
+    // remove keys that were saved from buffer
+    for (final key in savedKeys) {
+      graph._mappingBuffer.remove(key);
     }
 
     if (notify) {
       graph._notify(
-        existingKeys,
+        savedKeys,
         type: DataGraphEventType.updateNode,
-      );
-      graph._notify(
-        existingKeys, // TODO fix: should be the non-existing keys
-        type: DataGraphEventType.addNode,
       );
     }
   }
 
   @override
   Future<void> delete(String key, {bool notify = true}) async {
+    graph.removeIdForKey(key);
     store.box<StoredModel>().remove(key.detypify() as int);
     graph._notify([key], type: DataGraphEventType.removeNode);
   }

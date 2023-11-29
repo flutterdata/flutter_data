@@ -1,7 +1,8 @@
+import 'package:equatable/equatable.dart';
 import 'package:objectbox/objectbox.dart';
 
 @Entity()
-class Edge {
+class Edge with EquatableMixin {
   Edge(
       {required this.id,
       required this.from,
@@ -26,4 +27,7 @@ class Edge {
   String toString() {
     return '{ $from <---$name($inverseName)---> $to}';
   }
+
+  @override
+  List<Object?> get props => [id];
 }
