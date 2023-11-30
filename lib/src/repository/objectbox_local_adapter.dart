@@ -52,10 +52,10 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
   @override
   List<T> findMany(Iterable<String> keys) {
     final _keys = keys.map((key) => key.detypify() as int).toList();
-    return graph._store
-        .box<StoredModel>()
-        .getMany(_keys)
-        .nonNulls
+    final models = graph._store.box<StoredModel>().getMany(_keys).nonNulls;
+    return models
+        // Models are auto-initialized with other random keys
+        // so we need to reassign the corresponding key
         .mapIndexed((i, map) => _deserializeWithKey(map.toJson(), _keys[i]))
         .nonNulls
         .toList();

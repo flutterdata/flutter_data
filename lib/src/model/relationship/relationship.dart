@@ -22,26 +22,28 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
   Set<String>? _uninitializedKeys;
   String get _internalType => DataHelpers.getInternalType<E>();
 
-  bool get isInitialized => _ownerKey != null;
-
   /// Initializes this relationship (typically when initializing the owner
   /// in [DataModelMixin]) by supplying the owner, and related metadata.
-  /// [overrideKeys] ignores if the relationship was previously initialized.
   Relationship<E, N> initialize(
-      {required final DataModelMixin owner,
+      {required final String ownerKey,
       required final String name,
-      final String? inverseName,
-      Set<String>? overrideKeys}) {
-    if (overrideKeys == null && isInitialized) return this;
+      final String? inverseName}) {
+    // If the relationship owner key is same as previous, return
+    if (_ownerKey != null && _ownerKey == ownerKey) return this;
 
-    _ownerKey = owner._key;
+    final previousOwnerKey = _ownerKey;
+    _ownerKey = ownerKey;
     _name = name;
     _inverseName = inverseName;
 
-    if (overrideKeys != null) {
-      _uninitializedKeys = overrideKeys;
-    } else if (_uninitializedKeys == null) {
-      // means it was omitted (remote-omitted, or loaded locally), so skip
+    if (previousOwnerKey != null && previousOwnerKey != ownerKey) {
+      // new owner key, we need to reinitialize
+      _uninitializedKeys = _keysFor(ownerKey, name);
+    }
+
+    if (_uninitializedKeys == null) {
+      // This means it was omitted (remote-omitted, or loaded locally)
+      // so return as-is
       return this;
     }
 
@@ -51,6 +53,7 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
     _graph._unsavedRemovedEdges.removeWhere((e) =>
         (e.from == _ownerKey! && e.name == _name!) ||
         (e.to == _ownerKey! && e.inverseName == _name!));
+
     _graph._unsavedEdges.addAll(_uninitializedKeys!.map(_createEdgeTo));
 
     _uninitializedKeys!.clear();
@@ -61,38 +64,53 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
   _sync() {
     // process buffer queue here
 
-    // clear existing
+    // Try to find ownerKey/name combo from either side of the edge
     final q1 = Edge_.from.equals(_ownerKey!) & Edge_.name.equals(_name!);
-    final q2 = Edge_.to.equals(_ownerKey!) &
-        Edge_.inverseName.equals(_name!); // not inverseName!
+    final q2 = Edge_.to.equals(_ownerKey!) & Edge_.inverseName.equals(_name!);
     _graph._edgeBox.query(q1 | q2).build().remove();
   }
 
-  Edge _createEdgeTo(String to) {
-    return Edge(
-      id: 0, // autoincrement
-      from: _ownerKey!,
-      to: to,
-      name: _name!,
-      inverseName: _inverseName,
+  Edge _createEdgeTo(String to) => _createEdgesTo(to).$1;
+
+  (Edge, Edge) _createEdgesTo(String to) {
+    return (
+      Edge(
+        id: 0, // autoincrement
+        from: _ownerKey!,
+        to: to,
+        name: _name!,
+        inverseName: _inverseName,
+      ),
+      Edge(
+        id: 0, // autoincrement
+        from: to,
+        to: _ownerKey!,
+        name: _inverseName ?? '', // OK as we only use this for matching
+        inverseName: _name,
+      )
     );
   }
 
   Set<Edge> get _localUnsavedEdges => _graph._unsavedEdges
-      .where((e) => e.from == _ownerKey && e.name == _name!)
+      .where((e) =>
+          (e.from == _ownerKey && e.name == _name) ||
+          (e.to == _ownerKey && e.inverseName == _name))
       .toSet();
 
   // implement collection-like methods
 
   bool _add(E value, {bool notify = true}) {
-    final edge = _createEdgeTo(value._key!);
-    if (_graph._unsavedEdges.contains(edge)) {
+    final (edge, inverseEdge) = _createEdgesTo(value._key!);
+
+    if (_graph._unsavedEdges.contains(edge) ||
+        _graph._unsavedEdges.contains(inverseEdge)) {
       return false;
     }
 
     // Add to edges, remove from removed edges
     _graph._unsavedEdges.add(edge);
     _graph._unsavedRemovedEdges.remove(edge);
+    _graph._unsavedRemovedEdges.remove(inverseEdge);
 
     if (notify) {
       _graph._notify(
@@ -110,15 +128,16 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
   }
 
   bool _remove(E value, {bool notify = true}) {
-    final edge =
-        _localUnsavedEdges.firstWhereOrNull((e) => e.to == value._key!);
-    if (edge == null) {
-      return false;
-    }
+    final (edge, inverseEdge) = _createEdgesTo(value._key!);
 
     // Remove from edges, add to removed edges
-    _graph._unsavedEdges.remove(edge);
+    final removed = _graph._unsavedEdges.remove(edge) ||
+        _graph._unsavedEdges.remove(inverseEdge);
     _graph._unsavedRemovedEdges.add(edge);
+
+    if (!removed) {
+      return false;
+    }
 
     if (notify) {
       _graph._notify(
@@ -136,21 +155,24 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
     return _adapter.localAdapter.findMany(_keys);
   }
 
-  Set<String> get _keys {
-    if (!isInitialized) return {};
-    final key = _ownerKey!;
-    final inverseEdges = _graph._unsavedEdges
-        .where((e) => e.to == _ownerKey! && e.inverseName == _name!);
+  Query<Edge> _getPersistedEdgesQuery(String key, String name) {
+    return _graph._edgeBox
+        .query((Edge_.from.equals(key) & Edge_.name.equals(name)) |
+            (Edge_.to.equals(key) & Edge_.inverseName.equals(name)))
+        .build();
+  }
 
-    final edges = _graph._edgeBox
-        .query((Edge_.from.equals(key) & Edge_.name.equals(_name!)) |
-            (Edge_.to.equals(key) & Edge_.inverseName.equals(_name!)))
-        .build()
-        .find();
+  Set<String> _keysFor(String key, String name) {
+    final persistedEdges = _getPersistedEdgesQuery(key, name).find();
     return {
-      for (final e in {..._localUnsavedEdges, ...inverseEdges, ...edges})
+      for (final e in {..._localUnsavedEdges, ...persistedEdges})
         e.from == key ? e.to : e.from
     };
+  }
+
+  Set<String> get _keys {
+    if (_ownerKey == null) return {};
+    return _keysFor(_ownerKey!, _name!);
   }
 
   Set<Object> get _ids {
@@ -172,8 +194,14 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
   /// For internal use. Does not return valid JSON.
   dynamic toJson() => this;
 
-  int get length =>
-      _keys.map(_adapter.localAdapter.exists).where((e) => e == true).length;
+  int get length {
+    return _graph._store.runInTransaction(
+        TxMode.read,
+        () => _keys
+            .map(_adapter.localAdapter.exists)
+            .where((e) => e == true)
+            .length);
+  }
 
   /// Whether the relationship has a value.
   bool get isPresent => length > 0;

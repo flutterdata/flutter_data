@@ -13,12 +13,10 @@ class Edge with EquatableMixin {
   @Id()
   int id;
 
-  // @Index(hash: true, composite: ['name'])
   @Index(type: IndexType.hash)
   final String from;
   final String name;
 
-  // @Index(hash: true, composite: ['name'])
   @Index(type: IndexType.hash)
   final String to;
   final String? inverseName;
@@ -29,5 +27,5 @@ class Edge with EquatableMixin {
   }
 
   @override
-  List<Object?> get props => [from, to, name, inverseName];
+  List<Object?> get props => [from, to];
 }

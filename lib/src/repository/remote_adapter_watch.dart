@@ -143,26 +143,28 @@ mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
 
     // closure to get latest model and watchable relationship pairs
     T? _getUpdatedModel() {
-      final model = localAdapter.findOne(key);
-      if (model != null) {
-        // get all metas provided via `alsoWatch`
-        final metas = alsoWatch
-            ?.call(RelationshipGraphNode<T>())
-            .whereType<RelationshipMeta>();
+      return graph._store.runInTransaction(TxMode.read, () {
+        final model = localAdapter.findOne(key);
+        if (model != null) {
+          // get all metas provided via `alsoWatch`
+          final metas = alsoWatch
+              ?.call(RelationshipGraphNode<T>())
+              .whereType<RelationshipMeta>();
 
-        // recursively get applicable watch key pairs for each meta -
-        // from top to bottom (e.g. `p`, `p.familia`, `p.familia.cottage`)
-        alsoWatchPairs = {
-          ...?metas
-              ?.map((meta) => _getPairsForMeta(meta._top, model._key!))
-              .nonNulls
-              .expand((_) => _)
-        };
-      } else {
-        // if there is no model nothing should be watched, reset pairs
-        alsoWatchPairs = {};
-      }
-      return model;
+          // recursively get applicable watch key pairs for each meta -
+          // from top to bottom (e.g. `p`, `p.familia`, `p.familia.cottage`)
+          alsoWatchPairs = {
+            ...?metas
+                ?.map((meta) => _getPairsForMeta(meta._top, model._key!))
+                .nonNulls
+                .expand((_) => _)
+          };
+        } else {
+          // if there is no model nothing should be watched, reset pairs
+          alsoWatchPairs = {};
+        }
+        return model;
+      });
     }
 
     final notifier = DataStateNotifier<T?>(
@@ -338,9 +340,19 @@ mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
       RelationshipMeta? meta, String ownerKey) {
     if (meta == null) return {};
 
-    // TODO copy query
-    final relationshipKeys = <String>{};
-    //     graph._getEdge(ownerKey, metadata: meta.name).toSet();
+    final localEdges = graph._unsavedEdges.where((e) =>
+        (e.from == ownerKey && e.name == meta.name) ||
+        (e.to == ownerKey && e.inverseName == meta.name));
+
+    final edges = graph._edgeBox
+        .query((Edge_.from.equals(ownerKey) & Edge_.name.equals(meta.name)) |
+            (Edge_.to.equals(ownerKey) & Edge_.inverseName.equals(meta.name)))
+        .build()
+        .find();
+    final relationshipKeys = {
+      for (final e in {...localEdges, ...edges})
+        e.from == ownerKey ? e.to : e.from
+    };
 
     return {
       // include key pairs of (owner, key)
