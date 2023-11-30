@@ -1,3 +1,5 @@
+// ignore_for_file: comment_references
+
 part of flutter_data;
 
 /// A bidirected graph data structure that notifies
@@ -19,7 +21,7 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
 
   ObjectboxLocalStorage get _localStorage => ref.read(localStorageProvider);
 
-  bool _doAssert = true;
+  // bool _doAssert = true;
 
   @override
   bool isInitialized = false;
@@ -150,18 +152,18 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
 
   // nodes
 
-  void _assertKey(String key) {
-    if (_doAssert) {
-      if (key.split(':').length != 2 || key.startsWith('_')) {
-        throw AssertionError('''
-Key "$key":
-  - Key must be namespaced (my:key)
-  - Key can't contain a colon (my:precious:key)
-  - Namespace can't start with an underscore (_my:key)
-''');
-      }
-    }
-  }
+//   void _assertKey(String key) {
+//     if (_doAssert) {
+//       if (key.split(':').length != 2 || key.startsWith('_')) {
+//         throw AssertionError('''
+// Key "$key":
+//   - Key must be namespaced (my:key)
+//   - Key can't contain a colon (my:precious:key)
+//   - Namespace can't start with an underscore (_my:key)
+// ''');
+//       }
+//     }
+//   }
 
   /// Obtains a node
   // Map<String, Set<String>> getNode(String key) {
@@ -292,9 +294,9 @@ Key "$key":
 
   void debugStore() => print(_storedModelBox.getAll().map((e) => e.toJson()));
 
-  @protected
-  @visibleForTesting
-  void debugAssert(bool value) => _doAssert = value;
+  // @protected
+  // @visibleForTesting
+  // void debugAssert(bool value) => _doAssert = value;
 
   // private API
 

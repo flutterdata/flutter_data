@@ -58,7 +58,7 @@ Future<void> setUpFn() async {
   graph = container.read(graphNotifierProvider);
   // IMPORTANT: disable namespace assertions
   // in order to test un-namespaced (key, id)
-  graph.debugAssert(false);
+  // graph.debugAssert(false);
 
   // Equivalent to generated in `main.data.dart`
 
@@ -221,11 +221,4 @@ extension ProviderContainerX on ProviderContainer {
 
 class Listener<T> extends Mock {
   void call(T value);
-}
-
-Future<void> logTime(String name, Future Function() cb) async {
-  final a1 = DateTime.now().millisecondsSinceEpoch;
-  await cb();
-  final a2 = DateTime.now().millisecondsSinceEpoch;
-  print('$name: ${a2 - a1}ms');
 }

@@ -78,17 +78,17 @@ void main() async {
 
     for (final pair in pairs) {
       final index = pairs.indexOf(pair);
+      print('in index $index');
       // we receive an update from the server,
       // gets initialized with a new key destination
       final source = pair.first;
       final destination = pair.last;
 
-      // TODO FIX
-      // final destKeyBefore = keyFor(destination);
+      final destKeyBefore = keyFor(destination);
 
-      if (keyFor(source) != keyFor(destination)) {
-        // expect(graph.getNode(destKeyBefore), isNotNull);
-      }
+      // if (keyFor(source) != keyFor(destination)) {
+      //   expect(graph.getIdForKey(destKeyBefore), isNotNull);
+      // }
 
       destination.withKeyOf(source);
 
@@ -102,7 +102,7 @@ void main() async {
       expect(destination.familia.value, familias[index]);
 
       if (keyFor(source) != keyFor(destination)) {
-        // expect(graph.getNode(destKeyBefore), isNull);
+        expect(graph.getIdForKey(destKeyBefore), isNull);
       }
     }
 

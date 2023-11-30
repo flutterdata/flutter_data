@@ -131,7 +131,6 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
     }, storedModels);
 
     if (storedModels.length != savedKeys.length) {
-      // TODO ok?
       print('WARNING! Not all models stored!');
     }
     // remove keys that were saved from buffer
