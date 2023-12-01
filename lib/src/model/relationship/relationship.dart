@@ -39,8 +39,9 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
     _inverseName = inverseName;
 
     if (previousOwnerKey != null && previousOwnerKey != ownerKey) {
-      // new owner key, we need to reinitialize
-      _uninitializedKeys = _keysFor(ownerKey, name);
+      // new owner key, get all keys associated to previous key
+      // and reinitialize
+      _uninitializedKeys = _keysFor(previousOwnerKey, name);
     }
 
     if (_uninitializedKeys == null) {
@@ -101,6 +102,7 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
         _edgeOperations.whereType<_UpdateEdgeOperation>().map((op) => op.to);
     final removals =
         _edgeOperations.whereType<_RemoveEdgeOperation>().map((op) => op.to);
+
     if (notify) {
       if (additions.isNotEmpty) {
         // print('notifying additions $additions');
@@ -138,6 +140,7 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
     _edgeOperations.add(_AddEdgeOperation(value._key!));
     if (save) {
       this.save();
+      value.save();
       return true;
     }
     return false;

@@ -91,7 +91,7 @@ void main() async {
     final key = graph.getKeyForId('people', '1',
         keyIfAbsent: DataHelpers.generateKey<Person>())!;
     expect(graph.getIdForKey(key), '1');
-    graph.removeIdForKey(key, type: 'people', id: '1');
+    graph.removeIdForKey(key);
     expect(graph.getIdForKey(key), isNull);
   });
 
@@ -197,6 +197,7 @@ void main() async {
       await container.familia.remoteAdapter.localAdapter.bulkSave(familias);
     });
 
+    // TODO FIX
     // expect(graph.toMap().keys.where((k) => k.startsWith('familia')),
     //     hasLength(length));
   });

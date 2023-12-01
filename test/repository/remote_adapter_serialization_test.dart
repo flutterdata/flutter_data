@@ -27,7 +27,7 @@ void main() async {
     final familia = Familia(
       surname: 'Tao',
       persons: HasMany({Person(id: '332', name: 'Ko')}),
-    );
+    ).saveLocal();
     expect(await container.familia.remoteAdapter.serialize(familia), {
       'surname': 'Tao',
       'persons': ['332']
@@ -36,11 +36,12 @@ void main() async {
 
   test('serialize embedded relationships', () async {
     final f1 = Familia(
-        id: '334',
-        surname: 'Zhan',
-        residence: House(id: '1', address: 'Zhiwan 2').asBelongsTo,
-        dogs: {Dog(id: '1', name: 'Pluto'), Dog(id: '2', name: 'Ricky')}
-            .asHasMany);
+            id: '334',
+            surname: 'Zhan',
+            residence: House(id: '1', address: 'Zhiwan 2').asBelongsTo,
+            dogs: {Dog(id: '1', name: 'Pluto'), Dog(id: '2', name: 'Ricky')}
+                .asHasMany)
+        .saveLocal();
 
     final serialized = await container.familia.remoteAdapter.serialize(f1);
     expect(serialized, {
@@ -91,7 +92,8 @@ void main() async {
     final p = (await container.people.remoteAdapter.deserialize([
       {'_id': '1', 'name': 'Na', 'age': 88, 'familia': null}
     ]))
-        .model!;
+        .model!
+        .saveLocal();
 
     Familia(id: '1', surname: 'Kong').saveLocal();
 
@@ -100,7 +102,7 @@ void main() async {
     final p1d = await container.people.remoteAdapter.deserialize([
       {'_id': '27', 'name': 'Ko', 'age': 24, 'familia': '332'}
     ]);
-    final p1 = p1d.model!;
+    final p1 = p1d.model!.saveLocal();
 
     Familia(id: '332', surname: 'Tao').saveLocal();
 
@@ -134,8 +136,10 @@ void main() async {
       }
     ]);
 
+    final model = data.model!.saveLocal();
+
     expect(
-        data.model!.persons.keys,
+        model.persons.keys,
         unorderedEquals([
           graph.getKeyForId('people', '1'),
           graph.getKeyForId('people', '2'),
@@ -170,7 +174,7 @@ void main() async {
       ],
     );
 
-    final f1 = data.model!;
+    final f1 = data.model!.saveLocal();
     for (final include in data.included) {
       DataModel.adapterFor(include)
           .localAdapter
@@ -221,9 +225,9 @@ void main() async {
     final deserialized = await container.books.remoteAdapter.deserialize([
       {'id': 27, 'title': 'Ko', 'original_author_id': 332}
     ]);
-    final book = deserialized.model;
+    final book = deserialized.model!.saveLocal();
 
-    expect(book!.originalAuthor!.value!.id, 332);
+    expect(book.originalAuthor!.value!.id, 332);
 
     final serialized1 = await container.books.remoteAdapter.serialize(book);
     expect(serialized1, {

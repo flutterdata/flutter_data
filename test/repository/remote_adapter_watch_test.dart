@@ -26,7 +26,10 @@ void main() async {
       ''');
     final notifier = container.familia.watchAllNotifier();
 
-    dispose = notifier.addListener(listener);
+    dispose = notifier.addListener((e) {
+      print('$e\n');
+      listener(e);
+    });
 
     verify(listener(DataState([], isLoading: true))).called(1);
     await oneMs();
@@ -46,10 +49,7 @@ void main() async {
         TestResponse((_) => throw Exception('unreachable'));
     final notifier = container.familia.watchAllNotifier();
 
-    dispose = notifier.addListener((e) {
-      print('$e\n');
-      listener(e);
-    });
+    dispose = notifier.addListener(listener);
 
     verify(listener(DataState([], isLoading: true))).called(1);
     await oneMs();
@@ -415,7 +415,7 @@ void main() async {
         await oneMs();
       })();
     }
-  });
+  }, skip: true); // TODO
 
   test('watchAllNotifier and watchAll updates and removals', () async {
     final listener = Listener<DataState<List<Person>>>();

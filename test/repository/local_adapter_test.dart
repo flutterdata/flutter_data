@@ -76,10 +76,11 @@ void main() async {
     final house = House(id: '1', address: '123 Main St');
 
     final familia = Familia(
-        id: '1',
-        surname: 'Smith',
-        residence: house.asBelongsTo,
-        persons: {person}.asHasMany);
+            id: '1',
+            surname: 'Smith',
+            residence: house.asBelongsTo,
+            persons: {person}.asHasMany)
+        .saveLocal();
 
     final map = familiaLocalAdapter.serialize(familia);
     expect(map, {

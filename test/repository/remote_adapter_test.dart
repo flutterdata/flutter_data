@@ -71,7 +71,7 @@ void main() async {
     expect(await adapter.findOne(person.id!), isNull);
 
     // and now key & id are both non-existent
-    expect(graph.getIdForKey(keyFor(person)), isEmpty);
+    expect(graph.getIdForKey(keyFor(person)), isNull);
     expect(graph.getKeyForId('people', person.id), isNull);
   });
 
@@ -295,7 +295,9 @@ void main() async {
     final book1 = Book(id: 1, ardentSupporters: HasMany()).saveLocal();
     final book2 = Book(id: 2, ardentSupporters: HasMany()).saveLocal();
     final library =
-        Library(id: 1, name: 'Babel', books: {book1, book2}.asHasMany).init();
+        Library(id: 1, name: 'Babel', books: {book1, book2}.asHasMany)
+            .init()
+            .saveLocal();
     expect(library.books.toList(),
         unorderedEquals([book1.reloadLocal(), book2.reloadLocal()]));
   });

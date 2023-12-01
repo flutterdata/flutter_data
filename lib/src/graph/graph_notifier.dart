@@ -24,6 +24,8 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   final Map<String, (String?,)> _mappingBuffer = {};
 
   late Store _store;
+  writeTxn(dynamic Function() fn) => _store.runInTransaction(TxMode.write, fn);
+
   late Box<StoredModel> _storedModelBox;
   late Box<Edge> _edgeBox;
 
@@ -127,15 +129,15 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
     return null;
   }
 
+  /// Adds type-ID mapping for [key]
+  void setIdForKey(String key,
+      {required String type, required Object id, bool notify = true}) {
+    _mappingBuffer[key] = (id.typifyWith(type),);
+  }
+
   /// Removes type-ID mapping for [key]
-  void removeIdForKey(String key,
-      {String? type, Object? id, bool notify = true}) {
-    final mapping = _mappingBuffer[key];
-    final typeId = mapping?.$1 ?? (id != null ? id.typifyWith(type!) : null);
+  void removeIdForKey(String key, {bool notify = true}) {
     _mappingBuffer[key] = (null,);
-    state = DataGraphEvent(
-        keys: [if (typeId != null) typeId],
-        type: DataGraphEventType.removeNode);
   }
 
   // utils

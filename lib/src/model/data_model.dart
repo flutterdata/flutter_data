@@ -17,25 +17,24 @@ abstract class DataModel<T extends DataModel<T>> with DataModelMixin<T> {
     // ONLY data we keep from source is its key
     // ONLY data we remove from destination is its key
     if (sourceKey != applyTo._key) {
-      final destKey = applyTo._key;
+      final oldKey = applyTo._key;
 
       // assign correct key to destination
       applyTo._key = sourceKey;
 
       // migrate relationships to new key
-      applyTo._remoteAdapter.localAdapter._initializeRelationships(applyTo);
-
-      if (destKey != null) {
-        // remove mapping
-        graph.removeIdForKey(destKey);
-      }
+      applyTo._remoteAdapter.localAdapter
+          ._initializeRelationships(applyTo, fromKey: sourceKey);
 
       if (applyTo.id != null) {
-        // if present, remove existent ID association
-        graph.removeIdForKey(sourceKey,
-            type: type, id: applyTo.id!, notify: false);
-        // and associate ID with source key
-        graph.getKeyForId(type, applyTo.id, keyIfAbsent: sourceKey);
+        graph.writeTxn(() {
+          // and associate ID with source key
+          graph.setIdForKey(sourceKey, type: type, id: applyTo.id!);
+          applyTo.saveLocal();
+          if (oldKey != null) {
+            graph._storedModelBox.remove(oldKey.detypify() as int);
+          }
+        });
       }
     }
     return applyTo;

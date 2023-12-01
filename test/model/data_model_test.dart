@@ -39,56 +39,70 @@ void main() async {
   });
 
   test('withKeyOf', () {
-    final familias = [
-      Familia(id: '1', surname: 'Tester 1').saveLocal(),
-      Familia(id: '2', surname: 'Tester 2').saveLocal(),
-      Familia(id: '3', surname: 'Tester 3').saveLocal(),
-      Familia(id: '4', surname: 'Tester 4').saveLocal(),
-      Familia(id: '5', surname: 'Tester 5').saveLocal()
-    ];
-
-    final pairs = [
+    final familias = <Familia>[];
+    final pairs = <(Person, Person)>[];
+    graph.writeTxn(() {
+      familias.addAll([
+        Familia(id: '1', surname: 'Tester 1').saveLocal(),
+        Familia(id: '2', surname: 'Tester 2').saveLocal(),
+        Familia(id: '3', surname: 'Tester 3').saveLocal(),
+        Familia(id: '4', surname: 'Tester 4').saveLocal(),
+        Familia(id: '5', surname: 'Tester 5').saveLocal()
+      ]);
       // source without ID + destination with ID
-      [
-        Person(name: 'Peter', familia: familias[0].asBelongsTo),
-        Person(id: '1', name: 'Peter Updated', familia: familias[0].asBelongsTo)
-      ],
-      // source without ID + destination without ID
-      [
-        Person(name: 'Sonya', familia: familias[1].asBelongsTo),
-        Person(name: 'Sonya Updated', familia: familias[1].asBelongsTo)
-      ],
-      // source with ID + destination with same ID
-      [
-        Person(id: '2', name: 'Mark', familia: familias[2].asBelongsTo),
-        Person(id: '2', name: 'Mark Updated', familia: familias[2].asBelongsTo)
-      ],
-      // source with ID + destination with different ID
-      [
-        Person(id: '3', name: 'Daniel', familia: familias[3].asBelongsTo),
-        Person(
-            id: '4', name: 'Daniel Updated', familia: familias[3].asBelongsTo)
-      ],
-      // source with ID + destination without ID
-      [
-        Person(id: '5', name: 'Peter', familia: familias[4].asBelongsTo),
-        Person(name: 'Peter Updated', familia: familias[4].asBelongsTo)
-      ],
-    ];
+      pairs.addAll([
+        (
+          Person(name: 'Peter', familia: familias[0].asBelongsTo).saveLocal(),
+          Person(
+                  id: '1',
+                  name: 'Peter Updated',
+                  familia: familias[0].asBelongsTo)
+              .saveLocal()
+        ),
+        // source without ID + destination without ID
+        (
+          Person(name: 'Sonya', familia: familias[1].asBelongsTo).saveLocal(),
+          Person(name: 'Sonya Updated', familia: familias[1].asBelongsTo)
+              .saveLocal()
+        ),
+        // source with ID + destination with same ID
+        (
+          Person(id: '2', name: 'Mark', familia: familias[2].asBelongsTo)
+              .saveLocal(),
+          Person(
+                  id: '2',
+                  name: 'Mark Updated',
+                  familia: familias[2].asBelongsTo)
+              .saveLocal()
+        ),
+        // source with ID + destination with different ID
+        (
+          Person(id: '3', name: 'Daniel', familia: familias[3].asBelongsTo)
+              .saveLocal(),
+          Person(
+                  id: '4',
+                  name: 'Daniel Updated',
+                  familia: familias[3].asBelongsTo)
+              .saveLocal()
+        ),
+        // source with ID + destination without ID
+        (
+          Person(id: '5', name: 'Peter', familia: familias[4].asBelongsTo)
+              .saveLocal(),
+          Person(name: 'Peter Updated', familia: familias[4].asBelongsTo)
+              .saveLocal()
+        ),
+      ]);
+    });
 
     for (final pair in pairs) {
       final index = pairs.indexOf(pair);
-      print('in index $index');
       // we receive an update from the server,
       // gets initialized with a new key destination
-      final source = pair.first;
-      final destination = pair.last;
+      final source = pair.$1;
+      final destination = pair.$2;
 
       final destKeyBefore = keyFor(destination);
-
-      // if (keyFor(source) != keyFor(destination)) {
-      //   expect(graph.getIdForKey(destKeyBefore), isNotNull);
-      // }
 
       destination.withKeyOf(source);
 
@@ -109,9 +123,11 @@ void main() async {
     // test freezed copyWith with different IDs
     final house = House(address: '123 Main St').saveLocal();
     final b1 =
-        Book(id: 1, house: house.asBelongsTo, ardentSupporters: HasMany());
+        Book(id: 1, house: house.asBelongsTo, ardentSupporters: HasMany())
+            .saveLocal();
     final b2 = b1.copyWith(id: 2);
-
+    // TODO check - copyWith mutates b1 relationships, so we need to save b2 to persist rels
+    b2.saveLocal();
     b2.withKeyOf(b1);
 
     expect(keyFor(b1), keyFor(b2));
