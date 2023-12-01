@@ -71,8 +71,7 @@ void main() async {
     expect(await adapter.findOne(person.id!), isNull);
 
     // and now key & id are both non-existent
-    // TODO FIX
-    // expect(graph.getNode(keyFor(person)), isEmpty);
+    expect(graph.getIdForKey(keyFor(person)), isEmpty);
     expect(graph.getKeyForId('people', person.id), isNull);
   });
 
