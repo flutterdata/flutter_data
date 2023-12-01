@@ -23,10 +23,7 @@ abstract class DataModel<T extends DataModel<T>> with DataModelMixin<T> {
       applyTo._key = sourceKey;
 
       // migrate relationships to new key
-      applyTo._remoteAdapter.localAdapter._initializeRelationships(
-        applyTo,
-        fromKey: sourceKey,
-      );
+      applyTo._remoteAdapter.localAdapter._initializeRelationships(applyTo);
 
       if (destKey != null) {
         // remove mapping

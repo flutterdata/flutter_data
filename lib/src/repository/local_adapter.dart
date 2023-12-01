@@ -73,12 +73,12 @@ abstract class LocalAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     return model;
   }
 
-  void _initializeRelationships(T model, {String? fromKey}) {
+  void _initializeRelationships(T model) {
     final metadatas = relationshipMetas.values;
     for (final metadata in metadatas) {
       final relationship = metadata.instance(model);
       relationship?.initialize(
-        ownerKey: fromKey ?? model._key!,
+        ownerKey: model._key!,
         name: metadata.name,
         inverseName: metadata.inverseName,
       );

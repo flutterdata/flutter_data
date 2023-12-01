@@ -91,8 +91,12 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
       data: packer.takeBytes(),
     );
 
-    final savedKey =
-        store.box<StoredModel>().put(storedModel).typifyWith(internalType);
+    final savedKey = graph._store.runInTransaction(TxMode.write, () {
+      for (final rel in DataModel.relationshipsFor(model).values) {
+        rel.persist();
+      }
+      return store.box<StoredModel>().put(storedModel).typifyWith(internalType);
+    });
     graph._mappingBuffer.remove(savedKey);
 
     if (notify) {

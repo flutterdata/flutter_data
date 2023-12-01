@@ -61,13 +61,21 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
     return this;
   }
 
-  _sync() {
+  void persist() {
     // process buffer queue here
 
     // Try to find ownerKey/name combo from either side of the edge
-    final q1 = Edge_.from.equals(_ownerKey!) & Edge_.name.equals(_name!);
-    final q2 = Edge_.to.equals(_ownerKey!) & Edge_.inverseName.equals(_name!);
-    _graph._edgeBox.query(q1 | q2).build().remove();
+    // final q1 = Edge_.from.equals(_ownerKey!) & Edge_.name.equals(_name!);
+    // final q2 = Edge_.to.equals(_ownerKey!) & Edge_.inverseName.equals(_name!);
+    // _graph._edgeBox.query(q1 | q2).build().remove();
+    _getPersistedEdgesQuery(_ownerKey!, _name!).remove();
+    final edges = _graph._unsavedEdges
+        .where((e) => e.from == _ownerKey && e.name == _name)
+        .toList();
+    _graph._edgeBox.putMany(edges);
+    print('[persist ]just put ${edges.length}');
+    _graph._unsavedEdges
+        .removeWhere((e) => e.from == _ownerKey && e.name == _name);
   }
 
   Edge _createEdgeTo(String to) => _createEdgesTo(to).$1;
