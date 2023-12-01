@@ -17,6 +17,7 @@ void main() async {
   test('id + toString', () {
     final person = Person(name: 'Test', familia: BelongsTo()).saveLocal();
     person.familia.value = Familia(id: '1', surname: 'Sanchez').saveLocal();
+    person.familia.save();
     expect(person.familia.value!.id, person.familia.id);
     expect(person.familia.toString(), 'BelongsTo<Familia>(1)');
   });
@@ -30,7 +31,7 @@ void main() async {
         id: '1',
         surname: 'Smith',
         residence: BelongsTo<House>(house),
-        persons: HasMany<Person>({person}));
+        persons: HasMany<Person>({person})).saveLocal();
 
     expect(familia.residence.value, house);
     expect(familia.persons.toSet(), {person});
@@ -45,6 +46,7 @@ void main() async {
 
     // ensure there are not more than 1 key
     familia.residence.value = house2;
+    familia.residence.save();
     expect(familia.residence.key, isNotNull);
     expect(familia.residence.id, '2');
   });
@@ -56,9 +58,11 @@ void main() async {
     final house = House(id: '1', address: '456 Lemon Rd').saveLocal();
 
     familia.residence.value = house;
+    familia.residence.save();
     expect(familia.residence.value, house);
 
     familia.residence.value = house; // assigning again shouldn't affect
+    familia.residence.save();
     expect(familia.residence.value, house);
   });
 
@@ -75,6 +79,7 @@ void main() async {
 
     familia.residence.value =
         House(id: '2', address: '456 Main St').saveLocal();
+    familia.residence.save();
 
     verify(listener(argThat(
       isA<House>().having((h) => h.address, 'address', startsWith('456')),
@@ -82,12 +87,14 @@ void main() async {
 
     familia.residence.value =
         House(id: '1', address: '123 Main St').saveLocal();
+    familia.residence.save();
 
     verify(listener(argThat(
       isA<House>().having((h) => h.address, 'address', startsWith('123')),
     ))).called(1);
 
     familia.residence.value = null;
+    familia.residence.save();
 
     verify(listener(argThat(isNull))).called(1);
     verifyNoMoreInteractions(listener);

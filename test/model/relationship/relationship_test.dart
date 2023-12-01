@@ -170,10 +170,10 @@ void main() async {
     final f2 = Familia(surname: 'Kamchatka', persons: HasMany()).saveLocal();
     final igor2 =
         Person(name: 'Igor', age: 33, familia: BelongsTo()).saveLocal();
-    f2.persons.add(igor2);
+    f2.persons.add(igor2, save: true);
     expect(f2.persons.first.familia.value!.surname, 'Kamchatka');
 
-    f2.persons.remove(igor2);
+    f2.persons.remove(igor2, save: true);
     expect(f2.persons, isEmpty);
 
     final residence = House(address: 'Sakharova Prospekt, 19').saveLocal();
@@ -181,11 +181,13 @@ void main() async {
         .saveLocal();
     expect(f3.residence.value!.owner.value!.surname, 'Kamchatka');
     f3.residence.value = null;
+    f3.residence.save();
     expect(f3.residence.value, isNull);
 
     final f4 =
         Familia(surname: 'Kamchatka', residence: BelongsTo()).saveLocal();
     f4.residence.value = House(address: 'Sakharova Prospekt, 19').saveLocal();
+    f4.saveLocal();
     expect(f4.residence.value!.owner.value!.surname, 'Kamchatka');
   });
 
@@ -212,7 +214,8 @@ void main() async {
     // new familia comes in from API (simulate) with empty persons relationship
     final familia4 = (await container.familia.remoteAdapter
             .deserialize({'id': '229', 'surname': 'Rose', 'persons': []}))
-        .model!;
+        .model!
+        .saveLocal();
     // it should keep the relationships unaltered
     expect(familia4.persons.length, 0);
 
@@ -226,6 +229,7 @@ void main() async {
 
     graph.getKeyForId('people', '231', keyIfAbsent: 'people#231456');
     final axl = Person(id: '231', name: 'Axl', age: 58).saveLocal();
+    familia5.persons.save();
     expect(familia5.persons.toSet(), {axl});
   });
 
@@ -291,7 +295,7 @@ void main() async {
       // equal to `author.books!.first.originalAuthor`
       originalAuthor: BelongsTo(author.books.first.originalAuthor!.value),
       ardentSupporters: HasMany(),
-    );
+    ).saveLocal();
 
     final books = author.books.toList();
     // expect these two distinct objects are equal

@@ -75,7 +75,6 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
   @override
   T save(String key, T model, {bool notify = true}) {
     final packer = Packer();
-    // TODO could avoid saving ID?
     packer.packJson(serialize(model, withRelationships: false));
 
     final buffer = graph._mappingBuffer[key];
@@ -93,7 +92,7 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
 
     final savedKey = graph._store.runInTransaction(TxMode.write, () {
       for (final rel in DataModel.relationshipsFor(model).values) {
-        rel.persist();
+        rel.save();
       }
       return store.box<StoredModel>().put(storedModel).typifyWith(internalType);
     });

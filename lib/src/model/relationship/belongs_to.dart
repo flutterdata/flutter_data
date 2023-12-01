@@ -42,29 +42,17 @@ class BelongsTo<E extends DataModelMixin<E>> extends Relationship<E, E?> {
   ///
   /// Passing in `null` will remove the existing value from the relationship.
   set value(E? newValue) {
-    final isAddition = value == null && newValue != null;
-    final isUpdate = value != null && newValue != null;
-    final isRemoval = value != null && newValue == null;
-
-    if (isRemoval || isUpdate) {
-      super._remove(value!, notify: false);
+    if (value == null && newValue != null) {
+      // addition
+      super._add(newValue);
     }
-    if (isAddition || isUpdate) {
-      super._add(newValue, notify: false);
+    if (value != null && newValue != null) {
+      // update
+      super._update(value!, newValue);
     }
-
-    // handle events
-    DataGraphEventType? eventType;
-    if (isAddition) eventType = DataGraphEventType.addEdge;
-    if (isUpdate) eventType = DataGraphEventType.updateEdge;
-    if (isRemoval) eventType = DataGraphEventType.removeEdge;
-
-    if (eventType != null) {
-      _graph._notify(
-        [_ownerKey!, if (newValue != null) newValue._key!],
-        metadata: _name,
-        type: eventType,
-      );
+    if (value != null && newValue == null) {
+      // removal
+      super._remove(value!);
     }
   }
 

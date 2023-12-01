@@ -38,8 +38,23 @@ class HasMany<E extends DataModelMixin<E>> extends Relationship<E, Set<E>> {
   /// Add a [value] to this [Relationship]
   ///
   /// Attempting to add an existing [value] has no effect as this is a [Set]
-  bool add(E value, {bool notify = true}) {
-    return _add(value, notify: notify);
+  bool add(E value, {bool save = false}) {
+    return _add(value, save: save);
+  }
+
+  void addAll(Iterable<E> value, {bool save = false}) {
+    if (save) {
+      _graph._store.runInTransaction(TxMode.write, () {
+        for (final e in value) {
+          e.saveLocal();
+          _add(e, save: true);
+        }
+      });
+    } else {
+      for (final e in value) {
+        _add(e, save: false);
+      }
+    }
   }
 
   bool contains(E element) {
@@ -47,8 +62,8 @@ class HasMany<E extends DataModelMixin<E>> extends Relationship<E, Set<E>> {
   }
 
   /// Removes a [value] from this [Relationship]
-  bool remove(E value, {bool notify = true}) {
-    return _remove(value, notify: notify);
+  bool remove(E value, {bool save = false}) {
+    return _remove(value, save: save);
   }
 
   /// Returns keys in this relationship.

@@ -22,6 +22,8 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
   Set<String>? _uninitializedKeys;
   String get _internalType => DataHelpers.getInternalType<E>();
 
+  final _edgeOperations = <_EdgeOperation>[]; // MUST be a list to retain order
+
   /// Initializes this relationship (typically when initializing the owner
   /// in [DataModelMixin]) by supplying the owner, and related metadata.
   Relationship<E, N> initialize(
@@ -47,114 +49,120 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
       return this;
     }
 
-    _graph._unsavedEdges.removeWhere((e) =>
-        (e.from == _ownerKey! && e.name == _name!) ||
-        (e.to == _ownerKey! && e.inverseName == _name!));
-    _graph._unsavedRemovedEdges.removeWhere((e) =>
-        (e.from == _ownerKey! && e.name == _name!) ||
-        (e.to == _ownerKey! && e.inverseName == _name!));
+    // HasMany(1) -- or hasMany: [1]; this is a source of truth,
+    // we need to clear all and set what's required
 
-    _graph._unsavedEdges.addAll(_uninitializedKeys!.map(_createEdgeTo));
-
+    _edgeOperations.add(_RemoveAllEdgeOperation());
+    _edgeOperations
+        .addAll(_uninitializedKeys!.map((key) => _AddEdgeOperation(key)));
     _uninitializedKeys!.clear();
 
     return this;
   }
 
-  void persist() {
-    // process buffer queue here
+  Edge _createEdgeTo(String to) => Edge(
+      id: 0, from: _ownerKey!, name: _name!, to: to, inverseName: _inverseName);
 
-    // Try to find ownerKey/name combo from either side of the edge
-    // final q1 = Edge_.from.equals(_ownerKey!) & Edge_.name.equals(_name!);
-    // final q2 = Edge_.to.equals(_ownerKey!) & Edge_.inverseName.equals(_name!);
-    // _graph._edgeBox.query(q1 | q2).build().remove();
-    _getPersistedEdgesQuery(_ownerKey!, _name!).remove();
-    final edges = _graph._unsavedEdges
-        .where((e) => e.from == _ownerKey && e.name == _name)
-        .toList();
-    _graph._edgeBox.putMany(edges);
-    print('[persist ]just put ${edges.length}');
-    _graph._unsavedEdges
-        .removeWhere((e) => e.from == _ownerKey && e.name == _name);
+  Query<Edge> _queryTo(String to) => _graph._edgeBox
+      .query((Edge_.from.equals(_ownerKey!) &
+              Edge_.name.equals(_name!) &
+              Edge_.to.equals(to)) |
+          (Edge_.to.equals(_ownerKey!) &
+              Edge_.inverseName.equals(_name!) &
+              Edge_.from.equals(to)))
+      .build();
+
+  void save({bool notify = true}) {
+    if (_edgeOperations.isEmpty) return;
+
+    _graph._store.runInTransaction(TxMode.write, () {
+      for (final op in _edgeOperations) {
+        switch (op) {
+          case final _AddEdgeOperation add:
+            _graph._edgeBox.put(_createEdgeTo(add.to));
+          case final _UpdateEdgeOperation update:
+            final e = _queryTo(update.to).findFirst();
+            if (e != null) {
+              _graph._edgeBox.put(
+                  Edge(id: e.id, from: e.from, name: e.name, to: update.newTo));
+            }
+          case final _RemoveEdgeOperation remove:
+            _queryTo(remove.to).remove();
+          case final _RemoveAllEdgeOperation _:
+            _getPersistedEdgesQuery(_ownerKey!, _name!).remove();
+        }
+      }
+    });
+
+    // notify
+    final additions =
+        _edgeOperations.whereType<_AddEdgeOperation>().map((op) => op.to);
+    final updates =
+        _edgeOperations.whereType<_UpdateEdgeOperation>().map((op) => op.to);
+    final removals =
+        _edgeOperations.whereType<_RemoveEdgeOperation>().map((op) => op.to);
+    if (notify) {
+      if (additions.isNotEmpty) {
+        // print('notifying additions $additions');
+        _graph._notify(
+          [_ownerKey!, ...additions],
+          metadata: _name,
+          type: DataGraphEventType.addEdge,
+        );
+      }
+      if (updates.isNotEmpty) {
+        // print('notifying updates $updates');
+        _graph._notify(
+          [_ownerKey!, ...updates],
+          metadata: _name,
+          type: DataGraphEventType.updateEdge,
+        );
+      }
+      if (removals.isNotEmpty) {
+        // print('notifying removals $removals');
+        _graph._notify(
+          [_ownerKey!, ...removals],
+          metadata: _name,
+          type: DataGraphEventType.removeEdge,
+        );
+      }
+    }
+
+    // clear and return
+    _edgeOperations.clear();
   }
-
-  Edge _createEdgeTo(String to) => _createEdgesTo(to).$1;
-
-  (Edge, Edge) _createEdgesTo(String to) {
-    return (
-      Edge(
-        id: 0, // autoincrement
-        from: _ownerKey!,
-        to: to,
-        name: _name!,
-        inverseName: _inverseName,
-      ),
-      Edge(
-        id: 0, // autoincrement
-        from: to,
-        to: _ownerKey!,
-        name: _inverseName ?? '', // OK as we only use this for matching
-        inverseName: _name,
-      )
-    );
-  }
-
-  Set<Edge> get _localUnsavedEdges => _graph._unsavedEdges
-      .where((e) =>
-          (e.from == _ownerKey && e.name == _name) ||
-          (e.to == _ownerKey && e.inverseName == _name))
-      .toSet();
 
   // implement collection-like methods
 
-  bool _add(E value, {bool notify = true}) {
-    final (edge, inverseEdge) = _createEdgesTo(value._key!);
-
-    if (_graph._unsavedEdges.contains(edge) ||
-        _graph._unsavedEdges.contains(inverseEdge)) {
-      return false;
+  bool _add(E value, {bool save = false}) {
+    _edgeOperations.add(_AddEdgeOperation(value._key!));
+    if (save) {
+      this.save();
+      return true;
     }
-
-    // Add to edges, remove from removed edges
-    _graph._unsavedEdges.add(edge);
-    _graph._unsavedRemovedEdges.remove(edge);
-    _graph._unsavedRemovedEdges.remove(inverseEdge);
-
-    if (notify) {
-      _graph._notify(
-        [_ownerKey!, value._key!],
-        metadata: _name,
-        type: DataGraphEventType.addEdge,
-      );
-    }
-
-    return true;
+    return false;
   }
 
   bool _contains(E? element) {
     return _iterable.contains(element);
   }
 
-  bool _remove(E value, {bool notify = true}) {
-    final (edge, inverseEdge) = _createEdgesTo(value._key!);
-
-    // Remove from edges, add to removed edges
-    final removed = _graph._unsavedEdges.remove(edge) ||
-        _graph._unsavedEdges.remove(inverseEdge);
-    _graph._unsavedRemovedEdges.add(edge);
-
-    if (!removed) {
-      return false;
+  bool _update(E value, E newValue, {bool save = false}) {
+    _edgeOperations.add(_UpdateEdgeOperation(value._key!, newValue._key!));
+    if (save) {
+      this.save();
+      return true;
     }
+    return false;
+  }
 
-    if (notify) {
-      _graph._notify(
-        [_ownerKey!, value._key!],
-        metadata: _name,
-        type: DataGraphEventType.removeEdge,
-      );
+  bool _remove(E value, {bool save = false}) {
+    _edgeOperations.add(_RemoveEdgeOperation(value._key!));
+    if (save) {
+      this.save();
+      return true;
     }
-    return true;
+    return false;
   }
 
   // support methods
@@ -172,10 +180,7 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
 
   Set<String> _keysFor(String key, String name) {
     final persistedEdges = _getPersistedEdgesQuery(key, name).find();
-    return {
-      for (final e in {..._localUnsavedEdges, ...persistedEdges})
-        e.from == key ? e.to : e.from
-    };
+    return {for (final e in persistedEdges) e.from == key ? e.to : e.from};
   }
 
   Set<String> get _keys {
@@ -232,3 +237,25 @@ class DataRelationship {
   final bool serialize;
   const DataRelationship({this.inverse, this.serialize = true});
 }
+
+// operations
+
+sealed class _EdgeOperation {}
+
+class _AddEdgeOperation extends _EdgeOperation {
+  final String to;
+  _AddEdgeOperation(this.to);
+}
+
+class _RemoveEdgeOperation extends _EdgeOperation {
+  final String to;
+  _RemoveEdgeOperation(this.to);
+}
+
+class _UpdateEdgeOperation extends _EdgeOperation {
+  final String to;
+  final String newTo;
+  _UpdateEdgeOperation(this.to, this.newTo);
+}
+
+class _RemoveAllEdgeOperation extends _EdgeOperation {}
