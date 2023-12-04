@@ -195,6 +195,13 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     localAdapter.dispose();
   }
 
+  // Transactions
+
+  R writeTxn<R>(R Function() fn) => localAdapter.graph._writeTxn(fn);
+
+  Future<R> writeTxnAsync<R, P>(R Function(Store, P) fn, P param) =>
+      localAdapter.graph._writeTxnAsync(fn, param);
+
   // serialization interface
 
   /// Returns a [DeserializedData] object when deserializing a given [data].
@@ -712,9 +719,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     final deserialized = await deserialize(body);
 
     if (isFindAll || (isCustom && deserialized.model == null)) {
-      for (final model in [...deserialized.models, ...deserialized.included]) {
-        model._remoteAdapter.localAdapter.save(model._key!, model);
-      }
+      _saveDeserialized(deserialized);
       deserialized._log(adapter, label);
 
       late R? models;
@@ -728,9 +733,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     }
 
     if (isFindOne || (isCustom && deserialized.model != null)) {
-      for (final model in [...deserialized.models, ...deserialized.included]) {
-        model._remoteAdapter.localAdapter.save(model._key!, model);
-      }
+      _saveDeserialized(deserialized);
       deserialized._log(adapter, label);
 
       late R? model;
@@ -744,6 +747,17 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     }
 
     return null;
+  }
+
+  Future<void> _saveDeserialized(DeserializedData deserialized) async {
+    final models = [...deserialized.models, ...deserialized.included];
+    await logTime('writing ${models.length} models', () async {
+      graph._writeTxn(() {
+        for (final model in models) {
+          model._remoteAdapter.localAdapter.save(model._key!, model);
+        }
+      });
+    });
   }
 
   /// Implements global request error handling.

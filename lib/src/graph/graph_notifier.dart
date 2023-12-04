@@ -24,8 +24,6 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   final Map<String, (String?,)> _mappingBuffer = {};
 
   late Store _store;
-  writeTxn(dynamic Function() fn) => _store.runInTransaction(TxMode.write, fn);
-
   late Box<StoredModel> _storedModelBox;
   late Box<Edge> _edgeBox;
 
@@ -63,6 +61,14 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
       super.dispose();
     }
   }
+
+  // Transactions
+
+  R _writeTxn<R>(R Function() fn) => _store.runInTransaction(TxMode.write, fn);
+
+  Future<R> _writeTxnAsync<R, P>(R Function(Store, P) fn, P param) =>
+      _store.runInTransactionAsync<R, P>(
+          TxMode.write, (store, param) => fn(_store, param), param);
 
   // Key-related methods
 

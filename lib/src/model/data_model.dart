@@ -27,7 +27,7 @@ abstract class DataModel<T extends DataModel<T>> with DataModelMixin<T> {
           ._initializeRelationships(applyTo, fromKey: sourceKey);
 
       if (applyTo.id != null) {
-        graph.writeTxn(() {
+        graph._writeTxn(() {
           // and associate ID with source key
           graph.setIdForKey(sourceKey, type: type, id: applyTo.id!);
           applyTo.saveLocal();

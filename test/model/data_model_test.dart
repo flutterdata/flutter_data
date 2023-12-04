@@ -41,7 +41,7 @@ void main() async {
   test('withKeyOf', () {
     final familias = <Familia>[];
     final pairs = <(Person, Person)>[];
-    graph.writeTxn(() {
+    container.familia.writeTxn(() {
       familias.addAll([
         Familia(id: '1', surname: 'Tester 1').saveLocal(),
         Familia(id: '2', surname: 'Tester 2').saveLocal(),

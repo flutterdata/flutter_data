@@ -105,11 +105,10 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
   }
 
   @override
-  Future<void> bulkSave(Iterable<DataModel> models,
+  Future<void> saveMany(Iterable<DataModelMixin> models,
       {bool notify = true}) async {
-    print('bulkSave');
     final storedModels = models.map((m) {
-      final key = DataModel.keyFor(m);
+      final key = DataModelMixin.keyFor(m)!;
       final packer = Packer();
       final a = DataModel.adapterFor(m).localAdapter;
       packer.packJson(a.serialize(m, withRelationships: false));
@@ -126,12 +125,11 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
       );
     }).toList();
 
-    final savedKeys =
-        await store.runInTransactionAsync(TxMode.write, (store, storedModels) {
+    final savedKeys = store.runInTransaction(TxMode.write, () {
       return storedModels.map((m) {
         return store.box<StoredModel>().put(m).typifyWith(m.type);
       }).toList();
-    }, storedModels);
+    });
 
     if (storedModels.length != savedKeys.length) {
       print('WARNING! Not all models stored!');

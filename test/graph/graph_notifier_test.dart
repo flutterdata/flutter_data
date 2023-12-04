@@ -194,7 +194,7 @@ void main() async {
     }
 
     await logTime('bulk save', () async {
-      await container.familia.remoteAdapter.localAdapter.bulkSave(familias);
+      await container.familia.remoteAdapter.localAdapter.saveMany(familias);
     });
 
     // TODO FIX

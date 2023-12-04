@@ -202,6 +202,13 @@ class Repository<T extends DataModelMixin<T>> with _Lifecycle {
   /// `repositoryProviders` map exposed on your `main.data.dart`.
   void clear() => remoteAdapter.clear();
 
+  // Transactions
+
+  R writeTxn<R>(R Function() fn) => remoteAdapter.writeTxn(fn);
+
+  Future<R> writeTxnAsync<R, P>(R Function(Store, P) fn, P param) =>
+      remoteAdapter.writeTxnAsync(fn, param);
+
   // offline
 
   /// Gets a list of all pending [OfflineOperation]s for this type.

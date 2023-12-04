@@ -57,7 +57,7 @@ abstract class LocalAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   /// Gets all keys of type [T] in local storage.
   List<String> get keys;
 
-  Future<void> bulkSave(Iterable<DataModel> models, {bool notify = true});
+  Future<void> saveMany(Iterable<DataModelMixin> models, {bool notify = true});
 
   // model initialization
 
