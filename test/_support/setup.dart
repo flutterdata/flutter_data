@@ -22,7 +22,7 @@ const kTestsPath = '/tmp';
 final keyFor = DataModel.keyFor;
 
 late ProviderContainer container;
-late GraphNotifier graph;
+late CoreNotifier graph;
 Function? dispose;
 
 final logging = [];

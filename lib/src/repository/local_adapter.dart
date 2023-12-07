@@ -11,7 +11,7 @@ abstract class LocalAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
   @protected
   @visibleForTesting
-  final GraphNotifier graph;
+  final CoreNotifier graph;
 
   String get internalType => DataHelpers.getInternalType<T>();
 
@@ -34,14 +34,14 @@ abstract class LocalAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
   /// Saves model of type [T] with [key] in local storage.
   ///
-  /// By default notifies this modification to the associated [GraphNotifier].
+  /// By default notifies this modification to the associated [CoreNotifier].
   @protected
   @visibleForTesting
   T save(String key, T model, {bool notify = true});
 
   /// Deletes model of type [T] with [key] from local storage.
   ///
-  /// By default notifies this modification to the associated [GraphNotifier].
+  /// By default notifies this modification to the associated [CoreNotifier].
   @protected
   @visibleForTesting
   void delete(String key, {bool notify = true});

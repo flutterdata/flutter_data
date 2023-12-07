@@ -161,6 +161,10 @@ class Repository<T extends DataModelMixin<T>> with _Lifecycle {
     return remoteAdapter.saveLocal(model);
   }
 
+  Future<void> saveManyLocal(Iterable<T> models, {bool notify = true}) {
+    return remoteAdapter.saveManyLocal(models, notify: notify);
+  }
+
   /// Deletes [model] of type [T].
   ///
   /// If [remote] is `true`, it will initiate an HTTP call.

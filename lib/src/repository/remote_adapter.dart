@@ -40,10 +40,10 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   @nonVirtual
   final LocalAdapter<T> localAdapter;
 
-  /// A [GraphNotifier] instance also available to adapters
+  /// A [CoreNotifier] instance also available to adapters
   @protected
   @nonVirtual
-  GraphNotifier get graph => localAdapter.graph;
+  CoreNotifier get graph => localAdapter.graph;
 
   // None of these fields below can be late finals as they might be re-initialized
   Map<String, RemoteAdapter>? _adapters;
@@ -428,6 +428,10 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     }
     localAdapter.save(model._key!, model, notify: notify);
     return model;
+  }
+
+  Future<void> saveManyLocal(Iterable<T> models, {bool notify = true}) {
+    return localAdapter.saveMany(models, notify: notify);
   }
 
   Future<T?> delete(

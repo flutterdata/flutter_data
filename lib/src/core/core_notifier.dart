@@ -9,11 +9,11 @@ part of flutter_data;
 ///
 /// Its public API requires all keys and metadata to be namespaced
 /// i.e. `manager:key`
-class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
+class CoreNotifier extends DelayedStateNotifier<DataGraphEvent>
     with _Lifecycle {
   final Ref ref;
   @protected
-  GraphNotifier(this.ref);
+  CoreNotifier(this.ref);
 
   ObjectboxLocalStorage get _localStorage => ref.read(localStorageProvider);
 
@@ -28,7 +28,7 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
   late Box<Edge> _edgeBox;
 
   /// Initializes storage systems
-  Future<GraphNotifier> initialize() async {
+  Future<CoreNotifier> initialize() async {
     if (isInitialized) return this;
     await _localStorage.initialize();
 
@@ -211,4 +211,4 @@ extension _DataGraphEventX on DataGraphEventType {
 }
 
 final graphNotifierProvider =
-    Provider<GraphNotifier>((ref) => GraphNotifier(ref));
+    Provider<CoreNotifier>((ref) => CoreNotifier(ref));

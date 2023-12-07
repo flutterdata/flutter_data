@@ -1,7 +1,7 @@
 part of flutter_data;
 
 /// A `Set` that models a relationship between one or more [DataModelMixin] objects
-/// and their a [DataModelMixin] owner. Backed by a [GraphNotifier].
+/// and their a [DataModelMixin] owner. Backed by a [CoreNotifier].
 sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   @protected
   Relationship(Set<E>? models) : this._(models?.map((m) => m._key!).toSet());
@@ -26,7 +26,7 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
 
   RemoteAdapter<E> get _adapter =>
       internalRepositories[_internalType]!.remoteAdapter as RemoteAdapter<E>;
-  GraphNotifier get _graph => _adapter.localAdapter.graph;
+  CoreNotifier get _graph => _adapter.localAdapter.graph;
 
   Set<String>? _uninitializedKeys;
   String get _internalType => DataHelpers.getInternalType<E>();

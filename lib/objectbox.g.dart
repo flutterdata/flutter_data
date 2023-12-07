@@ -13,8 +13,8 @@ import 'package:flat_buffers/flat_buffers.dart' as fb;
 import 'package:objectbox/internal.dart'; // generated code can access "internal" functionality
 import 'package:objectbox/objectbox.dart';
 
-import 'src/graph/edge.dart';
-import 'src/graph/stored_model.dart';
+import 'src/core/edge.dart';
+import 'src/core/stored_model.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
 

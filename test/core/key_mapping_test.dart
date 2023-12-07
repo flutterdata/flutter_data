@@ -14,53 +14,6 @@ void main() async {
   setUp(setUpFn);
   tearDown(tearDownFn);
 
-  test('add/remove edges with metadata', () {
-    // graph.addEdges('h1',
-    //     tos: {'b1', 'b2'}, metadata: 'blogs', inverseMetadata: 'host');
-
-    // expect(graph.getEdge('b1', metadata: 'host'), {'h1'});
-    // expect(graph.getEdge('h1', metadata: 'blogs'), {'b1', 'b2'});
-
-    // graph.removeEdge('h1', 'b2', metadata: 'blogs', inverseMetadata: 'host');
-
-    // expect(graph.getEdge('h1', metadata: 'blogs'), {'b1'});
-    // expect(graph.getEdge('b2', metadata: 'host'), isEmpty);
-
-    // final map = graph.toMap();
-    // expect(
-    //   map,
-    //   {
-    //     'h1': {
-    //       'blogs': ['b1']
-    //     },
-    //     'b1': {
-    //       'host': ['h1']
-    //     }
-    //   },
-    // );
-
-    // graph.addEdge('h1', 'hosts#1', metadata: 'id', inverseMetadata: 'key');
-    // expect(graph.getEdge('h1', metadata: 'id'), contains('hosts#1'));
-    // expect(graph.getEdge('hosts#1', metadata: 'key'), contains('h1'));
-    // // all edges without filtering by metadata
-    // expect(graph.getNode('h1'), {
-    //   'blogs': {'b1'},
-    //   'id': {'hosts#1'}
-    // });
-
-    // graph.removeEdges('h1', metadata: 'blogs');
-    // expect(graph.getEdge('hosts#1', metadata: 'blogs'), isEmpty);
-    // expect(graph.getNode('h1'), {
-    //   'id': {'hosts#1'}
-    // });
-  });
-
-  test('addNode/orAdd', () {
-    // graph.addEdges('h1',
-    //     tos: {'b1', 'b2'}, metadata: 'blogs', inverseMetadata: 'host');
-    // expect(graph.getEdge('h1', metadata: 'blogs'), hasLength(2));
-  });
-
   test('produces a new key', () {
     var key = graph.getKeyForId('people', '1');
     expect(key, isNull);

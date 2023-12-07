@@ -9,8 +9,8 @@ import 'dart:typed_data';
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_data/objectbox.g.dart';
-import 'package:flutter_data/src/graph/edge.dart';
-import 'package:flutter_data/src/graph/stored_model.dart';
+import 'package:flutter_data/src/core/edge.dart';
+import 'package:flutter_data/src/core/stored_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:inflection3/inflection3.dart' as inflection;
 import 'package:messagepack/messagepack.dart';
@@ -21,17 +21,17 @@ import 'package:riverpod/riverpod.dart';
 import 'package:state_notifier/state_notifier.dart';
 
 // import internal packages
-import 'src/graph/notifier_extension.dart';
+import 'src/core/core_notifier_extension.dart';
 import 'src/repository/objectbox_local_storage.dart';
 
 // export external packages
 export 'package:riverpod/riverpod.dart' hide Family;
 
 // export internal packages
-export 'src/graph/notifier_extension.dart';
+export 'src/core/core_notifier_extension.dart';
 export 'src/repository/objectbox_local_storage.dart';
 
-part 'src/graph/graph_notifier.dart';
+part 'src/core/core_notifier.dart';
 // include parts
 part 'src/model/data_model.dart';
 part 'src/model/relationship/belongs_to.dart';
