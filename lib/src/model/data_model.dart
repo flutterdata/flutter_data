@@ -11,7 +11,7 @@ abstract class DataModel<T extends DataModel<T>> with DataModelMixin<T> {
   /// Apply [sourceKey] to [applyTo].
   static T withKey<T extends DataModelMixin<T>>(String sourceKey,
       {required T applyTo}) {
-    final graph = applyTo._remoteAdapter.graph;
+    final core = applyTo._remoteAdapter.core;
     final type = applyTo._internalType;
 
     // ONLY data we keep from source is its key
@@ -27,12 +27,12 @@ abstract class DataModel<T extends DataModel<T>> with DataModelMixin<T> {
           ._initializeRelationships(applyTo, fromKey: sourceKey);
 
       if (applyTo.id != null) {
-        graph._writeTxn(() {
+        core._writeTxn(() {
           // and associate ID with source key
-          graph.setIdForKey(sourceKey, type: type, id: applyTo.id!);
+          core.setIdForKey(sourceKey, type: type, id: applyTo.id!);
           applyTo.saveLocal();
           if (oldKey != null) {
-            graph._storedModelBox.remove(oldKey.detypify() as int);
+            core._storedModelBox.remove(oldKey.detypify() as int);
           }
         });
       }

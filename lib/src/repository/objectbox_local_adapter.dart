@@ -8,7 +8,7 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
 
   @protected
   @visibleForTesting
-  Store get store => graph._store;
+  Store get store => core._store;
 
   @override
   bool get isInitialized => true;
@@ -52,7 +52,7 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
   @override
   List<T> findMany(Iterable<String> keys) {
     final _keys = keys.map((key) => key.detypify() as int).toList();
-    final models = graph._store.box<StoredModel>().getMany(_keys).nonNulls;
+    final models = core._store.box<StoredModel>().getMany(_keys).nonNulls;
     return models
         // Models are auto-initialized with other random keys
         // so we need to reassign the corresponding key
@@ -63,7 +63,7 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
 
   @override
   bool exists(String key) {
-    return graph._store
+    return core._store
             .box<StoredModel>()
             .query(StoredModel_.key.equals(key.detypify() as int) &
                 StoredModel_.data.notNull())
@@ -77,7 +77,7 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
     final packer = Packer();
     packer.packJson(serialize(model, withRelationships: false));
 
-    final buffer = graph._mappingBuffer[key];
+    final buffer = core._mappingBuffer[key];
     final typeId = switch (buffer) {
       (String typeId,) => typeId, // ID mapping was added
       (null,) => ''.typifyWith(internalType), // ID mapping was removed
@@ -90,16 +90,16 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
       data: packer.takeBytes(),
     );
 
-    final savedKey = graph._store.runInTransaction(TxMode.write, () {
+    final savedKey = core._store.runInTransaction(TxMode.write, () {
       for (final rel in DataModel.relationshipsFor(model)) {
         rel.save();
       }
       return store.box<StoredModel>().put(storedModel).typifyWith(internalType);
     });
-    graph._mappingBuffer.remove(savedKey);
+    core._mappingBuffer.remove(savedKey);
 
     if (notify) {
-      graph._notify([savedKey], type: DataGraphEventType.updateNode);
+      core._notify([savedKey], type: DataGraphEventType.updateNode);
     }
     return model;
   }
@@ -112,7 +112,7 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
       final packer = Packer();
       final a = DataModel.adapterFor(m).localAdapter;
       packer.packJson(a.serialize(m, withRelationships: false));
-      final buffer = graph._mappingBuffer[key];
+      final buffer = core._mappingBuffer[key];
       final typeId = switch (buffer) {
         (String typeId,) => typeId, // ID mapping was added
         (null,) => ''.typifyWith(a.internalType), // ID mapping was removed
@@ -136,11 +136,11 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
     }
     // remove keys that were saved from buffer
     for (final key in savedKeys) {
-      graph._mappingBuffer.remove(key);
+      core._mappingBuffer.remove(key);
     }
 
     if (notify) {
-      graph._notify(
+      core._notify(
         savedKeys,
         type: DataGraphEventType.updateNode,
       );
@@ -154,20 +154,20 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
 
   @override
   Future<void> deleteKeys(Iterable<String> keys, {bool notify = true}) async {
-    graph._writeTxn(() {
+    core._writeTxn(() {
       for (final key in keys) {
-        graph.removeIdForKey(key);
+        core.removeIdForKey(key);
         store.box<StoredModel>().remove(key.detypify() as int);
       }
     });
-    graph._notify([...keys], type: DataGraphEventType.removeNode);
+    core._notify([...keys], type: DataGraphEventType.removeNode);
   }
 
   @override
   Future<void> clear() async {
-    graph._store.box<Edge>().removeAll();
-    graph._store.box<StoredModel>().removeAll();
-    graph._notify([internalType], type: DataGraphEventType.clear);
+    core._store.box<Edge>().removeAll();
+    core._store.box<StoredModel>().removeAll();
+    core._notify([internalType], type: DataGraphEventType.clear);
   }
 
   @override

@@ -39,10 +39,10 @@ void main() async {
 
     // relationships are now associated to a key
     expect(familia.residence.key, isNotNull);
-    expect(familia.residence.key, graph.getKeyForId('houses', '31'));
+    expect(familia.residence.key, core.getKeyForId('houses', '31'));
     expect(familia.residence.id, '31');
     expect(familia.persons.keys.first, isNotNull);
-    expect(familia.persons.keys.first, graph.getKeyForId('people', '1'));
+    expect(familia.persons.keys.first, core.getKeyForId('people', '1'));
 
     // ensure there are not more than 1 key
     familia.residence.value = house2;

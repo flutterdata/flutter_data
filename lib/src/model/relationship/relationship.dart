@@ -26,7 +26,7 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
 
   RemoteAdapter<E> get _adapter =>
       internalRepositories[_internalType]!.remoteAdapter as RemoteAdapter<E>;
-  CoreNotifier get _graph => _adapter.localAdapter.graph;
+  CoreNotifier get _core => _adapter.localAdapter.core;
 
   Set<String>? _uninitializedKeys;
   String get _internalType => DataHelpers.getInternalType<E>();
@@ -73,7 +73,7 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   Edge _createEdgeTo(String to) =>
       Edge(id: 0, from: ownerKey, name: name, to: to, inverseName: inverseName);
 
-  Query<Edge> _queryTo(String to) => _graph._edgeBox
+  Query<Edge> _queryTo(String to) => _core._edgeBox
       .query((Edge_.from.equals(ownerKey) &
               Edge_.name.equals(name) &
               Edge_.to.equals(to)) |
@@ -85,15 +85,15 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   void save({bool notify = true}) {
     if (_edgeOperations.isEmpty) return;
 
-    _graph._store.runInTransaction(TxMode.write, () {
+    _core._store.runInTransaction(TxMode.write, () {
       for (final op in _edgeOperations) {
         switch (op) {
           case final _AddEdgeOperation add:
-            _graph._edgeBox.put(_createEdgeTo(add.to));
+            _core._edgeBox.put(_createEdgeTo(add.to));
           case final _UpdateEdgeOperation update:
             final e = _queryTo(update.to).findFirst();
             if (e != null) {
-              _graph._edgeBox.put(
+              _core._edgeBox.put(
                   Edge(id: e.id, from: e.from, name: e.name, to: update.newTo));
             }
           case final _RemoveEdgeOperation remove:
@@ -115,7 +115,7 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
     if (notify) {
       if (additions.isNotEmpty) {
         // print('notifying additions $additions');
-        _graph._notify(
+        _core._notify(
           [ownerKey, ...additions],
           metadata: _name,
           type: DataGraphEventType.addEdge,
@@ -123,7 +123,7 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
       }
       if (updates.isNotEmpty) {
         // print('notifying updates $updates');
-        _graph._notify(
+        _core._notify(
           [ownerKey, ...updates],
           metadata: _name,
           type: DataGraphEventType.updateEdge,
@@ -131,7 +131,7 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
       }
       if (removals.isNotEmpty) {
         // print('notifying removals $removals');
-        _graph._notify(
+        _core._notify(
           [ownerKey, ...removals],
           metadata: _name,
           type: DataGraphEventType.removeEdge,
@@ -206,7 +206,7 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   }
 
   Query<Edge> _getPersistedEdgesQuery(String key, String name) {
-    return _graph._edgeBox
+    return _core._edgeBox
         .query((Edge_.from.equals(key) & Edge_.name.equals(name)) |
             (Edge_.to.equals(key) & Edge_.inverseName.equals(name)))
         .build();
@@ -223,13 +223,13 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   }
 
   Set<Object> get _ids {
-    return _graph._store.runInTransaction(TxMode.read, () {
-      return _keys.map((key) => _graph.getIdForKey(key)).nonNulls.toSet();
+    return _core._store.runInTransaction(TxMode.read, () {
+      return _keys.map((key) => _core.getIdForKey(key)).nonNulls.toSet();
     });
   }
 
   DelayedStateNotifier<DataGraphEvent> get _relationshipEventNotifier {
-    return _adapter.graph.where((event) {
+    return _adapter.core.where((event) {
       return event.type.isEdge &&
           event.metadata == _name &&
           event.keys.containsFirst(ownerKey);
@@ -244,7 +244,7 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   dynamic toJson() => this;
 
   int get length {
-    return _graph._store.runInTransaction(
+    return _core._store.runInTransaction(
         TxMode.read,
         () => _keys
             .map(_adapter.localAdapter.exists)

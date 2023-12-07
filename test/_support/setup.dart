@@ -22,7 +22,7 @@ const kTestsPath = '/tmp';
 final keyFor = DataModel.keyFor;
 
 late ProviderContainer container;
-late CoreNotifier graph;
+late CoreNotifier core;
 Function? dispose;
 
 final logging = [];
@@ -55,14 +55,11 @@ Future<void> setUpFn() async {
     ],
   );
 
-  graph = container.read(graphNotifierProvider);
-  // IMPORTANT: disable namespace assertions
-  // in order to test un-namespaced (key, id)
-  // graph.debugAssert(false);
+  core = container.read(coreNotifierProvider);
 
   // Equivalent to generated in `main.data.dart`
 
-  await container.read(graphNotifierProvider).initialize();
+  await container.read(coreNotifierProvider).initialize();
 
   DataHelpers.setInternalType<House>('houses');
   DataHelpers.setInternalType<Familia>('familia');
@@ -146,7 +143,7 @@ Future<void> tearDownFn() async {
   container.books.dispose();
   container.bookAuthors.dispose();
   container.libraries.dispose();
-  graph.dispose();
+  core.dispose();
 
   logging.clear();
   await oneMs();

@@ -39,7 +39,7 @@ void main() async {
     final familia = Familia(surname: 'Moletto').saveLocal();
 
     // simulate "save"
-    graph.getKeyForId('familia', '1098', keyIfAbsent: keyFor(familia));
+    core.getKeyForId('familia', '1098', keyIfAbsent: keyFor(familia));
     final familia2 =
         familiaLocalAdapter.deserialize({'id': '1098', 'surname': 'Moletto'});
 
@@ -53,14 +53,14 @@ void main() async {
     final familia2 = Familia(surname: 'Zandiver');
 
     // simulate "save" for familia
-    graph.getKeyForId('familia', '1298', keyIfAbsent: keyFor(familia));
+    core.getKeyForId('familia', '1298', keyIfAbsent: keyFor(familia));
     final familia1b = familiaLocalAdapter.deserialize({
       'id': '1298',
       'surname': 'Helsinki',
     });
 
     // simulate "save" for familia2
-    graph.getKeyForId('familia', '1298', keyIfAbsent: keyFor(familia2));
+    core.getKeyForId('familia', '1298', keyIfAbsent: keyFor(familia2));
     final familia2b = familiaLocalAdapter.deserialize({
       'id': '1298',
       'surname': 'Oslo',

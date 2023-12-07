@@ -66,6 +66,12 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent>
 
   // Transactions
 
+  R readTxn<R>(R Function() fn) => _store.runInTransaction(TxMode.read, fn);
+
+  Future<R> readTxnAsync<R, P>(R Function(Store, P) fn, P param) async =>
+      _store.runInTransactionAsync(
+          TxMode.read, (store, param) => fn(_store, param), param);
+
   R _writeTxn<R>(R Function() fn) => _store.runInTransaction(TxMode.write, fn);
 
   Future<R> _writeTxnAsync<R, P>(R Function(Store, P) fn, P param) =>
@@ -210,5 +216,4 @@ extension _DataGraphEventX on DataGraphEventType {
   String toShortString() => toString().split('.').last;
 }
 
-final graphNotifierProvider =
-    Provider<CoreNotifier>((ref) => CoreNotifier(ref));
+final coreNotifierProvider = Provider<CoreNotifier>((ref) => CoreNotifier(ref));

@@ -95,7 +95,7 @@ void main() async {
     expect(h1.owner.value, isNull);
     expect(keyFor(h1), isNotNull);
 
-    graph.getKeyForId('familia', '1', keyIfAbsent: 'familia#111');
+    core.getKeyForId('familia', '1', keyIfAbsent: 'familia#111');
 
     // once it does
     final familia =
@@ -123,10 +123,10 @@ void main() async {
     expect(familia.persons.keys.length, 3);
 
     // associate ids with keys
-    graph.getKeyForId('people', '1', keyIfAbsent: 'people#111');
-    graph.getKeyForId('people', '2', keyIfAbsent: 'people#222');
-    graph.getKeyForId('people', '3', keyIfAbsent: 'people#333');
-    graph.getKeyForId('houses', '98', keyIfAbsent: 'houses#777');
+    core.getKeyForId('people', '1', keyIfAbsent: 'people#111');
+    core.getKeyForId('people', '2', keyIfAbsent: 'people#222');
+    core.getKeyForId('people', '3', keyIfAbsent: 'people#333');
+    core.getKeyForId('houses', '98', keyIfAbsent: 'houses#777');
 
     // no people have been loaded
     expect(familia.persons.toList(), isEmpty);
@@ -229,7 +229,7 @@ void main() async {
       'persons': ['people#231456']
     });
 
-    graph.getKeyForId('people', '231', keyIfAbsent: 'people#231456');
+    core.getKeyForId('people', '231', keyIfAbsent: 'people#231456');
     final axl = Person(id: '231', name: 'Axl', age: 58).saveLocal();
     familia5.persons.save();
     expect(familia5.persons.toSet(), {axl});

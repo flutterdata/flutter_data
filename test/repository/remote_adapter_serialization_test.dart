@@ -141,8 +141,8 @@ void main() async {
     expect(
         model.persons.keys,
         unorderedEquals([
-          graph.getKeyForId('people', '1'),
-          graph.getKeyForId('people', '2'),
+          core.getKeyForId('people', '1'),
+          core.getKeyForId('people', '2'),
         ]));
   });
 

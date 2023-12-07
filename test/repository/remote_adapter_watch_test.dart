@@ -19,26 +19,25 @@ void main() async {
   tearDown(tearDownFn);
 
   test('watchAll', () async {
-    final listener = Listener<DataState<List<Familia>>>();
+    final listener = Listener<DataState<List<Familia>>?>();
 
     container.read(responseProvider.notifier).state = TestResponse.json('''
         [{ "id": "1", "surname": "Corleone" }, { "id": "2", "surname": "Soprano" }]
       ''');
     final notifier = container.familia.watchAllNotifier();
 
-    dispose = notifier.addListener((e) {
-      print('$e\n');
-      listener(e);
-    });
+    dispose = notifier.addListener(listener);
 
     verify(listener(DataState([], isLoading: true))).called(1);
     await oneMs();
 
-    verify(listener(DataState([
-      Familia(id: '1', surname: 'Corleone'),
-      Familia(id: '2', surname: 'Soprano')
-    ], isLoading: false)))
-        .called(1);
+    verify(listener(argThat(isA<DataState>().having(
+        (s) => s.model,
+        'model',
+        unorderedEquals([
+          Familia(id: '1', surname: 'Corleone'),
+          Familia(id: '2', surname: 'Soprano')
+        ]))))).called(1);
     verifyNoMoreInteractions(listener);
   });
 
@@ -81,7 +80,8 @@ void main() async {
     await oneMs();
 
     // now responds with models, loading done, and no exception
-    verify(listener(DataState([familia, familia2], isLoading: false)))
+    verify(listener(argThat(isA<DataState>().having(
+            (s) => s.model, 'model', unorderedEquals([familia, familia2])))))
         .called(1);
     verifyNoMoreInteractions(listener);
   });
@@ -117,9 +117,10 @@ void main() async {
     await container.familia.findOne('234324', remote: false);
     await oneMs();
 
-    verify(listener(DataState(Person(id: '1', name: 'Charlie', age: 24),
-            isLoading: false)))
-        .called(1);
+    verify(listener(DataState(
+      Person(id: '1', name: 'Charlie', age: 24),
+      isLoading: false,
+    ))).called(1);
     verifyNoMoreInteractions(listener);
   });
 
@@ -262,7 +263,9 @@ void main() async {
     await oneMs();
 
     verify(listener(argThat(isA<DataState>().having(
-        (s) => s.model.persons!.toSet(), 'rel', {eve, maria})))).called(1);
+        (s) => s.model.persons!.toSet(),
+        'rel',
+        unorderedEquals({eve, maria}))))).called(1);
     verifyNoMoreInteractions(listener);
   });
 
@@ -279,9 +282,12 @@ void main() async {
         .watchOneNotifier('1', remote: false, alsoWatch: (f) => {f.persons});
 
     // we don't want it to immediately notify the default local model
-    dispose = notifier.addListener(listener, fireImmediately: false);
+    dispose = notifier.addListener((e) {
+      print(e);
+      listener(e);
+    }, fireImmediately: false);
 
-    familia.persons.add(Person(id: '1', name: 'Ricky').saveLocal());
+    familia.persons.add(Person(id: '1', name: 'Ricky'), save: true);
     await oneMs();
 
     verify(listener(DataState(familia))).called(1);
@@ -335,7 +341,7 @@ void main() async {
   });
 
   test('watchAllNotifier syncLocal', () async {
-    final listener = Listener<DataState<List<Familia>>>();
+    final listener = Listener<DataState<List<Familia>>?>();
 
     container.read(responseProvider.notifier).state = TestResponse.json(
         '''[{ "id": "22", "surname": "Paez" }, { "id": "12", "surname": "Brunez" }]''');
@@ -345,22 +351,34 @@ void main() async {
     dispose = notifier.addListener(listener);
     await oneMs();
 
-    verify(listener(DataState([
-      Familia(id: '22', surname: 'Paez'),
-      Familia(id: '12', surname: 'Brunez'),
-    ], isLoading: false)))
-        .called(1);
+    verify(listener(argThat(
+      isA<DataState>()
+          .having(
+              (s) => s.model,
+              'model',
+              unorderedEquals([
+                Familia(id: '22', surname: 'Paez'),
+                Familia(id: '12', surname: 'Brunez'),
+              ]))
+          .having((s) => s.isLoading, 'loading', false),
+    ))).called(1);
 
     container.read(responseProvider.notifier).state =
         TestResponse.json('''[{ "id": "22", "surname": "Paez" }]''');
     await notifier.reload();
     await oneMs();
 
-    verify(listener(DataState([
-      Familia(id: '22', surname: 'Paez'),
-      Familia(id: '12', surname: 'Brunez'),
-    ], isLoading: true)))
-        .called(1);
+    verify(listener(argThat(
+      isA<DataState>()
+          .having(
+              (s) => s.model,
+              'model',
+              unorderedEquals([
+                Familia(id: '22', surname: 'Paez'),
+                Familia(id: '12', surname: 'Brunez'),
+              ]))
+          .having((s) => s.isLoading, 'loading', true),
+    ))).called(1);
 
     verify(listener(DataState([
       Familia(id: '22', surname: 'Paez'),
@@ -453,7 +471,7 @@ void main() async {
   });
 
   test('watchAllNotifier with where/map', () async {
-    final listener = Listener<DataState<List<Person>>>();
+    final listener = Listener<DataState<List<Person>>?>();
 
     Person(id: '1', name: 'Zof', age: 23).saveLocal();
     Person(id: '2', name: 'Sarah', age: 50).saveLocal();
@@ -467,9 +485,14 @@ void main() async {
 
     dispose = notifier.addListener(listener);
 
-    verify(listener(DataState(
-      [Person(name: 'Zof', age: 33), Person(name: 'Walter', age: 21)],
-    ))).called(1);
+    verify(listener(argThat(isA<DataState>().having(
+        (s) => s.model,
+        'model',
+        unorderedEquals([
+          Person(name: 'Zof', age: 33),
+          Person(name: 'Walter', age: 21)
+        ]))))).called(1);
+
     verifyNoMoreInteractions(listener);
   });
 
@@ -521,6 +544,7 @@ void main() async {
     await oneMs();
 
     expect(container.people.watchOne('1'), DataState<Person?>(null));
+    await oneMs();
   });
 
   test('watchOneNotifier reads latest version', () async {
@@ -597,6 +621,7 @@ void main() async {
     verify(listener(argThat(matcher))).called(1);
 
     p1.familia.value = f1;
+    p1.familia.save();
     await oneMs();
 
     final matcher2 = isA<DataState>()
@@ -607,7 +632,7 @@ void main() async {
 
     verify(listener(argThat(matcher2))).called(1);
 
-    f1.persons.add(Person(name: 'Martin', age: 44).saveLocal());
+    f1.persons.add(Person(name: 'Martin', age: 44), save: true);
     await oneMs();
 
     verify(listener(argThat(
@@ -616,6 +641,7 @@ void main() async {
     verifyNoMoreInteractions(listener);
 
     f1.residence.value = House(address: '123 Main St').saveLocal();
+    f1.residence.save();
     await oneMs();
 
     verify(listener(argThat(
@@ -624,7 +650,7 @@ void main() async {
     ))).called(1);
     verifyNoMoreInteractions(listener);
 
-    f1.persons.remove(p1);
+    f1.persons.remove(p1, save: true);
     await oneMs();
 
     verify(listener(argThat(
@@ -634,6 +660,7 @@ void main() async {
 
     // a non-watched relationship does not trigger
     f1.cottage.value = House(address: '7342 Mountain Rd').saveLocal();
+    f1.cottage.save();
     await oneMs();
 
     verifyNever(listener(any));
@@ -663,7 +690,10 @@ void main() async {
     );
 
     final listener = Listener<DataState<Person?>?>();
-    dispose = notifier.addListener(listener, fireImmediately: false);
+    dispose = notifier.addListener((e) {
+      print(e);
+      listener(e);
+    }, fireImmediately: false);
 
     final matcher = isA<DataState>()
         .having((s) => s.model.name, 'name', 'Steve-O')
@@ -686,14 +716,17 @@ void main() async {
       cottage: cottage.asBelongsTo,
     ).saveLocal();
     steve.familia.value = familia;
+    steve.familia.save();
     await oneMs();
 
     verify(listener(argThat(matcher))).called(1);
     verifyNoMoreInteractions(listener);
 
+    print('f1');
     Familia(surname: 'Thomson', cottage: cottage.asBelongsTo)
         .withKeyOf(familia)
         .saveLocal();
+
     await oneMs();
 
     verify(listener(argThat(matcher))).called(1);

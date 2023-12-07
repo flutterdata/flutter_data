@@ -62,19 +62,19 @@ mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
       );
       if (remote) {
         // trigger doneLoading to ensure state is updated with isLoading=false
-        graph._notify([label.toString()], type: DataGraphEventType.doneLoading);
+        core._notify([label.toString()], type: DataGraphEventType.doneLoading);
       }
     };
 
     // kick off
     notifier.reload();
 
-    final throttleDuration = ref.read(graphNotifierThrottleDurationProvider);
-    final throttledGraph = graph.throttle(() => throttleDuration);
+    final throttleDuration = ref.read(coreNotifierThrottleDurationProvider);
+    final throttledNotifier = core.throttle(() => throttleDuration);
 
     final states = <DataState<List<T>>>[];
 
-    final dispose = throttledGraph.addListener((events) {
+    final dispose = throttledNotifier.addListener((events) {
       if (!notifier.mounted) {
         return;
       }
@@ -128,7 +128,7 @@ mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
     String? finder,
     DataRequestLabel? label,
   }) {
-    final id = graph.getIdForKey(key);
+    final id = core.getIdForKey(key);
 
     remote ??= _remote;
     final maybeFinder = _internalHolder?.finders[finder]?.call(this);
@@ -143,7 +143,7 @@ mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
 
     // closure to get latest model and watchable relationship pairs
     T? _getUpdatedModel() {
-      return graph._store.runInTransaction(TxMode.read, () {
+      return core._store.runInTransaction(TxMode.read, () {
         final model = localAdapter.findOne(key);
         if (model != null) {
           // get all metas provided via `alsoWatch`
@@ -209,7 +209,7 @@ mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
       // trigger doneLoading to ensure state is updated with isLoading=false
       final modelKey = model?._key;
       if (remote && modelKey != null) {
-        graph._notify([modelKey, label.toString()],
+        core._notify([modelKey, label.toString()],
             type: DataGraphEventType.doneLoading);
       }
     };
@@ -220,13 +220,13 @@ mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
     // local buffer useful to reduce amount of notifier updates
     var bufferModel = notifier.data.model;
 
-    final throttleDuration = ref.read(graphNotifierThrottleDurationProvider);
-    final throttledGraph = graph.throttle(() => throttleDuration);
+    final throttleDuration = ref.read(coreNotifierThrottleDurationProvider);
+    final throttledNotifier = core.throttle(() => throttleDuration);
 
     final states = <DataState<T?>>[];
 
     // start listening to graph for further changes
-    final dispose = throttledGraph.addListener((events) {
+    final dispose = throttledNotifier.addListener((events) {
       if (!notifier.mounted) return;
 
       // get the latest updated model with watchable relationships
@@ -339,7 +339,7 @@ mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
   Iterable<List<String>> _getPairsForMeta(
       RelationshipMeta? meta, String ownerKey) {
     if (meta == null) return {};
-    final edges = graph._edgeBox
+    final edges = core._edgeBox
         .query((Edge_.from.equals(ownerKey) & Edge_.name.equals(meta.name)) |
             (Edge_.to.equals(ownerKey) & Edge_.inverseName.equals(meta.name)))
         .build()
@@ -358,5 +358,5 @@ mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
   }
 }
 
-final graphNotifierThrottleDurationProvider =
+final coreNotifierThrottleDurationProvider =
     Provider<Duration>((ref) => Duration.zero);

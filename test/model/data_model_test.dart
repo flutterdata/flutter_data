@@ -24,7 +24,7 @@ void main() async {
     await person.save();
 
     // (1) it wires up the relationship
-    expect(person.familia.key, graph.getKeyForId('familia', '55'));
+    expect(person.familia.key, core.getKeyForId('familia', '55'));
 
     // (2) it saves the model locally
     final e2 = container.people.findOneLocal(person.id!);
@@ -111,12 +111,12 @@ void main() async {
 
       if (destination.id != null) {
         // now the source key is associated to id=destination.id
-        expect(graph.getKeyForId('people', destination.id), keyFor(source));
+        expect(core.getKeyForId('people', destination.id), keyFor(source));
       }
       expect(destination.familia.value, familias[index]);
 
       if (keyFor(source) != keyFor(destination)) {
-        expect(graph.getIdForKey(destKeyBefore), isNull);
+        expect(core.getIdForKey(destKeyBefore), isNull);
       }
     }
 
@@ -193,7 +193,7 @@ void main() async {
         contains(keyFor(p1)));
 
     // person with new id, reusing existing key
-    graph.getKeyForId('people', '221', keyIfAbsent: keyFor(p1));
+    core.getKeyForId('people', '221', keyIfAbsent: keyFor(p1));
     final p2 = Person(id: '221', name: 'Frank2', age: 32);
     expect(keyFor(p1), keyFor(p2));
 

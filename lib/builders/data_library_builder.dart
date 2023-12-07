@@ -179,7 +179,7 @@ ${classes.map((clazz) => '    DataHelpers.setInternalType<${clazz['className']}>
     final adapters = <String, RemoteAdapter>$adaptersMap;
     final remotes = <String, bool>$remotesMap;
 
-    await ref.watch(graphNotifierProvider).initialize();
+    await ref.watch(coreNotifierProvider).initialize();
 
     // initialize and register
     for (final type in repositoryProviders.keys) {

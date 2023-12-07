@@ -7,11 +7,11 @@ part of flutter_data;
 /// See also: [ObjectboxLocalAdapter]
 abstract class LocalAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   @protected
-  LocalAdapter(Ref ref) : graph = ref.read(graphNotifierProvider);
+  LocalAdapter(Ref ref) : core = ref.read(coreNotifierProvider);
 
   @protected
   @visibleForTesting
-  final CoreNotifier graph;
+  final CoreNotifier core;
 
   String get internalType => DataHelpers.getInternalType<T>();
 
@@ -67,7 +67,7 @@ abstract class LocalAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   @nonVirtual
   T initModel(T model, {Function(T)? onModelInitialized}) {
     if (model._key == null) {
-      model._key = graph.getKeyForId(internalType, model.id,
+      model._key = core.getKeyForId(internalType, model.id,
           keyIfAbsent: DataHelpers.generateKey<T>())!;
       _initializeRelationships(model);
       onModelInitialized?.call(model);

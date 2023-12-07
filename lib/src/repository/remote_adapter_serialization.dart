@@ -12,11 +12,11 @@ mixin _RemoteAdapterSerialization<T extends DataModelMixin<T>>
     for (final key in localAdapter.relationshipMetas.keys) {
       if (map[key] is Iterable) {
         map[key] = (map[key] as Iterable)
-            .map((k) => graph.getIdForKey(k.toString()))
+            .map((k) => core.getIdForKey(k.toString()))
             .nonNulls
             .toList();
       } else if (map[key] != null) {
-        map[key] = graph.getIdForKey(map[key].toString());
+        map[key] = core.getIdForKey(map[key].toString());
       }
       if (map[key] == null) map.remove(key);
     }
@@ -36,7 +36,7 @@ mixin _RemoteAdapterSerialization<T extends DataModelMixin<T>>
         id = data.model!.id;
       }
       if (id != null && adapter != null) {
-        return graph.getKeyForId(adapter.internalType, id,
+        return core.getKeyForId(adapter.internalType, id,
             keyIfAbsent: DataHelpers.generateKey(adapter.internalType));
       }
       return null;

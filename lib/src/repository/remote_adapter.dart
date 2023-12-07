@@ -8,7 +8,7 @@ part of flutter_data;
 ///  - Configuration methods and getters like [_RemoteAdapter.baseUrl] or [_RemoteAdapter.urlForFindAll]
 ///  - Serialization methods like [_RemoteAdapterSerialization.serialize]
 ///  - Watch methods such as [Repository.watchOneNotifier]
-///  - Access to the [_RemoteAdapter.graph] for subclasses or mixins
+///  - Access to the [_RemoteAdapter.core] for subclasses or mixins
 ///
 /// This class is meant to be extended via mixing in new adapters.
 /// This can be done with the [DataRepository] annotation on a [DataModelMixin] class:
@@ -43,7 +43,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   /// A [CoreNotifier] instance also available to adapters
   @protected
   @nonVirtual
-  CoreNotifier get graph => localAdapter.graph;
+  CoreNotifier get core => localAdapter.core;
 
   // None of these fields below can be late finals as they might be re-initialized
   Map<String, RemoteAdapter>? _adapters;
@@ -197,10 +197,15 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
   // Transactions
 
-  R writeTxn<R>(R Function() fn) => localAdapter.graph._writeTxn(fn);
+  R readTxn<R>(R Function() fn) => localAdapter.core.readTxn(fn);
+
+  Future<R> readTxnAsync<R, P>(R Function(Store, P) fn, P param) async =>
+      localAdapter.core.readTxnAsync(fn, param);
+
+  R writeTxn<R>(R Function() fn) => localAdapter.core._writeTxn(fn);
 
   Future<R> writeTxnAsync<R, P>(R Function(Store, P) fn, P param) =>
-      localAdapter.graph._writeTxnAsync(fn, param);
+      localAdapter.core._writeTxnAsync(fn, param);
 
   // serialization interface
 
@@ -365,8 +370,6 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   }
 
   T? findOneLocal(Object id) {
-    // final key = graph.getKeyForId(internalType, _resolveId(id),
-    //     keyIfAbsent: id is T ? id._key : null);
     return localAdapter.findOneById(id);
   }
 
@@ -756,11 +759,11 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   Future<void> _saveDeserialized(DeserializedData deserialized) async {
     final models = [...deserialized.models, ...deserialized.included];
     await logTime('writing ${models.length} models', () async {
-      graph._writeTxn(() {
+      core._writeTxnAsync((store, models) {
         for (final model in models) {
           model._remoteAdapter.localAdapter.save(model._key!, model);
         }
-      });
+      }, models);
     });
   }
 
@@ -817,7 +820,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   @visibleForTesting
   @nonVirtual
   Set<OfflineOperation<T>> get offlineOperations {
-    final edges = graph._edgeBox
+    final edges = core._edgeBox
         .query(Edge_.from.equals(_offlineAdapterKey))
         .build()
         .find();
@@ -834,7 +837,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
             }
           } catch (_) {
             // if there were any errors parsing labels or json ignore and remove
-            graph._edgeBox
+            core._edgeBox
                 .query(Edge_.from.equals(_offlineAdapterKey) &
                     Edge_.name.equals(e.name))
                 .build()
@@ -856,7 +859,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     if (model is T) {
       return model._key!;
     } else {
-      return graph.getKeyForId(internalType, model,
+      return core.getKeyForId(internalType, model,
           keyIfAbsent: DataHelpers.generateKey<T>())!;
     }
   }

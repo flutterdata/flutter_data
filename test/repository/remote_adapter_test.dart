@@ -62,7 +62,7 @@ void main() async {
 
     final person = Person(id: '1', name: 'John', age: 21);
     // it does have a key
-    expect(graph.getKeyForId('people', person.id), isNotNull);
+    expect(core.getKeyForId('people', person.id), isNotNull);
 
     // now delete
     await adapter.delete(person.id!);
@@ -71,8 +71,8 @@ void main() async {
     expect(await adapter.findOne(person.id!), isNull);
 
     // and now key & id are both non-existent
-    expect(graph.getIdForKey(keyFor(person)), isNull);
-    expect(graph.getKeyForId('people', person.id), isNull);
+    expect(core.getIdForKey(keyFor(person)), isNull);
+    expect(core.getKeyForId('people', person.id), isNull);
   });
 
   test('use default headers & params', () async {
@@ -114,7 +114,7 @@ void main() async {
 
     // check key was correctly assigned
     // ignore: invalid_use_of_protected_member
-    final key = adapter.graph.getKeyForId(adapter.internalType, 15);
+    final key = adapter.core.getKeyForId(adapter.internalType, 15);
     expect(keyFor(author), equals(key));
   });
 
@@ -215,14 +215,14 @@ void main() async {
     final key1 = adapter.keyForModelOrId(p1);
     expect(key1, keyFor(p1));
 
-    final key2 = graph.getKeyForId('people', '43',
+    final key2 = core.getKeyForId('people', '43',
         keyIfAbsent: DataHelpers.generateKey<Person>());
     final key2b = adapter.keyForModelOrId('43');
     expect(key2, key2b);
 
     final p3 = Person(id: '22', name: 'Joe');
     final key3 = adapter.keyForModelOrId(p3);
-    final key3b = graph.getKeyForId('people', '22');
+    final key3b = core.getKeyForId('people', '22');
     expect(key3, key3b);
   });
 
