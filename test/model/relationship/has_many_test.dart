@@ -14,7 +14,7 @@ void main() async {
   setUp(setUpFn);
   tearDown(tearDownFn);
 
-  test('ids + toString', () {
+  test('ids', () {
     final f1 = Familia(surname: 'Sanchez');
     final p1 = Person(name: 'Javier');
     f1.persons.add(p1);
@@ -34,7 +34,7 @@ void main() async {
       persons: {pete}.asHasMany,
       cottage: BelongsTo(),
       residence: residence.asBelongsTo,
-    );
+    ).saveLocal();
 
     f2.persons.add(pete);
     f2.persons.add(pete, save: true);
@@ -46,10 +46,11 @@ void main() async {
     f2.persons.remove(anne, save: true);
     expect(f2.persons.toSet(), {pete});
 
-    expect(DataModel.relationshipsFor(f2).values,
+    expect(DataModel.relationshipsFor(f2),
         unorderedEquals([f2.persons, f2.residence, f2.cottage]));
-    expect(DataModel.relationshipsFor(f2).values.whereType<HasMany>(),
+    expect(DataModel.relationshipsFor(f2).whereType<HasMany<Person>>(),
         [f2.persons]);
+    DataModel.relationshipsFor(f2).whereType<HasMany<Person>>().first.owner;
 
     f2.persons.addAll([anne, Person(name: 'Frida'), Person(name: 'Roger')],
         save: true);

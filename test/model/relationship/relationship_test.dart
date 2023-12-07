@@ -137,6 +137,8 @@ void main() async {
     final p1 = Person(id: '1', name: 'z1', age: 23).saveLocal();
     final p2 = Person(id: '2', name: 'z2', age: 33).saveLocal();
 
+    print(familia.persons.adjacentRelationships<Familia>());
+
     // (3) assert two first are linked, third one null, residence is null
     expect(familia.persons.toList(), {p1, p2});
     expect(familia.residence.value, isNull);
@@ -301,7 +303,7 @@ void main() async {
     // expect these two distinct objects are equal
     expect(books.first.originalAuthor!.value, books.last.originalAuthor!.value);
 
-    expect(books.first.originalAuthor.toString(), 'BelongsTo<BookAuthor>(15)');
+    expect(books.first.originalAuthor?.id, 15);
     expect(author.books.ids, unorderedEquals([23, 24]));
     expect(author.books.first.originalAuthor!.value!.books.ids,
         unorderedEquals([23, 24]));

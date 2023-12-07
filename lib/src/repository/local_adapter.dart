@@ -46,10 +46,12 @@ abstract class LocalAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   @visibleForTesting
   void delete(String key, {bool notify = true});
 
+  void deleteKeys(Iterable<String> keys, {bool notify = true});
+
   /// Deletes all models of type [T] in local storage.
   @protected
   @visibleForTesting
-  void clear();
+  Future<void> clear();
 
   /// Counts all models of type [T] in local storage.
   int get count;

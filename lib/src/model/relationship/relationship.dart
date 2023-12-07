@@ -2,8 +2,7 @@ part of flutter_data;
 
 /// A `Set` that models a relationship between one or more [DataModelMixin] objects
 /// and their a [DataModelMixin] owner. Backed by a [GraphNotifier].
-abstract class Relationship<E extends DataModelMixin<E>, N>
-    with EquatableMixin {
+sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   @protected
   Relationship(Set<E>? models) : this._(models?.map((m) => m._key!).toSet());
 
@@ -14,6 +13,16 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
   String? _ownerKey;
   String? _name;
   String? _inverseName;
+
+  String get ownerKey => _ownerKey!;
+  DataModelMixin? get owner {
+    final type = ownerKey.split('#').first;
+    final adapter = internalRepositories[type]!.remoteAdapter;
+    return adapter.localAdapter.findOne(ownerKey) as DataModelMixin?;
+  }
+
+  String get name => _name!;
+  String? get inverseName => _inverseName;
 
   RemoteAdapter<E> get _adapter =>
       internalRepositories[_internalType]!.remoteAdapter as RemoteAdapter<E>;
@@ -61,15 +70,15 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
     return this;
   }
 
-  Edge _createEdgeTo(String to) => Edge(
-      id: 0, from: _ownerKey!, name: _name!, to: to, inverseName: _inverseName);
+  Edge _createEdgeTo(String to) =>
+      Edge(id: 0, from: ownerKey, name: name, to: to, inverseName: inverseName);
 
   Query<Edge> _queryTo(String to) => _graph._edgeBox
-      .query((Edge_.from.equals(_ownerKey!) &
-              Edge_.name.equals(_name!) &
+      .query((Edge_.from.equals(ownerKey) &
+              Edge_.name.equals(name) &
               Edge_.to.equals(to)) |
-          (Edge_.to.equals(_ownerKey!) &
-              Edge_.inverseName.equals(_name!) &
+          (Edge_.to.equals(ownerKey) &
+              Edge_.inverseName.equals(name) &
               Edge_.from.equals(to)))
       .build();
 
@@ -90,7 +99,7 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
           case final _RemoveEdgeOperation remove:
             _queryTo(remove.to).remove();
           case final _RemoveAllEdgeOperation _:
-            _getPersistedEdgesQuery(_ownerKey!, _name!).remove();
+            _getPersistedEdgesQuery(ownerKey, _name!).remove();
         }
       }
     });
@@ -107,7 +116,7 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
       if (additions.isNotEmpty) {
         // print('notifying additions $additions');
         _graph._notify(
-          [_ownerKey!, ...additions],
+          [ownerKey, ...additions],
           metadata: _name,
           type: DataGraphEventType.addEdge,
         );
@@ -115,7 +124,7 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
       if (updates.isNotEmpty) {
         // print('notifying updates $updates');
         _graph._notify(
-          [_ownerKey!, ...updates],
+          [ownerKey, ...updates],
           metadata: _name,
           type: DataGraphEventType.updateEdge,
         );
@@ -123,7 +132,7 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
       if (removals.isNotEmpty) {
         // print('notifying removals $removals');
         _graph._notify(
-          [_ownerKey!, ...removals],
+          [ownerKey, ...removals],
           metadata: _name,
           type: DataGraphEventType.removeEdge,
         );
@@ -168,7 +177,29 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
     return false;
   }
 
+  // TODO docs + tests
+  Iterable<Relationship>
+      adjacentRelationships<R extends DataModelMixin<R>>() sync* {
+    for (final key in _keys) {
+      final metas = _adapter.localAdapter.relationshipMetas.values
+          .whereType<RelationshipMeta<R>>();
+      for (final meta in metas) {
+        final rel = switch (meta.type) {
+          'HasMany' => HasMany<R>().initialize(ownerKey: key, name: meta.name),
+          _ => BelongsTo<R>().initialize(ownerKey: key, name: meta.name),
+        };
+        yield rel;
+      }
+    }
+  }
+
   // support methods
+
+  /// Returns keys in this relationship.
+  Set<String> get keys => _keys;
+
+  /// Returns IDs in this relationship.
+  Set<Object> get ids => _ids;
 
   Iterable<E> get _iterable {
     return _adapter.localAdapter.findMany(_keys);
@@ -188,18 +219,20 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
 
   Set<String> get _keys {
     if (_ownerKey == null) return {};
-    return _keysFor(_ownerKey!, _name!);
+    return _keysFor(ownerKey, _name!);
   }
 
   Set<Object> get _ids {
-    return _keys.map((key) => _graph.getIdForKey(key)).nonNulls.toSet();
+    return _graph._store.runInTransaction(TxMode.read, () {
+      return _keys.map((key) => _graph.getIdForKey(key)).nonNulls.toSet();
+    });
   }
 
   DelayedStateNotifier<DataGraphEvent> get _relationshipEventNotifier {
     return _adapter.graph.where((event) {
       return event.type.isEdge &&
           event.metadata == _name &&
-          event.keys.containsFirst(_ownerKey!);
+          event.keys.containsFirst(ownerKey);
     });
   }
 
@@ -227,9 +260,7 @@ abstract class Relationship<E extends DataModelMixin<E>, N>
 
   @override
   String toString() {
-    final keysWithoutId =
-        _keys.where((k) => _graph.getIdForKey(k) == null).map((k) => '[$k]');
-    return {..._ids, ...keysWithoutId}.join(', ');
+    return {..._keys}.join(', ');
   }
 }
 

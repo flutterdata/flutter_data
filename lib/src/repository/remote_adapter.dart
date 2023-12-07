@@ -478,7 +478,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     localAdapter.delete(model._key!, notify: notify);
   }
 
-  void clear() => localAdapter.clear();
+  Future<void> clear() => localAdapter.clear();
 
   // http
 

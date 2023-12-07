@@ -44,7 +44,9 @@ class GraphNotifier extends DelayedStateNotifier<DataGraphEvent>
     }
 
     if (_localStorage.clear == LocalStorageClearStrategy.always) {
-      // TODO no way of removing everything?
+      // TODO no way of removing everything? maybe remove file before openStore?
+      // _localStorage.destroy();
+
       _storedModelBox.removeAll();
       _edgeBox.removeAll();
     }

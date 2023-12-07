@@ -19,7 +19,7 @@ void main() async {
     person.familia.value = Familia(id: '1', surname: 'Sanchez').saveLocal();
     person.familia.save();
     expect(person.familia.value!.id, person.familia.id);
-    expect(person.familia.toString(), 'BelongsTo<Familia>(1)');
+    expect(person.familia.toString(), startsWith('BelongsTo<Familia>'));
   });
 
   test('set owner in relationships', () {

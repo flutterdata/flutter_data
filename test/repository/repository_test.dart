@@ -30,7 +30,7 @@ void main() async {
 
     expect(familia, [familia1, familia2]);
 
-    container.familia.clear();
+    await container.familia.clearLocal();
     expect(await container.familia.findAll(remote: false), isEmpty);
 
     expect(container.familia.type, 'familia');

@@ -91,7 +91,7 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
     );
 
     final savedKey = graph._store.runInTransaction(TxMode.write, () {
-      for (final rel in DataModel.relationshipsFor(model).values) {
+      for (final rel in DataModel.relationshipsFor(model)) {
         rel.save();
       }
       return store.box<StoredModel>().put(storedModel).typifyWith(internalType);
@@ -148,14 +148,23 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
   }
 
   @override
-  Future<void> delete(String key, {bool notify = true}) async {
-    graph.removeIdForKey(key);
-    store.box<StoredModel>().remove(key.detypify() as int);
-    graph._notify([key], type: DataGraphEventType.removeNode);
+  Future<void> delete(String key, {bool notify = true}) {
+    return deleteKeys([key], notify: notify);
   }
 
   @override
-  void clear() {
+  Future<void> deleteKeys(Iterable<String> keys, {bool notify = true}) async {
+    graph._writeTxn(() {
+      for (final key in keys) {
+        graph.removeIdForKey(key);
+        store.box<StoredModel>().remove(key.detypify() as int);
+      }
+    });
+    graph._notify([...keys], type: DataGraphEventType.removeNode);
+  }
+
+  @override
+  Future<void> clear() async {
     graph._store.box<Edge>().removeAll();
     graph._store.box<StoredModel>().removeAll();
     graph._notify([internalType], type: DataGraphEventType.clear);

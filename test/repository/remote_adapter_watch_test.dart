@@ -415,7 +415,7 @@ void main() async {
         await oneMs();
       })();
     }
-  }, skip: true); // TODO
+  }, skip: true); // TODO unskip
 
   test('watchAllNotifier and watchAll updates and removals', () async {
     final listener = Listener<DataState<List<Person>>>();
@@ -443,7 +443,7 @@ void main() async {
 
     expect(container.people.watchAll(), DataState<List<Person>>([p2]));
 
-    container.people.clear();
+    await container.people.clearLocal();
     await oneMs();
 
     verify(listener(DataState([], isLoading: false))).called(1);
@@ -517,7 +517,7 @@ void main() async {
         DataState<Person?>(Person(id: '1', name: 'Liam', age: 36)));
 
     // if local storage is cleared then it should update to null
-    container.people.clear();
+    await container.people.clearLocal();
     await oneMs();
 
     expect(container.people.watchOne('1'), DataState<Person?>(null));

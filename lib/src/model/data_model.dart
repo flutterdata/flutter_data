@@ -50,12 +50,12 @@ abstract class DataModel<T extends DataModel<T>> with DataModelMixin<T> {
   }
 
   /// Returns a model's non-null relationships.
-  static Map<String, Relationship>
-      relationshipsFor<T extends DataModelMixin<T>>(T model) {
+  static Set<Relationship> relationshipsFor<T extends DataModelMixin<T>>(
+      T model) {
     return {
       for (final meta
           in model._remoteAdapter.localAdapter.relationshipMetas.values)
-        if (meta.instance(model) != null) meta.name: meta.instance(model)!,
+        if (meta.instance(model) != null) meta.instance(model)!,
     };
   }
 }
