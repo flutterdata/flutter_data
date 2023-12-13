@@ -23,7 +23,8 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent>
   // key: (typeId?), we use a record to indicate removal with (null,)
   final Map<String, (String?,)> _mappingBuffer = {};
 
-  late Store _store;
+  Store? __store;
+  Store get _store => __store!;
   late Box<StoredModel> _storedModelBox;
   late Box<Edge> _edgeBox;
 
@@ -33,10 +34,15 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent>
     await _localStorage.initialize();
 
     try {
-      _store = openStore(
-        directory: path_helper.join(_localStorage.path, 'flutter_data'),
-        queriesCaseSensitiveDefault: false,
-      );
+      final dirPath = path_helper.join(_localStorage.path, 'flutter_data');
+      if (Store.isOpen(dirPath)) {
+        __store = Store.attach(getObjectBoxModel(), dirPath);
+      } else {
+        __store = openStore(
+          directory: dirPath,
+          queriesCaseSensitiveDefault: false,
+        );
+      }
       _storedModelBox = _store.box<StoredModel>();
       _edgeBox = _store.box<Edge>();
     } catch (e, stackTrace) {
