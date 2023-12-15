@@ -1,5 +1,19 @@
 part of flutter_data;
 
+sealed class _KeyOperation {
+  String key;
+  _KeyOperation(this.key);
+}
+
+class AddKeyOperation extends _KeyOperation {
+  String typeId;
+  AddKeyOperation(super.key, this.typeId);
+}
+
+class RemoveKeyOperation extends _KeyOperation {
+  RemoveKeyOperation(super.key);
+}
+
 sealed class _EdgeOperation {
   String from;
   String name;

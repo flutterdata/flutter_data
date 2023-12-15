@@ -66,14 +66,16 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
 
   @override
   bool exists(String key) {
-    print('--- [read] exists');
-    return core.store
-            .box<StoredModel>()
-            .query(StoredModel_.key.equals(key.detypify() as int) &
-                StoredModel_.data.notNull())
-            .build()
-            .count() >
-        0;
+    return logTime(
+        '--- [read] exists',
+        () =>
+            core.store
+                .box<StoredModel>()
+                .query(StoredModel_.key.equals(key.detypify() as int) &
+                    StoredModel_.data.notNull())
+                .build()
+                .count() >
+            0);
   }
 
   @override
@@ -82,15 +84,10 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
     final packer = Packer();
     packer.packJson(serialize(model, withRelationships: false));
 
-    final buffer = core._mappingBuffer[key];
-    final typeId = switch (buffer) {
-      (String typeId,) => typeId, // ID mapping was added
-      (null,) => ''.typifyWith(internalType), // ID mapping was removed
-      null => model.id.typifyWith(internalType), // no mapping so assign default
-    };
+    final typeId = core._keyCache[key.detypify() as int];
 
     final storedModel = StoredModel(
-      typeId: typeId,
+      typeId: typeId ?? model.id.typifyWith(internalType),
       key: key.detypify() as int,
       data: packer.takeBytes(),
     );
@@ -102,7 +99,8 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
       // }
       return store.box<StoredModel>().put(storedModel).typifyWith(internalType);
     });
-    core._mappingBuffer.remove(savedKey);
+
+    // TODO process key operations queue here (and other places) -- or use putQueued?
 
     if (notify) {
       core._notify([savedKey], type: DataGraphEventType.updateNode);
@@ -113,7 +111,7 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
   static Future<List<(String, StoredModel)>> _pack(
       List<(String, String, Map<String, dynamic>)> models) async {
     return await Isolate.run(() async {
-      return await logTime('pack inside isolate', () async {
+      return logTime('pack inside isolate', () {
         return models.map((m_) {
           final (key, typeId, s) = m_;
           final packer = Packer();
@@ -137,14 +135,9 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
 
     final Map<String, (String, dynamic, List<_EdgeOperation>)> map =
         models.groupFoldBy((m) => m._key!, (acc, model) {
-      final key = DataModelMixin.keyFor(model)!;
-      final buffer = core._mappingBuffer[key];
-      final typeId = switch (buffer) {
-        (String typeId,) => typeId, // ID mapping was added
-        (null,) => ''.typifyWith(model._internalType), // ID mapping was removed
-        null => model.id
-            .typifyWith(model._internalType), // no mapping so assign default
-      };
+      final typeId = core._keyCache[model._key!.detypify() as int] ??
+          model.id.typifyWith(model._internalType);
+
       final serialized = DataModel.adapterFor(model)
           .localAdapter
           .serialize(model, withRelationships: false);
@@ -187,10 +180,7 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
       print('WARNING! Not all models stored!');
     }
 
-    // remove keys that were saved from buffer
-    for (final key in savedKeys) {
-      core._mappingBuffer.remove(key);
-    }
+    // TODO process key operations queue here (and other places) -- or use putQueued?
 
     if (notify) {
       core._notify(

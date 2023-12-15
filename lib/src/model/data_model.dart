@@ -29,11 +29,14 @@ abstract class DataModel<T extends DataModel<T>> with DataModelMixin<T> {
       if (applyTo.id != null) {
         core._writeTxn(() {
           // and associate ID with source key
-          core.setIdForKey(sourceKey, type: type, id: applyTo.id!);
-          applyTo.saveLocal();
+          final typeId = applyTo.id!.typifyWith(type);
+          core._keyOperations.add(AddKeyOperation(sourceKey, typeId));
+
           if (oldKey != null) {
             core._storedModelBox.remove(oldKey.detypify() as int);
+            core._keyOperations.add(RemoveKeyOperation(oldKey));
           }
+          core._keyCache[sourceKey.detypify() as int] = typeId;
         });
       }
     }
@@ -57,8 +60,8 @@ abstract class DataModel<T extends DataModel<T>> with DataModelMixin<T> {
 /// It contains private state and methods to track the model's identity.
 mixin DataModelMixin<T extends DataModelMixin<T>> {
   Object? get id;
-
   String? _key;
+
   String get _internalType => DataHelpers.getInternalType<T>();
   T get _this => this as T;
 

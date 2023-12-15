@@ -296,7 +296,15 @@ class DataResponse {
 /// ONLY FOR FLUTTER DATA INTERNAL USE
 final internalRepositories = <String, Repository>{};
 
-Future<R> logTime<R>(String name, Future<R> cb()) async {
+R logTime<R>(String name, R cb()) {
+  final a1 = DateTime.now().millisecondsSinceEpoch;
+  final result = cb();
+  final a2 = DateTime.now().millisecondsSinceEpoch;
+  print('$name: ${a2 - a1}ms');
+  return result;
+}
+
+Future<R> logTimeAsync<R>(String name, Future<R> cb()) async {
   final a1 = DateTime.now().millisecondsSinceEpoch;
   final result = await cb();
   final a2 = DateTime.now().millisecondsSinceEpoch;

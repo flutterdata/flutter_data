@@ -111,7 +111,7 @@ void main() async {
     expect(core.getKeyForId('people', '111'), 'people#222');
 
     final map = core.toIdMap();
-    expect(map.keys.toSet(), containsAll({'people#222', 'people#111'}));
+    expect(map.keys.toSet(), containsAll({222, 111}));
     // # separates integers, ## separates strings
     expect(map.values.toSet(), containsAll({'people##111', 'people#1'}));
 

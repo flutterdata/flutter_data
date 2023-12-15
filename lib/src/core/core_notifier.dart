@@ -20,8 +20,9 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent>
   @override
   bool isInitialized = false;
 
-  // key: (typeId?), we use a record to indicate removal with (null,)
-  final Map<String, (String?,)> _mappingBuffer = {};
+  final List<_KeyOperation> _keyOperations = [];
+
+  late final Map<int, String> _keyCache;
 
   Store? __store;
 
@@ -60,6 +61,19 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent>
       _edgeBox.removeAll();
     }
 
+    // initialize/populate key-ID mapping cache
+    late List<String> typeIds;
+    late List<int> keys;
+    _readTxn(() {
+      typeIds =
+          _storedModelBox.query().build().property(StoredModel_.typeId).find();
+      keys = _storedModelBox.query().build().property(StoredModel_.key).find();
+    });
+
+    final entries =
+        typeIds.mapIndexed((i, typeId) => MapEntry(keys[i], typeId));
+    _keyCache = Map<int, String>.fromEntries(entries);
+
     isInitialized = true;
     return this;
   }
@@ -97,84 +111,45 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent>
   ///  - It associates [keyIfAbsent] with the supplied [type]/[id]
   ///    (if both [keyIfAbsent] & [type]/[id] were provided)
   String? getKeyForId(String type, Object? id, {String? keyIfAbsent}) {
-    type = DataHelpers.internalTypeFor(type);
-
-    if (id != null) {
-      var entry = _mappingBuffer.entries
-          .firstWhereOrNull((e) => e.value.$1 == id.typifyWith(type));
-      if (entry?.value != null) {
-        if (entry!.value.$1 == null) {
-          return null;
-        }
-        return entry.key;
-      }
-
-      // if it wasn't found fall back to DB (for reads)
-      print('--- [read] key for given id');
-      final keys = _storedModelBox
-          .query(StoredModel_.typeId.equals(id.typifyWith(type)))
-          .build()
-          .property(StoredModel_.key)
-          .find();
-      if (keys.isNotEmpty) {
-        return keys.first.typifyWith(type);
-      }
-      if (keyIfAbsent != null) {
-        // Buffer write
-        final typeId = id.typifyWith(type);
-        _mappingBuffer[keyIfAbsent] = (typeId,);
-        return keyIfAbsent;
-      }
-    } else if (keyIfAbsent != null) {
+    if (id == null) {
       return keyIfAbsent;
     }
-    return null;
+
+    type = DataHelpers.internalTypeFor(type);
+    final typeId = id.typifyWith(type);
+
+    print('--- [read] key for given id');
+
+    final entry = _keyCache.entries.firstWhereOrNull((e) => e.value == typeId);
+
+    if (entry == null) {
+      if (keyIfAbsent != null) {
+        _keyCache[keyIfAbsent.detypify() as int] = typeId;
+        _keyOperations.add(AddKeyOperation(keyIfAbsent, typeId));
+        return keyIfAbsent;
+      }
+      return null;
+    }
+
+    return entry.key.typifyWith(type);
   }
 
   /// Finds an ID, given a [key].
   Object? getIdForKey(String key) {
-    final mapping = _mappingBuffer[key];
-    if (mapping != null) {
-      if (mapping.$1 == null) {
-        return null;
-      }
-      return mapping.$1!.detypify();
-    }
-
-    print('--- [read] id for given key');
-    final typeIds = _storedModelBox
-        .query(StoredModel_.key.equals(key.detypify() as int))
-        .build()
-        .property(StoredModel_.typeId)
-        .find();
-
-    if (typeIds.isNotEmpty) {
-      return typeIds.first.detypify();
-    }
-    return null;
-  }
-
-  /// Adds type-ID mapping for [key]
-  void setIdForKey(String key,
-      {required String type, required Object id, bool notify = true}) {
-    _mappingBuffer[key] = (id.typifyWith(type),);
+    return _keyCache[key.detypify() as int]?.detypify();
   }
 
   /// Removes type-ID mapping for [key]
   void removeIdForKey(String key, {bool notify = true}) {
-    _mappingBuffer[key] = (null,);
+    _keyCache.remove(key.detypify() as int);
+    _keyOperations.add(RemoveKeyOperation(key));
   }
 
   // utils
 
   /// Returns a [Map] representation of the internal ID db
-  Map<String, String> toIdMap() {
-    final models = _storedModelBox.getAll();
-    return {
-      for (final e in _mappingBuffer.entries)
-        if (e.value.$1 != null) e.key: e.value.$1!,
-      for (final m in models) m.key.typifyWith(m.type): m.typeId
-    };
+  Map<int, String> toIdMap() {
+    return _keyCache;
   }
 
   void _notify(List<String> keys,

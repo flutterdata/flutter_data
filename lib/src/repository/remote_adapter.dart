@@ -759,7 +759,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   Future<void> _saveDeserialized(DeserializedData deserialized) async {
     final models = [...deserialized.models, ...deserialized.included];
     if (models.isEmpty) return;
-    await logTime('[_saveDeserialized] writing ${models.length} models',
+    await logTimeAsync('[_saveDeserialized] writing ${models.length} models',
         () async {
       await localAdapter.saveMany(models.cast());
     });
