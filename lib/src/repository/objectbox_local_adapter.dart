@@ -8,7 +8,7 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
 
   @protected
   @visibleForTesting
-  Store get store => core._store;
+  Store get store => core.store;
 
   @override
   bool get isInitialized => true;
@@ -20,7 +20,7 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
 
   @override
   List<T> findAll() {
-    return store
+    final result = store
         .box<StoredModel>()
         .query(StoredModel_.typeId.startsWith(internalType) &
             StoredModel_.data.notNull())
@@ -28,6 +28,8 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
         .find()
         .map((e) => initModel(deserialize(e.toJson()!)))
         .toList();
+    print('--- [read] findAll: ${result.length}');
+    return result;
   }
 
   @override
@@ -41,6 +43,7 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
   @override
   T? findOneById(Object? id) {
     if (id == null) return null;
+    print('--- [read] findOneById');
     final model = store
         .box<StoredModel>()
         .query(StoredModel_.typeId.equals(id.typifyWith(internalType)))
@@ -52,7 +55,7 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
   @override
   List<T> findMany(Iterable<String> keys) {
     final _keys = keys.map((key) => key.detypify() as int).toList();
-    final models = core._store.box<StoredModel>().getMany(_keys).nonNulls;
+    final models = core.store.box<StoredModel>().getMany(_keys).nonNulls;
     return models
         // Models are auto-initialized with other random keys
         // so we need to reassign the corresponding key
@@ -63,7 +66,8 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
 
   @override
   bool exists(String key) {
-    return core._store
+    print('--- [read] exists');
+    return core.store
             .box<StoredModel>()
             .query(StoredModel_.key.equals(key.detypify() as int) &
                 StoredModel_.data.notNull())
@@ -74,6 +78,7 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
 
   @override
   T save(String key, T model, {bool notify = true}) {
+    print('---- calling save on type $internalType');
     final packer = Packer();
     packer.packJson(serialize(model, withRelationships: false));
 
@@ -90,10 +95,11 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
       data: packer.takeBytes(),
     );
 
-    final savedKey = core._store.runInTransaction(TxMode.write, () {
-      for (final rel in DataModel.relationshipsFor(model)) {
-        rel.save();
-      }
+    final savedKey = core._writeTxn(() {
+      // TODO restore
+      // for (final rel in DataModelMixin.relationshipsFor(model)) {
+      //   rel._save(core._store);
+      // }
       return store.box<StoredModel>().put(storedModel).typifyWith(internalType);
     });
     core._mappingBuffer.remove(savedKey);
@@ -104,36 +110,83 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
     return model;
   }
 
+  static Future<List<(String, StoredModel)>> _pack(
+      List<(String, String, Map<String, dynamic>)> models) async {
+    return await Isolate.run(() async {
+      return await logTime('pack inside isolate', () async {
+        return models.map((m_) {
+          final (key, typeId, s) = m_;
+          final packer = Packer();
+          packer.packJson(s);
+          final model = StoredModel(
+            typeId: typeId,
+            key: key.detypify() as int,
+            data: packer.takeBytes(),
+          );
+          return (key, model);
+        }).toList();
+      });
+    });
+  }
+
+  // TODO implement cutoff for sync/async saving, allow specifying it too
   @override
   Future<void> saveMany(Iterable<DataModelMixin> models,
       {bool notify = true}) async {
-    final storedModels = models.map((m) {
-      final key = DataModelMixin.keyFor(m)!;
-      final packer = Packer();
-      final a = DataModel.adapterFor(m).localAdapter;
-      packer.packJson(a.serialize(m, withRelationships: false));
+    print('---- calling savemany (on type $internalType) ${models.length}');
+
+    final Map<String, (String, dynamic, List<_EdgeOperation>)> map =
+        models.groupFoldBy((m) => m._key!, (acc, model) {
+      final key = DataModelMixin.keyFor(model)!;
       final buffer = core._mappingBuffer[key];
       final typeId = switch (buffer) {
         (String typeId,) => typeId, // ID mapping was added
-        (null,) => ''.typifyWith(a.internalType), // ID mapping was removed
-        null => m.id.typifyWith(a.internalType), // no mapping so assign default
+        (null,) => ''.typifyWith(model._internalType), // ID mapping was removed
+        null => model.id
+            .typifyWith(model._internalType), // no mapping so assign default
       };
-      return StoredModel(
-        typeId: typeId,
-        key: key.detypify() as int,
-        data: packer.takeBytes(),
-      );
-    }).toList();
-
-    final savedKeys = store.runInTransaction(TxMode.write, () {
-      return storedModels.map((m) {
-        return store.box<StoredModel>().put(m).typifyWith(m.type);
-      }).toList();
+      final serialized = DataModel.adapterFor(model)
+          .localAdapter
+          .serialize(model, withRelationships: false);
+      final edgeOperations = <_EdgeOperation>{};
+      for (final rel in DataModelMixin.relationshipsFor(model)) {
+        edgeOperations.addAll(rel._edgeOperations);
+        // TODO what if this fails, we lose the ops?
+        rel._edgeOperations.clear();
+      }
+      return (typeId, serialized, edgeOperations.toList());
     });
 
-    if (storedModels.length != savedKeys.length) {
+    final storedModels = await _pack([
+      for (final e in map.entries)
+        (e.key, e.value.$1, e.value.$2 as Map<String, dynamic>)
+    ]);
+
+    for (final (key, storedModel) in storedModels) {
+      final value = map[key]!;
+      map[key] = (value.$1, storedModel, value.$3);
+    }
+    final records = map.values;
+
+    final savedKeys = await core._writeTxnAsync((store, records) {
+      final keys = <String>[];
+      final allOperations = <_EdgeOperation>[];
+      for (final record in records) {
+        final (typeId, model, operations) = record;
+        allOperations.addAll(operations);
+        final key = store.box<StoredModel>().put(model);
+        final type = typeId.split('#').first;
+        keys.add(key.typifyWith(type));
+      }
+      print('---- saving ${allOperations.length} ops');
+      allOperations.run(store);
+      return keys;
+    }, records);
+
+    if (map.length != savedKeys.length) {
       print('WARNING! Not all models stored!');
     }
+
     // remove keys that were saved from buffer
     for (final key in savedKeys) {
       core._mappingBuffer.remove(key);
@@ -141,7 +194,7 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
 
     if (notify) {
       core._notify(
-        savedKeys,
+        savedKeys.toList(),
         type: DataGraphEventType.updateNode,
       );
     }
@@ -165,13 +218,16 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
 
   @override
   Future<void> clear() async {
-    core._store.box<Edge>().removeAll();
-    core._store.box<StoredModel>().removeAll();
+    core._writeTxn(() {
+      core.store.box<Edge>().removeAll();
+      core.store.box<StoredModel>().removeAll();
+    });
     core._notify([internalType], type: DataGraphEventType.clear);
   }
 
   @override
   int get count {
+    print('--- [read] count');
     return store
         .box<StoredModel>()
         .query(StoredModel_.typeId.startsWith(internalType))
@@ -181,6 +237,7 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
 
   @override
   List<String> get keys {
+    print('--- [read] keys');
     return store
         .box<StoredModel>()
         .query(StoredModel_.typeId.startsWith(internalType))

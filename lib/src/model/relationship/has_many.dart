@@ -44,7 +44,7 @@ class HasMany<E extends DataModelMixin<E>> extends Relationship<E, Set<E>> {
 
   void addAll(Iterable<E> value, {bool save = false}) {
     if (save) {
-      _core._store.runInTransaction(TxMode.write, () {
+      _core._writeTxn(() {
         for (final e in value) {
           e.saveLocal();
           _add(e, save: true);

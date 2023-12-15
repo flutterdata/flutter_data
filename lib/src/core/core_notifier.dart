@@ -24,7 +24,10 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent>
   final Map<String, (String?,)> _mappingBuffer = {};
 
   Store? __store;
-  Store get _store => __store!;
+
+  @protected
+  @visibleForTesting
+  Store get store => __store!;
   late Box<StoredModel> _storedModelBox;
   late Box<Edge> _edgeBox;
 
@@ -43,8 +46,8 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent>
           queriesCaseSensitiveDefault: false,
         );
       }
-      _storedModelBox = _store.box<StoredModel>();
-      _edgeBox = _store.box<Edge>();
+      _storedModelBox = store.box<StoredModel>();
+      _edgeBox = store.box<Edge>();
     } catch (e, stackTrace) {
       print('[flutter_data] Objectbox failed to open:\n$e\n$stackTrace');
     }
@@ -64,7 +67,7 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent>
   @override
   void dispose() {
     if (isInitialized) {
-      _store.close();
+      store.close();
       isInitialized = false;
       super.dispose();
     }
@@ -72,17 +75,17 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent>
 
   // Transactions
 
-  R readTxn<R>(R Function() fn) => _store.runInTransaction(TxMode.read, fn);
+  R _readTxn<R>(R Function() fn) => store.runInTransaction(TxMode.read, fn);
 
-  Future<R> readTxnAsync<R, P>(R Function(Store, P) fn, P param) async =>
-      _store.runInTransactionAsync(
-          TxMode.read, (store, param) => fn(_store, param), param);
+  Future<R> _readTxnAsync<R, P>(R Function(Store, P) fn, P param) async =>
+      store.runInTransactionAsync(
+          TxMode.read, (store, param) => fn(store, param), param);
 
-  R _writeTxn<R>(R Function() fn) => _store.runInTransaction(TxMode.write, fn);
+  R _writeTxn<R>(R Function() fn) => store.runInTransaction(TxMode.write, fn);
 
   Future<R> _writeTxnAsync<R, P>(R Function(Store, P) fn, P param) =>
-      _store.runInTransactionAsync<R, P>(
-          TxMode.write, (store, param) => fn(_store, param), param);
+      store.runInTransactionAsync<R, P>(
+          TxMode.write, (store, param) => fn(store, param), param);
 
   // Key-related methods
 
@@ -107,6 +110,7 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent>
       }
 
       // if it wasn't found fall back to DB (for reads)
+      print('--- [read] key for given id');
       final keys = _storedModelBox
           .query(StoredModel_.typeId.equals(id.typifyWith(type)))
           .build()
@@ -137,6 +141,7 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent>
       return mapping.$1!.detypify();
     }
 
+    print('--- [read] id for given key');
     final typeIds = _storedModelBox
         .query(StoredModel_.key.equals(key.detypify() as int))
         .build()

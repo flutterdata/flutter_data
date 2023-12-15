@@ -197,10 +197,10 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
   // Transactions
 
-  R readTxn<R>(R Function() fn) => localAdapter.core.readTxn(fn);
+  R readTxn<R>(R Function() fn) => localAdapter.core._readTxn(fn);
 
   Future<R> readTxnAsync<R, P>(R Function(Store, P) fn, P param) async =>
-      localAdapter.core.readTxnAsync(fn, param);
+      localAdapter.core._readTxnAsync(fn, param);
 
   R writeTxn<R>(R Function() fn) => localAdapter.core._writeTxn(fn);
 
@@ -726,7 +726,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     final deserialized = await deserialize(body);
 
     if (isFindAll || (isCustom && deserialized.model == null)) {
-      _saveDeserialized(deserialized);
+      await _saveDeserialized(deserialized);
       deserialized._log(adapter, label);
 
       late R? models;
@@ -740,7 +740,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     }
 
     if (isFindOne || (isCustom && deserialized.model != null)) {
-      _saveDeserialized(deserialized);
+      await _saveDeserialized(deserialized);
       deserialized._log(adapter, label);
 
       late R? model;
@@ -758,12 +758,10 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
   Future<void> _saveDeserialized(DeserializedData deserialized) async {
     final models = [...deserialized.models, ...deserialized.included];
-    await logTime('writing ${models.length} models', () async {
-      core._writeTxn(() {
-        for (final model in models) {
-          model._remoteAdapter.localAdapter.save(model._key!, model);
-        }
-      });
+    if (models.isEmpty) return;
+    await logTime('[_saveDeserialized] writing ${models.length} models',
+        () async {
+      await localAdapter.saveMany(models.cast());
     });
   }
 

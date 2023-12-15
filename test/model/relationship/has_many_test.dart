@@ -46,11 +46,14 @@ void main() async {
     f2.persons.remove(anne, save: true);
     expect(f2.persons.toSet(), {pete});
 
-    expect(DataModel.relationshipsFor(f2),
+    expect(DataModelMixin.relationshipsFor(f2),
         unorderedEquals([f2.persons, f2.residence, f2.cottage]));
-    expect(DataModel.relationshipsFor(f2).whereType<HasMany<Person>>(),
+    expect(DataModelMixin.relationshipsFor(f2).whereType<HasMany<Person>>(),
         [f2.persons]);
-    DataModel.relationshipsFor(f2).whereType<HasMany<Person>>().first.owner;
+    DataModelMixin.relationshipsFor(f2)
+        .whereType<HasMany<Person>>()
+        .first
+        .owner;
 
     f2.persons.addAll([anne, Person(name: 'Frida'), Person(name: 'Roger')],
         save: true);

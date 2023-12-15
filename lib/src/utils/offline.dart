@@ -86,7 +86,7 @@ class OfflineOperation<T extends DataModelMixin<T>> with EquatableMixin {
       adapter.log(label, 'offline/add $metadata');
       final data = json.encode(toJson());
       adapter.core._edgeBox
-          .put(Edge(id: 0, from: _offlineAdapterKey, name: metadata, to: data));
+          .put(Edge(from: _offlineAdapterKey, name: metadata, to: data));
 
       // keep callbacks in memory
       adapter.ref.read(_offlineCallbackProvider)[metadata] ??= [];

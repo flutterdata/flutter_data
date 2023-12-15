@@ -3,6 +3,7 @@ library flutter_data;
 // import external packages
 import 'dart:async';
 import 'dart:convert';
+import 'dart:isolate';
 import 'dart:math' show Random;
 import 'dart:typed_data';
 
@@ -37,6 +38,7 @@ part 'src/model/data_model.dart';
 part 'src/model/relationship/belongs_to.dart';
 part 'src/model/relationship/has_many.dart';
 part 'src/model/relationship/relationship.dart';
+part 'src/model/relationship/operations.dart';
 part 'src/repository/objectbox_local_adapter.dart';
 part 'src/repository/local_adapter.dart';
 part 'src/repository/remote_adapter.dart';

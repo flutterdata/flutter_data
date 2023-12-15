@@ -1,5 +1,3 @@
-@Timeout(Duration(hours: 1))
-
 import 'package:flutter_data/flutter_data.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';

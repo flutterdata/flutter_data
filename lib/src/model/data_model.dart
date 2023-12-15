@@ -48,16 +48,6 @@ abstract class DataModel<T extends DataModel<T>> with DataModelMixin<T> {
   static String keyFor(DataModel model) {
     return model._key!;
   }
-
-  /// Returns a model's non-null relationships.
-  static Set<Relationship> relationshipsFor<T extends DataModelMixin<T>>(
-      T model) {
-    return {
-      for (final meta
-          in model._remoteAdapter.localAdapter.relationshipMetas.values)
-        if (meta.instance(model) != null) meta.instance(model)!,
-    };
-  }
 }
 
 /// Data classes extending this class are marked to be managed
@@ -89,6 +79,15 @@ mixin DataModelMixin<T extends DataModelMixin<T>> {
 
   static String? keyFor(DataModelMixin model) {
     return model._key;
+  }
+
+  /// Returns a model's non-null relationships.
+  static Set<Relationship> relationshipsFor(DataModelMixin model) {
+    return {
+      for (final meta
+          in model._remoteAdapter.localAdapter.relationshipMetas.values)
+        if (meta.instance(model) != null) meta.instance(model)!,
+    };
   }
 }
 

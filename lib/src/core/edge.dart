@@ -4,7 +4,7 @@ import 'package:objectbox/objectbox.dart';
 @Entity()
 class Edge with EquatableMixin {
   Edge(
-      {required this.id,
+      {this.id = 0,
       required this.from,
       required this.name,
       required this.to,
@@ -27,5 +27,5 @@ class Edge with EquatableMixin {
   }
 
   @override
-  List<Object?> get props => [from, to];
+  List<Object?> get props => [from, name, to];
 }
