@@ -101,6 +101,7 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
     });
 
     // TODO process key operations queue here (and other places) -- or use putQueued?
+    // core.store.box<StoredModel>().putQueued(object)
 
     if (notify) {
       core._notify([savedKey], type: DataGraphEventType.updateNode);
@@ -127,7 +128,6 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
     });
   }
 
-  // TODO implement cutoff for sync/async saving, allow specifying it too
   @override
   Future<void> saveMany(Iterable<DataModelMixin> models,
       {bool notify = true}) async {
@@ -167,7 +167,7 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
       for (final record in records) {
         final (typeId, model, operations) = record;
         allOperations.addAll(operations);
-        final key = store.box<StoredModel>().put(model);
+        final key = store.box<StoredModel>().putQueued(model);
         final type = typeId.split('#').first;
         keys.add(key.typifyWith(type));
       }
