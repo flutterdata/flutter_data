@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.5.15] - January 25th, 2024
+
+- Fix: Upgrade http dependency
+
 ## [1.5.14] - September 22nd, 2023
 
 - Fix: all-watchers should be non-nullable, consistent with non-nullable all-finders
