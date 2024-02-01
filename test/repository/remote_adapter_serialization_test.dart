@@ -26,7 +26,7 @@ void main() async {
   test('serialize with relationship', () async {
     final familia = Familia(
       surname: 'Tao',
-      persons: HasMany({Person(id: '332', name: 'Ko')}),
+      persons: HasMany({Person(id: '332', name: 'Ko').saveLocal()}),
     ).saveLocal();
     expect(await container.familia.remoteAdapter.serialize(familia), {
       'surname': 'Tao',
@@ -38,9 +38,12 @@ void main() async {
     final f1 = Familia(
             id: '334',
             surname: 'Zhan',
-            residence: House(id: '1', address: 'Zhiwan 2').asBelongsTo,
-            dogs: {Dog(id: '1', name: 'Pluto'), Dog(id: '2', name: 'Ricky')}
-                .asHasMany)
+            residence:
+                House(id: '1', address: 'Zhiwan 2').saveLocal().asBelongsTo,
+            dogs: {
+              Dog(id: '1', name: 'Pluto').saveLocal(),
+              Dog(id: '2', name: 'Ricky').saveLocal()
+            }.asHasMany)
         .saveLocal();
 
     final serialized = await container.familia.remoteAdapter.serialize(f1);
@@ -56,8 +59,8 @@ void main() async {
 
     // also test a class without @JsonSerializable(explicitToJson: true)
     final children = {
-      Node(id: 2, name: 'a1'),
-      Node(id: 3, name: 'a2'),
+      Node(id: 2, name: 'a1').saveLocal(),
+      Node(id: 3, name: 'a2').saveLocal(),
     };
     final n1 = Node(id: 1, name: 'a', children: children.asHasMany);
     final s2 = await container.nodes.remoteAdapter.serialize(n1);

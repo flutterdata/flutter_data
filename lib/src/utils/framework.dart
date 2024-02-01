@@ -30,13 +30,42 @@ class DataHelpers {
     return _generateRandomNumber().toString().substring(0, 10);
   }
 
-  static String generateKey<T>([String? type]) {
+  static String generateTempKey<T>([String? type]) {
     if (type != null) {
       type = DataHelpers.internalTypeFor(type);
     } else {
       type = DataHelpers.getInternalType<T>();
     }
-    return _generateRandomNumber().typifyWith(type);
+    return fastHashId(type, _generateRandomNumber().toString());
+  }
+
+  /// FNV-1a 64bit hash algorithm optimized for Dart Strings
+  static int fastHash(String str) {
+    var hash = 0xcbf29ce484222325;
+    var i = 0;
+    while (i < str.length) {
+      final codeUnit = str.codeUnitAt(i++);
+      hash ^= codeUnit >> 8;
+      hash *= 0x100000001b3;
+      hash ^= codeUnit & 0xFF;
+      hash *= 0x100000001b3;
+    }
+    return hash;
+  }
+
+  static String fastHashId(String type, Object id) {
+    var hash = 0xcbf29ce484222325;
+    final typeId = '$type$id';
+    var i = 0;
+    while (i < typeId.length) {
+      final codeUnit = typeId.codeUnitAt(i++);
+      hash ^= codeUnit >> 8;
+      hash *= 0x100000001b3;
+      hash ^= codeUnit & 0xFF;
+      hash *= 0x100000001b3;
+    }
+
+    return hash.typifyWith(type);
   }
 }
 
@@ -296,7 +325,8 @@ class DataResponse {
 /// ONLY FOR FLUTTER DATA INTERNAL USE
 final internalRepositories = <String, Repository>{};
 
-R logTime<R>(String name, R cb()) {
+R logTime<R>(String? name, R cb()) {
+  if (name == null) return cb();
   final a1 = DateTime.now().millisecondsSinceEpoch;
   final result = cb();
   final a2 = DateTime.now().millisecondsSinceEpoch;
@@ -304,7 +334,8 @@ R logTime<R>(String name, R cb()) {
   return result;
 }
 
-Future<R> logTimeAsync<R>(String name, Future<R> cb()) async {
+Future<R> logTimeAsync<R>(String? name, Future<R> cb()) async {
+  if (name == null) return await cb();
   final a1 = DateTime.now().millisecondsSinceEpoch;
   final result = await cb();
   final a2 = DateTime.now().millisecondsSinceEpoch;

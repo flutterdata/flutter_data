@@ -1,70 +1,59 @@
 part of flutter_data;
 
-sealed class _KeyOperation {
-  String key;
-  _KeyOperation(this.key);
-}
-
-class AddKeyOperation extends _KeyOperation {
-  String typeId;
-  AddKeyOperation(super.key, this.typeId);
-}
-
-class RemoveKeyOperation extends _KeyOperation {
-  RemoveKeyOperation(super.key);
-}
-
 sealed class _EdgeOperation {
-  String from;
-  String name;
-  _EdgeOperation(this.from, this.name);
+  final Edge edge;
+  _EdgeOperation(this.edge);
 }
 
 class AddEdgeOperation extends _EdgeOperation {
-  final String to;
-  final String? inverseName;
-  AddEdgeOperation(super.from, super.name, this.to, [this.inverseName]);
+  AddEdgeOperation(super.edge);
 }
 
 class RemoveEdgeOperation extends _EdgeOperation {
-  final String? to;
-  RemoveEdgeOperation(super.from, super.name, [this.to]);
+  RemoveEdgeOperation(super.edge);
+}
+
+class RemoveEdgeByIdOperation extends RemoveEdgeOperation {
+  // Create empty edge and assign key in this case
+  RemoveEdgeByIdOperation(int key) : super(Edge(from: '', name: '', to: '')) {
+    super.edge.internalKey = key;
+  }
 }
 
 class UpdateEdgeOperation extends _EdgeOperation {
-  final String to;
   final String newTo;
-  UpdateEdgeOperation(super.from, super.name, this.to, this.newTo);
+  UpdateEdgeOperation(super.edge, this.newTo);
 }
 
 extension EdgeOperationsX on List<_EdgeOperation> {
   void run(Store store) {
-    final pairsToRemove = <(String, String)>{};
-    final edgesToAdd = <Edge>{};
+    final box = store.box<Edge>();
     for (final op in this) {
       switch (op) {
-        case RemoveEdgeOperation(from: final from, name: final name, to: null):
-          pairsToRemove.add((from, name));
+        case RemoveEdgeOperation(edge: final edge):
+          box.remove(edge.internalKey);
           break;
-        case AddEdgeOperation(
-            from: final from,
-            name: final name,
-            to: final to,
-            inverseName: final inverseName
-          ):
-          edgesToAdd.add(
-              Edge(from: from, name: name, to: to, inverseName: inverseName));
+        case AddEdgeOperation(edge: final edge):
+          box.put(edge);
           break;
-        default:
+        case UpdateEdgeOperation(edge: final edge, newTo: final newTo):
+          box.remove(edge.internalKey);
+          box.put(Edge(
+              from: edge.from,
+              name: edge.name,
+              to: newTo,
+              inverseName: edge.inverseName));
+          break;
       }
     }
-    final conds =
-        pairsToRemove.map((r) => Relationship._queryConditionTo(r.$1, r.$2));
+    // final conds =
+    //     pairsToRemove.map((r) => Relationship._queryConditionTo(r.$1, r.$2));
 
-    if (conds.isNotEmpty) {
-      final cond = conds.reduce((acc, r) => acc | r);
-      store.box<Edge>().query(cond).build().remove();
-    }
-    store.box<Edge>().putMany(edgesToAdd.toList());
+    // if (conds.isNotEmpty) {
+    //   final cond = conds.reduce((acc, r) => acc | r);
+    //   store.box<Edge>().query(cond).build().remove();
+    // }
+
+    // store.box<Edge>().putMany(edgesToAdd.toList());
   }
 }

@@ -1,17 +1,21 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter_data/flutter_data.dart';
 import 'package:objectbox/objectbox.dart';
 
 @Entity()
 class Edge with EquatableMixin {
   Edge(
-      {this.id = 0,
-      required this.from,
+      {required this.from,
       required this.name,
       required this.to,
-      this.inverseName});
+      this.inverseName})
+      : internalKey = getInternalKey(from, name, to);
 
-  @Id()
-  int id;
+  static int getInternalKey(String from, String name, String to) =>
+      DataHelpers.fastHash('$from:$name:$to');
+
+  @Id(assignable: true)
+  int internalKey;
 
   @Index(type: IndexType.hash)
   final String from;

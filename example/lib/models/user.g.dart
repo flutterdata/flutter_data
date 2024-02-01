@@ -24,9 +24,9 @@ mixin $UserLocalAdapter on LocalAdapter<User> {
       _kUserRelationshipMetas;
 
   @override
-  User deserialize(map) {
+  User deserialize(map, {String? key}) {
     map = transformDeserialize(map);
-    return _$UserFromJson(map);
+    return internalWrapStopInit(() => _$UserFromJson(map), key: key);
   }
 
   @override

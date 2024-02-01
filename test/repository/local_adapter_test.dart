@@ -18,8 +18,7 @@ void main() async {
   });
 
   test('save without ID', () async {
-    final p = Person(name: 'Luis');
-    await container.people.save(p);
+    final p = Person(name: 'Luis').saveLocal();
     final p2 = container.people.remoteAdapter.localAdapter.findOne(keyFor(p))!;
     expect(p2, p.reloadLocal());
     expect(keyFor(p), keyFor(p2));
@@ -33,41 +32,30 @@ void main() async {
     expect(keyFor(p), keyFor(p2));
   });
 
-  test('deserialize existing (with save)', () {
+  test('deserialize existing ID', () {
     final familiaLocalAdapter = container.familia.remoteAdapter.localAdapter
         as ObjectboxLocalAdapter<Familia>;
-    final familia = Familia(surname: 'Moletto').saveLocal();
+    final familia = familiaLocalAdapter
+        .deserialize({'id': '1098', 'surname': 'Moletto'}).saveLocal();
 
-    // simulate "save"
-    core.getKeyForId('familia', '1098', keyIfAbsent: keyFor(familia));
-    final familia2 =
-        familiaLocalAdapter.deserialize({'id': '1098', 'surname': 'Moletto'});
-
-    expect(familia2, Familia(id: '1098', surname: 'Moletto'));
-    expect(familiaLocalAdapter.keys, [keyFor(familia2)]);
+    expect(familiaLocalAdapter.keys, [keyFor(familia)]);
+    expect(familia, Familia(id: '1098', surname: 'Moletto'));
   });
 
   test('deserialize many local for same remote ID', () {
     final familiaLocalAdapter = container.familia.remoteAdapter.localAdapter;
-    final familia = Familia(surname: 'Moletto');
-    final familia2 = Familia(surname: 'Zandiver');
-
-    // simulate "save" for familia
-    core.getKeyForId('familia', '1298', keyIfAbsent: keyFor(familia));
-    final familia1b = familiaLocalAdapter.deserialize({
+    final familia1 = familiaLocalAdapter.deserialize({
       'id': '1298',
       'surname': 'Helsinki',
     });
 
-    // simulate "save" for familia2
-    core.getKeyForId('familia', '1298', keyIfAbsent: keyFor(familia2));
-    final familia2b = familiaLocalAdapter.deserialize({
+    final familia2 = familiaLocalAdapter.deserialize({
       'id': '1298',
       'surname': 'Oslo',
     });
 
     // since obj returned with same ID
-    expect(keyFor(familia1b), keyFor(familia2b));
+    expect(keyFor(familia1), keyFor(familia2));
   });
 
   test('local serialize with and without relationships', () {

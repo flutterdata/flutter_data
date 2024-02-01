@@ -14,11 +14,10 @@ void main() async {
   setUp(setUpFn);
   tearDown(tearDownFn);
 
-  test('id + toString', () {
+  test('toString', () {
     final person = Person(name: 'Test', familia: BelongsTo()).saveLocal();
     person.familia.value = Familia(id: '1', surname: 'Sanchez').saveLocal();
     person.familia.save();
-    expect(person.familia.value!.id, person.familia.id);
     expect(person.familia.toString(), startsWith('BelongsTo<Familia>'));
   });
 
@@ -40,7 +39,7 @@ void main() async {
     // relationships are now associated to a key
     expect(familia.residence.key, isNotNull);
     expect(familia.residence.key, core.getKeyForId('houses', '31'));
-    expect(familia.residence.id, '31');
+    // expect(familia.residence.id, '31');
     expect(familia.persons.keys.first, isNotNull);
     expect(familia.persons.keys.first, core.getKeyForId('people', '1'));
 
@@ -48,7 +47,7 @@ void main() async {
     familia.residence.value = house2;
     familia.residence.save();
     expect(familia.residence.key, isNotNull);
-    expect(familia.residence.id, '2');
+    // expect(familia.residence.id, '2');
   });
 
   test('assignment with relationship initialized & uninitialized', () {

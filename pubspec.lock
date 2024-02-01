@@ -5,18 +5,18 @@ packages:
     dependency: transitive
     description:
       name: _fe_analyzer_shared
-      sha256: ae92f5d747aee634b87f89d9946000c2de774be1d6ac3e58268224348cd0101a
+      sha256: "0f7b1783ddb1e4600580b8c00d0ddae5b06ae7f0382bd4fcce5db4df97b618e1"
       url: "https://pub.dev"
     source: hosted
-    version: "61.0.0"
+    version: "66.0.0"
   analyzer:
     dependency: "direct main"
     description:
       name: analyzer
-      sha256: ea3d8652bda62982addfd92fdc2d0214e5f82e43325104990d4f4c4a2a313562
+      sha256: "5e8bdcda061d91da6b034d64d8e4026f355bcb8c3e7a0ac2da1523205a91a737"
       url: "https://pub.dev"
     source: hosted
-    version: "5.13.0"
+    version: "6.4.0"
   args:
     dependency: transitive
     description:
@@ -229,10 +229,10 @@ packages:
     dependency: "direct dev"
     description:
       name: freezed
-      sha256: "2df89855fe181baae3b6d714dc3c4317acf4fccd495a6f36e5e00f24144c6c3b"
+      sha256: "6c5031daae12c7072b3a87eff98983076434b4889ef2a44384d0cae3f82372ba"
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.1"
+    version: "2.4.6"
   freezed_annotation:
     dependency: "direct dev"
     description:
@@ -277,10 +277,10 @@ packages:
     dependency: "direct main"
     description:
       name: http
-      sha256: "5895291c13fa8a3bd82e76d5627f69e0d85ca6a30dcac95c4ea19a5d555879c2"
+      sha256: a2bbf9d017fcced29139daa8ed2bba4ece450ab222871df93ca9eec6f80c34ba
       url: "https://pub.dev"
     source: hosted
-    version: "0.13.6"
+    version: "1.2.0"
   http_multi_server:
     dependency: transitive
     description:
@@ -341,10 +341,10 @@ packages:
     dependency: "direct dev"
     description:
       name: lints
-      sha256: "0a217c6c989d21039f1498c3ed9f3ed71b354e69873f13a8dfc3c9fe76f1b452"
+      sha256: cbf8d4b858bb0134ef3ef87841abdf8d63bfc255c266b7bf6b39daa1085c4290
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.1"
+    version: "3.0.0"
   logging:
     dependency: transitive
     description:
@@ -373,10 +373,10 @@ packages:
     dependency: "direct main"
     description:
       name: meta
-      sha256: a6e590c838b18133bb482a2745ad77c5bb7715fb0451209e1a7567d416678b8e
+      sha256: d584fa6707a52763a52446f02cc621b077888fb63b93bbcb1143a7be5a0c0c04
       url: "https://pub.dev"
     source: hosted
-    version: "1.10.0"
+    version: "1.11.0"
   mime:
     dependency: transitive
     description:
@@ -389,10 +389,10 @@ packages:
     dependency: "direct dev"
     description:
       name: mockito
-      sha256: "7d5b53bcd556c1bc7ffbe4e4d5a19c3e112b7e925e9e172dd7c6ad0630812616"
+      sha256: "6841eed20a7befac0ce07df8116c8b8233ed1f4486a7647c7fc5a02ae6163917"
       url: "https://pub.dev"
     source: hosted
-    version: "5.4.2"
+    version: "5.4.4"
   node_preamble:
     dependency: transitive
     description:
@@ -573,10 +573,10 @@ packages:
     dependency: "direct main"
     description:
       name: state_notifier
-      sha256: "8fe42610f179b843b12371e40db58c9444f8757f8b69d181c97e50787caed289"
+      sha256: b8677376aa54f2d7c58280d5a007f9e8774f1968d1fb1c096adcb4792fba29bb
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.2+1"
+    version: "1.0.0"
   stream_channel:
     dependency: transitive
     description:
@@ -665,6 +665,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  web:
+    dependency: transitive
+    description:
+      name: web
+      sha256: "4188706108906f002b3a293509234588823c8c979dc83304e229ff400c996b05"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.2"
   web_socket_channel:
     dependency: transitive
     description:
@@ -690,4 +698,4 @@ packages:
     source: hosted
     version: "3.1.2"
 sdks:
-  dart: ">=3.1.0 <4.0.0"
+  dart: ">=3.2.0 <4.0.0"

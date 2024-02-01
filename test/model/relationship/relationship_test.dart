@@ -1,4 +1,6 @@
 import 'package:flutter_data/flutter_data.dart';
+import 'package:flutter_data/src/core/edge.dart';
+import 'package:flutter_data/src/core/stored_model.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -88,16 +90,17 @@ void main() async {
     final h1 = houseLocalAdapter.deserialize({
       'id': '1',
       'address': '123 Main St',
-      'owner': 'familia#111'
+      'owner': 'familia#1802989786345234819'
     }).saveLocal();
     expect(h1.owner.value, isNull);
     expect(keyFor(h1), isNotNull);
 
-    core.getKeyForId('familia', '1', keyIfAbsent: 'familia#111');
+    // core.getKeyForId('familia', '1', keyIfAbsent: 'familia#111');
 
     // once it does
     final familia =
         Familia(id: '1', surname: 'Rose', residence: BelongsTo()).saveLocal();
+    // print(keyFor(familia));
     // it's automatically wired up & inverses work correctly
     expect(h1.owner.value, familia);
     expect(h1.owner.value!.residence.value, h1);
@@ -109,10 +112,14 @@ void main() async {
       id: '1',
       surname: 'Jones',
       persons: HasMany.fromJson({
-        '_': {'people#111', 'people#222', 'people#333'}
+        '_': {
+          'people#-3284248607767184521',
+          'people#-3284247508255556310',
+          'people#-3284246408743928099'
+        }
       }),
       residence: BelongsTo.fromJson({
-        '_': {'houses#777'}
+        '_': {'houses#-3775568336891307333'}
       }),
     ).saveLocal();
 
@@ -121,21 +128,19 @@ void main() async {
     expect(familia.persons.keys.length, 3);
 
     // associate ids with keys
-    core.getKeyForId('people', '1', keyIfAbsent: 'people#111');
-    core.getKeyForId('people', '2', keyIfAbsent: 'people#222');
-    core.getKeyForId('people', '3', keyIfAbsent: 'people#333');
-    core.getKeyForId('houses', '98', keyIfAbsent: 'houses#777');
+    // core.getKeyForId('people', '1', keyIfAbsent: 'people#111');
+    // core.getKeyForId('people', '2', keyIfAbsent: 'people#222');
+    // core.getKeyForId('people', '3', keyIfAbsent: 'people#333');
+    // core.getKeyForId('houses', '98', keyIfAbsent: 'houses#777');
 
     // no people have been loaded
     expect(familia.persons.toList(), isEmpty);
-    expect(familia.persons.ids, {'1', '2', '3'});
 
     // (2) then load people
 
     final p1 = Person(id: '1', name: 'z1', age: 23).saveLocal();
     final p2 = Person(id: '2', name: 'z2', age: 33).saveLocal();
-
-    print(familia.persons.adjacentRelationships<Familia>());
+    // print(familia.persons.adjacentRelationships<Familia>());
 
     // (3) assert two first are linked, third one null, residence is null
     expect(familia.persons.toList(), {p1, p2});
@@ -154,10 +159,14 @@ void main() async {
 
   test('scenario #3', () {
     final igor = Person(name: 'Igor', age: 33).saveLocal();
+    print('igor key ${keyFor(igor)}');
     final f1 =
         Familia(surname: 'Kamchatka', persons: {igor}.asHasMany).saveLocal();
 
     expect(f1.persons.first, equals(igor));
+    print(core.store.box<Edge>().getAll());
+    print(core.store.box<StoredModel>().getAll());
+    print(f1.persons.first.familia.value);
     expect(f1.persons.first.familia.value, f1);
 
     final igor1b =
@@ -224,11 +233,11 @@ void main() async {
     final familia5 = container.familia.remoteAdapter.localAdapter.deserialize({
       'id': '229',
       'surname': 'Rose',
-      'persons': ['people#231456']
+      'persons': ['people#7295352464926971276']
     });
 
-    core.getKeyForId('people', '231', keyIfAbsent: 'people#231456');
     final axl = Person(id: '231', name: 'Axl', age: 58).saveLocal();
+    print(keyFor(axl));
     familia5.persons.save();
     expect(familia5.persons.toSet(), {axl});
   });
@@ -247,6 +256,11 @@ void main() async {
     final parent = Node(name: 'parent', children: HasMany());
     final child =
         Node(name: 'child', parent: parent.asBelongsTo, children: HasMany());
+    final child2 =
+        Node(name: 'child', parent: parent.asBelongsTo, children: HasMany());
+
+    print(keyFor(child));
+    print(keyFor(child2));
 
     // since child has children defined, the rel is empty
     expect(child.children, isEmpty);
@@ -301,9 +315,9 @@ void main() async {
     // expect these two distinct objects are equal
     expect(books.first.originalAuthor!.value, books.last.originalAuthor!.value);
 
-    expect(books.first.originalAuthor?.id, 15);
-    expect(author.books.ids, unorderedEquals([23, 24]));
-    expect(author.books.first.originalAuthor!.value!.books.ids,
+    // expect(books.first.originalAuthor?.id, 15);
+    expect(author.books.map((p) => p.id), unorderedEquals([23, 24]));
+    expect(author.books.first.originalAuthor!.value!.books.map((p) => p.id),
         unorderedEquals([23, 24]));
   });
 

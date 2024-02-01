@@ -1,8 +1,10 @@
 import 'dart:math';
 
 import 'package:flutter_data/flutter_data.dart';
+import 'package:flutter_data/src/core/stored_model.dart';
 import 'package:test/test.dart';
 
+import '../_support/book.dart';
 import '../_support/familia.dart';
 import '../_support/house.dart';
 import '../_support/person.dart';
@@ -14,108 +16,29 @@ void main() async {
   setUp(setUpFn);
   tearDown(tearDownFn);
 
-  test('produces a new key', () {
+  test('produces a new key deterministically', () {
     var key = core.getKeyForId('people', '1');
-    expect(key, isNull);
-    key = core.getKeyForId('people', '1',
-        keyIfAbsent: DataHelpers.generateKey<Person>());
-    expect(key, startsWith('people#'));
+    expect(key, equals('people#-3284248607767184521'));
   });
 
   test('produces a key for empty string', () {
-    final key = core.getKeyForId('people', '',
-        keyIfAbsent: DataHelpers.generateKey<Person>());
+    final key = core.getKeyForId('people', '');
     expect(key, startsWith('people#'));
   });
 
   test('gets back int id as int, else as string', () {
-    final key = core.getKeyForId('people', 1,
-        keyIfAbsent: DataHelpers.generateKey<Person>())!;
+    final key = core.getKeyForId('libraries', 1);
+    final library =
+        Library(id: 1, books: HasMany(), name: 'test').init().saveLocal();
+    expect(DataModelMixin.keyFor(library), 'libraries#-1061085972839915131');
+    // getIdForKey only works when key is persisted
     expect(core.getIdForKey(key), 1);
-
-    final now = DateTime.now();
-    final stringMillis = now.millisecondsSinceEpoch.toString();
-    final key2 = core.getKeyForId('people', stringMillis,
-        keyIfAbsent: DataHelpers.generateKey<Person>())!;
-    expect(core.getIdForKey(key2), stringMillis);
   });
 
-  test('deletes a new key', () {
-    final key = core.getKeyForId('people', '1',
-        keyIfAbsent: DataHelpers.generateKey<Person>())!;
-    expect(core.getIdForKey(key), '1');
-    core.removeIdForKey(key);
+  test('creates random key when id is null', () {
+    final key = core.getKeyForId('people', null);
     expect(core.getIdForKey(key), isNull);
-  });
-
-  test('does not associate a key when id is null', () {
-    final key = core.getKeyForId('people', null,
-        keyIfAbsent: DataHelpers.generateKey<Person>())!;
-    expect(core.getIdForKey(key), isNull);
-  });
-
-  test('reuses a provided key', () {
-    final key = core.getKeyForId('people', '29', keyIfAbsent: 'people#178926')!;
-    expect(key, 'people#178926');
-    expect(core.getIdForKey(key), '29');
-  });
-
-  test('reassign a key', () {
-    final key = core.getKeyForId('people', '1', keyIfAbsent: 'people#222')!;
-    expect(key, 'people#222');
-
-    core.getKeyForId('people', '2', keyIfAbsent: 'people#222');
-    expect(core.getIdForKey(key), '2');
-  });
-
-  test('by keys', () {
-    // including ids that contain '#' (also used in internal format)
-    core.getKeyForId('people', 'p#1', keyIfAbsent: 'people#111');
-    core.getKeyForId('people', '2', keyIfAbsent: 'people#222');
-    core.getKeyForId('people', '3', keyIfAbsent: 'people#333');
-
-    final ids =
-        ['people#111', 'people#222', 'people#333'].map(core.getIdForKey);
-    expect(ids, ['p#1', '2', '3']);
-  });
-
-  test('by key', () {
-    final key = 'familia#333';
-    core.getKeyForId('familia', '3', keyIfAbsent: key);
-    expect(core.getKeyForId('familia', '3'), key);
-  });
-
-  test('two models with id should get the same key', () {
-    expect(core.getKeyForId('familia', '2812', keyIfAbsent: 'familia#19'),
-        core.getKeyForId('familia', '2812'));
-  });
-
-  test('should prioritize ID', () {
-    final key = core.getKeyForId('people', '772',
-        keyIfAbsent: DataHelpers.generateKey<Person>());
-
-    final randomNewKey = DataHelpers.generateKey<Person>();
-
-    // we are telling manager to reuse the existing key
-    // BUT a key for id=772 already exists, so that one will precede
-    final finalKey =
-        core.getKeyForId('people', '772', keyIfAbsent: randomNewKey);
-
-    expect(finalKey, isNot(randomNewKey));
-    expect(key, finalKey);
-  });
-
-  test('keys and IDs do not clash', () {
-    core.getKeyForId('people', 1, keyIfAbsent: 'people#111');
-    core.getKeyForId('people', '111', keyIfAbsent: 'people#222');
-    expect(core.getKeyForId('people', '111'), 'people#222');
-
-    final map = core.toIdMap();
-    expect(map.keys.toSet(), containsAll({222, 111}));
-    // # separates integers, ## separates strings
-    expect(map.values.toSet(), containsAll({'people##111', 'people#1'}));
-
-    expect(core.getKeyForId('people', 1), 'people#111');
+    expect(int.tryParse(key.split('#')[1]), isA<int>());
   });
 
   test('saves key', () async {
@@ -149,9 +72,7 @@ void main() async {
       await container.familia.remoteAdapter.localAdapter.saveMany(familias);
     });
 
-    // TODO FIX
-    // expect(core.toMap().keys.where((k) => k.startsWith('familia')),
-    //     hasLength(length));
+    expect(core.store.box<StoredModel>().count(), 100);
   });
 
   test('namespace', () {

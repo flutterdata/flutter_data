@@ -84,9 +84,10 @@ class _$NodeCopyWithImpl<$Res, $Val extends Node>
 }
 
 /// @nodoc
-abstract class _$$_NodeCopyWith<$Res> implements $NodeCopyWith<$Res> {
-  factory _$$_NodeCopyWith(_$_Node value, $Res Function(_$_Node) then) =
-      __$$_NodeCopyWithImpl<$Res>;
+abstract class _$$NodeImplCopyWith<$Res> implements $NodeCopyWith<$Res> {
+  factory _$$NodeImplCopyWith(
+          _$NodeImpl value, $Res Function(_$NodeImpl) then) =
+      __$$NodeImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -97,9 +98,10 @@ abstract class _$$_NodeCopyWith<$Res> implements $NodeCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$_NodeCopyWithImpl<$Res> extends _$NodeCopyWithImpl<$Res, _$_Node>
-    implements _$$_NodeCopyWith<$Res> {
-  __$$_NodeCopyWithImpl(_$_Node _value, $Res Function(_$_Node) _then)
+class __$$NodeImplCopyWithImpl<$Res>
+    extends _$NodeCopyWithImpl<$Res, _$NodeImpl>
+    implements _$$NodeImplCopyWith<$Res> {
+  __$$NodeImplCopyWithImpl(_$NodeImpl _value, $Res Function(_$NodeImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -110,7 +112,7 @@ class __$$_NodeCopyWithImpl<$Res> extends _$NodeCopyWithImpl<$Res, _$_Node>
     Object? parent = freezed,
     Object? children = freezed,
   }) {
-    return _then(_$_Node(
+    return _then(_$NodeImpl(
       id: freezed == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -133,15 +135,16 @@ class __$$_NodeCopyWithImpl<$Res> extends _$NodeCopyWithImpl<$Res, _$_Node>
 
 /// @nodoc
 @JsonSerializable()
-class _$_Node extends _Node {
-  _$_Node(
+class _$NodeImpl extends _Node {
+  _$NodeImpl(
       {this.id,
       this.name,
       @DataRelationship(inverse: 'children') this.parent,
       @DataRelationship(inverse: 'parent') this.children})
       : super._();
 
-  factory _$_Node.fromJson(Map<String, dynamic> json) => _$$_NodeFromJson(json);
+  factory _$NodeImpl.fromJson(Map<String, dynamic> json) =>
+      _$$NodeImplFromJson(json);
 
   @override
   final int? id;
@@ -160,10 +163,10 @@ class _$_Node extends _Node {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_Node &&
+            other is _$NodeImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.parent, parent) || other.parent == parent) &&
@@ -178,12 +181,12 @@ class _$_Node extends _Node {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_NodeCopyWith<_$_Node> get copyWith =>
-      __$$_NodeCopyWithImpl<_$_Node>(this, _$identity);
+  _$$NodeImplCopyWith<_$NodeImpl> get copyWith =>
+      __$$NodeImplCopyWithImpl<_$NodeImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_NodeToJson(
+    return _$$NodeImplToJson(
       this,
     );
   }
@@ -195,10 +198,10 @@ abstract class _Node extends Node {
           final String? name,
           @DataRelationship(inverse: 'children') final BelongsTo<Node>? parent,
           @DataRelationship(inverse: 'parent') final HasMany<Node>? children}) =
-      _$_Node;
+      _$NodeImpl;
   _Node._() : super._();
 
-  factory _Node.fromJson(Map<String, dynamic> json) = _$_Node.fromJson;
+  factory _Node.fromJson(Map<String, dynamic> json) = _$NodeImpl.fromJson;
 
   @override
   int? get id;
@@ -212,5 +215,6 @@ abstract class _Node extends Node {
   HasMany<Node>? get children;
   @override
   @JsonKey(ignore: true)
-  _$$_NodeCopyWith<_$_Node> get copyWith => throw _privateConstructorUsedError;
+  _$$NodeImplCopyWith<_$NodeImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }

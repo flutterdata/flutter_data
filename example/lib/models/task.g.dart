@@ -24,9 +24,9 @@ mixin $TaskLocalAdapter on LocalAdapter<Task> {
       _kTaskRelationshipMetas;
 
   @override
-  Task deserialize(map) {
+  Task deserialize(map, {String? key}) {
     map = transformDeserialize(map);
-    return _$TaskFromJson(map);
+    return internalWrapStopInit(() => _$TaskFromJson(map), key: key);
   }
 
   @override

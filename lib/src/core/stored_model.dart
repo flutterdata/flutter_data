@@ -1,50 +1,41 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter_data/flutter_data.dart';
 import 'package:messagepack/messagepack.dart';
 import 'package:objectbox/objectbox.dart';
 
 @Entity()
 class StoredModel with EquatableMixin {
   StoredModel({
-    required this.key,
-    required this.typeId,
+    required this.internalKey,
+    required this.type,
+    this.id,
+    this.isInt = false,
     this.data,
   });
 
   @Id(assignable: true)
-  int key;
+  int internalKey;
 
-  @Index(type: IndexType.value)
-  final String typeId;
+  @Index()
+  String type;
+
+  @Index()
+  String? id;
+
+  bool isInt;
 
   final List<int>? data;
 
-  String get type {
-    return typeId.split('#')[0];
-  }
-
-  Map<String, dynamic>? toJson() {
-    if (data == null) {
-      return null;
-    }
+  Map<String, dynamic> toJson() {
     final unpacker = Unpacker.fromList(data!);
-    final map = unpacker.unpackJson();
-    // ignore: unnecessary_nullable_for_final_variable_declarations
-    final id = typeId.detypify();
-
-    return {
-      'id': id,
-      '_key': key,
-      ...map,
-    };
+    return unpacker.unpackJson();
   }
 
   @override
-  List<Object?> get props => [key];
+  List<Object?> get props => [internalKey];
 
   @override
   String toString() {
-    return '<StoredModel k:$key t:$typeId>${toJson()}';
+    return '<StoredModel k:$internalKey t:$type i:$id>${toJson()}';
   }
 }
 

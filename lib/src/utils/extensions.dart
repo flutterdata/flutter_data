@@ -33,8 +33,7 @@ extension DeleteAllX<T extends DataModelMixin<T>>
 
     final adapter =
         first._remoteAdapter.localAdapter as ObjectboxLocalAdapter<T>;
-    final keys =
-        map((e) => e._key != null ? e._key!.detypify() as int : null).nonNulls;
+    final keys = map((e) => e._key?.detypifyKey()).nonNulls;
     adapter.store.box<StoredModel>().removeMany(keys.toList());
   }
 }
@@ -45,15 +44,15 @@ extension _ListX<T> on List<T> {
 
 extension DynamicX on dynamic {
   // # separates integers, ## separates strings
-  String typifyWith(String type) {
+  String typifyWith(String type, [String separator = '#']) {
     final _this = this.toString();
-    if (type.contains('#') || _this.startsWith('#')) {
+    if (type.contains(separator) || _this.startsWith(separator)) {
       throw ArgumentError();
     }
     if (this == null || _this.isEmpty) {
       return type;
     }
-    return '$type#${_this.isNotEmpty ? ('${this is! int ? '#' : ''}$_this') : ''}';
+    return '$type$separator${_this.isNotEmpty ? ('${this is! int ? separator : ''}$_this') : ''}';
   }
 }
 
@@ -82,6 +81,16 @@ extension StringUtilsX on String {
   String denamespace() {
     // need to re-join with : in case there were other :s in the text
     return (split(':')..removeAt(0)).join(':');
+  }
+
+  /// Returns key as int
+  int? detypifyKey() {
+    final [_, key] = split('#');
+    if (key.isEmpty) {
+      // enters here if there is only a type, e.g. `people`
+      return null;
+    }
+    return int.parse(key);
   }
 
   Object? detypify() {

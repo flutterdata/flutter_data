@@ -20,10 +20,6 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent>
   @override
   bool isInitialized = false;
 
-  final List<_KeyOperation> _keyOperations = [];
-
-  late final Map<int, String> _keyCache;
-
   Store? __store;
 
   @protected
@@ -61,19 +57,6 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent>
       _edgeBox.removeAll();
     }
 
-    // initialize/populate key-ID mapping cache
-    late List<String> typeIds;
-    late List<int> keys;
-    _readTxn(() {
-      typeIds =
-          _storedModelBox.query().build().property(StoredModel_.typeId).find();
-      keys = _storedModelBox.query().build().property(StoredModel_.key).find();
-    });
-
-    final entries =
-        typeIds.mapIndexed((i, typeId) => MapEntry(keys[i], typeId));
-    _keyCache = Map<int, String>.fromEntries(entries);
-
     isInitialized = true;
     return this;
   }
@@ -95,7 +78,9 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent>
       store.runInTransactionAsync(
           TxMode.read, (store, param) => fn(store, param), param);
 
-  R _writeTxn<R>(R Function() fn) => store.runInTransaction(TxMode.write, fn);
+  R _writeTxn<R>(R Function() fn, {String? log}) {
+    return logTime(log, () => store.runInTransaction(TxMode.write, fn));
+  }
 
   Future<R> _writeTxnAsync<R, P>(R Function(Store, P) fn, P param) =>
       store.runInTransactionAsync<R, P>(
@@ -110,47 +95,34 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent>
   ///    (if provided)
   ///  - It associates [keyIfAbsent] with the supplied [type]/[id]
   ///    (if both [keyIfAbsent] & [type]/[id] were provided)
-  String? getKeyForId(String type, Object? id, {String? keyIfAbsent}) {
-    if (id == null) {
-      return keyIfAbsent;
+  String getKeyForId(String type, Object? id, {String? orElse}) {
+    if (id == null || id.toString().isEmpty) {
+      return orElse ?? DataHelpers.generateTempKey(type);
     }
-
     type = DataHelpers.internalTypeFor(type);
-    final typeId = id.typifyWith(type);
-
-    print('--- [read] key for given id');
-
-    final entry = _keyCache.entries.firstWhereOrNull((e) => e.value == typeId);
-
-    if (entry == null) {
-      if (keyIfAbsent != null) {
-        _keyCache[keyIfAbsent.detypify() as int] = typeId;
-        _keyOperations.add(AddKeyOperation(keyIfAbsent, typeId));
-        return keyIfAbsent;
-      }
-      return null;
-    }
-
-    return entry.key.typifyWith(type);
+    return DataHelpers.fastHashId(type, id.toString());
   }
 
   /// Finds an ID, given a [key].
   Object? getIdForKey(String key) {
-    return _keyCache[key.detypify() as int]?.detypify();
-  }
-
-  /// Removes type-ID mapping for [key]
-  void removeIdForKey(String key, {bool notify = true}) {
-    _keyCache.remove(key.detypify() as int);
-    _keyOperations.add(RemoveKeyOperation(key));
+    return logTime(null, () {
+      final internalKey = key.detypifyKey();
+      if (internalKey == null) {
+        return null;
+      }
+      final model = store.box<StoredModel>().get(internalKey);
+      // NOTE: might bring in data for now - until we switch to multi-box
+      if (model?.id == null) {
+        return null;
+      }
+      if (model!.isInt) {
+        return int.parse(model.id!);
+      }
+      return model.id;
+    });
   }
 
   // utils
-
-  /// Returns a [Map] representation of the internal ID db
-  Map<int, String> toIdMap() {
-    return _keyCache;
-  }
 
   void _notify(List<String> keys,
       {String? metadata, required DataGraphEventType type}) {

@@ -25,10 +25,10 @@ mixin NodeAdapter on RemoteAdapter<Node> {
 
 mixin NodeLocalAdapter on LocalAdapter<Node> {
   @override
-  Node deserialize(Map<String, dynamic> map) {
+  Node deserialize(Map<String, dynamic> map, {String? key}) {
     if (map['name'] == 'node') {
       map['name'] = 'local';
     }
-    return super.deserialize(map);
+    return super.deserialize(map, key: key);
   }
 }

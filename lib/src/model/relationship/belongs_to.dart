@@ -59,9 +59,6 @@ class BelongsTo<E extends DataModelMixin<E>> extends Relationship<E, E?> {
   /// Returns the [value]'s `key`.
   String? get key => super._keys.safeFirst;
 
-  /// Returns the [value]'s `id`.
-  Object? get id => super._ids.safeFirst;
-
   /// Returns a [StateNotifier] which emits the latest [value] of
   /// this [BelongsTo] relationship.
   @override

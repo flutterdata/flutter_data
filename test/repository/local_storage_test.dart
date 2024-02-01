@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 void main() async {
   test('local storage', () async {
     late final Directory dir;
-
+    // TODO remove dir creation
     dir = await Directory('tmp').create();
     final storage = ObjectboxLocalStorage(
       baseDirFn: () => dir.path,

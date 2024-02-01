@@ -36,8 +36,7 @@ mixin _RemoteAdapterSerialization<T extends DataModelMixin<T>>
         id = data.model!.id;
       }
       if (id != null && adapter != null) {
-        return core.getKeyForId(adapter.internalType, id,
-            keyIfAbsent: DataHelpers.generateKey(adapter.internalType));
+        return core.getKeyForId(adapter.internalType, id);
       }
       return null;
     }

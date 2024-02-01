@@ -69,9 +69,6 @@ class HasMany<E extends DataModelMixin<E>> extends Relationship<E, Set<E>> {
   /// Returns keys in this relationship.
   Set<String> get keys => _keys;
 
-  /// Returns IDs in this relationship.
-  Set<Object> get ids => _ids;
-
   // iterable utils
 
   Set<E> toSet() => _iterable.toSet();

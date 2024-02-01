@@ -24,9 +24,9 @@ mixin $BookAuthorLocalAdapter on LocalAdapter<BookAuthor> {
       _kBookAuthorRelationshipMetas;
 
   @override
-  BookAuthor deserialize(map) {
+  BookAuthor deserialize(map, {String? key}) {
     map = transformDeserialize(map);
-    return BookAuthor.fromJson(map);
+    return internalWrapStopInit(() => BookAuthor.fromJson(map), key: key);
   }
 
   @override
@@ -100,9 +100,9 @@ mixin $BookLocalAdapter on LocalAdapter<Book> {
       _kBookRelationshipMetas;
 
   @override
-  Book deserialize(map) {
+  Book deserialize(map, {String? key}) {
     map = transformDeserialize(map);
-    return Book.fromJson(map);
+    return internalWrapStopInit(() => Book.fromJson(map), key: key);
   }
 
   @override
@@ -169,9 +169,9 @@ mixin $LibraryLocalAdapter on LocalAdapter<Library> {
       _kLibraryRelationshipMetas;
 
   @override
-  Library deserialize(map) {
+  Library deserialize(map, {String? key}) {
     map = transformDeserialize(map);
-    return Library.fromJson(map);
+    return internalWrapStopInit(() => Library.fromJson(map), key: key);
   }
 
   @override
@@ -211,21 +211,21 @@ extension LibraryRelationshipGraphNodeX on RelationshipGraphNode<Library> {
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_BookAuthor _$$_BookAuthorFromJson(Map<String, dynamic> json) =>
-    _$_BookAuthor(
+_$BookAuthorImpl _$$BookAuthorImplFromJson(Map<String, dynamic> json) =>
+    _$BookAuthorImpl(
       id: json['id'] as int,
       name: json['name'] as String?,
       books: HasMany<Book>.fromJson(json['books'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$_BookAuthorToJson(_$_BookAuthor instance) =>
+Map<String, dynamic> _$$BookAuthorImplToJson(_$BookAuthorImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
       'books': instance.books,
     };
 
-_$_Book _$$_BookFromJson(Map<String, dynamic> json) => _$_Book(
+_$BookImpl _$$BookImplFromJson(Map<String, dynamic> json) => _$BookImpl(
       id: json['id'] as int,
       title: json['title'] as String?,
       numberOfSales: json['number_of_sales'] as int? ?? 0,
@@ -240,7 +240,7 @@ _$_Book _$$_BookFromJson(Map<String, dynamic> json) => _$_Book(
           json['ardent_supporters'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$_BookToJson(_$_Book instance) {
+Map<String, dynamic> _$$BookImplToJson(_$BookImpl instance) {
   final val = <String, dynamic>{
     'id': instance.id,
   };
@@ -259,13 +259,14 @@ Map<String, dynamic> _$$_BookToJson(_$_Book instance) {
   return val;
 }
 
-_$_Library _$$_LibraryFromJson(Map<String, dynamic> json) => _$_Library(
+_$LibraryImpl _$$LibraryImplFromJson(Map<String, dynamic> json) =>
+    _$LibraryImpl(
       id: json['id'] as int,
       name: json['name'] as String,
       books: HasMany<Book>.fromJson(json['books'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$_LibraryToJson(_$_Library instance) =>
+Map<String, dynamic> _$$LibraryImplToJson(_$LibraryImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,

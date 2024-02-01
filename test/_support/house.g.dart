@@ -40,9 +40,9 @@ mixin $HouseLocalAdapter on LocalAdapter<House> {
       _kHouseRelationshipMetas;
 
   @override
-  House deserialize(map) {
+  House deserialize(map, {String? key}) {
     map = transformDeserialize(map);
-    return _$HouseFromJson(map);
+    return internalWrapStopInit(() => _$HouseFromJson(map), key: key);
   }
 
   @override

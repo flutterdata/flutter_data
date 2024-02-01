@@ -44,9 +44,9 @@ mixin $FamiliaLocalAdapter on LocalAdapter<Familia> {
       _kFamiliaRelationshipMetas;
 
   @override
-  Familia deserialize(map) {
+  Familia deserialize(map, {String? key}) {
     map = transformDeserialize(map);
-    return _$FamiliaFromJson(map);
+    return internalWrapStopInit(() => _$FamiliaFromJson(map), key: key);
   }
 
   @override

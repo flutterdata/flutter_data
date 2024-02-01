@@ -18,11 +18,11 @@ void main() async {
     final f1 = Familia(surname: 'Sanchez');
     final p1 = Person(name: 'Javier');
     f1.persons.add(p1);
-    f1.persons.add(Person(id: '1', name: 'Manuel'));
-    f1.persons.add(Person(id: '2', name: 'Carlos'));
+    f1.persons.add(Person(id: '1', name: 'Manuel').saveLocal());
+    f1.persons.add(Person(id: '2', name: 'Carlos').saveLocal());
     f1.persons.save();
 
-    expect(f1.persons.ids, {'1', '2'});
+    expect(f1.persons.toList().map((p) => p.id), {'1', '2'});
   });
 
   test('behaves like a collection', () {

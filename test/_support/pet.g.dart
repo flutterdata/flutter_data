@@ -15,9 +15,9 @@ mixin $DogLocalAdapter on LocalAdapter<Dog> {
   Map<String, RelationshipMeta> get relationshipMetas => _kDogRelationshipMetas;
 
   @override
-  Dog deserialize(map) {
+  Dog deserialize(map, {String? key}) {
     map = transformDeserialize(map);
-    return Dog.fromJson(map);
+    return internalWrapStopInit(() => Dog.fromJson(map), key: key);
   }
 
   @override
@@ -55,9 +55,9 @@ mixin $CatLocalAdapter on LocalAdapter<Cat> {
   Map<String, RelationshipMeta> get relationshipMetas => _kCatRelationshipMetas;
 
   @override
-  Cat deserialize(map) {
+  Cat deserialize(map, {String? key}) {
     map = transformDeserialize(map);
-    return Cat.fromJson(map);
+    return internalWrapStopInit(() => Cat.fromJson(map), key: key);
   }
 
   @override

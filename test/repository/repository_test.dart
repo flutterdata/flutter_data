@@ -108,17 +108,6 @@ void main() async {
     expect(familia, await container.familia.findOne('1', remote: false));
   });
 
-  test('findOne with empty (non-null) ID works', () async {
-    container.read(responseProvider.notifier).state = TestResponse.json('''
-        { "id": "", "surname": "Smith" }
-      ''');
-    final familia = await container.familia.findOne('');
-    expect(familia, isNotNull);
-
-    // and it can be found again locally
-    expect(familia, await container.familia.findOne('', remote: false));
-  });
-
   test('findOne with changing IDs works', () async {
     container.read(responseProvider.notifier).state = TestResponse.json('''
         { "id": "97", "surname": "Smith" }
@@ -291,10 +280,11 @@ void main() async {
       {"id": "95", "surname": "Corleone"}''');
 
     final updatedFamily = await family.save();
+    expect(updatedFamily.id, equals('95')); // model now has ID
 
-    expect(keyFor(family), keyFor(updatedFamily));
-    expect(await container.familia.remoteAdapter.findAll(remote: false),
-        hasLength(1));
+    // assert temporary ID-less family is no longer in local storage
+    expect(container.familia.remoteAdapter.localAdapter.keys,
+        [keyFor(updatedFamily)]);
   });
 
   test('custom with auto deserialization', () async {

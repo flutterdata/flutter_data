@@ -703,7 +703,8 @@ void main() async {
     verifyNever(listener(argThat(matcher)));
     verifyNoMoreInteractions(listener);
 
-    final steve = Person(name: 'Steve-O', age: 30).withKeyOf(frank).saveLocal();
+    final steve = Person(name: 'Steve-O', age: 30)
+        .saveLocal(); // TODO removed .withKeyOf(frank)
     await oneMs();
 
     verify(listener(argThat(matcher))).called(1);
@@ -724,8 +725,7 @@ void main() async {
 
     print('f1');
     Familia(surname: 'Thomson', cottage: cottage.asBelongsTo)
-        .withKeyOf(familia)
-        .saveLocal();
+        .saveLocal(); // TODO removed .withKeyOf(familia)
 
     await oneMs();
 
@@ -739,8 +739,7 @@ void main() async {
     verifyNoMoreInteractions(listener);
 
     Familia(surname: 'Thomson', cottage: BelongsTo.remove())
-        .withKeyOf(familia)
-        .saveLocal();
+        .saveLocal(); // TODO removed .withKeyOf(familia)
     await oneMs();
 
     verify(listener(argThat(matcher))).called(1);

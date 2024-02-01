@@ -2,46 +2,49 @@ part of flutter_data;
 
 abstract class DataModel<T extends DataModel<T>> with DataModelMixin<T> {
   DataModel() {
-    init();
+    // _internalTypes will be empty in an isolate,
+    // where we don't want to auto init
+    if (DataHelpers._internalTypes.isNotEmpty) {
+      init();
+    }
   }
 
   /// Returns a model [RemoteAdapter]
   static RemoteAdapter adapterFor(DataModelMixin model) => model._remoteAdapter;
 
-  /// Apply [sourceKey] to [applyTo].
-  static T withKey<T extends DataModelMixin<T>>(String sourceKey,
-      {required T applyTo}) {
-    final core = applyTo._remoteAdapter.core;
-    final type = applyTo._internalType;
+  // static T withKey<T extends DataModelMixin<T>>(String sourceKey,
+  //     {required T applyTo}) {
+  //   final core = applyTo._remoteAdapter.core;
+  //   final type = applyTo._internalType;
 
-    // ONLY data we keep from source is its key
-    // ONLY data we remove from destination is its key
-    if (sourceKey != applyTo._key) {
-      final oldKey = applyTo._key;
+  //   // ONLY data we keep from source is its key
+  //   // ONLY data we remove from destination is its key
+  //   if (sourceKey != applyTo._key) {
+  //     final oldKey = applyTo._key;
 
-      // assign correct key to destination
-      applyTo._key = sourceKey;
+  //     // assign correct key to destination
+  //     applyTo._key = sourceKey;
 
-      // migrate relationships to new key
-      applyTo._remoteAdapter.localAdapter
-          ._initializeRelationships(applyTo, fromKey: sourceKey);
+  //     // migrate relationships to new key
+  //     applyTo._remoteAdapter.localAdapter
+  //         ._initializeRelationships(applyTo, fromKey: sourceKey);
 
-      if (applyTo.id != null) {
-        core._writeTxn(() {
-          // and associate ID with source key
-          final typeId = applyTo.id!.typifyWith(type);
-          core._keyOperations.add(AddKeyOperation(sourceKey, typeId));
+  //     if (applyTo.id != null) {
+  //       core._writeTxn(() {
+  //         // and associate ID with source key
+  //         // final typeId = applyTo.id!.typifyWith(type);
+  //         // core._keyOperations.add(AddKeyOperation(sourceKey, typeId));
 
-          if (oldKey != null) {
-            core._storedModelBox.remove(oldKey.detypify() as int);
-            core._keyOperations.add(RemoveKeyOperation(oldKey));
-          }
-          core._keyCache[sourceKey.detypify() as int] = typeId;
-        });
-      }
-    }
-    return applyTo;
-  }
+  //         if (oldKey != null) {
+  //           core._storedModelBox.remove(oldKey.detypifyKey()!);
+  //           // core._keyOperations.add(RemoveKeyOperation(oldKey));
+  //         }
+  //         // core._keyCache[sourceKey.detypify() as int] = typeId;
+  //       });
+  //     }
+  //   }
+  //   return applyTo;
+  // }
 
   // data model helpers
 
@@ -107,12 +110,12 @@ extension DataModelExtension<T extends DataModelMixin<T>> on DataModelMixin<T> {
   /// final walter = Person(name: 'Walter');
   /// person.copyWith(age: 56).withKeyOf(walter);
   /// ```
-  T withKeyOf(T model) {
-    if (model._key == null) {
-      throw Exception("Model must be initialized:\n\n$model");
-    }
-    return DataModel.withKey<T>(model._key!, applyTo: this as T);
-  }
+  // T withKeyOf(T model) {
+  //   if (model._key == null) {
+  //     throw Exception("Model must be initialized:\n\n$model");
+  //   }
+  //   return DataModel.withKey<T>(model._key!, applyTo: this as T);
+  // }
 
   /// Saves this model through a call equivalent to [Repository.save].
   ///

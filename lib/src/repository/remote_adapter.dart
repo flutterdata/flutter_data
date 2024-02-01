@@ -268,7 +268,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
     late List<T> models;
 
-    if (!shouldLoadRemoteAll(remote!, params, headers) || background) {
+    if (shouldLoadRemoteAll(remote!, params, headers) == false || background) {
       models = findAllLocal();
       log(label,
           'returned ${models.toShortLog()} from local storage${background ? ' and loading in the background' : ''}');
@@ -334,7 +334,8 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     label = DataRequestLabel('findOne',
         type: internalType, id: _resolveId(id)?.toString(), withParent: label);
 
-    if (!shouldLoadRemoteOne(id, remote!, params, headers) || background) {
+    if (shouldLoadRemoteOne(id, remote!, params, headers) == false ||
+        background) {
       model = findOneLocal(id);
       if (model != null) {
         log(label,
@@ -370,7 +371,8 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   }
 
   T? findOneLocal(Object id) {
-    return localAdapter.findOneById(id);
+    final key = core.getKeyForId(internalType, id);
+    return localAdapter.findOne(key);
   }
 
   Future<T> save(
@@ -592,16 +594,20 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     try {
       if (response != null) {
         contentType = response.headers['content-type'] ?? 'application/json';
-        if (returnBytes) {
-          responseBody = response.bodyBytes;
-        } else if (response.body.isNotEmpty) {
-          final body = response.body;
-          if (contentType.contains('json')) {
-            responseBody = json.decode(body);
-          } else {
-            responseBody = body;
+
+        responseBody = await Isolate.run(() {
+          if (returnBytes) {
+            return response!.bodyBytes;
+          } else if (response!.body.isNotEmpty) {
+            final body = response.body;
+            if (contentType.contains('json')) {
+              return json.decode(body);
+            } else {
+              return body;
+            }
           }
-        }
+          return null;
+        });
       }
     } on FormatException catch (e, stack) {
       error = e;
@@ -695,12 +701,11 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
         return label.model as R?;
       }
 
-      // deserialize already inits models
-      // if model had a key already, reuse it
-      final deserialized = await deserialize(body as Map<String, dynamic>);
-      final model = deserialized.model!.withKeyOf(label.model as T);
+      final model = localAdapter.deserialize(body as Map<String, dynamic>,
+          key: label.model!._key);
 
-      model.saveLocal();
+      model.saveLocal(); // TODO group
+
       log(label, 'saved in local storage and remote');
 
       return model as R?;
@@ -735,7 +740,6 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
       } else {
         models = deserialized.models as R?;
       }
-
       return models;
     }
 
@@ -749,7 +753,6 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
       } else {
         model = deserialized.model as R?;
       }
-
       return model;
     }
 
@@ -857,8 +860,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     if (model is T) {
       return model._key!;
     } else {
-      return core.getKeyForId(internalType, model,
-          keyIfAbsent: DataHelpers.generateKey<T>())!;
+      return core.getKeyForId(internalType, model);
     }
   }
 

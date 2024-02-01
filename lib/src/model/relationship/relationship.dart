@@ -35,6 +35,7 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
 
   /// Initializes this relationship (typically when initializing the owner
   /// in [DataModelMixin]) by supplying the owner, and related metadata.
+  @protected
   Relationship<E, N> initialize(
       {required final String ownerKey,
       required final String name,
@@ -42,6 +43,8 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
     // If the relationship owner key is same as previous, return
     if (_ownerKey != null && _ownerKey == ownerKey) return this;
 
+    // TODO previous owner logic no longer needed?
+    // how do we deal now with key changes?
     final previousOwnerKey = _ownerKey;
     _ownerKey = ownerKey;
     _name = name;
@@ -62,11 +65,11 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
     // HasMany(1) -- or hasMany: [1]; this is a source of truth,
     // we need to clear all and set what's required
 
-    // TODO move to a ResetEdgeOperation so we can identify and only "merge"
-    // these as they're way more used (not other barely used as add/remove)
-    _edgeOperations.add(RemoveEdgeOperation(ownerKey, name));
-    _edgeOperations.addAll(_uninitializedKeys!
-        .map((to) => AddEdgeOperation(ownerKey, name, to, inverseName)));
+    // we ONLY add operations,
+    // additions & removals will be calculated by comparison with
+    // hashes of edges stored in DB at save
+    _edgeOperations.addAll(_uninitializedKeys!.map((to) => AddEdgeOperation(
+        Edge(from: ownerKey, name: name, to: to, inverseName: inverseName))));
     _uninitializedKeys!.clear();
 
     return this;
@@ -85,47 +88,51 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
     return left | right;
   }
 
-  void _saveOperations(Store store, List<_EdgeOperation> operations) {
-    final box = store.box<Edge>();
-    for (final op in operations) {
-      switch (op) {
-        case final AddEdgeOperation op:
-          box.put(Edge(
-              from: op.from,
-              name: op.name,
-              to: op.to,
-              inverseName: op.inverseName));
-        case final UpdateEdgeOperation op:
-          final e = box
-              .query(_queryConditionTo(op.from, op.name, op.to))
-              .build()
-              .findFirst();
-          if (e != null) {
-            box.put(Edge(id: e.id, from: e.from, name: e.name, to: op.newTo),
-                mode: PutMode.update);
-          }
-        case final RemoveEdgeOperation op:
-          box
-              .query(_queryConditionTo(op.from, op.name, op.to))
-              .build()
-              .remove();
-      }
-    }
-  }
+  // void _saveOperations(Store store, List<_EdgeOperation> operations) {
+  //   final box = store.box<Edge>();
+  //   for (final op in operations) {
+  //     switch (op) {
+  //       case final AddEdgeOperation op:
+  //         box.put(Edge(
+  //             from: op.from,
+  //             name: op.name,
+  //             to: op.to,
+  //             inverseName: op.inverseName));
+  //       case final UpdateEdgeOperation op:
+  //         final e = box
+  //             .query(_queryConditionTo(op.from, op.name, op.to))
+  //             .build()
+  //             .findFirst();
+  //         if (e != null) {
+  //           final edge = Edge(from: e.from, name: e.name, to: op.newTo);
+  //           edge.internalKey = e.internalKey;
+  //           box.put(edge, mode: PutMode.update);
+  //         }
+  //       case final RemoveEdgeOperation op:
+  //         box
+  //             .query(_queryConditionTo(op.from, op.name, op.to))
+  //             .build()
+  //             .remove();
+  //     }
+  //   }
+  // }
 
   void save({bool notify = true}) {
     if (_edgeOperations.isEmpty) return;
 
     final operations = _edgeOperations;
-    _core._writeTxn(() => _saveOperations(_core.store, operations));
+    print('---- in rel: saving ${operations.length} ops');
+    _core._writeTxn(() => operations.run(_core.store));
 
     // notify
     final additions =
-        _edgeOperations.whereType<AddEdgeOperation>().map((op) => op.to);
-    final updates =
-        _edgeOperations.whereType<UpdateEdgeOperation>().map((op) => op.to);
-    final removals =
-        _edgeOperations.whereType<RemoveEdgeOperation>().map((op) => op.to);
+        _edgeOperations.whereType<AddEdgeOperation>().map((op) => op.edge.to);
+    final updates = _edgeOperations
+        .whereType<UpdateEdgeOperation>()
+        .map((op) => op.edge.to);
+    final removals = _edgeOperations
+        .whereType<RemoveEdgeOperation>()
+        .map((op) => op.edge.to);
 
     if (notify) {
       if (additions.isNotEmpty) {
@@ -160,8 +167,13 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   // implement collection-like methods
 
   bool _add(E value, {bool save = false}) {
-    _edgeOperations
-        .add(AddEdgeOperation(ownerKey, name, value._key!, inverseName));
+    _edgeOperations.add(AddEdgeOperation(
+      Edge(
+          from: ownerKey,
+          name: name,
+          to: value._key!,
+          inverseName: inverseName),
+    ));
     if (save) {
       this.save();
       value.save();
@@ -175,8 +187,13 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   }
 
   bool _update(E value, E newValue, {bool save = false}) {
-    _edgeOperations
-        .add(UpdateEdgeOperation(ownerKey, name, value._key!, newValue._key!));
+    _edgeOperations.add(UpdateEdgeOperation(
+        Edge(
+            from: ownerKey,
+            name: name,
+            to: value._key!,
+            inverseName: inverseName),
+        newValue._key!));
     if (save) {
       this.save();
       return true;
@@ -185,7 +202,8 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   }
 
   bool _remove(E value, {bool save = false}) {
-    _edgeOperations.add(RemoveEdgeOperation(ownerKey, name, value._key!));
+    _edgeOperations.add(
+        RemoveEdgeOperation(Edge(from: ownerKey, name: name, to: value._key!)));
     if (save) {
       this.save();
       return true;
@@ -214,15 +232,11 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   /// Returns keys in this relationship.
   Set<String> get keys => _keys;
 
-  /// Returns IDs in this relationship.
-  Set<Object> get ids => _ids;
-
   Iterable<E> get _iterable {
     return _adapter.localAdapter.findMany(_keys);
   }
 
   Set<String> _keysFor(String key, String name) {
-    print('--- [read] _keysFor');
     final persistedEdges = _core.store
         .box<Edge>()
         .query(_queryConditionTo(key, name))
@@ -234,12 +248,6 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   Set<String> get _keys {
     if (_ownerKey == null) return {};
     return _keysFor(ownerKey, _name!);
-  }
-
-  Set<Object> get _ids {
-    return _core._readTxn(() {
-      return _keys.map((key) => _core.getIdForKey(key)).nonNulls.toSet();
-    });
   }
 
   DelayedStateNotifier<DataGraphEvent> get _relationshipEventNotifier {

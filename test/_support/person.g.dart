@@ -24,9 +24,9 @@ mixin $PersonLocalAdapter on LocalAdapter<Person> {
       _kPersonRelationshipMetas;
 
   @override
-  Person deserialize(map) {
+  Person deserialize(map, {String? key}) {
     map = transformDeserialize(map);
-    return Person.fromJson(map);
+    return internalWrapStopInit(() => Person.fromJson(map), key: key);
   }
 
   @override

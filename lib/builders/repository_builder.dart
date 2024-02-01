@@ -278,9 +278,9 @@ mixin \$${className}LocalAdapter on LocalAdapter<$className> {
   Map<String, RelationshipMeta> get relationshipMetas => _k${className}RelationshipMetas;
 
   @override
-  $className deserialize(map) {
+  $className deserialize(map, {String? key}) {
     map = transformDeserialize(map);
-    return $fromJson;
+    return internalWrapStopInit(() => $fromJson, key: key);
   }
 
   @override
