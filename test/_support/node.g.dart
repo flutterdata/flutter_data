@@ -82,7 +82,7 @@ extension NodeRelationshipGraphNodeX on RelationshipGraphNode<Node> {
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_Node _$$_NodeFromJson(Map<String, dynamic> json) => _$_Node(
+_$NodeImpl _$$NodeImplFromJson(Map<String, dynamic> json) => _$NodeImpl(
       id: json['id'] as int?,
       name: json['name'] as String?,
       parent: json['parent'] == null
@@ -93,7 +93,8 @@ _$_Node _$$_NodeFromJson(Map<String, dynamic> json) => _$_Node(
           : HasMany<Node>.fromJson(json['children'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$_NodeToJson(_$_Node instance) => <String, dynamic>{
+Map<String, dynamic> _$$NodeImplToJson(_$NodeImpl instance) =>
+    <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
       'parent': instance.parent,

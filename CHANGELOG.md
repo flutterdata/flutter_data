@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.6.0] - February 21st, 2024
+
+ - Allow specifying fromJson and toJson in code generation
+ - Upgrade deps
+
 ## [1.5.15] - January 25th, 2024
 
 - Fix: Upgrade http dependency

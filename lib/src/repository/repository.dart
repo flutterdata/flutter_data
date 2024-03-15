@@ -421,9 +421,15 @@ class DataRepository {
   final bool remote;
   final String? internalType;
   final int? typeId;
-  const DataRepository(this.adapters,
-      {this.localAdapters = const [],
-      this.remote = true,
-      this.internalType,
-      this.typeId});
+  final String? fromJson;
+  final String? toJson;
+  const DataRepository(
+    this.adapters, {
+    this.localAdapters = const [],
+    this.remote = true,
+    this.internalType,
+    this.typeId,
+    this.fromJson,
+    this.toJson,
+  });
 }

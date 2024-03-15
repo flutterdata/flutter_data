@@ -183,20 +183,30 @@ RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
 
     // serialization-related
 
-    final hasFromJson =
-        classElement.constructors.any((c) => c.name == 'fromJson');
-    final fromJson = hasFromJson
-        ? '$className.fromJson(map)'
-        : '_\$${className}FromJson(map)';
+    var fromJson = annotation.read('fromJson').isNull
+        ? ''
+        : annotation.read('fromJson').stringValue;
+    var toJson = annotation.read('toJson').isNull
+        ? ''
+        : annotation.read('toJson').stringValue;
 
-    final methods = [
-      ...classElement.methods,
-      ...classElement.interfaces.map((i) => i.methods).expand((i) => i),
-      ...classElement.mixins.map((i) => i.methods).expand((i) => i)
-    ];
-    final hasToJson = methods.any((c) => c.name == 'toJson');
-    final toJson =
-        hasToJson ? 'model.toJson()' : '_\$${className}ToJson(model)';
+    if (fromJson.isEmpty) {
+      final hasFromJson =
+          classElement.constructors.any((c) => c.name == 'fromJson');
+      fromJson = hasFromJson
+          ? '$className.fromJson(map)'
+          : '_\$${className}FromJson(map)';
+    }
+
+    if (toJson.isEmpty) {
+      final methods = [
+        ...classElement.methods,
+        ...classElement.interfaces.map((i) => i.methods).expand((i) => i),
+        ...classElement.mixins.map((i) => i.methods).expand((i) => i)
+      ];
+      final hasToJson = methods.any((c) => c.name == 'toJson');
+      toJson = hasToJson ? 'model.toJson()' : '_\$${className}ToJson(model)';
+    }
 
     // additional adapters
 

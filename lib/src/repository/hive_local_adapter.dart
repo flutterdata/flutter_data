@@ -114,7 +114,7 @@ abstract class HiveLocalAdapter<T extends DataModelMixin<T>>
 
     // if `typeId` was supplied, use it
     if (_typeId != null) {
-      id = _typeId!;
+      id = _typeId;
     } else {
       // otherwise auto-calculate (and persist)
 

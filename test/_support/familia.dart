@@ -8,7 +8,11 @@ import 'pet.dart';
 part 'familia.g.dart';
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
-@DataRepository([], internalType: 'f', typeId: 5)
+@DataRepository([],
+    internalType: 'f',
+    typeId: 5,
+    fromJson: '_\$FamiliaFromJson(map)',
+    toJson: '_\$FamiliaToJson(model)')
 class Familia extends DataModel<Familia> {
   @override
   final String? id;
