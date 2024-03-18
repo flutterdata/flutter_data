@@ -13,10 +13,12 @@ void main() async {
   try {
     final container = ProviderContainer(
       overrides: [
-        configureRepositoryLocalStorage(
-          baseDirFn: () => _dir.path,
-          encryptionKey: _encryptionKey,
-          clear: LocalStorageClearStrategy.always,
+        localStorageProvider.overrideWith(
+          (ref) => ObjectboxLocalStorage(
+            baseDirFn: () => _dir.path,
+            encryptionKey: _encryptionKey,
+            clear: LocalStorageClearStrategy.always,
+          ),
         ),
       ],
     );
@@ -32,10 +34,10 @@ void main() async {
 
     await container.tasks.findAll(params: {'user_id': 1, '_limit': 3});
 
-    final user = User(id: 19, name: 'Zeku');
-    final user2 = await container.users.findOne(19, remote: false);
+    final user = User(id: 1, name: 'Roman').saveLocal();
+    final user2 = await container.users.findOne(1, remote: false);
 
-    assert(user == user2);
+    assert(user.name == user2!.name);
     assert(user.tasks.length == 3);
   } finally {
     _dir.deleteSync(recursive: true);

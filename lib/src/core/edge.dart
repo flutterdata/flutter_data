@@ -27,7 +27,7 @@ class Edge with EquatableMixin {
 
   @override
   String toString() {
-    return '{ $from <---$name($inverseName)---> $to}';
+    return '{ [edgekey: $internalKey] $from <--- $name/$inverseName ---> $to}';
   }
 
   @override

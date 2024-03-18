@@ -26,18 +26,6 @@ extension _DataModelListX on Iterable<DataModelMixin> {
   }
 }
 
-extension DeleteAllX<T extends DataModelMixin<T>>
-    on Iterable<DataModelMixin<T>> {
-  void deleteAll() {
-    if (isEmpty) return;
-
-    final adapter =
-        first._remoteAdapter.localAdapter as ObjectboxLocalAdapter<T>;
-    final keys = map((e) => e._key?.detypifyKey()).nonNulls;
-    adapter.store.box<StoredModel>().removeMany(keys.toList());
-  }
-}
-
 extension _ListX<T> on List<T> {
   T? getSafe(int index) => (length > index) ? this[index] : null;
 }

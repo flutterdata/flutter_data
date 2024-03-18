@@ -11,8 +11,6 @@ import '../_support/person.dart';
 import '../_support/setup.dart';
 
 void main() async {
-  setUpAll(setUpLocalStorage);
-  tearDownAll(tearDownLocalStorage);
   setUp(setUpFn);
   tearDown(tearDownFn);
 
@@ -43,7 +41,7 @@ void main() async {
 
   test('saves key', () async {
     final residence = House(address: '123 Main St');
-    final length = 100;
+    final length = 1000;
     final div = 2;
     final familias = <Familia>[];
 
@@ -72,7 +70,7 @@ void main() async {
       await container.familia.remoteAdapter.localAdapter.saveMany(familias);
     });
 
-    expect(core.store.box<StoredModel>().count(), 100);
+    expect(container.familia.remoteAdapter.localAdapter.count, length);
   });
 
   test('namespace', () {

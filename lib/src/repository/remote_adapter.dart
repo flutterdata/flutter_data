@@ -197,22 +197,23 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
   // Transactions
 
-  R readTxn<R>(R Function() fn) => localAdapter.core._readTxn(fn);
+  R readTxn<R>(R Function() fn) => localAdapter.storage.readTxn(fn);
 
   Future<R> readTxnAsync<R, P>(R Function(Store, P) fn, P param) async =>
-      localAdapter.core._readTxnAsync(fn, param);
+      localAdapter.storage.readTxnAsync(fn, param);
 
-  R writeTxn<R>(R Function() fn) => localAdapter.core._writeTxn(fn);
+  R writeTxn<R>(R Function() fn) => localAdapter.storage.writeTxn(fn);
 
   Future<R> writeTxnAsync<R, P>(R Function(Store, P) fn, P param) =>
-      localAdapter.core._writeTxnAsync(fn, param);
+      localAdapter.storage.writeTxnAsync(fn, param);
 
   // serialization interface
 
   /// Returns a [DeserializedData] object when deserializing a given [data].
+  ///
   @protected
   @visibleForTesting
-  Future<DeserializedData<T>> deserialize(Object? data);
+  Future<DeserializedData<T>> deserialize(Object? data, {String? key});
 
   /// Returns a serialized version of a model of [T],
   /// as a [Map<String, dynamic>] ready to be JSON-encoded.
@@ -454,7 +455,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     headers = await defaultHeaders & headers;
 
     final id = _resolveId(model);
-    final key = keyForModelOrId(model);
+    final key = localAdapter.core.keyForModelOrId(internalType, model);
 
     label = DataRequestLabel('delete',
         type: internalType, id: id.toString(), withParent: label);
@@ -701,10 +702,16 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
         return label.model as R?;
       }
 
-      final model = localAdapter.deserialize(body as Map<String, dynamic>,
+      final data = await deserialize(body as Map<String, dynamic>,
           key: label.model!._key);
+      final model = data.model!;
 
-      model.saveLocal(); // TODO group
+      // TODO group?
+      // if there has been a migration to a new key, delete the old one
+      if (model._key != label.model!._key) {
+        localAdapter.deleteKeys({label.model!._key!});
+      }
+      model.saveLocal();
 
       log(label, 'saved in local storage and remote');
 
@@ -728,6 +735,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
       return response.body as R?;
     }
 
+    // TODO test: not properly deserializing findAll with relationship references (see example app)
     final deserialized = await deserialize(body);
 
     if (isFindAll || (isCustom && deserialized.model == null)) {
@@ -821,10 +829,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   @visibleForTesting
   @nonVirtual
   Set<OfflineOperation<T>> get offlineOperations {
-    final edges = core._edgeBox
-        .query(Edge_.from.equals(_offlineAdapterKey))
-        .build()
-        .find();
+    final edges = localAdapter.storage.edgesFor([(_offlineAdapterKey, null)]);
     return edges
         .map((e) {
           try {
@@ -838,11 +843,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
             }
           } catch (_) {
             // if there were any errors parsing labels or json ignore and remove
-            core._edgeBox
-                .query(Edge_.from.equals(_offlineAdapterKey) &
-                    Edge_.name.equals(e.name))
-                .build()
-                .remove();
+            localAdapter.storage.removeEdgesFor([(_offlineAdapterKey, e.name)]);
           }
         })
         .nonNulls
@@ -851,17 +852,6 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
   Object? _resolveId(Object obj) {
     return obj is T ? obj.id : obj;
-  }
-
-  @protected
-  @visibleForTesting
-  @nonVirtual
-  String keyForModelOrId(Object model) {
-    if (model is T) {
-      return model._key!;
-    } else {
-      return core.getKeyForId(internalType, model);
-    }
   }
 
   bool get _isTesting {

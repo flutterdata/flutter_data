@@ -9,92 +9,20 @@ part of flutter_data;
 ///
 /// Its public API requires all keys and metadata to be namespaced
 /// i.e. `manager:key`
-class CoreNotifier extends DelayedStateNotifier<DataGraphEvent>
-    with _Lifecycle {
+class CoreNotifier extends DelayedStateNotifier<DataGraphEvent> {
   final Ref ref;
   @protected
   CoreNotifier(this.ref);
 
-  ObjectboxLocalStorage get _localStorage => ref.read(localStorageProvider);
-
-  @override
-  bool isInitialized = false;
-
-  Store? __store;
-
-  @protected
-  @visibleForTesting
-  Store get store => __store!;
-  late Box<StoredModel> _storedModelBox;
-  late Box<Edge> _edgeBox;
-
-  /// Initializes storage systems
-  Future<CoreNotifier> initialize() async {
-    if (isInitialized) return this;
-    await _localStorage.initialize();
-
-    try {
-      final dirPath = path_helper.join(_localStorage.path, 'flutter_data');
-      if (Store.isOpen(dirPath)) {
-        __store = Store.attach(getObjectBoxModel(), dirPath);
-      } else {
-        __store = openStore(
-          directory: dirPath,
-          queriesCaseSensitiveDefault: false,
-        );
-      }
-      _storedModelBox = store.box<StoredModel>();
-      _edgeBox = store.box<Edge>();
-    } catch (e, stackTrace) {
-      print('[flutter_data] Objectbox failed to open:\n$e\n$stackTrace');
-    }
-
-    if (_localStorage.clear == LocalStorageClearStrategy.always) {
-      // TODO no way of removing everything? maybe remove file before openStore?
-      // _localStorage.destroy();
-
-      _storedModelBox.removeAll();
-      _edgeBox.removeAll();
-    }
-
-    isInitialized = true;
-    return this;
-  }
-
-  @override
-  void dispose() {
-    if (isInitialized) {
-      store.close();
-      isInitialized = false;
-      super.dispose();
-    }
-  }
-
-  // Transactions
-
-  R _readTxn<R>(R Function() fn) => store.runInTransaction(TxMode.read, fn);
-
-  Future<R> _readTxnAsync<R, P>(R Function(Store, P) fn, P param) async =>
-      store.runInTransactionAsync(
-          TxMode.read, (store, param) => fn(store, param), param);
-
-  R _writeTxn<R>(R Function() fn, {String? log}) {
-    return logTime(log, () => store.runInTransaction(TxMode.write, fn));
-  }
-
-  Future<R> _writeTxnAsync<R, P>(R Function(Store, P) fn, P param) =>
-      store.runInTransactionAsync<R, P>(
-          TxMode.write, (store, param) => fn(store, param), param);
+  LocalStorage get storage => ref.read(localStorageProvider);
 
   // Key-related methods
 
   /// Finds a model's key.
   ///
   ///  - Attempts a lookup by [type]/[id]
-  ///  - If the key was not found, it returns a default [keyIfAbsent]
+  ///  - If the key was not found, it returns a default [orElse]
   ///    (if provided)
-  ///  - It associates [keyIfAbsent] with the supplied [type]/[id]
-  ///    (if both [keyIfAbsent] & [type]/[id] were provided)
   String getKeyForId(String type, Object? id, {String? orElse}) {
     if (id == null || id.toString().isEmpty) {
       return orElse ?? DataHelpers.generateTempKey(type);
@@ -110,8 +38,11 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent>
       if (internalKey == null) {
         return null;
       }
-      final model = store.box<StoredModel>().get(internalKey);
-      // NOTE: might bring in data for now - until we switch to multi-box
+      // TODO rethink this when doing multi-box (it's pulling in `data` right now)
+      final model = (storage as ObjectboxLocalStorage)
+          .store
+          .box<StoredModel>()
+          .get(internalKey);
       if (model?.id == null) {
         return null;
       }
@@ -120,6 +51,30 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent>
       }
       return model.id;
     });
+  }
+
+  @protected
+  @visibleForTesting
+  @nonVirtual
+  String keyForModelOrId(String type, Object model, {bool save = false}) {
+    final id = model is DataModelMixin ? model.id : model;
+    final key =
+        model is DataModelMixin ? model._key! : getKeyForId(type, model);
+    if (id != null) {
+      final box = (storage as ObjectboxLocalStorage).store.box<StoredModel>();
+      final intKey = key.detypifyKey()!;
+      final model = box.get(intKey);
+
+      box.put(
+        StoredModel(
+            internalKey: intKey,
+            type: type,
+            data: model?.data,
+            id: id.toString(),
+            isInt: id is int),
+      );
+    }
+    return key;
   }
 
   // utils
@@ -174,4 +129,5 @@ extension _DataGraphEventX on DataGraphEventType {
   String toShortString() => toString().split('.').last;
 }
 
-final coreNotifierProvider = Provider<CoreNotifier>((ref) => CoreNotifier(ref));
+final _coreNotifierProvider =
+    Provider<CoreNotifier>((ref) => CoreNotifier(ref));

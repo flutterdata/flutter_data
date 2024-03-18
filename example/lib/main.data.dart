@@ -35,7 +35,7 @@ final repositoryInitializerProvider =
   };
   final remotes = <String, bool>{'tasks': true, 'users': true};
 
-  await ref.watch(coreNotifierProvider).initialize();
+  await ref.read(localStorageProvider).initialize();
 
   // initialize and register
   for (final type in repositoryProviders.keys) {

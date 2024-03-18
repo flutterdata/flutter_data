@@ -157,27 +157,6 @@ class _$NodeImpl extends _Node {
   @DataRelationship(inverse: 'parent')
   final HasMany<Node>? children;
 
-  @override
-  String toString() {
-    return 'Node(id: $id, name: $name, parent: $parent, children: $children)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$NodeImpl &&
-            (identical(other.id, id) || other.id == id) &&
-            (identical(other.name, name) || other.name == name) &&
-            (identical(other.parent, parent) || other.parent == parent) &&
-            (identical(other.children, children) ||
-                other.children == children));
-  }
-
-  @JsonKey(ignore: true)
-  @override
-  int get hashCode => Object.hash(runtimeType, id, name, parent, children);
-
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')

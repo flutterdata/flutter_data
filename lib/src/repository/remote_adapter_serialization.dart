@@ -24,7 +24,7 @@ mixin _RemoteAdapterSerialization<T extends DataModelMixin<T>>
   }
 
   @override
-  Future<DeserializedData<T>> deserialize(Object? data) async {
+  Future<DeserializedData<T>> deserialize(Object? data, {String? key}) async {
     final result = DeserializedData<T>([], included: []);
 
     Future<Object?> _processIdAndAddInclude(id, RemoteAdapter? adapter) async {
@@ -86,7 +86,9 @@ mixin _RemoteAdapterSerialization<T extends DataModelMixin<T>>
           }
         }
 
-        final model = localAdapter.deserialize(mapOut);
+        // Force key only if this is a single-model deserialization
+        final model = localAdapter.deserialize(mapOut,
+            key: key != null && data.length == 1 ? key : null);
         result.models.add(model);
       }
     }

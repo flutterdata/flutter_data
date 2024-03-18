@@ -285,6 +285,7 @@ class DataRequestLabel with EquatableMixin {
   })  : _typeId = id.typifyWith(type),
         kind = kind.trim() {
     if (requestId != null) {
+      // TODO what is @ , also: should change that ints are now # (not ##)
       assert(!requestId.contains('@'));
     }
     _requestIds.add(requestId ?? DataHelpers.generateShortKey());

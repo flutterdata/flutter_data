@@ -1,14 +1,12 @@
 part of flutter_data;
 
-/// Hive implementation of [LocalAdapter].
+/// Objectbox implementation of [LocalAdapter].
 // ignore: must_be_immutable
 abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
     extends LocalAdapter<T> {
   ObjectboxLocalAdapter(Ref ref) : super(ref);
 
-  @protected
-  @visibleForTesting
-  Store get store => core.store;
+  ObjectboxLocalStorage get _storage => storage as ObjectboxLocalStorage;
 
   @override
   bool get isInitialized => true;
@@ -20,7 +18,7 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
 
   @override
   List<T> findAll() {
-    final models = store
+    final models = _storage.store
         .box<StoredModel>()
         .query(StoredModel_.type.equals(internalType) &
             StoredModel_.data.notNull())
@@ -33,9 +31,9 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
   T? findOne(String? key) {
     final intKey = key?.detypifyKey();
     if (intKey == null) return null;
-    final model = store.box<StoredModel>().get(intKey);
+    final model = _storage.store.box<StoredModel>().get(intKey);
     if (model != null) {
-      return _deserializeAndInitWithKeys([model], [intKey]).first;
+      return _deserializeAndInitWithKeys([model], [intKey]).safeFirst;
     }
     return null;
   }
@@ -45,7 +43,7 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
     if (keys.isEmpty) return [];
     final intKeys = keys.map((key) => key.detypifyKey()).nonNulls.toList();
     final models =
-        core.store.box<StoredModel>().getMany(intKeys).nonNulls.toList();
+        _storage.store.box<StoredModel>().getMany(intKeys).nonNulls.toList();
     return _deserializeAndInitWithKeys(models, intKeys).toList();
   }
 
@@ -56,7 +54,7 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
       return false;
     }
     return logTime(null, () {
-      return core.store.box<StoredModel>().contains(intKey);
+      return _storage.store.box<StoredModel>().contains(intKey);
     });
   }
 
@@ -64,32 +62,6 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
   T save(String key, T model, {bool notify = true}) {
     saveMany([model], runAsync: false);
     return model;
-    // TODO shouldn't this just call saveMany()
-    // final packer = Packer();
-    // packer.packJson(serialize(model, withRelationships: false));
-
-    // final storedModel = StoredModel(
-    //   internalKey: key.detypifyKey()!,
-    //   type: internalType,
-    //   id: model.id?.toString(),
-    //   isInt: model.id is int,
-    //   data: packer.takeBytes(),
-    // );
-
-    // final savedKey = core._writeTxn(() {
-    //   // TODO should better group this shit
-    //   for (final rel in DataModelMixin.relationshipsFor(model)) {
-    //     rel.save();
-    //   }
-    //   return store.box<StoredModel>().put(storedModel).typifyWith(internalType);
-    // });
-
-    // // TODO where does it make sense to use putQueued?
-
-    // if (notify) {
-    //   core._notify([savedKey], type: DataGraphEventType.updateNode);
-    // }
-    // return model;
   }
 
   @override
@@ -108,44 +80,70 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
 
     // given a list of (key, type, id, serialized), return stored model instances
     final storedModels = runAsync
-        ? (await Isolate.run(() => _packModels(modelRecords)))
+        ? (await _packModelsAsync(modelRecords))
         : _packModels(modelRecords);
 
     // relationships
 
-    final relationshipRecords = models.map((model) {
-      final relationships = DataModelMixin.relationshipsFor(model);
-      return relationships
-          .map((rel) => (rel._ownerKey!, rel._name!, rel._edgeOperations));
-    }).flattened;
+    final localEdgeMap = <(String, String), List<Edge>?>{};
+
+    for (final model in models) {
+      for (final rel in DataModelMixin.relationshipsFor(model)) {
+        final pair = (rel._ownerKey!, rel._name!);
+        if (rel._uninitializedKeys == null) {
+          localEdgeMap[pair] = null;
+        } else {
+          localEdgeMap[pair] = rel._uninitializedKeys!
+              .map((to) => Edge(
+                  from: rel._ownerKey!,
+                  name: rel._name!,
+                  to: to,
+                  inverseName: rel._inverseName))
+              .toList();
+          rel._uninitializedKeys = null;
+        }
+      }
+    }
 
     // query for all ids pointed to by (owner,metadata) pairs
-    final existingEdgeIds =
-        _edgeIdsFor(relationshipRecords, core.store.box<Edge>());
+    final pairs = localEdgeMap.keys;
+    final allStoredEdges = storage.edgesFor(pairs);
 
-    final aggregateOperations = relationshipRecords.map((e) => e.$3).flattened;
+    final ops = <_EdgeOperation>[];
 
-    // calculate edge operations (they are all add operations, create in initialize)
-    final edgeMap = {
-      for (final op in aggregateOperations.cast<AddEdgeOperation>())
-        op.edge.internalKey: op.edge
-    };
+    for (final e in localEdgeMap.entries) {
+      final pair = e.key;
+      final storedEdges = allStoredEdges.where((edge) {
+        return {(edge.from, edge.name), (edge.to, edge.inverseName)}
+            .contains(pair);
+      });
 
-    final toRemove = {
-      for (final key in existingEdgeIds)
-        if (!edgeMap.keys.contains(key)) RemoveEdgeByIdOperation(key)
-    };
+      if (e.value != null) {
+        for (final edge in e.value!) {
+          if (!storedEdges.containsFirst(edge)) {
+            // TODO fix adding symmetric operations, should add 1 not 2
+            // probably fixed with good equality in EdgeOperations
+            ops.add(AddEdgeOperation(edge));
+          }
+        }
 
-    final toAdd = {
-      for (final edge in edgeMap.values)
-        if (!existingEdgeIds.contains(edge.internalKey)) AddEdgeOperation(edge)
-    };
+        final localEdges = e.value!;
+
+        for (final edge in storedEdges) {
+          if (!localEdges.containsFirst(edge)) {
+            // print('removing $key');
+            ops.add(RemoveEdgeByKeyOperation(edge.internalKey));
+          }
+        }
+      }
+    }
 
     // save all relationships + models
-    final param = (storedModels, [...toAdd, ...toRemove]);
+    final param = (storedModels, ops);
     final savedKeys = runAsync
-        ? (await core._writeTxnAsync(_saveModelsAndOperations, param))
-        : (core._writeTxn(() => _saveModelsAndOperations(core.store, param)));
+        ? (await storage.writeTxnAsync(_saveModelsAndOperations, param))
+        : (storage
+            .writeTxn(() => _saveModelsAndOperations(_storage.store, param)));
 
     if (storedModels.length != savedKeys.length) {
       print('WARNING! Not all models stored!');
@@ -156,37 +154,43 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
         savedKeys.toList(),
         type: DataGraphEventType.updateNode,
       );
+
+      for (final op in ops) {
+        final type = switch (op) {
+          AddEdgeOperation(edge: _) => DataGraphEventType.addEdge,
+          UpdateEdgeOperation(edge: _, newTo: _) =>
+            DataGraphEventType.updateEdge,
+          _ => DataGraphEventType.removeEdge,
+        };
+        core._notify([op.edge.from, op.edge.to],
+            metadata: op.edge.name, type: type);
+      }
     }
   }
 
-  List<String> _saveModelsAndOperations(
+  static List<String> _saveModelsAndOperations(
       Store store, (Iterable<StoredModel>, List<_EdgeOperation>) record) {
     final keys = <String>[];
     final (models, operations) = record;
     for (final model in models) {
       final key = store.box<StoredModel>().put(model);
-      keys.add(key.toString().typifyWith(model.type));
+      keys.add(key.typifyWith(model.type));
     }
-    print('---- saving ${operations.length} ops');
-    operations.run(store);
+
+    store.runOperations(operations);
+
     return keys;
   }
 
-  Set<int> _edgeIdsFor(
-      Iterable<(String, String, dynamic)> pairs, Box<Edge> box) {
-    if (pairs.isEmpty) {
-      return {};
-    }
-    final conditions =
-        pairs.map((p) => Relationship._queryConditionTo(p.$1, p.$2));
-    final condition = conditions.reduce((acc, e) => acc | e);
-    return box.query(condition).build().findIds().toSet();
+  static Future<Iterable<StoredModel>> _packModelsAsync(
+      Iterable<(String, String, Object?, Map<String, dynamic>)> models) {
+    return Isolate.run(() => _packModels(models));
   }
 
-  /// Turns maps into StoredModels, and resolve add/remove edge operations
-  Iterable<StoredModel> _packModels(
+  /// Turns maps into StoredModels
+  static Iterable<StoredModel> _packModels(
       Iterable<(String, String, Object?, Map<String, dynamic>)> models) {
-    return logTime('_packModels', () {
+    return logTime(null, () {
       return models.map((m_) {
         // pack model
         final (key, type, id, map) = m_;
@@ -210,13 +214,13 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
 
   @override
   void deleteKeys(Iterable<String> keys, {bool notify = true}) {
-    core._writeTxn(() {
+    storage.writeTxn(() {
       for (final key in keys) {
         final intKey = key.detypifyKey();
         if (intKey != null) {
-          store.box<StoredModel>().remove(intKey);
+          _storage.store.box<StoredModel>().remove(intKey);
         }
-        // TODO should remove relationships
+        // TODO remove relationships
       }
     });
     core._notify([...keys], type: DataGraphEventType.removeNode);
@@ -224,9 +228,9 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
 
   @override
   Future<void> clear() async {
-    core._writeTxn(() {
-      core.store.box<Edge>().removeAll();
-      core.store.box<StoredModel>().removeAll();
+    storage.writeTxn(() {
+      _storage.store.box<Edge>().removeAll();
+      _storage.store.box<StoredModel>().removeAll();
     });
     core._notify([internalType], type: DataGraphEventType.clear);
   }
@@ -235,7 +239,7 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
 
   @override
   int get count {
-    return store
+    return _storage.store
         .box<StoredModel>()
         .query(StoredModel_.type.equals(internalType))
         .build()
@@ -246,8 +250,8 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
   List<String> get keys {
     return logTime(
       null,
-      () => core._readTxn(() {
-        final keys = store
+      () => storage.readTxn(() {
+        final keys = _storage.store
             .box<StoredModel>()
             .query(StoredModel_.type.equals(internalType) &
                 StoredModel_.id.notNull())
@@ -264,15 +268,17 @@ abstract class ObjectboxLocalAdapter<T extends DataModelMixin<T>>
 
   Iterable<T> _deserializeAndInitWithKeys(List<StoredModel> storedModels,
       [List<int>? internalKeys]) {
-    // TODO worth/possible doing inside an isolate if > cutoff?
-    return core._readTxn(
+    return storage.readTxn(
       () => storedModels.mapIndexed(
         (i, storedModel) {
+          if (storedModel.data == null) {
+            return null;
+          }
           final map = storedModel.toJson();
           return deserialize(map,
               key: internalKeys?[i].typifyWith(internalType));
         },
-      ),
+      ).nonNulls,
     );
   }
 }

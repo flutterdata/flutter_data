@@ -16,7 +16,9 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
 
   String get ownerKey => _ownerKey!;
   DataModelMixin? get owner {
-    final type = ownerKey.split('#').first;
+    // type will always be first in split
+    final [type, ..._] = ownerKey.split('#');
+
     final adapter = internalRepositories[type]!.remoteAdapter;
     return adapter.localAdapter.findOne(ownerKey) as DataModelMixin?;
   }
@@ -24,9 +26,9 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   String get name => _name!;
   String? get inverseName => _inverseName;
 
-  RemoteAdapter<E> get _adapter =>
-      internalRepositories[_internalType]!.remoteAdapter as RemoteAdapter<E>;
-  CoreNotifier get _core => _adapter.localAdapter.core;
+  LocalAdapter<E> get _adapter =>
+      internalRepositories[_internalType]!.remoteAdapter.localAdapter
+          as LocalAdapter<E>;
 
   Set<String>? _uninitializedKeys;
   String get _internalType => DataHelpers.getInternalType<E>();
@@ -43,86 +45,17 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
     // If the relationship owner key is same as previous, return
     if (_ownerKey != null && _ownerKey == ownerKey) return this;
 
-    // TODO previous owner logic no longer needed?
-    // how do we deal now with key changes?
-    final previousOwnerKey = _ownerKey;
     _ownerKey = ownerKey;
     _name = name;
     _inverseName = inverseName;
 
-    if (previousOwnerKey != null && previousOwnerKey != ownerKey) {
-      // new owner key, get all keys associated to previous key
-      // and reinitialize
-      _uninitializedKeys = _keysFor(previousOwnerKey, name);
-    }
-
-    if (_uninitializedKeys == null) {
-      // This means it was omitted (remote-omitted, or loaded locally)
-      // so return as-is
-      return this;
-    }
-
-    // HasMany(1) -- or hasMany: [1]; this is a source of truth,
-    // we need to clear all and set what's required
-
-    // we ONLY add operations,
-    // additions & removals will be calculated by comparison with
-    // hashes of edges stored in DB at save
-    _edgeOperations.addAll(_uninitializedKeys!.map((to) => AddEdgeOperation(
-        Edge(from: ownerKey, name: name, to: to, inverseName: inverseName))));
-    _uninitializedKeys!.clear();
-
     return this;
   }
-
-  static Condition<Edge> _queryConditionTo(String from, String name,
-      [String? to]) {
-    var left = Edge_.from.equals(from) & Edge_.name.equals(name);
-    if (to != null) {
-      left = left & Edge_.to.equals(to);
-    }
-    var right = Edge_.to.equals(from) & Edge_.inverseName.equals(name);
-    if (to != null) {
-      right = right & Edge_.from.equals(to);
-    }
-    return left | right;
-  }
-
-  // void _saveOperations(Store store, List<_EdgeOperation> operations) {
-  //   final box = store.box<Edge>();
-  //   for (final op in operations) {
-  //     switch (op) {
-  //       case final AddEdgeOperation op:
-  //         box.put(Edge(
-  //             from: op.from,
-  //             name: op.name,
-  //             to: op.to,
-  //             inverseName: op.inverseName));
-  //       case final UpdateEdgeOperation op:
-  //         final e = box
-  //             .query(_queryConditionTo(op.from, op.name, op.to))
-  //             .build()
-  //             .findFirst();
-  //         if (e != null) {
-  //           final edge = Edge(from: e.from, name: e.name, to: op.newTo);
-  //           edge.internalKey = e.internalKey;
-  //           box.put(edge, mode: PutMode.update);
-  //         }
-  //       case final RemoveEdgeOperation op:
-  //         box
-  //             .query(_queryConditionTo(op.from, op.name, op.to))
-  //             .build()
-  //             .remove();
-  //     }
-  //   }
-  // }
 
   void save({bool notify = true}) {
     if (_edgeOperations.isEmpty) return;
 
-    final operations = _edgeOperations;
-    print('---- in rel: saving ${operations.length} ops');
-    _core._writeTxn(() => operations.run(_core.store));
+    _adapter.storage.runOperations(_edgeOperations);
 
     // notify
     final additions =
@@ -136,14 +69,14 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
 
     if (notify) {
       if (additions.isNotEmpty) {
-        _core._notify(
+        _adapter.core._notify(
           [ownerKey, ...additions],
           metadata: _name,
           type: DataGraphEventType.addEdge,
         );
       }
       if (updates.isNotEmpty) {
-        _core._notify(
+        _adapter.core._notify(
           [ownerKey, ...updates],
           metadata: _name,
           type: DataGraphEventType.updateEdge,
@@ -152,7 +85,7 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
       // We can safely ignore null removals, because they are always
       // followed by additions, which notify
       if (removals.isNotEmpty) {
-        _core._notify(
+        _adapter.core._notify(
           [ownerKey, ...removals.nonNulls],
           metadata: _name,
           type: DataGraphEventType.removeEdge,
@@ -211,12 +144,11 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
     return false;
   }
 
-  // TODO docs + tests
   Iterable<Relationship>
       adjacentRelationships<R extends DataModelMixin<R>>() sync* {
     for (final key in _keys) {
-      final metas = _adapter.localAdapter.relationshipMetas.values
-          .whereType<RelationshipMeta<R>>();
+      final metas =
+          _adapter.relationshipMetas.values.whereType<RelationshipMeta<R>>();
       for (final meta in metas) {
         final rel = switch (meta.type) {
           'HasMany' => HasMany<R>().initialize(ownerKey: key, name: meta.name),
@@ -233,16 +165,12 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   Set<String> get keys => _keys;
 
   Iterable<E> get _iterable {
-    return _adapter.localAdapter.findMany(_keys);
+    return _adapter.findMany(_keys);
   }
 
   Set<String> _keysFor(String key, String name) {
-    final persistedEdges = _core.store
-        .box<Edge>()
-        .query(_queryConditionTo(key, name))
-        .build()
-        .find();
-    return {for (final e in persistedEdges) e.from == key ? e.to : e.from};
+    final edges = _adapter.storage.edgesFor([(key, name)]);
+    return {for (final e in edges) e.from == key ? e.to : e.from};
   }
 
   Set<String> get _keys {
@@ -266,8 +194,8 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   dynamic toJson() => this;
 
   int get length {
-    return _core._readTxn(() =>
-        _keys.map(_adapter.localAdapter.exists).where((e) => e == true).length);
+    return _adapter.storage.readTxn(
+        () => _keys.map(_adapter.exists).where((e) => e == true).length);
   }
 
   /// Whether the relationship has a value.

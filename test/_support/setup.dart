@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+import 'dart:math';
 import 'package:flutter_data/flutter_data.dart';
+import 'package:flutter_data/objectbox.g.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:mockito/mockito.dart';
-import 'package:path/path.dart' as path;
 
 import 'book.dart';
 import 'familia.dart';
@@ -23,6 +23,7 @@ final keyFor = DataModel.keyFor;
 
 late ProviderContainer container;
 late CoreNotifier core;
+late LocalStorage storage;
 Function? dispose;
 
 final logging = [];
@@ -46,20 +47,12 @@ Future<void> setUpFn() async {
           }
         });
       }),
-      localStorageProvider.overrideWith(
-        (ref) => ObjectboxLocalStorage(
-          baseDirFn: () => kTestsPath,
-          clear: LocalStorageClearStrategy.always,
-        ),
-      ),
+      localStorageProvider.overrideWith((ref) => TestObjectboxLocalStorage()),
     ],
   );
 
-  core = container.read(coreNotifierProvider);
-
   // Equivalent to generated in `main.data.dart`
-
-  await container.read(coreNotifierProvider).initialize();
+  storage = await container.read(localStorageProvider).initialize();
 
   DataHelpers.setInternalType<House>('houses');
   DataHelpers.setInternalType<Familia>('familia');
@@ -117,18 +110,9 @@ Future<void> setUpFn() async {
     },
   );
 
+  core = container.read(internalHousesRemoteAdapterProvider).localAdapter.core;
+
   dogsRepository.logLevel = 2;
-}
-
-Future<void> setUpLocalStorage() async {}
-
-Future<void> tearDownLocalStorage() async {
-  try {
-    final dir = Directory(path.join(kTestsPath, 'flutter_data'));
-    dir.deleteSync(recursive: true);
-  } on PathNotFoundException {
-    // ignore
-  }
 }
 
 Future<void> tearDownFn() async {
@@ -144,6 +128,7 @@ Future<void> tearDownFn() async {
   container.bookAuthors.dispose();
   container.libraries.dispose();
   core.dispose();
+  storage.destroy();
 
   logging.clear();
   await oneMs();
@@ -151,9 +136,9 @@ Future<void> tearDownFn() async {
 
 // utils
 
-/// Waits 10 millisecond (tests have a throttle of Duration.zero)
+/// Waits 1 millisecond (tests have a throttle of Duration.zero)
 Future<void> oneMs() async {
-  await Future.delayed(const Duration(milliseconds: 10));
+  await Future.delayed(const Duration(milliseconds: 1));
 }
 
 // home baked watcher
@@ -218,4 +203,27 @@ extension ProviderContainerX on ProviderContainer {
 
 class Listener<T> extends Mock {
   void call(T value);
+}
+
+class TestObjectboxLocalStorage extends ObjectboxLocalStorage {
+  final r = Random();
+  Store? __store;
+  Store get store => __store!;
+  late final String dir;
+
+  TestObjectboxLocalStorage() {
+    dir = "${Store.inMemoryPrefix}test-${r.nextDouble()}-db";
+  }
+
+  @override
+  Future<LocalStorage> initialize() async {
+    __store = Store(getObjectBoxModel(), directory: dir);
+    return this;
+  }
+
+  @override
+  Future<void> destroy() async {
+    store.close();
+    Store.removeDbFiles(dir);
+  }
 }

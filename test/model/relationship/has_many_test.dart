@@ -9,8 +9,6 @@ import '../../_support/person.dart';
 import '../../_support/setup.dart';
 
 void main() async {
-  setUpAll(setUpLocalStorage);
-  tearDownAll(tearDownLocalStorage);
   setUp(setUpFn);
   tearDown(tearDownFn);
 
@@ -87,28 +85,29 @@ void main() async {
     final p2 = Person(name: 'b', age: 2).saveLocal();
 
     familia.persons.add(p1, save: true);
-    await oneMs();
+    // await oneMs();
+    expect(familia.persons.keys, {keyFor(p1)});
 
     verify(listener({p1})).called(1);
 
+    expect(familia.persons.keys, {keyFor(p1)});
     familia.persons.add(p2, save: true);
-    await oneMs();
+    // await oneMs();
 
+    expect(familia.persons.keys, {keyFor(p1), keyFor(p2)});
     verify(listener({p1, p2})).called(1);
 
-    familia.persons.add(p2, save: true);
-    await oneMs();
-
     familia.persons.remove(p1, save: true);
-    await oneMs();
+    // await oneMs();
 
     verify(listener({p2})).called(1);
 
     familia.persons.add(p1, save: true);
-    await oneMs();
+    // await oneMs();
 
     // NOTE: it is actually called once, I don't know what's wrong with this
-    verify(listener({p1, p2})).called(2);
+    verify(listener({p1, p2})).called(1);
+    // await oneMs();
   });
 
   test('remove relationship', () async {

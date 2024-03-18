@@ -10,8 +10,6 @@ import '../_support/person.dart';
 import '../_support/setup.dart';
 
 void main() async {
-  setUpAll(setUpLocalStorage);
-  tearDownAll(tearDownLocalStorage);
   setUp(setUpFn);
   tearDown(tearDownFn);
 
@@ -211,15 +209,15 @@ void main() async {
   test('keyForModelOrId', () {
     final adapter = container.people.remoteAdapter;
     final p1 = Person(name: 'Ludwig');
-    final key1 = adapter.keyForModelOrId(p1);
+    final key1 = core.keyForModelOrId(adapter.type, p1);
     expect(key1, keyFor(p1));
 
     final key2 = core.getKeyForId('people', '43');
-    final key2b = adapter.keyForModelOrId('43');
+    final key2b = core.keyForModelOrId(adapter.type, '43');
     expect(key2, key2b);
 
     final p3 = Person(id: '22', name: 'Joe');
-    final key3 = adapter.keyForModelOrId(p3);
+    final key3 = core.keyForModelOrId(adapter.type, p3);
     final key3b = core.getKeyForId('people', '22');
     expect(key3, key3b);
   });
@@ -276,18 +274,16 @@ void main() async {
     expect(person.familia.value, equals(f1));
     expect(f1.persons.toSet(), {person});
 
-    print('************************');
-
+    // server responds with an ID and an age
     container.read(responseProvider.notifier).state = TestResponse.json('''
         {"_id": "1", "name": "Jack", "age": 31}
       ''');
-    print('person key: ${keyFor(person)}');
     // call remote save as it uses withKeyOf, relationship should be omitted
     final personUpdated = await person.save(remote: true);
-    print('personupdated key: ${keyFor(personUpdated)}');
 
     expect('people#-3284248607767184521', keyFor(personUpdated));
-    // the relationship should be intact
+
+    // the relationship should remain intact
     expect(personUpdated.familia.value, f1);
     expect(f1.persons.toSet(), {personUpdated});
   });

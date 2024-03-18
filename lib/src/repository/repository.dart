@@ -328,7 +328,8 @@ class Repository<T extends DataModelMixin<T>> with _Lifecycle {
     String? finder,
     DataRequestLabel? label,
   }) {
-    final key = remoteAdapter.keyForModelOrId(model);
+    final key = remoteAdapter.localAdapter.core
+        .keyForModelOrId(remoteAdapter.internalType, model);
 
     remote ??= remoteAdapter._remote;
     final relationshipMetas = alsoWatch

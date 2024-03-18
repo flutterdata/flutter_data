@@ -1,6 +1,4 @@
 import 'package:flutter_data/flutter_data.dart';
-import 'package:flutter_data/src/core/edge.dart';
-import 'package:flutter_data/src/core/stored_model.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -13,16 +11,12 @@ import '../../_support/pet.dart';
 import '../../_support/setup.dart';
 
 void main() async {
-  setUpAll(setUpLocalStorage);
-  tearDownAll(tearDownLocalStorage);
   setUp(setUpFn);
   tearDown(tearDownFn);
 
   test('scenario #1', () {
     final familiaLocalAdapter = container.familia.remoteAdapter.localAdapter;
 
-    // since we're passing a key (not an ID)
-    // we MUST use the local adapter serializer
     final f1 = familiaLocalAdapter
         .deserialize({'id': '1', 'surname': 'Rose'}).saveLocal();
     expect(f1.residence.value, isNull);
@@ -39,6 +33,7 @@ void main() async {
       'id': '1',
       'surname': 'Rose',
     }).saveLocal();
+
     // residence should remain wired
     expect(f1b.residence.value, house);
     // persons is empty since no people exist yet (despite having keys)
@@ -95,12 +90,9 @@ void main() async {
     expect(h1.owner.value, isNull);
     expect(keyFor(h1), isNotNull);
 
-    // core.getKeyForId('familia', '1', keyIfAbsent: 'familia#111');
-
     // once it does
     final familia =
         Familia(id: '1', surname: 'Rose', residence: BelongsTo()).saveLocal();
-    // print(keyFor(familia));
     // it's automatically wired up & inverses work correctly
     expect(h1.owner.value, familia);
     expect(h1.owner.value!.residence.value, h1);
@@ -127,20 +119,12 @@ void main() async {
     expect(familia.residence.value, isNull);
     expect(familia.persons.keys.length, 3);
 
-    // associate ids with keys
-    // core.getKeyForId('people', '1', keyIfAbsent: 'people#111');
-    // core.getKeyForId('people', '2', keyIfAbsent: 'people#222');
-    // core.getKeyForId('people', '3', keyIfAbsent: 'people#333');
-    // core.getKeyForId('houses', '98', keyIfAbsent: 'houses#777');
-
     // no people have been loaded
     expect(familia.persons.toList(), isEmpty);
 
     // (2) then load people
-
     final p1 = Person(id: '1', name: 'z1', age: 23).saveLocal();
     final p2 = Person(id: '2', name: 'z2', age: 33).saveLocal();
-    // print(familia.persons.adjacentRelationships<Familia>());
 
     // (3) assert two first are linked, third one null, residence is null
     expect(familia.persons.toList(), {p1, p2});
@@ -150,7 +134,7 @@ void main() async {
     final p3 = Person(id: '3', name: 'z3', age: 3).saveLocal();
     expect(p3.familia.value, familia);
 
-    // (5) load familia and assert it exists now
+    // (5) load house and assert it exists now
     final house = House(id: '98', address: '21 Coconut Trail').saveLocal();
     expect(house.owner.value, familia);
     expect(familia.residence.value!.address, endsWith('Trail'));
@@ -159,14 +143,10 @@ void main() async {
 
   test('scenario #3', () {
     final igor = Person(name: 'Igor', age: 33).saveLocal();
-    print('igor key ${keyFor(igor)}');
     final f1 =
         Familia(surname: 'Kamchatka', persons: {igor}.asHasMany).saveLocal();
 
     expect(f1.persons.first, equals(igor));
-    print(core.store.box<Edge>().getAll());
-    print(core.store.box<StoredModel>().getAll());
-    print(f1.persons.first.familia.value);
     expect(f1.persons.first.familia.value, f1);
 
     final igor1b =
@@ -196,6 +176,7 @@ void main() async {
     final f4 =
         Familia(surname: 'Kamchatka', residence: BelongsTo()).saveLocal();
     f4.residence.value = House(address: 'Sakharova Prospekt, 19').saveLocal();
+    f4.residence.save();
     f4.saveLocal();
     expect(f4.residence.value!.owner.value!.surname, 'Kamchatka');
   });
@@ -205,20 +186,20 @@ void main() async {
     final familia =
         Familia(id: '229', surname: 'Rose', persons: {brian}.asHasMany)
             .saveLocal();
-    expect(familia.persons.length, 1);
+    expect(familia.persons.toSet(), {brian});
 
     // new familia comes in locally with no persons relationship information
     final familia2 =
         Familia(id: '229', surname: 'Rose', persons: HasMany()).saveLocal();
     // it should keep the relationships unaltered
-    expect(familia2.persons.length, 1);
+    expect(familia2.persons.toSet(), {brian});
 
     // new familia comes in from API (simulate) with no persons relationship information
     final familia3 = (await container.familia.remoteAdapter
             .deserialize({'id': '229', 'surname': 'Rose'}))
         .model!;
     // it should keep the relationships unaltered
-    expect(familia3.persons.length, 1);
+    expect(familia3.persons.toSet(), {brian});
 
     // new familia comes in from API (simulate) with empty persons relationship
     final familia4 = (await container.familia.remoteAdapter
@@ -226,7 +207,7 @@ void main() async {
         .model!
         .saveLocal();
     // it should keep the relationships unaltered
-    expect(familia4.persons.length, 0);
+    expect(familia4.persons.isEmpty, isTrue);
 
     // since we're passing a key (not an ID)
     // we MUST use the local adapter serializer
@@ -234,11 +215,9 @@ void main() async {
       'id': '229',
       'surname': 'Rose',
       'persons': ['people#7295352464926971276']
-    });
+    }).saveLocal();
 
     final axl = Person(id: '231', name: 'Axl', age: 58).saveLocal();
-    print(keyFor(axl));
-    familia5.persons.save();
     expect(familia5.persons.toSet(), {axl});
   });
 
@@ -256,11 +235,8 @@ void main() async {
     final parent = Node(name: 'parent', children: HasMany());
     final child =
         Node(name: 'child', parent: parent.asBelongsTo, children: HasMany());
-    final child2 =
-        Node(name: 'child', parent: parent.asBelongsTo, children: HasMany());
-
-    print(keyFor(child));
-    print(keyFor(child2));
+    // final child2 =
+    //     Node(name: 'child', parent: parent.asBelongsTo, children: HasMany());
 
     // since child has children defined, the rel is empty
     expect(child.children, isEmpty);
@@ -270,7 +246,8 @@ void main() async {
 
     // child & parent are infinitely related!
     expect(child.parent!.value!.name, parent.name);
-    expect(child.parent!.value!.children!.first, child);
+
+    expect(child.parent!.value!.children!.first, equals(child));
   });
 
   test('freezed bidirectional one-to-many', () async {
@@ -278,10 +255,12 @@ void main() async {
             id: 23,
             title: 'Tao Te Ching',
             originalAuthor: BelongsTo(),
+            house: BelongsTo(),
             ardentSupporters: HasMany())
         .saveLocal();
     final author =
         BookAuthor(id: 15, name: 'Lao Tzu', books: HasMany({book})).saveLocal();
+    expect(author.books.first, book);
 
     final listener = Listener<DataState<BookAuthor?>>();
     final notifier = container.bookAuthors.watchOneNotifier(author);
@@ -291,11 +270,10 @@ void main() async {
     verify(listener(DataState(author, isLoading: false))).called(1);
     verifyNoMoreInteractions(listener);
 
-    // we can avoid using `was` because `author` has an ID
     final author2 = author.copyWith(name: 'Steve-O').saveLocal();
 
     await oneMs();
-
+    expect(author.books.first, book);
     verify(listener(DataState(author2, isLoading: false))).called(1);
     verifyNoMoreInteractions(listener);
 

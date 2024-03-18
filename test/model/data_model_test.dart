@@ -10,8 +10,6 @@ import '../_support/pet.dart';
 import '../_support/setup.dart';
 
 void main() async {
-  setUpAll(setUpLocalStorage);
-  tearDownAll(tearDownLocalStorage);
   setUp(setUpFn);
   tearDown(tearDownFn);
 
@@ -24,13 +22,10 @@ void main() async {
     await person.save();
 
     // (1) it wires up the relationship
-    print(person.familia.key);
-    print(core.getKeyForId('familia', '55'));
     expect(person.familia.key, core.getKeyForId('familia', '55'));
 
     // (2) it saves the model locally
     final e2 = container.people.findOneLocal(person.id!);
-    print(e2);
     expect(e2, person);
   });
 
@@ -156,19 +151,16 @@ void main() async {
         { "id": "1", "surname": "Perez" }
       ''');
 
-    familia = (await familia.reload())!;
+    familia = await familia.reload() as Familia;
     expect(familia, Familia(id: '1', surname: 'Perez'));
     expect(await container.familia.findOne('1'),
         Familia(id: '1', surname: 'Perez'));
-    print('---');
 
-    print(DataModel.keyFor(Familia(id: '1', surname: 'test')));
     var f2 = Familia(id: '1', surname: 'Perez Lopez');
     f2.saveLocal();
     expect(familia.surname, isNot('Perez Lopez'));
     familia = familia.reloadLocal()!;
-    print(await container.familia.findOne('1'));
-    // expect(familia.surname, equals('Perez Lopez'));
+    expect(familia.surname, equals('Perez Lopez'));
   });
 
   test('delete model with and without ID', () async {
@@ -232,27 +224,5 @@ void main() async {
         DataException(exception, statusCode: 410));
     expect(DataException([exception], statusCode: 410),
         isNot(DataException(exception, statusCode: 410)));
-  });
-
-  test('delete models in iterable', () async {
-    final adapter =
-        container.dogs.remoteAdapter.localAdapter as ObjectboxLocalAdapter;
-
-    final initialLength = adapter.count;
-
-    final dogs = [
-      Dog(id: '91', name: 'A').saveLocal(),
-      Dog(id: '92', name: 'B').saveLocal(),
-      Dog(id: '93', name: 'C').saveLocal(),
-      Dog(id: '94', name: 'D').saveLocal()
-    ];
-
-    // box should now be initial + amount of saved dogs
-    expect(adapter.count, initialLength + dogs.length);
-
-    dogs.deleteAll();
-
-    // after deleting the iterable, we should be back where we started
-    expect(adapter.count, initialLength);
   });
 }

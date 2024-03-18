@@ -143,7 +143,7 @@ mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
 
     // closure to get latest model and watchable relationship pairs
     T? _getUpdatedModel() {
-      return core._readTxn(() {
+      return localAdapter.storage.readTxn(() {
         final model = localAdapter.findOne(key);
         if (model != null) {
           // get all metas provided via `alsoWatch`
@@ -340,11 +340,8 @@ mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
       RelationshipMeta? meta, String ownerKey) {
     if (meta == null) return {};
     print('--- [read] _getPairsForMeta');
-    final edges = core._edgeBox
-        .query((Edge_.from.equals(ownerKey) & Edge_.name.equals(meta.name)) |
-            (Edge_.to.equals(ownerKey) & Edge_.inverseName.equals(meta.name)))
-        .build()
-        .find();
+
+    final edges = localAdapter.storage.edgesFor([(ownerKey, meta.name)]);
     final relationshipKeys = {
       for (final e in edges) e.from == ownerKey ? e.to : e.from
     };
@@ -353,6 +350,7 @@ mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
       // include key pairs of (owner, key)
       for (final key in relationshipKeys) [ownerKey, key],
       // recursively include key pairs for other requested relationships
+      // TODO do not include if these are blank
       for (final childKey in relationshipKeys)
         _getPairsForMeta(meta.child, childKey).expand((_) => _).toList()
     };

@@ -3,6 +3,7 @@ library flutter_data;
 // import external packages
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:math' show Random;
 import 'dart:typed_data';
@@ -23,14 +24,12 @@ import 'package:state_notifier/state_notifier.dart';
 
 // import internal packages
 import 'src/core/core_notifier_extension.dart';
-import 'src/repository/objectbox_local_storage.dart';
 
 // export external packages
 export 'package:riverpod/riverpod.dart' hide Family;
 
 // export internal packages
 export 'src/core/core_notifier_extension.dart';
-export 'src/repository/objectbox_local_storage.dart';
 
 part 'src/core/core_notifier.dart';
 // include parts
@@ -38,13 +37,15 @@ part 'src/model/data_model.dart';
 part 'src/model/relationship/belongs_to.dart';
 part 'src/model/relationship/has_many.dart';
 part 'src/model/relationship/relationship.dart';
-part 'src/model/relationship/operations.dart';
+part 'src/model/relationship/edge_operations.dart';
 part 'src/repository/objectbox_local_adapter.dart';
 part 'src/repository/local_adapter.dart';
 part 'src/repository/remote_adapter.dart';
 part 'src/repository/remote_adapter_serialization.dart';
 part 'src/repository/remote_adapter_watch.dart';
 part 'src/repository/repository.dart';
+part 'src/storage/local_storage.dart';
+part 'src/storage/objectbox_local_storage.dart';
 part 'src/utils/data_state.dart';
 part 'src/utils/extensions.dart';
 part 'src/utils/framework.dart';

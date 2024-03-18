@@ -1,3 +1,4 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -6,7 +7,7 @@ part 'node.g.dart';
 
 @freezed
 @DataRepository([NodeAdapter], localAdapters: [NodeLocalAdapter], remote: false)
-class Node extends DataModel<Node> with _$Node {
+class Node extends DataModel<Node> with EquatableMixin, _$Node {
   Node._();
   factory Node(
       {int? id,
@@ -14,6 +15,9 @@ class Node extends DataModel<Node> with _$Node {
       @DataRelationship(inverse: 'children') BelongsTo<Node>? parent,
       @DataRelationship(inverse: 'parent') HasMany<Node>? children}) = _Node;
   factory Node.fromJson(Map<String, dynamic> json) => _$NodeFromJson(json);
+
+  @override
+  List<Object?> get props => [id, name, parent, children];
 }
 
 mixin NodeAdapter on RemoteAdapter<Node> {
