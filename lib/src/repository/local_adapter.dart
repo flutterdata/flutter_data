@@ -3,9 +3,7 @@ part of flutter_data;
 /// An adapter interface to access local storage.
 ///
 /// Identity in this layer is enforced by keys.
-///
-/// See also: [ObjectboxLocalAdapter]
-abstract class LocalAdapter<T extends DataModelMixin<T>> with _Lifecycle {
+class LocalAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   @protected
   LocalAdapter(Ref ref)
       : core = ref.read(_coreNotifierProvider),
@@ -24,45 +22,67 @@ abstract class LocalAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   bool _stopInitialization = false;
 
   /// Returns all models of type [T] in local storage.
-  List<T> findAll();
+  List<T> findAll() {
+    throw UnimplementedError('');
+  }
 
   /// Finds model of type [T] by [key] in local storage.
-  T? findOne(String? key);
+  T? findOne(String? key) {
+    throw UnimplementedError('');
+  }
 
   /// Finds many models of type [T] by [keys] in local storage.
-  List<T> findMany(Iterable<String> keys);
+  List<T> findMany(Iterable<String> keys) {
+    throw UnimplementedError('');
+  }
 
   /// Whether [key] exists in local storage.
-  bool exists(String key);
+  bool exists(String key) {
+    throw UnimplementedError('');
+  }
 
   /// Saves model of type [T] with [key] in local storage.
   ///
   /// By default notifies this modification to the associated [CoreNotifier].
   @protected
   @visibleForTesting
-  T save(String key, T model, {bool notify = true});
+  T save(String key, T model, {bool notify = true}) {
+    throw UnimplementedError('');
+  }
 
   /// Deletes model of type [T] with [key] from local storage.
   ///
   /// By default notifies this modification to the associated [CoreNotifier].
   @protected
   @visibleForTesting
-  void delete(String key, {bool notify = true});
+  void delete(String key, {bool notify = true}) {
+    throw UnimplementedError('');
+  }
 
-  void deleteKeys(Iterable<String> keys, {bool notify = true});
+  void deleteKeys(Iterable<String> keys, {bool notify = true}) {
+    throw UnimplementedError('');
+  }
 
   /// Deletes all models of type [T] in local storage.
   @protected
   @visibleForTesting
-  Future<void> clear();
+  Future<void> clear() {
+    throw UnimplementedError('');
+  }
 
   /// Counts all models of type [T] in local storage.
-  int get count;
+  int get count {
+    throw UnimplementedError('');
+  }
 
   /// Gets all keys of type [T] in local storage.
-  List<String> get keys;
+  List<String> get keys {
+    throw UnimplementedError('');
+  }
 
-  Future<void> saveMany(Iterable<DataModelMixin> models, {bool notify = true});
+  Future<void> saveMany(Iterable<DataModelMixin> models, {bool notify = true}) {
+    throw UnimplementedError('');
+  }
 
   // model initialization
 
@@ -120,8 +140,9 @@ abstract class LocalAdapter<T extends DataModelMixin<T>> with _Lifecycle {
         // if rel was omitted, fill with info of previous key
         // TODO optimize: put outside loop and query edgesFor just once
         if (fromKey != null && relationship._uninitializedKeys == null) {
-          final edges = storage.edgesFor({(fromKey, metadata.name)});
-          relationship._uninitializedKeys = edges.map((e) => e.to).toSet();
+          // TODO restore
+          // final edges = storage.edgesFor({(fromKey, metadata.name)});
+          // relationship._uninitializedKeys = edges.map((e) => e.to).toSet();
         }
         relationship.initialize(
           ownerKey: model._key!,
@@ -132,11 +153,17 @@ abstract class LocalAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     }
   }
 
-  Map<String, dynamic> serialize(T model, {bool withRelationships = true});
+  Map<String, dynamic> serialize(T model, {bool withRelationships = true}) {
+    throw UnimplementedError('');
+  }
 
-  T deserialize(Map<String, dynamic> map, {String? key});
+  T deserialize(Map<String, dynamic> map, {String? key}) {
+    throw UnimplementedError('');
+  }
 
-  Map<String, RelationshipMeta> get relationshipMetas;
+  Map<String, RelationshipMeta> get relationshipMetas {
+    throw UnimplementedError('');
+  }
 
   Map<String, dynamic> transformSerialize(Map<String, dynamic> map,
       {bool withRelationships = true}) {
@@ -175,4 +202,13 @@ abstract class LocalAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     }
     return map;
   }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+  }
+
+  @override
+  // TODO: implement isInitialized
+  bool get isInitialized => throw UnimplementedError();
 }

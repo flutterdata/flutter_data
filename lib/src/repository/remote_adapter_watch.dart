@@ -143,28 +143,29 @@ mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
 
     // closure to get latest model and watchable relationship pairs
     T? _getUpdatedModel() {
-      return localAdapter.storage.readTxn(() {
-        final model = localAdapter.findOne(key);
-        if (model != null) {
-          // get all metas provided via `alsoWatch`
-          final metas = alsoWatch
-              ?.call(RelationshipGraphNode<T>())
-              .whereType<RelationshipMeta>();
+      // return localAdapter.storage.readTxn(() {
+      //   final model = localAdapter.findOne(key);
+      //   if (model != null) {
+      //     // get all metas provided via `alsoWatch`
+      //     final metas = alsoWatch
+      //         ?.call(RelationshipGraphNode<T>())
+      //         .whereType<RelationshipMeta>();
 
-          // recursively get applicable watch key pairs for each meta -
-          // from top to bottom (e.g. `p`, `p.familia`, `p.familia.cottage`)
-          alsoWatchPairs = {
-            ...?metas
-                ?.map((meta) => _getPairsForMeta(meta._top, model._key!))
-                .nonNulls
-                .expand((_) => _)
-          };
-        } else {
-          // if there is no model nothing should be watched, reset pairs
-          alsoWatchPairs = {};
-        }
-        return model;
-      });
+      //     // recursively get applicable watch key pairs for each meta -
+      //     // from top to bottom (e.g. `p`, `p.familia`, `p.familia.cottage`)
+      //     alsoWatchPairs = {
+      //       ...?metas
+      //           ?.map((meta) => _getPairsForMeta(meta._top, model._key!))
+      //           .nonNulls
+      //           .expand((_) => _)
+      //     };
+      //   } else {
+      //     // if there is no model nothing should be watched, reset pairs
+      //     alsoWatchPairs = {};
+      //   }
+      //   return model;
+      // });
+      // TODO restore
     }
 
     final notifier = DataStateNotifier<T?>(
@@ -341,7 +342,8 @@ mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
     if (meta == null) return {};
     print('--- [read] _getPairsForMeta');
 
-    final edges = localAdapter.storage.edgesFor([(ownerKey, meta.name)]);
+    // TODO restore
+    final edges = []; // localAdapter.storage.edgesFor([(ownerKey, meta.name)]);
     final relationshipKeys = {
       for (final e in edges) e.from == ownerKey ? e.to : e.from
     };

@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
 import 'package:flutter_data/flutter_data.dart';
-import 'package:flutter_data/objectbox.g.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:mockito/mockito.dart';
@@ -47,7 +45,8 @@ Future<void> setUpFn() async {
           }
         });
       }),
-      localStorageProvider.overrideWith((ref) => TestObjectboxLocalStorage()),
+      // TODO for tests should override with a MemoryLocalStorage (run sqlite in memory)
+      // localStorageProvider.overrideWith((ref) => InMemoryLocalStorage()),
     ],
   );
 
@@ -203,27 +202,4 @@ extension ProviderContainerX on ProviderContainer {
 
 class Listener<T> extends Mock {
   void call(T value);
-}
-
-class TestObjectboxLocalStorage extends ObjectboxLocalStorage {
-  final r = Random();
-  Store? __store;
-  Store get store => __store!;
-  late final String dir;
-
-  TestObjectboxLocalStorage() {
-    dir = "${Store.inMemoryPrefix}test-${r.nextDouble()}-db";
-  }
-
-  @override
-  Future<LocalStorage> initialize() async {
-    __store = Store(getObjectBoxModel(), directory: dir);
-    return this;
-  }
-
-  @override
-  Future<void> destroy() async {
-    store.close();
-    Store.removeDbFiles(dir);
-  }
 }

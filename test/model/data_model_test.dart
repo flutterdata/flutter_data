@@ -186,9 +186,7 @@ void main() async {
   //   // id-less person
   //   final p1 = Person(name: 'Frank', age: 20).saveLocal();
   //   expect(
-  //       (container.people.remoteAdapter.localAdapter
-  //               as ObjectboxLocalAdapter<Person>)
-  //           .keys,
+  //       container.people.remoteAdapter.localAdapter.keys,
   //       contains(keyFor(p1)));
 
   //   // person with new id, reusing existing key
@@ -197,9 +195,7 @@ void main() async {
   //   // expect(keyFor(p1), keyFor(p2));
 
   //   expect(
-  //       (container.people.remoteAdapter.localAdapter
-  //               as ObjectboxLocalAdapter<Person>)
-  //           .keys,
+  //       container.people.remoteAdapter.localAdapter.keys,
   //       contains(keyFor(p2)));
   // });
 

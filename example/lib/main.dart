@@ -13,13 +13,13 @@ void main() async {
   try {
     final container = ProviderContainer(
       overrides: [
-        localStorageProvider.overrideWith(
-          (ref) => ObjectboxLocalStorage(
-            baseDirFn: () => _dir.path,
-            encryptionKey: _encryptionKey,
-            clear: LocalStorageClearStrategy.always,
-          ),
-        ),
+        // localStorageProvider.overrideWith(
+        //   (ref) => LocalStorage(
+        //     baseDirFn: () => _dir.path,
+        //     encryptionKey: _encryptionKey,
+        //     clear: LocalStorageClearStrategy.always,
+        //   ),
+        // ),
       ],
     );
 
@@ -43,5 +43,3 @@ void main() async {
     _dir.deleteSync(recursive: true);
   }
 }
-
-const String _encryptionKey = '_encryptionKey';

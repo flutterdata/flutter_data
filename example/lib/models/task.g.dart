@@ -8,7 +8,7 @@ part of 'task.dart';
 
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
-mixin $TaskLocalAdapter on LocalAdapter<Task> {
+mixin _$TaskLocalAdapter on LocalAdapter<Task> {
   static final Map<String, RelationshipMeta> _kTaskRelationshipMetas = {
     'user': RelationshipMeta<User>(
       name: 'user',
@@ -39,14 +39,13 @@ mixin $TaskLocalAdapter on LocalAdapter<Task> {
 final _tasksFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $TaskObjectboxLocalAdapter = ObjectboxLocalAdapter<Task>
-    with $TaskLocalAdapter;
+class $TaskLocalAdapter = LocalAdapter<Task> with _$TaskLocalAdapter;
 
 class $TaskRemoteAdapter = RemoteAdapter<Task> with JSONServerAdapter<Task>;
 
 final internalTasksRemoteAdapterProvider = Provider<RemoteAdapter<Task>>(
     (ref) => $TaskRemoteAdapter(
-        $TaskObjectboxLocalAdapter(ref), InternalHolder(_tasksFinders)));
+        $TaskLocalAdapter(ref), InternalHolder(_tasksFinders)));
 
 final tasksRepositoryProvider =
     Provider<Repository<Task>>((ref) => Repository<Task>(ref));
@@ -58,7 +57,7 @@ extension TaskDataRepositoryX on Repository<Task> {
 
 extension TaskRelationshipGraphNodeX on RelationshipGraphNode<Task> {
   RelationshipGraphNode<User> get user {
-    final meta = $TaskLocalAdapter._kTaskRelationshipMetas['user']
+    final meta = _$TaskLocalAdapter._kTaskRelationshipMetas['user']
         as RelationshipMeta<User>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);

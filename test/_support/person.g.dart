@@ -8,7 +8,7 @@ part of 'person.dart';
 
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
-mixin $PersonLocalAdapter on LocalAdapter<Person> {
+mixin _$PersonLocalAdapter on LocalAdapter<Person> {
   static final Map<String, RelationshipMeta> _kPersonRelationshipMetas = {
     'familia': RelationshipMeta<Familia>(
       name: 'familia',
@@ -39,8 +39,7 @@ mixin $PersonLocalAdapter on LocalAdapter<Person> {
 final _peopleFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $PersonObjectboxLocalAdapter = ObjectboxLocalAdapter<Person>
-    with $PersonLocalAdapter;
+class $PersonLocalAdapter = LocalAdapter<Person> with _$PersonLocalAdapter;
 
 class $PersonRemoteAdapter = RemoteAdapter<Person>
     with
@@ -50,7 +49,7 @@ class $PersonRemoteAdapter = RemoteAdapter<Person>
 
 final internalPeopleRemoteAdapterProvider = Provider<RemoteAdapter<Person>>(
     (ref) => $PersonRemoteAdapter(
-        $PersonObjectboxLocalAdapter(ref), InternalHolder(_peopleFinders)));
+        $PersonLocalAdapter(ref), InternalHolder(_peopleFinders)));
 
 final peopleRepositoryProvider =
     Provider<Repository<Person>>((ref) => Repository<Person>(ref));
@@ -66,7 +65,7 @@ extension PersonDataRepositoryX on Repository<Person> {
 
 extension PersonRelationshipGraphNodeX on RelationshipGraphNode<Person> {
   RelationshipGraphNode<Familia> get familia {
-    final meta = $PersonLocalAdapter._kPersonRelationshipMetas['familia']
+    final meta = _$PersonLocalAdapter._kPersonRelationshipMetas['familia']
         as RelationshipMeta<Familia>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);

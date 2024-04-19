@@ -33,8 +33,6 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   Set<String>? _uninitializedKeys;
   String get _internalType => DataHelpers.getInternalType<E>();
 
-  final _edgeOperations = <_EdgeOperation>[]; // MUST be a list to retain order
-
   /// Initializes this relationship (typically when initializing the owner
   /// in [DataModelMixin]) by supplying the owner, and related metadata.
   @protected
@@ -53,60 +51,62 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   }
 
   void save({bool notify = true}) {
-    if (_edgeOperations.isEmpty) return;
+    // TODO restore
+    // if (_edgeOperations.isEmpty) return;
 
-    _adapter.storage.runOperations(_edgeOperations);
+    // _adapter.storage.runOperations(_edgeOperations);
 
-    // notify
-    final additions =
-        _edgeOperations.whereType<AddEdgeOperation>().map((op) => op.edge.to);
-    final updates = _edgeOperations
-        .whereType<UpdateEdgeOperation>()
-        .map((op) => op.edge.to);
-    final removals = _edgeOperations
-        .whereType<RemoveEdgeOperation>()
-        .map((op) => op.edge.to);
+    // // notify
+    // final additions =
+    //     _edgeOperations.whereType<AddEdgeOperation>().map((op) => op.edge.to);
+    // final updates = _edgeOperations
+    //     .whereType<UpdateEdgeOperation>()
+    //     .map((op) => op.edge.to);
+    // final removals = _edgeOperations
+    //     .whereType<RemoveEdgeOperation>()
+    //     .map((op) => op.edge.to);
 
-    if (notify) {
-      if (additions.isNotEmpty) {
-        _adapter.core._notify(
-          [ownerKey, ...additions],
-          metadata: _name,
-          type: DataGraphEventType.addEdge,
-        );
-      }
-      if (updates.isNotEmpty) {
-        _adapter.core._notify(
-          [ownerKey, ...updates],
-          metadata: _name,
-          type: DataGraphEventType.updateEdge,
-        );
-      }
-      // We can safely ignore null removals, because they are always
-      // followed by additions, which notify
-      if (removals.isNotEmpty) {
-        _adapter.core._notify(
-          [ownerKey, ...removals.nonNulls],
-          metadata: _name,
-          type: DataGraphEventType.removeEdge,
-        );
-      }
-    }
+    // if (notify) {
+    //   if (additions.isNotEmpty) {
+    //     _adapter.core._notify(
+    //       [ownerKey, ...additions],
+    //       metadata: _name,
+    //       type: DataGraphEventType.addEdge,
+    //     );
+    //   }
+    //   if (updates.isNotEmpty) {
+    //     _adapter.core._notify(
+    //       [ownerKey, ...updates],
+    //       metadata: _name,
+    //       type: DataGraphEventType.updateEdge,
+    //     );
+    //   }
+    //   // We can safely ignore null removals, because they are always
+    //   // followed by additions, which notify
+    //   if (removals.isNotEmpty) {
+    //     _adapter.core._notify(
+    //       [ownerKey, ...removals.nonNulls],
+    //       metadata: _name,
+    //       type: DataGraphEventType.removeEdge,
+    //     );
+    //   }
+    // }
 
-    // clear and return
-    _edgeOperations.clear();
+    // // clear and return
+    // _edgeOperations.clear();
   }
 
   // implement collection-like methods
 
   bool _add(E value, {bool save = false}) {
-    _edgeOperations.add(AddEdgeOperation(
-      Edge(
-          from: ownerKey,
-          name: name,
-          to: value._key!,
-          inverseName: inverseName),
-    ));
+    // _edgeOperations.add(AddEdgeOperation(
+    //   Edge(
+    //       from: ownerKey,
+    //       name: name,
+    //       to: value._key!,
+    //       inverseName: inverseName),
+    // ));
+    // TODO implement
     if (save) {
       this.save();
       value.save();
@@ -120,13 +120,14 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   }
 
   bool _update(E value, E newValue, {bool save = false}) {
-    _edgeOperations.add(UpdateEdgeOperation(
-        Edge(
-            from: ownerKey,
-            name: name,
-            to: value._key!,
-            inverseName: inverseName),
-        newValue._key!));
+    // _edgeOperations.add(UpdateEdgeOperation(
+    //     Edge(
+    //         from: ownerKey,
+    //         name: name,
+    //         to: value._key!,
+    //         inverseName: inverseName),
+    //     newValue._key!));
+    // TODO implement
     if (save) {
       this.save();
       return true;
@@ -135,8 +136,9 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   }
 
   bool _remove(E value, {bool save = false}) {
-    _edgeOperations.add(
-        RemoveEdgeOperation(Edge(from: ownerKey, name: name, to: value._key!)));
+    // _edgeOperations.add(
+    //     RemoveEdgeOperation(Edge(from: ownerKey, name: name, to: value._key!)));
+    // TODO implement
     if (save) {
       this.save();
       return true;
@@ -169,8 +171,10 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   }
 
   Set<String> _keysFor(String key, String name) {
-    final edges = _adapter.storage.edgesFor([(key, name)]);
-    return {for (final e in edges) e.from == key ? e.to : e.from};
+    // TODO restore
+    return {};
+    // final edges = _adapter.storage.edgesFor([(key, name)]);
+    // return {for (final e in edges) e.from == key ? e.to : e.from};
   }
 
   Set<String> get _keys {
@@ -194,8 +198,10 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   dynamic toJson() => this;
 
   int get length {
-    return _adapter.storage.readTxn(
-        () => _keys.map(_adapter.exists).where((e) => e == true).length);
+    // TODO restore
+    throw UnimplementedError('');
+    // return _adapter.storage.readTxn(
+    //     () => _keys.map(_adapter.exists).where((e) => e == true).length);
   }
 
   /// Whether the relationship has a value.

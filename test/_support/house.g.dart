@@ -8,7 +8,7 @@ part of 'house.dart';
 
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
-mixin $HouseLocalAdapter on LocalAdapter<House> {
+mixin _$HouseLocalAdapter on LocalAdapter<House> {
   static final Map<String, RelationshipMeta> _kHouseRelationshipMetas = {
     'owner': RelationshipMeta<Familia>(
       name: 'owner',
@@ -55,14 +55,13 @@ mixin $HouseLocalAdapter on LocalAdapter<House> {
 final _housesFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $HouseObjectboxLocalAdapter = ObjectboxLocalAdapter<House>
-    with $HouseLocalAdapter;
+class $HouseLocalAdapter = LocalAdapter<House> with _$HouseLocalAdapter;
 
 class $HouseRemoteAdapter = RemoteAdapter<House> with NothingMixin;
 
 final internalHousesRemoteAdapterProvider = Provider<RemoteAdapter<House>>(
     (ref) => $HouseRemoteAdapter(
-        $HouseObjectboxLocalAdapter(ref), InternalHolder(_housesFinders)));
+        $HouseLocalAdapter(ref), InternalHolder(_housesFinders)));
 
 final housesRepositoryProvider =
     Provider<Repository<House>>((ref) => Repository<House>(ref));
@@ -71,21 +70,21 @@ extension HouseDataRepositoryX on Repository<House> {}
 
 extension HouseRelationshipGraphNodeX on RelationshipGraphNode<House> {
   RelationshipGraphNode<Familia> get owner {
-    final meta = $HouseLocalAdapter._kHouseRelationshipMetas['owner']
+    final meta = _$HouseLocalAdapter._kHouseRelationshipMetas['owner']
         as RelationshipMeta<Familia>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 
   RelationshipGraphNode<Book> get currentLibrary {
-    final meta = $HouseLocalAdapter._kHouseRelationshipMetas['currentLibrary']
+    final meta = _$HouseLocalAdapter._kHouseRelationshipMetas['currentLibrary']
         as RelationshipMeta<Book>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 
   RelationshipGraphNode<House> get house {
-    final meta = $HouseLocalAdapter._kHouseRelationshipMetas['house']
+    final meta = _$HouseLocalAdapter._kHouseRelationshipMetas['house']
         as RelationshipMeta<House>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);

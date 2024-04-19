@@ -12,7 +12,7 @@ import '../_support/setup.dart';
 void main() async {
   test('local storage', () async {
     final Directory dir = Directory(kTestsPath);
-    final storage = ObjectboxLocalStorage(
+    final storage = LocalStorage(
       baseDirFn: () => dir.path,
       encryptionKey: '_encryptionKey',
       clear: LocalStorageClearStrategy.always,
@@ -20,7 +20,7 @@ void main() async {
     await storage.initialize();
 
     expect(() {
-      return ObjectboxLocalStorage(
+      return LocalStorage(
         baseDirFn: null,
         encryptionKey: '_encryptionKey',
         clear: LocalStorageClearStrategy.never,

@@ -174,7 +174,7 @@ and execute a code generation build again.
       for (final rel in relationships)
         '''
 RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
-  final meta = \$${className}LocalAdapter._k${className}RelationshipMetas['${rel['key']}']
+  final meta = _\$${className}LocalAdapter._k${className}RelationshipMetas['${rel['key']}']
       as RelationshipMeta<${rel['type']}>;
   return meta.clone(parent: this is RelationshipMeta ? this as RelationshipMeta : null);
 }
@@ -270,7 +270,7 @@ RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
     return '''
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
-mixin \$${className}LocalAdapter on LocalAdapter<$className> {
+mixin _\$${className}LocalAdapter on LocalAdapter<$className> {
   static final Map<String, RelationshipMeta> _k${className}RelationshipMetas = 
     $relationshipMeta;
 
@@ -295,13 +295,13 @@ final _${classNameLower}Finders = <String, dynamic>{
 };
 
 // ignore: must_be_immutable
-class \$${className}ObjectboxLocalAdapter = ObjectboxLocalAdapter<$className> with \$${className}LocalAdapter${localMixins.map((m) => ', $m').join('')};
+class \$${className}LocalAdapter = LocalAdapter<$className> with _\$${className}LocalAdapter${localMixins.map((m) => ', $m').join('')};
 
 class \$${className}RemoteAdapter = RemoteAdapter<$className> with ${mixins.join(', ')};
 
 final internal${classNameLower.capitalize()}RemoteAdapterProvider =
     Provider<RemoteAdapter<$className>>(
-        (ref) => \$${className}RemoteAdapter(\$${className}ObjectboxLocalAdapter(ref), InternalHolder(_${classNameLower}Finders)));
+        (ref) => \$${className}RemoteAdapter(\$${className}LocalAdapter(ref), InternalHolder(_${classNameLower}Finders)));
 
 final ${classNameLower}RepositoryProvider =
     Provider<Repository<$className>>((ref) => Repository<$className>(ref));

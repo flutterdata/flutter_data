@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:flutter_data/flutter_data.dart';
-import 'package:flutter_data/src/core/stored_model.dart';
 import 'package:test/test.dart';
 
 import '../_support/book.dart';

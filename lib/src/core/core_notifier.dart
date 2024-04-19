@@ -39,17 +39,18 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent> {
         return null;
       }
       // TODO rethink this when doing multi-box (it's pulling in `data` right now)
-      final model = (storage as ObjectboxLocalStorage)
-          .store
-          .box<StoredModel>()
-          .get(internalKey);
-      if (model?.id == null) {
-        return null;
-      }
-      if (model!.isInt) {
-        return int.parse(model.id!);
-      }
-      return model.id;
+      throw UnimplementedError('');
+      // final model = storage
+      //     .store
+      //     .box<StoredModel>()
+      //     .get(internalKey);
+      // if (model?.id == null) {
+      //   return null;
+      // }
+      // if (model!.isInt) {
+      //   return int.parse(model.id!);
+      // }
+      // return model.id;
     });
   }
 
@@ -61,18 +62,19 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent> {
     final key =
         model is DataModelMixin ? model._key! : getKeyForId(type, model);
     if (id != null) {
-      final box = (storage as ObjectboxLocalStorage).store.box<StoredModel>();
-      final intKey = key.detypifyKey()!;
-      final model = box.get(intKey);
+      throw UnimplementedError('');
+      // final box = storage.store.box<StoredModel>();
+      // final intKey = key.detypifyKey()!;
+      // final model = box.get(intKey);
 
-      box.put(
-        StoredModel(
-            internalKey: intKey,
-            type: type,
-            data: model?.data,
-            id: id.toString(),
-            isInt: id is int),
-      );
+      // box.put(
+      //   StoredModel(
+      //       internalKey: intKey,
+      //       type: type,
+      //       data: model?.data,
+      //       id: id.toString(),
+      //       isInt: id is int),
+      // );
     }
     return key;
   }

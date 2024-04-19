@@ -8,7 +8,7 @@ part of 'node.dart';
 
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
-mixin $NodeLocalAdapter on LocalAdapter<Node> {
+mixin _$NodeLocalAdapter on LocalAdapter<Node> {
   static final Map<String, RelationshipMeta> _kNodeRelationshipMetas = {
     'parent': RelationshipMeta<Node>(
       name: 'parent',
@@ -46,14 +46,14 @@ mixin $NodeLocalAdapter on LocalAdapter<Node> {
 final _nodesFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $NodeObjectboxLocalAdapter = ObjectboxLocalAdapter<Node>
-    with $NodeLocalAdapter, NodeLocalAdapter;
+class $NodeLocalAdapter = LocalAdapter<Node>
+    with _$NodeLocalAdapter, NodeLocalAdapter;
 
 class $NodeRemoteAdapter = RemoteAdapter<Node> with NodeAdapter;
 
 final internalNodesRemoteAdapterProvider = Provider<RemoteAdapter<Node>>(
     (ref) => $NodeRemoteAdapter(
-        $NodeObjectboxLocalAdapter(ref), InternalHolder(_nodesFinders)));
+        $NodeLocalAdapter(ref), InternalHolder(_nodesFinders)));
 
 final nodesRepositoryProvider =
     Provider<Repository<Node>>((ref) => Repository<Node>(ref));
@@ -64,14 +64,14 @@ extension NodeDataRepositoryX on Repository<Node> {
 
 extension NodeRelationshipGraphNodeX on RelationshipGraphNode<Node> {
   RelationshipGraphNode<Node> get parent {
-    final meta = $NodeLocalAdapter._kNodeRelationshipMetas['parent']
+    final meta = _$NodeLocalAdapter._kNodeRelationshipMetas['parent']
         as RelationshipMeta<Node>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 
   RelationshipGraphNode<Node> get children {
-    final meta = $NodeLocalAdapter._kNodeRelationshipMetas['children']
+    final meta = _$NodeLocalAdapter._kNodeRelationshipMetas['children']
         as RelationshipMeta<Node>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);

@@ -1,22 +1,76 @@
 part of flutter_data;
 
-abstract class LocalStorage {
+class LocalStorage {
+  LocalStorage({
+    this.baseDirFn,
+    this.encryptionKey,
+    LocalStorageClearStrategy? clear,
+  }) : clear = clear ?? LocalStorageClearStrategy.never;
+
   var isInitialized = false;
 
-  Future<LocalStorage> initialize();
-  Future<void> destroy();
-  void dispose();
+  final String? encryptionKey;
+  final FutureOr<String> Function()? baseDirFn;
+  final LocalStorageClearStrategy clear;
+  late final String dirPath;
 
-  Set<Edge> edgesFor(Iterable<(String, String?)> pairs);
-  int removeEdgesFor(Iterable<(String, String?)> pairs);
-  void addEdge(Edge edge);
+  Future<LocalStorage> initialize() async {
+    if (isInitialized) return this;
 
-  void runOperations(Iterable<_EdgeOperation> operations);
+    if (baseDirFn == null) {
+      throw UnsupportedError('''
+A base directory path MUST be supplied to
+the localStorageProvider via the `baseDirFn`
+callback.
 
-  R readTxn<R>(R Function() fn);
-  Future<R> readTxnAsync<R, P>(R Function(Store, P) fn, P param);
-  R writeTxn<R>(R Function() fn, {String? log});
-  Future<R> writeTxnAsync<R, P>(R Function(Store, P) fn, P param);
+In Flutter, `baseDirFn` will be supplied automatically if
+the `path_provider` package is in `pubspec.yaml` AND
+Flutter Data is properly configured:
+
+Did you supply the override?
+
+Widget build(context) {
+  return ProviderContainer(
+    overrides: [
+      configureRepositoryLocalStorage()
+    ],
+    child: MaterialApp(
+''');
+    }
+    final baseDirPath = await baseDirFn!();
+    dirPath = path_helper.join(baseDirPath, 'flutter_data');
+
+    if (clear == LocalStorageClearStrategy.always) {
+      destroy();
+    }
+
+    // try {
+    //   if (Store.isOpen(dirPath)) {
+    //     __store = Store.attach(getXXXBoxModel(), dirPath);
+    //   } else {
+    //     if (!Directory(dirPath).existsSync()) {
+    //       Directory(dirPath).createSync(recursive: true);
+    //     }
+    //     __store = openStore(
+    //       directory: dirPath,
+    //       queriesCaseSensitiveDefault: false,
+    //     );
+    //   }
+    // } catch (e, stackTrace) {
+    //   print('[flutter_data] Failed to open:\n$e\n$stackTrace');
+    // }
+
+    isInitialized = true;
+    return this;
+  }
+
+  Future<void> destroy() async {
+    // Store.removeDbFiles(dirPath);
+  }
+
+  void dispose() {
+    // store.close();
+  }
 }
 
 enum LocalStorageClearStrategy {
@@ -25,10 +79,7 @@ enum LocalStorageClearStrategy {
   whenError,
 }
 
-// Objectbox is the default implementation, but can be overridden
+// sqlite is the default implementation, but can be overridden
 final localStorageProvider = Provider<LocalStorage>(
-  (ref) {
-    print('returning new copy objectboxlocalstorage');
-    return ObjectboxLocalStorage(baseDirFn: () => '');
-  },
+  (ref) => LocalStorage(baseDirFn: () => ''),
 );

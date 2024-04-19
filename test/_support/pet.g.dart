@@ -8,7 +8,7 @@ part of 'pet.dart';
 
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
-mixin $DogLocalAdapter on LocalAdapter<Dog> {
+mixin _$DogLocalAdapter on LocalAdapter<Dog> {
   static final Map<String, RelationshipMeta> _kDogRelationshipMetas = {};
 
   @override
@@ -30,14 +30,12 @@ mixin $DogLocalAdapter on LocalAdapter<Dog> {
 final _dogsFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $DogObjectboxLocalAdapter = ObjectboxLocalAdapter<Dog>
-    with $DogLocalAdapter;
+class $DogLocalAdapter = LocalAdapter<Dog> with _$DogLocalAdapter;
 
 class $DogRemoteAdapter = RemoteAdapter<Dog> with NothingMixin;
 
 final internalDogsRemoteAdapterProvider = Provider<RemoteAdapter<Dog>>((ref) =>
-    $DogRemoteAdapter(
-        $DogObjectboxLocalAdapter(ref), InternalHolder(_dogsFinders)));
+    $DogRemoteAdapter($DogLocalAdapter(ref), InternalHolder(_dogsFinders)));
 
 final dogsRepositoryProvider =
     Provider<Repository<Dog>>((ref) => Repository<Dog>(ref));
@@ -48,7 +46,7 @@ extension DogRelationshipGraphNodeX on RelationshipGraphNode<Dog> {}
 
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
-mixin $CatLocalAdapter on LocalAdapter<Cat> {
+mixin _$CatLocalAdapter on LocalAdapter<Cat> {
   static final Map<String, RelationshipMeta> _kCatRelationshipMetas = {};
 
   @override
@@ -70,14 +68,12 @@ mixin $CatLocalAdapter on LocalAdapter<Cat> {
 final _catsFinders = <String, dynamic>{};
 
 // ignore: must_be_immutable
-class $CatObjectboxLocalAdapter = ObjectboxLocalAdapter<Cat>
-    with $CatLocalAdapter;
+class $CatLocalAdapter = LocalAdapter<Cat> with _$CatLocalAdapter;
 
 class $CatRemoteAdapter = RemoteAdapter<Cat> with NothingMixin;
 
 final internalCatsRemoteAdapterProvider = Provider<RemoteAdapter<Cat>>((ref) =>
-    $CatRemoteAdapter(
-        $CatObjectboxLocalAdapter(ref), InternalHolder(_catsFinders)));
+    $CatRemoteAdapter($CatLocalAdapter(ref), InternalHolder(_catsFinders)));
 
 final catsRepositoryProvider =
     Provider<Repository<Cat>>((ref) => Repository<Cat>(ref));

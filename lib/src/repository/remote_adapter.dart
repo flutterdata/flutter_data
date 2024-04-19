@@ -195,18 +195,6 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     localAdapter.dispose();
   }
 
-  // Transactions
-
-  R readTxn<R>(R Function() fn) => localAdapter.storage.readTxn(fn);
-
-  Future<R> readTxnAsync<R, P>(R Function(Store, P) fn, P param) async =>
-      localAdapter.storage.readTxnAsync(fn, param);
-
-  R writeTxn<R>(R Function() fn) => localAdapter.storage.writeTxn(fn);
-
-  Future<R> writeTxnAsync<R, P>(R Function(Store, P) fn, P param) =>
-      localAdapter.storage.writeTxnAsync(fn, param);
-
   // serialization interface
 
   /// Returns a [DeserializedData] object when deserializing a given [data].
@@ -829,7 +817,9 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   @visibleForTesting
   @nonVirtual
   Set<OfflineOperation<T>> get offlineOperations {
-    final edges = localAdapter.storage.edgesFor([(_offlineAdapterKey, null)]);
+    // TODO restore
+    final edges =
+        []; //localAdapter.storage.edgesFor([(_offlineAdapterKey, null)]);
     return edges
         .map((e) {
           try {
@@ -842,8 +832,9 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
                   label, map, this as RemoteAdapter<T>);
             }
           } catch (_) {
+            // TODO restore
             // if there were any errors parsing labels or json ignore and remove
-            localAdapter.storage.removeEdgesFor([(_offlineAdapterKey, e.name)]);
+            // localAdapter.storage.removeEdgesFor([(_offlineAdapterKey, e.name)]);
           }
         })
         .nonNulls

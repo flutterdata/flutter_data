@@ -31,8 +31,7 @@ void main() async {
   });
 
   test('deserialize existing ID', () {
-    final familiaLocalAdapter = container.familia.remoteAdapter.localAdapter
-        as ObjectboxLocalAdapter<Familia>;
+    final familiaLocalAdapter = container.familia.remoteAdapter.localAdapter;
     final familia = familiaLocalAdapter
         .deserialize({'id': '1098', 'surname': 'Moletto'}).saveLocal();
 

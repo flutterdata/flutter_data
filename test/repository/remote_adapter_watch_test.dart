@@ -400,8 +400,7 @@ void main() async {
           expect(state.isLoading, isFalse);
         } else if (i <= count) {
           expect(state.model, List.generate(i, (_) => matcher));
-          final adapter = container.people.remoteAdapter.localAdapter
-              as ObjectboxLocalAdapter<Person>;
+          final adapter = container.people.remoteAdapter.localAdapter;
           // check box has all the keys
           expect(adapter.keys.length, i);
         } else {
