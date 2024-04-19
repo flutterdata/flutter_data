@@ -16,10 +16,14 @@ void main() async {
   });
 
   test('save without ID', () async {
-    final p = Person(name: 'Luis').saveLocal();
-    final p2 = container.people.remoteAdapter.localAdapter.findOne(keyFor(p))!;
-    expect(p2, p.reloadLocal());
-    expect(keyFor(p), keyFor(p2));
+    final p1 = Person(name: 'Luis').saveLocal();
+    final p2 = container.people.remoteAdapter.localAdapter.findOne(keyFor(p1))!;
+    final p3 = p2.reloadLocal()!;
+
+    expect(p1, p2);
+    expect(p2, p3);
+    expect(keyFor(p1), keyFor(p2));
+    expect(keyFor(p2), keyFor(p3));
   });
 
   test('current and deserialized equals share same key', () async {

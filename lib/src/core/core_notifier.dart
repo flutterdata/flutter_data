@@ -23,35 +23,34 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent> {
   ///  - Attempts a lookup by [type]/[id]
   ///  - If the key was not found, it returns a default [orElse]
   ///    (if provided)
-  String getKeyForId(String type, Object? id, {String? orElse}) {
-    if (id == null || id.toString().isEmpty) {
-      return orElse ?? DataHelpers.generateTempKey(type);
+  String getKeyForId(String type, Object? id) {
+    var result = storage.db.select(
+        'SELECT key FROM keys WHERE type = ? AND id = ?',
+        [type, id?.toString()]);
+    if (result.isEmpty) {
+      result = storage.db.select(
+          'INSERT INTO keys (type, id, is_int) VALUES (?, ?, ?) RETURNING key;',
+          [type, id?.toString(), id is int]);
     }
-    type = DataHelpers.internalTypeFor(type);
-    return DataHelpers.fastHashId(type, id.toString());
+    return result.first['key'].toString().typifyWith(type);
   }
 
   /// Finds an ID, given a [key].
   Object? getIdForKey(String key) {
-    return logTime(null, () {
-      final internalKey = key.detypifyKey();
-      if (internalKey == null) {
-        return null;
-      }
-      // TODO rethink this when doing multi-box (it's pulling in `data` right now)
-      throw UnimplementedError('');
-      // final model = storage
-      //     .store
-      //     .box<StoredModel>()
-      //     .get(internalKey);
-      // if (model?.id == null) {
-      //   return null;
-      // }
-      // if (model!.isInt) {
-      //   return int.parse(model.id!);
-      // }
-      // return model.id;
-    });
+    final intKey = key.detypifyKey();
+    if (intKey == null) {
+      return null;
+    }
+    final result = storage.db
+        .select('SELECT id, is_int FROM keys WHERE key = ?', [intKey]);
+    if (result.isEmpty) {
+      return null;
+    }
+    final [id, isInt] = [result.first['id'], result.first['is_int']];
+    if (isInt) {
+      return int.parse(id);
+    }
+    return id;
   }
 
   @protected

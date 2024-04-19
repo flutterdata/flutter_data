@@ -127,7 +127,7 @@ Future<void> tearDownFn() async {
   container.bookAuthors.dispose();
   container.libraries.dispose();
   core.dispose();
-  storage.destroy();
+  await storage.destroy();
 
   logging.clear();
   await oneMs();

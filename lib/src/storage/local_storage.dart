@@ -14,6 +14,8 @@ class LocalStorage {
   final LocalStorageClearStrategy clear;
   late final String dirPath;
 
+  late final Database db;
+
   Future<LocalStorage> initialize() async {
     if (isInitialized) return this;
 
@@ -44,32 +46,48 @@ Widget build(context) {
       destroy();
     }
 
-    // try {
-    //   if (Store.isOpen(dirPath)) {
-    //     __store = Store.attach(getXXXBoxModel(), dirPath);
-    //   } else {
-    //     if (!Directory(dirPath).existsSync()) {
-    //       Directory(dirPath).createSync(recursive: true);
-    //     }
-    //     __store = openStore(
-    //       directory: dirPath,
-    //       queriesCaseSensitiveDefault: false,
-    //     );
-    //   }
-    // } catch (e, stackTrace) {
-    //   print('[flutter_data] Failed to open:\n$e\n$stackTrace');
-    // }
+    try {
+      db = sqlite3.open('./test.db');
+
+      db.execute('''
+        PRAGMA journal_mode = WAL;
+        
+        CREATE TABLE IF NOT EXISTS edges (
+          src INTEGER NOT NULL,
+          name TEXT NOT NULL,
+          dest INTEGER NOT NULL,
+          inverse TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS keys (
+          key INTEGER PRIMARY KEY AUTOINCREMENT,
+          type TEXT NOT NULL,
+          id TEXT,
+          is_int INTEGER DEFAULT 0
+        );
+      ''');
+    } catch (e, stackTrace) {
+      print('[flutter_data] Failed to open:\n$e\n$stackTrace');
+    }
 
     isInitialized = true;
     return this;
   }
 
   Future<void> destroy() async {
-    // Store.removeDbFiles(dirPath);
+    db.dispose();
+    final directory = Directory('.');
+    final files = await directory.list().toList();
+    for (final file in files) {
+      if (file is File && file.path.startsWith('./test.db')) {
+        await file.delete();
+      }
+    }
   }
 
   void dispose() {
     // store.close();
+    db.dispose();
   }
 }
 

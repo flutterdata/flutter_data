@@ -31,16 +31,12 @@ extension _ListX<T> on List<T> {
 }
 
 extension DynamicX on dynamic {
-  // # separates integers, ## separates strings
-  String typifyWith(String type, [String separator = '#']) {
+  String typifyWith(String type) {
     final _this = this.toString();
-    if (type.contains(separator) || _this.startsWith(separator)) {
-      throw ArgumentError();
-    }
     if (this == null || _this.isEmpty) {
       return type;
     }
-    return '$type$separator${_this.isNotEmpty ? ('${this is! int ? separator : ''}$_this') : ''}';
+    return '$type#${_this.isNotEmpty ? _this : ''}';
   }
 }
 

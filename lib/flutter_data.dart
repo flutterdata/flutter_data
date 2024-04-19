@@ -3,6 +3,7 @@ library flutter_data;
 // import external packages
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:math' show Random;
 import 'dart:typed_data';
@@ -15,6 +16,7 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path_helper;
 import 'package:pool/pool.dart';
 import 'package:riverpod/riverpod.dart';
+import 'package:sqlite3/sqlite3.dart';
 import 'package:state_notifier/state_notifier.dart';
 
 // import internal packages

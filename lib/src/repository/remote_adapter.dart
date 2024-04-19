@@ -184,6 +184,8 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     _remote = remote ?? true;
     _ref = ref;
 
+    await localAdapter.initialize();
+
     // hook for clients
     await onInitialized();
 
