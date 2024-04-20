@@ -285,7 +285,7 @@ void main() async {
       listener(e);
     }, fireImmediately: false);
 
-    familia.persons.add(Person(id: '1', name: 'Ricky'), save: true);
+    familia.persons.add(Person(id: '1', name: 'Ricky'));
     await oneMs();
 
     verify(listener(DataState(familia))).called(1);
@@ -614,7 +614,6 @@ void main() async {
     verify(listener(argThat(matcher))).called(1);
 
     p1.familia.value = f1;
-    p1.familia.save();
     await oneMs();
 
     final matcher2 = isA<DataState>()
@@ -625,7 +624,7 @@ void main() async {
 
     verify(listener(argThat(matcher2))).called(1);
 
-    f1.persons.add(Person(name: 'Martin', age: 44), save: true);
+    f1.persons.add(Person(name: 'Martin', age: 44));
     await oneMs();
 
     verify(listener(argThat(
@@ -634,7 +633,6 @@ void main() async {
     verifyNoMoreInteractions(listener);
 
     f1.residence.value = House(address: '123 Main St').saveLocal();
-    f1.residence.save();
     await oneMs();
 
     verify(listener(argThat(
@@ -643,7 +641,7 @@ void main() async {
     ))).called(1);
     verifyNoMoreInteractions(listener);
 
-    f1.persons.remove(p1, save: true);
+    f1.persons.remove(p1);
     await oneMs();
 
     verify(listener(argThat(
@@ -653,7 +651,6 @@ void main() async {
 
     // a non-watched relationship does not trigger
     f1.cottage.value = House(address: '7342 Mountain Rd').saveLocal();
-    f1.cottage.save();
     await oneMs();
 
     verifyNever(listener(any));
@@ -710,7 +707,6 @@ void main() async {
       cottage: cottage.asBelongsTo,
     ).saveLocal();
     steve.familia.value = familia;
-    steve.familia.save();
     await oneMs();
 
     verify(listener(argThat(matcher))).called(1);

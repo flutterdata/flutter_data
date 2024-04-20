@@ -1,5 +1,3 @@
-@Timeout(Duration(minutes: 10))
-
 import 'package:flutter_data/flutter_data.dart';
 import 'package:test/test.dart';
 
@@ -32,7 +30,7 @@ void main() async {
   test('on model init', () async {
     Node(id: 3, name: 'child');
     // child is saved on model init, so it should find it
-    final result = await container.nodes.findOne(3);
+    final result = container.nodes.findOneLocalById(3);
     expect(result!.id, 3);
   });
 

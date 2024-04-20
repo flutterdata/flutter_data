@@ -18,7 +18,6 @@ void main() async {
     f1.persons.add(p1);
     f1.persons.add(Person(id: '1', name: 'Manuel').saveLocal());
     f1.persons.add(Person(id: '2', name: 'Carlos').saveLocal());
-    f1.persons.save();
 
     expect(f1.persons.toList().map((p) => p.id), {'1', '2'});
   });
@@ -28,20 +27,19 @@ void main() async {
     final anne = Person(name: 'Anne', age: 59).saveLocal();
     final residence = House(address: '1322 Hill Rd').saveLocal();
     final f2 = Familia(
-      surname: 'Sumberg',
+      surname: 'Sunberg',
       persons: {pete}.asHasMany,
       cottage: BelongsTo(),
       residence: residence.asBelongsTo,
     ).saveLocal();
 
     f2.persons.add(pete);
-    f2.persons.add(pete, save: true);
     expect(f2.persons.length, 1);
 
-    f2.persons.add(anne, save: true);
+    f2.persons.add(anne);
     expect(f2.persons.length, 2);
 
-    f2.persons.remove(anne, save: true);
+    f2.persons.remove(anne);
     expect(f2.persons.toSet(), {pete});
 
     expect(DataModelMixin.relationshipsFor(f2),
@@ -53,8 +51,11 @@ void main() async {
         .first
         .owner;
 
-    f2.persons.addAll([anne, Person(name: 'Frida'), Person(name: 'Roger')],
-        save: true);
+    f2.persons.addAll([
+      anne,
+      Person(name: 'Frida').saveLocal(),
+      Person(name: 'Roger').saveLocal()
+    ]);
     expect(f2.persons.length, equals(4));
   });
 
@@ -63,10 +64,10 @@ void main() async {
         Familia(id: '1', surname: 'Smith', persons: HasMany()).saveLocal();
     final person = Person(id: '1', name: 'Flavio', age: 12).saveLocal();
 
-    familia.persons.add(person, save: true);
+    familia.persons.add(person);
     expect(familia.persons.contains(person), isTrue);
 
-    familia.persons.add(person, save: true);
+    familia.persons.add(person);
     expect(familia.persons.contains(person), isTrue);
   });
 
@@ -84,25 +85,25 @@ void main() async {
     final p1 = Person(name: 'a', age: 1).saveLocal();
     final p2 = Person(name: 'b', age: 2).saveLocal();
 
-    familia.persons.add(p1, save: true);
+    familia.persons.add(p1);
     // await oneMs();
     expect(familia.persons.keys, {keyFor(p1)});
 
     verify(listener({p1})).called(1);
 
     expect(familia.persons.keys, {keyFor(p1)});
-    familia.persons.add(p2, save: true);
+    familia.persons.add(p2);
     // await oneMs();
 
     expect(familia.persons.keys, {keyFor(p1), keyFor(p2)});
     verify(listener({p1, p2})).called(1);
 
-    familia.persons.remove(p1, save: true);
+    familia.persons.remove(p1);
     // await oneMs();
 
     verify(listener({p2})).called(1);
 
-    familia.persons.add(p1, save: true);
+    familia.persons.add(p1);
     // await oneMs();
 
     // NOTE: it is actually called once, I don't know what's wrong with this

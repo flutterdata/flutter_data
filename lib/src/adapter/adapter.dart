@@ -210,14 +210,13 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     //   print('received; $event');
     // });
     await _runInIsolate((container) async {
-      final ddb = container.read(localStorageProvider).db;
-      // final z = ddb.select('SELECT count(*) FROM _keys');
-      // print(z);
+      final db = container.read(localStorageProvider).db;
 
       final grouped = models.groupSetsBy((e) => e._adapter);
       for (final e in grouped.entries) {
         final adapter = e.key;
-        final ps = ddb.prepare(
+        // TODO use prepareMultiple
+        final ps = db.prepare(
             'REPLACE INTO ${adapter.internalType} (key, data) VALUES (?, ?)');
         for (final model in e.value) {
           final key = model._key!.detypifyKey();

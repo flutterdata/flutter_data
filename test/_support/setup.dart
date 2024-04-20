@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -44,10 +45,11 @@ Future<void> setUpFn() async {
           }
         });
       }),
-      // NOTE: can't enable in memory for now because of isolates
-      // localStorageProvider.overrideWith((ref) => InMemoryLocalStorage()),
-      localStorageProvider
-          .overrideWith((ref) => LocalStorage(baseDirFn: () => kTestsPath)),
+      // NOTE: Can't enable in-memory sqlite as it can't be shared across isolates
+      localStorageProvider.overrideWith(
+        (ref) => LocalStorage(
+            baseDirFn: () => Directory.systemTemp.createTempSync().path),
+      ),
     ],
   );
 
@@ -73,7 +75,7 @@ Future<void> tearDownFn() async {
   dispose?.call();
 
   core.dispose();
-  core.storage.dispose(); // TODO should dispose of storage inside core dispose
+  core.storage.dispose();
   await core.storage.destroy();
 
   logging.clear();

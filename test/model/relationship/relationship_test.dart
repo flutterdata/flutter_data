@@ -154,10 +154,10 @@ void main() async {
     final f2 = Familia(surname: 'Kamchatka', persons: HasMany()).saveLocal();
     final igor2 =
         Person(name: 'Igor', age: 33, familia: BelongsTo()).saveLocal();
-    f2.persons.add(igor2, save: true);
+    f2.persons.add(igor2);
     expect(f2.persons.first.familia.value!.surname, 'Kamchatka');
 
-    f2.persons.remove(igor2, save: true);
+    f2.persons.remove(igor2);
     expect(f2.persons, isEmpty);
 
     final residence = House(address: 'Sakharova Prospekt, 19').saveLocal();
@@ -165,13 +165,11 @@ void main() async {
         .saveLocal();
     expect(f3.residence.value!.owner.value!.surname, 'Kamchatka');
     f3.residence.value = null;
-    f3.residence.save();
     expect(f3.residence.value, isNull);
 
     final f4 =
         Familia(surname: 'Kamchatka', residence: BelongsTo()).saveLocal();
     f4.residence.value = House(address: 'Sakharova Prospekt, 19').saveLocal();
-    f4.residence.save();
     f4.saveLocal();
     expect(f4.residence.value!.owner.value!.surname, 'Kamchatka');
   });

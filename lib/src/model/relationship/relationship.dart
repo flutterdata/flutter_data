@@ -70,111 +70,40 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
     return this;
   }
 
-  void save({bool notify = true}) {
-    // TODO restore
-    // if (_edgeOperations.isEmpty) return;
-
-    // _adapter.storage.runOperations(_edgeOperations);
-
-    // // notify
-    // final additions =
-    //     _edgeOperations.whereType<AddEdgeOperation>().map((op) => op.edge.to);
-    // final updates = _edgeOperations
-    //     .whereType<UpdateEdgeOperation>()
-    //     .map((op) => op.edge.to);
-    // final removals = _edgeOperations
-    //     .whereType<RemoveEdgeOperation>()
-    //     .map((op) => op.edge.to);
-
-    // if (notify) {
-    //   if (additions.isNotEmpty) {
-    //     _adapter.core._notify(
-    //       [ownerKey, ...additions],
-    //       metadata: _name,
-    //       type: DataGraphEventType.addEdge,
-    //     );
-    //   }
-    //   if (updates.isNotEmpty) {
-    //     _adapter.core._notify(
-    //       [ownerKey, ...updates],
-    //       metadata: _name,
-    //       type: DataGraphEventType.updateEdge,
-    //     );
-    //   }
-    //   // We can safely ignore null removals, because they are always
-    //   // followed by additions, which notify
-    //   if (removals.isNotEmpty) {
-    //     _adapter.core._notify(
-    //       [ownerKey, ...removals.nonNulls],
-    //       metadata: _name,
-    //       type: DataGraphEventType.removeEdge,
-    //     );
-    //   }
-    // }
-
-    // // clear and return
-    // _edgeOperations.clear();
-  }
-
   // implement collection-like methods
 
-  bool _add(E value, {bool save = false}) {
-    // _edgeOperations.add(AddEdgeOperation(
-    //   Edge(
-    //       from: ownerKey,
-    //       name: name,
-    //       to: value._key!,
-    //       inverseName: inverseName),
-    // ));
-
-    db.execute(
-        'INSERT INTO _edges (src, name, dest, inverse) VALUES (?, ?, ?, ?)',
-        [ownerKey, name, value._key!, inverseName]);
-
-    if (save) {
-      this.save();
-      value.save();
-      return true;
+  void _addAll(Iterable<E> values) {
+    final ps = db.prepare(
+        'REPLACE INTO _edges (src, name, dest, inverse) VALUES (?, ?, ?, ?)');
+    final additions = [];
+    for (final value in values) {
+      ps.execute([ownerKey, name, value._key!, inverseName]);
+      additions.add(value._key!);
     }
-    return false;
+    ps.dispose();
+
+    _adapter.core._notify(
+      [ownerKey, ...additions],
+      metadata: _name,
+      type: DataGraphEventType.addEdge,
+    );
   }
 
   bool _contains(E? element) {
     return _iterable.contains(element);
   }
 
-  bool _update(E value, E newValue, {bool save = false}) {
-    // _edgeOperations.add(UpdateEdgeOperation(
-    //     Edge(
-    //         from: ownerKey,
-    //         name: name,
-    //         to: value._key!,
-    //         inverseName: inverseName),
-    //     newValue._key!));
-
+  bool _update(E value, E newValue) {
     db.execute(
         'UPDATE _edges SET dest = ? WHERE src = ? AND name = ? AND dest = ?',
         [newValue._key!, ownerKey, name, value._key!]);
-
-    if (save) {
-      this.save();
-      return true;
-    }
-    return false;
+    return true;
   }
 
-  bool _remove(E value, {bool save = false}) {
-    // _edgeOperations.add(
-    //     RemoveEdgeOperation(Edge(from: ownerKey, name: name, to: value._key!)));
-
+  bool _remove(E value) {
     db.execute('DELETE FROM _edges WHERE src = ? AND name = ? AND dest = ?',
         [ownerKey, name, value._key!]);
-
-    if (save) {
-      this.save();
-      return true;
-    }
-    return false;
+    return true;
   }
 
   Iterable<Relationship>
