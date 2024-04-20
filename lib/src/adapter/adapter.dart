@@ -930,8 +930,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   @nonVirtual
   Set<OfflineOperation<T>> get offlineOperations {
     // TODO restore
-    final edges =
-        []; //localAdapter.storage.edgesFor([(_offlineAdapterKey, null)]);
+    final edges = []; // storage.edgesFor([(_offlineAdapterKey, null)]);
     return edges
         .map((e) {
           try {
@@ -946,7 +945,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
           } catch (_) {
             // TODO restore
             // if there were any errors parsing labels or json ignore and remove
-            // localAdapter.storage.removeEdgesFor([(_offlineAdapterKey, e.name)]);
+            // storage.removeEdgesFor([(_offlineAdapterKey, e.name)]);
           }
         })
         .nonNulls

@@ -34,22 +34,22 @@ void main() async {
   });
 
   test('deserialize existing ID', () {
-    final familiaLocalAdapter = container.familia;
-    final familia = familiaLocalAdapter
-        .deserialize({'id': '1098', 'surname': 'Moletto'}).saveLocal();
+    final adapter = container.familia;
+    final familia =
+        adapter.deserialize({'id': '1098', 'surname': 'Moletto'}).saveLocal();
 
-    expect(familiaLocalAdapter.keys, [keyFor(familia)]);
+    expect(adapter.keys, [keyFor(familia)]);
     expect(familia, Familia(id: '1098', surname: 'Moletto'));
   });
 
   test('deserialize many local for same remote ID', () {
-    final familiaLocalAdapter = container.familia;
-    final familia1 = familiaLocalAdapter.deserialize({
+    final adapter = container.familia;
+    final familia1 = adapter.deserialize({
       'id': '1298',
       'surname': 'Helsinki',
     });
 
-    final familia2 = familiaLocalAdapter.deserialize({
+    final familia2 = adapter.deserialize({
       'id': '1298',
       'surname': 'Oslo',
     });
@@ -59,7 +59,7 @@ void main() async {
   });
 
   test('local serialize with and without relationships', () {
-    final familiaLocalAdapter = container.familia;
+    final adapter = container.familia;
     final person = Person(id: '4', name: 'Franco', age: 28);
     final house = House(id: '1', address: '123 Main St');
 
@@ -70,7 +70,7 @@ void main() async {
             persons: {person}.asHasMany)
         .saveLocal();
 
-    final map = familiaLocalAdapter.serialize(familia);
+    final map = adapter.serialize(familia);
     expect(map, {
       'id': '1',
       'surname': 'Smith',
@@ -82,7 +82,7 @@ void main() async {
     // still serializes the defaults
     final familia2 = Familia(id: '1', surname: 'Smith');
 
-    final map2 = familiaLocalAdapter.serialize(familia2);
+    final map2 = adapter.serialize(familia2);
     expect(map2, {
       'id': '1',
       'surname': 'Smith',
@@ -91,7 +91,7 @@ void main() async {
     });
 
     final mapWithoutRelationships =
-        familiaLocalAdapter.serialize(familia, withRelationships: false);
+        adapter.serialize(familia, withRelationships: false);
     expect(mapWithoutRelationships, {
       'id': '1',
       'surname': 'Smith',
@@ -99,7 +99,7 @@ void main() async {
   });
 
   test('local deserialize', () {
-    final familiaLocalAdapter = container.familia;
+    final adapter = container.familia;
     final p1r = {Person(id: '1', name: 'Franco', age: 28)}.asHasMany;
     final h1r = House(id: '1', address: '12345 Long Rd').asBelongsTo;
     final fam = Familia(id: '1', surname: 'Smith', persons: p1r, cottage: h1r);
@@ -109,7 +109,7 @@ void main() async {
       'surname': 'Smith',
     };
 
-    final familia = familiaLocalAdapter.deserialize(map);
+    final familia = adapter.deserialize(map);
     expect(
         familia,
         Familia(
@@ -121,14 +121,14 @@ void main() async {
   });
 
   test('local deserialize with relationships', () {
-    final familiaLocalAdapter = container.familia;
+    final adapter = container.familia;
 
     final obj = {
       'id': '1',
       'surname': 'Smith',
     };
 
-    final familia = familiaLocalAdapter.deserialize(obj);
+    final familia = adapter.deserialize(obj);
     House(id: '1', address: '123 Main St', owner: familia.asBelongsTo)
         .saveLocal();
     Person(id: '1', name: 'John', age: 21, familia: familia.asBelongsTo)
@@ -140,14 +140,14 @@ void main() async {
   });
 
   test('local deserialize with custom local adapter', () {
-    final nodeLocalAdapter = container.nodes;
+    final adapter = container.nodes;
 
     final obj = {
       'id': 1,
       'name': 'node',
     };
 
-    final node = nodeLocalAdapter.deserialize(obj);
+    final node = adapter.deserialize(obj);
     expect(node.name, 'local');
   });
 

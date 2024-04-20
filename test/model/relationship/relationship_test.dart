@@ -15,10 +15,9 @@ void main() async {
   tearDown(tearDownFn);
 
   test('scenario #1', () {
-    final familiaLocalAdapter = container.familia;
+    final adapter = container.familia;
 
-    final f1 = familiaLocalAdapter
-        .deserialize({'id': '1', 'surname': 'Rose'}).saveLocal();
+    final f1 = adapter.deserialize({'id': '1', 'surname': 'Rose'}).saveLocal();
     expect(f1.residence.value, isNull);
     expect(keyFor(f1), isNotNull);
 
@@ -29,7 +28,7 @@ void main() async {
     expect(f1.residence.value!.owner.value, f1);
     expect(house.owner.value, f1);
 
-    final f1b = familiaLocalAdapter.deserialize({
+    final f1b = adapter.deserialize({
       'id': '1',
       'surname': 'Rose',
     }).saveLocal();
@@ -44,15 +43,14 @@ void main() async {
     expect(f1b.persons, isNotEmpty);
 
     // relationships are omitted - so they remain unchanged
-    final f1c = familiaLocalAdapter
-        .deserialize({'id': '1', 'surname': 'Rose'}).saveLocal();
+    final f1c = adapter.deserialize({'id': '1', 'surname': 'Rose'}).saveLocal();
     expect(f1c.persons.toSet(), {p1});
     expect(f1c.residence.value, isNotNull);
 
     final p2 = Person(id: '2', name: 'Brian', age: 55).saveLocal();
 
     // persons has changed from [1] to [2]
-    final f1d = familiaLocalAdapter.deserialize({
+    final f1d = adapter.deserialize({
       'id': '1',
       'surname': 'Rose',
       'persons': [keyFor(p2)]
@@ -65,7 +63,7 @@ void main() async {
     expect(p1.familia.value, isNull);
 
     // relationships are explicitly set to null
-    final f1e = familiaLocalAdapter.deserialize({
+    final f1e = adapter.deserialize({
       'id': '1',
       'surname': 'Rose',
       'persons': null,
@@ -78,11 +76,11 @@ void main() async {
   });
 
   test('scenario #1b (inverse)', () {
-    final houseLocalAdapter = container.houses;
+    final adapter = container.houses;
     // deserialize house, owner does not exist
     // since we're passing a key (not an ID)
     // we MUST use the local adapter serializer
-    final h1 = houseLocalAdapter.deserialize({
+    final h1 = adapter.deserialize({
       'id': '1',
       'address': '123 Main St',
       'owner': 'familia#1802989786345234819'

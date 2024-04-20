@@ -86,7 +86,7 @@ class OfflineOperation<T extends DataModelMixin<T>> with EquatableMixin {
       adapter.log(label, 'offline/add $metadata');
       // TODO restore
       // final data = json.encode(toJson());
-      // adapter.localAdapter.storage
+      // adapter.storage
       //     .addEdge(Edge(from: _offlineAdapterKey, name: metadata, to: data));
 
       // keep callbacks in memory
@@ -107,7 +107,7 @@ class OfflineOperation<T extends DataModelMixin<T>> with EquatableMixin {
     // final metadata = metadataFor(label);
 
     // TODO restore
-    // final removed = adapter.localAdapter.storage
+    // final removed = adapter.storage
     //     .removeEdgesFor([(_offlineAdapterKey, metadata)]);
 
     // if (removed > 0) {
@@ -162,7 +162,7 @@ extension OfflineOperationsX on Set<OfflineOperation<DataModelMixin>> {
     final adapter = first.adapter;
 
     // TODO restore
-    // adapter.localAdapter.storage.removeEdgesFor([(_offlineAdapterKey, null)]);
+    // adapter.storage.removeEdgesFor([(_offlineAdapterKey, null)]);
 
     adapter.ref.read(_offlineCallbackProvider).clear();
   }

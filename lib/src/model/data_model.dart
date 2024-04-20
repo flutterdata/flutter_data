@@ -14,7 +14,7 @@ abstract class DataModel<T extends DataModel<T>> with DataModelMixin<T> {
 
   // static T withKey<T extends DataModelMixin<T>>(String sourceKey,
   //     {required T applyTo}) {
-  //   final core = applyTo._remoteAdapter.core;
+  //   final core = applyTo._adapter.core;
   //   final type = applyTo._internalType;
 
   //   // ONLY data we keep from source is its key
@@ -26,7 +26,7 @@ abstract class DataModel<T extends DataModel<T>> with DataModelMixin<T> {
   //     applyTo._key = sourceKey;
 
   //     // migrate relationships to new key
-  //     applyTo._remoteAdapter.localAdapter
+  //     applyTo._adapter
   //         ._initializeRelationships(applyTo, fromKey: sourceKey);
 
   //     if (applyTo.id != null) {

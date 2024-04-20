@@ -244,7 +244,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _BaseAdapter<T> {
     // closure to get latest model and watchable relationship pairs
     T? _getUpdatedModel() {
       // return localAdapter.storage.readTxn(() {
-      //   final model = localAdapter.findOne(key);
+      //   final model = findOneLocal(key);
       //   if (model != null) {
       //     // get all metas provided via `alsoWatch`
       //     final metas = alsoWatch
@@ -443,7 +443,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _BaseAdapter<T> {
     print('--- [read] _getPairsForMeta');
 
     // TODO restore
-    final edges = []; // localAdapter.storage.edgesFor([(ownerKey, meta.name)]);
+    final edges = []; // storage.edgesFor([(ownerKey, meta.name)]);
     final relationshipKeys = {
       for (final e in edges) e.from == ownerKey ? e.to : e.from
     };
