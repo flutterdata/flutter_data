@@ -505,7 +505,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
     String? finder,
     DataRequestLabel? label,
   }) {
-    final key = core.keyForModelOrId(internalType, model);
+    final key = core.getKeyForModelOrId(internalType, model);
 
     remote ??= _remote;
     final relationshipMetas = alsoWatch

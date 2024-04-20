@@ -15,7 +15,7 @@ void main() async {
 
   test('save', () async {
     final familia = Familia(id: '55', surname: 'Kelley');
-    expect(container.familia.findOneLocal('55'), isNull);
+    expect(container.familia.findOneLocalById('55'), isNull);
 
     final person =
         Person(id: '1', name: 'John', age: 27, familia: familia.asBelongsTo);
@@ -25,7 +25,7 @@ void main() async {
     expect(person.familia.key, core.getKeyForId('familia', '55'));
 
     // (2) it saves the model locally
-    final e2 = container.people.findOneLocal(person.id!);
+    final e2 = container.people.findOneLocalById(person.id!);
     expect(e2, person);
   });
 
@@ -167,19 +167,19 @@ void main() async {
     final adapter = container.people;
     // create a person WITH ID and assert it's there
     final person = Person(id: '21103', name: 'John', age: 54).saveLocal();
-    expect(adapter.findAll(), hasLength(1));
+    expect(adapter.findAllLocal(), hasLength(1));
 
     // delete that person and assert it's not there
     await person.delete();
-    expect(adapter.findAll(), hasLength(0));
+    expect(adapter.findAllLocal(), hasLength(0));
 
     // create a person WITHOUT ID and assert it's there
     final person2 = Person(name: 'Peter', age: 101).saveLocal();
-    expect(adapter.findAll(), hasLength(1));
+    expect(adapter.findAllLocal(), hasLength(1));
 
     // delete that person (this time via `deleteLocal`) and assert it's not there
     person2.deleteLocal();
-    expect(adapter.findAll(), hasLength(0));
+    expect(adapter.findAllLocal(), hasLength(0));
   });
 
   // test('should reuse key', () {

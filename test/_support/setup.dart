@@ -45,8 +45,7 @@ Future<void> setUpFn() async {
           }
         });
       }),
-      // TODO for tests should override with a MemoryLocalStorage (run sqlite in memory)
-      // localStorageProvider.overrideWith((ref) => InMemoryLocalStorage()),
+      localStorageProvider.overrideWith((ref) => InMemoryLocalStorage()),
     ],
   );
 
@@ -86,7 +85,7 @@ Future<void> setUpFn() async {
       .read(dogsAdapterProvider)
       .initialize(remote: false, adapters: adapterGraph, ref: ref);
   internalAdapters['bookAuthors'] = await container
-      .read(booksAdapterProvider)
+      .read(bookAuthorsAdapterProvider)
       .initialize(remote: false, adapters: adapterGraph, ref: ref);
   internalAdapters['books'] = await container
       .read(booksAdapterProvider)

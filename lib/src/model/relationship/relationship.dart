@@ -31,6 +31,8 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   Set<String>? _uninitializedKeys;
   String get _internalType => DataHelpers.getInternalType<E>();
 
+  Database get db => _adapter.storage.db;
+
   /// Initializes this relationship (typically when initializing the owner
   /// in [DataModelMixin]) by supplying the owner, and related metadata.
   @protected
@@ -44,6 +46,26 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
     _ownerKey = ownerKey;
     _name = name;
     _inverseName = inverseName;
+
+    if (_uninitializedKeys == null) {
+      return this;
+    }
+
+    // setting up from scratch, remove all and add keys
+
+    db.execute(
+        'DELETE FROM edges WHERE (src = ? AND name = ?) OR (dest = ? AND inverse = ?)',
+        [_ownerKey!, _name!, _ownerKey!, _name!]);
+
+    final ps = db.prepare(
+        'INSERT INTO edges (src, name, dest, inverse) VALUES (?, ?, ?, ?)');
+
+    for (final key in _uninitializedKeys!) {
+      ps.execute([_ownerKey!, _name, key, _inverseName]);
+    }
+    ps.dispose();
+
+    _uninitializedKeys!.clear();
 
     return this;
   }
@@ -104,7 +126,11 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
     //       to: value._key!,
     //       inverseName: inverseName),
     // ));
-    // TODO implement
+
+    db.execute(
+        'INSERT INTO edges (src, name, dest, inverse) VALUES (?, ?, ?, ?)',
+        [ownerKey, name, value._key!, inverseName]);
+
     if (save) {
       this.save();
       value.save();
@@ -125,7 +151,10 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
     //         to: value._key!,
     //         inverseName: inverseName),
     //     newValue._key!));
-    // TODO implement
+
+    db.execute('UPDATE edges SET src = ? WHERE src = ? AND name = ?',
+        [newValue._key!, ownerKey, name]);
+
     if (save) {
       this.save();
       return true;
@@ -136,7 +165,10 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   bool _remove(E value, {bool save = false}) {
     // _edgeOperations.add(
     //     RemoveEdgeOperation(Edge(from: ownerKey, name: name, to: value._key!)));
-    // TODO implement
+
+    db.execute('DELETE FROM edges WHERE src = ? AND name = ? AND dest = ?',
+        [ownerKey, name, value._key!]);
+
     if (save) {
       this.save();
       return true;
@@ -169,10 +201,11 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   }
 
   Set<String> _keysFor(String key, String name) {
-    // TODO restore
-    return {};
+    final result = _adapter.storage.db.select(
+        'SELECT src, dest FROM edges WHERE (src = ? AND name = ?) OR (dest = ? AND inverse = ?)',
+        [key, name, key, name]);
     // final edges = _adapter.storage.edgesFor([(key, name)]);
-    // return {for (final e in edges) e.from == key ? e.to : e.from};
+    return {for (final r in result) r['src'] == key ? r['dest'] : r['src']};
   }
 
   Set<String> get _keys {
@@ -196,10 +229,7 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   dynamic toJson() => this;
 
   int get length {
-    // TODO restore
-    throw UnimplementedError('');
-    // return _adapter.storage.readTxn(
-    //     () => _keys.map(_adapter.exists).where((e) => e == true).length);
+    return _keys.map(_adapter.exists).where((e) => e == true).length;
   }
 
   /// Whether the relationship has a value.

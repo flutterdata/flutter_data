@@ -15,7 +15,7 @@ void main() async {
 
   test('produces a new key deterministically', () {
     var key = core.getKeyForId('people', '1');
-    expect(key, equals('people#-3284248607767184521'));
+    expect(key, equals('people#1'));
   });
 
   test('produces a key for empty string', () {
@@ -27,7 +27,7 @@ void main() async {
     final key = core.getKeyForId('libraries', 1);
     final library =
         Library(id: 1, books: HasMany(), name: 'test').init().saveLocal();
-    expect(DataModelMixin.keyFor(library), 'libraries#-1061085972839915131');
+    expect(DataModelMixin.keyFor(library), 'libraries#1');
     // getIdForKey only works when key is persisted
     expect(core.getIdForKey(key), 1);
   });
@@ -73,9 +73,9 @@ void main() async {
   });
 
   test('namespace', () {
-    expect('a9'.typifyWith('posts').namespaceWith('id'), 'id:posts##a9');
+    expect('a9'.typifyWith('posts').namespaceWith('id'), 'id:posts#a9');
     expect('278#12'.typifyWith('animals').namespaceWith('zzz'),
-        'zzz:animals##278#12');
+        'zzz:animals#278#12');
   });
 
   test('denamespace', () {

@@ -104,10 +104,10 @@ void main() async {
       {'_id': '27', 'name': 'Ko', 'age': 24, 'familia': '332'}
     ]);
     final p1 = p1d.model!.saveLocal();
-    expect(p1.familia.key, 'familia#-879635800892572706');
+    expect(p1.familia.key, 'familia#3');
 
     Familia(id: '332', surname: 'Tao').saveLocal();
-    expect(p1.familia.key, 'familia#-879635800892572706');
+    expect(p1.familia.key, 'familia#3');
 
     expect(p1.familia.value!.id, '332');
 

@@ -47,7 +47,7 @@ Widget build(context) {
     }
 
     try {
-      db = sqlite3.open('tmp/test.db');
+      db = sqlite3.open('/tmp/test.db');
 
       db.execute('''
         PRAGMA journal_mode = WAL;
@@ -76,10 +76,10 @@ Widget build(context) {
 
   Future<void> destroy() async {
     db.dispose();
-    final directory = Directory('./tmp');
+    final directory = Directory('/tmp');
     final files = await directory.list().toList();
     for (final file in files) {
-      if (file is File && file.path.startsWith('./test.db')) {
+      if (file is File && file.path.startsWith('/tmp/test.db')) {
         await file.delete();
       }
     }

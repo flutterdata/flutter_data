@@ -210,15 +210,15 @@ void main() async {
   test('keyForModelOrId', () {
     final adapter = container.people;
     final p1 = Person(name: 'Ludwig');
-    final key1 = core.keyForModelOrId(adapter.type, p1);
+    final key1 = core.getKeyForModelOrId(adapter.type, p1);
     expect(key1, keyFor(p1));
 
     final key2 = core.getKeyForId('people', '43');
-    final key2b = core.keyForModelOrId(adapter.type, '43');
+    final key2b = core.getKeyForModelOrId(adapter.type, '43');
     expect(key2, key2b);
 
     final p3 = Person(id: '22', name: 'Joe');
-    final key3 = core.keyForModelOrId(adapter.type, p3);
+    final key3 = core.getKeyForModelOrId(adapter.type, p3);
     final key3b = core.getKeyForId('people', '22');
     expect(key3, key3b);
   });

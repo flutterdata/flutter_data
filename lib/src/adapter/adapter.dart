@@ -28,7 +28,7 @@ part of flutter_data;
 ///
 /// Identity in this layer is enforced by IDs.
 // ignore: library_private_types_in_public_api
-class Adapter<T extends DataModelMixin<T>> = _BaseAdapter<T>
+abstract class Adapter<T extends DataModelMixin<T>> = _BaseAdapter<T>
     with _SerializationAdapter<T>, _RemoteAdapter<T>, _WatchAdapter<T>;
 
 abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
@@ -124,28 +124,35 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
   /// Returns all models of type [T] in local storage.
   List<T> findAllLocal() {
-    throw UnimplementedError('');
+    final result = storage.db.select('SELECT key, data FROM $internalType');
+    return _deserializeFromResult(result);
   }
 
   /// Finds many models of type [T] by [keys] in local storage.
   List<T> findManyLocal(Iterable<String> keys) {
-    throw UnimplementedError('');
+    if (keys.isEmpty) {
+      return [];
+    }
+    final intKeys = keys.map((key) => key.detypifyKey()).toList();
+
+    final result = storage.db.select(
+        'SELECT key, data FROM $internalType WHERE key IN (${intKeys.map((_) => '?').join(', ')})',
+        intKeys);
+    return _deserializeFromResult(result);
+  }
+
+  List<T> _deserializeFromResult(ResultSet result) {
+    return result.map((r) {
+      final map = Map<String, dynamic>.from(jsonDecode(r['data']));
+      return deserialize(map,
+          key: r['key'].toString().typifyWith(internalType));
+    }).toList();
   }
 
   /// Finds model of type [T] by [key] in local storage.
   T? findOneLocal(String? key) {
-    final intKey = key?.detypifyKey();
-    if (intKey == null) return null;
-    final result = storage.db
-        .select('SELECT key, data FROM $internalType WHERE key = ?', [intKey]);
-    final data = result.firstOrNull?['data'];
-    if (data != null) {
-      final map = Map<String, dynamic>.from(jsonDecode(data));
-      final ds = deserialize(map,
-          key: result.firstOrNull?['key'].toString().typifyWith(internalType));
-      return ds;
-    }
-    return null;
+    if (key == null) return null;
+    return findManyLocal([key]).safeFirst;
   }
 
   T? findOneLocalById(Object id) {
@@ -165,23 +172,27 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     if (model._key == null) {
       throw Exception("Model must be initialized:\n\n$model");
     }
-    final intKey = model._key!.detypifyKey();
-
-    final map = serialize(model, withRelationships: false);
-    final data = jsonEncode(map);
-    storage.db.execute(
-        'REPLACE INTO $internalType (key, data) VALUES (?, ?)', [intKey, data]);
+    saveManyLocal([model]);
     return model;
   }
 
   Future<void> saveManyLocal(Iterable<DataModelMixin> models,
       {bool notify = true}) async {
-    throw UnimplementedError('');
+    final ps = storage.db
+        .prepare('REPLACE INTO $internalType (key, data) VALUES (?, ?)');
+    for (final model in models) {
+      final _adapter = DataModel.adapterFor(model);
+      final map = _adapter.serialize(model, withRelationships: false);
+      final key = model._key!.detypifyKey();
+      final data = jsonEncode(map);
+      ps.execute([key, data]);
+    }
+    ps.dispose();
   }
 
   /// Deletes model of type [T] from local storage.
   void deleteLocal(T model, {bool notify = true}) {
-    throw UnimplementedError('');
+    deleteLocalByKeys([model._key!]);
   }
 
   /// Deletes model with [id] from local storage.
@@ -191,54 +202,32 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
   /// Deletes models with [keys] from local storage.
   void deleteLocalByKeys(Iterable<String> keys, {bool notify = true}) {
-    throw UnimplementedError('');
+    storage.db.execute(
+        'DELETE FROM $internalType WHERE key IN (${keys.map((_) => '?').join(', ')})',
+        keys.map((k) => k.detypifyKey()).toList());
   }
 
   /// Deletes all models of type [T] in local storage.
-  ///
-  /// If you need to clear all models, use the
-  /// `adapterProviders` map exposed on your `main.data.dart`.
-  Future<void> clearLocal() {
+  Future<void> clearLocal() async {
     // leave async in case some impls need to remove files
-    throw UnimplementedError('');
+    for (final adapter in adapters.values) {
+      storage.db.execute('DELETE FROM ${adapter.internalType}');
+    }
   }
 
   /// Counts all models of type [T] in local storage.
   int get countLocal {
-    throw UnimplementedError('');
+    final result = storage.db.select('SELECT count(*) FROM $internalType');
+    return result.first['count(*)'];
   }
 
   /// Gets all keys of type [T] in local storage.
-  List<String> get keys {
-    throw UnimplementedError('');
-  }
-
-  // serialize interfaces
-
-  @protected
-  @visibleForTesting
-  Future<Map<String, dynamic>> serializeAsync(T model,
-      {bool withRelationships = true});
-
-  @protected
-  @visibleForTesting
-  Future<DeserializedData<T>> deserializeAsync(Object? data, {String? key});
-
-  /// Implements global request error handling.
-  ///
-  /// Defaults to throw [e] unless it is an HTTP 404
-  /// or an `OfflineException`.
-  ///
-  /// NOTE: `onError` arguments throughout the API are used
-  /// to override this default behavior.
-  FutureOr<R?> onError<R>(
-    DataException e,
-    DataRequestLabel? label,
-  ) {
-    if (e.statusCode == 404 || e is OfflineException) {
-      return null;
-    }
-    throw e;
+  Set<String> get keys {
+    final result = storage.db
+        .select('SELECT key FROM keys WHERE type = ?', [internalType]);
+    return result
+        .map((r) => r['key'].toString().typifyWith(internalType))
+        .toSet();
   }
 
   void log(DataRequestLabel label, String message, {int logLevel = 1}) {
@@ -339,7 +328,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
     if (model._key == null) {
       model._key = key ?? core.getKeyForId(internalType, model.id);
-      if (model._key != key) {
+      if (model._key != key && key != null) {
         _initializeRelationships(model, fromKey: key);
       } else {
         _initializeRelationships(model);
@@ -358,9 +347,11 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
         // if rel was omitted, fill with info of previous key
         // TODO optimize: put outside loop and query edgesFor just once
         if (fromKey != null && relationship._uninitializedKeys == null) {
-          // TODO restore
-          // final edges = storage.edgesFor({(fromKey, metadata.name)});
-          // relationship._uninitializedKeys = edges.map((e) => e.to).toSet();
+          // TODO DRY!
+          final result = storage.db.select(
+              'SELECT src, dest FROM edges WHERE (src = ? AND name = ?) OR (dest = ? AND inverse = ?)',
+              [fromKey, metadata.name, fromKey, metadata.name]);
+          relationship._uninitializedKeys = {for (final r in result) r['dest']};
         }
         relationship.initialize(
           ownerKey: model._key!,
@@ -371,13 +362,9 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     }
   }
 
-  Map<String, dynamic> serialize(T model, {bool withRelationships = true}) {
-    throw UnimplementedError('');
-  }
+  Map<String, dynamic> serialize(T model, {bool withRelationships = true});
 
-  T deserialize(Map<String, dynamic> map, {String? key}) {
-    throw UnimplementedError('');
-  }
+  T deserialize(Map<String, dynamic> map, {String? key});
 
   Map<String, RelationshipMeta> get relationshipMetas {
     throw UnimplementedError('');

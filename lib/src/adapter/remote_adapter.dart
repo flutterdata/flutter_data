@@ -1,6 +1,6 @@
 part of flutter_data;
 
-mixin _RemoteAdapter<T extends DataModelMixin<T>> on _BaseAdapter<T> {
+mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
   /// Returns the base URL for this type [T].
   ///
   /// Typically used in a generic adapter (i.e. one shared by all types)
@@ -265,7 +265,7 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _BaseAdapter<T> {
     headers = await defaultHeaders & headers;
 
     final id = _resolveId(model);
-    final key = core.keyForModelOrId(internalType, model);
+    final key = core.getKeyForModelOrId(internalType, model);
 
     label = DataRequestLabel('delete',
         type: internalType, id: id.toString(), withParent: label);
@@ -567,6 +567,23 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _BaseAdapter<T> {
     }
 
     return null;
+  }
+
+  /// Implements global request error handling.
+  ///
+  /// Defaults to throw [e] unless it is an HTTP 404
+  /// or an `OfflineException`.
+  ///
+  /// NOTE: `onError` arguments throughout the API are used
+  /// to override this default behavior.
+  FutureOr<R?> onError<R>(
+    DataException e,
+    DataRequestLabel? label,
+  ) {
+    if (e.statusCode == 404 || e is OfflineException) {
+      return null;
+    }
+    throw e;
   }
 
   Future<void> _saveDeserialized(DeserializedData deserialized) async {

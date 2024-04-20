@@ -46,7 +46,7 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent> {
     if (result.isEmpty) {
       return null;
     }
-    final [id, isInt] = [result.first['id'], result.first['is_int']];
+    final [id, isInt] = [result.first['id'], result.first['is_int'] == 1];
     if (isInt) {
       return int.parse(id);
     }
@@ -56,26 +56,9 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent> {
   @protected
   @visibleForTesting
   @nonVirtual
-  String keyForModelOrId(String type, Object model, {bool save = false}) {
+  String getKeyForModelOrId(String type, Object model, {bool save = false}) {
     final id = model is DataModelMixin ? model.id : model;
-    final key =
-        model is DataModelMixin ? model._key! : getKeyForId(type, model);
-    if (id != null) {
-      throw UnimplementedError('');
-      // final box = storage.store.box<StoredModel>();
-      // final intKey = key.detypifyKey()!;
-      // final model = box.get(intKey);
-
-      // box.put(
-      //   StoredModel(
-      //       internalKey: intKey,
-      //       type: type,
-      //       data: model?.data,
-      //       id: id.toString(),
-      //       isInt: id is int),
-      // );
-    }
-    return key;
+    return getKeyForId(type, id);
   }
 
   // utils
