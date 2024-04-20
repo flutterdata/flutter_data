@@ -25,11 +25,11 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent> {
   ///    (if provided)
   String getKeyForId(String type, Object? id) {
     var result = storage.db.select(
-        'SELECT key FROM keys WHERE type = ? AND id = ?',
+        'SELECT key FROM _keys WHERE type = ? AND id = ?',
         [type, id?.toString()]);
     if (result.isEmpty) {
       result = storage.db.select(
-          'INSERT INTO keys (type, id, is_int) VALUES (?, ?, ?) RETURNING key;',
+          'INSERT INTO _keys (type, id, is_int) VALUES (?, ?, ?) RETURNING key;',
           [type, id?.toString(), id is int]);
     }
     return result.first['key'].toString().typifyWith(type);
@@ -42,7 +42,7 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent> {
       return null;
     }
     final result = storage.db
-        .select('SELECT id, is_int FROM keys WHERE key = ?', [intKey]);
+        .select('SELECT id, is_int FROM _keys WHERE key = ?', [intKey]);
     if (result.isEmpty) {
       return null;
     }
@@ -53,12 +53,22 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent> {
     return id;
   }
 
+  void deleteKeys(Iterable<String> keys) {
+    final intKeys = keys.map((k) => k.detypifyKey()).toList();
+    storage.db.execute(
+        'DELETE FROM _keys WHERE key IN (${keys.map((_) => '?').join(', ')})',
+        intKeys);
+  }
+
   @protected
   @visibleForTesting
   @nonVirtual
-  String getKeyForModelOrId(String type, Object model, {bool save = false}) {
-    final id = model is DataModelMixin ? model.id : model;
-    return getKeyForId(type, id);
+  String? getKeyForModelOrId(String type, Object model, {bool save = false}) {
+    if (model is DataModelMixin) {
+      return model._key ??
+          (model.id == null ? null : getKeyForId(type, model.id));
+    }
+    return getKeyForId(type, model);
   }
 
   // utils

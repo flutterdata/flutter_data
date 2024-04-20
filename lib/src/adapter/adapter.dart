@@ -48,7 +48,6 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   bool _stopInitialization = false;
 
   // None of these fields below can be late finals as they might be re-initialized
-  Map<String, Adapter>? _adapters;
   bool? _remote;
   Ref? _ref;
 
@@ -57,17 +56,16 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   /// This [Map] is typically required when initializing new models, and passed as-is.
   @protected
   @nonVirtual
-  Map<String, Adapter> get adapters => _adapters!;
+  Map<String, Adapter> get adapters => _internalAdapters!;
 
   /// Give access to the dependency injection system
   @nonVirtual
   Ref get ref => _ref!;
 
-  /// INTERNAL: DO NOT USE
   @visibleForTesting
   @protected
   @nonVirtual
-  String get internalType => DataHelpers.getInternalType<T>();
+  String get internalType => DataHelpers.internalTypeFor(T.toString());
 
   /// The pluralized and downcased [DataHelpers.getType<T>] version of type [T]
   /// by default.
@@ -89,36 +87,34 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   var isInitialized = false;
 
   @mustCallSuper
-  Future<void> onInitialized() async {}
-
-  @mustCallSuper
-  @nonVirtual
-  Future<Adapter<T>> initialize(
-      {bool? remote,
-      required Map<String, Adapter> adapters,
-      required Ref ref}) async {
-    if (isInitialized) return this as Adapter<T>;
-
-    // initialize attributes
-    _adapters = adapters;
-    _remote = remote ?? true;
-    _ref = ref;
-
+  Future<void> onInitialized() async {
     storage.db.execute('''
       CREATE TABLE IF NOT EXISTS $internalType (
         key INTEGER PRIMARY KEY AUTOINCREMENT,
         data TEXT
       );
     ''');
+  }
+
+  @mustCallSuper
+  @nonVirtual
+  Future<Adapter<T>> initialize({required Ref ref}) async {
+    if (isInitialized) return this as Adapter<T>;
+
+    _ref = ref;
 
     // hook for clients
     await onInitialized();
+
+    isInitialized = true;
 
     return this as Adapter<T>;
   }
 
   @override
-  void dispose() {}
+  void dispose() {
+    isInitialized = false;
+  }
 
   // local methods
 
@@ -162,7 +158,10 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
   /// Whether [key] exists in local storage.
   bool exists(String key) {
-    throw UnimplementedError('');
+    final result = storage.db.select(
+        'SELECT EXISTS(SELECT 1 FROM $internalType WHERE key = ?) AS e;',
+        [key.detypifyKey()]);
+    return result.first['e'] == 1;
   }
 
   /// Saves model of type [T] in local storage.
@@ -172,47 +171,96 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     if (model._key == null) {
       throw Exception("Model must be initialized:\n\n$model");
     }
-    saveManyLocal([model]);
+    final key = model._key!.detypifyKey();
+    final map = serialize(model, withRelationships: false);
+    final data = jsonEncode(map);
+    storage.db.execute(
+        'REPLACE INTO $internalType (key, data) VALUES (?, ?)', [key, data]);
     return model;
+  }
+
+  Future<void> _runInIsolate(
+      Future<void> fn(ProviderContainer container)) async {
+    final ppath = Directory(storage.path).parent.path;
+    final ip = _internalProviders!;
+
+    await Isolate.run(() async {
+      late final ProviderContainer container;
+      try {
+        container = ProviderContainer(
+          overrides: [
+            localStorageProvider.overrideWith(
+              (ref) => LocalStorage(baseDirFn: () => ppath),
+            ),
+          ],
+        );
+
+        await container.read(initializeWith(ip).future);
+
+        fn(container);
+      } finally {
+        container.read(localStorageProvider).db.dispose();
+      }
+    });
   }
 
   Future<void> saveManyLocal(Iterable<DataModelMixin> models,
       {bool notify = true}) async {
-    final ps = storage.db
-        .prepare('REPLACE INTO $internalType (key, data) VALUES (?, ?)');
-    for (final model in models) {
-      final _adapter = DataModel.adapterFor(model);
-      final map = _adapter.serialize(model, withRelationships: false);
-      final key = model._key!.detypifyKey();
-      final data = jsonEncode(map);
-      ps.execute([key, data]);
-    }
-    ps.dispose();
+    // ref.read(localStorageProvider).db.updates.listen((event) {
+    //   print('received; $event');
+    // });
+    await _runInIsolate((container) async {
+      final ddb = container.read(localStorageProvider).db;
+      // final z = ddb.select('SELECT count(*) FROM _keys');
+      // print(z);
+
+      final grouped = models.groupSetsBy((e) => e._adapter);
+      for (final e in grouped.entries) {
+        final adapter = e.key;
+        final ps = ddb.prepare(
+            'REPLACE INTO ${adapter.internalType} (key, data) VALUES (?, ?)');
+        for (final model in e.value) {
+          final key = model._key!.detypifyKey();
+          final map = adapter.serialize(model, withRelationships: false);
+          final data = jsonEncode(map);
+          ps.execute([key, data]);
+        }
+        ps.dispose();
+      }
+    });
   }
 
   /// Deletes model of type [T] from local storage.
   void deleteLocal(T model, {bool notify = true}) {
-    deleteLocalByKeys([model._key!]);
+    deleteLocalByKeys([model._key!], notify: notify);
   }
 
   /// Deletes model with [id] from local storage.
   void deleteLocalById(Object id, {bool notify = true}) {
-    throw UnimplementedError('');
+    final key = core.getKeyForId(type, id);
+    deleteLocalByKeys([key], notify: notify);
   }
 
   /// Deletes models with [keys] from local storage.
   void deleteLocalByKeys(Iterable<String> keys, {bool notify = true}) {
+    final intKeys = keys.map((k) => k.detypifyKey()).toList();
     storage.db.execute(
         'DELETE FROM $internalType WHERE key IN (${keys.map((_) => '?').join(', ')})',
-        keys.map((k) => k.detypifyKey()).toList());
+        intKeys);
+    core.deleteKeys(keys);
+    if (notify) {
+      core._notify([...keys], type: DataGraphEventType.removeNode);
+    }
   }
 
   /// Deletes all models of type [T] in local storage.
   Future<void> clearLocal() async {
+    // TODO SELECT name FROM sqlite_master WHERE type='table' AND name='your_table_name';
     // leave async in case some impls need to remove files
     for (final adapter in adapters.values) {
       storage.db.execute('DELETE FROM ${adapter.internalType}');
     }
+    core._notify([internalType], type: DataGraphEventType.clear);
   }
 
   /// Counts all models of type [T] in local storage.
@@ -224,7 +272,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   /// Gets all keys of type [T] in local storage.
   Set<String> get keys {
     final result = storage.db
-        .select('SELECT key FROM keys WHERE type = ?', [internalType]);
+        .select('SELECT key FROM _keys WHERE type = ?', [internalType]);
     return result
         .map((r) => r['key'].toString().typifyWith(internalType))
         .toSet();
@@ -293,10 +341,6 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     return obj is T ? obj.id : obj;
   }
 
-  bool get _isTesting {
-    return ref.read(httpClientProvider) != null;
-  }
-
   //
 
   @protected
@@ -349,7 +393,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
         if (fromKey != null && relationship._uninitializedKeys == null) {
           // TODO DRY!
           final result = storage.db.select(
-              'SELECT src, dest FROM edges WHERE (src = ? AND name = ?) OR (dest = ? AND inverse = ?)',
+              'SELECT src, dest FROM _edges WHERE (src = ? AND name = ?) OR (dest = ? AND inverse = ?)',
               [fromKey, metadata.name, fromKey, metadata.name]);
           relationship._uninitializedKeys = {for (final r in result) r['dest']};
         }
@@ -431,6 +475,5 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 ///```
 class DataAdapter {
   final List<Type> adapters;
-  final bool remote;
-  const DataAdapter(this.adapters, {this.remote = true});
+  const DataAdapter(this.adapters);
 }

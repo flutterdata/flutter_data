@@ -10,16 +10,14 @@ class InMemoryLocalStorage extends LocalStorage {
       db = sqlite3.openInMemory();
 
       db.execute('''
-        PRAGMA journal_mode = WAL;
-        
-        CREATE TABLE IF NOT EXISTS edges (
+        CREATE TABLE IF NOT EXISTS _edges (
           src INTEGER NOT NULL,
           name TEXT NOT NULL,
           dest INTEGER NOT NULL,
           inverse TEXT
         );
 
-        CREATE TABLE IF NOT EXISTS keys (
+        CREATE TABLE IF NOT EXISTS _keys (
           key INTEGER PRIMARY KEY AUTOINCREMENT,
           type TEXT NOT NULL,
           id TEXT,

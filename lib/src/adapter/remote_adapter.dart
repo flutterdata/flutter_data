@@ -60,7 +60,7 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
     OnErrorAll<T>? onError,
     DataRequestLabel? label,
   }) async {
-    remote ??= _remote;
+    remote ??= _remote ?? true;
     background ??= false;
     syncLocal ??= false;
     params = await defaultParams & params;
@@ -70,7 +70,7 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
 
     late List<T> models;
 
-    if (shouldLoadRemoteAll(remote!, params, headers) == false || background) {
+    if (shouldLoadRemoteAll(remote, params, headers) == false || background) {
       models = findAllLocal();
       log(label,
           'returned ${models.toShortLog()} from local storage${background ? ' and loading in the background' : ''}');
@@ -124,7 +124,7 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
   /// See also: [urlForFindOne], [methodForFindOne].
   Future<T?> findOne(
     Object id, {
-    bool? remote,
+    bool remote = true,
     bool? background,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
@@ -132,7 +132,6 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
     OnErrorOne<T>? onError,
     DataRequestLabel? label,
   }) async {
-    remote ??= _remote;
     background ??= false;
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
@@ -142,7 +141,7 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
     label = DataRequestLabel('findOne',
         type: internalType, id: _resolveId(id)?.toString(), withParent: label);
 
-    if (shouldLoadRemoteOne(id, remote!, params, headers) == false ||
+    if (shouldLoadRemoteOne(id, remote, params, headers) == false ||
         background) {
       model = findOneLocalById(id);
       if (model != null) {
@@ -190,15 +189,13 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
   /// See also: [urlForSave], [methodForSave].
   Future<T> save(
     T model, {
-    bool? remote,
+    bool remote = true,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     OnSuccessOne<T>? onSuccess,
     OnErrorOne<T>? onError,
     DataRequestLabel? label,
   }) async {
-    remote ??= _remote;
-
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
 
@@ -252,15 +249,13 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
   /// See also: [urlForDelete], [methodForDelete].
   Future<T?> delete(
     Object model, {
-    bool? remote,
+    bool remote = true,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     OnSuccessOne<T>? onSuccess,
     OnErrorOne<T>? onError,
     DataRequestLabel? label,
   }) async {
-    remote ??= _remote;
-
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
 
@@ -273,7 +268,9 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
     if (remote == false) {
       log(label, 'deleted in local storage only');
     }
-    deleteLocalByKeys({key});
+    if (key != null) {
+      deleteLocalByKeys({key});
+    }
 
     if (remote == true && id != null) {
       return await sendRequest(
@@ -331,7 +328,7 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
   /// data in JSON format. Deserialization and initialization
   /// typically occur in this function.
   ///
-  /// [onError] can also be supplied to override [_BaseAdapter.onError].
+  /// [onError] can also be supplied to override [_RemoteAdapter.onError].
   @protected
   @visibleForTesting
   Future<R?> sendRequest<R>(

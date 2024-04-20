@@ -10,7 +10,7 @@ part 'book.freezed.dart';
 part 'book.g.dart';
 
 @freezed
-@DataAdapter([BookAuthorAdapter], remote: false)
+@DataAdapter([BookAuthorAdapter]) // , remote: false
 class BookAuthor extends DataModel<BookAuthor> with _$BookAuthor {
   BookAuthor._();
   factory BookAuthor({
@@ -23,7 +23,7 @@ class BookAuthor extends DataModel<BookAuthor> with _$BookAuthor {
 }
 
 @freezed
-@DataAdapter([], remote: false)
+@DataAdapter([])
 class Book extends DataModel<Book> with _$Book {
   Book._();
   @JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
@@ -39,7 +39,7 @@ class Book extends DataModel<Book> with _$Book {
 }
 
 @freezed
-@DataAdapter([], remote: false)
+@DataAdapter([]) // , remote: false
 class Library with DataModelMixin<Library>, _$Library {
   Library._();
 
@@ -59,7 +59,7 @@ mixin BookAuthorAdapter on Adapter<BookAuthor> {
   @DataFinder()
   Future<BookAuthor> caps(
     Object id, {
-    bool? remote,
+    bool remote = true,
     bool? background,
     Map<String, dynamic>? params,
     Map<String, String>? headers,

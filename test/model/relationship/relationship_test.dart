@@ -79,11 +79,12 @@ void main() async {
     final adapter = container.houses;
     // deserialize house, owner does not exist
     // since we're passing a key (not an ID)
-    // we MUST use the local adapter serializer
+    // we sync-deserialize
     final h1 = adapter.deserialize({
       'id': '1',
       'address': '123 Main St',
-      'owner': 'familia#1802989786345234819'
+      'owner':
+          'familia#2' // `2` because it is the second insertion in this test
     }).saveLocal();
     expect(h1.owner.value, isNull);
     expect(keyFor(h1), isNotNull);
@@ -102,14 +103,10 @@ void main() async {
       id: '1',
       surname: 'Jones',
       persons: HasMany.fromJson({
-        '_': {
-          'people#-3284248607767184521',
-          'people#-3284247508255556310',
-          'people#-3284246408743928099'
-        }
+        '_': {'people#2', 'people#3', 'people#4'}
       }),
       residence: BelongsTo.fromJson({
-        '_': {'houses#-3775568336891307333'}
+        '_': {'houses#5'}
       }),
     ).saveLocal();
 
@@ -212,7 +209,7 @@ void main() async {
     final familia5 = container.familia.deserialize({
       'id': '229',
       'surname': 'Rose',
-      'persons': ['people#7295352464926971276']
+      'persons': ['people#3']
     }).saveLocal();
 
     final axl = Person(id: '231', name: 'Axl', age: 58).saveLocal();

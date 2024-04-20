@@ -7,8 +7,7 @@ import 'familia.dart';
 part 'person.g.dart';
 
 @DataAdapter(
-    [PersonLoginAdapter, GenericDoesNothingAdapter, YetAnotherLoginAdapter],
-    remote: false)
+    [PersonLoginAdapter, GenericDoesNothingAdapter, YetAnotherLoginAdapter])
 class Person extends DataModel<Person> {
   @override
   final String? id;

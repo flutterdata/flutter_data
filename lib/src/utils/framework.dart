@@ -5,21 +5,6 @@ typedef FutureFn<R> = FutureOr<R> Function();
 class DataHelpers {
   static final rng = Random.secure();
 
-  static final _internalTypes = <Object, String>{};
-
-  static String getInternalType<T>() {
-    if (T == dynamic) {
-      throw UnsupportedError('Please supply a type');
-    }
-    return _internalTypes[T]!;
-  }
-
-  static void setInternalType<T>(String type) {
-    if (!_internalTypes.containsKey(T)) {
-      _internalTypes[T] = type;
-    }
-  }
-
   static String internalTypeFor(String type) => type.decapitalize().pluralize();
 
   static int _generateRandomNumber() {
@@ -285,8 +270,8 @@ class DataResponse {
       {this.body, required this.statusCode, this.headers = const {}});
 }
 
-/// ONLY FOR FLUTTER DATA INTERNAL USE
-final internalAdapters = <String, Adapter>{};
+Map<String, Provider<Adapter<DataModelMixin>>>? _internalProviders;
+Map<String, Adapter>? _internalAdapters;
 
 R logTime<R>(String? name, R cb()) {
   if (name == null) return cb();
@@ -305,3 +290,24 @@ Future<R> logTimeAsync<R>(String? name, Future<R> cb()) async {
   print('$name: ${a2 - a1}ms');
   return result;
 }
+
+@protected
+mixin NothingMixin {}
+
+final initializeWith =
+    FutureProvider.family<bool, Map<String, Provider<Adapter<DataModelMixin>>>>(
+        (ref, adapterProviders) async {
+  _internalProviders = adapterProviders;
+  _internalAdapters =
+      adapterProviders.map((key, value) => MapEntry(key, ref.read(value)));
+
+  await ref.read(localStorageProvider).initialize();
+
+  // initialize and register
+  for (final adapter in _internalAdapters!.values) {
+    adapter.dispose();
+    await adapter.initialize(ref: ref);
+  }
+
+  return true;
+});

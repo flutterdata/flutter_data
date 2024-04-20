@@ -21,7 +21,6 @@ final keyFor = DataModel.keyFor;
 
 late ProviderContainer container;
 late CoreNotifier core;
-late LocalStorage storage;
 Function? dispose;
 
 final logging = [];
@@ -45,84 +44,37 @@ Future<void> setUpFn() async {
           }
         });
       }),
-      localStorageProvider.overrideWith((ref) => InMemoryLocalStorage()),
+      // NOTE: can't enable in memory for now because of isolates
+      // localStorageProvider.overrideWith((ref) => InMemoryLocalStorage()),
+      localStorageProvider
+          .overrideWith((ref) => LocalStorage(baseDirFn: () => kTestsPath)),
     ],
   );
 
-  // Equivalent to generated in `main.data.dart`
-  storage = await container.read(localStorageProvider).initialize();
-
-  DataHelpers.setInternalType<House>('houses');
-  DataHelpers.setInternalType<Familia>('familia');
-  DataHelpers.setInternalType<Person>('people');
-  DataHelpers.setInternalType<Dog>('dogs');
-  DataHelpers.setInternalType<BookAuthor>('bookAuthors');
-  DataHelpers.setInternalType<Book>('books');
-  DataHelpers.setInternalType<Library>('libraries');
-
-  final adapterGraph = <String, Adapter<DataModelMixin>>{
-    'houses': container.read(housesAdapterProvider),
-    'familia': container.read(familiaAdapterProvider),
-    'people': container.read(peopleAdapterProvider),
-    'dogs': container.read(dogsAdapterProvider),
-    'bookAuthors': container.read(bookAuthorsAdapterProvider),
-    'books': container.read(booksAdapterProvider),
-    'libraries': container.read(librariesAdapterProvider),
+  final adapterProviders = <String, Provider<Adapter<DataModelMixin>>>{
+    'houses': housesAdapterProvider,
+    'familia': familiaAdapterProvider,
+    'people': peopleAdapterProvider,
+    'dogs': dogsAdapterProvider,
+    'bookAuthors': bookAuthorsAdapterProvider,
+    'books': booksAdapterProvider,
+    'libraries': librariesAdapterProvider,
+    '${_kIsWeb ? 'node1s' : 'nodes'}': nodesAdapterProvider
   };
 
-  final ref = container.read(refProvider);
+  await container.read(initializeWith(adapterProviders).future);
 
-  internalAdapters['houses'] = await container
-      .read(housesAdapterProvider)
-      .initialize(remote: false, adapters: adapterGraph, ref: ref);
-  internalAdapters['familia'] = await container
-      .read(familiaAdapterProvider)
-      .initialize(remote: true, adapters: adapterGraph, ref: ref);
-  internalAdapters['people'] = await container
-      .read(peopleAdapterProvider)
-      .initialize(remote: false, adapters: adapterGraph, ref: ref);
-  final dogsAdapter = internalAdapters['dogs'] = await container
-      .read(dogsAdapterProvider)
-      .initialize(remote: false, adapters: adapterGraph, ref: ref);
-  internalAdapters['bookAuthors'] = await container
-      .read(bookAuthorsAdapterProvider)
-      .initialize(remote: false, adapters: adapterGraph, ref: ref);
-  internalAdapters['books'] = await container
-      .read(booksAdapterProvider)
-      .initialize(remote: false, adapters: adapterGraph, ref: ref);
-  internalAdapters['libraries'] = await container
-      .read(librariesAdapterProvider)
-      .initialize(remote: false, adapters: adapterGraph, ref: ref);
-
-  const nodesKey = _kIsWeb ? 'node1s' : 'nodes';
-  DataHelpers.setInternalType<Node>(nodesKey);
-  internalAdapters[nodesKey] =
-      await container.read(nodesAdapterProvider).initialize(
-          remote: false,
-          adapters: {
-            nodesKey: container.read(nodesAdapterProvider),
-          },
-          ref: ref);
+  container.read(dogsAdapterProvider).logLevel = 2;
 
   core = container.read(housesAdapterProvider).core;
-
-  dogsAdapter.logLevel = 2;
 }
 
 Future<void> tearDownFn() async {
-  // Equivalent to generated in `main.data.dart`
   dispose?.call();
-  container.houses.dispose();
-  container.familia.dispose();
-  container.people.dispose();
-  container.dogs.dispose();
 
-  container.nodes.dispose();
-  container.books.dispose();
-  container.bookAuthors.dispose();
-  container.libraries.dispose();
   core.dispose();
-  await storage.destroy();
+  core.storage.dispose(); // TODO should dispose of storage inside core dispose
+  await core.storage.destroy();
 
   logging.clear();
   await oneMs();

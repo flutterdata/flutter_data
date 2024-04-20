@@ -43,5 +43,4 @@ part 'src/storage/in_memory_local_storage.dart';
 part 'src/utils/data_state.dart';
 part 'src/utils/extensions.dart';
 part 'src/utils/framework.dart';
-part 'src/utils/initialization.dart';
 part 'src/utils/offline.dart';

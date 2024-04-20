@@ -134,6 +134,7 @@ void main() async {
 
     // can be found again locally
     expect(familia, await container.familia.findOne('1', remote: false));
+    container.familia.findAllLocal();
 
     // as well as the included Person
     expect(await container.people.findOne('1', remote: false),
@@ -254,7 +255,7 @@ void main() async {
 
     // now delete
     container.read(responseProvider.notifier).state = TestResponse.json('');
-    await container.people.delete(person.id!, remote: true);
+    await container.people.delete(person.id!);
 
     // so fetching by id again is null
     expect(await container.people.findOne(person.id!), isNull);
@@ -336,9 +337,9 @@ void main() async {
         {"id": "7", "name": "Aldo"}
       ]''');
 
-    final dogs = await container.dogs.findAll(params: {'a': 1}, remote: true);
+    final dogs = await container.dogs.findAll(params: {'a': 1});
 
-    var regexp = RegExp(r'^\d\d:\d\d\d \[findAll\/dogs@[0-9]{10}\]');
+    var regexp = RegExp(r'^\d{2}:\d{3} \[findAll\/dogs@[0-9]{10}\]');
     expect(logging.first, matches(regexp));
     expect(
         logging.first,
@@ -352,15 +353,15 @@ void main() async {
 
     await container.dogs.save(dogs.toList()[2], remote: false);
 
-    regexp = RegExp(r'^\d\d:\d\d\d \[save\/dogs##3@[0-9]{10}\]');
+    regexp = RegExp(r'^\d{2}:\d{3} \[save\/dogs#3@[0-9]{10}\]');
     expect(logging.first, matches(regexp));
     expect(logging.first, endsWith('saved in local storage only'));
 
     logging.clear();
 
-    await container.dogs.delete('3', remote: true);
+    await container.dogs.delete('3');
 
-    regexp = RegExp(r'^\d\d:\d\d\d \[delete\/dogs##3@[0-9]{10}\]');
+    regexp = RegExp(r'^\d{2}:\d{3} \[delete\/dogs#3@[0-9]{10}\]');
     expect(logging.first, matches(regexp));
     expect(
         logging.first,
@@ -376,7 +377,7 @@ void main() async {
         (_) async => '^@!@#(#(@#)#@',
         statusCode: 500,
       );
-      await container.dogs.findOne('1', remote: true);
+      await container.dogs.findOne('1');
     } catch (_) {
       expect(logging.last, contains('FormatException'));
     }

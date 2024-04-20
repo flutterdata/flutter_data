@@ -23,13 +23,13 @@ void main() async {
     final listener = Listener<DataState<List<BookAuthor>?>?>();
 
     // watch
-    final notifier = container.bookAuthors.watchAllNotifier(remote: true);
+    final notifier = container.bookAuthors.watchAllNotifier();
     dispose = notifier.addListener(listener);
 
     await oneMs();
 
     // now try to findOne
-    await container.bookAuthors.findOne(19, remote: true);
+    await container.bookAuthors.findOne(19);
 
     // and verify onError does capture the `OfflineException`
     verify(listener(argThat(
@@ -49,7 +49,7 @@ void main() async {
         TestResponse.json('{"id": 19, "name": "Author Saved"}');
 
     // try findOne again this time without errors
-    final model = await container.bookAuthors.findOne(19, remote: true);
+    final model = await container.bookAuthors.findOne(19);
     expect(model!.name, equals('Author Saved'));
     await oneMs();
     expect(container.familia.offlineOperations, isEmpty);
@@ -75,7 +75,6 @@ void main() async {
 
     await container.familia.save(
       familia,
-      remote: true,
       // override headers & params
       headers: {'X-Override-Name': 'Mantego'},
       params: {'overrideSecondName': 'Zorrilla'},
@@ -182,7 +181,7 @@ void main() async {
 
     final familia3 = Familia(id: '3', surname: 'Zweck');
     try {
-      await familia3.save(remote: true);
+      await familia3.save();
     } catch (_) {
       // without onError, ignore exception
     }
@@ -228,7 +227,6 @@ void main() async {
 
     // delete familia and send offline exception to notifier
     await familia.delete(
-      remote: true,
       onError: (e, _, __) async {
         await oneMs();
         expect(e, isA<OfflineException>());
@@ -291,7 +289,6 @@ void main() async {
 
     // save...
     await familia.save(
-      remote: true,
       headers: {'X-Override-Name': 'Johnson'},
       onError: (e, _, __) async {
         await oneMs();
@@ -304,7 +301,6 @@ void main() async {
 
     // ...and immediately delete
     await familia.delete(
-      remote: true,
       onError: (e, _, __) async {
         await oneMs();
         notifier.updateWith(exception: e);
@@ -434,7 +430,7 @@ void main() async {
     container.read(responseProvider.notifier).state = TestResponse.json('''
         { "id": "1", "surname": "Smith" }
       ''');
-    await container.familia.findOne('1', remote: true);
+    await container.familia.findOne('1');
 
     // cause network issue
     container.read(responseProvider.notifier).state = TestResponse((_) {

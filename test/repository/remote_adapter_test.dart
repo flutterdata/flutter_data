@@ -42,8 +42,7 @@ void main() async {
 
   test('create and save', () async {
     final house = House(id: '25', address: '12 Lincoln Rd').saveLocal();
-    // repo.findOne works because the House repo is remote=false
-    expect(await container.houses.findOne(house.id!), house);
+    expect(container.houses.findOneLocalById(house.id!), house);
   });
 
   test('save and find', () async {
@@ -66,7 +65,7 @@ void main() async {
     await adapter.delete(person.id!);
 
     // so fetching by id again is null
-    expect(await adapter.findOne(person.id!), isNull);
+    expect(adapter.findOneLocalById(person.id!), isNull);
 
     // and now key is no longer stored
     expect(core.getIdForKey(keyFor(person)), isNull);
@@ -133,7 +132,7 @@ void main() async {
         ]''');
 
     // remote comes back with relationships
-    final models = await container.familia.findAll(remote: true);
+    final models = await container.familia.findAll();
     expect(
         models.first.persons.toSet(),
         unorderedEquals({
@@ -146,10 +145,9 @@ void main() async {
     // simulate app restart
     container.familia.dispose();
 
-    await container.read(familiaAdapterProvider).initialize(
-        // ignore: invalid_use_of_protected_member
-        adapters: container.familia.adapters,
-        ref: container.read(refProvider));
+    await container
+        .read(familiaAdapterProvider)
+        .initialize(ref: container.read(refProvider));
 
     // TODO below was: originalKey, Familia(id: '1', surname: 'Smith')
     container.familia
@@ -235,10 +233,10 @@ void main() async {
       statusCode: 304,
     );
 
-    expect(await adapter.findOne('2', remote: true),
+    expect(await adapter.findOne('2'),
         isA<Person>().having((p) => p.name, 'name', 'Julian'));
 
-    expect(await adapter.findAll(remote: true),
+    expect(await adapter.findAll(),
         isA<List<Person>>().having((p) => p.first.name, 'name', 'Julian'));
   });
 
@@ -278,9 +276,9 @@ void main() async {
         {"_id": "1", "name": "Jack", "age": 31}
       ''');
     // call remote save as it uses withKeyOf, relationship should be omitted
-    final personUpdated = await person.save(remote: true);
+    final personUpdated = await person.save();
 
-    expect('people#-3284248607767184521', keyFor(personUpdated));
+    expect('people#2', keyFor(personUpdated));
 
     // the relationship should remain intact
     expect(personUpdated.familia.value, f1);

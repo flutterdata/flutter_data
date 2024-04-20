@@ -36,8 +36,7 @@ class DataExtensionIntermediateBuilder implements Builder {
             return [
               member.element.name!,
               DataHelpers.internalTypeFor(member.element.name!),
-              member.element.location!.components.first,
-              member.annotation.read('remote').boolValue,
+              member.element.location!.components.first
             ].join('#');
           }).join(';'));
     }
@@ -68,8 +67,7 @@ class DataExtensionBuilder implements Builder {
           'className': parts[0],
           'classNameLower': DataHelpers.internalTypeFor(parts[0]),
           'type': parts[1],
-          'path': parts[2],
-          'remote': parts[3],
+          'path': parts[2]
         });
       }
       return acc;
@@ -86,16 +84,6 @@ class DataExtensionBuilder implements Builder {
         .toSet()
         .join('\n');
 
-    final adaptersMap = {
-      for (final clazz in classes)
-        '\'${clazz['type']}\'':
-            'ref.watch(${clazz['classNameLower']}AdapterProvider)'
-    };
-
-    final remotesMap = {
-      for (final clazz in classes) '\'${clazz['type']}\'': clazz['remote']
-    };
-
     // imports
 
     final isFlutter = await isDependency('flutter', b);
@@ -111,10 +99,6 @@ class DataExtensionBuilder implements Builder {
         : '';
     final riverpodFlutterImport = hasFlutterRiverpod
         ? "import 'package:flutter_riverpod/flutter_riverpod.dart';"
-        : '';
-
-    final autoBaseDirFn = hasPathProvider
-        ? 'baseDirFn ??= () => getApplicationDocumentsDirectory().then((dir) => dir.path);'
         : '';
 
     //
@@ -152,49 +136,10 @@ $riverpodFlutterImport
 
 $modelImports
 
-// ignore: prefer_function_declarations_over_variables
-ConfigureAdapterLocalStorage configureAdapterLocalStorage = ({FutureFn<String>? baseDirFn, String? encryptionKey, LocalStorageClearStrategy? clear}) {
-  ${isFlutter ? 'if (!kIsWeb) {' : ''}
-    $autoBaseDirFn
-  ${isFlutter ? '} else {' : ''}
-  ${isFlutter ? '  baseDirFn ??= () => \'\';' : ''}
-  ${isFlutter ? '}' : ''}
-  
-  return localStorageProvider.overrideWith(
-    (ref) => LocalStorage(
-      baseDirFn: baseDirFn,
-      encryptionKey: encryptionKey,
-      clear: clear,
-    ),
-  );
-};
-
 final adapterProviders = <String, Provider<Adapter<DataModelMixin>>>{
   ${classes.map((clazz) => '\'' + clazz['type']! + '\': ' + clazz['classNameLower']! + 'AdapterProvider').join(',\n')}
 };
 
-final adapterInitializerProvider =
-  FutureProvider<AdapterInitializer>((ref) async {
-${classes.map((clazz) => '    DataHelpers.setInternalType<${clazz['className']}>(\'${clazz['type']}\');').join('\n')}
-    final adapters = <String, Adapter>$adaptersMap;
-    final remotes = <String, bool>$remotesMap;
-
-    await ref.read(localStorageProvider).initialize();
-
-    // initialize and register
-    for (final type in adapterProviders.keys) {
-      final adapter = ref.read(adapterProviders[type]!);
-      adapter.dispose();
-      await adapter.initialize(
-        remote: remotes[type],
-        adapters: adapters,
-        ref: ref
-      );
-      internalAdapters[type] = adapter;
-    }
-
-    return AdapterInitializer();
-});
 ''' +
             adapterWatcherRefExtension(classes,
                 hasWidgets: hasFlutterRiverpod));

@@ -10,7 +10,7 @@ abstract class Pet<T extends Pet<T>> extends DataModel<T> {
   Pet(this.id);
 }
 
-@DataAdapter([], remote: false)
+@DataAdapter([]) // , remote: false
 @JsonSerializable()
 class Dog extends Pet<Dog> with EquatableMixin {
   final String name;

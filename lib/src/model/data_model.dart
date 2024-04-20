@@ -4,9 +4,10 @@ abstract class DataModel<T extends DataModel<T>> with DataModelMixin<T> {
   DataModel() {
     // _internalTypes will be empty in an isolate,
     // where we don't want to auto init
-    if (DataHelpers._internalTypes.isNotEmpty) {
-      init();
-    }
+    // TODO this will autoinit in isolate, ok!??
+    // if (DataHelpers._internalTypes.isNotEmpty) {
+    init();
+    // }
   }
 
   /// Returns a model [Adapter]
@@ -65,14 +66,14 @@ mixin DataModelMixin<T extends DataModelMixin<T>> {
   Object? get id;
   String? _key;
 
-  String get _internalType => DataHelpers.getInternalType<T>();
+  String get _internalType => DataHelpers.internalTypeFor(T.toString());
   T get _this => this as T;
 
   /// Exposes this type's [Adapter]
-  Adapter<T> get _adapter => internalAdapters[_internalType] as Adapter<T>;
+  Adapter<T> get _adapter => _internalAdapters![_internalType] as Adapter<T>;
 
   T init() {
-    final adapter = internalAdapters[_internalType];
+    final adapter = _internalAdapters![_internalType];
     if (adapter != null) {
       adapter.initModel(
         this,
@@ -119,7 +120,7 @@ extension DataModelExtension<T extends DataModelMixin<T>> on DataModelMixin<T> {
   ///
   /// Usage: `await post.save()`, `author.save(remote: false, params: {'a': 'x'})`.
   Future<T> save({
-    bool? remote,
+    bool remote = true,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     OnSuccessOne<T>? onSuccess,
@@ -137,7 +138,7 @@ extension DataModelExtension<T extends DataModelMixin<T>> on DataModelMixin<T> {
 
   /// Deletes this model through a call equivalent to [Adapter.delete].
   Future<T?> delete({
-    bool? remote,
+    bool remote = true,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     OnSuccessOne<T>? onSuccess,
@@ -156,7 +157,7 @@ extension DataModelExtension<T extends DataModelMixin<T>> on DataModelMixin<T> {
   /// Reload this model through a call equivalent to [Adapter.findOne].
   /// with the current object/[id]
   Future<T?> reload({
-    bool? remote,
+    bool remote = true,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     bool? background,

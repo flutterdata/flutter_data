@@ -144,7 +144,7 @@ void main() async {
   // });
 
   test('findOne (remote and local reload)', () async {
-    var familia = await Familia(id: '1', surname: 'Perez').save(remote: true);
+    var familia = await Familia(id: '1', surname: 'Perez').save();
     familia = Familia(id: '1', surname: 'Perez Gomez');
 
     container.read(responseProvider.notifier).state = TestResponse.json('''

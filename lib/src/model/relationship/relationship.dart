@@ -19,17 +19,17 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
     // type will always be first in split
     final [type, ..._] = ownerKey.split('#');
 
-    final adapter = internalAdapters[type]!;
-    return adapter.findOne(ownerKey) as DataModelMixin?;
+    final adapter = _internalAdapters![type]!;
+    return adapter.findOneLocal(ownerKey) as DataModelMixin?;
   }
 
   String get name => _name!;
   String? get inverseName => _inverseName;
 
-  Adapter<E> get _adapter => internalAdapters[_internalType] as Adapter<E>;
+  Adapter<E> get _adapter => _internalAdapters![_internalType] as Adapter<E>;
 
   Set<String>? _uninitializedKeys;
-  String get _internalType => DataHelpers.getInternalType<E>();
+  String get _internalType => DataHelpers.internalTypeFor(E.toString());
 
   Database get db => _adapter.storage.db;
 
@@ -54,11 +54,11 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
     // setting up from scratch, remove all and add keys
 
     db.execute(
-        'DELETE FROM edges WHERE (src = ? AND name = ?) OR (dest = ? AND inverse = ?)',
+        'DELETE FROM _edges WHERE (src = ? AND name = ?) OR (dest = ? AND inverse = ?)',
         [_ownerKey!, _name!, _ownerKey!, _name!]);
 
     final ps = db.prepare(
-        'INSERT INTO edges (src, name, dest, inverse) VALUES (?, ?, ?, ?)');
+        'INSERT INTO _edges (src, name, dest, inverse) VALUES (?, ?, ?, ?)');
 
     for (final key in _uninitializedKeys!) {
       ps.execute([_ownerKey!, _name, key, _inverseName]);
@@ -128,7 +128,7 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
     // ));
 
     db.execute(
-        'INSERT INTO edges (src, name, dest, inverse) VALUES (?, ?, ?, ?)',
+        'INSERT INTO _edges (src, name, dest, inverse) VALUES (?, ?, ?, ?)',
         [ownerKey, name, value._key!, inverseName]);
 
     if (save) {
@@ -152,8 +152,9 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
     //         inverseName: inverseName),
     //     newValue._key!));
 
-    db.execute('UPDATE edges SET src = ? WHERE src = ? AND name = ?',
-        [newValue._key!, ownerKey, name]);
+    db.execute(
+        'UPDATE _edges SET dest = ? WHERE src = ? AND name = ? AND dest = ?',
+        [newValue._key!, ownerKey, name, value._key!]);
 
     if (save) {
       this.save();
@@ -166,7 +167,7 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
     // _edgeOperations.add(
     //     RemoveEdgeOperation(Edge(from: ownerKey, name: name, to: value._key!)));
 
-    db.execute('DELETE FROM edges WHERE src = ? AND name = ? AND dest = ?',
+    db.execute('DELETE FROM _edges WHERE src = ? AND name = ? AND dest = ?',
         [ownerKey, name, value._key!]);
 
     if (save) {
@@ -202,7 +203,7 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
 
   Set<String> _keysFor(String key, String name) {
     final result = _adapter.storage.db.select(
-        'SELECT src, dest FROM edges WHERE (src = ? AND name = ?) OR (dest = ? AND inverse = ?)',
+        'SELECT src, dest FROM _edges WHERE (src = ? AND name = ?) OR (dest = ? AND inverse = ?)',
         [key, name, key, name]);
     // final edges = _adapter.storage.edgesFor([(key, name)]);
     return {for (final r in result) r['src'] == key ? r['dest'] : r['src']};

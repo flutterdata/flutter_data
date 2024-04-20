@@ -91,7 +91,7 @@ void main() async {
       '''{ "_id": "1", "name": "Charlie", "age": 23 }''',
     );
 
-    final notifier = container.people.watchOneNotifier('1', remote: true);
+    final notifier = container.people.watchOneNotifier('1');
 
     dispose = notifier.addListener(listener);
 
@@ -237,7 +237,7 @@ void main() async {
     // update another person through deserialization
     container.read(responseProvider.notifier).state = TestResponse.json(
         '''{ "_id": "2", "name": "Eve", "age": 20, "familia": "22" }''');
-    final eve = await container.people.findOne('2', remote: true);
+    final eve = await container.people.findOne('2');
     await oneMs();
 
     verify(listener(argThat(isA<DataState>().having((s) {
@@ -301,7 +301,7 @@ void main() async {
     final listener = Listener<DataState<List<Familia>>?>();
 
     container.read(responseProvider.notifier).state = TestResponse.json('[]');
-    final notifier = container.familia.watchAllNotifier(remote: true);
+    final notifier = container.familia.watchAllNotifier();
 
     dispose = notifier.addListener(listener);
 
@@ -436,7 +436,7 @@ void main() async {
     final listener = Listener<DataState<List<Person>>>();
 
     final p1 = Person(id: '1', name: 'Zof', age: 23).saveLocal();
-    final notifier = container.people.watchAllNotifier(remote: true);
+    final notifier = container.people.watchAllNotifier();
 
     dispose = notifier.addListener(listener);
 
@@ -570,8 +570,7 @@ void main() async {
 
     final listener = Listener<DataState<BookAuthor?>?>();
 
-    final notifier =
-        container.bookAuthors.watchOneNotifier(1, remote: true, finder: 'caps');
+    final notifier = container.bookAuthors.watchOneNotifier(1, finder: 'caps');
 
     dispose = notifier.addListener(listener);
 
@@ -829,14 +828,6 @@ void main() async {
     final pn2 = container.people.watchOneNotifier(p2);
     expect(pn1, equals(pn1b));
     expect(pn1, isNot(pn2));
-
-    // remote=false is the default for people, so these two should be equal
-    final pn3 = container.people
-        .watchOneNotifier(p2, remote: false, alsoWatch: (p) => {p.familia});
-    final pn3b =
-        container.people.watchOneNotifier(p2, alsoWatch: (p) => {p.familia});
-    expect(pn3, pn3b);
-    expect(pn2, isNot(pn3));
 
     // all
     final apn1 = container.read(container.people.watchAllProvider().notifier);

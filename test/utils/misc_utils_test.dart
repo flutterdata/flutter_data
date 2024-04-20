@@ -2,22 +2,9 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
-import '../_support/person.dart';
 import '../_support/pet.dart';
 
 void main() async {
-  test('internal types', () {
-    expect(
-        () => DataHelpers.getInternalType(), throwsA(isA<UnsupportedError>()));
-
-    final type = DataHelpers.internalTypeFor('person');
-    expect(type, 'people');
-
-    // set/get simply read/write to/from the _types<T, String> map
-    DataHelpers.setInternalType<Person>('people');
-    expect(DataHelpers.getInternalType<Person>(), 'people');
-  });
-
   test('uri helpers', () {
     final uri =
         'http://example.com/namespace/'.asUri / 'path/' / '../path' / '/./sub' &

@@ -7,7 +7,7 @@ import 'familia.dart';
 part 'house.g.dart';
 
 @JsonSerializable()
-@DataAdapter([], remote: false)
+@DataAdapter([])
 class House extends DataModel<House> {
   @override
   final String? id;
