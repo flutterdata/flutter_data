@@ -1,7 +1,5 @@
 part of flutter_data;
 
-const _offlineAdapterKey = '_offline:keys';
-
 /// Represents an offline request that is pending to be retried.
 class OfflineOperation<T extends DataModelMixin<T>> with EquatableMixin {
   final DataRequestLabel label;
@@ -26,46 +24,38 @@ class OfflineOperation<T extends DataModelMixin<T>> with EquatableMixin {
     required this.adapter,
   }) {
     this.key = key ?? label.model?._key;
-  }
-
-  /// Metadata format:
-  /// _offline:findOne/users#3@d7bcc9
-  static String metadataFor(DataRequestLabel label) => '_offline:$label';
-
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'r': httpRequest,
-      't': timestamp,
-      'k': key,
-      'b': body,
-      'h': headers,
-    };
-  }
-
-  factory OfflineOperation.fromJson(
-    DataRequestLabel label,
-    Map<String, dynamic> json,
-    Adapter<T> adapter,
-  ) {
-    final operation = OfflineOperation(
-      label: label,
-      httpRequest: json['r'] as String,
-      timestamp: json['t'] as int,
-      key: json['k'] as String?,
-      body: json['b'] as String?,
-      headers:
-          json['h'] == null ? null : Map<String, String>.from(json['h'] as Map),
-      adapter: adapter,
-    );
-
-    if (operation.key != null) {
-      final model = adapter.findOneLocal(operation.key!);
+    if (this.key != null) {
+      final model = adapter.findOneLocal(this.key);
       if (model != null) {
-        operation.label.model = model;
+        label.model = model;
       }
     }
-    return operation;
   }
+
+  // factory OfflineOperation.fromJson(
+  //   DataRequestLabel label,
+  //   Map<String, dynamic> json,
+  //   Adapter<T> adapter,
+  // ) {
+  //   final operation = OfflineOperation(
+  //     label: label,
+  //     httpRequest: json['r'] as String,
+  //     timestamp: json['t'] as int,
+  //     key: json['k'] as String?,
+  //     body: json['b'] as String?,
+  //     headers:
+  //         json['h'] == null ? null : Map<String, String>.from(json['h'] as Map),
+  //     adapter: adapter,
+  //   );
+
+  //   if (operation.key != null) {
+  //     final model = adapter.findOneLocal(operation.key!);
+  //     if (model != null) {
+  //       operation.label.model = model;
+  //     }
+  //   }
+  //   return operation;
+  // }
 
   Uri get uri {
     return httpRequest.split(' ').last.asUri;
@@ -81,66 +71,57 @@ class OfflineOperation<T extends DataModelMixin<T>> with EquatableMixin {
   void add() {
     // DO NOT proceed if operation is in queue
     if (!adapter.offlineOperations.contains(this)) {
-      final metadata = metadataFor(label);
+      adapter.log(label, 'offline/add ${label.requestId}');
 
-      adapter.log(label, 'offline/add $metadata');
-      // TODO restore
-      // final data = json.encode(toJson());
-      // adapter.storage
-      //     .addEdge(Edge(from: _offlineAdapterKey, name: metadata, to: data));
+      adapter.db.execute(
+          'INSERT INTO _offline_operations (label, request, timestamp, headers, body, key) VALUES (?, ?, ?, ?, ?, ?)',
+          [
+            label.toString(),
+            httpRequest,
+            timestamp,
+            jsonEncode(headers),
+            body,
+            key
+          ]);
 
       // keep callbacks in memory
-      adapter.ref.read(_offlineCallbackProvider)[metadata] ??= [];
-      adapter.ref
-          .read(_offlineCallbackProvider)[metadata]!
-          .add([onSuccess, onError]);
-    } else {
-      // trick
-      adapter.core
-          ._notify([_offlineAdapterKey, ''], type: DataGraphEventType.addEdge);
+      adapter.ref.read(_offlineCallbackProvider)[label.requestId] ??=
+          (null, null);
+      adapter.ref.read(_offlineCallbackProvider)[label.requestId] =
+          (onSuccess, onError);
     }
   }
 
   /// Removes all edges from the `_offlineAdapterKey` for
   /// current metadata, as well as callbacks from memory.
   static void remove(DataRequestLabel label, Adapter adapter) {
-    // final metadata = metadataFor(label);
+    adapter.db.execute(
+        'DELETE FROM _offline_operations WHERE label = ?', [label.toString()]);
 
-    // TODO restore
-    // final removed = adapter.storage
-    //     .removeEdgesFor([(_offlineAdapterKey, metadata)]);
-
-    // if (removed > 0) {
-    //   adapter.log(label, 'offline/remove $metadata');
-    //   adapter.ref.read(_offlineCallbackProvider).remove(metadata);
-    // }
+    adapter.log(label, 'offline/remove ${label.requestId}');
+    adapter.ref.read(_offlineCallbackProvider).remove(label.requestId);
   }
 
   Future<void> retry() async {
-    final metadata = metadataFor(label);
     // look up callbacks (or provide defaults)
-    final fns = adapter.ref.read(_offlineCallbackProvider)[metadata] ??
-        [
-          [null, null]
-        ];
+    final _cbs = adapter.ref.read(_offlineCallbackProvider);
+    final fns = _cbs[label.requestId] ?? (null, null);
 
-    for (final pair in fns) {
-      await adapter.sendRequest<T>(
-        uri,
-        method: method,
-        headers: headers,
-        label: label,
-        body: body,
-        onSuccess: pair.first as _OnSuccessGeneric<T>?,
-        onError: pair.last as _OnErrorGeneric<T>?,
-      );
-    }
+    await adapter.sendRequest<T>(
+      uri,
+      method: method,
+      headers: headers,
+      label: label,
+      body: body,
+      onSuccess: fns.$1 as _OnSuccessGeneric<T>?,
+      onError: fns.$2 as _OnErrorGeneric<T>?,
+    );
   }
 
   T? get model => label.model as T?;
 
   @override
-  List<Object?> get props => [label, httpRequest, body, headers];
+  List<Object?> get props => [label];
 
   @override
   bool get stringify => true;
@@ -161,8 +142,7 @@ extension OfflineOperationsX on Set<OfflineOperation<DataModelMixin>> {
     }
     final adapter = first.adapter;
 
-    // TODO restore
-    // adapter.storage.removeEdgesFor([(_offlineAdapterKey, null)]);
+    adapter.db.execute('DELETE FROM _offline_operations');
 
     adapter.ref.read(_offlineCallbackProvider).clear();
   }
@@ -175,7 +155,9 @@ extension OfflineOperationsX on Set<OfflineOperation<DataModelMixin>> {
 
 // stores onSuccess/onError function combos
 final _offlineCallbackProvider =
-    StateProvider<Map<String, List<List<Function?>>>>((_) => {});
+    StateProvider<Map<String, (Function?, Function?)>>((_) => {});
+
+// providers
 
 final offlineRetryProvider = StreamProvider<void>((ref) async* {
   Set<OfflineOperation> _offlineOperations() {

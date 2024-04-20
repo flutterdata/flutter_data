@@ -2,12 +2,7 @@ part of flutter_data;
 
 abstract class DataModel<T extends DataModel<T>> with DataModelMixin<T> {
   DataModel() {
-    // _internalTypes will be empty in an isolate,
-    // where we don't want to auto init
-    // TODO this will autoinit in isolate, ok!??
-    // if (DataHelpers._internalTypes.isNotEmpty) {
     init();
-    // }
   }
 
   /// Returns a model [Adapter]

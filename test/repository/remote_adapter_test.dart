@@ -140,8 +140,6 @@ void main() async {
           Person(id: '2', name: 'John', age: 44)
         }));
 
-    // final originalKey = keyFor(models.first);
-
     // simulate app restart
     container.familia.dispose();
 
@@ -149,7 +147,6 @@ void main() async {
         .read(familiaAdapterProvider)
         .initialize(ref: container.read(refProvider));
 
-    // TODO below was: originalKey, Familia(id: '1', surname: 'Smith')
     container.familia
         .saveLocal(Familia(id: '1', surname: 'Smith'), notify: false);
 

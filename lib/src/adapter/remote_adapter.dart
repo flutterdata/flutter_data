@@ -505,7 +505,6 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
           key: label.model!._key);
       final model = data.model!;
 
-      // TODO group?
       // if there has been a migration to a new key, delete the old one
       if (model._key != label.model!._key) {
         deleteLocalByKeys({label.model!._key!});

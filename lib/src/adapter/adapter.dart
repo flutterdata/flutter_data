@@ -45,6 +45,8 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   @visibleForTesting
   final LocalStorage storage;
 
+  Database get db => storage.db;
+
   bool _stopInitialization = false;
 
   // None of these fields below can be late finals as they might be re-initialized
@@ -88,7 +90,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
   @mustCallSuper
   Future<void> onInitialized() async {
-    storage.db.execute('''
+    db.execute('''
       CREATE TABLE IF NOT EXISTS $internalType (
         key INTEGER PRIMARY KEY AUTOINCREMENT,
         data TEXT
@@ -120,7 +122,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
   /// Returns all models of type [T] in local storage.
   List<T> findAllLocal() {
-    final result = storage.db.select('SELECT key, data FROM $internalType');
+    final result = db.select('SELECT key, data FROM $internalType');
     return _deserializeFromResult(result);
   }
 
@@ -131,7 +133,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     }
     final intKeys = keys.map((key) => key.detypifyKey()).toList();
 
-    final result = storage.db.select(
+    final result = db.select(
         'SELECT key, data FROM $internalType WHERE key IN (${intKeys.map((_) => '?').join(', ')})',
         intKeys);
     return _deserializeFromResult(result);
@@ -158,7 +160,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
   /// Whether [key] exists in local storage.
   bool exists(String key) {
-    final result = storage.db.select(
+    final result = db.select(
         'SELECT EXISTS(SELECT 1 FROM $internalType WHERE key = ?) AS e;',
         [key.detypifyKey()]);
     return result.first['e'] == 1;
@@ -174,7 +176,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     final key = model._key!.detypifyKey();
     final map = serialize(model, withRelationships: false);
     final data = jsonEncode(map);
-    storage.db.execute(
+    db.execute(
         'REPLACE INTO $internalType (key, data) VALUES (?, ?)', [key, data]);
     return model;
   }
@@ -243,7 +245,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   /// Deletes models with [keys] from local storage.
   void deleteLocalByKeys(Iterable<String> keys, {bool notify = true}) {
     final intKeys = keys.map((k) => k.detypifyKey()).toList();
-    storage.db.execute(
+    db.execute(
         'DELETE FROM $internalType WHERE key IN (${keys.map((_) => '?').join(', ')})',
         intKeys);
     core.deleteKeys(keys);
@@ -257,21 +259,21 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     // TODO SELECT name FROM sqlite_master WHERE type='table' AND name='your_table_name';
     // leave async in case some impls need to remove files
     for (final adapter in adapters.values) {
-      storage.db.execute('DELETE FROM ${adapter.internalType}');
+      db.execute('DELETE FROM ${adapter.internalType}');
     }
     core._notify([internalType], type: DataGraphEventType.clear);
   }
 
   /// Counts all models of type [T] in local storage.
   int get countLocal {
-    final result = storage.db.select('SELECT count(*) FROM $internalType');
+    final result = db.select('SELECT count(*) FROM $internalType');
     return result.first['count(*)'];
   }
 
   /// Gets all keys of type [T] in local storage.
   Set<String> get keys {
-    final result = storage.db
-        .select('SELECT key FROM _keys WHERE type = ?', [internalType]);
+    final result =
+        db.select('SELECT key FROM _keys WHERE type = ?', [internalType]);
     return result
         .map((r) => r['key'].toString().typifyWith(internalType))
         .toSet();
@@ -313,27 +315,17 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   @visibleForTesting
   @nonVirtual
   Set<OfflineOperation<T>> get offlineOperations {
-    // TODO restore
-    final edges = []; // storage.edgesFor([(_offlineAdapterKey, null)]);
-    return edges
-        .map((e) {
-          try {
-            // extract type from e.g. _offline:findOne/users#3@d7bcc9
-            final label = DataRequestLabel.parse(e.name.denamespace());
-            if (label.type == internalType) {
-              // get first edge value
-              final map = json.decode(e.to) as Map<String, dynamic>;
-              return OfflineOperation<T>.fromJson(
-                  label, map, this as Adapter<T>);
-            }
-          } catch (_) {
-            // TODO restore
-            // if there were any errors parsing labels or json ignore and remove
-            // storage.removeEdgesFor([(_offlineAdapterKey, e.name)]);
-          }
-        })
-        .nonNulls
-        .toSet();
+    final result = db.select('SELECT * FROM _offline_operations');
+    return result.map((r) {
+      return OfflineOperation<T>(
+          label: DataRequestLabel.parse(r['label']),
+          httpRequest: r['request'],
+          timestamp: r['timestamp'],
+          headers: Map<String, String>.from(jsonDecode(r['headers'])),
+          body: r['body'],
+          key: r['key'],
+          adapter: this as Adapter<T>);
+    }).toSet();
   }
 
   Object? _resolveId(Object obj) {
@@ -391,7 +383,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
         // TODO optimize: put outside loop and query edgesFor just once
         if (fromKey != null && relationship._uninitializedKeys == null) {
           // TODO DRY!
-          final result = storage.db.select(
+          final result = db.select(
               'SELECT src, dest FROM _edges WHERE (src = ? AND name = ?) OR (dest = ? AND inverse = ?)',
               [fromKey, metadata.name, fromKey, metadata.name]);
           relationship._uninitializedKeys = {for (final r in result) r['dest']};
@@ -409,9 +401,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
   T deserialize(Map<String, dynamic> map, {String? key});
 
-  Map<String, RelationshipMeta> get relationshipMetas {
-    throw UnimplementedError('');
-  }
+  Map<String, RelationshipMeta> get relationshipMetas;
 
   Map<String, dynamic> transformSerialize(Map<String, dynamic> map,
       {bool withRelationships = true}) {

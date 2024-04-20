@@ -115,13 +115,13 @@ class RelationshipMeta<T extends DataModelMixin<T>>
   });
 
   // get topmost parent
-  RelationshipMeta get _top {
-    RelationshipMeta? current = this;
-    while (current?.parent != null) {
-      current = current!.parent;
-    }
-    return current!;
-  }
+  // RelationshipMeta get _top {
+  //   RelationshipMeta? current = this;
+  //   while (current?.parent != null) {
+  //     current = current!.parent;
+  //   }
+  //   return current!;
+  // }
 
   RelationshipMeta<T> clone({RelationshipMeta? parent}) {
     final meta = RelationshipMeta<T>(
