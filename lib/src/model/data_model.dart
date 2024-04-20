@@ -8,40 +8,6 @@ abstract class DataModel<T extends DataModel<T>> with DataModelMixin<T> {
   /// Returns a model [Adapter]
   static Adapter adapterFor(DataModelMixin model) => model._adapter;
 
-  // static T withKey<T extends DataModelMixin<T>>(String sourceKey,
-  //     {required T applyTo}) {
-  //   final core = applyTo._adapter.core;
-  //   final type = applyTo._internalType;
-
-  //   // ONLY data we keep from source is its key
-  //   // ONLY data we remove from destination is its key
-  //   if (sourceKey != applyTo._key) {
-  //     final oldKey = applyTo._key;
-
-  //     // assign correct key to destination
-  //     applyTo._key = sourceKey;
-
-  //     // migrate relationships to new key
-  //     applyTo._adapter
-  //         ._initializeRelationships(applyTo, fromKey: sourceKey);
-
-  //     if (applyTo.id != null) {
-  //       core._writeTxn(() {
-  //         // and associate ID with source key
-  //         // final typeId = applyTo.id!.typifyWith(type);
-  //         // core._keyOperations.add(AddKeyOperation(sourceKey, typeId));
-
-  //         if (oldKey != null) {
-  //           core._storedModelBox.remove(oldKey.detypifyKey()!);
-  //           // core._keyOperations.add(RemoveKeyOperation(oldKey));
-  //         }
-  //         // core._keyCache[sourceKey.detypify() as int] = typeId;
-  //       });
-  //     }
-  //   }
-  //   return applyTo;
-  // }
-
   // data model helpers
 
   /// Returns a model's `_key` private attribute.
@@ -95,22 +61,6 @@ mixin DataModelMixin<T extends DataModelMixin<T>> {
 /// linking them to common [Adapter] methods such as
 /// [save] and [delete].
 extension DataModelExtension<T extends DataModelMixin<T>> on DataModelMixin<T> {
-  /// Copy identity (internal key) from an old model to a new one
-  /// to signal they are the same.
-  ///
-  /// **Only makes sense to use if model is immutable and has no ID!**
-  ///
-  /// ```
-  /// final walter = Person(name: 'Walter');
-  /// person.copyWith(age: 56).withKeyOf(walter);
-  /// ```
-  // T withKeyOf(T model) {
-  //   if (model._key == null) {
-  //     throw Exception("Model must be initialized:\n\n$model");
-  //   }
-  //   return DataModel.withKey<T>(model._key!, applyTo: this as T);
-  // }
-
   /// Saves this model through a call equivalent to [save].
   ///
   /// Usage: `await post.save()`, `author.save(remote: false, params: {'a': 'x'})`.
