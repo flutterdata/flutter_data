@@ -485,7 +485,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _BaseAdapter<T> {
   late final _watchAllProvider = StateNotifierProvider.autoDispose
       .family<DataStateNotifier<List<T>>, DataState<List<T>>, WatchArgs<T>>(
           (ref, args) {
-    return watchAllNotifier(
+    return _watchAllNotifier(
       remote: args.remote,
       params: args.params,
       headers: args.headers,
@@ -529,7 +529,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _BaseAdapter<T> {
 
   late final _watchOneProvider = StateNotifierProvider.autoDispose
       .family<DataStateNotifier<T?>, DataState<T?>, WatchArgs<T>>((ref, args) {
-    return watchOneNotifier(
+    return _watchOneNotifier(
       args.key!,
       remote: args.remote,
       params: args.params,

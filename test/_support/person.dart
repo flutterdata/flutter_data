@@ -6,7 +6,7 @@ import 'familia.dart';
 
 part 'person.g.dart';
 
-@DataRepository(
+@DataAdapter(
     [PersonLoginAdapter, GenericDoesNothingAdapter, YetAnotherLoginAdapter],
     remote: false)
 class Person extends DataModel<Person> {

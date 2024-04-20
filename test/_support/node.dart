@@ -6,7 +6,7 @@ part 'node.freezed.dart';
 part 'node.g.dart';
 
 @freezed
-@DataRepository([NodeAdapter], localAdapters: [NodeLocalAdapter], remote: false)
+@DataAdapter([NodeAdapter, NodeLocalAdapter], remote: false)
 class Node extends DataModel<Node> with EquatableMixin, _$Node {
   Node._();
   factory Node(

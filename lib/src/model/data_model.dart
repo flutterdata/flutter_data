@@ -96,7 +96,7 @@ mixin DataModelMixin<T extends DataModelMixin<T>> {
 }
 
 /// Extension that adds syntax-sugar to data classes,
-/// linking them to common [Repository] methods such as
+/// linking them to common [Adapter] methods such as
 /// [save] and [delete].
 extension DataModelExtension<T extends DataModelMixin<T>> on DataModelMixin<T> {
   /// Copy identity (internal key) from an old model to a new one
@@ -115,7 +115,7 @@ extension DataModelExtension<T extends DataModelMixin<T>> on DataModelMixin<T> {
   //   return DataModel.withKey<T>(model._key!, applyTo: this as T);
   // }
 
-  /// Saves this model through a call equivalent to [Repository.save].
+  /// Saves this model through a call equivalent to [save].
   ///
   /// Usage: `await post.save()`, `author.save(remote: false, params: {'a': 'x'})`.
   Future<T> save({
@@ -135,7 +135,7 @@ extension DataModelExtension<T extends DataModelMixin<T>> on DataModelMixin<T> {
     );
   }
 
-  /// Deletes this model through a call equivalent to [Repository.delete].
+  /// Deletes this model through a call equivalent to [Adapter.delete].
   Future<T?> delete({
     bool? remote,
     Map<String, dynamic>? params,
@@ -153,7 +153,7 @@ extension DataModelExtension<T extends DataModelMixin<T>> on DataModelMixin<T> {
     );
   }
 
-  /// Reload this model through a call equivalent to [Repository.findOne].
+  /// Reload this model through a call equivalent to [Adapter.findOne].
   /// with the current object/[id]
   Future<T?> reload({
     bool? remote,

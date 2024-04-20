@@ -5,7 +5,7 @@ targets:
         generate_for:
           - test/_support/*
           - example/lib/models/*
-      flutter_data|data_repository_builder:
+      flutter_data|data_adapter_builder:
         generate_for:
           - test/_support/*
           - example/lib/models/*
@@ -19,9 +19,9 @@ targets:
           - example/*
 
 builders:
-  data_repository_builder:
-    import: "package:flutter_data/builders/repository_builder.dart"
-    builder_factories: ["repositoryBuilder"]
+  data_adapter_builder:
+    import: "package:flutter_data/builders/adapter_builder.dart"
+    builder_factories: ["adapterBuilder"]
     build_extensions: { ".dart": [".flutter_data.g.part"] }
     auto_apply: dependents
     build_to: cache

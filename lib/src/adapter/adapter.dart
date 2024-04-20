@@ -7,15 +7,15 @@ part of flutter_data;
 ///  - Remote methods such as [_BaseAdapter.findAll] or [_BaseAdapter.save]
 ///  - Configuration methods and getters like [_BaseAdapter.baseUrl] or [_BaseAdapter.urlForFindAll]
 ///  - Serialization methods like [_SerializationAdapter.serialize]
-///  - Watch methods such as [Repository.watchOneNotifier]
+///  - Watch methods such as [_WatchAdapter.watchOneNotifier]
 ///  - Access to the [_BaseAdapter.core] for subclasses or mixins
 ///
 /// This class is meant to be extended via mixing in new adapters.
-/// This can be done with the [DataRepository] annotation on a [DataModelMixin] class:
+/// This can be done with the [DataAdapter] annotation on a [DataModelMixin] class:
 ///
 /// ```
 /// @JsonSerializable()
-/// @DataRepository([MyAppAdapter])
+/// @DataAdapter([MyAppAdapter])
 /// class Todo with DataModel<Todo> {
 ///   @override
 ///   final int? id;
@@ -545,17 +545,17 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     return null;
   }
 
-  /// Deletes model of type [T] with [key] from local storage.
-  ///
-  /// By default notifies this modification to the associated [CoreNotifier].
+  /// Deletes model of type [T] from local storage.
   void deleteLocal(T model, {bool notify = true}) {
     throw UnimplementedError('');
   }
 
+  /// Deletes model with [id] from local storage.
   void deleteLocalById(Object id, {bool notify = true}) {
     throw UnimplementedError('');
   }
 
+  /// Deletes models with [keys] from local storage.
   void deleteLocalByKeys(Iterable<String> keys, {bool notify = true}) {
     throw UnimplementedError('');
   }
@@ -563,7 +563,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   /// Deletes all models of type [T] in local storage.
   ///
   /// If you need to clear all models, use the
-  /// `repositoryProviders` map exposed on your `main.data.dart`.
+  /// `adapterProviders` map exposed on your `main.data.dart`.
   Future<void> clearLocal() {
     // leave async in case some impls need to remove files
     throw UnimplementedError('');
@@ -1080,17 +1080,17 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 /// it is useful for providing a mock client for testing
 final httpClientProvider = Provider<http.Client?>((_) => null);
 
-/// Annotation on a [DataModelMixin] model to request a [Repository] be generated for it.
+/// Annotation on a [DataModelMixin] model to request an [Adapter] be generated for it.
 ///
-/// Takes a list of [adapters] to be mixed into this [Repository].
-/// Public methods of these [adapters] mixins will be made available in the repository
+/// Takes a list of [adapters] to be mixed into this [Adapter].
+/// Public methods of these [adapters] mixins will be made available in the adapter
 /// via extensions.
 ///
 /// A classic example is:
 ///
 /// ```
 /// @JsonSerializable()
-/// @DataRepository([JSONAPIAdapter])
+/// @DataAdapter([JSONAPIAdapter])
 /// class Todo with DataModel<Todo> {
 ///   @override
 ///   final int id;
@@ -1100,10 +1100,8 @@ final httpClientProvider = Provider<http.Client?>((_) => null);
 ///   Todo({this.id, this.title, this.completed = false});
 /// }
 ///```
-class DataRepository {
+class DataAdapter {
   final List<Type> adapters;
-  final List<Type> localAdapters;
   final bool remote;
-  const DataRepository(this.adapters,
-      {this.localAdapters = const [], this.remote = true});
+  const DataAdapter(this.adapters, {this.remote = true});
 }

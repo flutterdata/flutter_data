@@ -4,7 +4,7 @@ part of flutter_data;
 
 /// Used to notify events.
 ///
-/// Watchers like [Repository.watchAllNotifier] or [BelongsTo.watch]
+/// Watchers like [Adapter.watchAllNotifier] or [BelongsTo.watch]
 /// make use of it.
 ///
 /// Its public API requires all keys and metadata to be namespaced

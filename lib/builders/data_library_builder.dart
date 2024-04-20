@@ -24,7 +24,7 @@ class DataExtensionIntermediateBuilder implements Builder {
     if (!await resolver.isLibrary(buildStep.inputId)) return;
     final lib = LibraryReader(await buildStep.inputLibrary);
 
-    final annotation = TypeChecker.fromRuntime(DataRepository);
+    final annotation = TypeChecker.fromRuntime(DataAdapter);
     final members = [
       for (final member in lib.annotatedWith(annotation)) member,
     ];

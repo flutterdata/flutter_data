@@ -82,7 +82,7 @@ Future<void> setUpFn() async {
   internalAdapters['people'] = await container
       .read(peopleAdapterProvider)
       .initialize(remote: false, adapters: adapterGraph, ref: ref);
-  final dogsRepository = internalAdapters['dogs'] = await container
+  final dogsAdapter = internalAdapters['dogs'] = await container
       .read(dogsAdapterProvider)
       .initialize(remote: false, adapters: adapterGraph, ref: ref);
   internalAdapters['bookAuthors'] = await container
@@ -107,7 +107,7 @@ Future<void> setUpFn() async {
 
   core = container.read(housesAdapterProvider).core;
 
-  dogsRepository.logLevel = 2;
+  dogsAdapter.logLevel = 2;
 }
 
 Future<void> tearDownFn() async {

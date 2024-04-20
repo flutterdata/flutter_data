@@ -10,7 +10,7 @@ part 'book.freezed.dart';
 part 'book.g.dart';
 
 @freezed
-@DataRepository([BookAuthorAdapter], remote: false)
+@DataAdapter([BookAuthorAdapter], remote: false)
 class BookAuthor extends DataModel<BookAuthor> with _$BookAuthor {
   BookAuthor._();
   factory BookAuthor({
@@ -23,7 +23,7 @@ class BookAuthor extends DataModel<BookAuthor> with _$BookAuthor {
 }
 
 @freezed
-@DataRepository([], remote: false)
+@DataAdapter([], remote: false)
 class Book extends DataModel<Book> with _$Book {
   Book._();
   @JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
@@ -39,7 +39,7 @@ class Book extends DataModel<Book> with _$Book {
 }
 
 @freezed
-@DataRepository([], remote: false)
+@DataAdapter([], remote: false)
 class Library with DataModelMixin<Library>, _$Library {
   Library._();
 

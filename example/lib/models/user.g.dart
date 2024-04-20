@@ -3,7 +3,7 @@
 part of 'user.dart';
 
 // **************************************************************************
-// RepositoryGenerator
+// AdapterGenerator
 // **************************************************************************
 
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore

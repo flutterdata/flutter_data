@@ -3,7 +3,7 @@
 part of 'node.dart';
 
 // **************************************************************************
-// RepositoryGenerator
+// AdapterGenerator
 // **************************************************************************
 
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
@@ -46,13 +46,14 @@ mixin _$NodeAdapter on Adapter<Node> {
 final _nodesFinders = <String, dynamic>{};
 
 class $NodeAdapter = Adapter<Node>
-    with _$NodeAdapter, NodeLocalAdapter, NodeAdapter;
+    with _$NodeAdapter, NodeAdapter, NodeLocalAdapter;
 
 final nodesAdapterProvider = Provider<Adapter<Node>>(
     (ref) => $NodeAdapter(ref, InternalHolder(_nodesFinders)));
 
 extension NodeAdapterX on Adapter<Node> {
   NodeAdapter get nodeAdapter => this as NodeAdapter;
+  NodeLocalAdapter get nodeLocalAdapter => this as NodeLocalAdapter;
 }
 
 extension NodeRelationshipGraphNodeX on RelationshipGraphNode<Node> {

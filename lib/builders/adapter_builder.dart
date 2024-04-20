@@ -13,10 +13,10 @@ import 'package:source_helper/source_helper.dart';
 
 import 'utils.dart';
 
-Builder repositoryBuilder(options) =>
-    SharedPartBuilder([RepositoryGenerator()], 'flutter_data');
+Builder adapterBuilder(options) =>
+    SharedPartBuilder([AdapterGenerator()], 'flutter_data');
 
-class RepositoryGenerator extends GeneratorForAnnotation<DataRepository> {
+class AdapterGenerator extends GeneratorForAnnotation<DataAdapter> {
   @override
   Future<String> generateForAnnotatedElement(
       Element element, ConstantReader annotation, BuildStep buildStep) async {
@@ -28,7 +28,7 @@ class RepositoryGenerator extends GeneratorForAnnotation<DataRepository> {
       classElement = element as ClassElement;
     } catch (e) {
       throw UnsupportedError(
-          "Can't generate repository for $className. Please use @DataRepository on a class.");
+          "Can't generate adapter for $className. Please use @DataAdapter on a class.");
     }
 
     final annot = TypeChecker.fromRuntime(JsonSerializable);
@@ -49,7 +49,7 @@ class RepositoryGenerator extends GeneratorForAnnotation<DataRepository> {
             element.getSetter(name) != null &&
             !element.getField(name)!.isLate) {
           throw UnsupportedError(
-              "Can't generate repository for $className. The `$name` field MUST be final");
+              "Can't generate adapter for $className. The `$name` field MUST be final");
         }
         _checkIsFinal(element.supertype?.element, name);
       }
@@ -234,28 +234,6 @@ RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
       return displayName;
     }).toSet();
 
-    final localMixins = annotation.read('localAdapters').listValue.map((obj) {
-      final mixinType = obj.toTypeValue() as ParameterizedType;
-      final mixinMethods = <MethodElement>[];
-      String displayName;
-
-      final args = mixinType.typeArguments;
-
-      if (args.length > 1) {
-        throw UnsupportedError(
-            'LocalAdapter `$mixinType` MUST have at most one type argument (T extends DataModel<T>) is supported for $mixinType');
-      }
-
-      final instantiatedMixinType = (mixinType.element as MixinElement)
-          .instantiate(
-              typeArguments: [if (args.isNotEmpty) classElement.thisType],
-              nullabilitySuffix: NullabilitySuffix.none);
-      mixinMethods.addAll(instantiatedMixinType.methods);
-      displayName =
-          instantiatedMixinType.getDisplayString(withNullability: false);
-      return displayName;
-    }).toSet();
-
     final mixinShortcuts = mixins.map((mixin) {
       final mixinB = mixin.replaceAll(RegExp('<.*?>'), '').decapitalize();
       return '$mixin get $mixinB => this as $mixin;';
@@ -294,7 +272,7 @@ final _${classNameLower}Finders = <String, dynamic>{
   ${finders.map((f) => '''  '$f': (_) => _.$f,''').join('\n')}
 };
 
-class \$${className}Adapter = Adapter<$className> with _\$${className}Adapter${localMixins.map((m) => ', $m').join('')}, ${mixins.join(', ')};
+class \$${className}Adapter = Adapter<$className> with _\$${className}Adapter, ${mixins.join(', ')};
 
 final ${classNameLower}AdapterProvider =
     Provider<Adapter<$className>>(
