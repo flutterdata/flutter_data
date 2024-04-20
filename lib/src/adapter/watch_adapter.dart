@@ -1,6 +1,6 @@
 part of flutter_data;
 
-mixin _WatchAdapter<T extends DataModelMixin<T>> on _BaseAdapter<T> {
+mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
   /// Watches a provider wrapping [watchAllNotifier]
   /// which allows the watcher to be notified of changes
   /// on any model of this [type].

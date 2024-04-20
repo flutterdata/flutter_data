@@ -35,6 +35,7 @@ part 'src/model/relationship/belongs_to.dart';
 part 'src/model/relationship/has_many.dart';
 part 'src/model/relationship/relationship.dart';
 part 'src/adapter/adapter.dart';
+part 'src/adapter/remote_adapter.dart';
 part 'src/adapter/serialization_adapter.dart';
 part 'src/adapter/watch_adapter.dart';
 part 'src/storage/local_storage.dart';
