@@ -12,7 +12,7 @@ class OfflineOperation<T extends DataModelMixin<T>> with EquatableMixin {
   late final String? key;
   final _OnSuccessGeneric<T>? onSuccess;
   final _OnErrorGeneric<T>? onError;
-  final RemoteAdapter<T> adapter;
+  final Adapter<T> adapter;
 
   OfflineOperation({
     required this.label,
@@ -45,7 +45,7 @@ class OfflineOperation<T extends DataModelMixin<T>> with EquatableMixin {
   factory OfflineOperation.fromJson(
     DataRequestLabel label,
     Map<String, dynamic> json,
-    RemoteAdapter<T> adapter,
+    Adapter<T> adapter,
   ) {
     final operation = OfflineOperation(
       label: label,
@@ -59,7 +59,7 @@ class OfflineOperation<T extends DataModelMixin<T>> with EquatableMixin {
     );
 
     if (operation.key != null) {
-      final model = adapter.localAdapter.findOne(operation.key!);
+      final model = adapter.findOneLocal(operation.key!);
       if (model != null) {
         operation.label.model = model;
       }
@@ -103,7 +103,7 @@ class OfflineOperation<T extends DataModelMixin<T>> with EquatableMixin {
 
   /// Removes all edges from the `_offlineAdapterKey` for
   /// current metadata, as well as callbacks from memory.
-  static void remove(DataRequestLabel label, RemoteAdapter adapter) {
+  static void remove(DataRequestLabel label, Adapter adapter) {
     // final metadata = metadataFor(label);
 
     // TODO restore
@@ -179,9 +179,8 @@ final _offlineCallbackProvider =
 
 final offlineRetryProvider = StreamProvider<void>((ref) async* {
   Set<OfflineOperation> _offlineOperations() {
-    return internalRepositories.values
-        .map((r) {
-          final adapter = r.remoteAdapter;
+    return internalAdapters.values
+        .map((adapter) {
           // if the stream is called before initialization
           // (or after disposal) simply return an empty set
           if (!adapter.isInitialized) {

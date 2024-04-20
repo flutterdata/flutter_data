@@ -400,7 +400,7 @@ void main() async {
           expect(state.isLoading, isFalse);
         } else if (i <= count) {
           expect(state.model, List.generate(i, (_) => matcher));
-          final adapter = container.people.remoteAdapter.localAdapter;
+          final adapter = container.people;
           // check box has all the keys
           expect(adapter.keys.length, i);
         } else {
@@ -510,23 +510,20 @@ void main() async {
     verify(listener(argThat(matcher('Frank')))).called(1);
     verifyNoMoreInteractions(listener);
 
-    await container.people.remoteAdapter
-        .save(Person(id: '1', name: 'Steve-O', age: 34));
+    await container.people.save(Person(id: '1', name: 'Steve-O', age: 34));
     await oneMs();
 
     verify(listener(argThat(matcher('Steve-O')))).called(1);
     verifyNoMoreInteractions(listener);
 
-    await container.people.remoteAdapter
-        .save(Person(id: '1', name: 'Liam', age: 36));
+    await container.people.save(Person(id: '1', name: 'Liam', age: 36));
     await oneMs();
 
     verify(listener(argThat(matcher('Liam')))).called(1);
     verifyNoMoreInteractions(listener);
 
     // a different ID doesn't trigger
-    await container.people.remoteAdapter
-        .save(Person(id: '2', name: 'Jupiter', age: 3));
+    await container.people.save(Person(id: '2', name: 'Jupiter', age: 3));
     await oneMs();
 
     verifyNever(listener(argThat(matcher('Jupiter'))));

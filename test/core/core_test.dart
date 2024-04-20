@@ -66,10 +66,10 @@ void main() async {
     }
 
     await logTime('bulk save', () async {
-      await container.familia.remoteAdapter.localAdapter.saveMany(familias);
+      await container.familia.saveManyLocal(familias);
     });
 
-    expect(container.familia.remoteAdapter.localAdapter.count, length);
+    expect(container.familia.countLocal, length);
   });
 
   test('namespace', () {

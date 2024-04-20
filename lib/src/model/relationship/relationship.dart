@@ -19,16 +19,14 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
     // type will always be first in split
     final [type, ..._] = ownerKey.split('#');
 
-    final adapter = internalRepositories[type]!.remoteAdapter;
-    return adapter.localAdapter.findOne(ownerKey) as DataModelMixin?;
+    final adapter = internalAdapters[type]!;
+    return adapter.findOne(ownerKey) as DataModelMixin?;
   }
 
   String get name => _name!;
   String? get inverseName => _inverseName;
 
-  LocalAdapter<E> get _adapter =>
-      internalRepositories[_internalType]!.remoteAdapter.localAdapter
-          as LocalAdapter<E>;
+  Adapter<E> get _adapter => internalAdapters[_internalType] as Adapter<E>;
 
   Set<String>? _uninitializedKeys;
   String get _internalType => DataHelpers.getInternalType<E>();
@@ -167,7 +165,7 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   Set<String> get keys => _keys;
 
   Iterable<E> get _iterable {
-    return _adapter.findMany(_keys);
+    return _adapter.findManyLocal(_keys);
   }
 
   Set<String> _keysFor(String key, String name) {

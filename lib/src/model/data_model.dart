@@ -9,8 +9,8 @@ abstract class DataModel<T extends DataModel<T>> with DataModelMixin<T> {
     }
   }
 
-  /// Returns a model [RemoteAdapter]
-  static RemoteAdapter adapterFor(DataModelMixin model) => model._remoteAdapter;
+  /// Returns a model [Adapter]
+  static Adapter adapterFor(DataModelMixin model) => model._adapter;
 
   // static T withKey<T extends DataModelMixin<T>>(String sourceKey,
   //     {required T applyTo}) {
@@ -50,7 +50,7 @@ abstract class DataModel<T extends DataModel<T>> with DataModelMixin<T> {
 
   /// Returns a model's `_key` private attribute.
   ///
-  /// Useful for testing, debugging or usage in [RemoteAdapter] subclasses.
+  /// Useful for testing, debugging or usage in [Adapter] subclasses.
   static String keyFor(DataModel model) {
     return model._key!;
   }
@@ -68,16 +68,15 @@ mixin DataModelMixin<T extends DataModelMixin<T>> {
   String get _internalType => DataHelpers.getInternalType<T>();
   T get _this => this as T;
 
-  /// Exposes this type's [RemoteAdapter]
-  RemoteAdapter<T> get _remoteAdapter =>
-      internalRepositories[_internalType]!.remoteAdapter as RemoteAdapter<T>;
+  /// Exposes this type's [Adapter]
+  Adapter<T> get _adapter => internalAdapters[_internalType] as Adapter<T>;
 
   T init() {
-    final repository = internalRepositories[_internalType];
-    if (repository != null) {
-      repository.remoteAdapter.localAdapter.initModel(
+    final adapter = internalAdapters[_internalType];
+    if (adapter != null) {
+      adapter.initModel(
         this,
-        onModelInitialized: repository.remoteAdapter.onModelInitialized,
+        onModelInitialized: adapter.onModelInitialized,
       );
     }
     return this as T;
@@ -90,8 +89,7 @@ mixin DataModelMixin<T extends DataModelMixin<T>> {
   /// Returns a model's non-null relationships.
   static Set<Relationship> relationshipsFor(DataModelMixin model) {
     return {
-      for (final meta
-          in model._remoteAdapter.localAdapter.relationshipMetas.values)
+      for (final meta in model._adapter.relationshipMetas.values)
         if (meta.instance(model) != null) meta.instance(model)!,
     };
   }
@@ -127,7 +125,7 @@ extension DataModelExtension<T extends DataModelMixin<T>> on DataModelMixin<T> {
     OnSuccessOne<T>? onSuccess,
     OnErrorOne<T>? onError,
   }) async {
-    return await _remoteAdapter.save(
+    return await _adapter.save(
       _this,
       remote: remote,
       params: params,
@@ -145,7 +143,7 @@ extension DataModelExtension<T extends DataModelMixin<T>> on DataModelMixin<T> {
     OnSuccessOne<T>? onSuccess,
     OnErrorOne<T>? onError,
   }) async {
-    return await _remoteAdapter.delete(
+    return await _adapter.delete(
       this,
       remote: remote,
       params: params,
@@ -164,7 +162,7 @@ extension DataModelExtension<T extends DataModelMixin<T>> on DataModelMixin<T> {
     bool? background,
     DataRequestLabel? label,
   }) async {
-    return await _remoteAdapter.findOne(
+    return await _adapter.findOne(
       this,
       remote: remote,
       params: params,
@@ -177,11 +175,11 @@ extension DataModelExtension<T extends DataModelMixin<T>> on DataModelMixin<T> {
   // locals
 
   /// Saves this model to local storage.
-  T saveLocal() => _remoteAdapter.saveLocal(_this);
+  T saveLocal() => _adapter.saveLocal(_this);
 
   /// Deletes this model from local storage.
-  void deleteLocal() => _remoteAdapter.deleteLocal(_this);
+  void deleteLocal() => _adapter.deleteLocal(_this);
 
   /// Reload model from local storage.
-  T? reloadLocal() => _remoteAdapter.localAdapter.findOne(_key);
+  T? reloadLocal() => _adapter.findOneLocal(_key);
 }

@@ -14,7 +14,7 @@ void main() async {
   tearDown(tearDownFn);
 
   test('findAll', () async {
-    final adapter = container.familia.remoteAdapter;
+    final adapter = container.familia;
     final familia1 = Familia(id: '1', surname: 'Smith');
     final familia2 = Familia(id: '2', surname: 'Jones');
 
@@ -26,7 +26,7 @@ void main() async {
   });
 
   test('findOne', () async {
-    final adapter = container.familia.remoteAdapter;
+    final adapter = container.familia;
     final familia1 = Familia(id: '1', surname: 'Smith');
     await adapter.save(familia1, remote: false);
 
@@ -35,7 +35,7 @@ void main() async {
   });
 
   test('findOne with non-existing ID', () async {
-    final adapter = container.familia.remoteAdapter;
+    final adapter = container.familia;
     final model = await adapter.findOne('123', remote: false);
     expect(model, isNull);
   });
@@ -43,11 +43,11 @@ void main() async {
   test('create and save', () async {
     final house = House(id: '25', address: '12 Lincoln Rd').saveLocal();
     // repo.findOne works because the House repo is remote=false
-    expect(await container.houses.remoteAdapter.findOne(house.id!), house);
+    expect(await container.houses.findOne(house.id!), house);
   });
 
   test('save and find', () async {
-    final adapter = container.familia.remoteAdapter;
+    final adapter = container.familia;
     final familia = Familia(id: '32423', surname: 'Toraine');
     await adapter.save(familia);
 
@@ -56,7 +56,7 @@ void main() async {
   });
 
   test('delete', () async {
-    final adapter = container.people.remoteAdapter;
+    final adapter = container.people;
 
     final person = Person(id: '1', name: 'John', age: 21);
     // it does have a key
@@ -141,18 +141,19 @@ void main() async {
           Person(id: '2', name: 'John', age: 44)
         }));
 
-    final originalKey = keyFor(models.first);
+    // final originalKey = keyFor(models.first);
 
     // simulate app restart
     container.familia.dispose();
 
-    await container.read(familiaRepositoryProvider).initialize(
-          // ignore: invalid_use_of_protected_member
-          adapters: container.familia.remoteAdapter.adapters,
-        );
+    await container.read(familiaAdapterProvider).initialize(
+        // ignore: invalid_use_of_protected_member
+        adapters: container.familia.adapters,
+        ref: container.read(refProvider));
 
-    container.familia.remoteAdapter.localAdapter
-        .save(originalKey, Familia(id: '1', surname: 'Smith'), notify: false);
+    // TODO below was: originalKey, Familia(id: '1', surname: 'Smith')
+    container.familia
+        .saveLocal(Familia(id: '1', surname: 'Smith'), notify: false);
 
     // local storage still comes back with relationships
     final models2 = container.familia.findAllLocal();
@@ -207,7 +208,7 @@ void main() async {
   });
 
   test('keyForModelOrId', () {
-    final adapter = container.people.remoteAdapter;
+    final adapter = container.people;
     final p1 = Person(name: 'Ludwig');
     final key1 = core.keyForModelOrId(adapter.type, p1);
     expect(key1, keyFor(p1));
@@ -223,7 +224,7 @@ void main() async {
   });
 
   test('304 not modified', () async {
-    final adapter = container.people.remoteAdapter;
+    final adapter = container.people;
 
     Person(id: '2', name: 'Julian').saveLocal();
 
@@ -246,8 +247,7 @@ void main() async {
         (_) async => 'plain text',
         headers: {'content-type': 'text/plain'});
 
-    final text =
-        await container.familia.remoteAdapter.sendRequest('/plain'.asUri);
+    final text = await container.familia.sendRequest('/plain'.asUri);
     expect(text, 'plain text');
   });
 
@@ -255,8 +255,7 @@ void main() async {
     container.read(responseProvider.notifier).state =
         TestResponse((_) async => 'some text');
 
-    final response =
-        await container.familia.remoteAdapter.sendRequest<Uint8List>(
+    final response = await container.familia.sendRequest<Uint8List>(
       ''.asUri,
       returnBytes: true,
       onSuccess: (response, label) async {

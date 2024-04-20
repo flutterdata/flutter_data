@@ -1,8 +1,108 @@
 part of flutter_data;
 
-mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
+mixin _WatchAdapter<T extends DataModelMixin<T>> on _BaseAdapter<T> {
+  /// Watches a provider wrapping [watchAllNotifier]
+  /// which allows the watcher to be notified of changes
+  /// on any model of this [type].
+  ///
+  /// Example: Watch all models of type `books` on a Riverpod hook-enabled app.
+  ///
+  /// ```
+  /// ref.books.watchAll();
+  /// ```
+  DataState<List<T>> watchAll({
+    bool? remote,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    bool? syncLocal,
+    String? finder,
+    DataRequestLabel? label,
+  }) {
+    final provider = watchAllProvider(
+      remote: remote,
+      params: params,
+      headers: headers,
+      syncLocal: syncLocal,
+      finder: finder,
+      label: label,
+    );
+    return internalWatch!(provider);
+  }
+
+  /// Watches a provider wrapping [watchOneNotifier]
+  /// which allows the watcher to be notified of changes
+  /// on a specific model of this [type], optionally reacting
+  /// to selected relationships of this model via [alsoWatch].
+  ///
+  /// Example: Watch model of type `books` and `id=1` along
+  /// with its `author` relationship on a Riverpod hook-enabled app.
+  ///
+  /// ```
+  /// ref.books.watchOne(1, alsoWatch: (book) => [book.author]);
+  /// ```
+  DataState<T?> watchOne(
+    Object model, {
+    bool? remote,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    AlsoWatch<T>? alsoWatch,
+    String? finder,
+    DataRequestLabel? label,
+  }) {
+    final provider = watchOneProvider(
+      model,
+      remote: remote,
+      params: params,
+      headers: headers,
+      alsoWatch: alsoWatch,
+      finder: finder,
+      label: label,
+    );
+    return internalWatch!(provider);
+  }
+
+  // notifiers
+
+  DataStateNotifier<List<T>> watchAllNotifier(
+      {bool? remote,
+      Map<String, dynamic>? params,
+      Map<String, String>? headers,
+      bool? syncLocal,
+      String? finder,
+      DataRequestLabel? label}) {
+    final provider = watchAllProvider(
+      remote: remote,
+      params: params,
+      headers: headers,
+      syncLocal: syncLocal,
+      finder: finder,
+      label: label,
+    );
+    return internalWatch!(provider.notifier);
+  }
+
+  DataStateNotifier<T?> watchOneNotifier(Object model,
+      {bool? remote,
+      Map<String, dynamic>? params,
+      Map<String, String>? headers,
+      AlsoWatch<T>? alsoWatch,
+      String? finder,
+      DataRequestLabel? label}) {
+    return internalWatch!(watchOneProvider(
+      model,
+      remote: remote,
+      params: params,
+      headers: headers,
+      alsoWatch: alsoWatch,
+      finder: finder,
+      label: label,
+    ).notifier);
+  }
+
+  // private notifiers
+
   @protected
-  DataStateNotifier<List<T>> watchAllNotifier({
+  DataStateNotifier<List<T>> _watchAllNotifier({
     bool? remote,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
@@ -24,7 +124,7 @@ mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
 
     // closure to get latest models
     List<T> _getUpdatedModels() {
-      return localAdapter.findAll();
+      return findAllLocal();
     }
 
     final notifier = DataStateNotifier<List<T>>(
@@ -119,7 +219,7 @@ mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
   }
 
   @protected
-  DataStateNotifier<T?> watchOneNotifier(
+  DataStateNotifier<T?> _watchOneNotifier(
     String key, {
     bool? remote,
     Map<String, dynamic>? params,
@@ -356,6 +456,98 @@ mixin _RemoteAdapterWatch<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
       for (final childKey in relationshipKeys)
         _getPairsForMeta(meta.child, childKey).expand((_) => _).toList()
     };
+  }
+
+  // providers
+
+  AutoDisposeStateNotifierProvider<DataStateNotifier<List<T>>,
+      DataState<List<T>>> watchAllProvider({
+    bool? remote,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    bool? syncLocal,
+    String? finder,
+    DataRequestLabel? label,
+  }) {
+    remote ??= _remote;
+    return _watchAllProvider(
+      WatchArgs(
+        remote: remote,
+        params: params,
+        headers: headers,
+        syncLocal: syncLocal,
+        finder: finder,
+        label: label,
+      ),
+    );
+  }
+
+  late final _watchAllProvider = StateNotifierProvider.autoDispose
+      .family<DataStateNotifier<List<T>>, DataState<List<T>>, WatchArgs<T>>(
+          (ref, args) {
+    return watchAllNotifier(
+      remote: args.remote,
+      params: args.params,
+      headers: args.headers,
+      syncLocal: args.syncLocal,
+      finder: args.finder,
+      label: args.label,
+    );
+  });
+
+  AutoDisposeStateNotifierProvider<DataStateNotifier<T?>, DataState<T?>>
+      watchOneProvider(
+    Object model, {
+    bool? remote,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    AlsoWatch<T>? alsoWatch,
+    String? finder,
+    DataRequestLabel? label,
+  }) {
+    final key = core.keyForModelOrId(internalType, model);
+
+    remote ??= _remote;
+    final relationshipMetas = alsoWatch
+        ?.call(RelationshipGraphNode<T>())
+        .whereType<RelationshipMeta>()
+        .toImmutableList();
+
+    return _watchOneProvider(
+      WatchArgs(
+        key: key,
+        remote: remote,
+        params: params,
+        headers: headers,
+        relationshipMetas: relationshipMetas,
+        alsoWatch: alsoWatch,
+        finder: finder,
+        label: label,
+      ),
+    );
+  }
+
+  late final _watchOneProvider = StateNotifierProvider.autoDispose
+      .family<DataStateNotifier<T?>, DataState<T?>, WatchArgs<T>>((ref, args) {
+    return watchOneNotifier(
+      args.key!,
+      remote: args.remote,
+      params: args.params,
+      headers: args.headers,
+      alsoWatch: args.alsoWatch,
+      finder: args.finder,
+      label: args.label,
+    );
+  });
+
+  /// Watch this model (local)
+  T watch(T model) {
+    return watchOne(model, remote: false).model!;
+  }
+
+  /// Notifier for watched model (local)
+  DataStateNotifier<T?> notifierFor(T model) {
+    return watchOneNotifier(model, remote: false);
   }
 }
 

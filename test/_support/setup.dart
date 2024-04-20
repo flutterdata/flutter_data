@@ -61,55 +61,51 @@ Future<void> setUpFn() async {
   DataHelpers.setInternalType<Book>('books');
   DataHelpers.setInternalType<Library>('libraries');
 
-  final adapterGraph = <String, RemoteAdapter<DataModelMixin>>{
-    'houses': container.read(internalHousesRemoteAdapterProvider),
-    'familia': container.read(internalFamiliaRemoteAdapterProvider),
-    'people': container.read(internalPeopleRemoteAdapterProvider),
-    'dogs': container.read(internalDogsRemoteAdapterProvider),
-    'bookAuthors': container.read(internalBookAuthorsRemoteAdapterProvider),
-    'books': container.read(internalBooksRemoteAdapterProvider),
-    'libraries': container.read(internalLibrariesRemoteAdapterProvider),
+  final adapterGraph = <String, Adapter<DataModelMixin>>{
+    'houses': container.read(housesAdapterProvider),
+    'familia': container.read(familiaAdapterProvider),
+    'people': container.read(peopleAdapterProvider),
+    'dogs': container.read(dogsAdapterProvider),
+    'bookAuthors': container.read(bookAuthorsAdapterProvider),
+    'books': container.read(booksAdapterProvider),
+    'libraries': container.read(librariesAdapterProvider),
   };
 
-  internalRepositories['houses'] = await container
-      .read(housesRepositoryProvider)
-      .initialize(remote: false, adapters: adapterGraph);
-  internalRepositories['familia'] = await container
-      .read(familiaRepositoryProvider)
-      .initialize(remote: true, adapters: adapterGraph);
-  internalRepositories['people'] = await container
-      .read(peopleRepositoryProvider)
-      .initialize(remote: false, adapters: adapterGraph);
-  final dogsRepository = internalRepositories['dogs'] = await container
-      .read(dogsRepositoryProvider)
-      .initialize(remote: false, adapters: adapterGraph);
-  internalRepositories['bookAuthors'] =
-      await container.read(bookAuthorsRepositoryProvider).initialize(
-            remote: false,
-            adapters: adapterGraph,
-          );
-  internalRepositories['books'] =
-      await container.read(booksRepositoryProvider).initialize(
-            remote: false,
-            adapters: adapterGraph,
-          );
-  internalRepositories['libraries'] =
-      await container.read(librariesRepositoryProvider).initialize(
-            remote: false,
-            adapters: adapterGraph,
-          );
+  final ref = container.read(refProvider);
+
+  internalAdapters['houses'] = await container
+      .read(housesAdapterProvider)
+      .initialize(remote: false, adapters: adapterGraph, ref: ref);
+  internalAdapters['familia'] = await container
+      .read(familiaAdapterProvider)
+      .initialize(remote: true, adapters: adapterGraph, ref: ref);
+  internalAdapters['people'] = await container
+      .read(peopleAdapterProvider)
+      .initialize(remote: false, adapters: adapterGraph, ref: ref);
+  final dogsRepository = internalAdapters['dogs'] = await container
+      .read(dogsAdapterProvider)
+      .initialize(remote: false, adapters: adapterGraph, ref: ref);
+  internalAdapters['bookAuthors'] = await container
+      .read(booksAdapterProvider)
+      .initialize(remote: false, adapters: adapterGraph, ref: ref);
+  internalAdapters['books'] = await container
+      .read(booksAdapterProvider)
+      .initialize(remote: false, adapters: adapterGraph, ref: ref);
+  internalAdapters['libraries'] = await container
+      .read(librariesAdapterProvider)
+      .initialize(remote: false, adapters: adapterGraph, ref: ref);
 
   const nodesKey = _kIsWeb ? 'node1s' : 'nodes';
   DataHelpers.setInternalType<Node>(nodesKey);
-  internalRepositories[nodesKey] =
-      await container.read(nodesRepositoryProvider).initialize(
-    remote: false,
-    adapters: {
-      nodesKey: container.read(internalNodesRemoteAdapterProvider),
-    },
-  );
+  internalAdapters[nodesKey] =
+      await container.read(nodesAdapterProvider).initialize(
+          remote: false,
+          adapters: {
+            nodesKey: container.read(nodesAdapterProvider),
+          },
+          ref: ref);
 
-  core = container.read(internalHousesRemoteAdapterProvider).localAdapter.core;
+  core = container.read(housesAdapterProvider).core;
 
   dogsRepository.logLevel = 2;
 }
@@ -157,12 +153,14 @@ Function() overridePrint(dynamic Function() testFn) => () {
     };
 
 class Bloc {
-  final Repository<Familia> repo;
-  Bloc(this.repo);
+  final Adapter<Familia> adapter;
+  Bloc(this.adapter);
 }
 
 final responseProvider =
     StateProvider<TestResponse>((_) => TestResponse.json(''));
+
+final refProvider = Provider((ref) => ref);
 
 class TestResponse {
   final Future<Object> Function(http.Request) callback;
@@ -180,24 +178,22 @@ class TestResponse {
 }
 
 extension ProviderContainerX on ProviderContainer {
-  Repository<House> get houses =>
-      _watch(housesRepositoryProvider)..remoteAdapter.internalWatch = _watch;
-  Repository<Familia> get familia =>
-      _watch(familiaRepositoryProvider)..remoteAdapter.internalWatch = _watch;
-  Repository<Person> get people =>
-      _watch(peopleRepositoryProvider)..remoteAdapter.internalWatch = _watch;
-  Repository<Dog> get dogs =>
-      _watch(dogsRepositoryProvider)..remoteAdapter.internalWatch = _watch;
+  Adapter<House> get houses =>
+      _watch(housesAdapterProvider)..internalWatch = _watch;
+  Adapter<Familia> get familia =>
+      _watch(familiaAdapterProvider)..internalWatch = _watch;
+  Adapter<Person> get people =>
+      _watch(peopleAdapterProvider)..internalWatch = _watch;
+  Adapter<Dog> get dogs => _watch(dogsAdapterProvider)..internalWatch = _watch;
 
-  Repository<Node> get nodes =>
-      _watch(nodesRepositoryProvider)..remoteAdapter.internalWatch = _watch;
-  Repository<BookAuthor> get bookAuthors =>
-      _watch(bookAuthorsRepositoryProvider)
-        ..remoteAdapter.internalWatch = _watch;
-  Repository<Book> get books =>
-      _watch(booksRepositoryProvider)..remoteAdapter.internalWatch = _watch;
-  Repository<Library> get libraries =>
-      _watch(librariesRepositoryProvider)..remoteAdapter.internalWatch = _watch;
+  Adapter<Node> get nodes =>
+      _watch(nodesAdapterProvider)..internalWatch = _watch;
+  Adapter<BookAuthor> get bookAuthors =>
+      _watch(bookAuthorsAdapterProvider)..internalWatch = _watch;
+  Adapter<Book> get books =>
+      _watch(booksAdapterProvider)..internalWatch = _watch;
+  Adapter<Library> get libraries =>
+      _watch(librariesAdapterProvider)..internalWatch = _watch;
 }
 
 class Listener<T> extends Mock {

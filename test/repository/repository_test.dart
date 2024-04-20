@@ -285,15 +285,14 @@ void main() async {
     expect(updatedFamily.id, equals('95')); // model now has ID
 
     // assert temporary ID-less family is no longer in local storage
-    expect(container.familia.remoteAdapter.localAdapter.keys,
-        [keyFor(updatedFamily)]);
+    expect(container.familia.keys, [keyFor(updatedFamily)]);
   });
 
   test('custom with auto deserialization', () async {
     container.read(responseProvider.notifier).state =
         TestResponse.json('[{"id": "19", "surname": "Pandan"}]');
 
-    final f1 = await container.familia.remoteAdapter.sendRequest<Familia>(
+    final f1 = await container.familia.sendRequest<Familia>(
       '/family'.asUri,
       method: DataRequestMethod.POST,
       body: json.encode({'a': 2}),

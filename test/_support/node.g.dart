@@ -8,7 +8,7 @@ part of 'node.dart';
 
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
-mixin _$NodeLocalAdapter on LocalAdapter<Node> {
+mixin _$NodeAdapter on Adapter<Node> {
   static final Map<String, RelationshipMeta> _kNodeRelationshipMetas = {
     'parent': RelationshipMeta<Node>(
       name: 'parent',
@@ -45,33 +45,26 @@ mixin _$NodeLocalAdapter on LocalAdapter<Node> {
 
 final _nodesFinders = <String, dynamic>{};
 
-// ignore: must_be_immutable
-class $NodeLocalAdapter = LocalAdapter<Node>
-    with _$NodeLocalAdapter, NodeLocalAdapter;
+class $NodeAdapter = Adapter<Node>
+    with _$NodeAdapter, NodeLocalAdapter, NodeAdapter;
 
-class $NodeRemoteAdapter = RemoteAdapter<Node> with NodeAdapter;
+final nodesAdapterProvider = Provider<Adapter<Node>>(
+    (ref) => $NodeAdapter(ref, InternalHolder(_nodesFinders)));
 
-final internalNodesRemoteAdapterProvider = Provider<RemoteAdapter<Node>>(
-    (ref) => $NodeRemoteAdapter(
-        $NodeLocalAdapter(ref), InternalHolder(_nodesFinders)));
-
-final nodesRepositoryProvider =
-    Provider<Repository<Node>>((ref) => Repository<Node>(ref));
-
-extension NodeDataRepositoryX on Repository<Node> {
-  NodeAdapter get nodeAdapter => remoteAdapter as NodeAdapter;
+extension NodeAdapterX on Adapter<Node> {
+  NodeAdapter get nodeAdapter => this as NodeAdapter;
 }
 
 extension NodeRelationshipGraphNodeX on RelationshipGraphNode<Node> {
   RelationshipGraphNode<Node> get parent {
-    final meta = _$NodeLocalAdapter._kNodeRelationshipMetas['parent']
+    final meta = _$NodeAdapter._kNodeRelationshipMetas['parent']
         as RelationshipMeta<Node>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 
   RelationshipGraphNode<Node> get children {
-    final meta = _$NodeLocalAdapter._kNodeRelationshipMetas['children']
+    final meta = _$NodeAdapter._kNodeRelationshipMetas['children']
         as RelationshipMeta<Node>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);

@@ -52,7 +52,7 @@ class Library with DataModelMixin<Library>, _$Library {
       _$LibraryFromJson(json);
 }
 
-mixin BookAuthorAdapter on RemoteAdapter<BookAuthor> {
+mixin BookAuthorAdapter on Adapter<BookAuthor> {
   @override
   String get type => 'writers';
 

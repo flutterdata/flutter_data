@@ -1,6 +1,6 @@
 import 'package:flutter_data/flutter_data.dart';
 
-mixin JSONServerAdapter<T extends DataModel<T>> on RemoteAdapter<T> {
+mixin JSONServerAdapter<T extends DataModel<T>> on Adapter<T> {
   @override
   String get baseUrl => 'https://my-json-server.typicode.com/flutterdata/demo/';
 

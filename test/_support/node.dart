@@ -20,14 +20,14 @@ class Node extends DataModel<Node> with EquatableMixin, _$Node {
   List<Object?> get props => [id, name, parent, children];
 }
 
-mixin NodeAdapter on RemoteAdapter<Node> {
+mixin NodeAdapter on Adapter<Node> {
   @override
   void onModelInitialized(Node model) {
     model.saveLocal();
   }
 }
 
-mixin NodeLocalAdapter on LocalAdapter<Node> {
+mixin NodeLocalAdapter on Adapter<Node> {
   @override
   Node deserialize(Map<String, dynamic> map, {String? key}) {
     if (map['name'] == 'node') {

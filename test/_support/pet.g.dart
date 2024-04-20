@@ -8,7 +8,7 @@ part of 'pet.dart';
 
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
-mixin _$DogLocalAdapter on LocalAdapter<Dog> {
+mixin _$DogAdapter on Adapter<Dog> {
   static final Map<String, RelationshipMeta> _kDogRelationshipMetas = {};
 
   @override
@@ -29,24 +29,18 @@ mixin _$DogLocalAdapter on LocalAdapter<Dog> {
 
 final _dogsFinders = <String, dynamic>{};
 
-// ignore: must_be_immutable
-class $DogLocalAdapter = LocalAdapter<Dog> with _$DogLocalAdapter;
+class $DogAdapter = Adapter<Dog> with _$DogAdapter, NothingMixin;
 
-class $DogRemoteAdapter = RemoteAdapter<Dog> with NothingMixin;
+final dogsAdapterProvider = Provider<Adapter<Dog>>(
+    (ref) => $DogAdapter(ref, InternalHolder(_dogsFinders)));
 
-final internalDogsRemoteAdapterProvider = Provider<RemoteAdapter<Dog>>((ref) =>
-    $DogRemoteAdapter($DogLocalAdapter(ref), InternalHolder(_dogsFinders)));
-
-final dogsRepositoryProvider =
-    Provider<Repository<Dog>>((ref) => Repository<Dog>(ref));
-
-extension DogDataRepositoryX on Repository<Dog> {}
+extension DogAdapterX on Adapter<Dog> {}
 
 extension DogRelationshipGraphNodeX on RelationshipGraphNode<Dog> {}
 
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
-mixin _$CatLocalAdapter on LocalAdapter<Cat> {
+mixin _$CatAdapter on Adapter<Cat> {
   static final Map<String, RelationshipMeta> _kCatRelationshipMetas = {};
 
   @override
@@ -67,18 +61,12 @@ mixin _$CatLocalAdapter on LocalAdapter<Cat> {
 
 final _catsFinders = <String, dynamic>{};
 
-// ignore: must_be_immutable
-class $CatLocalAdapter = LocalAdapter<Cat> with _$CatLocalAdapter;
+class $CatAdapter = Adapter<Cat> with _$CatAdapter, NothingMixin;
 
-class $CatRemoteAdapter = RemoteAdapter<Cat> with NothingMixin;
+final catsAdapterProvider = Provider<Adapter<Cat>>(
+    (ref) => $CatAdapter(ref, InternalHolder(_catsFinders)));
 
-final internalCatsRemoteAdapterProvider = Provider<RemoteAdapter<Cat>>((ref) =>
-    $CatRemoteAdapter($CatLocalAdapter(ref), InternalHolder(_catsFinders)));
-
-final catsRepositoryProvider =
-    Provider<Repository<Cat>>((ref) => Repository<Cat>(ref));
-
-extension CatDataRepositoryX on Repository<Cat> {}
+extension CatAdapterX on Adapter<Cat> {}
 
 extension CatRelationshipGraphNodeX on RelationshipGraphNode<Cat> {}
 

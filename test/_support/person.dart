@@ -69,7 +69,7 @@ class Person extends DataModel<Person> {
 
 // NOTE: keep this adapter without type arguments
 // as part of testing the type-parameter-less adapter feature
-mixin PersonLoginAdapter on RemoteAdapter<Person> {
+mixin PersonLoginAdapter on Adapter<Person> {
   @override
   FutureOr<Map<String, String>> get defaultHeaders =>
       {'response': '{"message": "not the message you sent"}'};
@@ -115,7 +115,7 @@ mixin PersonLoginAdapter on RemoteAdapter<Person> {
   }
 }
 
-mixin GenericDoesNothingAdapter<T extends DataModel<T>> on RemoteAdapter<T> {
+mixin GenericDoesNothingAdapter<T extends DataModel<T>> on Adapter<T> {
   Future<T?> doNothing(T? model, int n) async {
     return model;
   }

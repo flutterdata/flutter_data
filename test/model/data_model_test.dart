@@ -164,7 +164,7 @@ void main() async {
   });
 
   test('delete model with and without ID', () async {
-    final adapter = container.people.remoteAdapter.localAdapter;
+    final adapter = container.people;
     // create a person WITH ID and assert it's there
     final person = Person(id: '21103', name: 'John', age: 54).saveLocal();
     expect(adapter.findAll(), hasLength(1));

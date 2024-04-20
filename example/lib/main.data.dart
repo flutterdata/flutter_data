@@ -12,7 +12,7 @@ import 'package:jsonplaceholder_example/models/task.dart';
 import 'package:jsonplaceholder_example/models/user.dart';
 
 // ignore: prefer_function_declarations_over_variables
-ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<String>? baseDirFn, String? encryptionKey, LocalStorageClearStrategy? clear}) {
+ConfigureAdapterLocalStorage configureAdapterLocalStorage = ({FutureFn<String>? baseDirFn, String? encryptionKey, LocalStorageClearStrategy? clear}) {
   
     
   
@@ -28,40 +28,41 @@ ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<Str
   );
 };
 
-final repositoryProviders = <String, Provider<Repository<DataModelMixin>>>{
-  'tasks': tasksRepositoryProvider,
-'users': usersRepositoryProvider
+final adapterProviders = <String, Provider<Adapter<DataModelMixin>>>{
+  'tasks': tasksAdapterProvider,
+'users': usersAdapterProvider
 };
 
-final repositoryInitializerProvider =
-  FutureProvider<RepositoryInitializer>((ref) async {
+final adapterInitializerProvider =
+  FutureProvider<AdapterInitializer>((ref) async {
     DataHelpers.setInternalType<Task>('tasks');
     DataHelpers.setInternalType<User>('users');
-    final adapters = <String, RemoteAdapter>{'tasks': ref.watch(internalTasksRemoteAdapterProvider), 'users': ref.watch(internalUsersRemoteAdapterProvider)};
+    final adapters = <String, Adapter>{'tasks': ref.watch(tasksAdapterProvider), 'users': ref.watch(usersAdapterProvider)};
     final remotes = <String, bool>{'tasks': true, 'users': true};
 
     await ref.read(localStorageProvider).initialize();
 
     // initialize and register
-    for (final type in repositoryProviders.keys) {
-      final repository = ref.read(repositoryProviders[type]!);
-      repository.dispose();
-      await repository.initialize(
+    for (final type in adapterProviders.keys) {
+      final adapter = ref.read(adapterProviders[type]!);
+      adapter.dispose();
+      await adapter.initialize(
         remote: remotes[type],
         adapters: adapters,
+        ref: ref
       );
-      internalRepositories[type] = repository;
+      internalAdapters[type] = adapter;
     }
 
-    return RepositoryInitializer();
+    return AdapterInitializer();
 });
 
 
-extension RepositoryRefX on ProviderContainer {
+extension AdapterRefX on ProviderContainer {
 E watch<E>(ProviderListenable<E> provider) {
   return readProviderElement(provider as ProviderBase<E>).readSelf();
 }
 
-  Repository<Task> get tasks => watch(tasksRepositoryProvider)..remoteAdapter.internalWatch = watch;
-  Repository<User> get users => watch(usersRepositoryProvider)..remoteAdapter.internalWatch = watch;
+  Adapter<Task> get tasks => watch(tasksAdapterProvider)..internalWatch = watch;
+  Adapter<User> get users => watch(usersAdapterProvider)..internalWatch = watch;
 }

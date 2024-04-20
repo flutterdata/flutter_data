@@ -15,7 +15,7 @@ void main() async {
   tearDown(tearDownFn);
 
   test('scenario #1', () {
-    final familiaLocalAdapter = container.familia.remoteAdapter.localAdapter;
+    final familiaLocalAdapter = container.familia;
 
     final f1 = familiaLocalAdapter
         .deserialize({'id': '1', 'surname': 'Rose'}).saveLocal();
@@ -78,7 +78,7 @@ void main() async {
   });
 
   test('scenario #1b (inverse)', () {
-    final houseLocalAdapter = container.houses.remoteAdapter.localAdapter;
+    final houseLocalAdapter = container.houses;
     // deserialize house, owner does not exist
     // since we're passing a key (not an ID)
     // we MUST use the local adapter serializer
@@ -195,15 +195,15 @@ void main() async {
     expect(familia2.persons.toSet(), {brian});
 
     // new familia comes in from API (simulate) with no persons relationship information
-    final familia3 = (await container.familia.remoteAdapter
-            .deserialize({'id': '229', 'surname': 'Rose'}))
+    final familia3 = (await container.familia
+            .deserializeAsync({'id': '229', 'surname': 'Rose'}))
         .model!;
     // it should keep the relationships unaltered
     expect(familia3.persons.toSet(), {brian});
 
     // new familia comes in from API (simulate) with empty persons relationship
-    final familia4 = (await container.familia.remoteAdapter
-            .deserialize({'id': '229', 'surname': 'Rose', 'persons': []}))
+    final familia4 = (await container.familia
+            .deserializeAsync({'id': '229', 'surname': 'Rose', 'persons': []}))
         .model!
         .saveLocal();
     // it should keep the relationships unaltered
@@ -211,7 +211,7 @@ void main() async {
 
     // since we're passing a key (not an ID)
     // we MUST use the local adapter serializer
-    final familia5 = container.familia.remoteAdapter.localAdapter.deserialize({
+    final familia5 = container.familia.deserialize({
       'id': '229',
       'surname': 'Rose',
       'persons': ['people#7295352464926971276']

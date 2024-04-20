@@ -4,11 +4,11 @@ part of flutter_data;
 ///
 /// Includes:
 ///
-///  - Remote methods such as [_RemoteAdapter.findAll] or [_RemoteAdapter.save]
-///  - Configuration methods and getters like [_RemoteAdapter.baseUrl] or [_RemoteAdapter.urlForFindAll]
-///  - Serialization methods like [_RemoteAdapterSerialization.serialize]
+///  - Remote methods such as [_BaseAdapter.findAll] or [_BaseAdapter.save]
+///  - Configuration methods and getters like [_BaseAdapter.baseUrl] or [_BaseAdapter.urlForFindAll]
+///  - Serialization methods like [_SerializationAdapter.serialize]
 ///  - Watch methods such as [Repository.watchOneNotifier]
-///  - Access to the [_RemoteAdapter.core] for subclasses or mixins
+///  - Access to the [_BaseAdapter.core] for subclasses or mixins
 ///
 /// This class is meant to be extended via mixing in new adapters.
 /// This can be done with the [DataRepository] annotation on a [DataModelMixin] class:
@@ -28,25 +28,27 @@ part of flutter_data;
 ///
 /// Identity in this layer is enforced by IDs.
 // ignore: library_private_types_in_public_api
-class RemoteAdapter<T extends DataModelMixin<T>> = _RemoteAdapter<T>
-    with _RemoteAdapterSerialization<T>, _RemoteAdapterWatch<T>;
+class Adapter<T extends DataModelMixin<T>> = _BaseAdapter<T>
+    with _SerializationAdapter<T>, _WatchAdapter<T>;
 
-abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
+abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   @protected
-  _RemoteAdapter(this.localAdapter, [this._internalHolder]);
+  _BaseAdapter(Ref ref, [this._internalHolder])
+      : core = ref.read(_coreNotifierProvider),
+        storage = ref.read(localStorageProvider);
 
   @protected
   @visibleForTesting
-  @nonVirtual
-  final LocalAdapter<T> localAdapter;
+  final CoreNotifier core;
 
-  /// A [CoreNotifier] instance also available to adapters
   @protected
-  @nonVirtual
-  CoreNotifier get core => localAdapter.core;
+  @visibleForTesting
+  final LocalStorage storage;
+
+  bool _stopInitialization = false;
 
   // None of these fields below can be late finals as they might be re-initialized
-  Map<String, RemoteAdapter>? _adapters;
+  Map<String, Adapter>? _adapters;
   bool? _remote;
   Ref? _ref;
 
@@ -55,7 +57,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   /// This [Map] is typically required when initializing new models, and passed as-is.
   @protected
   @nonVirtual
-  Map<String, RemoteAdapter> get adapters => _adapters!;
+  Map<String, Adapter> get adapters => _adapters!;
 
   /// Give access to the dependency injection system
   @nonVirtual
@@ -79,7 +81,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
   /// Set log level.
   // ignore: prefer_final_fields
-  int _logLevel = 0;
+  int logLevel = 0;
 
   /// Returns the base URL for this type [T].
   ///
@@ -173,44 +175,32 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
   @mustCallSuper
   @nonVirtual
-  Future<RemoteAdapter<T>> initialize(
+  Future<Adapter<T>> initialize(
       {bool? remote,
-      required Map<String, RemoteAdapter> adapters,
+      required Map<String, Adapter> adapters,
       required Ref ref}) async {
-    if (isInitialized) return this as RemoteAdapter<T>;
+    if (isInitialized) return this as Adapter<T>;
 
     // initialize attributes
     _adapters = adapters;
     _remote = remote ?? true;
     _ref = ref;
 
-    await localAdapter.initialize();
+    storage.db.execute('''
+      CREATE TABLE IF NOT EXISTS $internalType (
+        key INTEGER PRIMARY KEY AUTOINCREMENT,
+        data TEXT
+      );
+    ''');
 
     // hook for clients
     await onInitialized();
 
-    return this as RemoteAdapter<T>;
+    return this as Adapter<T>;
   }
 
   @override
-  void dispose() {
-    localAdapter.dispose();
-  }
-
-  // serialization interface
-
-  /// Returns a [DeserializedData] object when deserializing a given [data].
-  ///
-  @protected
-  @visibleForTesting
-  Future<DeserializedData<T>> deserialize(Object? data, {String? key});
-
-  /// Returns a serialized version of a model of [T],
-  /// as a [Map<String, dynamic>] ready to be JSON-encoded.
-  @protected
-  @visibleForTesting
-  Future<Map<String, dynamic>> serialize(T model,
-      {bool withRelationships = true});
+  void dispose() {}
 
   // caching
 
@@ -239,6 +229,21 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
   // remote implementation
 
+  /// Returns all models of type [T].
+  ///
+  /// If [_BaseAdapter.shouldLoadRemoteAll] (function of [remote]) is `true`,
+  /// it will initiate an HTTP call.
+  /// Otherwise returns all models of type [T] in local storage.
+  ///
+  /// Arguments [params] and [headers] will be merged with
+  /// [_BaseAdapter.defaultParams] and [_BaseAdapter.defaultHeaders], respectively.
+  ///
+  /// For local storage of type [T] to be synchronized to the exact resources
+  /// returned from the remote source when using `findAll`, pass `syncLocal: true`.
+  /// This call would, for example, reflect server-side resource deletions.
+  /// The default is `syncLocal: false`.
+  ///
+  /// See also: [_BaseAdapter.urlForFindAll], [_BaseAdapter.methodForFindAll].
   Future<List<T>> findAll({
     bool? remote,
     bool? background,
@@ -275,20 +280,20 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
       label: label,
       onSuccess: (data, label) async {
         if (syncLocal!) {
-          localAdapter.clear();
+          clearLocal();
         }
         onSuccess ??= (data, label, _) async {
           final result = await this.onSuccess<List<T>>(data, label);
           return result as List<T>;
         };
-        return onSuccess!.call(data, label, this as RemoteAdapter<T>);
+        return onSuccess!.call(data, label, this as Adapter<T>);
       },
       onError: (e, label) async {
         onError ??= (e, label, _) async {
           final result = await this.onError<List<T>>(e, label);
           return result as List<T>;
         };
-        return onError!.call(e, label, this as RemoteAdapter<T>);
+        return onError!.call(e, label, this as Adapter<T>);
       },
     );
 
@@ -301,10 +306,26 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     }
   }
 
+  /// Returns all models of type [T] in local storage.
   List<T> findAllLocal() {
-    return localAdapter.findAll().toImmutableList();
+    throw UnimplementedError('');
   }
 
+  /// Finds many models of type [T] by [keys] in local storage.
+  List<T> findManyLocal(Iterable<String> keys) {
+    throw UnimplementedError('');
+  }
+
+  /// Returns model of type [T] by [id].
+  ///
+  /// If [_BaseAdapter.shouldLoadRemoteOne] (function of [remote]) is `true`,
+  /// it will initiate an HTTP call.
+  /// Otherwise returns model of type [T] and [id] in local storage.
+  ///
+  /// Arguments [params] and [headers] will be merged with
+  /// [_BaseAdapter.defaultParams] and [_BaseAdapter.defaultHeaders], respectively.
+  ///
+  /// See also: [_BaseAdapter.urlForFindOne], [_BaseAdapter.methodForFindOne].
   Future<T?> findOne(
     Object id, {
     bool? remote,
@@ -327,7 +348,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
     if (shouldLoadRemoteOne(id, remote!, params, headers) == false ||
         background) {
-      model = findOneLocal(id);
+      model = findOneLocalById(id);
       if (model != null) {
         log(label,
             'returned from local storage${background ? ' and loading in the background' : ''}');
@@ -344,11 +365,11 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
       label: label,
       onSuccess: (data, label) {
         onSuccess ??= (data, label, _) => this.onSuccess<T>(data, label);
-        return onSuccess!.call(data, label, this as RemoteAdapter<T>);
+        return onSuccess!.call(data, label, this as Adapter<T>);
       },
       onError: (e, label) async {
         onError ??= (e, label, _) => this.onError<T>(e, label);
-        return onError!.call(e, label, this as RemoteAdapter<T>);
+        return onError!.call(e, label, this as Adapter<T>);
       },
     );
 
@@ -361,11 +382,42 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     }
   }
 
-  T? findOneLocal(Object id) {
-    final key = core.getKeyForId(internalType, id);
-    return localAdapter.findOne(key);
+  /// Finds model of type [T] by [key] in local storage.
+  T? findOneLocal(String? key) {
+    final intKey = key?.detypifyKey();
+    if (intKey == null) return null;
+    final result = storage.db
+        .select('SELECT key, data FROM $internalType WHERE key = ?', [intKey]);
+    final data = result.firstOrNull?['data'];
+    if (data != null) {
+      final map = Map<String, dynamic>.from(jsonDecode(data));
+      final ds = deserialize(map,
+          key: result.firstOrNull?['key'].toString().typifyWith(internalType));
+      return ds;
+    }
+    return null;
   }
 
+  T? findOneLocalById(Object id) {
+    final key = core.getKeyForId(internalType, id);
+    return findOneLocal(key);
+  }
+
+  /// Whether [key] exists in local storage.
+  bool exists(String key) {
+    throw UnimplementedError('');
+  }
+
+  /// Saves [model] of type [T].
+  ///
+  /// If [remote] is `true`, it will initiate an HTTP call.
+  ///
+  /// Always persists to local storage.
+  ///
+  /// Arguments [params] and [headers] will be merged with
+  /// [_BaseAdapter.defaultParams] and [_BaseAdapter.defaultHeaders], respectively.
+  ///
+  /// See also: [_BaseAdapter.urlForSave], [_BaseAdapter.methodForSave].
   Future<T> save(
     T model, {
     bool? remote,
@@ -381,7 +433,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     headers = await defaultHeaders & headers;
 
     // ensure model is saved
-    localAdapter.save(model._key!, model);
+    saveLocal(model);
 
     label = DataRequestLabel('save',
         type: internalType,
@@ -394,7 +446,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
       return model;
     }
 
-    final serialized = await serialize(model);
+    final serialized = await serializeAsync(model);
     final body = json.encode(serialized);
 
     final uri = baseUrl.asUri / urlForSave(model.id, params) & params;
@@ -408,28 +460,47 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
       label: label,
       onSuccess: (data, label) {
         onSuccess ??= (data, label, _) => this.onSuccess<T>(data, label);
-        return onSuccess!.call(data, label, this as RemoteAdapter<T>);
+        return onSuccess!.call(data, label, this as Adapter<T>);
       },
       onError: (e, label) async {
         onError ??= (e, label, _) => this.onError<T>(e, label);
-        return onError!.call(e, label, this as RemoteAdapter<T>);
+        return onError!.call(e, label, this as Adapter<T>);
       },
     );
     return result ?? model;
   }
 
+  /// Saves model of type [T] in local storage.
+  ///
+  /// By default notifies this modification to the associated [CoreNotifier].
   T saveLocal(T model, {bool notify = true}) {
     if (model._key == null) {
       throw Exception("Model must be initialized:\n\n$model");
     }
-    localAdapter.save(model._key!, model, notify: notify);
+    final intKey = model._key!.detypifyKey();
+
+    final map = serialize(model, withRelationships: false);
+    final data = jsonEncode(map);
+    storage.db.execute(
+        'REPLACE INTO $internalType (key, data) VALUES (?, ?)', [intKey, data]);
     return model;
   }
 
-  Future<void> saveManyLocal(Iterable<T> models, {bool notify = true}) {
-    return localAdapter.saveMany(models, notify: notify);
+  Future<void> saveManyLocal(Iterable<DataModelMixin> models,
+      {bool notify = true}) async {
+    throw UnimplementedError('');
   }
 
+  /// Deletes [model] of type [T].
+  ///
+  /// If [remote] is `true`, it will initiate an HTTP call.
+  ///
+  /// Always deletes from local storage.
+  ///
+  /// Arguments [params] and [headers] will be merged with
+  /// [_BaseAdapter.defaultParams] and [_BaseAdapter.defaultHeaders], respectively.
+  ///
+  /// See also: [_BaseAdapter.urlForDelete], [_BaseAdapter.methodForDelete].
   Future<T?> delete(
     Object model, {
     bool? remote,
@@ -445,7 +516,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     headers = await defaultHeaders & headers;
 
     final id = _resolveId(model);
-    final key = localAdapter.core.keyForModelOrId(internalType, model);
+    final key = core.keyForModelOrId(internalType, model);
 
     label = DataRequestLabel('delete',
         type: internalType, id: id.toString(), withParent: label);
@@ -453,7 +524,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     if (remote == false) {
       log(label, 'deleted in local storage only');
     }
-    localAdapter.delete(key);
+    deleteLocalByKeys({key});
 
     if (remote == true && id != null) {
       return await sendRequest(
@@ -463,22 +534,50 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
         label: label,
         onSuccess: (data, label) {
           onSuccess ??= (data, label, _) => this.onSuccess<T>(data, label);
-          return onSuccess!.call(data, label, this as RemoteAdapter<T>);
+          return onSuccess!.call(data, label, this as Adapter<T>);
         },
         onError: (e, label) async {
           onError ??= (e, label, _) => this.onError<T>(e, label);
-          return onError!.call(e, label, this as RemoteAdapter<T>);
+          return onError!.call(e, label, this as Adapter<T>);
         },
       );
     }
     return null;
   }
 
+  /// Deletes model of type [T] with [key] from local storage.
+  ///
+  /// By default notifies this modification to the associated [CoreNotifier].
   void deleteLocal(T model, {bool notify = true}) {
-    localAdapter.delete(model._key!, notify: notify);
+    throw UnimplementedError('');
   }
 
-  Future<void> clear() => localAdapter.clear();
+  void deleteLocalById(Object id, {bool notify = true}) {
+    throw UnimplementedError('');
+  }
+
+  void deleteLocalByKeys(Iterable<String> keys, {bool notify = true}) {
+    throw UnimplementedError('');
+  }
+
+  /// Deletes all models of type [T] in local storage.
+  ///
+  /// If you need to clear all models, use the
+  /// `repositoryProviders` map exposed on your `main.data.dart`.
+  Future<void> clearLocal() {
+    // leave async in case some impls need to remove files
+    throw UnimplementedError('');
+  }
+
+  /// Counts all models of type [T] in local storage.
+  int get countLocal {
+    throw UnimplementedError('');
+  }
+
+  /// Gets all keys of type [T] in local storage.
+  List<String> get keys {
+    throw UnimplementedError('');
+  }
 
   // http
 
@@ -517,7 +616,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   /// data in JSON format. Deserialization and initialization
   /// typically occur in this function.
   ///
-  /// [onError] can also be supplied to override [_RemoteAdapter.onError].
+  /// [onError] can also be supplied to override [_BaseAdapter.onError].
   @protected
   @visibleForTesting
   Future<R?> sendRequest<R>(
@@ -549,7 +648,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     final client = _isTesting ? ref.read(httpClientProvider)! : httpClient;
 
     log(label,
-        'requesting${_logLevel > 1 ? ' [HTTP ${method.toShortString()}] $uri' : ''}');
+        'requesting${logLevel > 1 ? ' [HTTP ${method.toShortString()}] $uri' : ''}');
 
     try {
       final request = http.Request(method.toShortString(), uri & params);
@@ -628,7 +727,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
             headers: headers,
             onSuccess: onSuccess as _OnSuccessGeneric<T>,
             onError: onError as _OnErrorGeneric<T>,
-            adapter: this as RemoteAdapter<T>,
+            adapter: this as Adapter<T>,
           ).add();
         }
 
@@ -654,12 +753,12 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
       // if it was not a network error
       // remove all operations with this request
-      OfflineOperation.remove(label, this as RemoteAdapter<T>);
+      OfflineOperation.remove(label, this as Adapter<T>);
 
       final e = DataException(error ?? responseBody ?? '',
           stackTrace: stackTrace, statusCode: code);
       final sb = StringBuffer(e);
-      if (_logLevel > 1) {
+      if (logLevel > 1) {
         sb.write(' $uri');
         if (stackTrace != null) {
           sb.write(stackTrace);
@@ -674,7 +773,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   FutureOr<R?> onSuccess<R>(
       DataResponse response, DataRequestLabel label) async {
     // remove all operations with this label
-    OfflineOperation.remove(label, this as RemoteAdapter);
+    OfflineOperation.remove(label, this as Adapter);
 
     final body = response.body;
 
@@ -692,14 +791,14 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
         return label.model as R?;
       }
 
-      final data = await deserialize(body as Map<String, dynamic>,
+      final data = await deserializeAsync(body as Map<String, dynamic>,
           key: label.model!._key);
       final model = data.model!;
 
       // TODO group?
       // if there has been a migration to a new key, delete the old one
       if (model._key != label.model!._key) {
-        localAdapter.deleteKeys({label.model!._key!});
+        deleteLocalByKeys({label.model!._key!});
       }
       model.saveLocal();
 
@@ -717,7 +816,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     final isFindOne = label.kind.startsWith('findOne');
     final isCustom = label.kind == 'custom';
 
-    final adapter = this as RemoteAdapter;
+    final adapter = this as Adapter;
 
     // custom non-JSON request, return as-is
     if (isCustom &&
@@ -726,7 +825,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     }
 
     // TODO test: not properly deserializing findAll with relationship references (see example app)
-    final deserialized = await deserialize(body);
+    final deserialized = await deserializeAsync(body);
 
     if (isFindAll || (isCustom && deserialized.model == null)) {
       await _saveDeserialized(deserialized);
@@ -762,9 +861,20 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     if (models.isEmpty) return;
     await logTimeAsync('[_saveDeserialized] writing ${models.length} models',
         () async {
-      await localAdapter.saveMany(models.cast());
+      await saveManyLocal(models.cast());
     });
   }
+
+  // serialize interfaces
+
+  @protected
+  @visibleForTesting
+  Future<Map<String, dynamic>> serializeAsync(T model,
+      {bool withRelationships = true});
+
+  @protected
+  @visibleForTesting
+  Future<DeserializedData<T>> deserializeAsync(Object? data, {String? key});
 
   /// Implements global request error handling.
   ///
@@ -784,7 +894,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   }
 
   void log(DataRequestLabel label, String message, {int logLevel = 1}) {
-    if (_logLevel >= logLevel) {
+    if (this.logLevel >= logLevel) {
       final now = DateTime.now();
       final timestamp =
           '${now.second.toString().padLeft(2, '0')}:${now.millisecond.toString().padLeft(3, '0')}';
@@ -831,7 +941,7 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
               // get first edge value
               final map = json.decode(e.to) as Map<String, dynamic>;
               return OfflineOperation<T>.fromJson(
-                  label, map, this as RemoteAdapter<T>);
+                  label, map, this as Adapter<T>);
             }
           } catch (_) {
             // TODO restore
@@ -850,9 +960,150 @@ abstract class _RemoteAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   bool get _isTesting {
     return ref.read(httpClientProvider) != null;
   }
+
+  //
+
+  @protected
+  @nonVirtual
+  T internalWrapStopInit(Function fn, {String? key}) {
+    _stopInitialization = true;
+    late T model;
+    try {
+      model = fn();
+    } finally {
+      _stopInitialization = false;
+    }
+    return initModel(model, key: key);
+  }
+
+  @protected
+  @nonVirtual
+  T initModel(T model, {String? key, Function(T)? onModelInitialized}) {
+    if (_stopInitialization) {
+      return model;
+    }
+
+    // // (before -> after remote save)
+    // // (1) if noid -> noid => `key` is the key we want to keep
+    // // (2) if id -> noid => use autogenerated key (`key` should be the previous (derived))
+    // // so we can migrate rels
+    // // (3) if noid -> id => use derived key (`key` should be the previous (autogen'd))
+    // // so we can migrate rels
+
+    if (model._key == null) {
+      model._key = key ?? core.getKeyForId(internalType, model.id);
+      if (model._key != key) {
+        _initializeRelationships(model, fromKey: key);
+      } else {
+        _initializeRelationships(model);
+      }
+
+      onModelInitialized?.call(model);
+    }
+    return model;
+  }
+
+  void _initializeRelationships(T model, {String? fromKey}) {
+    final metadatas = relationshipMetas.values;
+    for (final metadata in metadatas) {
+      final relationship = metadata.instance(model);
+      if (relationship != null) {
+        // if rel was omitted, fill with info of previous key
+        // TODO optimize: put outside loop and query edgesFor just once
+        if (fromKey != null && relationship._uninitializedKeys == null) {
+          // TODO restore
+          // final edges = storage.edgesFor({(fromKey, metadata.name)});
+          // relationship._uninitializedKeys = edges.map((e) => e.to).toSet();
+        }
+        relationship.initialize(
+          ownerKey: model._key!,
+          name: metadata.name,
+          inverseName: metadata.inverseName,
+        );
+      }
+    }
+  }
+
+  Map<String, dynamic> serialize(T model, {bool withRelationships = true}) {
+    throw UnimplementedError('');
+  }
+
+  T deserialize(Map<String, dynamic> map, {String? key}) {
+    throw UnimplementedError('');
+  }
+
+  Map<String, RelationshipMeta> get relationshipMetas {
+    throw UnimplementedError('');
+  }
+
+  Map<String, dynamic> transformSerialize(Map<String, dynamic> map,
+      {bool withRelationships = true}) {
+    for (final e in relationshipMetas.entries) {
+      final key = e.key;
+      if (withRelationships) {
+        final ignored = e.value.serialize == false;
+        if (ignored) map.remove(key);
+
+        if (map[key] is HasMany) {
+          map[key] = (map[key] as HasMany).keys;
+        } else if (map[key] is BelongsTo) {
+          map[key] = map[key].key;
+        }
+
+        if (map[key] == null) map.remove(key);
+      } else {
+        map.remove(key);
+      }
+    }
+    return map;
+  }
+
+  Map<String, dynamic> transformDeserialize(Map<String, dynamic> map) {
+    // ensure value is dynamic (argument might come in as Map<String, String>)
+    map = Map<String, dynamic>.from(map);
+    for (final e in relationshipMetas.entries) {
+      final key = e.key;
+      final keyset = map[key] is Iterable
+          ? {...(map[key] as Iterable)}
+          : {if (map[key] != null) map[key].toString()};
+      final ignored = e.value.serialize == false;
+      map[key] = {
+        '_': (map.containsKey(key) && !ignored) ? keyset : null,
+      };
+    }
+    return map;
+  }
 }
 
 /// When this provider is non-null it will override
-/// all [_RemoteAdapter.httpClient] overrides;
+/// all [_BaseAdapter.httpClient] overrides;
 /// it is useful for providing a mock client for testing
 final httpClientProvider = Provider<http.Client?>((_) => null);
+
+/// Annotation on a [DataModelMixin] model to request a [Repository] be generated for it.
+///
+/// Takes a list of [adapters] to be mixed into this [Repository].
+/// Public methods of these [adapters] mixins will be made available in the repository
+/// via extensions.
+///
+/// A classic example is:
+///
+/// ```
+/// @JsonSerializable()
+/// @DataRepository([JSONAPIAdapter])
+/// class Todo with DataModel<Todo> {
+///   @override
+///   final int id;
+///   final String title;
+///   final bool completed;
+///
+///   Todo({this.id, this.title, this.completed = false});
+/// }
+///```
+class DataRepository {
+  final List<Type> adapters;
+  final List<Type> localAdapters;
+  final bool remote;
+  const DataRepository(this.adapters,
+      {this.localAdapters = const [], this.remote = true});
+}

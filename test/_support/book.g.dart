@@ -8,7 +8,7 @@ part of 'book.dart';
 
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
-mixin _$BookAuthorLocalAdapter on LocalAdapter<BookAuthor> {
+mixin _$BookAuthorAdapter on Adapter<BookAuthor> {
   static final Map<String, RelationshipMeta> _kBookAuthorRelationshipMetas = {
     'books': RelationshipMeta<Book>(
       name: 'books',
@@ -40,28 +40,20 @@ final _bookAuthorsFinders = <String, dynamic>{
   'caps': (_) => _.caps,
 };
 
-// ignore: must_be_immutable
-class $BookAuthorLocalAdapter = LocalAdapter<BookAuthor>
-    with _$BookAuthorLocalAdapter;
+class $BookAuthorAdapter = Adapter<BookAuthor>
+    with _$BookAuthorAdapter, BookAuthorAdapter;
 
-class $BookAuthorRemoteAdapter = RemoteAdapter<BookAuthor>
-    with BookAuthorAdapter;
+final bookAuthorsAdapterProvider = Provider<Adapter<BookAuthor>>(
+    (ref) => $BookAuthorAdapter(ref, InternalHolder(_bookAuthorsFinders)));
 
-final internalBookAuthorsRemoteAdapterProvider =
-    Provider<RemoteAdapter<BookAuthor>>((ref) => $BookAuthorRemoteAdapter(
-        $BookAuthorLocalAdapter(ref), InternalHolder(_bookAuthorsFinders)));
-
-final bookAuthorsRepositoryProvider =
-    Provider<Repository<BookAuthor>>((ref) => Repository<BookAuthor>(ref));
-
-extension BookAuthorDataRepositoryX on Repository<BookAuthor> {
-  BookAuthorAdapter get bookAuthorAdapter => remoteAdapter as BookAuthorAdapter;
+extension BookAuthorAdapterX on Adapter<BookAuthor> {
+  BookAuthorAdapter get bookAuthorAdapter => this as BookAuthorAdapter;
 }
 
 extension BookAuthorRelationshipGraphNodeX
     on RelationshipGraphNode<BookAuthor> {
   RelationshipGraphNode<Book> get books {
-    final meta = _$BookAuthorLocalAdapter._kBookAuthorRelationshipMetas['books']
+    final meta = _$BookAuthorAdapter._kBookAuthorRelationshipMetas['books']
         as RelationshipMeta<Book>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
@@ -70,7 +62,7 @@ extension BookAuthorRelationshipGraphNodeX
 
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
-mixin _$BookLocalAdapter on LocalAdapter<Book> {
+mixin _$BookAdapter on Adapter<Book> {
   static final Map<String, RelationshipMeta> _kBookRelationshipMetas = {
     'original_author_id': RelationshipMeta<BookAuthor>(
       name: 'originalAuthor',
@@ -113,38 +105,30 @@ mixin _$BookLocalAdapter on LocalAdapter<Book> {
 
 final _booksFinders = <String, dynamic>{};
 
-// ignore: must_be_immutable
-class $BookLocalAdapter = LocalAdapter<Book> with _$BookLocalAdapter;
+class $BookAdapter = Adapter<Book> with _$BookAdapter, NothingMixin;
 
-class $BookRemoteAdapter = RemoteAdapter<Book> with NothingMixin;
+final booksAdapterProvider = Provider<Adapter<Book>>(
+    (ref) => $BookAdapter(ref, InternalHolder(_booksFinders)));
 
-final internalBooksRemoteAdapterProvider = Provider<RemoteAdapter<Book>>(
-    (ref) => $BookRemoteAdapter(
-        $BookLocalAdapter(ref), InternalHolder(_booksFinders)));
-
-final booksRepositoryProvider =
-    Provider<Repository<Book>>((ref) => Repository<Book>(ref));
-
-extension BookDataRepositoryX on Repository<Book> {}
+extension BookAdapterX on Adapter<Book> {}
 
 extension BookRelationshipGraphNodeX on RelationshipGraphNode<Book> {
   RelationshipGraphNode<BookAuthor> get originalAuthor {
-    final meta =
-        _$BookLocalAdapter._kBookRelationshipMetas['original_author_id']
-            as RelationshipMeta<BookAuthor>;
+    final meta = _$BookAdapter._kBookRelationshipMetas['original_author_id']
+        as RelationshipMeta<BookAuthor>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 
   RelationshipGraphNode<House> get house {
-    final meta = _$BookLocalAdapter._kBookRelationshipMetas['house']
+    final meta = _$BookAdapter._kBookRelationshipMetas['house']
         as RelationshipMeta<House>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
 
   RelationshipGraphNode<Person> get ardentSupporters {
-    final meta = _$BookLocalAdapter._kBookRelationshipMetas['ardent_supporters']
+    final meta = _$BookAdapter._kBookRelationshipMetas['ardent_supporters']
         as RelationshipMeta<Person>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
@@ -153,7 +137,7 @@ extension BookRelationshipGraphNodeX on RelationshipGraphNode<Book> {
 
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
-mixin _$LibraryLocalAdapter on LocalAdapter<Library> {
+mixin _$LibraryAdapter on Adapter<Library> {
   static final Map<String, RelationshipMeta> _kLibraryRelationshipMetas = {
     'books': RelationshipMeta<Book>(
       name: 'books',
@@ -182,23 +166,16 @@ mixin _$LibraryLocalAdapter on LocalAdapter<Library> {
 
 final _librariesFinders = <String, dynamic>{};
 
-// ignore: must_be_immutable
-class $LibraryLocalAdapter = LocalAdapter<Library> with _$LibraryLocalAdapter;
+class $LibraryAdapter = Adapter<Library> with _$LibraryAdapter, NothingMixin;
 
-class $LibraryRemoteAdapter = RemoteAdapter<Library> with NothingMixin;
+final librariesAdapterProvider = Provider<Adapter<Library>>(
+    (ref) => $LibraryAdapter(ref, InternalHolder(_librariesFinders)));
 
-final internalLibrariesRemoteAdapterProvider = Provider<RemoteAdapter<Library>>(
-    (ref) => $LibraryRemoteAdapter(
-        $LibraryLocalAdapter(ref), InternalHolder(_librariesFinders)));
-
-final librariesRepositoryProvider =
-    Provider<Repository<Library>>((ref) => Repository<Library>(ref));
-
-extension LibraryDataRepositoryX on Repository<Library> {}
+extension LibraryAdapterX on Adapter<Library> {}
 
 extension LibraryRelationshipGraphNodeX on RelationshipGraphNode<Library> {
   RelationshipGraphNode<Book> get books {
-    final meta = _$LibraryLocalAdapter._kLibraryRelationshipMetas['books']
+    final meta = _$LibraryAdapter._kLibraryRelationshipMetas['books']
         as RelationshipMeta<Book>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);

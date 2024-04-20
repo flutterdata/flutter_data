@@ -207,16 +207,16 @@ extension _ToStringX on DataRequestMethod {
 typedef _OnSuccessGeneric<R> = FutureOr<R?> Function(
     DataResponse response, DataRequestLabel label);
 typedef OnSuccessOne<T extends DataModelMixin<T>> = FutureOr<T?> Function(
-    DataResponse response, DataRequestLabel label, RemoteAdapter<T> adapter);
+    DataResponse response, DataRequestLabel label, Adapter<T> adapter);
 typedef OnSuccessAll<T extends DataModelMixin<T>> = FutureOr<List<T>> Function(
-    DataResponse response, DataRequestLabel label, RemoteAdapter<T> adapter);
+    DataResponse response, DataRequestLabel label, Adapter<T> adapter);
 
 typedef _OnErrorGeneric<R> = FutureOr<R?> Function(
     DataException e, DataRequestLabel label);
 typedef OnErrorOne<T extends DataModelMixin<T>> = FutureOr<T?> Function(
-    DataException e, DataRequestLabel label, RemoteAdapter<T> adapter);
+    DataException e, DataRequestLabel label, Adapter<T> adapter);
 typedef OnErrorAll<T extends DataModelMixin<T>> = FutureOr<List<T>> Function(
-    DataException e, DataRequestLabel label, RemoteAdapter<T> adapter);
+    DataException e, DataRequestLabel label, Adapter<T> adapter);
 
 /// Data request information holder.
 ///
@@ -286,7 +286,7 @@ class DataResponse {
 }
 
 /// ONLY FOR FLUTTER DATA INTERNAL USE
-final internalRepositories = <String, Repository>{};
+final internalAdapters = <String, Adapter>{};
 
 R logTime<R>(String? name, R cb()) {
   if (name == null) return cb();

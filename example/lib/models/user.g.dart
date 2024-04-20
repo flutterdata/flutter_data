@@ -8,7 +8,7 @@ part of 'user.dart';
 
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
-mixin _$UserLocalAdapter on LocalAdapter<User> {
+mixin _$UserAdapter on Adapter<User> {
   static final Map<String, RelationshipMeta> _kUserRelationshipMetas = {
     'tasks': RelationshipMeta<Task>(
       name: 'tasks',
@@ -38,26 +38,19 @@ mixin _$UserLocalAdapter on LocalAdapter<User> {
 
 final _usersFinders = <String, dynamic>{};
 
-// ignore: must_be_immutable
-class $UserLocalAdapter = LocalAdapter<User> with _$UserLocalAdapter;
+class $UserAdapter = Adapter<User> with _$UserAdapter, JSONServerAdapter<User>;
 
-class $UserRemoteAdapter = RemoteAdapter<User> with JSONServerAdapter<User>;
+final usersAdapterProvider = Provider<Adapter<User>>(
+    (ref) => $UserAdapter(ref, InternalHolder(_usersFinders)));
 
-final internalUsersRemoteAdapterProvider = Provider<RemoteAdapter<User>>(
-    (ref) => $UserRemoteAdapter(
-        $UserLocalAdapter(ref), InternalHolder(_usersFinders)));
-
-final usersRepositoryProvider =
-    Provider<Repository<User>>((ref) => Repository<User>(ref));
-
-extension UserDataRepositoryX on Repository<User> {
+extension UserAdapterX on Adapter<User> {
   JSONServerAdapter<User> get jSONServerAdapter =>
-      remoteAdapter as JSONServerAdapter<User>;
+      this as JSONServerAdapter<User>;
 }
 
 extension UserRelationshipGraphNodeX on RelationshipGraphNode<User> {
   RelationshipGraphNode<Task> get tasks {
-    final meta = _$UserLocalAdapter._kUserRelationshipMetas['tasks']
+    final meta = _$UserAdapter._kUserRelationshipMetas['tasks']
         as RelationshipMeta<Task>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);

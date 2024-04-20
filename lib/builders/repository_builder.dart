@@ -174,7 +174,7 @@ and execute a code generation build again.
       for (final rel in relationships)
         '''
 RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
-  final meta = _\$${className}LocalAdapter._k${className}RelationshipMetas['${rel['key']}']
+  final meta = _\$${className}Adapter._k${className}RelationshipMetas['${rel['key']}']
       as RelationshipMeta<${rel['type']}>;
   return meta.clone(parent: this is RelationshipMeta ? this as RelationshipMeta : null);
 }
@@ -258,7 +258,7 @@ RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
 
     final mixinShortcuts = mixins.map((mixin) {
       final mixinB = mixin.replaceAll(RegExp('<.*?>'), '').decapitalize();
-      return '$mixin get $mixinB => remoteAdapter as $mixin;';
+      return '$mixin get $mixinB => this as $mixin;';
     }).join('\n');
 
     if (mixins.isEmpty) {
@@ -270,7 +270,7 @@ RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
     return '''
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
-mixin _\$${className}LocalAdapter on LocalAdapter<$className> {
+mixin _\$${className}Adapter on Adapter<$className> {
   static final Map<String, RelationshipMeta> _k${className}RelationshipMetas = 
     $relationshipMeta;
 
@@ -294,19 +294,13 @@ final _${classNameLower}Finders = <String, dynamic>{
   ${finders.map((f) => '''  '$f': (_) => _.$f,''').join('\n')}
 };
 
-// ignore: must_be_immutable
-class \$${className}LocalAdapter = LocalAdapter<$className> with _\$${className}LocalAdapter${localMixins.map((m) => ', $m').join('')};
+class \$${className}Adapter = Adapter<$className> with _\$${className}Adapter${localMixins.map((m) => ', $m').join('')}, ${mixins.join(', ')};
 
-class \$${className}RemoteAdapter = RemoteAdapter<$className> with ${mixins.join(', ')};
+final ${classNameLower}AdapterProvider =
+    Provider<Adapter<$className>>(
+        (ref) => \$${className}Adapter(ref, InternalHolder(_${classNameLower}Finders)));
 
-final internal${classNameLower.capitalize()}RemoteAdapterProvider =
-    Provider<RemoteAdapter<$className>>(
-        (ref) => \$${className}RemoteAdapter(\$${className}LocalAdapter(ref), InternalHolder(_${classNameLower}Finders)));
-
-final ${classNameLower}RepositoryProvider =
-    Provider<Repository<$className>>((ref) => Repository<$className>(ref));
-
-extension ${className}DataRepositoryX on Repository<$className> {
+extension ${className}AdapterX on Adapter<$className> {
 $mixinShortcuts
 }
 

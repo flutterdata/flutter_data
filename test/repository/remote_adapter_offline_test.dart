@@ -366,14 +366,13 @@ void main() async {
     });
 
     // random endpoint with random headers
-    await container.familia.remoteAdapter.sendRequest<Familia>(
+    await container.familia.sendRequest<Familia>(
       '/fam'.asUri,
       method: DataRequestMethod.POST,
       headers: {'X-Sats': '9389173717732'},
       body: json.encode({'a': 2}),
       onSuccess: (data, label) async {
-        final result = await container.familia.remoteAdapter
-            .onSuccess<Familia>(data, label);
+        final result = await container.familia.onSuccess<Familia>(data, label);
         expect(
             data.body,
             equals([
@@ -409,7 +408,7 @@ void main() async {
       httpRequest: 'GET /familia',
       timestamp: 1,
       headers: {'X-Header': 'dang'},
-      adapter: container.familia.remoteAdapter,
+      adapter: container.familia,
     );
 
     final o2 = OfflineOperation<Familia>(
@@ -417,7 +416,7 @@ void main() async {
       httpRequest: 'GET /familia',
       timestamp: 1,
       headers: {'X-Header': 'dang'},
-      adapter: container.familia.remoteAdapter,
+      adapter: container.familia,
     );
 
     expect(o1, equals(o2));

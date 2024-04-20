@@ -27,7 +27,7 @@ void main() async {
     print('Using temporary directory: ${_dir.path}');
     _dir.deleteSync(recursive: true);
 
-    await container.read(repositoryInitializerProvider.future);
+    await container.read(adapterInitializerProvider.future);
 
     container.users.logLevel = 2;
     container.tasks.logLevel = 2;

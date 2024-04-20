@@ -8,7 +8,7 @@ part of 'person.dart';
 
 // ignore_for_file: non_constant_identifier_names, duplicate_ignore
 
-mixin _$PersonLocalAdapter on LocalAdapter<Person> {
+mixin _$PersonAdapter on Adapter<Person> {
   static final Map<String, RelationshipMeta> _kPersonRelationshipMetas = {
     'familia': RelationshipMeta<Familia>(
       name: 'familia',
@@ -38,34 +38,27 @@ mixin _$PersonLocalAdapter on LocalAdapter<Person> {
 
 final _peopleFinders = <String, dynamic>{};
 
-// ignore: must_be_immutable
-class $PersonLocalAdapter = LocalAdapter<Person> with _$PersonLocalAdapter;
-
-class $PersonRemoteAdapter = RemoteAdapter<Person>
+class $PersonAdapter = Adapter<Person>
     with
+        _$PersonAdapter,
         PersonLoginAdapter,
         GenericDoesNothingAdapter<Person>,
         YetAnotherLoginAdapter;
 
-final internalPeopleRemoteAdapterProvider = Provider<RemoteAdapter<Person>>(
-    (ref) => $PersonRemoteAdapter(
-        $PersonLocalAdapter(ref), InternalHolder(_peopleFinders)));
+final peopleAdapterProvider = Provider<Adapter<Person>>(
+    (ref) => $PersonAdapter(ref, InternalHolder(_peopleFinders)));
 
-final peopleRepositoryProvider =
-    Provider<Repository<Person>>((ref) => Repository<Person>(ref));
-
-extension PersonDataRepositoryX on Repository<Person> {
-  PersonLoginAdapter get personLoginAdapter =>
-      remoteAdapter as PersonLoginAdapter;
+extension PersonAdapterX on Adapter<Person> {
+  PersonLoginAdapter get personLoginAdapter => this as PersonLoginAdapter;
   GenericDoesNothingAdapter<Person> get genericDoesNothingAdapter =>
-      remoteAdapter as GenericDoesNothingAdapter<Person>;
+      this as GenericDoesNothingAdapter<Person>;
   YetAnotherLoginAdapter get yetAnotherLoginAdapter =>
-      remoteAdapter as YetAnotherLoginAdapter;
+      this as YetAnotherLoginAdapter;
 }
 
 extension PersonRelationshipGraphNodeX on RelationshipGraphNode<Person> {
   RelationshipGraphNode<Familia> get familia {
-    final meta = _$PersonLocalAdapter._kPersonRelationshipMetas['familia']
+    final meta = _$PersonAdapter._kPersonRelationshipMetas['familia']
         as RelationshipMeta<Familia>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);

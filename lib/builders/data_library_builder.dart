@@ -89,7 +89,7 @@ class DataExtensionBuilder implements Builder {
     final adaptersMap = {
       for (final clazz in classes)
         '\'${clazz['type']}\'':
-            'ref.watch(internal${clazz['classNameLower'].toString().capitalize()}RemoteAdapterProvider)'
+            'ref.watch(${clazz['classNameLower']}AdapterProvider)'
     };
 
     final remotesMap = {
@@ -119,21 +119,21 @@ class DataExtensionBuilder implements Builder {
 
     //
 
-    String repositoryWatcherRefExtension(List<Map<String, String>> classes,
+    String adapterWatcherRefExtension(List<Map<String, String>> classes,
         {required bool hasWidgets}) {
       return '''
 ${hasWidgets ? '''
-extension RepositoryWidgetRefX on WidgetRef {
-${classes.map((clazz) => '  Repository<${clazz['className']}> get ${clazz['classNameLower']} => watch(${clazz['classNameLower']}RepositoryProvider)..remoteAdapter.internalWatch = watch;').join('\n')}
+extension AdapterWidgetRefX on WidgetRef {
+${classes.map((clazz) => '  Adapter<${clazz['className']}> get ${clazz['classNameLower']} => watch(${clazz['classNameLower']}AdapterProvider)..internalWatch = watch;').join('\n')}
 }''' : ''}
 
-extension RepositoryRefX on ${hasWidgets ? 'Ref' : 'ProviderContainer'} {
+extension AdapterRefX on ${hasWidgets ? 'Ref' : 'ProviderContainer'} {
 ${hasWidgets ? '' : '''
 E watch<E>(ProviderListenable<E> provider) {
   return readProviderElement(provider as ProviderBase<E>).readSelf();
 }
 '''}
-${classes.map((clazz) => '  Repository<${clazz['className']}> get ${clazz['classNameLower']} => watch(${clazz['classNameLower']}RepositoryProvider)..remoteAdapter.internalWatch = watch${hasWidgets ? ' as Watcher' : ''};').join('\n')}
+${classes.map((clazz) => '  Adapter<${clazz['className']}> get ${clazz['classNameLower']} => watch(${clazz['classNameLower']}AdapterProvider)..internalWatch = watch${hasWidgets ? ' as Watcher' : ''};').join('\n')}
 }''';
     }
 
@@ -153,7 +153,7 @@ $riverpodFlutterImport
 $modelImports
 
 // ignore: prefer_function_declarations_over_variables
-ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<String>? baseDirFn, String? encryptionKey, LocalStorageClearStrategy? clear}) {
+ConfigureAdapterLocalStorage configureAdapterLocalStorage = ({FutureFn<String>? baseDirFn, String? encryptionKey, LocalStorageClearStrategy? clear}) {
   ${isFlutter ? 'if (!kIsWeb) {' : ''}
     $autoBaseDirFn
   ${isFlutter ? '} else {' : ''}
@@ -169,33 +169,34 @@ ConfigureRepositoryLocalStorage configureRepositoryLocalStorage = ({FutureFn<Str
   );
 };
 
-final repositoryProviders = <String, Provider<Repository<DataModelMixin>>>{
-  ${classes.map((clazz) => '\'' + clazz['type']! + '\': ' + clazz['classNameLower']! + 'RepositoryProvider').join(',\n')}
+final adapterProviders = <String, Provider<Adapter<DataModelMixin>>>{
+  ${classes.map((clazz) => '\'' + clazz['type']! + '\': ' + clazz['classNameLower']! + 'AdapterProvider').join(',\n')}
 };
 
-final repositoryInitializerProvider =
-  FutureProvider<RepositoryInitializer>((ref) async {
+final adapterInitializerProvider =
+  FutureProvider<AdapterInitializer>((ref) async {
 ${classes.map((clazz) => '    DataHelpers.setInternalType<${clazz['className']}>(\'${clazz['type']}\');').join('\n')}
-    final adapters = <String, RemoteAdapter>$adaptersMap;
+    final adapters = <String, Adapter>$adaptersMap;
     final remotes = <String, bool>$remotesMap;
 
     await ref.read(localStorageProvider).initialize();
 
     // initialize and register
-    for (final type in repositoryProviders.keys) {
-      final repository = ref.read(repositoryProviders[type]!);
-      repository.dispose();
-      await repository.initialize(
+    for (final type in adapterProviders.keys) {
+      final adapter = ref.read(adapterProviders[type]!);
+      adapter.dispose();
+      await adapter.initialize(
         remote: remotes[type],
         adapters: adapters,
+        ref: ref
       );
-      internalRepositories[type] = repository;
+      internalAdapters[type] = adapter;
     }
 
-    return RepositoryInitializer();
+    return AdapterInitializer();
 });
 ''' +
-            repositoryWatcherRefExtension(classes,
+            adapterWatcherRefExtension(classes,
                 hasWidgets: hasFlutterRiverpod));
   }
 }
