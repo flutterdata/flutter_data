@@ -23,6 +23,10 @@ Stream<DataState<T>> _streamFor<T>(DataStateNotifier<T> notifier) {
   return controller.stream.asBroadcastStream();
 }
 
+// can use (stream, emitsInOrder) or (stream.first, completion)
+// await expectLater(stream.first,
+//     completion(DataState<List<Familia>>([], isLoading: true)));
+
 void main() async {
   setUp(setUpFn);
   tearDown(tearDownFn);
@@ -69,14 +73,6 @@ void main() async {
     final notifier = container.familia.watchAllNotifier(remote: true);
     final stream = _streamFor(notifier);
 
-    // await expectLater(stream.first,
-    //     completion(DataState<List<Familia>>([], isLoading: true)));
-    // await expectLater(
-    //     stream.first,
-    //     completion(isA<DataState>()
-    //         .having((s) => s.isLoading, 'isLoading', isFalse)
-    //         .having((s) => s.exception, 'exception', isA<Exception>())));
-
     await expectLater(
       stream,
       emitsInOrder([
@@ -86,7 +82,6 @@ void main() async {
             .having((s) => s.exception, 'exception', isA<Exception>())
       ]),
     );
-    print('1st ok');
 
     // now server will successfully respond with two familia
     container.read(responseProvider.notifier).state = TestResponse.json('''
@@ -95,66 +90,16 @@ void main() async {
 
     // reload
     await notifier.reload();
-    print('after reload');
-
-    // TODO fix this
-    // not working here as saveMany/save are not emitting
-    // this was there before:
-    // core._notify([op.edge.from, op.edge.to],
-    //         metadata: op.edge.name, type: type);
-    // (now should listen to stream from database and emit, cause isolates)
 
     final familia = Familia(id: '1', surname: 'Corleone');
     final familia2 = Familia(id: '2', surname: 'Soprano');
 
     await expectLater(
-      stream.first,
-      completion(
-        DataState<List<Familia>>([], isLoading: false),
-      ),
+      stream,
+      emitsInOrder([
+        DataState<List<Familia>>([familia, familia2], isLoading: false),
+      ]),
     );
-    print('2nd ok');
-
-    // final listener = Listener<DataState<List<Familia>>?>();
-
-    // container.read(responseProvider.notifier).state =
-    //     TestResponse((_) => throw Exception('unreachable'));
-    // final notifier = container.familia.watchAllNotifier();
-
-    // dispose = notifier.addListener(listener);
-
-    // verify(listener(DataState([], isLoading: true))).called(1);
-    // await oneMs();
-
-    // // finished loading but found the network unreachable
-    // verify(listener(argThat())
-    //     .called(1);
-    // verifyNoMoreInteractions(listener);
-
-    // // now server will successfully respond with two familia
-    // container.read(responseProvider.notifier).state = TestResponse.json('''
-    //     [{ "id": "1", "surname": "Corleone" }, { "id": "2", "surname": "Soprano" }]
-    //   ''');
-
-    // // reload
-    // await notifier.reload();
-
-    // final familia = Familia(id: '1', surname: 'Corleone');
-    // final familia2 = Familia(id: '2', surname: 'Soprano');
-
-    // // loads again, for now exception remains
-    // verify(listener(argThat(isA<DataState>()
-    //         .having((s) => s.isLoading, 'isLoading', isTrue)
-    //         .having((s) => s.exception, 'exception', isA<Exception>()))))
-    //     .called(1);
-
-    // await oneMs();
-
-    // // now responds with models, loading done, and no exception
-    // verify(listener(argThat(isA<DataState>().having(
-    //         (s) => s.model, 'model', unorderedEquals([familia, familia2])))))
-    //     .called(1);
-    // verifyNoMoreInteractions(listener);
   });
 
   test('watchOne with remote=true', () async {

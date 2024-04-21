@@ -180,12 +180,12 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     return model;
   }
 
-  Future<void> _runInIsolate(
-      Future<void> fn(ProviderContainer container)) async {
+  Future<R> _runInIsolate<R>(
+      FutureOr<R> fn(ProviderContainer container)) async {
     final ppath = Directory(storage.path).parent.path;
     final ip = _internalProviders!;
 
-    await Isolate.run(() async {
+    return await Isolate.run(() async {
       late final ProviderContainer container;
       try {
         container = ProviderContainer(
@@ -198,7 +198,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
         await container.read(initializeWith(ip).future);
 
-        fn(container);
+        return fn(container);
       } finally {
         container.read(localStorageProvider).db.dispose();
       }
@@ -207,27 +207,32 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
   Future<void> saveManyLocal(Iterable<DataModelMixin> models,
       {bool notify = true}) async {
-    // ref.read(localStorageProvider).db.updates.listen((event) {
-    //   print('received; $event');
-    // });
-    await _runInIsolate((container) async {
+    final savedKeys = await _runInIsolate((container) async {
       final db = container.read(localStorageProvider).db;
+      final savedKeys = <String>[];
 
       final grouped = models.groupSetsBy((e) => e._adapter);
       for (final e in grouped.entries) {
         final adapter = e.key;
         // TODO use prepareMultiple
         final ps = db.prepare(
-            'REPLACE INTO ${adapter.internalType} (key, data) VALUES (?, ?)');
+            'REPLACE INTO ${adapter.internalType} (key, data) VALUES (?, ?) RETURNING key;');
         for (final model in e.value) {
           final key = model._key!.detypifyKey();
           final map = adapter.serialize(model, withRelationships: false);
           final data = jsonEncode(map);
-          ps.execute([key, data]);
+          final result = ps.select([key, data]);
+          savedKeys.add(
+              result.first['key'].toString().typifyWith(adapter.internalType));
         }
         ps.dispose();
       }
+      return savedKeys;
     });
+
+    if (notify) {
+      core._notify(savedKeys, type: DataGraphEventType.updateNode);
+    }
   }
 
   /// Deletes model of type [T] from local storage.
