@@ -32,31 +32,6 @@ class OfflineOperation<T extends DataModelMixin<T>> with EquatableMixin {
     }
   }
 
-  // factory OfflineOperation.fromJson(
-  //   DataRequestLabel label,
-  //   Map<String, dynamic> json,
-  //   Adapter<T> adapter,
-  // ) {
-  //   final operation = OfflineOperation(
-  //     label: label,
-  //     httpRequest: json['r'] as String,
-  //     timestamp: json['t'] as int,
-  //     key: json['k'] as String?,
-  //     body: json['b'] as String?,
-  //     headers:
-  //         json['h'] == null ? null : Map<String, String>.from(json['h'] as Map),
-  //     adapter: adapter,
-  //   );
-
-  //   if (operation.key != null) {
-  //     final model = adapter.findOneLocal(operation.key!);
-  //     if (model != null) {
-  //       operation.label.model = model;
-  //     }
-  //   }
-  //   return operation;
-  // }
-
   Uri get uri {
     return httpRequest.split(' ').last.asUri;
   }

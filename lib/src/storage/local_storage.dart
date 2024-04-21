@@ -27,6 +27,7 @@ class LocalStorage {
         await destroy();
       }
 
+      print('opening in path $path');
       db = sqlite3.open(path);
 
       db.execute('''
@@ -39,8 +40,8 @@ class LocalStorage {
             dest INTEGER NOT NULL,
             inverse TEXT
           );
-          CREATE INDEX src_name_idx ON _edges(src, name);
-          CREATE INDEX dest_inverse_idx ON _edges(dest, inverse);
+          CREATE INDEX IF NOT EXISTS src_name_idx ON _edges(src, name);
+          CREATE INDEX IF NOT EXISTS dest_inverse_idx ON _edges(dest, inverse);
 
           CREATE TABLE IF NOT EXISTS _keys (
             key INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -48,7 +49,7 @@ class LocalStorage {
             id TEXT,
             is_int INTEGER DEFAULT 0
           );
-          CREATE INDEX id_idx ON _keys(id);
+          CREATE INDEX IF NOT EXISTS id_idx ON _keys(id);
 
           CREATE TABLE IF NOT EXISTS _offline_operations (
             label TEXT PRIMARY KEY,

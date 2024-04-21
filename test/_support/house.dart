@@ -39,5 +39,5 @@ class House extends DataModel<House> {
   int get hashCode => runtimeType.hashCode ^ id.hashCode ^ address.hashCode;
 
   @override
-  String toString() => address;
+  String toString() => '<House>: $address';
 }

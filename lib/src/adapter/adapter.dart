@@ -50,7 +50,6 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   bool _stopInitialization = false;
 
   // None of these fields below can be late finals as they might be re-initialized
-  bool? _remote;
   Ref? _ref;
 
   /// All adapters for the relationship subgraph of [T] and their relationships.
@@ -374,6 +373,13 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     return model;
   }
 
+  Set<String> _edgesFor(String fromKey, String name) {
+    final result = db.select(
+        'SELECT src, dest FROM _edges WHERE (src = ? AND name = ?) OR (dest = ? AND inverse = ?)',
+        [fromKey, name, fromKey, name]);
+    return {for (final r in result) r['dest']};
+  }
+
   void _initializeRelationships(T model, {String? fromKey}) {
     final metadatas = relationshipMetas.values;
     for (final metadata in metadatas) {
@@ -382,11 +388,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
         // if rel was omitted, fill with info of previous key
         // TODO optimize: put outside loop and query edgesFor just once
         if (fromKey != null && relationship._uninitializedKeys == null) {
-          // TODO DRY!
-          final result = db.select(
-              'SELECT src, dest FROM _edges WHERE (src = ? AND name = ?) OR (dest = ? AND inverse = ?)',
-              [fromKey, metadata.name, fromKey, metadata.name]);
-          relationship._uninitializedKeys = {for (final r in result) r['dest']};
+          relationship._uninitializedKeys = _edgesFor(fromKey, metadata.name);
         }
         relationship.initialize(
           ownerKey: model._key!,
@@ -440,29 +442,4 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     }
     return map;
   }
-}
-
-/// Annotation on a [DataModelMixin] model to request an [Adapter] be generated for it.
-///
-/// Takes a list of [adapters] to be mixed into this [Adapter].
-/// Public methods of these [adapters] mixins will be made available in the adapter
-/// via extensions.
-///
-/// A classic example is:
-///
-/// ```
-/// @JsonSerializable()
-/// @DataAdapter([JSONAPIAdapter])
-/// class Todo with DataModel<Todo> {
-///   @override
-///   final int id;
-///   final String title;
-///   final bool completed;
-///
-///   Todo({this.id, this.title, this.completed = false});
-/// }
-///```
-class DataAdapter {
-  final List<Type> adapters;
-  const DataAdapter(this.adapters);
 }

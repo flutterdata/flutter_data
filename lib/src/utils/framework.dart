@@ -115,13 +115,13 @@ class RelationshipMeta<T extends DataModelMixin<T>>
   });
 
   // get topmost parent
-  // RelationshipMeta get _top {
-  //   RelationshipMeta? current = this;
-  //   while (current?.parent != null) {
-  //     current = current!.parent;
-  //   }
-  //   return current!;
-  // }
+  RelationshipMeta get _top {
+    RelationshipMeta? current = this;
+    while (current?.parent != null) {
+      current = current!.parent;
+    }
+    return current!;
+  }
 
   RelationshipMeta<T> clone({RelationshipMeta? parent}) {
     final meta = RelationshipMeta<T>(
@@ -149,10 +149,10 @@ typedef AlsoWatch<T extends DataModelMixin<T>> = Iterable<RelationshipGraphNode>
 class WatchArgs<T extends DataModelMixin<T>> with EquatableMixin {
   WatchArgs({
     this.key,
-    this.remote,
+    this.remote = false,
     this.params,
     this.headers,
-    this.syncLocal,
+    this.syncLocal = false,
     this.relationshipMetas,
     this.alsoWatch,
     this.finder,
@@ -160,10 +160,10 @@ class WatchArgs<T extends DataModelMixin<T>> with EquatableMixin {
   });
 
   final String? key;
-  final bool? remote;
+  final bool remote;
   final Map<String, dynamic>? params;
   final Map<String, String>? headers;
-  final bool? syncLocal;
+  final bool syncLocal;
   final List<RelationshipMeta>? relationshipMetas;
   final AlsoWatch<T>? alsoWatch;
   final String? finder;
@@ -311,3 +311,28 @@ final initializeWith =
 
   return true;
 });
+
+/// Annotation on a [DataModelMixin] model to request an [Adapter] be generated for it.
+///
+/// Takes a list of [adapters] to be mixed into this [Adapter].
+/// Public methods of these [adapters] mixins will be made available in the adapter
+/// via extensions.
+///
+/// A classic example is:
+///
+/// ```
+/// @JsonSerializable()
+/// @DataAdapter([JSONAPIAdapter])
+/// class Todo with DataModel<Todo> {
+///   @override
+///   final int id;
+///   final String title;
+///   final bool completed;
+///
+///   Todo({this.id, this.title, this.completed = false});
+/// }
+///```
+class DataAdapter {
+  final List<Type> adapters;
+  const DataAdapter(this.adapters);
+}

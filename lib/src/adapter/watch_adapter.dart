@@ -11,10 +11,10 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
   /// ref.books.watchAll();
   /// ```
   DataState<List<T>> watchAll({
-    bool? remote,
+    bool remote = false,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    bool? syncLocal,
+    bool syncLocal = false,
     String? finder,
     DataRequestLabel? label,
   }) {
@@ -42,7 +42,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
   /// ```
   DataState<T?> watchOne(
     Object model, {
-    bool? remote,
+    bool remote = false,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     AlsoWatch<T>? alsoWatch,
@@ -64,10 +64,10 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
   // notifiers
 
   DataStateNotifier<List<T>> watchAllNotifier(
-      {bool? remote,
+      {bool remote = false,
       Map<String, dynamic>? params,
       Map<String, String>? headers,
-      bool? syncLocal,
+      bool syncLocal = false,
       String? finder,
       DataRequestLabel? label}) {
     final provider = watchAllProvider(
@@ -82,7 +82,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
   }
 
   DataStateNotifier<T?> watchOneNotifier(Object model,
-      {bool? remote,
+      {bool remote = false,
       Map<String, dynamic>? params,
       Map<String, String>? headers,
       AlsoWatch<T>? alsoWatch,
@@ -103,16 +103,13 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
 
   @protected
   DataStateNotifier<List<T>> _watchAllNotifier({
-    bool? remote,
+    bool remote = false,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    bool? syncLocal,
+    bool syncLocal = false,
     String? finder,
     DataRequestLabel? label,
   }) {
-    remote ??= _remote;
-    syncLocal ??= false;
-
     final maybeFinder = _internalHolder?.finders[finder]?.call(this);
     final finderFn = maybeFinder is DataFinderAll<T> ? maybeFinder : findAll;
 
@@ -128,7 +125,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
     }
 
     final notifier = DataStateNotifier<List<T>>(
-      data: DataState(_getUpdatedModels(), isLoading: remote!),
+      data: DataState(_getUpdatedModels(), isLoading: remote),
     );
 
     notifier._reloadFn = () async {
@@ -136,7 +133,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
         return;
       }
 
-      if (remote!) {
+      if (remote) {
         notifier.updateWith(isLoading: true);
       }
 
@@ -146,6 +143,11 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
         headers: headers,
         syncLocal: syncLocal,
         label: label,
+        // onSuccess: (response, label, _) async {
+        //   response;
+        //   print('got $response');
+        //   return [];
+        // },
         onError: (e, label, _) async {
           try {
             await onError<List<T>>(e, label);
@@ -221,7 +223,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
   @protected
   DataStateNotifier<T?> _watchOneNotifier(
     String key, {
-    bool? remote,
+    bool remote = false,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     AlsoWatch<T>? alsoWatch,
@@ -230,7 +232,6 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
   }) {
     final id = core.getIdForKey(key);
 
-    remote ??= _remote;
     final maybeFinder = _internalHolder?.finders[finder]?.call(this);
     final finderFn = maybeFinder is DataFinderOne<T> ? maybeFinder : findOne;
 
@@ -243,33 +244,30 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
 
     // closure to get latest model and watchable relationship pairs
     T? _getUpdatedModel() {
-      // return localAdapter.storage.readTxn(() {
-      //   final model = findOneLocal(key);
-      //   if (model != null) {
-      //     // get all metas provided via `alsoWatch`
-      //     final metas = alsoWatch
-      //         ?.call(RelationshipGraphNode<T>())
-      //         .whereType<RelationshipMeta>();
+      final model = findOneLocal(key);
+      if (model != null) {
+        // get all metas provided via `alsoWatch`
+        final metas = alsoWatch
+            ?.call(RelationshipGraphNode<T>())
+            .whereType<RelationshipMeta>();
 
-      //     // recursively get applicable watch key pairs for each meta -
-      //     // from top to bottom (e.g. `p`, `p.familia`, `p.familia.cottage`)
-      //     alsoWatchPairs = {
-      //       ...?metas
-      //           ?.map((meta) => _getPairsForMeta(meta._top, model._key!))
-      //           .nonNulls
-      //           .expand((_) => _)
-      //     };
-      //   } else {
-      //     // if there is no model nothing should be watched, reset pairs
-      //     alsoWatchPairs = {};
-      //   }
-      //   return model;
-      // });
-      // TODO restore
+        // recursively get applicable watch key pairs for each meta -
+        // from top to bottom (e.g. `p`, `p.familia`, `p.familia.cottage`)
+        alsoWatchPairs = {
+          ...?metas
+              ?.map((meta) => _getPairsForMeta(meta._top, model._key!))
+              .nonNulls
+              .expand((_) => _)
+        };
+      } else {
+        // if there is no model nothing should be watched, reset pairs
+        alsoWatchPairs = {};
+      }
+      return model;
     }
 
     final notifier = DataStateNotifier<T?>(
-      data: DataState(_getUpdatedModel(), isLoading: remote!),
+      data: DataState(_getUpdatedModel(), isLoading: remote),
     );
 
     final alsoWatchNames = alsoWatch
@@ -283,7 +281,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
     notifier._reloadFn = () async {
       if (!notifier.mounted || id == null) return;
 
-      if (remote!) {
+      if (remote) {
         notifier.updateWith(isLoading: true);
       }
 
@@ -442,11 +440,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
     if (meta == null) return {};
     print('--- [read] _getPairsForMeta');
 
-    // TODO restore
-    final edges = []; // storage.edgesFor([(ownerKey, meta.name)]);
-    final relationshipKeys = {
-      for (final e in edges) e.from == ownerKey ? e.to : e.from
-    };
+    final relationshipKeys = _edgesFor(ownerKey, meta.name);
 
     return {
       // include key pairs of (owner, key)
@@ -462,14 +456,13 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
 
   AutoDisposeStateNotifierProvider<DataStateNotifier<List<T>>,
       DataState<List<T>>> watchAllProvider({
-    bool? remote,
+    bool remote = false,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    bool? syncLocal,
+    bool syncLocal = false,
     String? finder,
     DataRequestLabel? label,
   }) {
-    remote ??= _remote;
     return _watchAllProvider(
       WatchArgs(
         remote: remote,
@@ -498,7 +491,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
   AutoDisposeStateNotifierProvider<DataStateNotifier<T?>, DataState<T?>>
       watchOneProvider(
     Object model, {
-    bool? remote,
+    bool remote = false,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     AlsoWatch<T>? alsoWatch,
@@ -507,7 +500,6 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
   }) {
     final key = core.getKeyForModelOrId(internalType, model);
 
-    remote ??= _remote;
     final relationshipMetas = alsoWatch
         ?.call(RelationshipGraphNode<T>())
         .whereType<RelationshipMeta>()

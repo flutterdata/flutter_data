@@ -97,12 +97,22 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
     db.execute(
         'UPDATE _edges SET dest = ? WHERE src = ? AND name = ? AND dest = ?',
         [newValue._key!, ownerKey, name, value._key!]);
+    _adapter.core._notify(
+      [ownerKey, newValue._key!],
+      metadata: _name,
+      type: DataGraphEventType.updateEdge,
+    );
     return true;
   }
 
   bool _remove(E value) {
     db.execute('DELETE FROM _edges WHERE src = ? AND name = ? AND dest = ?',
         [ownerKey, name, value._key!]);
+    _adapter.core._notify(
+      [ownerKey, value._key!],
+      metadata: _name,
+      type: DataGraphEventType.removeEdge,
+    );
     return true;
   }
 

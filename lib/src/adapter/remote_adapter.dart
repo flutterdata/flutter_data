@@ -51,18 +51,15 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
   ///
   /// See also: [urlForFindAll], [methodForFindAll].
   Future<List<T>> findAll({
-    bool? remote,
-    bool? background,
+    bool remote = true,
+    bool background = false,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    bool? syncLocal,
+    bool syncLocal = false,
     OnSuccessAll<T>? onSuccess,
     OnErrorAll<T>? onError,
     DataRequestLabel? label,
   }) async {
-    remote ??= _remote ?? true;
-    background ??= false;
-    syncLocal ??= false;
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
 
@@ -85,7 +82,7 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
       headers: headers,
       label: label,
       onSuccess: (data, label) async {
-        if (syncLocal!) {
+        if (syncLocal) {
           clearLocal();
         }
         onSuccess ??= (data, label, _) async {
@@ -395,7 +392,7 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
       if (response != null) {
         contentType = response.headers['content-type'] ?? 'application/json';
 
-        responseBody = await Isolate.run(() {
+        responseBody = () {
           if (returnBytes) {
             return response!.bodyBytes;
           } else if (response!.body.isNotEmpty) {
@@ -407,7 +404,7 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
             }
           }
           return null;
-        });
+        }();
       }
     } on FormatException catch (e, stack) {
       error = e;
@@ -501,6 +498,7 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
         return label.model as R?;
       }
 
+      print('1');
       final data = await deserializeAsync(body as Map<String, dynamic>,
           key: label.model!._key);
       final model = data.model!;
@@ -509,6 +507,7 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
       if (model._key != label.model!._key) {
         deleteLocalByKeys({label.model!._key!});
       }
+      print('2');
       model.saveLocal();
 
       log(label, 'saved in local storage and remote');

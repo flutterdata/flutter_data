@@ -45,6 +45,7 @@ Future<void> setUpFn() async {
           }
         });
       }),
+      coreNotifierThrottleDurationProvider.overrideWithValue(Duration.zero),
       // NOTE: Can't enable in-memory sqlite as it can't be shared across isolates
       localStorageProvider.overrideWith(
         (ref) => LocalStorage(
