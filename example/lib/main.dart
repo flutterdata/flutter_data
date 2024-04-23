@@ -28,7 +28,8 @@ void main() async {
 
     print('Using temporary directory: ${_dir.path}');
 
-    await container.read(initializeWith(adapterProviders).future);
+    container.read(adapterProviders.notifier).state = adapterProvidersMap;
+    await container.read(initializeAdapters.future);
     container.users.logLevel = 2;
     container.tasks.logLevel = 2;
 

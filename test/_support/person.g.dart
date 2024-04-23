@@ -24,13 +24,13 @@ mixin _$PersonAdapter on Adapter<Person> {
       _kPersonRelationshipMetas;
 
   @override
-  Person deserialize(map, {String? key}) {
+  Person deserializeLocal(map, {String? key}) {
     map = transformDeserialize(map);
     return internalWrapStopInit(() => Person.fromJson(map), key: key);
   }
 
   @override
-  Map<String, dynamic> serialize(model, {bool withRelationships = true}) {
+  Map<String, dynamic> serializeLocal(model, {bool withRelationships = true}) {
     final map = model.toJson();
     return transformSerialize(map, withRelationships: withRelationships);
   }

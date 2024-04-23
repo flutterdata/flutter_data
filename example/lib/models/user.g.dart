@@ -24,13 +24,13 @@ mixin _$UserAdapter on Adapter<User> {
       _kUserRelationshipMetas;
 
   @override
-  User deserialize(map, {String? key}) {
+  User deserializeLocal(map, {String? key}) {
     map = transformDeserialize(map);
     return internalWrapStopInit(() => _$UserFromJson(map), key: key);
   }
 
   @override
-  Map<String, dynamic> serialize(model, {bool withRelationships = true}) {
+  Map<String, dynamic> serializeLocal(model, {bool withRelationships = true}) {
     final map = _$UserToJson(model);
     return transformSerialize(map, withRelationships: withRelationships);
   }

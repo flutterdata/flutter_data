@@ -29,14 +29,14 @@ void main() async {
   test('current and deserialized equals share same key', () async {
     final p = Person(id: '1', name: 'Luis');
     await container.people.save(p);
-    final p2 = container.people.deserialize({'_id': '1', 'name': 'Luis'});
+    final p2 = container.people.deserializeLocal({'_id': '1', 'name': 'Luis'});
     expect(keyFor(p), keyFor(p2));
   });
 
   test('deserialize existing ID', () {
     final adapter = container.familia;
-    final familia =
-        adapter.deserialize({'id': '1098', 'surname': 'Moletto'}).saveLocal();
+    final familia = adapter
+        .deserializeLocal({'id': '1098', 'surname': 'Moletto'}).saveLocal();
 
     expect(adapter.keys, [keyFor(familia)]);
     expect(familia, Familia(id: '1098', surname: 'Moletto'));
@@ -44,12 +44,12 @@ void main() async {
 
   test('deserialize many local for same remote ID', () {
     final adapter = container.familia;
-    final familia1 = adapter.deserialize({
+    final familia1 = adapter.deserializeLocal({
       'id': '1298',
       'surname': 'Helsinki',
     });
 
-    final familia2 = adapter.deserialize({
+    final familia2 = adapter.deserializeLocal({
       'id': '1298',
       'surname': 'Oslo',
     });
@@ -70,7 +70,7 @@ void main() async {
             persons: {person}.asHasMany)
         .saveLocal();
 
-    final map = adapter.serialize(familia);
+    final map = adapter.serializeLocal(familia);
     expect(map, {
       'id': '1',
       'surname': 'Smith',
@@ -82,7 +82,7 @@ void main() async {
     // still serializes the defaults
     final familia2 = Familia(id: '1', surname: 'Smith');
 
-    final map2 = adapter.serialize(familia2);
+    final map2 = adapter.serializeLocal(familia2);
     expect(map2, {
       'id': '1',
       'surname': 'Smith',
@@ -91,7 +91,7 @@ void main() async {
     });
 
     final mapWithoutRelationships =
-        adapter.serialize(familia, withRelationships: false);
+        adapter.serializeLocal(familia, withRelationships: false);
     expect(mapWithoutRelationships, {
       'id': '1',
       'surname': 'Smith',
@@ -109,7 +109,7 @@ void main() async {
       'surname': 'Smith',
     };
 
-    final familia = adapter.deserialize(map);
+    final familia = adapter.deserializeLocal(map);
     expect(
         familia,
         Familia(
@@ -128,7 +128,7 @@ void main() async {
       'surname': 'Smith',
     };
 
-    final familia = adapter.deserialize(obj);
+    final familia = adapter.deserializeLocal(obj);
     House(id: '1', address: '123 Main St', owner: familia.asBelongsTo)
         .saveLocal();
     Person(id: '1', name: 'John', age: 21, familia: familia.asBelongsTo)
@@ -147,24 +147,24 @@ void main() async {
       'name': 'node',
     };
 
-    final node = adapter.deserialize(obj);
+    final node = adapter.deserializeLocal(obj);
     expect(node.name, 'local');
   });
 
   test('relationships with serialized=false', () {
     final familia = Familia(id: '1', surname: 'Test').saveLocal();
-    var house = container.houses.deserialize({
+    var house = container.houses.deserializeLocal({
       'id': '99',
       'address': '456 Far Trail',
       'owner': keyFor(familia),
     }).saveLocal();
-    final book = container.books.deserialize({
+    final book = container.books.deserializeLocal({
       'id': 1,
       'house': keyFor(house), // since it's a non-async deserialization
     }).saveLocal();
     expect(house.currentLibrary!.toList(), {book});
 
-    final map = container.houses.serialize(house);
+    final map = container.houses.serializeLocal(house);
     // does not container currentLibrary which was serialize=false
     expect(map.containsKey('currentLibrary'), isFalse);
     // it does contain a regular relationship like owner

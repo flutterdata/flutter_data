@@ -44,13 +44,13 @@ mixin _$FamiliaAdapter on Adapter<Familia> {
       _kFamiliaRelationshipMetas;
 
   @override
-  Familia deserialize(map, {String? key}) {
+  Familia deserializeLocal(map, {String? key}) {
     map = transformDeserialize(map);
     return internalWrapStopInit(() => _$FamiliaFromJson(map), key: key);
   }
 
   @override
-  Map<String, dynamic> serialize(model, {bool withRelationships = true}) {
+  Map<String, dynamic> serializeLocal(model, {bool withRelationships = true}) {
     final map = _$FamiliaToJson(model);
     return transformSerialize(map, withRelationships: withRelationships);
   }

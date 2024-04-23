@@ -24,13 +24,13 @@ mixin _$TaskAdapter on Adapter<Task> {
       _kTaskRelationshipMetas;
 
   @override
-  Task deserialize(map, {String? key}) {
+  Task deserializeLocal(map, {String? key}) {
     map = transformDeserialize(map);
     return internalWrapStopInit(() => _$TaskFromJson(map), key: key);
   }
 
   @override
-  Map<String, dynamic> serialize(model, {bool withRelationships = true}) {
+  Map<String, dynamic> serializeLocal(model, {bool withRelationships = true}) {
     final map = _$TaskToJson(model);
     return transformSerialize(map, withRelationships: withRelationships);
   }

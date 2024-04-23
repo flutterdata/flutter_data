@@ -210,7 +210,7 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
       return model;
     }
 
-    final serialized = await serializeAsync(model);
+    final serialized = await serialize(model);
     final body = json.encode(serialized);
 
     final uri = baseUrl.asUri / urlForSave(model.id, params) & params;
@@ -499,7 +499,7 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
       }
 
       print('1');
-      final data = await deserializeAsync(body as Map<String, dynamic>,
+      final data = await deserialize(body as Map<String, dynamic>,
           key: label.model!._key);
       final model = data.model!;
 
@@ -533,7 +533,7 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
     }
 
     // TODO test: not properly deserializing findAll with relationship references (see example app)
-    final deserialized = await deserializeAsync(body);
+    final deserialized = await deserialize(body);
 
     if (isFindAll || (isCustom && deserialized.model == null)) {
       await _saveDeserialized(deserialized);

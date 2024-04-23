@@ -31,13 +31,13 @@ mixin _$NodeAdapter on Adapter<Node> {
       _kNodeRelationshipMetas;
 
   @override
-  Node deserialize(map, {String? key}) {
+  Node deserializeLocal(map, {String? key}) {
     map = transformDeserialize(map);
     return internalWrapStopInit(() => Node.fromJson(map), key: key);
   }
 
   @override
-  Map<String, dynamic> serialize(model, {bool withRelationships = true}) {
+  Map<String, dynamic> serializeLocal(model, {bool withRelationships = true}) {
     final map = model.toJson();
     return transformSerialize(map, withRelationships: withRelationships);
   }

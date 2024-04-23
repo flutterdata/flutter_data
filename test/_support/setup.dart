@@ -54,7 +54,7 @@ Future<void> setUpFn() async {
     ],
   );
 
-  final adapterProviders = <String, Provider<Adapter<DataModelMixin>>>{
+  final adapterProvidersMap = <String, Provider<Adapter<DataModelMixin>>>{
     'houses': housesAdapterProvider,
     'familia': familiaAdapterProvider,
     'people': peopleAdapterProvider,
@@ -65,7 +65,8 @@ Future<void> setUpFn() async {
     '${_kIsWeb ? 'node1s' : 'nodes'}': nodesAdapterProvider
   };
 
-  await container.read(initializeWith(adapterProviders).future);
+  container.read(adapterProviders.notifier).state = adapterProvidersMap;
+  await container.read(initializeAdapters.future);
 
   container.read(dogsAdapterProvider).logLevel = 2;
 

@@ -5,9 +5,9 @@ mixin _SerializationAdapter<T extends DataModelMixin<T>> on _BaseAdapter<T> {
   /// as a [Map<String, dynamic>] ready to be JSON-encoded.
   @protected
   @visibleForTesting
-  Future<Map<String, dynamic>> serializeAsync(T model,
+  Future<Map<String, dynamic>> serialize(T model,
       {bool withRelationships = true}) async {
-    final map = serialize(model, withRelationships: withRelationships);
+    final map = serializeLocal(model, withRelationships: withRelationships);
 
     // essentially converts keys to IDs
     for (final key in relationshipMetas.keys) {
@@ -24,24 +24,30 @@ mixin _SerializationAdapter<T extends DataModelMixin<T>> on _BaseAdapter<T> {
     return map;
   }
 
-  /// Returns a [DeserializedData] object when deserializing a given [data].
-  ///
-  @protected
-  @visibleForTesting
-  Future<DeserializedData<T>> deserializeAsync(Object? data,
-      {String? key}) async {
-    final result = DeserializedData<T>([], included: []);
+  // Future<DeserializedData<T>> deserialize(Object? data,
+  //     {String? key, async = true}) async {
+  //   final z = await runInIsolate((container) async {
 
-    Future<Object?> _processIdAndAddInclude(id, Adapter? adapter) async {
-      if (id is Map && adapter != null) {
-        final data = await adapter.deserializeAsync(id as Map<String, dynamic>);
-        result.included
-          ..add(data.model as DataModelMixin<DataModelMixin>)
-          ..addAll(data.included);
-        id = data.model!.id;
+  //     return <DataModelMixin>[];
+  //   });
+  //   return DeserializedData([]);
+  // }
+
+  (List<DataModelMixin>, List<DataModelMixin>) _deserialize(
+      Adapter adapter, Object? data,
+      {String? key}) {
+    final result = (<DataModelMixin>[], <DataModelMixin>[]);
+
+    Object? _processIdAndAddInclude(id, String relType) {
+      final relAdapter = adapter.adapters[relType];
+      if (id is Map && relAdapter != null) {
+        final data =
+            relAdapter._deserialize(relAdapter, id as Map<String, dynamic>);
+        result.$2.addAll([...data.$1, ...data.$2]);
+        id = data.$1.first.id;
       }
-      if (id != null && adapter != null) {
-        return core.getKeyForId(adapter.internalType, id);
+      if (id != null && relAdapter != null) {
+        return relAdapter.core.getKeyForId(relAdapter.internalType, id);
       }
       return null;
     }
@@ -62,7 +68,7 @@ mixin _SerializationAdapter<T extends DataModelMixin<T>> on _BaseAdapter<T> {
         // - process includes
         // - transform ids into keys to pass to the local deserializer
         for (final mapKey in mapIn.keys) {
-          final metadata = relationshipMetas[mapKey];
+          final metadata = adapter.relationshipMetas[mapKey];
 
           if (metadata != null) {
             final relType = metadata.type;
@@ -72,15 +78,17 @@ mixin _SerializationAdapter<T extends DataModelMixin<T>> on _BaseAdapter<T> {
             }
 
             if (metadata.kind == 'BelongsTo') {
-              final key = await _processIdAndAddInclude(
-                  mapIn[mapKey], adapters[relType]!);
+              // NOTE: when _process was async, a sqlite bug
+              // appears when awaiting it (db turns to inMemory and closed)
+              // and leaving everything sync works for now
+              final key = _processIdAndAddInclude(mapIn[mapKey], relType);
               if (key != null) mapOut[mapKey] = key;
             }
 
             if (metadata.kind == 'HasMany') {
               mapOut[mapKey] = [
                 for (final id in (mapIn[mapKey] as Iterable))
-                  await _processIdAndAddInclude(id, adapters[relType]!)
+                  _processIdAndAddInclude(id, relType)
               ].nonNulls;
             }
           } else {
@@ -90,13 +98,25 @@ mixin _SerializationAdapter<T extends DataModelMixin<T>> on _BaseAdapter<T> {
         }
 
         // Force key only if this is a single-model deserialization
-        final model = deserialize(mapOut,
-            key: key != null && data.length == 1 ? key : null);
-        result.models.add(model);
+        final model = adapter.deserializeLocal(mapOut,
+            key: (key != null && data.length == 1) ? key : null);
+        result.$1.add(model as DataModelMixin);
       }
     }
-
     return result;
+  }
+
+  /// Returns a [DeserializedData] object when deserializing a given [data].
+  ///
+  @protected
+  @visibleForTesting
+  Future<DeserializedData<T>> deserialize(Object? data,
+      {String? key, async = true}) async {
+    final record = async
+        ? await runInIsolate(
+            (adapter) => adapter._deserialize(adapter, data, key: key))
+        : _deserialize(this as Adapter, data, key: key);
+    return DeserializedData<T>(record.$1.cast<T>(), included: record.$2);
   }
 }
 

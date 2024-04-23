@@ -40,13 +40,13 @@ mixin _$HouseAdapter on Adapter<House> {
       _kHouseRelationshipMetas;
 
   @override
-  House deserialize(map, {String? key}) {
+  House deserializeLocal(map, {String? key}) {
     map = transformDeserialize(map);
     return internalWrapStopInit(() => _$HouseFromJson(map), key: key);
   }
 
   @override
-  Map<String, dynamic> serialize(model, {bool withRelationships = true}) {
+  Map<String, dynamic> serializeLocal(model, {bool withRelationships = true}) {
     final map = _$HouseToJson(model);
     return transformSerialize(map, withRelationships: withRelationships);
   }

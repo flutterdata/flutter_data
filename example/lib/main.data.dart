@@ -6,7 +6,7 @@ import 'package:flutter_data/flutter_data.dart';
 import 'package:jsonplaceholder_example/models/task.dart';
 import 'package:jsonplaceholder_example/models/user.dart';
 
-final adapterProviders = <String, Provider<Adapter<DataModelMixin>>>{
+final adapterProvidersMap = <String, Provider<Adapter<DataModelMixin>>>{
   'tasks': tasksAdapterProvider,
   'users': usersAdapterProvider
 };

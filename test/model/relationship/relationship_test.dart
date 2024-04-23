@@ -17,7 +17,8 @@ void main() async {
   test('scenario #1', () {
     final adapter = container.familia;
 
-    final f1 = adapter.deserialize({'id': '1', 'surname': 'Rose'}).saveLocal();
+    final f1 =
+        adapter.deserializeLocal({'id': '1', 'surname': 'Rose'}).saveLocal();
     expect(f1.residence.value, isNull);
     expect(keyFor(f1), isNotNull);
 
@@ -28,7 +29,7 @@ void main() async {
     expect(f1.residence.value!.owner.value, f1);
     expect(house.owner.value, f1);
 
-    final f1b = adapter.deserialize({
+    final f1b = adapter.deserializeLocal({
       'id': '1',
       'surname': 'Rose',
     }).saveLocal();
@@ -43,14 +44,15 @@ void main() async {
     expect(f1b.persons, isNotEmpty);
 
     // relationships are omitted - so they remain unchanged
-    final f1c = adapter.deserialize({'id': '1', 'surname': 'Rose'}).saveLocal();
+    final f1c =
+        adapter.deserializeLocal({'id': '1', 'surname': 'Rose'}).saveLocal();
     expect(f1c.persons.toSet(), {p1});
     expect(f1c.residence.value, isNotNull);
 
     final p2 = Person(id: '2', name: 'Brian', age: 55).saveLocal();
 
     // persons has changed from [1] to [2]
-    final f1d = adapter.deserialize({
+    final f1d = adapter.deserializeLocal({
       'id': '1',
       'surname': 'Rose',
       'persons': [keyFor(p2)]
@@ -63,7 +65,7 @@ void main() async {
     expect(p1.familia.value, isNull);
 
     // relationships are explicitly set to null
-    final f1e = adapter.deserialize({
+    final f1e = adapter.deserializeLocal({
       'id': '1',
       'surname': 'Rose',
       'persons': null,
@@ -80,7 +82,7 @@ void main() async {
     // deserialize house, owner does not exist
     // since we're passing a key (not an ID)
     // we sync-deserialize
-    final h1 = adapter.deserialize({
+    final h1 = adapter.deserializeLocal({
       'id': '1',
       'address': '123 Main St',
       'owner':
@@ -188,15 +190,15 @@ void main() async {
     expect(familia2.persons.toSet(), {brian});
 
     // new familia comes in from API (simulate) with no persons relationship information
-    final familia3 = (await container.familia
-            .deserializeAsync({'id': '229', 'surname': 'Rose'}))
-        .model!;
+    final familia3 =
+        (await container.familia.deserialize({'id': '229', 'surname': 'Rose'}))
+            .model!;
     // it should keep the relationships unaltered
     expect(familia3.persons.toSet(), {brian});
 
     // new familia comes in from API (simulate) with empty persons relationship
     final familia4 = (await container.familia
-            .deserializeAsync({'id': '229', 'surname': 'Rose', 'persons': []}))
+            .deserialize({'id': '229', 'surname': 'Rose', 'persons': []}))
         .model!
         .saveLocal();
     // it should keep the relationships unaltered
@@ -204,7 +206,7 @@ void main() async {
 
     // since we're passing a key (not an ID)
     // we MUST use the local adapter serializer
-    final familia5 = container.familia.deserialize({
+    final familia5 = container.familia.deserializeLocal({
       'id': '229',
       'surname': 'Rose',
       'persons': ['people#3']

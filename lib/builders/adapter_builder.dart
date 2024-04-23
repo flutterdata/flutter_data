@@ -256,13 +256,13 @@ mixin _\$${className}Adapter on Adapter<$className> {
   Map<String, RelationshipMeta> get relationshipMetas => _k${className}RelationshipMetas;
 
   @override
-  $className deserialize(map, {String? key}) {
+  $className deserializeLocal(map, {String? key}) {
     map = transformDeserialize(map);
     return internalWrapStopInit(() => $fromJson, key: key);
   }
 
   @override
-  Map<String, dynamic> serialize(model, {bool withRelationships = true}) {
+  Map<String, dynamic> serializeLocal(model, {bool withRelationships = true}) {
     final map = $toJson;
     return transformSerialize(map, withRelationships: withRelationships);
   }

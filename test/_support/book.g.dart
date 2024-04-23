@@ -24,13 +24,13 @@ mixin _$BookAuthorAdapter on Adapter<BookAuthor> {
       _kBookAuthorRelationshipMetas;
 
   @override
-  BookAuthor deserialize(map, {String? key}) {
+  BookAuthor deserializeLocal(map, {String? key}) {
     map = transformDeserialize(map);
     return internalWrapStopInit(() => BookAuthor.fromJson(map), key: key);
   }
 
   @override
-  Map<String, dynamic> serialize(model, {bool withRelationships = true}) {
+  Map<String, dynamic> serializeLocal(model, {bool withRelationships = true}) {
     final map = model.toJson();
     return transformSerialize(map, withRelationships: withRelationships);
   }
@@ -91,13 +91,13 @@ mixin _$BookAdapter on Adapter<Book> {
       _kBookRelationshipMetas;
 
   @override
-  Book deserialize(map, {String? key}) {
+  Book deserializeLocal(map, {String? key}) {
     map = transformDeserialize(map);
     return internalWrapStopInit(() => Book.fromJson(map), key: key);
   }
 
   @override
-  Map<String, dynamic> serialize(model, {bool withRelationships = true}) {
+  Map<String, dynamic> serializeLocal(model, {bool withRelationships = true}) {
     final map = model.toJson();
     return transformSerialize(map, withRelationships: withRelationships);
   }
@@ -152,13 +152,13 @@ mixin _$LibraryAdapter on Adapter<Library> {
       _kLibraryRelationshipMetas;
 
   @override
-  Library deserialize(map, {String? key}) {
+  Library deserializeLocal(map, {String? key}) {
     map = transformDeserialize(map);
     return internalWrapStopInit(() => Library.fromJson(map), key: key);
   }
 
   @override
-  Map<String, dynamic> serialize(model, {bool withRelationships = true}) {
+  Map<String, dynamic> serializeLocal(model, {bool withRelationships = true}) {
     final map = model.toJson();
     return transformSerialize(map, withRelationships: withRelationships);
   }

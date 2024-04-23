@@ -15,13 +15,13 @@ mixin _$DogAdapter on Adapter<Dog> {
   Map<String, RelationshipMeta> get relationshipMetas => _kDogRelationshipMetas;
 
   @override
-  Dog deserialize(map, {String? key}) {
+  Dog deserializeLocal(map, {String? key}) {
     map = transformDeserialize(map);
     return internalWrapStopInit(() => Dog.fromJson(map), key: key);
   }
 
   @override
-  Map<String, dynamic> serialize(model, {bool withRelationships = true}) {
+  Map<String, dynamic> serializeLocal(model, {bool withRelationships = true}) {
     final map = model.toJson();
     return transformSerialize(map, withRelationships: withRelationships);
   }
@@ -47,13 +47,13 @@ mixin _$CatAdapter on Adapter<Cat> {
   Map<String, RelationshipMeta> get relationshipMetas => _kCatRelationshipMetas;
 
   @override
-  Cat deserialize(map, {String? key}) {
+  Cat deserializeLocal(map, {String? key}) {
     map = transformDeserialize(map);
     return internalWrapStopInit(() => Cat.fromJson(map), key: key);
   }
 
   @override
-  Map<String, dynamic> serialize(model, {bool withRelationships = true}) {
+  Map<String, dynamic> serializeLocal(model, {bool withRelationships = true}) {
     final map = model.toJson();
     return transformSerialize(map, withRelationships: withRelationships);
   }

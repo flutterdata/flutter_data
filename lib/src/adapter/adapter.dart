@@ -6,7 +6,7 @@ part of flutter_data;
 ///
 ///  - Remote methods such as [_RemoteAdapter.findAll] or [_RemoteAdapter.save]
 ///  - Configuration methods and getters like [_RemoteAdapter.baseUrl] or [_RemoteAdapter.urlForFindAll]
-///  - Serialization methods like [_SerializationAdapter.serializeAsync]
+///  - Serialization methods like [_SerializationAdapter.serialize]
 ///  - Watch methods such as [_WatchAdapter.watchOneNotifier]
 ///  - Access to the [_BaseAdapter.core] for subclasses or mixins
 ///
@@ -45,6 +45,8 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   @visibleForTesting
   final LocalStorage storage;
 
+  @protected
+  @visibleForTesting
   Database get db => storage.db;
 
   bool _stopInitialization = false;
@@ -122,7 +124,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   /// Returns all models of type [T] in local storage.
   List<T> findAllLocal() {
     final result = db.select('SELECT key, data FROM $internalType');
-    return _deserializeFromResult(result);
+    return deserializeFromResult(result);
   }
 
   /// Finds many models of type [T] by [keys] in local storage.
@@ -135,13 +137,14 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     final result = db.select(
         'SELECT key, data FROM $internalType WHERE key IN (${intKeys.map((_) => '?').join(', ')})',
         intKeys);
-    return _deserializeFromResult(result);
+    return deserializeFromResult(result);
   }
 
-  List<T> _deserializeFromResult(ResultSet result) {
+  @protected
+  List<T> deserializeFromResult(ResultSet result) {
     return result.map((r) {
       final map = Map<String, dynamic>.from(jsonDecode(r['data']));
-      return deserialize(map,
+      return deserializeLocal(map,
           key: r['key'].toString().typifyWith(internalType));
     }).toList();
   }
@@ -173,7 +176,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
       throw Exception("Model must be initialized:\n\n$model");
     }
     final key = model._key!.detypifyKey()!;
-    final map = serialize(model, withRelationships: false);
+    final map = serializeLocal(model, withRelationships: false);
     final data = jsonEncode(map);
     db.execute(
         'REPLACE INTO $internalType (key, data) VALUES (?, ?)', [key, data]);
@@ -183,10 +186,11 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     return model;
   }
 
-  Future<R> _runInIsolate<R>(
-      FutureOr<R> fn(ProviderContainer container)) async {
-    final ppath = Directory(storage.path).parent.path;
-    final ip = _internalProviders!;
+  @protected
+  Future<R> runInIsolate<R>(FutureOr<R> fn(Adapter adapter)) async {
+    final _path = Directory(storage.path).parent.path;
+    final _internalProviders = ref.read(adapterProviders)!;
+    final _internalType = internalType;
 
     return await Isolate.run(() async {
       late final ProviderContainer container;
@@ -194,24 +198,31 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
         container = ProviderContainer(
           overrides: [
             localStorageProvider.overrideWith(
-              (ref) => LocalStorage(baseDirFn: () => ppath),
+              (ref) => LocalStorage(baseDirFn: () => _path),
             ),
           ],
         );
 
-        await container.read(initializeWith(ip).future);
+        // TODO improve initializer API
+        // set providers from outer context and start initialization
+        container.read(adapterProviders.notifier).state = _internalProviders;
+        await container.read(initializeAdapters.future);
 
-        return fn(container);
+        final adapter = _internalProviders[_internalType]!;
+        return fn(container.read(adapter));
       } finally {
-        container.read(localStorageProvider).db.dispose();
+        for (final provider in container.read(adapterProviders)!.values) {
+          container.read(provider).dispose();
+        }
+        container.read(localStorageProvider).dispose();
       }
     });
   }
 
   Future<void> saveManyLocal(Iterable<DataModelMixin> models,
       {bool notify = true}) async {
-    final savedKeys = await _runInIsolate((container) async {
-      final db = container.read(localStorageProvider).db;
+    final savedKeys = await runInIsolate((adapter) async {
+      final db = adapter.db;
       final savedKeys = <String>[];
 
       final grouped = models.groupSetsBy((e) => e._adapter);
@@ -222,7 +233,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
             'REPLACE INTO ${adapter.internalType} (key, data) VALUES (?, ?) RETURNING key;');
         for (final model in e.value) {
           final key = model._key!.detypifyKey();
-          final map = adapter.serialize(model, withRelationships: false);
+          final map = adapter.serializeLocal(model, withRelationships: false);
           final data = jsonEncode(map);
           final result = ps.select([key, data]);
           savedKeys.add(
@@ -365,13 +376,6 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
       return model;
     }
 
-    // // (before -> after remote save)
-    // // (1) if noid -> noid => `key` is the key we want to keep
-    // // (2) if id -> noid => use autogenerated key (`key` should be the previous (derived))
-    // // so we can migrate rels
-    // // (3) if noid -> id => use derived key (`key` should be the previous (autogen'd))
-    // // so we can migrate rels
-
     if (model._key == null) {
       model._key = key ?? core.getKeyForId(internalType, model.id);
       if (model._key != key && key != null) {
@@ -411,9 +415,9 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     }
   }
 
-  Map<String, dynamic> serialize(T model, {bool withRelationships = true});
+  Map<String, dynamic> serializeLocal(T model, {bool withRelationships = true});
 
-  T deserialize(Map<String, dynamic> map, {String? key});
+  T deserializeLocal(Map<String, dynamic> map, {String? key});
 
   Map<String, RelationshipMeta> get relationshipMetas;
 

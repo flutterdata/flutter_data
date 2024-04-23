@@ -86,17 +86,9 @@ class DataExtensionBuilder implements Builder {
 
     // imports
 
-    final isFlutter = await isDependency('flutter', b);
-    final hasPathProvider = await isDependency('path_provider', b);
     final hasFlutterRiverpod = await isDependency('flutter_riverpod', b) ||
         await isDependency('hooks_riverpod', b);
 
-    final flutterFoundationImport = isFlutter
-        ? "import 'package:flutter/foundation.dart' show kIsWeb;"
-        : '';
-    final pathProviderImport = hasPathProvider
-        ? "import 'package:path_provider/path_provider.dart';"
-        : '';
     final riverpodFlutterImport = hasFlutterRiverpod
         ? "import 'package:flutter_riverpod/flutter_riverpod.dart';"
         : '';
@@ -130,13 +122,11 @@ ${classes.map((clazz) => '  Adapter<${clazz['className']}> get ${clazz['classNam
 // ignore_for_file: directives_ordering, top_level_function_literal_block, depend_on_referenced_packages
 
 import 'package:flutter_data/flutter_data.dart';
-$flutterFoundationImport
-$pathProviderImport
 $riverpodFlutterImport
 
 $modelImports
 
-final adapterProviders = <String, Provider<Adapter<DataModelMixin>>>{
+final adapterProvidersMap = <String, Provider<Adapter<DataModelMixin>>>{
   ${classes.map((clazz) => '\'' + clazz['type']! + '\': ' + clazz['classNameLower']! + 'AdapterProvider').join(',\n')}
 };
 
