@@ -391,9 +391,9 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
   Set<String> _keysFor(String key, String name) {
     final result = db.select(
-        'SELECT src, dest FROM _edges WHERE (src = ? AND name = ?) OR (dest = ? AND inverse = ?)',
+        'SELECT key_, _key FROM _edges WHERE (key_ = ? AND name_ = ?) OR (_key = ? AND _name = ?)',
         [key, name, key, name]);
-    return {for (final r in result) r['src'] == key ? r['dest'] : r['src']};
+    return {for (final r in result) r['key_'] == key ? r['_key'] : r['key_']};
   }
 
   void _initializeRelationships(T model, {String? fromKey}) {

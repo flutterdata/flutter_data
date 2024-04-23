@@ -65,14 +65,13 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
 
   void _addAll(Iterable<String> keys, {bool notify = true}) {
     final ps = db.prepare(
-        'REPLACE INTO _edges (src, name, dest, inverse) VALUES (?, ?, ?, ?)');
+        'REPLACE INTO _edges (key_, name_, _key, _name) VALUES (?, ?, ?, ?)');
     final additions = [];
     for (final key in keys) {
       final order = ownerKey.compareTo(key);
       final args = order == -1
           ? [ownerKey, name, key, inverseName]
           : [key, inverseName, ownerKey, name];
-      // TODO if we dont have inverseName?
       ps.execute(args);
       additions.add(key);
     }
@@ -100,11 +99,11 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
 
     if (order == -1) {
       db.execute(
-          'UPDATE _edges SET dest = ? WHERE src = ? AND name = ? AND dest = ?',
+          'UPDATE _edges SET dest = ? WHERE key_ = ? AND name_ = ? AND _key = ?',
           args);
     } else {
       db.execute(
-          'UPDATE _edges SET src = ? WHERE dest = ? AND inverse = ? AND src = ?',
+          'UPDATE _edges SET key_ = ? WHERE _key = ? AND _name = ? AND key_ = ?',
           args);
     }
 
@@ -118,7 +117,7 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
 
   void _removeAll({bool notify = true}) {
     db.execute(
-        'DELETE FROM _edges WHERE (src = ? AND name = ?) OR (dest = ? AND inverse = ?)',
+        'DELETE FROM _edges WHERE (key_ = ? AND name_ = ?) OR (_key = ? AND _name = ?)',
         [_ownerKey!, _name!, _ownerKey!, _name!]);
   }
 
@@ -130,11 +129,10 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
 
     if (order == -1) {
       db.execute(
-          'DELETE FROM _edges WHERE src = ? AND name = ? AND dest = ?', args);
+          'DELETE FROM _edges WHERE key_ = ? AND name_ = ? AND _key = ?', args);
     } else {
       db.execute(
-          'DELETE FROM _edges WHERE dest = ? AND inverse = ? AND src = ?',
-          args);
+          'DELETE FROM _edges WHERE _key = ? AND _name = ? AND key_ = ?', args);
     }
 
     _adapter.core._notify(

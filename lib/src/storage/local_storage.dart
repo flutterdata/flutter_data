@@ -34,14 +34,15 @@ class LocalStorage {
           VACUUM;
           
           CREATE TABLE IF NOT EXISTS _edges (
-            src INTEGER NOT NULL,
-            name TEXT NOT NULL,
-            dest INTEGER NOT NULL,
-            inverse TEXT,
-            PRIMARY KEY (src, dest)
+            key_ INTEGER NOT NULL,
+            name_ TEXT,
+            _key INTEGER NOT NULL,
+            _name TEXT,
+            UNIQUE (key_, name_, _key)
+            UNIQUE (_key, _name, key_)
           );
-          CREATE INDEX IF NOT EXISTS src_name_idx ON _edges(src, name);
-          CREATE INDEX IF NOT EXISTS dest_inverse_idx ON _edges(dest, inverse);
+          CREATE INDEX IF NOT EXISTS key_name_idx ON _edges(key_, name_);
+          CREATE INDEX IF NOT EXISTS inv_key_name_idx ON _edges(_key, _name);
 
           CREATE TABLE IF NOT EXISTS _keys (
             key INTEGER PRIMARY KEY AUTOINCREMENT,
