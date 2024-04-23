@@ -172,11 +172,14 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     if (model._key == null) {
       throw Exception("Model must be initialized:\n\n$model");
     }
-    final key = model._key!.detypifyKey();
+    final key = model._key!.detypifyKey()!;
     final map = serialize(model, withRelationships: false);
     final data = jsonEncode(map);
     db.execute(
         'REPLACE INTO $internalType (key, data) VALUES (?, ?)', [key, data]);
+    if (notify) {
+      core._notify([model._key!], type: DataGraphEventType.updateNode);
+    }
     return model;
   }
 
@@ -259,13 +262,17 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   }
 
   /// Deletes all models of type [T] in local storage.
-  Future<void> clearLocal() async {
-    // TODO SELECT name FROM sqlite_master WHERE type='table' AND name='your_table_name';
+  Future<void> clearLocal({bool notify = true}) async {
+    // print(db.select('SELECT name FROM sqlite_master WHERE type=?', ['table']));
+    // TODO should also clear edges?
+
     // leave async in case some impls need to remove files
     for (final adapter in adapters.values) {
       db.execute('DELETE FROM ${adapter.internalType}');
     }
-    core._notify([internalType], type: DataGraphEventType.clear);
+    if (notify) {
+      core._notify([internalType], type: DataGraphEventType.clear);
+    }
   }
 
   /// Counts all models of type [T] in local storage.
@@ -378,11 +385,11 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     return model;
   }
 
-  Set<String> _edgesFor(String fromKey, String name) {
+  Set<String> _keysFor(String key, String name) {
     final result = db.select(
         'SELECT src, dest FROM _edges WHERE (src = ? AND name = ?) OR (dest = ? AND inverse = ?)',
-        [fromKey, name, fromKey, name]);
-    return {for (final r in result) r['dest']};
+        [key, name, key, name]);
+    return {for (final r in result) r['src'] == key ? r['dest'] : r['src']};
   }
 
   void _initializeRelationships(T model, {String? fromKey}) {
@@ -393,7 +400,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
         // if rel was omitted, fill with info of previous key
         // TODO optimize: put outside loop and query edgesFor just once
         if (fromKey != null && relationship._uninitializedKeys == null) {
-          relationship._uninitializedKeys = _edgesFor(fromKey, metadata.name);
+          relationship._uninitializedKeys = _keysFor(fromKey, metadata.name);
         }
         relationship.initialize(
           ownerKey: model._key!,

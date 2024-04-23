@@ -1,3 +1,5 @@
+@Timeout(Duration(minutes: 20))
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -20,22 +22,18 @@ void main() async {
       throw HandshakeException('Connection terminated during handshake');
     });
 
-    final listener = Listener<DataState<List<BookAuthor>?>?>();
-
     // watch
-    final notifier = container.bookAuthors.watchAllNotifier();
-    dispose = notifier.addListener(listener);
-
-    await oneMs();
+    final notifier = container.bookAuthors.watchAllNotifier(remote: true);
+    final tester = notifier.tester();
 
     // now try to findOne
-    await container.bookAuthors.findOne(19);
+    container.bookAuthors.findOne(19);
 
     // and verify onError does capture the `OfflineException`
-    verify(listener(argThat(
-      isA<DataState>().having((s) => s.exception!.toString(), 'exception',
-          startsWith('OfflineException:')),
-    ))).called(1);
+    await tester.expectDataState([],
+        isLoading: isFalse,
+        exception: isA<Exception>()
+            .having((e) => e.toString(), 'e', startsWith('OfflineException:')));
 
     // assert there are no queued operations for findOne
     // because it is a GET operation
@@ -51,28 +49,27 @@ void main() async {
     // try findOne again this time without errors
     final model = await container.bookAuthors.findOne(19);
     expect(model!.name, equals('Author Saved'));
-    await oneMs();
     expect(container.familia.offlineOperations, isEmpty);
   });
 
   test('save', () async {
-    final listener = Listener<DataState<List<Familia>?>?>();
-    // listening to local changes enough
+    // listening to local changes is enough
     final notifier = container.familia.watchAllNotifier(remote: false);
-
-    dispose = notifier.addListener(listener);
+    final tester = notifier.tester();
 
     // sample house
     final residence = House(address: '789 Long Rd').saveLocal();
 
     // sample familia
     final familia =
-        Familia(id: '1', surname: 'Smith', residence: residence.asBelongsTo);
+        Familia(id: '1', surname: 'Smith', residence: residence.asBelongsTo)
+            .saveLocal();
 
     // network issue persisting familia
     container.read(responseProvider.notifier).state =
         TestResponse((_) => throw SocketException('unreachable'));
 
+    // NOTE: keep await, so that we give onError the chance to update the notifier
     await container.familia.save(
       familia,
       // override headers & params
@@ -81,7 +78,6 @@ void main() async {
       // ignore: missing_return
       onError: (e, _, __) async {
         // supply onError for exception to show up in notifier
-        await oneMs();
         notifier.updateWith(exception: e);
         return null;
       },
@@ -96,17 +92,10 @@ void main() async {
         return model;
       },
     );
-    await oneMs();
 
     // assert it's an OfflineException
-    verify(
-      listener(
-        argThat(
-          isA<DataState>()
-              .having((s) => s.exception, 'exception', isA<OfflineException>()),
-        ),
-      ),
-    ).called(1);
+    await tester.expectDataState(hasLength(1),
+        exception: isA<OfflineException>());
 
     // familia is remembered as failed to persist
     // TODO fix: at location [0] is <1> instead of '1' (need # and ## again?)
@@ -124,7 +113,6 @@ void main() async {
     } catch (_) {
       // without onError, ignore exception
     }
-    await oneMs();
 
     // now two familia failed to persist
     // expect(
@@ -211,7 +199,8 @@ void main() async {
     // listening to local changes is enough
     final notifier = container.familia.watchAllNotifier();
 
-    dispose = notifier.addListener(listener);
+    final dispose = notifier.addListener(listener);
+    disposeFns.add(dispose);
 
     final familia = Familia(id: '1', surname: 'Smith').saveLocal();
     await oneMs();
@@ -277,7 +266,8 @@ void main() async {
     // listening to local changes enough
     final notifier = container.familia.watchAllNotifier(remote: false);
 
-    dispose = notifier.addListener(listener);
+    final dispose = notifier.addListener(listener);
+    disposeFns.add(dispose);
 
     // setup familia
     final familia = Familia(id: '19', surname: 'Ko');

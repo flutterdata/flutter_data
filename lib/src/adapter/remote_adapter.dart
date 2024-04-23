@@ -83,7 +83,7 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
       label: label,
       onSuccess: (data, label) async {
         if (syncLocal) {
-          clearLocal();
+          await clearLocal(notify: false);
         }
         onSuccess ??= (data, label, _) async {
           final result = await this.onSuccess<List<T>>(data, label);

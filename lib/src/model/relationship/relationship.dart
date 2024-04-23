@@ -53,17 +53,8 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
 
     // setting up from scratch, remove all and add keys
 
-    db.execute(
-        'DELETE FROM _edges WHERE (src = ? AND name = ?) OR (dest = ? AND inverse = ?)',
-        [_ownerKey!, _name!, _ownerKey!, _name!]);
-
-    final ps = db.prepare(
-        'INSERT INTO _edges (src, name, dest, inverse) VALUES (?, ?, ?, ?)');
-
-    for (final key in _uninitializedKeys!) {
-      ps.execute([_ownerKey!, _name, key, _inverseName]);
-    }
-    ps.dispose();
+    _removeAll(notify: false);
+    _addAll(_uninitializedKeys!, notify: false);
 
     _uninitializedKeys!.clear();
 
@@ -72,21 +63,28 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
 
   // implement collection-like methods
 
-  void _addAll(Iterable<E> values) {
+  void _addAll(Iterable<String> keys, {bool notify = true}) {
     final ps = db.prepare(
         'REPLACE INTO _edges (src, name, dest, inverse) VALUES (?, ?, ?, ?)');
     final additions = [];
-    for (final value in values) {
-      ps.execute([ownerKey, name, value._key!, inverseName]);
-      additions.add(value._key!);
+    for (final key in keys) {
+      final order = ownerKey.compareTo(key);
+      final args = order == -1
+          ? [ownerKey, name, key, inverseName]
+          : [key, inverseName, ownerKey, name];
+      // TODO if we dont have inverseName?
+      ps.execute(args);
+      additions.add(key);
     }
     ps.dispose();
 
-    _adapter.core._notify(
-      [ownerKey, ...additions],
-      metadata: _name,
-      type: DataGraphEventType.addEdge,
-    );
+    if (notify) {
+      _adapter.core._notify(
+        [ownerKey, ...additions],
+        metadata: _name,
+        type: DataGraphEventType.addEdge,
+      );
+    }
   }
 
   bool _contains(E? element) {
@@ -94,20 +92,51 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   }
 
   bool _update(E value, E newValue) {
-    db.execute(
-        'UPDATE _edges SET dest = ? WHERE src = ? AND name = ? AND dest = ?',
-        [newValue._key!, ownerKey, name, value._key!]);
+    // -1 is ascending
+    final currentKey = value._key!;
+    final newKey = newValue._key!;
+    final order = ownerKey.compareTo(currentKey);
+    final args = [newKey, ownerKey, name, currentKey];
+
+    if (order == -1) {
+      db.execute(
+          'UPDATE _edges SET dest = ? WHERE src = ? AND name = ? AND dest = ?',
+          args);
+    } else {
+      db.execute(
+          'UPDATE _edges SET src = ? WHERE dest = ? AND inverse = ? AND src = ?',
+          args);
+    }
+
     _adapter.core._notify(
-      [ownerKey, newValue._key!],
+      [ownerKey, newKey],
       metadata: _name,
       type: DataGraphEventType.updateEdge,
     );
     return true;
   }
 
+  void _removeAll({bool notify = true}) {
+    db.execute(
+        'DELETE FROM _edges WHERE (src = ? AND name = ?) OR (dest = ? AND inverse = ?)',
+        [_ownerKey!, _name!, _ownerKey!, _name!]);
+  }
+
   bool _remove(E value) {
-    db.execute('DELETE FROM _edges WHERE src = ? AND name = ? AND dest = ?',
-        [ownerKey, name, value._key!]);
+    // -1 is ascending
+    final currentKey = value._key!;
+    final order = ownerKey.compareTo(currentKey);
+    final args = [ownerKey, name, currentKey];
+
+    if (order == -1) {
+      db.execute(
+          'DELETE FROM _edges WHERE src = ? AND name = ? AND dest = ?', args);
+    } else {
+      db.execute(
+          'DELETE FROM _edges WHERE dest = ? AND inverse = ? AND src = ?',
+          args);
+    }
+
     _adapter.core._notify(
       [ownerKey, value._key!],
       metadata: _name,
@@ -140,17 +169,9 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
     return _adapter.findManyLocal(_keys);
   }
 
-  Set<String> _keysFor(String key, String name) {
-    final result = _adapter.storage.db.select(
-        'SELECT src, dest FROM _edges WHERE (src = ? AND name = ?) OR (dest = ? AND inverse = ?)',
-        [key, name, key, name]);
-    // final edges = _adapter.storage.edgesFor([(key, name)]);
-    return {for (final r in result) r['src'] == key ? r['dest'] : r['src']};
-  }
-
   Set<String> get _keys {
     if (_ownerKey == null) return {};
-    return _keysFor(ownerKey, _name!);
+    return _adapter._keysFor(ownerKey, _name!);
   }
 
   DelayedStateNotifier<DataGraphEvent> get _relationshipEventNotifier {

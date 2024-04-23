@@ -39,12 +39,12 @@ class HasMany<E extends DataModelMixin<E>> extends Relationship<E, Set<E>> {
   ///
   /// Attempting to add an existing [value] has no effect as this is a [Set]
   bool add(E value) {
-    _addAll([value]);
+    _addAll({value._key!});
     return true;
   }
 
   void addAll(Iterable<E> values) {
-    _addAll(values);
+    _addAll(values.map((e) => e._key!).toSet());
   }
 
   bool contains(E element) {

@@ -130,6 +130,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
 
     notifier._reloadFn = () async {
       if (!notifier.mounted) {
+        // TODO  || remote = false
         return;
       }
 
@@ -143,11 +144,6 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
         headers: headers,
         syncLocal: syncLocal,
         label: label,
-        // onSuccess: (response, label, _) async {
-        //   response;
-        //   print('got $response');
-        //   return [];
-        // },
         onError: (e, label, _) async {
           try {
             await onError<List<T>>(e, label);
@@ -231,6 +227,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
     DataRequestLabel? label,
   }) {
     final id = core.getIdForKey(key);
+    // print('_won got $key / id $id');
 
     final maybeFinder = _internalHolder?.finders[finder]?.call(this);
     final finderFn = maybeFinder is DataFinderOne<T> ? maybeFinder : findOne;
@@ -259,6 +256,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
               .nonNulls
               .expand((_) => _)
         };
+        // print('also watch $alsoWatchPairs (type $internalType)');
       } else {
         // if there is no model nothing should be watched, reset pairs
         alsoWatchPairs = {};
@@ -438,11 +436,11 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
   Iterable<List<String>> _getPairsForMeta(
       RelationshipMeta? meta, String ownerKey) {
     if (meta == null) return {};
-    print('--- [read] _getPairsForMeta');
 
-    final relationshipKeys = _edgesFor(ownerKey, meta.name);
+    final relationshipKeys = _keysFor(ownerKey, meta.name);
+    // print('relkeys $relationshipKeys (edge $ownerKey ${meta.name})');
 
-    return {
+    final pm = {
       // include key pairs of (owner, key)
       for (final key in relationshipKeys) [ownerKey, key],
       // recursively include key pairs for other requested relationships
@@ -450,6 +448,8 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
       for (final childKey in relationshipKeys)
         _getPairsForMeta(meta.child, childKey).expand((_) => _).toList()
     };
+    // print('pairs for meta $pm (edge $ownerKey ${meta.name})');
+    return pm;
   }
 
   // providers
@@ -498,6 +498,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
     String? finder,
     DataRequestLabel? label,
   }) {
+    // print('in provider getting ${model}');
     final key = core.getKeyForModelOrId(internalType, model);
 
     final relationshipMetas = alsoWatch

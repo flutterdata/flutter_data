@@ -1,10 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter_data/flutter_data.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:matcher/expect.dart';
 import 'package:mockito/mockito.dart';
+import 'package:test/expect.dart';
+import 'package:test/test.dart';
 
 import 'book.dart';
 import 'familia.dart';
@@ -22,7 +26,7 @@ final keyFor = DataModel.keyFor;
 
 late ProviderContainer container;
 late CoreNotifier core;
-Function? dispose;
+final disposeFns = <Function>[];
 
 final logging = [];
 
@@ -31,18 +35,14 @@ Future<void> setUpFn() async {
     overrides: [
       httpClientProvider.overrideWith((ref) {
         return MockClient((req) async {
-          // try {
           final response = ref.watch(responseProvider);
           final text = await response.callback(req);
           if (text is String) {
             return http.Response(text, response.statusCode,
                 headers: response.headers);
-          } else if (text is List<int>) {
-            return http.Response.bytes(text, response.statusCode,
-                headers: response.headers);
-          } else {
-            throw UnsupportedError('text is not of right type');
           }
+          return http.Response.bytes(text as Uint8List, response.statusCode,
+              headers: response.headers);
         });
       }),
       coreNotifierThrottleDurationProvider.overrideWithValue(Duration.zero),
@@ -73,7 +73,9 @@ Future<void> setUpFn() async {
 }
 
 Future<void> tearDownFn() async {
-  dispose?.call();
+  for (final fn in disposeFns) {
+    fn.call();
+  }
 
   core.dispose();
   core.storage.dispose();
@@ -152,4 +154,83 @@ extension ProviderContainerX on ProviderContainer {
 
 class Listener<T> extends Mock {
   void call(T value);
+}
+
+//
+
+class DataStateNotifierTester<T> {
+  final DataStateNotifier<T> notifier;
+
+  var completer = Completer();
+  var initial = true;
+
+  DataStateNotifierTester(this.notifier, {bool fireImmediately = false}) {
+    final dispose = notifier.addListener((_) {
+      // print('received: $_');
+      if (fireImmediately && initial) {
+        Future.microtask(() {
+          completer.complete(_);
+          completer = Completer();
+          initial = false;
+        });
+      } else {
+        completer.complete(_);
+        completer = Completer();
+      }
+    }, fireImmediately: fireImmediately);
+    disposeFns.add(dispose);
+  }
+
+  Future<void> expectDataState(dynamic model,
+      {dynamic isLoading, dynamic exception}) async {
+    var m = isA<DataState<T>>();
+    if (model != null) {
+      if (model is List<(Function(T), dynamic)>) {
+        for (final (fn, arg) in model) {
+          m = m.having((s) => fn(s.model), 'model arg', arg);
+        }
+      } else {
+        m = m.having((s) => s.model, 'model', model);
+      }
+    }
+    if (isLoading != null) {
+      m = m.having((s) => s.isLoading, 'isLoading', isLoading);
+    }
+    if (exception != null) {
+      m = m.having((s) => s.exception, 'exception', exception);
+    }
+    return expectLater(completer.future, completion(m));
+  }
+}
+
+extension SX<T> on DataStateNotifier<T> {
+  DataStateNotifierTester tester({bool fireImmediately = false}) =>
+      DataStateNotifierTester(this, fireImmediately: fireImmediately);
+
+  // Future<dynamic> expectDataState(dynamic model,
+  //     {dynamic isLoading,
+  //     dynamic exception,
+  //     bool fireImmediately = false}) async {
+  //   var m = isA<DataState<T>>();
+  //   if (model != null) {
+  //     if (model is List<(Function(T), dynamic)>) {
+  //       for (final (fn, arg) in model) {
+  //         m = m.having((s) => fn(s.model), 'model arg', arg);
+  //       }
+  //     } else {
+  //       m = m.having((s) => s.model, 'model', model);
+  //     }
+  //   }
+  //   if (isLoading != null) {
+  //     m = m.having((s) => s.isLoading, 'isLoading', isLoading);
+  //   }
+  //   if (exception != null) {
+  //     m = m.having((s) => s.exception, 'exception', exception);
+  //   }
+  //   final stream =
+  //       _streamWithInitialValueFor(this, fireImmediately: fireImmediately);
+  //   final result = expect(await stream.first, m);
+
+  //   return result;
+  // }
 }

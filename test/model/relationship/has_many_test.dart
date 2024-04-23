@@ -80,7 +80,8 @@ void main() async {
 
     final notifier = familia.persons.watch();
     final listener = Listener<Set<Person>>();
-    dispose = notifier.addListener(listener, fireImmediately: false);
+    final dispose = notifier.addListener(listener, fireImmediately: false);
+    disposeFns.add(dispose);
 
     final p1 = Person(name: 'a', age: 1).saveLocal();
     final p2 = Person(name: 'b', age: 2).saveLocal();

@@ -44,7 +44,7 @@ class BelongsTo<E extends DataModelMixin<E>> extends Relationship<E, E?> {
   set value(E? newValue) {
     if (value == null && newValue != null) {
       // addition
-      super._addAll([newValue]);
+      super._addAll({newValue._key!});
       return;
     }
     if (value != null && newValue != null) {

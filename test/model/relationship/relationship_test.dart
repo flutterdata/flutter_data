@@ -258,7 +258,8 @@ void main() async {
     final listener = Listener<DataState<BookAuthor?>>();
     final notifier = container.bookAuthors.watchOneNotifier(author);
 
-    dispose = notifier.addListener(listener);
+    final dispose = notifier.addListener(listener);
+    disposeFns.add(dispose);
 
     verify(listener(DataState(author, isLoading: false))).called(1);
     verifyNoMoreInteractions(listener);

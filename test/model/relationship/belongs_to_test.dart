@@ -68,7 +68,8 @@ void main() async {
 
     final notifier = familia.residence.watch();
     final listener = Listener<House?>();
-    dispose = notifier.addListener(listener, fireImmediately: false);
+    final dispose = notifier.addListener(listener, fireImmediately: false);
+    disposeFns.add(dispose);
 
     familia.residence.value =
         House(id: '2', address: '456 Main St').saveLocal();
