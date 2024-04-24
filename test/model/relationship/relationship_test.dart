@@ -138,7 +138,7 @@ void main() async {
     expect(house.owner.value, familia); // same, passes here again
   });
 
-  test('scenario #3', () {
+  test('scenario #3', () async {
     final igor = Person(name: 'Igor', age: 33).saveLocal();
     final f1 =
         Familia(surname: 'Kamchatka', persons: {igor}.asHasMany).saveLocal();
@@ -174,6 +174,9 @@ void main() async {
     f4.residence.value = House(address: 'Sakharova Prospekt, 19').saveLocal();
     f4.saveLocal();
     expect(f4.residence.value!.owner.value!.surname, 'Kamchatka');
+
+    await container.familia.clearLocal();
+    expect(await container.familia.findAll(remote: false), isEmpty);
   });
 
   test('scenario #4: maintain relationship reference validity', () async {

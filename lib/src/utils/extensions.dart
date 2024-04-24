@@ -36,7 +36,8 @@ extension DynamicX on dynamic {
     if (this == null || _this.isEmpty) {
       return type;
     }
-    return '$type#${_this.isNotEmpty ? _this : ''}';
+    // If int use #, else use ##
+    return '$type#${_this.isNotEmpty ? ('${this is! int ? '#' : ''}$_this') : ''}';
   }
 }
 

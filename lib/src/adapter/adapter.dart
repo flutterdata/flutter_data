@@ -145,7 +145,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     return result.map((r) {
       final map = Map<String, dynamic>.from(jsonDecode(r['data']));
       return deserializeLocal(map,
-          key: r['key'].toString().typifyWith(internalType));
+          key: (r['key'] as int).typifyWith(internalType));
     }).toList();
   }
 
@@ -236,7 +236,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
           final data = jsonEncode(map);
           final result = ps.select([key, data]);
           savedKeys.add(
-              result.first['key'].toString().typifyWith(adapter.internalType));
+              (result.first['key'] as int).typifyWith(adapter.internalType));
         }
         ps.dispose();
       }
@@ -261,7 +261,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
   /// Deletes models with [keys] from local storage.
   void deleteLocalByKeys(Iterable<String> keys, {bool notify = true}) {
-    final intKeys = keys.map((k) => k.detypifyKey()).toList();
+    final intKeys = keys.map((k) => k.detypifyKey()!).toList();
     db.execute(
         'DELETE FROM $internalType WHERE key IN (${keys.map((_) => '?').join(', ')})',
         intKeys);
@@ -272,14 +272,14 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   }
 
   /// Deletes all models of type [T] in local storage.
+  ///
+  /// Async in case some implementations need to remove files.
   Future<void> clearLocal({bool notify = true}) async {
-    // print(db.select('SELECT name FROM sqlite_master WHERE type=?', ['table']));
-    // TODO should also clear edges?
+    final _ = db.select('DELETE FROM $internalType RETURNING key;');
+    final keys =
+        _.map((e) => (e['key'] as int).typifyWith(internalType)).toList();
+    await core.deleteKeys(keys);
 
-    // leave async in case some impls need to remove files
-    for (final adapter in adapters.values) {
-      db.execute('DELETE FROM ${adapter.internalType}');
-    }
     if (notify) {
       core._notify([internalType], type: DataGraphEventType.clear);
     }
@@ -296,7 +296,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     final result =
         db.select('SELECT key FROM _keys WHERE type = ?', [internalType]);
     return result
-        .map((r) => r['key'].toString().typifyWith(internalType))
+        .map((r) => (r['key'] as int).typifyWith(internalType))
         .toSet();
   }
 

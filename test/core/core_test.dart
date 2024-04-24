@@ -70,10 +70,17 @@ void main() async {
     expect(container.familia.countLocal, length);
   });
 
+  test('typify', () {
+    expect(2.typifyWith('posts'), 'posts#2');
+    expect('2'.typifyWith('posts'), 'posts##2');
+    expect('posts#2'.detypify(), 2);
+    expect('posts##2'.detypify(), '2');
+  });
+
   test('namespace', () {
-    expect('a9'.typifyWith('posts').namespaceWith('id'), 'id:posts#a9');
+    expect('a9'.typifyWith('posts').namespaceWith('id'), 'id:posts##a9');
     expect('278#12'.typifyWith('animals').namespaceWith('zzz'),
-        'zzz:animals#278#12');
+        'zzz:animals##278#12');
   });
 
   test('denamespace', () {

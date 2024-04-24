@@ -32,7 +32,7 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent> {
           'INSERT INTO _keys (type, id, is_int) VALUES (?, ?, ?) RETURNING key;',
           [type, id?.toString(), id is int]);
     }
-    return result.first['key'].toString().typifyWith(type);
+    return (result.first['key'] as int).typifyWith(type);
   }
 
   /// Finds an ID, given a [key].
@@ -53,11 +53,15 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent> {
     return id;
   }
 
-  void deleteKeys(Iterable<String> keys) {
-    final intKeys = keys.map((k) => k.detypifyKey()).toList();
+  @protected
+  Future<void> deleteKeys(Iterable<String> keys) async {
+    final params = keys.map((_) => '?').join(', ');
+    final intKeys = keys.map((k) => k.detypifyKey()!).toList();
+
+    storage.db.execute('DELETE FROM _keys WHERE key IN ($params);', intKeys);
     storage.db.execute(
-        'DELETE FROM _keys WHERE key IN (${keys.map((_) => '?').join(', ')})',
-        intKeys);
+        'DELETE FROM _edges WHERE key_ IN ($params) OR _key IN ($params);',
+        [...keys, ...keys]);
   }
 
   @protected

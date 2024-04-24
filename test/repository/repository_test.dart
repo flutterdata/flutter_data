@@ -353,7 +353,7 @@ void main() async {
 
     await container.dogs.save(dogs.toList()[2], remote: false);
 
-    regexp = RegExp(r'^\d{2}:\d{3} \[save\/dogs#3@[0-9]{10}\]');
+    regexp = RegExp(r'^\d{2}:\d{3} \[save\/dogs##3@[0-9]{10}\]');
     expect(logging.first, matches(regexp));
     expect(logging.first, endsWith('saved in local storage only'));
 
@@ -361,7 +361,7 @@ void main() async {
 
     await container.dogs.delete('3');
 
-    regexp = RegExp(r'^\d{2}:\d{3} \[delete\/dogs#3@[0-9]{10}\]');
+    regexp = RegExp(r'^\d{2}:\d{3} \[delete\/dogs##3@[0-9]{10}\]');
     expect(logging.first, matches(regexp));
     expect(
         logging.first,

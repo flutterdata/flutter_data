@@ -56,7 +56,7 @@ typedef DataFinderAll<T extends DataModelMixin<T>> = Future<List<T>> Function({
 
 typedef DataFinderOne<T extends DataModelMixin<T>> = Future<T?> Function(
   Object model, {
-  bool? remote,
+  bool remote,
   bool? background,
   Map<String, dynamic>? params,
   Map<String, String>? headers,
@@ -232,7 +232,6 @@ class DataRequestLabel with EquatableMixin {
   })  : _typeId = id.typifyWith(type),
         kind = kind.trim() {
     if (requestId != null) {
-      // TODO what is @ , also: should change that ints are now # (not ##)
       assert(!requestId.contains('@'));
     }
     _requestIds.add(requestId ?? DataHelpers.generateShortKey());
