@@ -24,7 +24,6 @@ void main() async {
         [{ "id": "1", "surname": "Smith" }, { "id": "2", "surname": "Jones" }]
       ''');
     final familia = await container.familia.findAll();
-    await oneMs();
 
     expect(familia, [familia1, familia2]);
 
@@ -71,11 +70,9 @@ void main() async {
     final familias = await container.familia.findAll(background: true);
     expect(familias, isEmpty);
 
-    await oneMs();
-
-    final familias2 = await container.familia.findAll(remote: false);
-    expect(familias2, hasLength(2));
-  }, skip: true);
+    final notifier = container.familia.watchAllNotifier();
+    await notifier.tester().expectDataState(hasLength(2));
+  });
 
   test('findAll with error', () async {
     expect(() async {
@@ -148,12 +145,9 @@ void main() async {
     final familia = await container.familia.findOne('1', background: true);
     expect(familia, isNull);
 
-    await oneMs();
-
-    final familia2 = await container.familia.findOne('1', remote: false);
-    await oneMs();
-    expect(familia2, Familia(id: '1', surname: 'Smith'));
-  }, skip: true);
+    final notifier = container.familia.watchOneNotifier('1');
+    await notifier.tester().expectDataState(Familia(id: '1', surname: 'Smith'));
+  });
 
   test('findOne with errors', () async {
     final error203 = isA<DataException>()
@@ -167,8 +161,6 @@ void main() async {
       );
       await container.familia.findOne('1');
     }, throwsA(error203));
-
-    await oneMs();
 
     // ignore: missing_return
     await container.familia.findOne(
@@ -207,11 +199,8 @@ void main() async {
           {'error': 'not found'},
         ).having((e) => e.statusCode, 'status code', 404)));
 
-    await oneMs();
-
     // no record locally
     expect(await container.familia.findOne('1', remote: false), isNull);
-    await oneMs();
   });
 
   test('socket exception does not throw by default', () async {

@@ -83,7 +83,6 @@ Future<void> tearDownFn() async {
   await core.storage.destroy();
 
   logging.clear();
-  await oneMs();
 }
 
 // utils
@@ -207,31 +206,4 @@ class DataStateNotifierTester<T> {
 extension SX<T> on DataStateNotifier<T> {
   DataStateNotifierTester tester({bool fireImmediately = false}) =>
       DataStateNotifierTester(this, fireImmediately: fireImmediately);
-
-  // Future<dynamic> expectDataState(dynamic model,
-  //     {dynamic isLoading,
-  //     dynamic exception,
-  //     bool fireImmediately = false}) async {
-  //   var m = isA<DataState<T>>();
-  //   if (model != null) {
-  //     if (model is List<(Function(T), dynamic)>) {
-  //       for (final (fn, arg) in model) {
-  //         m = m.having((s) => fn(s.model), 'model arg', arg);
-  //       }
-  //     } else {
-  //       m = m.having((s) => s.model, 'model', model);
-  //     }
-  //   }
-  //   if (isLoading != null) {
-  //     m = m.having((s) => s.isLoading, 'isLoading', isLoading);
-  //   }
-  //   if (exception != null) {
-  //     m = m.having((s) => s.exception, 'exception', exception);
-  //   }
-  //   final stream =
-  //       _streamWithInitialValueFor(this, fireImmediately: fireImmediately);
-  //   final result = expect(await stream.first, m);
-
-  //   return result;
-  // }
 }

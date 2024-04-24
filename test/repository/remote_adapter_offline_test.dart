@@ -1,10 +1,7 @@
-@Timeout(Duration(minutes: 20))
-
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_data/flutter_data.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../_support/familia.dart';
@@ -97,13 +94,12 @@ void main() async {
         exception: isA<OfflineException>());
 
     // familia is remembered as failed to persist
-    // TODO fix: at location [0] is <1> instead of '1' (need # and ## again?)
-    // expect(
-    //     container.familia.offlineOperations
-    //         .only(DataRequestLabel('save', type: 'familia'))
-    //         .map((o) => o.label.id)
-    //         .toList(),
-    //     [familia.id]);
+    expect(
+        container.familia.offlineOperations
+            .only(DataRequestLabel('save', type: 'familia'))
+            .map((o) => o.label.id)
+            .toList(),
+        [familia.id]);
 
     // try with familia2 (tests it can work without ID)
     final familia2 = Familia(surname: 'Montewicz');
@@ -114,17 +110,15 @@ void main() async {
     }
 
     // now two familia failed to persist
-    // expect(
-    //     container.familia.offlineOperations
-    //         .only(DataRequestLabel('save', type: 'familia'))
-    //         .map((o) => o.label.id)
-    //         .toList(),
-    //     unorderedEquals([familia.id, familia2.id]));
+    expect(
+        container.familia.offlineOperations
+            .only(DataRequestLabel('save', type: 'familia'))
+            .map((o) => o.label.id)
+            .toList(),
+        unorderedEquals([familia.id, familia2.id]));
 
     // retry saving both
     await container.familia.offlineOperations.retry();
-    // await 1ms for each familia
-    await oneMs();
 
     // none of them could be saved upon retry
     expect(container.familia.offlineOperations.map((o) {
@@ -143,7 +137,6 @@ void main() async {
 
     // retry
     await container.familia.offlineOperations.retry();
-    await oneMs();
 
     // familia2 failed on retry, operation still pending
     expect(container.familia.offlineOperations.map((o) => o.model),
@@ -158,7 +151,6 @@ void main() async {
 
     // retry
     await container.familia.offlineOperations.retry();
-    await oneMs();
 
     // should be empty as all saves succeeded
     expect(container.familia.offlineOperations.map((o) => o.model), isEmpty);
@@ -173,7 +165,6 @@ void main() async {
     } catch (_) {
       // without onError, ignore exception
     }
-    await oneMs();
 
     // assert familia3 hasn't been persisted
     expect(
@@ -194,20 +185,14 @@ void main() async {
   });
 
   test('delete', () async {
-    final listener = Listener<DataState<List<Familia>?>?>();
     // listening to local changes is enough
     final notifier = container.familia.watchAllNotifier();
-
-    final dispose = notifier.addListener(listener);
-    disposeFns.add(dispose);
+    final tester = notifier.tester();
 
     final familia = Familia(id: '1', surname: 'Smith').saveLocal();
-    await oneMs();
 
     // should show up through watchAllNotifier
-    verify(listener(
-      argThat(isA<DataState>().having((s) => s.model, 'model', [familia])),
-    )).called(1);
+    await tester.expectDataState([familia]);
 
     // network issue deleting familia
     container.read(responseProvider.notifier).state = TestResponse((_) {
@@ -215,21 +200,17 @@ void main() async {
     });
 
     // delete familia and send offline exception to notifier
+    // NOTE: keep await, so that we give onError the chance to update the notifier
     await familia.delete(
       onError: (e, _, __) async {
-        await oneMs();
         expect(e, isA<OfflineException>());
         expect(e.error, isA<SocketException>());
         return null;
       },
     );
 
-    await oneMs();
-
     // verify the model in local storage has been deleted
-    verify(listener(
-      argThat(isA<DataState>().having((s) => s.model, 'model', isEmpty)),
-    )).called(2);
+    await tester.expectDataState(isEmpty);
 
     // familia is remembered as failed to persist
     expect(
@@ -240,7 +221,6 @@ void main() async {
 
     // retry
     await container.familia.offlineOperations.retry();
-    await oneMs();
 
     // could not be deleted upon retry
     expect(
@@ -254,55 +234,43 @@ void main() async {
 
     // retry
     await container.familia.offlineOperations.retry();
-    await oneMs();
 
     // now offline queue is empty
     expect(container.familia.offlineOperations, isEmpty);
   });
 
   test('save & delete combined', () async {
-    final listener = Listener<DataState<List<Familia>?>?>();
     // listening to local changes enough
     final notifier = container.familia.watchAllNotifier(remote: false);
-
-    final dispose = notifier.addListener(listener);
-    disposeFns.add(dispose);
+    final tester = notifier.tester();
 
     // setup familia
     final familia = Familia(id: '19', surname: 'Ko');
-    await oneMs();
 
     // network issues
     container.read(responseProvider.notifier).state = TestResponse((_) {
       throw SocketException('unreachable');
     });
 
-    // save...
+    // save
     await familia.save(
       headers: {'X-Override-Name': 'Johnson'},
       onError: (e, _, __) async {
-        await oneMs();
         notifier.updateWith(exception: e);
         return null;
       },
     );
 
-    await oneMs();
-
-    // ...and immediately delete
+    // immediately delete
     await familia.delete(
       onError: (e, _, __) async {
-        await oneMs();
         notifier.updateWith(exception: e);
         return null;
       },
     );
 
-    // assert it's an OfflineException, TWICE (one call per updateWith(e))
-    verify(listener(argThat(
-      isA<DataState>()
-          .having((s) => s.exception, 'exception', isA<OfflineException>()),
-    ))).called(1);
+    // assert it's an OfflineException
+    tester.expectDataState(isNotNull, exception: isA<OfflineException>());
 
     // should see the failed save queued
     expect(
@@ -331,8 +299,8 @@ void main() async {
 
     // retry
     await container.familia.offlineOperations.retry();
-    await oneMs();
-    // same result...
+
+    // same result
     expect(container.familia.offlineOperations, hasLength(2));
 
     // change the response to success
@@ -340,7 +308,7 @@ void main() async {
 
     // retry
     await container.familia.offlineOperations.retry();
-    await oneMs();
+
     // done
     expect(container.familia.offlineOperations, isEmpty);
   });
@@ -367,7 +335,6 @@ void main() async {
         return result;
       },
     );
-    await oneMs();
     // fails to go through
     expect(container.familia.offlineOperations, hasLength(1));
 
@@ -383,7 +350,7 @@ void main() async {
 
     // retry
     await container.familia.offlineOperations.retry();
-    await oneMs();
+
     // done
     expect(container.familia.offlineOperations, isEmpty);
   });

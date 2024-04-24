@@ -101,8 +101,9 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
     );
 
     if (background) {
-      // ignore: unawaited_futures
-      future.then((_) => Future.value(_));
+      (() async {
+        await future;
+      })();
       return models;
     } else {
       return await future ?? <T>[];

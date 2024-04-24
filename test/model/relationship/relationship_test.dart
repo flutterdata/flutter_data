@@ -1,5 +1,4 @@
 import 'package:flutter_data/flutter_data.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../../_support/book.dart';
@@ -260,21 +259,15 @@ void main() async {
         BookAuthor(id: 15, name: 'Lao Tzu', books: HasMany({book})).saveLocal();
     expect(author.books.first, book);
 
-    final listener = Listener<DataState<BookAuthor?>>();
     final notifier = container.bookAuthors.watchOneNotifier(author);
+    final tester = notifier.tester(fireImmediately: true);
 
-    final dispose = notifier.addListener(listener);
-    disposeFns.add(dispose);
-
-    verify(listener(DataState(author, isLoading: false))).called(1);
-    verifyNoMoreInteractions(listener);
+    await tester.expectDataState(author, isLoading: false);
 
     final author2 = author.copyWith(name: 'Steve-O').saveLocal();
 
-    await oneMs();
     expect(author.books.first, book);
-    verify(listener(DataState(author2, isLoading: false))).called(1);
-    verifyNoMoreInteractions(listener);
+    await tester.expectDataState(author2, isLoading: false);
 
     expect(author.books.first.originalAuthor!.value,
         equals(BookAuthor(id: 15, name: 'Steve-O', books: HasMany({book}))));

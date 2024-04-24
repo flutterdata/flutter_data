@@ -87,29 +87,24 @@ void main() async {
     final p2 = Person(name: 'b', age: 2).saveLocal();
 
     familia.persons.add(p1);
-    // await oneMs();
     expect(familia.persons.keys, {keyFor(p1)});
 
     verify(listener({p1})).called(1);
 
     expect(familia.persons.keys, {keyFor(p1)});
     familia.persons.add(p2);
-    // await oneMs();
 
     expect(familia.persons.keys, {keyFor(p1), keyFor(p2)});
     verify(listener({p1, p2})).called(1);
 
     familia.persons.remove(p1);
-    // await oneMs();
 
     verify(listener({p2})).called(1);
 
     familia.persons.add(p1);
-    // await oneMs();
 
     // NOTE: it is actually called once, I don't know what's wrong with this
     verify(listener({p1, p2})).called(1);
-    // await oneMs();
   });
 
   test('remove relationship', () async {

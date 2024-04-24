@@ -1,5 +1,3 @@
-@Timeout(Duration(minutes: 20))
-
 import 'dart:math';
 
 import 'package:flutter_data/flutter_data.dart';
@@ -205,53 +203,28 @@ void main() async {
   });
 
   test('watchAllNotifier with multiple model updates', () async {
-    final notifier = container.people.watchAllNotifier(remote: false);
+    final notifier = container.people.watchAllNotifier();
+    final tester = notifier.tester();
 
     final matcher = predicate((p) {
       return p is Person && p.name.startsWith('Number') && p.age! < 19;
     });
 
-    final count = 29;
-    var i = 0;
-    final dispose = notifier.addListener(
-      expectAsync1((state) {
-        if (i == 0) {
-          expect(state.model, isEmpty);
-          expect(state.isLoading, isFalse);
-        } else if (i <= count) {
-          expect(state.model, List.generate(i, (_) => matcher));
-          final adapter = container.people;
-          // check box has all the keys
-          expect(adapter.keys.length, i);
-        } else {
-          // one less because of emitting the deletion,
-          // and one less because of the now missing model
-          expect(state.model, hasLength(i - 2));
-        }
-        i++;
-        // 1 extra count because of the initial `null` state
-        // 1 extra count because of the deletion in the loop below
-      }, count: count + 2),
-    );
-    disposeFns.add(dispose);
+    for (var j = 0; j < 100; j++) {
+      final id =
+          Random().nextBool() ? Random().nextInt(999999999).toString() : null;
+      final person = Person.generate(withId: id).saveLocal();
 
-    // this emits `count` states
-    Person person;
-    for (var j = 0; j < count; j++) {
-      await (() async {
-        final id =
-            Random().nextBool() ? Random().nextInt(999999999).toString() : null;
-        person = Person.generate(withId: id).saveLocal();
+      await tester.expectDataState(List.generate(j + 1, (_) => matcher));
+      expect(container.people.countLocal, j + 1);
 
-        // in the last cycle, delete last Person too
-        if (j == count - 1) {
-          await oneMs();
-          await person.delete();
-        }
-        await oneMs();
-      })();
+      // in the last cycle, delete last Person too
+      if (j == 99) {
+        person.deleteLocal();
+        expect(container.people.countLocal, j);
+      }
     }
-  }, skip: true);
+  });
 
   test('watchAllNotifier and watchAll updates and removals', () async {
     final p1 = Person(id: '1', name: 'Zof', age: 23).saveLocal();
@@ -510,9 +483,6 @@ void main() async {
 
     final model = container.bookAuthors.watch(bookAuthor);
     expect(model, bookAuthor);
-
-    // need to await before teardown for some reason
-    await oneMs();
   });
 
   test('notifier for', () async {
