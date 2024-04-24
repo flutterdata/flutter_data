@@ -531,15 +531,13 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
       return response.body as R?;
     }
 
-    final deserialized = await deserialize(body);
+    final deserialized = await deserializeAndSave(body);
+    deserialized._log(adapter, label);
 
     if (isFindAll || (isCustom && deserialized.model == null)) {
-      await _saveDeserialized(deserialized);
-      deserialized._log(adapter, label);
-
       late R? models;
       if (response.statusCode == 304) {
-        models = await adapter.findAll(remote: false) as R?;
+        models = adapter.findAllLocal() as R?;
       } else {
         models = deserialized.models as R?;
       }
@@ -547,12 +545,9 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
     }
 
     if (isFindOne || (isCustom && deserialized.model != null)) {
-      await _saveDeserialized(deserialized);
-      deserialized._log(adapter, label);
-
       late R? model;
       if (response.statusCode == 304) {
-        model = await adapter.findOne(label.id!, remote: false) as R?;
+        model = adapter.findOneLocalById(label.id!) as R?;
       } else {
         model = deserialized.model as R?;
       }

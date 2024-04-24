@@ -3,8 +3,6 @@ part of flutter_data;
 mixin _SerializationAdapter<T extends DataModelMixin<T>> on _BaseAdapter<T> {
   /// Returns a serialized version of a model of [T],
   /// as a [Map<String, dynamic>] ready to be JSON-encoded.
-  @protected
-  @visibleForTesting
   Future<Map<String, dynamic>> serialize(T model,
       {bool withRelationships = true}) async {
     final map = serializeLocal(model, withRelationships: withRelationships);
@@ -99,8 +97,6 @@ mixin _SerializationAdapter<T extends DataModelMixin<T>> on _BaseAdapter<T> {
 
   /// Returns a [DeserializedData] object when deserializing a given [data].
   ///
-  @protected
-  @visibleForTesting
   Future<DeserializedData<T>> deserialize(Object? data,
       {String? key, bool async = true}) async {
     final record = async
@@ -108,6 +104,30 @@ mixin _SerializationAdapter<T extends DataModelMixin<T>> on _BaseAdapter<T> {
             (adapter) => adapter._deserialize(adapter, data, key: key))
         : _deserialize(this as Adapter, data, key: key);
     return DeserializedData<T>(record.$1.cast<T>(), included: record.$2);
+  }
+
+  Future<DeserializedData<T>> deserializeAndSave(Object? data,
+      {String? key, bool notify = true, bool ignoreReturn = false}) async {
+    final record = await runInIsolate<
+        (
+          List<DataModelMixin>,
+          List<DataModelMixin>,
+          List<String>
+        )>((adapter) async {
+      final emptyDm = <DataModelMixin>[];
+      final r = adapter._deserialize(adapter, data, key: key);
+      final models = [...r.$1, ...r.$2];
+      if (models.isEmpty) return (emptyDm, emptyDm, <String>[]);
+      final savedKeys = await adapter.saveManyLocal(models, async: false);
+      return ignoreReturn
+          ? (emptyDm, emptyDm, savedKeys!)
+          : (r.$1, r.$2, savedKeys!);
+    });
+    final (models, included, savedKeys) = record;
+    if (notify && savedKeys.isNotEmpty) {
+      core._notify(savedKeys, type: DataGraphEventType.updateNode);
+    }
+    return DeserializedData<T>(models.cast<T>(), included: included);
   }
 }
 

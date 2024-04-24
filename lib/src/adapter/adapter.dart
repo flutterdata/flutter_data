@@ -217,33 +217,42 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     });
   }
 
-  Future<void> saveManyLocal(Iterable<DataModelMixin> models,
-      {bool notify = true}) async {
-    final savedKeys = await runInIsolate((adapter) async {
-      final db = adapter.db;
-      final savedKeys = <String>[];
+  List<String> _saveManyLocal(
+      Adapter adapter, Iterable<DataModelMixin> models) {
+    final db = adapter.db;
+    final savedKeys = <String>[];
 
-      final grouped = models.groupSetsBy((e) => e._adapter);
-      for (final e in grouped.entries) {
-        final adapter = e.key;
-        final ps = db.prepare(
-            'REPLACE INTO ${adapter.internalType} (key, data) VALUES (?, ?) RETURNING key;');
-        for (final model in e.value) {
-          final key = model._key!.detypifyKey();
-          final map = adapter.serializeLocal(model, withRelationships: false);
-          final data = jsonEncode(map);
-          final result = ps.select([key, data]);
-          savedKeys.add(
-              (result.first['key'] as int).typifyWith(adapter.internalType));
-        }
-        ps.dispose();
+    final grouped = models.groupSetsBy((e) => e._adapter);
+    for (final e in grouped.entries) {
+      final adapter = e.key;
+      final ps = db.prepare(
+          'REPLACE INTO ${adapter.internalType} (key, data) VALUES (?, ?) RETURNING key;');
+      for (final model in e.value) {
+        final key = model._key!.detypifyKey();
+        final map = adapter.serializeLocal(model, withRelationships: false);
+        final data = jsonEncode(map);
+        final result = ps.select([key, data]);
+        savedKeys
+            .add((result.first['key'] as int).typifyWith(adapter.internalType));
       }
-      return savedKeys;
-    });
-
-    if (notify) {
-      core._notify(savedKeys, type: DataGraphEventType.updateNode);
+      ps.dispose();
     }
+    return savedKeys;
+  }
+
+  Future<List<String>?> saveManyLocal(Iterable<DataModelMixin> models,
+      {bool notify = true, bool async = true}) async {
+    final savedKeys = async
+        ? await runInIsolate(
+            (adapter) => adapter._saveManyLocal(adapter, models))
+        : _saveManyLocal(this as Adapter, models);
+    if (async) {
+      if (notify) {
+        core._notify(savedKeys, type: DataGraphEventType.updateNode);
+        return null;
+      }
+    }
+    return savedKeys;
   }
 
   /// Deletes model of type [T] from local storage.
