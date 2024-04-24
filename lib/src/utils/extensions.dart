@@ -136,3 +136,14 @@ Map<String, String> _flattenQueryParameters(Map<String, dynamic> params) {
     return acc;
   });
 }
+
+extension _R2 on (String, String) {
+  bool contains(String str) {
+    return $1 == str || $2 == str;
+  }
+
+  bool unorderedEquals((String, String) record) {
+    return ($1 == record.$1 || $1 == record.$2) &&
+        ($2 == record.$1 || $2 == record.$2);
+  }
+}

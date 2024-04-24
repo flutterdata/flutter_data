@@ -178,9 +178,10 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
       }
 
       for (final event in events) {
+        final keysRecord = (event.keys.first, event.keys.last);
         // handle done loading
         if (notifier.data.isLoading &&
-            event.keys.last == label.toString() &&
+            keysRecord.$2 == label.toString() &&
             event.type == DataGraphEventType.doneLoading) {
           final models = _getUpdatedModels();
           states.add(DataState(models, isLoading: false, exception: null));
@@ -188,7 +189,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
 
         if (notifier.data.isLoading == false &&
             event.type.isNode &&
-            event.keys.first.startsWith(internalType)) {
+            keysRecord.$1.startsWith(internalType)) {
           final models = _getUpdatedModels();
           log(label!, 'updated models', logLevel: 2);
           states.add(DataState(
@@ -200,7 +201,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
         }
 
         if (event.type == DataGraphEventType.clear &&
-            event.keys.first.startsWith(internalType)) {
+            keysRecord.$1.startsWith(internalType)) {
           log(label!, 'clear local storage', logLevel: 2);
           states.add(DataState([], isLoading: false, exception: null));
         }
@@ -237,7 +238,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
     label ??= DataRequestLabel('watchOne',
         id: key.detypify()?.toString(), type: internalType);
 
-    var alsoWatchPairs = <List<String>>{};
+    var alsoWatchPairs = <(String, String)>{};
 
     // closure to get latest model and watchable relationship pairs
     T? _getUpdatedModel() {
@@ -250,13 +251,12 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
 
         // recursively get applicable watch key pairs for each meta -
         // from top to bottom (e.g. `p`, `p.familia`, `p.familia.cottage`)
-        alsoWatchPairs = {
-          ...?metas
-              ?.map((meta) => _getPairsForMeta(meta._top, model._key!))
-              .nonNulls
-              .expand((_) => _)
-        };
-        // print('also watch $alsoWatchPairs (type $internalType)');
+        if (metas != null) {
+          alsoWatchPairs = metas
+              .map((meta) => _getPairsForMeta(meta._top, model._key!))
+              .expand((e) => e)
+              .toSet();
+        }
       } else {
         // if there is no model nothing should be watched, reset pairs
         alsoWatchPairs = {};
@@ -335,10 +335,11 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
       key = bufferModel?._key ?? key;
 
       for (final event in events) {
-        if (event.keys.contains(key)) {
+        final keysRecord = (event.keys.first, event.keys.last);
+        if (keysRecord.contains(key)) {
           // handle done loading
           if (notifier.data.isLoading &&
-              event.keys.last == label.toString() &&
+              keysRecord.$2 == label.toString() &&
               event.type == DataGraphEventType.doneLoading) {
             states
                 .add(DataState(bufferModel, isLoading: false, exception: null));
@@ -347,7 +348,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
           // add/update
           if (event.type == DataGraphEventType.updateNode) {
             if (notifier.data.isLoading == false) {
-              log(label!, 'added/updated node ${event.keys}', logLevel: 2);
+              log(label!, 'added/updated node $keysRecord', logLevel: 2);
               states.add(DataState(
                 bufferModel,
                 isLoading: notifier.data.isLoading,
@@ -360,8 +361,8 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
           // temporarily restore removed pair so that watchedRelationshipUpdate
           // has a chance to apply the update
           if (event.type == DataGraphEventType.removeEdge &&
-              !event.keys.first.startsWith('id:')) {
-            alsoWatchPairs.add(event.keys);
+              !keysRecord.$1.startsWith('id:')) {
+            alsoWatchPairs.add(keysRecord);
           }
         }
 
@@ -369,7 +370,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
         if ([DataGraphEventType.removeNode, DataGraphEventType.clear]
                 .contains(event.type) &&
             bufferModel == null) {
-          log(label!, 'removed node ${event.keys}', logLevel: 2);
+          log(label!, 'removed node $keysRecord', logLevel: 2);
           states.add(DataState(
             null,
             isLoading: notifier.data.isLoading,
@@ -381,20 +382,19 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
         // updates on watched relationships condition
         final watchedRelationshipUpdate = event.type.isEdge &&
             alsoWatchPairs
-                .where((pair) =>
-                    pair.sorted().toString() == event.keys.sorted().toString())
+                .where((pair) => pair.unorderedEquals(keysRecord))
                 .isNotEmpty;
 
         // updates on watched models (of relationships) condition
         final watchedModelUpdate = event.type.isNode &&
             alsoWatchPairs
-                .where((pair) => pair.contains(event.keys.first))
+                .where((pair) => pair.contains(keysRecord.$1))
                 .isNotEmpty;
 
         // if model is loaded and any condition passes, notify update
         if (notifier.data.isLoading == false &&
             (watchedRelationshipUpdate || watchedModelUpdate)) {
-          log(label!, 'relationship update ${event.keys}', logLevel: 2);
+          log(label!, 'relationship update $keysRecord', logLevel: 2);
           states.add(DataState(
             bufferModel,
             isLoading: notifier.data.isLoading,
@@ -433,23 +433,19 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
     }
   }
 
-  Iterable<List<String>> _getPairsForMeta(
+  Set<(String, String)> _getPairsForMeta(
       RelationshipMeta? meta, String ownerKey) {
     if (meta == null) return {};
 
     final relationshipKeys = _keysFor(ownerKey, meta.name);
-    // print('relkeys $relationshipKeys (edge $ownerKey ${meta.name})');
 
-    final pm = {
+    return {
       // include key pairs of (owner, key)
-      for (final key in relationshipKeys) [ownerKey, key],
+      for (final key in relationshipKeys) (ownerKey, key),
       // recursively include key pairs for other requested relationships
-      // TODO do not include if these are blank
       for (final childKey in relationshipKeys)
-        _getPairsForMeta(meta.child, childKey).expand((_) => _).toList()
+        ..._getPairsForMeta(meta.child, childKey)
     };
-    // print('pairs for meta $pm (edge $ownerKey ${meta.name})');
-    return pm;
   }
 
   // providers
