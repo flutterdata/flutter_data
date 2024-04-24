@@ -9,17 +9,17 @@
 
 ## Persistent reactive models in Flutter with zero boilerplate
 
-Flutter Data is an offline-first data framework with a customizable REST client and powerful model relationships.
+Flutter Data is an offline-first data framework with a customizable REST client and powerful model relationships, built on Riverpod.
 
 <small>Inspired by [Ember Data](https://github.com/emberjs/data) and [ActiveRecord](https://guides.rubyonrails.org/active_record_basics.html).</small>
 
 ## Features
 
-- **Repositories for all models** 🚀
-  - CRUD and custom remote endpoints
+- **Adapters for all models** 🚀
+  - Default CRUD and custom remote endpoints
   - [StateNotifier](https://pub.dev/packages/state_notifier) watcher APIs
 - **Built for offline-first** 🔌
-  - [Hive](https://docs.hivedb.dev/)-based local storage at its core
+  - [SQLite3](https://pub.dev/packages/sqlite3)-based local storage at its core, with adapters for many other engines: Objectbox, Isar, etc (coming soon)
   - Failure handling & retry API
 - **Intuitive APIs, effortless setup** 💙
   - Truly configurable and composable via Dart mixins and codegen
@@ -28,17 +28,15 @@ Flutter Data is an offline-first data framework with a customizable REST client 
   - Automatically synchronized, fully traversable relationship graph
   - Reactive relationships
 
-**Check out the [Tutorial](https://flutterdata.dev/tutorial) 📚 where we build a TO-DO app from the ground up in record time.**
+## 👩🏾‍💻 Quick introduction
 
-## 👩🏾‍💻 Usage
+In Flutter Data, every model gets is adapter. These adapters can be extended by mixing in custom adapters.
 
-(See the [quickstart guide](https://flutterdata.dev/docs/quickstart/) for setup and boot configuration.)
-
-For a given `User` model annotated with `@DataRepository`:
+Annotate a model with `@DataAdapter` and pass a custom adapter:
 
 ```dart
 @JsonSerializable()
-@DataRepository([MyJSONServerAdapter])
+@DataAdapter([MyJSONServerAdapter])
 class User extends DataModel<User> {
   @override
   final int? id; // ID can be of any type
@@ -53,7 +51,7 @@ mixin MyJSONServerAdapter on RemoteAdapter<User> {
 }
 ```
 
-After a code-gen build, Flutter Data will generate a `Repository<User>` (and shortcuts like `ref.users` for Riverpod):
+After code-gen, Flutter Data will generate the resulting `Adapter<User>` which is accessible via Riverpod's `ref.users` or `container.users`.
 
 ```dart
 @override
@@ -67,7 +65,7 @@ Widget build(BuildContext context, WidgetRef ref) {
 }
 ```
 
-Update the user:
+To update the user:
 
 ```dart
 TextButton(
@@ -76,11 +74,11 @@ TextButton(
 ),
 ```
 
-`ref.users.watchOne(1)` will make a background HTTP request (to `https://my-json-server.typicode.com/flutterdata/demo/users/1` in this case), deserialize data and listen for any further changes to the `User` – whether those are local or remote!
+`ref.users.watchOne(1)` will make a background HTTP request (to `https://my-json-server.typicode.com/flutterdata/demo/users/1` in this case), deserialize data and listen for any further local changes to the user.
 
 `state` is of type `DataState` which has loading, error and data substates.
 
-In addition to the reactivity, `DataModel`s get extensions and automatic relationships, ActiveRecord-style, so the above becomes:
+In addition to the reactivity, models have ActiveRecord-style extension methods so the above becomes:
 
 ```dart
 GestureDetector(
@@ -88,25 +86,6 @@ GestureDetector(
   child: Text('Update')
 ),
 ```
-
-More examples:
-
-```dart
-final task = await Task(title: 'Finish docs').save();
-// or its equivalent:
-final task = await ref.tasks.save(Task(title: 'Finish docs'));
-// POST https://my-json-server.typicode.com/flutterdata/demo/tasks/
-print(task.id); // 201
-
-final user = await repository.findOne(1, params: {'_embed': 'tasks'});
-// (remember repository can be accessed via ref.users)
-// GET https://my-json-server.typicode.com/flutterdata/demo/users/1?_embed=tasks
-print(user.tasks.length); // 20
-
-await user.tasks.last.delete();
-```
-
-**Explore the [Documentation](https://flutterdata.dev/docs/).**
 
 ## Compatibility
 
@@ -124,12 +103,7 @@ Fully compatible with the tools we know and love:
     <tr>
       <td class="font-bold px-4 py-2"><strong>Flutter</strong></td>
       <td class="px-4 py-2">✅</td>
-      <td class="px-4 py-2 text-sm">And pure Dart, too.</td>
-    </tr>
-    <tr class="bg-yellow-50">
-      <td class="font-bold px-4 py-2"><strong>Flutter Web</strong></td>
-      <td class="px-4 py-2">✅</td>
-      <td class="px-4 py-2 text-sm">Supported (untested)</td>
+      <td class="px-4 py-2 text-sm">Or plain Dart. It does not require Flutter.</td>
     </tr>
     <tr>
       <td class="font-bold px-4 py-2"><strong>json_serializable</strong></td>
@@ -155,12 +129,17 @@ Fully compatible with the tools we know and love:
     <tr class="bg-yellow-50">
       <td class="font-bold px-4 py-2"><strong>Firebase, Supabase, GraphQL</strong></td>
       <td class="px-4 py-2">✅</td>
-      <td class="px-4 py-2 text-sm">Can be fully supported by writing <a href="https://flutterdata.dev/docs/adapters/">custom adapters</a></td>
+      <td class="px-4 py-2 text-sm">Can be fully supported by writing custom adapters</a></td>
     </tr>
     <tr>
       <td class="font-bold px-4 py-2"><strong>Freezed</strong></td>
       <td class="px-4 py-2">✅</td>
       <td class="px-4 py-2 text-sm">Supported!</td>
+    </tr>
+    <tr class="bg-yellow-50">
+      <td class="font-bold px-4 py-2"><strong>Flutter Web</strong></td>
+      <td class="px-4 py-2">✅</td>
+      <td class="px-4 py-2 text-sm">TBD</td>
     </tr>
   </tbody>
 </table>
@@ -170,6 +149,234 @@ Fully compatible with the tools we know and love:
 ![logos](https://user-images.githubusercontent.com/66403/115444364-79053f80-a1e2-11eb-9498-ee86718a4be5.png)
 
  - [Drexbible](https://snapcraft.io/drexbible)
+
+## 📚 API
+
+### Adapters
+
+WIP. Method names should be self explanatory. All of these methods have a reasonable default implementation.
+
+#### Public API
+
+```dart
+// local storage
+
+List<T> findAllLocal();
+
+List<T> findManyLocal(Iterable<String> keys);
+
+List<T> deserializeFromResult(ResultSet result);
+
+T? findOneLocal(String? key);
+
+T? findOneLocalById(Object id);
+
+bool exists(String key);
+
+T saveLocal(T model, {bool notify = true});
+
+Future<List<String>?> saveManyLocal(Iterable<DataModelMixin> models,
+      {bool notify = true, bool async = true});
+
+void deleteLocal(T model, {bool notify = true});
+
+void deleteLocalById(Object id, {bool notify = true});
+
+void deleteLocalByKeys(Iterable<String> keys, {bool notify = true});
+
+Future<void> clearLocal({bool notify = true});
+
+int get countLocal;
+
+Set<String> get keys;
+
+// remote
+
+Future<List<T>> findAll({
+    bool remote = true,
+    bool background = false,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    bool syncLocal = false,
+    OnSuccessAll<T>? onSuccess,
+    OnErrorAll<T>? onError,
+    DataRequestLabel? label,
+  });
+
+Future<T?> findOne(
+    Object id, {
+    bool remote = true,
+    bool? background,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    OnSuccessOne<T>? onSuccess,
+    OnErrorOne<T>? onError,
+    DataRequestLabel? label,
+  });
+
+Future<T> save(
+    T model, {
+    bool remote = true,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    OnSuccessOne<T>? onSuccess,
+    OnErrorOne<T>? onError,
+    DataRequestLabel? label,
+  });
+
+Future<T?> delete(
+    Object model, {
+    bool remote = true,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    OnSuccessOne<T>? onSuccess,
+    OnErrorOne<T>? onError,
+    DataRequestLabel? label,
+  });
+
+Set<OfflineOperation<T>> get offlineOperations;
+
+// serialization
+
+Map<String, dynamic> serializeLocal(T model, {bool withRelationships = true});
+
+T deserializeLocal(Map<String, dynamic> map, {String? key});
+
+Future<Map<String, dynamic>> serialize(T model,
+      {bool withRelationships = true});
+
+Future<DeserializedData<T>> deserialize(Object? data,
+      {String? key, bool async = true});
+
+Future<DeserializedData<T>> deserializeAndSave(Object? data,
+      {String? key, bool notify = true, bool ignoreReturn = false});
+
+// watchers
+
+DataState<List<T>> watchAll({
+    bool remote = false,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    bool syncLocal = false,
+    String? finder,
+    DataRequestLabel? label,
+  });
+
+DataState<T?> watchOne(
+    Object model, {
+    bool remote = false,
+    Map<String, dynamic>? params,
+    Map<String, String>? headers,
+    AlsoWatch<T>? alsoWatch,
+    String? finder,
+    DataRequestLabel? label,
+  });
+
+DataStateNotifier<List<T>> watchAllNotifier(
+      {bool remote = false,
+      Map<String, dynamic>? params,
+      Map<String, String>? headers,
+      bool syncLocal = false,
+      String? finder,
+      DataRequestLabel? label});
+
+DataStateNotifier<T?> watchOneNotifier(Object model,
+      {bool remote = false,
+      Map<String, dynamic>? params,
+      Map<String, String>? headers,
+      AlsoWatch<T>? alsoWatch,
+      String? finder,
+      DataRequestLabel? label});
+
+final coreNotifierThrottleDurationProvider;
+```
+
+#### Protected API
+
+```dart
+// adapter
+
+Future<void> onInitialized();
+
+Future<Adapter<T>> initialize({required Ref ref});
+
+void dispose();
+
+Future<R> runInIsolate<R>(FutureOr<R> fn(Adapter adapter));
+
+void log(DataRequestLabel label, String message, {int logLevel = 1});
+
+void onModelInitialized(T model) {};
+
+// remote
+
+String get baseUrl;
+
+FutureOr<Map<String, dynamic>> get defaultParams;
+
+FutureOr<Map<String, String>> get defaultHeaders;
+
+String urlForFindAll(Map<String, dynamic> params);
+
+DataRequestMethod methodForFindAll(Map<String, dynamic> params);
+
+String urlForFindOne(id, Map<String, dynamic> params);
+
+DataRequestMethod methodForFindOne(id, Map<String, dynamic> params);
+
+String urlForSave(id, Map<String, dynamic> params);
+
+DataRequestMethod methodForSave(id, Map<String, dynamic> params);
+
+String urlForDelete(id, Map<String, dynamic> params);
+
+DataRequestMethod methodForDelete(id, Map<String, dynamic> params);
+
+bool shouldLoadRemoteAll(
+    bool remote,
+    Map<String, dynamic> params,
+    Map<String, String> headers,
+  );
+
+bool shouldLoadRemoteOne(
+    Object? id,
+    bool remote,
+    Map<String, dynamic> params,
+    Map<String, String> headers,
+  );
+
+bool isOfflineError(Object? error);
+
+http.Client get httpClient;
+
+Future<R?> sendRequest<R>(
+    final Uri uri, {
+    DataRequestMethod method = DataRequestMethod.GET,
+    Map<String, String>? headers,
+    Object? body,
+    _OnSuccessGeneric<R>? onSuccess,
+    _OnErrorGeneric<R>? onError,
+    bool omitDefaultParams = false,
+    bool returnBytes = false,
+    DataRequestLabel? label,
+    bool closeClientAfterRequest = true,
+  });
+
+FutureOr<R?> onSuccess<R>(
+    DataResponse response, DataRequestLabel label);
+
+FutureOr<R?> onError<R>(
+    DataException e,
+    DataRequestLabel? label,
+  );
+
+// serialization
+
+Map<String, dynamic> transformSerialize(Map<String, dynamic> map,
+      {bool withRelationships = true});
+
+Map<String, dynamic> transformDeserialize(Map<String, dynamic> map);
+```
 
 ## ➕ Questions and collaborating
 

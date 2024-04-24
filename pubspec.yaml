@@ -4,7 +4,7 @@ description: >
   Ember Data and ActiveRecord.
 version: 2.0.0-dev.1
 homepage: https://github.com/flutterdata/flutter_data
-documentation: https://flutterdata.dev/
+documentation: https://github.com/flutterdata/flutter_data
 
 environment:
   sdk: ">=3.1.0 <4.0.0"

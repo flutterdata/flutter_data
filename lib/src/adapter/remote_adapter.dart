@@ -574,12 +574,6 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
     throw e;
   }
 
-  Future<void> _saveDeserialized(DeserializedData deserialized) async {
-    final models = [...deserialized.models, ...deserialized.included];
-    if (models.isEmpty) return;
-    await saveManyLocal(models.cast());
-  }
-
   /// Returns URL for [findAll]. Defaults to [type].
   @protected
   String urlForFindAll(Map<String, dynamic> params) => type;
