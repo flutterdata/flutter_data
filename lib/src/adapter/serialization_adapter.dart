@@ -102,7 +102,7 @@ mixin _SerializationAdapter<T extends DataModelMixin<T>> on _BaseAdapter<T> {
   @protected
   @visibleForTesting
   Future<DeserializedData<T>> deserialize(Object? data,
-      {String? key, async = true}) async {
+      {String? key, bool async = true}) async {
     final record = async
         ? await runInIsolate(
             (adapter) => adapter._deserialize(adapter, data, key: key))
