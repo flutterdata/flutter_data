@@ -110,33 +110,24 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
     String? finder,
     DataRequestLabel? label,
   }) {
-    final maybeFinder = _internalHolder?.finders[finder]?.call(this);
-    final finderFn = maybeFinder is DataFinderAll<T> ? maybeFinder : findAll;
-
     // we can't use `findAll`'s default internal label
     // because we need a label to handle events
     label ??= DataRequestLabel('watchAll', type: internalType);
-
     log(label, 'initializing');
 
-    // closure to get latest models
-    List<T> _getUpdatedModels() {
-      return findAllLocal();
-    }
-
     final notifier = DataStateNotifier<List<T>>(
-      data: DataState(_getUpdatedModels(), isLoading: remote),
+      data: DataState(findAllLocal(), isLoading: remote),
     );
 
     notifier._reloadFn = () async {
-      if (!notifier.mounted) {
-        // TODO  || remote = false
+      if (!notifier.mounted || remote == false) {
         return;
       }
 
-      if (remote) {
-        notifier.updateWith(isLoading: true);
-      }
+      notifier.updateWith(isLoading: true);
+
+      final _finderFn = _internalHolder?.finders[finder]?.call(this);
+      final finderFn = _finderFn is DataFinderAll<T> ? _finderFn : findAll;
 
       await finderFn(
         remote: remote,
@@ -158,10 +149,9 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
           return [];
         },
       );
-      if (remote) {
-        // trigger doneLoading to ensure state is updated with isLoading=false
-        core._notify([label.toString()], type: DataGraphEventType.doneLoading);
-      }
+
+      // trigger doneLoading to ensure state is updated with isLoading=false
+      core._notify([label.toString()], type: DataGraphEventType.doneLoading);
     };
 
     // kick off
@@ -178,22 +168,22 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
       }
 
       for (final event in events) {
-        final keysRecord = (event.keys.first, event.keys.last);
+        final keypair = (event.keys.first, event.keys.last);
+
         // handle done loading
         if (notifier.data.isLoading &&
-            keysRecord.$2 == label.toString() &&
+            keypair.$2 == label.toString() &&
             event.type == DataGraphEventType.doneLoading) {
-          final models = _getUpdatedModels();
-          states.add(DataState(models, isLoading: false, exception: null));
+          states.add(
+              DataState(findAllLocal(), isLoading: false, exception: null));
         }
 
         if (notifier.data.isLoading == false &&
             event.type.isNode &&
-            keysRecord.$1.startsWith(internalType)) {
-          final models = _getUpdatedModels();
+            keypair.$1.startsWith(internalType)) {
           log(label!, 'updated models', logLevel: 2);
           states.add(DataState(
-            models,
+            findAllLocal(),
             isLoading: notifier.data.isLoading,
             exception: notifier.data.exception,
             stackTrace: notifier.data.stackTrace,
@@ -201,7 +191,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
         }
 
         if (event.type == DataGraphEventType.clear &&
-            keysRecord.$1.startsWith(internalType)) {
+            keypair.$1.startsWith(internalType)) {
           log(label!, 'clear local storage', logLevel: 2);
           states.add(DataState([], isLoading: false, exception: null));
         }
@@ -228,10 +218,6 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
     DataRequestLabel? label,
   }) {
     final id = core.getIdForKey(key);
-    // print('_won got $key / id $id');
-
-    final maybeFinder = _internalHolder?.finders[finder]?.call(this);
-    final finderFn = maybeFinder is DataFinderOne<T> ? maybeFinder : findOne;
 
     // we can't use `findOne`'s default internal label
     // because we need a label to handle events
@@ -273,15 +259,17 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
             .whereType<RelationshipMeta>()
             .map((m) => m.name) ??
         {};
+
     log(label,
         'initializing${alsoWatchNames.isNotEmpty ? ' (and also watching: ${alsoWatchNames.join(', ')})' : ''}');
 
     notifier._reloadFn = () async {
-      if (!notifier.mounted || id == null) return;
+      if (!notifier.mounted || id == null || remote == false) return;
 
-      if (remote) {
-        notifier.updateWith(isLoading: true);
-      }
+      notifier.updateWith(isLoading: true);
+
+      final _finderFn = _internalHolder?.finders[finder]?.call(this);
+      final finderFn = _finderFn is DataFinderOne<T> ? _finderFn : findOne;
 
       final model = await finderFn(
         id,
@@ -303,10 +291,10 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
           return null;
         },
       );
+
       // trigger doneLoading to ensure state is updated with isLoading=false
-      final modelKey = model?._key;
-      if (remote && modelKey != null) {
-        core._notify([modelKey, label.toString()],
+      if (model?._key != null) {
+        core._notify([model!._key!, label.toString()],
             type: DataGraphEventType.doneLoading);
       }
     };
@@ -335,11 +323,12 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
       key = bufferModel?._key ?? key;
 
       for (final event in events) {
-        final keysRecord = (event.keys.first, event.keys.last);
-        if (keysRecord.contains(key)) {
+        final keypair = (event.keys.first, event.keys.last);
+
+        if (keypair.contains(key)) {
           // handle done loading
           if (notifier.data.isLoading &&
-              keysRecord.$2 == label.toString() &&
+              keypair.$2 == label.toString() &&
               event.type == DataGraphEventType.doneLoading) {
             states
                 .add(DataState(bufferModel, isLoading: false, exception: null));
@@ -348,7 +337,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
           // add/update
           if (event.type == DataGraphEventType.updateNode) {
             if (notifier.data.isLoading == false) {
-              log(label!, 'added/updated node $keysRecord', logLevel: 2);
+              log(label!, 'added/updated node $keypair', logLevel: 2);
               states.add(DataState(
                 bufferModel,
                 isLoading: notifier.data.isLoading,
@@ -361,8 +350,8 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
           // temporarily restore removed pair so that watchedRelationshipUpdate
           // has a chance to apply the update
           if (event.type == DataGraphEventType.removeEdge &&
-              !keysRecord.$1.startsWith('id:')) {
-            alsoWatchPairs.add(keysRecord);
+              !keypair.$1.startsWith('id:')) {
+            alsoWatchPairs.add(keypair);
           }
         }
 
@@ -370,7 +359,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
         if ([DataGraphEventType.removeNode, DataGraphEventType.clear]
                 .contains(event.type) &&
             bufferModel == null) {
-          log(label!, 'removed node $keysRecord', logLevel: 2);
+          log(label!, 'removed node $keypair', logLevel: 2);
           states.add(DataState(
             null,
             isLoading: notifier.data.isLoading,
@@ -382,19 +371,19 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
         // updates on watched relationships condition
         final watchedRelationshipUpdate = event.type.isEdge &&
             alsoWatchPairs
-                .where((pair) => pair.unorderedEquals(keysRecord))
+                .where((pair) => pair.unorderedEquals(keypair))
                 .isNotEmpty;
 
         // updates on watched models (of relationships) condition
         final watchedModelUpdate = event.type.isNode &&
             alsoWatchPairs
-                .where((pair) => pair.contains(keysRecord.$1))
+                .where((pair) => pair.contains(keypair.$1))
                 .isNotEmpty;
 
         // if model is loaded and any condition passes, notify update
         if (notifier.data.isLoading == false &&
             (watchedRelationshipUpdate || watchedModelUpdate)) {
-          log(label!, 'relationship update $keysRecord', logLevel: 2);
+          log(label!, 'relationship update $keypair', logLevel: 2);
           states.add(DataState(
             bufferModel,
             isLoading: notifier.data.isLoading,

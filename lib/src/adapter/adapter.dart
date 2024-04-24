@@ -228,7 +228,6 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
       final grouped = models.groupSetsBy((e) => e._adapter);
       for (final e in grouped.entries) {
         final adapter = e.key;
-        // TODO use prepareMultiple
         final ps = db.prepare(
             'REPLACE INTO ${adapter.internalType} (key, data) VALUES (?, ?) RETURNING key;');
         for (final model in e.value) {
