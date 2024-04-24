@@ -61,6 +61,11 @@ class LocalStorage {
         ''');
     } catch (e, stackTrace) {
       print('[flutter_data] Failed to open:\n$e\n$stackTrace');
+      if (clear == LocalStorageClearStrategy.whenError) {
+        dispose();
+        await destroy();
+        await initialize();
+      }
     }
 
     isInitialized = true;
