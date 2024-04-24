@@ -136,7 +136,7 @@ final _offlineCallbackProvider =
 
 final offlineRetryProvider = StreamProvider<void>((ref) async* {
   Set<OfflineOperation> _offlineOperations() {
-    return _internalAdapters!.values
+    return _internalAdaptersMap!.values
         .map((adapter) {
           // if the stream is called before initialization
           // (or after disposal) simply return an empty set

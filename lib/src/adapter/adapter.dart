@@ -59,7 +59,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   /// This [Map] is typically required when initializing new models, and passed as-is.
   @protected
   @nonVirtual
-  Map<String, Adapter> get adapters => _internalAdapters!;
+  Map<String, Adapter> get adapters => _internalAdaptersMap!;
 
   /// Give access to the dependency injection system
   @nonVirtual
@@ -188,8 +188,8 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
   @protected
   Future<R> runInIsolate<R>(FutureOr<R> fn(Adapter adapter)) async {
-    final _path = Directory(storage.path).parent.path;
-    final _internalProviders = ref.read(adapterProviders)!;
+    final storagePath = Directory(storage.path).parent.path;
+    final internalProvidersMap = _internalProvidersMap!;
     final _internalType = internalType;
 
     return await Isolate.run(() async {
@@ -198,20 +198,18 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
         container = ProviderContainer(
           overrides: [
             localStorageProvider.overrideWith(
-              (ref) => LocalStorage(baseDirFn: () => _path),
+              (ref) => LocalStorage(baseDirFn: () => storagePath),
             ),
           ],
         );
 
-        // TODO improve initializer API
-        // set providers from outer context and start initialization
-        container.read(adapterProviders.notifier).state = _internalProviders;
-        await container.read(initializeAdapters.future);
+        await container
+            .read(initializeFlutterData(internalProvidersMap).future);
 
-        final adapter = _internalProviders[_internalType]!;
+        final adapter = internalProvidersMap[_internalType]!;
         return fn(container.read(adapter));
       } finally {
-        for (final provider in container.read(adapterProviders)!.values) {
+        for (final provider in internalProvidersMap.values) {
           container.read(provider).dispose();
         }
         container.read(localStorageProvider).dispose();

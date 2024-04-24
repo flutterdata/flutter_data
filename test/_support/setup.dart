@@ -65,8 +65,7 @@ Future<void> setUpFn() async {
     '${_kIsWeb ? 'node1s' : 'nodes'}': nodesAdapterProvider
   };
 
-  container.read(adapterProviders.notifier).state = adapterProvidersMap;
-  await container.read(initializeAdapters.future);
+  await container.read(initializeFlutterData(adapterProvidersMap).future);
 
   container.read(dogsAdapterProvider).logLevel = 2;
 

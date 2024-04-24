@@ -269,12 +269,6 @@ class DataResponse {
       {this.body, required this.statusCode, this.headers = const {}});
 }
 
-final adapterProviders =
-    StateProvider<Map<String, Provider<Adapter<DataModelMixin>>>?>(
-        (ref) => null);
-
-Map<String, Adapter>? _internalAdapters;
-
 R logTime<R>(String? name, R cb()) {
   if (name == null) return cb();
   final a1 = DateTime.now().millisecondsSinceEpoch;
@@ -296,14 +290,20 @@ Future<R> logTimeAsync<R>(String? name, Future<R> cb()) async {
 @protected
 mixin NothingMixin {}
 
-final initializeAdapters = FutureProvider<bool>((ref) async {
-  final arg = ref.read(adapterProviders)!;
-  _internalAdapters = arg.map((key, value) => MapEntry(key, ref.read(value)));
+Map<String, Adapter>? _internalAdaptersMap;
+Map<String, Provider<Adapter<DataModelMixin>>>? _internalProvidersMap;
+
+final initializeFlutterData =
+    FutureProvider.family<bool, Map<String, Provider<Adapter<DataModelMixin>>>>(
+        (ref, arg) async {
+  _internalProvidersMap = arg;
+  _internalAdaptersMap =
+      arg.map((key, value) => MapEntry(key, ref.read(value)));
 
   await ref.read(localStorageProvider).initialize();
 
   // initialize and register
-  for (final adapter in _internalAdapters!.values) {
+  for (final adapter in _internalAdaptersMap!.values) {
     adapter.dispose();
     await adapter.initialize(ref: ref);
   }

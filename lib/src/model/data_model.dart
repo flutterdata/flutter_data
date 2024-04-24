@@ -31,10 +31,10 @@ mixin DataModelMixin<T extends DataModelMixin<T>> {
   T get _this => this as T;
 
   /// Exposes this type's [Adapter]
-  Adapter<T> get _adapter => _internalAdapters![_internalType] as Adapter<T>;
+  Adapter<T> get _adapter => _internalAdaptersMap![_internalType] as Adapter<T>;
 
   T init() {
-    final adapter = _internalAdapters![_internalType];
+    final adapter = _internalAdaptersMap![_internalType];
     if (adapter != null) {
       adapter.initModel(
         this,

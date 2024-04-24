@@ -27,8 +27,7 @@ void main() async {
 
     print('Using temporary directory: ${_dir.path}');
 
-    container.read(adapterProviders.notifier).state = adapterProvidersMap;
-    await container.read(initializeAdapters.future);
+    await container.read(initializeFlutterData(adapterProvidersMap).future);
     container.users.logLevel = 2;
     container.tasks.logLevel = 2;
 
