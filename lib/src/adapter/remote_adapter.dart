@@ -498,7 +498,6 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
         return label.model as R?;
       }
 
-      print('1');
       final data = await deserialize(body as Map<String, dynamic>,
           key: label.model!._key);
       final model = data.model!;
@@ -507,7 +506,6 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
       if (model._key != label.model!._key) {
         deleteLocalByKeys({label.model!._key!});
       }
-      print('2');
       model.saveLocal();
 
       log(label, 'saved in local storage and remote');
@@ -532,7 +530,6 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
       return response.body as R?;
     }
 
-    // TODO test: not properly deserializing findAll with relationship references (see example app)
     final deserialized = await deserialize(body);
 
     if (isFindAll || (isCustom && deserialized.model == null)) {
@@ -584,10 +581,7 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
   Future<void> _saveDeserialized(DeserializedData deserialized) async {
     final models = [...deserialized.models, ...deserialized.included];
     if (models.isEmpty) return;
-    await logTimeAsync('[_saveDeserialized] writing ${models.length} models',
-        () async {
-      await saveManyLocal(models.cast());
-    });
+    await saveManyLocal(models.cast());
   }
 
   /// Returns URL for [findAll]. Defaults to [type].

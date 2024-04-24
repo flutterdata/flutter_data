@@ -13,6 +13,7 @@ class Task extends DataModel<Task> {
   final int? id;
   final String title;
   final bool completed;
+  @JsonKey(name: 'userId')
   final BelongsTo<User>? user;
 
   Task({this.id, required this.title, this.completed = false, this.user});

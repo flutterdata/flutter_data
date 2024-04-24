@@ -19,7 +19,6 @@ void main() async {
         localStorageProvider.overrideWith(
           (ref) => LocalStorage(
             baseDirFn: () => _dir.path,
-            encryptionKey: 'blah',
             clear: LocalStorageClearStrategy.always,
           ),
         ),
@@ -39,7 +38,7 @@ void main() async {
     final user2 = container.users.findOneLocalById(1);
 
     assert(user.name == user2!.name);
-    print(user.tasks.length); // TODO fix
+    assert(user.tasks.length == 3);
   } finally {
     await container.read(localStorageProvider).destroy();
   }

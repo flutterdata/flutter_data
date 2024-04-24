@@ -24,15 +24,6 @@ mixin _SerializationAdapter<T extends DataModelMixin<T>> on _BaseAdapter<T> {
     return map;
   }
 
-  // Future<DeserializedData<T>> deserialize(Object? data,
-  //     {String? key, async = true}) async {
-  //   final z = await runInIsolate((container) async {
-
-  //     return <DataModelMixin>[];
-  //   });
-  //   return DeserializedData([]);
-  // }
-
   (List<DataModelMixin>, List<DataModelMixin>) _deserialize(
       Adapter adapter, Object? data,
       {String? key}) {
@@ -78,9 +69,9 @@ mixin _SerializationAdapter<T extends DataModelMixin<T>> on _BaseAdapter<T> {
             }
 
             if (metadata.kind == 'BelongsTo') {
-              // NOTE: when _process was async, a sqlite bug
-              // appears when awaiting it (db turns to inMemory and closed)
-              // and leaving everything sync works for now
+              // NOTE: when _processIdAndAddInclude was async, a sqlite bug
+              // appeared when awaiting it (db turns to inMemory and closed)
+              // so leaving everything sync works for now
               final key = _processIdAndAddInclude(mapIn[mapKey], relType);
               if (key != null) mapOut[mapKey] = key;
             }

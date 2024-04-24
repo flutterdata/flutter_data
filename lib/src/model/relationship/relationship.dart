@@ -99,7 +99,7 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
 
     if (order == -1) {
       db.execute(
-          'UPDATE _edges SET dest = ? WHERE key_ = ? AND name_ = ? AND _key = ?',
+          'UPDATE _edges SET _key = ? WHERE key_ = ? AND name_ = ? AND _key = ?',
           args);
     } else {
       db.execute(

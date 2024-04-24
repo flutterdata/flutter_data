@@ -10,7 +10,7 @@ part of 'task.dart';
 
 mixin _$TaskAdapter on Adapter<Task> {
   static final Map<String, RelationshipMeta> _kTaskRelationshipMetas = {
-    'user': RelationshipMeta<User>(
+    'userId': RelationshipMeta<User>(
       name: 'user',
       inverseName: 'tasks',
       type: 'users',
@@ -50,8 +50,8 @@ extension TaskAdapterX on Adapter<Task> {
 
 extension TaskRelationshipGraphNodeX on RelationshipGraphNode<Task> {
   RelationshipGraphNode<User> get user {
-    final meta =
-        _$TaskAdapter._kTaskRelationshipMetas['user'] as RelationshipMeta<User>;
+    final meta = _$TaskAdapter._kTaskRelationshipMetas['userId']
+        as RelationshipMeta<User>;
     return meta.clone(
         parent: this is RelationshipMeta ? this as RelationshipMeta : null);
   }
@@ -65,14 +65,14 @@ Task _$TaskFromJson(Map<String, dynamic> json) => Task(
       id: json['id'] as int?,
       title: json['title'] as String,
       completed: json['completed'] as bool? ?? false,
-      user: json['user'] == null
+      user: json['userId'] == null
           ? null
-          : BelongsTo<User>.fromJson(json['user'] as Map<String, dynamic>),
+          : BelongsTo<User>.fromJson(json['userId'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$TaskToJson(Task instance) => <String, dynamic>{
       'id': instance.id,
       'title': instance.title,
       'completed': instance.completed,
-      'user': instance.user,
+      'userId': instance.user,
     };

@@ -3,13 +3,11 @@ part of flutter_data;
 class LocalStorage {
   LocalStorage({
     required this.baseDirFn,
-    this.encryptionKey,
     LocalStorageClearStrategy? clear,
   }) : clear = clear ?? LocalStorageClearStrategy.never;
 
   var isInitialized = false;
 
-  final String? encryptionKey;
   final FutureOr<String> Function() baseDirFn;
   final LocalStorageClearStrategy clear;
 

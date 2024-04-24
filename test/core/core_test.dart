@@ -65,9 +65,7 @@ void main() async {
       familias.add(familia);
     }
 
-    await logTimeAsync('bulk save', () async {
-      await container.familia.saveManyLocal(familias);
-    });
+    await container.familia.saveManyLocal(familias);
 
     expect(container.familia.countLocal, length);
   });
