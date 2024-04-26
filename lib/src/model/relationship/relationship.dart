@@ -53,8 +53,13 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
 
     // setting up from scratch, remove all and add keys
 
-    _removeAll(notify: false);
-    _addAll(_uninitializedKeys!, notify: false);
+    db.execute('BEGIN');
+    final existingKeys = keys;
+    final keysToAdd = _uninitializedKeys!.difference(existingKeys);
+    final keysToRemove = existingKeys.difference(_uninitializedKeys!);
+    _removeAll(keysToRemove);
+    _addAll(keysToAdd);
+    db.execute('COMMIT');
 
     _uninitializedKeys!.clear();
 
@@ -64,8 +69,11 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
   // implement collection-like methods
 
   void _addAll(Iterable<String> keys, {bool notify = true}) {
+    if (keys.isEmpty) {
+      return;
+    }
     final ps = db.prepare(
-        'REPLACE INTO _edges (key_, name_, _key, _name) VALUES (?, ?, ?, ?)');
+        'INSERT OR IGNORE INTO _edges (key_, name_, _key, _name) VALUES (?, ?, ?, ?)');
     final additions = [];
     for (final key in keys) {
       final order = ownerKey.compareTo(key);
@@ -115,32 +123,31 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
     return true;
   }
 
-  void _removeAll({bool notify = true}) {
-    db.execute(
-        'DELETE FROM _edges WHERE (key_ = ? AND name_ = ?) OR (_key = ? AND _name = ?)',
-        [_ownerKey!, _name!, _ownerKey!, _name!]);
+  bool _remove(E value, {bool notify = true}) {
+    _removeAll({value._key!}, notify: notify);
+    return true;
   }
 
-  bool _remove(E value) {
-    // -1 is ascending
-    final currentKey = value._key!;
-    final order = ownerKey.compareTo(currentKey);
-    final args = [ownerKey, name, currentKey];
+  void _removeAll(Set<String> keys, {bool notify = true}) {
+    if (keys.isEmpty) {
+      return;
+    }
+    final [ps1, ps2] = db.prepareMultiple('''
+      DELETE FROM _edges WHERE key_ = ? AND name_ = ? AND _key = ?;
+      DELETE FROM _edges WHERE _key = ? AND _name = ? AND key_ = ?;
+    ''');
 
-    if (order == -1) {
-      db.execute(
-          'DELETE FROM _edges WHERE key_ = ? AND name_ = ? AND _key = ?', args);
-    } else {
-      db.execute(
-          'DELETE FROM _edges WHERE _key = ? AND _name = ? AND key_ = ?', args);
+    for (final key in keys) {
+      final order = ownerKey.compareTo(key);
+      final args = [ownerKey, name, key];
+      (order == -1 ? ps1 : ps2).execute(args);
     }
 
     _adapter.core._notify(
-      [ownerKey, value._key!],
+      [ownerKey, ...keys],
       metadata: _name,
       type: DataGraphEventType.removeEdge,
     );
-    return true;
   }
 
   Iterable<Relationship>
@@ -169,7 +176,7 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
 
   Set<String> get _keys {
     if (_ownerKey == null) return {};
-    return _adapter._keysFor(ownerKey, _name!);
+    return _adapter._keysFor(ownerKey, name);
   }
 
   DelayedStateNotifier<DataGraphEvent> get _relationshipEventNotifier {

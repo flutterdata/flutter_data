@@ -60,7 +60,7 @@ mixin BookAuthorAdapter on Adapter<BookAuthor> {
   Future<BookAuthor> caps(
     Object id, {
     bool remote = true,
-    bool? background,
+    bool background = false,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     OnSuccessOne<BookAuthor>? onSuccess,

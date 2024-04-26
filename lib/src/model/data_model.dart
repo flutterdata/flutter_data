@@ -105,7 +105,7 @@ extension DataModelExtension<T extends DataModelMixin<T>> on DataModelMixin<T> {
     bool remote = true,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
-    bool? background,
+    bool background = false,
     DataRequestLabel? label,
   }) async {
     return await _adapter.findOne(

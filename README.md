@@ -30,7 +30,7 @@ Flutter Data is an offline-first data framework with a customizable REST client 
 
 ## 👩🏾‍💻 Quick introduction
 
-In Flutter Data, every model gets is adapter. These adapters can be extended by mixing in custom adapters.
+In Flutter Data, every model gets its default adapter. These adapters can be extended by mixing in custom adapters.
 
 Annotate a model with `@DataAdapter` and pass a custom adapter:
 
@@ -150,6 +150,11 @@ Fully compatible with the tools we know and love:
 
  - [Drexbible](https://snapcraft.io/drexbible)
 
+## 🚨 BREAKING CHANGES IN 2.0
+
+ - All methods are now directly on `Adapter`, there is no `Repository`, `RemoteAdapter` or `LocalAdapter`. Any method you are looking for is probably on `Adapter`, for example, `findAll` from `LocalAdapter` is now called `findAllLocal`
+ - For initialization we no longer call the `configure...` method on the Riverpod overrides, we just do `localStorageProvider.overrideWithValue` and pass a `LocalStorage` instance; the actual initialization is done via `initializeFlutterData` which needs an adapter map. An `adapterProvidersMap` is conveniently code-generated and available on `main.data.dart`
+
 ## 📚 API
 
 ### Adapters
@@ -206,7 +211,7 @@ Future<List<T>> findAll({
 Future<T?> findOne(
     Object id, {
     bool remote = true,
-    bool? background,
+    bool background = false,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     OnSuccessOne<T>? onSuccess,

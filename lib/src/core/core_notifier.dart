@@ -54,14 +54,16 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent> {
   }
 
   @protected
-  Future<void> deleteKeys(Iterable<String> keys) async {
+  Future<void> deleteKeysWithEdges(Iterable<String> keys) async {
     final params = keys.map((_) => '?').join(', ');
     final intKeys = keys.map((k) => k.detypifyKey()!).toList();
 
+    storage.db.execute('BEGIN');
     storage.db.execute('DELETE FROM _keys WHERE key IN ($params);', intKeys);
     storage.db.execute(
         'DELETE FROM _edges WHERE key_ IN ($params) OR _key IN ($params);',
         [...keys, ...keys]);
+    storage.db.execute('COMMIT');
   }
 
   @protected

@@ -264,6 +264,23 @@ void main() async {
         [Person(name: 'Zof', age: 33), Person(name: 'Walter', age: 21)]));
   });
 
+  test('watchAllNotifier with multiple models and logger',
+      overridePrint(() async {
+    final notifier = container.houses.watchAllNotifier();
+    final tester = notifier.tester();
+
+    container.houses.logLevel = 2;
+    container.houses
+        .saveManyLocal(List.generate(5, (i) => House(address: '$i Main St')));
+
+    await tester.expectDataState(hasLength(5));
+
+    var regexp =
+        RegExp(r'^\d{2}:\d{3} \[watchAll\/houses@[0-9]{10}\] updated models');
+    expect(logging.first, matches(regexp));
+    container.houses.logLevel = 0;
+  }));
+
   test('watchOneNotifier and watchOne', () async {
     final tester = container.people.watchOneNotifier('1').tester();
 
@@ -359,11 +376,11 @@ void main() async {
     await tester.expectDataState(null);
   });
 
-  test('watchOneNotifier without ID and alsoWatch', () async {
-    final steve = Person(name: 'Steve-O', age: 30).saveLocal();
+  test('watchOneNotifier without ID and nested alsoWatch', () async {
+    final peter = Person(name: 'Peter', age: 30).saveLocal();
 
     final notifier = container.people.watchOneNotifier(
-      steve,
+      peter,
       alsoWatch: (p) => {
         p, // also tests self (`p`, which is ignored)
         p.familia,
@@ -374,27 +391,39 @@ void main() async {
     );
     final tester = notifier.tester(fireImmediately: true);
 
-    await tester.expectDataState(steve);
+    await tester.expectDataState(peter);
 
-    final cottage = House(id: '32769', address: '32769 Winding Road');
+    final cottage = House(
+        id: '32769', address: '32769 Winding Road', currentLibrary: HasMany());
 
     final familia = Familia(
       surname: 'Marquez',
       cottage: cottage.asBelongsTo,
     ).saveLocal();
-    steve.familia.value = familia;
-    await tester.expectDataState(steve);
+    peter.familia.value = familia;
+    await tester.expectDataState(peter);
 
-    Familia(surname: 'Thomson', cottage: cottage.asBelongsTo).saveLocal();
+    Familia(id: 'f2', surname: 'Thomson', cottage: cottage.asBelongsTo)
+        .saveLocal();
 
-    await tester.expectDataState(steve);
+    await tester.expectDataState(peter);
 
     House(id: '32769', address: '8 Hill St').saveLocal();
-    await tester.expectDataState(steve);
+    await tester.expectDataState(peter);
 
-    Familia(surname: 'Thomson', cottage: BelongsTo.remove()).saveLocal();
-    await tester.expectDataState(steve);
-  }, skip: true);
+    Familia(id: 'f2', surname: 'Thomson', cottage: BelongsTo.remove())
+        .saveLocal();
+    await tester.expectDataState(peter);
+
+    final book = Book(id: 2, ardentSupporters: HasMany());
+    cottage
+      ..currentLibrary!.add(book)
+      ..saveLocal();
+    await tester.expectDataState(peter);
+
+    book.ardentSupporters.add(Person(name: 'Frank'));
+    await tester.expectDataState(peter);
+  });
 
   test('watchOneNotifier with where/map', () async {
     Person(id: '1', name: 'Zof', age: 23).saveLocal();

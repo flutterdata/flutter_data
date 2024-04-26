@@ -123,14 +123,13 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
   Future<T?> findOne(
     Object id, {
     bool remote = true,
-    bool? background,
+    bool background = false,
     Map<String, dynamic>? params,
     Map<String, String>? headers,
     OnSuccessOne<T>? onSuccess,
     OnErrorOne<T>? onError,
     DataRequestLabel? label,
   }) async {
-    background ??= false;
     params = await defaultParams & params;
     headers = await defaultHeaders & headers;
 

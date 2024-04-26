@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.0-rc2] - April 24th, 2024
+
+ - New version based on `sqlite3`
+
 ## [1.5.14] - September 22nd, 2023
 
 - Fix: all-watchers should be non-nullable, consistent with non-nullable all-finders

@@ -144,7 +144,9 @@ extension _R2 on (String, String) {
   }
 
   bool unorderedEquals((String, String) record) {
-    return ($1 == record.$1 || $1 == record.$2) &&
-        ($2 == record.$1 || $2 == record.$2);
+    return $1 == record.$1 ||
+        $1 == record.$2 ||
+        $2 == record.$1 ||
+        $2 == record.$2;
   }
 }

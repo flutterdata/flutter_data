@@ -22,3 +22,6 @@ coverage_badge.svg
 build/
 tmp/
 download/
+
+.vscode/launch.json
+example/.vscode/launch.json

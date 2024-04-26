@@ -272,7 +272,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     db.execute(
         'DELETE FROM $internalType WHERE key IN (${keys.map((_) => '?').join(', ')})',
         intKeys);
-    core.deleteKeys(keys);
+    core.deleteKeysWithEdges(keys);
     if (notify) {
       core._notify([...keys], type: DataGraphEventType.removeNode);
     }
@@ -285,7 +285,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     final _ = db.select('DELETE FROM $internalType RETURNING key;');
     final keys =
         _.map((e) => (e['key'] as int).typifyWith(internalType)).toList();
-    await core.deleteKeys(keys);
+    await core.deleteKeysWithEdges(keys);
 
     if (notify) {
       core._notify([internalType], type: DataGraphEventType.clear);

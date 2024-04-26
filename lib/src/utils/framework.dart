@@ -44,11 +44,11 @@ class DataFinder {
 }
 
 typedef DataFinderAll<T extends DataModelMixin<T>> = Future<List<T>> Function({
-  bool? remote,
-  bool? background,
+  bool remote,
+  bool background,
   Map<String, dynamic>? params,
   Map<String, String>? headers,
-  bool? syncLocal,
+  bool syncLocal,
   OnSuccessAll<T>? onSuccess,
   OnErrorAll<T>? onError,
   DataRequestLabel? label,
@@ -57,7 +57,7 @@ typedef DataFinderAll<T extends DataModelMixin<T>> = Future<List<T>> Function({
 typedef DataFinderOne<T extends DataModelMixin<T>> = Future<T?> Function(
   Object model, {
   bool remote,
-  bool? background,
+  bool background,
   Map<String, dynamic>? params,
   Map<String, String>? headers,
   OnSuccessOne<T>? onSuccess,
@@ -70,7 +70,7 @@ typedef DataWatcherAll<T extends DataModelMixin<T>> = DataStateNotifier<List<T>>
   bool? remote,
   Map<String, dynamic>? params,
   Map<String, String>? headers,
-  bool? syncLocal,
+  bool syncLocal,
   String? finder,
   DataRequestLabel? label,
 });

@@ -16,8 +16,8 @@ void main() async {
 
     container = ProviderContainer(
       overrides: [
-        localStorageProvider.overrideWith(
-          (ref) => LocalStorage(
+        localStorageProvider.overrideWithValue(
+          LocalStorage(
             baseDirFn: () => _dir.path,
             clear: LocalStorageClearStrategy.always,
           ),

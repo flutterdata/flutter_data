@@ -38,7 +38,7 @@ void main() async {
     expect(int.tryParse(key.split('#')[1]), isA<int>());
   });
 
-  test('saves key', () async {
+  test('saves key', overridePrint(() async {
     final residence = House(address: '123 Main St');
     final length = 1000;
     final div = 2;
@@ -68,7 +68,7 @@ void main() async {
     await container.familia.saveManyLocal(familias);
 
     expect(container.familia.countLocal, length);
-  });
+  }));
 
   test('typify', () {
     expect(2.typifyWith('posts'), 'posts#2');

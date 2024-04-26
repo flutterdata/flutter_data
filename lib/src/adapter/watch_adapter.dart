@@ -81,6 +81,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
     return internalWatch!(provider.notifier);
   }
 
+  // TODO should be watchOneNotifierById (the other one should accept a key)
   DataStateNotifier<T?> watchOneNotifier(Object model,
       {bool remote = false,
       Map<String, dynamic>? params,
@@ -168,11 +169,9 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
       }
 
       for (final event in events) {
-        final keypair = (event.keys.first, event.keys.last);
-
         // handle done loading
         if (notifier.data.isLoading &&
-            keypair.$2 == label.toString() &&
+            event.keys.last == label.toString() &&
             event.type == DataGraphEventType.doneLoading) {
           states.add(
               DataState(findAllLocal(), isLoading: false, exception: null));
@@ -180,7 +179,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
 
         if (notifier.data.isLoading == false &&
             event.type.isNode &&
-            keypair.$1.startsWith(internalType)) {
+            event.keys.first.startsWith(internalType)) {
           log(label!, 'updated models', logLevel: 2);
           states.add(DataState(
             findAllLocal(),
@@ -191,7 +190,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
         }
 
         if (event.type == DataGraphEventType.clear &&
-            keypair.$1.startsWith(internalType)) {
+            event.keys.first.startsWith(internalType)) {
           log(label!, 'clear local storage', logLevel: 2);
           states.add(DataState([], isLoading: false, exception: null));
         }
@@ -217,6 +216,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
     String? finder,
     DataRequestLabel? label,
   }) {
+    // TODO improve key/id passing logic
     final id = core.getIdForKey(key);
 
     // we can't use `findOne`'s default internal label
@@ -323,12 +323,10 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
       key = bufferModel?._key ?? key;
 
       for (final event in events) {
-        final keypair = (event.keys.first, event.keys.last);
-
-        if (keypair.contains(key)) {
+        if (event.keys.contains(key)) {
           // handle done loading
           if (notifier.data.isLoading &&
-              keypair.$2 == label.toString() &&
+              event.keys.last == label.toString() &&
               event.type == DataGraphEventType.doneLoading) {
             states
                 .add(DataState(bufferModel, isLoading: false, exception: null));
@@ -337,7 +335,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
           // add/update
           if (event.type == DataGraphEventType.updateNode) {
             if (notifier.data.isLoading == false) {
-              log(label!, 'added/updated node $keypair', logLevel: 2);
+              log(label!, 'added/updated node ${event.keys}', logLevel: 2);
               states.add(DataState(
                 bufferModel,
                 isLoading: notifier.data.isLoading,
@@ -350,8 +348,8 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
           // temporarily restore removed pair so that watchedRelationshipUpdate
           // has a chance to apply the update
           if (event.type == DataGraphEventType.removeEdge &&
-              !keypair.$1.startsWith('id:')) {
-            alsoWatchPairs.add(keypair);
+              !event.keys.first.startsWith('id:')) {
+            alsoWatchPairs.add((event.keys.first, event.keys.last));
           }
         }
 
@@ -359,7 +357,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
         if ([DataGraphEventType.removeNode, DataGraphEventType.clear]
                 .contains(event.type) &&
             bufferModel == null) {
-          log(label!, 'removed node $keypair', logLevel: 2);
+          log(label!, 'removed node ${event.keys}', logLevel: 2);
           states.add(DataState(
             null,
             isLoading: notifier.data.isLoading,
@@ -371,19 +369,20 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
         // updates on watched relationships condition
         final watchedRelationshipUpdate = event.type.isEdge &&
             alsoWatchPairs
-                .where((pair) => pair.unorderedEquals(keypair))
+                .where((pair) =>
+                    pair.unorderedEquals((event.keys.first, event.keys.last)))
                 .isNotEmpty;
 
         // updates on watched models (of relationships) condition
         final watchedModelUpdate = event.type.isNode &&
             alsoWatchPairs
-                .where((pair) => pair.contains(keypair.$1))
+                .where((pair) => pair.contains(event.keys.first))
                 .isNotEmpty;
 
         // if model is loaded and any condition passes, notify update
         if (notifier.data.isLoading == false &&
             (watchedRelationshipUpdate || watchedModelUpdate)) {
-          log(label!, 'relationship update $keypair', logLevel: 2);
+          log(label!, 'relationship update ${event.keys}', logLevel: 2);
           states.add(DataState(
             bufferModel,
             isLoading: notifier.data.isLoading,
@@ -483,7 +482,6 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
     String? finder,
     DataRequestLabel? label,
   }) {
-    // print('in provider getting ${model}');
     final key = core.getKeyForModelOrId(internalType, model);
 
     final relationshipMetas = alsoWatch
