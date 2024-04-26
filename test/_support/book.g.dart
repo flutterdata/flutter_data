@@ -188,7 +188,7 @@ extension LibraryRelationshipGraphNodeX on RelationshipGraphNode<Library> {
 
 _$BookAuthorImpl _$$BookAuthorImplFromJson(Map<String, dynamic> json) =>
     _$BookAuthorImpl(
-      id: json['id'] as int,
+      id: (json['id'] as num).toInt(),
       name: json['name'] as String?,
       books: HasMany<Book>.fromJson(json['books'] as Map<String, dynamic>),
     );
@@ -201,9 +201,9 @@ Map<String, dynamic> _$$BookAuthorImplToJson(_$BookAuthorImpl instance) =>
     };
 
 _$BookImpl _$$BookImplFromJson(Map<String, dynamic> json) => _$BookImpl(
-      id: json['id'] as int,
+      id: (json['id'] as num).toInt(),
       title: json['title'] as String?,
-      numberOfSales: json['number_of_sales'] as int? ?? 0,
+      numberOfSales: (json['number_of_sales'] as num?)?.toInt() ?? 0,
       originalAuthor: json['original_author_id'] == null
           ? null
           : BelongsTo<BookAuthor>.fromJson(
@@ -236,7 +236,7 @@ Map<String, dynamic> _$$BookImplToJson(_$BookImpl instance) {
 
 _$LibraryImpl _$$LibraryImplFromJson(Map<String, dynamic> json) =>
     _$LibraryImpl(
-      id: json['id'] as int,
+      id: (json['id'] as num).toInt(),
       name: json['name'] as String,
       books: HasMany<Book>.fromJson(json['books'] as Map<String, dynamic>),
     );

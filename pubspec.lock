@@ -10,7 +10,7 @@ packages:
     source: hosted
     version: "67.0.0"
   analyzer:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: analyzer
       sha256: "37577842a27e4338429a1cbc32679d508836510b056f1eedf0c8d20e39c1383d"
@@ -26,7 +26,7 @@ packages:
     source: hosted
     version: "2.5.0"
   async:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: async
       sha256: "947bfcf187f74dbc5e146c9eb9c0f10c9f8b30743e341481c1e2ed3ecc18c20c"
@@ -146,7 +146,7 @@ packages:
     source: hosted
     version: "3.1.1"
   coverage:
-    dependency: "direct dev"
+    dependency: transitive
     description:
       name: coverage
       sha256: "8acabb8306b57a409bf4c83522065672ee13179297a6bb0cb9ead73948df7c76"
@@ -154,7 +154,7 @@ packages:
     source: hosted
     version: "1.7.2"
   crypto:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: crypto
       sha256: ff625774173754681d66daaf4a448684fb04b78f902da9cb3d308c19cc5e8bab
@@ -306,7 +306,7 @@ packages:
     source: hosted
     version: "0.7.1"
   json_annotation:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: json_annotation
       sha256: "1ce844379ca14835a50d2f019a3099f419082cfdd231cd86a142af94dd5c6bb1"
@@ -345,14 +345,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.12.16+1"
-  messagepack:
-    dependency: "direct main"
-    description:
-      name: messagepack
-      sha256: "11e69dd79ba84ba901261558881b42ac8b24155a7846a344875a32c8b0866d71"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.1"
   meta:
     dependency: "direct main"
     description:
@@ -402,7 +394,7 @@ packages:
     source: hosted
     version: "1.9.0"
   pool:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: pool
       sha256: "20fe868b6314b322ea036ba325e6fc0711a22948856475e2c2b6306e8ab39c2a"
@@ -425,22 +417,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.3"
-  recase:
-    dependency: "direct main"
-    description:
-      name: recase
-      sha256: e4eb4ec2dcdee52dcf99cb4ceabaffc631d7424ee55e56f280bc039737f89213
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.1.0"
-  retry:
-    dependency: "direct main"
-    description:
-      name: retry
-      sha256: "822e118d5b3aafed083109c72d5f484c6dc66707885e07c0fbcb8b986bba7efc"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.1.2"
   riverpod:
     dependency: "direct main"
     description:

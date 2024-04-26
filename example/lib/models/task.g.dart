@@ -62,7 +62,7 @@ extension TaskRelationshipGraphNodeX on RelationshipGraphNode<Task> {
 // **************************************************************************
 
 Task _$TaskFromJson(Map<String, dynamic> json) => Task(
-      id: json['id'] as int?,
+      id: (json['id'] as num?)?.toInt(),
       title: json['title'] as String,
       completed: json['completed'] as bool? ?? false,
       user: json['userId'] == null

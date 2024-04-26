@@ -26,10 +26,6 @@ extension _DataModelListX on Iterable<DataModelMixin> {
   }
 }
 
-extension _ListX<T> on List<T> {
-  T? getSafe(int index) => (length > index) ? this[index] : null;
-}
-
 extension DynamicX on dynamic {
   String typifyWith(String type) {
     final _this = this.toString();

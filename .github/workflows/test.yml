@@ -39,9 +39,12 @@ jobs:
         run: dart test
       - name: Generate coverage
         if: runner.os == 'macOS'
-        run: dart run coverage:test_with_coverage
+        run: dart run test --coverage=coverage
+      - name: Convert to lcov
+        run: dart pub global run coverage:format_coverage --in="./coverage/test" --out="./coverage/lcov.info" --lcov --report-on="./lib"
       - name: Send coverage report to codecov
         if: runner.os == 'macOS'
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v4
         with:
+          files: ./coverage/lcov.info
           token: ${{ secrets.CODECOV_TOKEN }}

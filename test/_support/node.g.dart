@@ -77,7 +77,7 @@ extension NodeRelationshipGraphNodeX on RelationshipGraphNode<Node> {
 // **************************************************************************
 
 _$NodeImpl _$$NodeImplFromJson(Map<String, dynamic> json) => _$NodeImpl(
-      id: json['id'] as int?,
+      id: (json['id'] as num?)?.toInt(),
       name: json['name'] as String?,
       parent: json['parent'] == null
           ? null

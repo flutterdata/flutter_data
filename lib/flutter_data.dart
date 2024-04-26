@@ -14,7 +14,6 @@ import 'package:http/http.dart' as http;
 import 'package:inflection3/inflection3.dart' as inflection;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path_helper;
-import 'package:pool/pool.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:state_notifier/state_notifier.dart';
