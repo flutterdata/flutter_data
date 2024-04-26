@@ -71,14 +71,14 @@ void main() async {
   });
 
   test('serialize empty', () async {
-    final data = await container.people.deserialize(null);
+    final data = container.people.deserialize(null);
     expect(data.model, isNull);
-    final data2 = await container.people.deserialize('');
+    final data2 = container.people.deserialize('');
     expect(data2.model, isNull);
   });
 
   test('deserialize multiple', () async {
-    final data = await container.people.deserialize([
+    final data = container.people.deserialize([
       {'_id': '23', 'name': 'Ko', 'age': 24},
       {'_id': '26', 'name': 'Ze', 'age': 58}
     ]);
@@ -90,17 +90,15 @@ void main() async {
   });
 
   test('deserialize with BelongsTo id', () async {
-    final p = (await container.people.deserialize([
+    final p = (container.people.deserialize([
       {'_id': '1', 'name': 'Na', 'age': 88, 'familia': null}
-    ]))
-        .model!
-        .saveLocal();
+    ])).model!.saveLocal();
 
     Familia(id: '1', surname: 'Kong').saveLocal();
 
     expect(p.familia.key, isNull);
 
-    final p1d = await container.people.deserialize([
+    final p1d = container.people.deserialize([
       {'_id': '27', 'name': 'Ko', 'age': 24, 'familia': '332'}
     ]);
     final p1 = p1d.model!.saveLocal();
@@ -124,14 +122,14 @@ void main() async {
   });
 
   test('deserialize returns even if no ID is present', () async {
-    final data = await container.familia.deserialize([
+    final data = container.familia.deserialize([
       {'surname': 'Ko'}
     ]);
     expect(data.model, isNotNull);
   });
 
   test('deserialize with HasMany ids (including nulls)', () async {
-    final data = await container.familia.deserialize([
+    final data = container.familia.deserialize([
       {
         'id': '1',
         'surname': 'Ko',
@@ -150,7 +148,7 @@ void main() async {
   });
 
   test('deserialize with complex-named relationship', () async {
-    final data = await container.books.deserialize([
+    final data = container.books.deserialize([
       {
         'id': 1,
         'name': 'Ludwig',
@@ -160,7 +158,7 @@ void main() async {
   });
 
   test('deserialize with embedded relationships', () async {
-    final data = await container.familia.deserialize(
+    final data = container.familia.deserialize(
       [
         {
           'id': '1',
@@ -196,7 +194,7 @@ void main() async {
   });
 
   test('deserialize with nested embedded relationships', () async {
-    final data = await container.people.deserialize(
+    final data = container.people.deserialize(
       [
         {
           '_id': '1',
@@ -223,7 +221,7 @@ void main() async {
       () async {
     BookAuthor(id: 332, name: 'Zhung', books: HasMany()).saveLocal();
 
-    final deserialized = await container.books.deserialize([
+    final deserialized = container.books.deserialize([
       {'id': 27, 'title': 'Ko', 'original_author_id': 332}
     ]);
     final book = deserialized.model!.saveLocal();

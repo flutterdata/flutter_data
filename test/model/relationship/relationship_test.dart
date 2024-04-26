@@ -192,14 +192,13 @@ void main() async {
     expect(familia2.persons.toSet(), {brian});
 
     // new familia comes in from API (simulate) with no persons relationship information
-    final familia3 =
-        (await container.familia.deserialize({'id': '229', 'surname': 'Rose'}))
-            .model!;
+    final familia3 = (container.familia
+        .deserialize({'id': '229', 'surname': 'Rose'})).model!;
     // it should keep the relationships unaltered
     expect(familia3.persons.toSet(), {brian});
 
     // new familia comes in from API (simulate) with empty persons relationship
-    final familia4 = (await container.familia
+    final familia4 = (container.familia
             .deserialize({'id': '229', 'surname': 'Rose', 'persons': []}))
         .model!
         .saveLocal();

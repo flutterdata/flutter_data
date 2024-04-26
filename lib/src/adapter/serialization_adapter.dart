@@ -97,37 +97,31 @@ mixin _SerializationAdapter<T extends DataModelMixin<T>> on _BaseAdapter<T> {
 
   /// Returns a [DeserializedData] object when deserializing a given [data].
   ///
-  Future<DeserializedData<T>> deserialize(Object? data,
-      {String? key, bool async = true}) async {
-    final record = async
-        ? await runInIsolate(
-            (adapter) => adapter._deserialize(adapter, data, key: key))
-        : _deserialize(this as Adapter, data, key: key);
+  DeserializedData<T> deserialize(Object? data, {String? key}) {
+    final record = _deserialize(this as Adapter, data, key: key);
     return DeserializedData<T>(record.$1.cast<T>(), included: record.$2);
   }
 
-  Future<DeserializedData<T>> deserializeAndSave(Object? data,
-      {String? key, bool notify = true, bool ignoreReturn = false}) async {
-    final record = await runInIsolate<
-        (
-          List<DataModelMixin>,
-          List<DataModelMixin>,
-          List<String>
-        )>((adapter) async {
-      final emptyDm = <DataModelMixin>[];
-      final r = adapter._deserialize(adapter, data, key: key);
-      final models = [...r.$1, ...r.$2];
-      if (models.isEmpty) return (emptyDm, emptyDm, <String>[]);
-      final savedKeys = await adapter.saveManyLocal(models, async: false);
-      return ignoreReturn
-          ? (emptyDm, emptyDm, savedKeys!)
-          : (r.$1, r.$2, savedKeys!);
+  Future<DeserializedData<T>> deserializeAsync(Object? data,
+      {String? key,
+      bool save = false,
+      bool ignoreReturn = false,
+      bool notify = true}) async {
+    final record =
+        await runInIsolate<(DeserializedData?, List<String>)>((adapter) async {
+      final deserialized = adapter.deserialize(data, key: key);
+      if (deserialized.models.isEmpty || save == false)
+        return (deserialized, <String>[]);
+      final savedKeys = await adapter.saveManyLocal(
+          [...deserialized.models.cast(), ...deserialized.included],
+          async: false);
+      return ignoreReturn ? (null, savedKeys!) : (deserialized, savedKeys!);
     });
-    final (models, included, savedKeys) = record;
+    final (deserialized, savedKeys) = record;
     if (notify && savedKeys.isNotEmpty) {
       core._notify(savedKeys, type: DataGraphEventType.updateNode);
     }
-    return DeserializedData<T>(models.cast<T>(), included: included);
+    return (deserialized as DeserializedData<T>?) ?? DeserializedData<T>([]);
   }
 }
 
@@ -137,14 +131,4 @@ class DeserializedData<T extends DataModelMixin<T>> {
   final List<T> models;
   final List<DataModelMixin> included;
   T? get model => models.singleOrNull;
-
-  void _log(Adapter adapter, DataRequestLabel label) {
-    adapter.log(label, '${models.toShortLog()} fetched from remote');
-    final groupedIncluded = included.groupListsBy((m) => m._adapter.type);
-    for (final e in groupedIncluded.entries) {
-      if (e.value.isNotEmpty) {
-        adapter.log(label, '  - with ${e.key} ${e.value.toShortLog()} ');
-      }
-    }
-  }
 }

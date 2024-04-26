@@ -296,7 +296,7 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
   /// as by default they are used once and then closed.
   @protected
   @visibleForTesting
-  http.Client get httpClient => ref.read(httpClientProvider);
+  http.Client get httpClient => ref.read(httpClientFactoryProvider).call();
 
   /// The function used to perform an HTTP request and return an [R].
   ///
@@ -498,8 +498,8 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
         return label.model as R?;
       }
 
-      final data = await deserialize(body as Map<String, dynamic>,
-          key: label.model!._key);
+      final data =
+          deserialize(body as Map<String, dynamic>, key: label.model!._key);
       final model = data.model!;
 
       // if there has been a migration to a new key, delete the old one
@@ -530,8 +530,17 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
       return response.body as R?;
     }
 
-    final deserialized = await deserializeAndSave(body);
-    deserialized._log(adapter, label);
+    final deserialized = await deserializeAsync(body, save: true);
+
+    adapter.log(
+        label, '${deserialized.models.toShortLog()} fetched from remote');
+    final groupedIncluded =
+        deserialized.included.groupListsBy((m) => m._adapter.type);
+    for (final e in groupedIncluded.entries) {
+      if (e.value.isNotEmpty) {
+        adapter.log(label, '  - with ${e.key} ${e.value.toShortLog()} ');
+      }
+    }
 
     if (isFindAll || (isCustom && deserialized.model == null)) {
       late R? models;
@@ -647,4 +656,5 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
       {'Content-Type': 'application/json'};
 }
 
-final httpClientProvider = Provider<http.Client>((_) => http.Client());
+final httpClientFactoryProvider =
+    Provider<http.Client Function()>((_) => () => http.Client());

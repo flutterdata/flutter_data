@@ -67,6 +67,8 @@ class HasMany<E extends DataModelMixin<E>> extends Relationship<E, Set<E>> {
 
   E get first => _iterable.first;
 
+  E? get safeFirst => isNotEmpty ? first : null;
+
   bool get isEmpty => length == 0;
 
   bool get isNotEmpty => length > 0;

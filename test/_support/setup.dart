@@ -33,17 +33,17 @@ final logging = [];
 Future<void> setUpFn() async {
   container = ProviderContainer(
     overrides: [
-      httpClientProvider.overrideWith((ref) {
-        return MockClient((req) async {
-          final response = ref.watch(responseProvider);
-          final text = await response.callback(req);
-          if (text is String) {
-            return http.Response(text, response.statusCode,
-                headers: response.headers);
-          }
-          return http.Response.bytes(text as Uint8List, response.statusCode,
-              headers: response.headers);
-        });
+      httpClientFactoryProvider.overrideWith((ref) {
+        return () => MockClient((req) async {
+              final response = ref.watch(responseProvider);
+              final text = await response.callback(req);
+              if (text is String) {
+                return http.Response(text, response.statusCode,
+                    headers: response.headers);
+              }
+              return http.Response.bytes(text as Uint8List, response.statusCode,
+                  headers: response.headers);
+            });
       }),
       coreNotifierThrottleDurationProvider.overrideWithValue(Duration.zero),
       // NOTE: Can't enable in-memory sqlite as it can't be shared across isolates
