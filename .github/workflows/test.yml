@@ -41,7 +41,9 @@ jobs:
         if: runner.os == 'macOS'
         run: dart run test --coverage=coverage
       - name: Convert to lcov
-        run: dart pub global run coverage:format_coverage --in="./coverage/test" --out="./coverage/lcov.info" --lcov --report-on="./lib"
+        run:
+          - dart pub global activate coverage
+          - dart pub global run coverage:format_coverage --in="./coverage/test" --out="./coverage/lcov.info" --lcov --report-on="./lib"
       - name: Send coverage report to codecov
         if: runner.os == 'macOS'
         uses: codecov/codecov-action@v4
