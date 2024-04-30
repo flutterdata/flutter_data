@@ -41,6 +41,7 @@ jobs:
         if: runner.os == 'macOS'
         run: dart run test --coverage=coverage
       - name: Convert to lcov
+        if: runner.os == 'macOS'
         run: |
           dart pub global activate coverage
           dart pub global run coverage:format_coverage --in="./coverage/test" --out="./coverage/lcov.info" --lcov --report-on="./lib"
