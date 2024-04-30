@@ -29,10 +29,6 @@ class LocalStorage {
         await destroy();
       }
 
-      if (Platform.isWindows) {
-        open.overrideFor(OperatingSystem.windows, _openOnWindows);
-      }
-
       db = sqlite3.open(path, mutex: false);
 
       if (inIsolate) {
@@ -113,12 +109,3 @@ enum LocalStorageClearStrategy {
 final localStorageProvider = Provider<LocalStorage>(
   (ref) => LocalStorage(baseDirFn: () => ''),
 );
-
-// platforms
-
-DynamicLibrary _openOnWindows() {
-  final scriptDir = File(Platform.script.toFilePath()).parent;
-  final libraryNextToScript =
-      File(path_helper.join(scriptDir.path, 'sqlite3.dll'));
-  return DynamicLibrary.open(libraryNextToScript.path);
-}
