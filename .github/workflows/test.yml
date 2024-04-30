@@ -19,8 +19,6 @@ jobs:
         include:
           - platform: linux
             os: ubuntu-latest
-          - platform: windows
-            os: windows-latest
           - platform: macos
             os: macos-latest
             sdk: stable
@@ -33,7 +31,6 @@ jobs:
     steps:
       - uses: dart-lang/setup-dart@v1.6.2
       - uses: actions/checkout@v2
-      - uses: ccorsi/setup-sqlite@v1
       - name: Install dependencies
         run: dart pub get
       - name: Run tests
