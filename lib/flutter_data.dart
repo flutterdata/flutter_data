@@ -38,7 +38,6 @@ part 'src/adapter/remote_adapter.dart';
 part 'src/adapter/serialization_adapter.dart';
 part 'src/adapter/watch_adapter.dart';
 part 'src/storage/local_storage.dart';
-part 'src/storage/in_memory_local_storage.dart';
 part 'src/utils/data_state.dart';
 part 'src/utils/extensions.dart';
 part 'src/utils/framework.dart';
