@@ -33,7 +33,7 @@ jobs:
     steps:
       - uses: dart-lang/setup-dart@v1.6.2
       - uses: actions/checkout@v2
-      - uses: actions/setup-sqlite-environment@v1
+      - uses: ccorsi/setup-sqlite@v1
       - name: Install dependencies
         run: dart pub get
       - name: Run tests
