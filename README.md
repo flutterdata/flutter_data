@@ -9,7 +9,7 @@
 
 ## Persistent reactive models in Flutter with zero boilerplate
 
-Flutter Data is an offline-first data framework with a customizable REST client and powerful model relationships, built on Riverpod.
+Flutter Data is a [local-first](https://www.inkandswitch.com/local-first/) data framework with a customizable REST client and powerful model relationships, built on Riverpod.
 
 <small>Inspired by [Ember Data](https://github.com/emberjs/data) and [ActiveRecord](https://guides.rubyonrails.org/active_record_basics.html).</small>
 

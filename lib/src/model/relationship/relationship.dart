@@ -53,10 +53,10 @@ sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
 
     // setting up from scratch, remove all and add keys
 
-    db.execute('BEGIN');
     final existingKeys = keys;
     final keysToAdd = _uninitializedKeys!.difference(existingKeys);
     final keysToRemove = existingKeys.difference(_uninitializedKeys!);
+    db.execute('BEGIN');
     _removeAll(keysToRemove);
     _addAll(keysToAdd);
     db.execute('COMMIT');

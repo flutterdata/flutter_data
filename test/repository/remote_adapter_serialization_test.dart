@@ -245,4 +245,40 @@ void main() async {
       'number_of_sales': 0,
     });
   });
+
+  test('deserialize async', () async {
+    final data = await container.people.deserializeAsync([
+      {'_id': '23', 'name': 'Ko', 'age': 24}
+    ]);
+
+    expect(data.models, [Person(id: '23', name: 'Ko', age: 24)]);
+
+    final data2 = await container.people.deserializeAsync([
+      {'_id': '26', 'name': 'Ze', 'age': 58}
+    ]);
+
+    expect(data2.models, [Person(id: '26', name: 'Ze', age: 58)]);
+  });
+
+  test('deserialize async concurrent', () async {
+    final p1 = container.people.deserializeAsync(
+        List.generate(500, (i) {
+          return {'_id': '$i', 'name': 'Tom $i', 'age': 18 + i};
+        }),
+        save: true);
+    final p2 = container.people.deserializeAsync(
+        List.generate(500, (i) {
+          final j = i + 500;
+          return {'_id': '$j', 'name': 'Jack $j', 'age': 18 + i};
+        }),
+        save: true);
+    final p3 = container.people.deserializeAsync(
+        List.generate(500, (i) {
+          final j = i + 1000;
+          return {'_id': '$j', 'name': 'Rob $j', 'age': 18 + i};
+        }),
+        save: true);
+    await Future.wait([p1, p2, p3]);
+    expect(container.people.countLocal, 1500);
+  });
 }

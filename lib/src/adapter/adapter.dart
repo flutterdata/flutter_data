@@ -175,7 +175,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     if (model._key == null) {
       throw Exception("Model must be initialized:\n\n$model");
     }
-    final key = model._key!.detypifyKey()!;
+    final key = model._key!.detypifyKey();
     final map = serializeLocal(model, withRelationships: false);
     final data = jsonEncode(map);
     db.execute(
@@ -192,6 +192,8 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     final internalProvidersMap = _internalProvidersMap!;
     final _internalType = internalType;
 
+    final _refProvider = Provider((ref) => ref);
+
     return await Isolate.run(() async {
       late final ProviderContainer container;
       try {
@@ -203,8 +205,18 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
           ],
         );
 
-        await container
-            .read(initializeFlutterData(internalProvidersMap).future);
+        final _ref = container.read(_refProvider);
+        _internalProvidersMap = internalProvidersMap;
+        _internalAdaptersMap = internalProvidersMap
+            .map((key, value) => MapEntry(key, _ref.read(value)));
+
+        await container.read(localStorageProvider).initialize(inIsolate: true);
+
+        // initialize and register
+        for (final adapter in _internalAdaptersMap!.values) {
+          adapter.dispose();
+          await adapter.initialize(ref: _ref);
+        }
 
         final adapter = internalProvidersMap[_internalType]!;
         return fn(container.read(adapter));
@@ -220,24 +232,43 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   List<String> _saveManyLocal(
       Adapter adapter, Iterable<DataModelMixin> models) {
     final db = adapter.db;
-    final savedKeys = <String>[];
 
+    final savedKeys = <int>[];
+    final pssMap = <PreparedStatement, List<(int, String)>>{};
+    final keyMap = <int, String>{};
+
+    // per adapter, create prepared statements for each type and serialize models
     final grouped = models.groupSetsBy((e) => e._adapter);
     for (final e in grouped.entries) {
       final adapter = e.key;
+
       final ps = db.prepare(
           'REPLACE INTO ${adapter.internalType} (key, data) VALUES (?, ?) RETURNING key;');
+      pssMap[ps] = [];
+
       for (final model in e.value) {
-        final key = model._key!.detypifyKey();
+        final [type, _key] = model._key!.split('#');
+        final intKey = int.parse(_key);
+        keyMap[intKey] = type;
         final map = adapter.serializeLocal(model, withRelationships: false);
         final data = jsonEncode(map);
+        pssMap[ps]!.add((intKey, data));
+      }
+    }
+
+    // with everything ready, execute transaction
+    db.execute('BEGIN');
+    for (final MapEntry(key: ps, value: record) in pssMap.entries) {
+      for (final (key, data) in record) {
         final result = ps.select([key, data]);
-        savedKeys
-            .add((result.first['key'] as int).typifyWith(adapter.internalType));
+        savedKeys.add(result.first['key'] as int);
       }
       ps.dispose();
     }
-    return savedKeys;
+    db.execute('COMMIT');
+
+    // read keys returned by queries and typify with their original type
+    return savedKeys.map((key) => key.typifyWith(keyMap[key]!)).toList();
   }
 
   Future<List<String>?> saveManyLocal(Iterable<DataModelMixin> models,
@@ -268,7 +299,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
   /// Deletes models with [keys] from local storage.
   void deleteLocalByKeys(Iterable<String> keys, {bool notify = true}) {
-    final intKeys = keys.map((k) => k.detypifyKey()!).toList();
+    final intKeys = keys.map((k) => k.detypifyKey()).toList();
     db.execute(
         'DELETE FROM $internalType WHERE key IN (${keys.map((_) => '?').join(', ')})',
         intKeys);

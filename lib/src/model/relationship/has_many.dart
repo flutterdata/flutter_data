@@ -44,7 +44,9 @@ class HasMany<E extends DataModelMixin<E>> extends Relationship<E, Set<E>> {
   }
 
   void addAll(Iterable<E> values) {
+    db.execute('BEGIN');
     _addAll(values.map((e) => e._key!).toSet());
+    db.execute('COMMIT');
   }
 
   bool contains(E element) {

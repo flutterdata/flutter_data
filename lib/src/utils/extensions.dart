@@ -65,12 +65,8 @@ extension StringUtilsX on String {
   }
 
   /// Returns key as int
-  int? detypifyKey() {
+  int detypifyKey() {
     final [_, key] = split('#');
-    if (key.isEmpty) {
-      // enters here if there is only a type, e.g. `people`
-      return null;
-    }
     return int.parse(key);
   }
 

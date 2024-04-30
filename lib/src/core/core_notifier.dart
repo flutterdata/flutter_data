@@ -38,9 +38,6 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent> {
   /// Finds an ID, given a [key].
   Object? getIdForKey(String key) {
     final intKey = key.detypifyKey();
-    if (intKey == null) {
-      return null;
-    }
     final result = storage.db
         .select('SELECT id, is_int FROM _keys WHERE key = ?', [intKey]);
     if (result.isEmpty) {
@@ -56,7 +53,7 @@ class CoreNotifier extends DelayedStateNotifier<DataGraphEvent> {
   @protected
   Future<void> deleteKeysWithEdges(Iterable<String> keys) async {
     final params = keys.map((_) => '?').join(', ');
-    final intKeys = keys.map((k) => k.detypifyKey()!).toList();
+    final intKeys = keys.map((k) => k.detypifyKey()).toList();
 
     storage.db.execute('BEGIN');
     storage.db.execute('DELETE FROM _keys WHERE key IN ($params);', intKeys);

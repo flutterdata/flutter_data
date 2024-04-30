@@ -4,17 +4,21 @@ class LocalStorage {
   LocalStorage({
     required this.baseDirFn,
     LocalStorageClearStrategy? clear,
+    this.busyTimeout = 5000,
   }) : clear = clear ?? LocalStorageClearStrategy.never;
 
   var isInitialized = false;
 
   final FutureOr<String> Function() baseDirFn;
   final LocalStorageClearStrategy clear;
+  final int busyTimeout;
 
   late final String path;
+
+  @protected
   late final Database db;
 
-  Future<LocalStorage> initialize() async {
+  Future<LocalStorage> initialize({bool inIsolate = false}) async {
     if (isInitialized) return this;
 
     final baseDirPath = await baseDirFn();
@@ -25,12 +29,19 @@ class LocalStorage {
         await destroy();
       }
 
-      db = sqlite3.open(path);
+      db = sqlite3.open(path, mutex: false);
 
-      db.execute('''
+      if (inIsolate) {
+        db.execute('''
           PRAGMA journal_mode = WAL;
+          PRAGMA busy_timeout = $busyTimeout;
+        ''');
+      } else {
+        db.execute('''
+          PRAGMA journal_mode = WAL;
+          PRAGMA busy_timeout = $busyTimeout;
           VACUUM;
-          
+      
           CREATE TABLE IF NOT EXISTS _edges (
             key_ INTEGER NOT NULL,
             name_ TEXT,
@@ -59,6 +70,7 @@ class LocalStorage {
             key TEXT
           );
         ''');
+      }
     } catch (e, stackTrace) {
       print('[flutter_data] Failed to open:\n$e\n$stackTrace');
       if (clear == LocalStorageClearStrategy.whenError) {
