@@ -1,6 +1,7 @@
 part of flutter_data;
 
-abstract class DataModel<T extends DataModel<T>> with DataModelMixin<T> {
+abstract class DataModel<T extends DataModel<T>>
+    with DataModelMixin<T>, EquatableMixin {
   DataModel() {
     init();
   }
@@ -16,6 +17,9 @@ abstract class DataModel<T extends DataModel<T>> with DataModelMixin<T> {
   static String keyFor(DataModel model) {
     return model._key!;
   }
+
+  @override
+  List<Object?> get props => [_key];
 }
 
 /// Data classes extending this class are marked to be managed
