@@ -120,7 +120,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
       data: DataState(findAllLocal(), isLoading: remote),
     );
 
-    notifier._reloadFn = () async {
+    notifier._reloadFn = (notifier) async {
       if (!notifier.mounted || remote == false) {
         return;
       }
@@ -263,7 +263,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
     log(label,
         'initializing${alsoWatchNames.isNotEmpty ? ' (and also watching: ${alsoWatchNames.join(', ')})' : ''}');
 
-    notifier._reloadFn = () async {
+    notifier._reloadFn = (notifier) async {
       if (!notifier.mounted || id == null || remote == false) return;
 
       notifier.updateWith(isLoading: true);
