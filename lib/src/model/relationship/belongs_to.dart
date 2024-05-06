@@ -62,6 +62,14 @@ class BelongsTo<E extends DataModelMixin<E>> extends Relationship<E, E?> {
   /// Returns the [value]'s `key`.
   String? get key => super._keys.safeFirst;
 
+  Object? get id => key != null ? _adapter.core.getIdForKey(key!) : null;
+
+  Future<void> load() async {
+    if (value == null && id != null) {
+      await _adapter.findOne(id!);
+    }
+  }
+
   /// Returns a [StateNotifier] which emits the latest [value] of
   /// this [BelongsTo] relationship.
   @override

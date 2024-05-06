@@ -155,22 +155,54 @@ Fully compatible with the tools we know and love:
  - All methods are now directly on `Adapter`, there is no `Repository`, `RemoteAdapter` or `LocalAdapter`. Any method you are looking for is probably on `Adapter`, for example, `findAll` from `LocalAdapter` is now called `findAllLocal`
  - For initialization we no longer call the `configure...` method on the Riverpod overrides, we just do `localStorageProvider.overrideWithValue` and pass a `LocalStorage` instance; the actual initialization is done via `initializeFlutterData` which needs an adapter map. An `adapterProvidersMap` is conveniently code-generated and available on `main.data.dart`
 
-## 📚 API
+## 📚 Public API
+
+### Initialization
+
+First you need to supply a local storage provider, via Riverpod configuration. A popular option for the base directory is using the `path_provider` package.
+
+```dart
+ProviderScope(
+  overrides: [
+    localStorageProvider.overrideWithValue(
+      LocalStorage(
+        baseDirFn: () async {
+          return (await getApplicationSupportDirectory()).path;
+        },
+        busyTimeout: 5000,
+        clear: LocalStorageClearStrategy.never,
+      ),
+    )
+  ],
+  // ...
+),
+```
+
+And initialize like so:
+
+```dart
+return Scaffold(
+  body: ref.watch(initializeFlutterData(adapterProvidersMap)).when(
+    data: (_) => child,
+    error: (e, _) => const Text('Error'),
+    loading: () => const Center(child: CircularProgressIndicator()),
+  ),
+```
 
 ### Adapters
 
 WIP. Method names should be self explanatory. All of these methods have a reasonable default implementation.
 
-#### Public API
+#### Local storage
+
+All models are identified by `key`s, that might be associated to an `id` (either self-assigned or fetched from a remote source).
+
+Keys have the format `model#5`.
 
 ```dart
-// local storage
-
 List<T> findAllLocal();
 
 List<T> findManyLocal(Iterable<String> keys);
-
-List<T> deserializeFromResult(ResultSet result);
 
 T? findOneLocal(String? key);
 
@@ -194,9 +226,11 @@ Future<void> clearLocal({bool notify = true});
 int get countLocal;
 
 Set<String> get keys;
+```
 
-// remote
+##### Remote & watchers
 
+```dart
 Future<List<T>> findAll({
     bool remote = true,
     bool background = false,
@@ -241,23 +275,6 @@ Future<T?> delete(
 
 Set<OfflineOperation<T>> get offlineOperations;
 
-// serialization
-
-Map<String, dynamic> serializeLocal(T model, {bool withRelationships = true});
-
-T deserializeLocal(Map<String, dynamic> map, {String? key});
-
-Future<Map<String, dynamic>> serialize(T model,
-      {bool withRelationships = true});
-
-Future<DeserializedData<T>> deserialize(Object? data,
-      {String? key, bool async = true});
-
-Future<DeserializedData<T>> deserializeAndSave(Object? data,
-      {String? key, bool notify = true, bool ignoreReturn = false});
-
-// watchers
-
 DataState<List<T>> watchAll({
     bool remote = false,
     Map<String, dynamic>? params,
@@ -296,91 +313,17 @@ DataStateNotifier<T?> watchOneNotifier(Object model,
 final coreNotifierThrottleDurationProvider;
 ```
 
-#### Protected API
+##### Serialization
 
 ```dart
-// adapter
-
-Future<void> onInitialized();
-
-Future<Adapter<T>> initialize({required Ref ref});
-
-void dispose();
-
-Future<R> runInIsolate<R>(FutureOr<R> fn(Adapter adapter));
-
-void log(DataRequestLabel label, String message, {int logLevel = 1});
-
-void onModelInitialized(T model) {};
-
-// remote
-
-String get baseUrl;
-
-FutureOr<Map<String, dynamic>> get defaultParams;
-
-FutureOr<Map<String, String>> get defaultHeaders;
-
-String urlForFindAll(Map<String, dynamic> params);
-
-DataRequestMethod methodForFindAll(Map<String, dynamic> params);
-
-String urlForFindOne(id, Map<String, dynamic> params);
-
-DataRequestMethod methodForFindOne(id, Map<String, dynamic> params);
-
-String urlForSave(id, Map<String, dynamic> params);
-
-DataRequestMethod methodForSave(id, Map<String, dynamic> params);
-
-String urlForDelete(id, Map<String, dynamic> params);
-
-DataRequestMethod methodForDelete(id, Map<String, dynamic> params);
-
-bool shouldLoadRemoteAll(
-    bool remote,
-    Map<String, dynamic> params,
-    Map<String, String> headers,
-  );
-
-bool shouldLoadRemoteOne(
-    Object? id,
-    bool remote,
-    Map<String, dynamic> params,
-    Map<String, String> headers,
-  );
-
-bool isOfflineError(Object? error);
-
-http.Client get httpClient;
-
-Future<R?> sendRequest<R>(
-    final Uri uri, {
-    DataRequestMethod method = DataRequestMethod.GET,
-    Map<String, String>? headers,
-    Object? body,
-    _OnSuccessGeneric<R>? onSuccess,
-    _OnErrorGeneric<R>? onError,
-    bool omitDefaultParams = false,
-    bool returnBytes = false,
-    DataRequestLabel? label,
-    bool closeClientAfterRequest = true,
-  });
-
-FutureOr<R?> onSuccess<R>(
-    DataResponse response, DataRequestLabel label);
-
-FutureOr<R?> onError<R>(
-    DataException e,
-    DataRequestLabel? label,
-  );
-
-// serialization
-
-Map<String, dynamic> transformSerialize(Map<String, dynamic> map,
+Future<Map<String, dynamic>> serialize(T model,
       {bool withRelationships = true});
 
-Map<String, dynamic> transformDeserialize(Map<String, dynamic> map);
+Future<DeserializedData<T>> deserialize(Object? data,
+      {String? key, bool async = true});
+
+Future<DeserializedData<T>> deserializeAndSave(Object? data,
+      {String? key, bool notify = true, bool ignoreReturn = false});
 ```
 
 ## ➕ Questions and collaborating

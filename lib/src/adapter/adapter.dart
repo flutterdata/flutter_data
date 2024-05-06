@@ -168,6 +168,11 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     return result.first['e'] == 1;
   }
 
+  /// Whether [id] exists in local storage.
+  bool existsId(Object id) {
+    return exists(core.getKeyForId(internalType, id));
+  }
+
   /// Saves model of type [T] in local storage.
   ///
   /// By default notifies this modification to the associated [CoreNotifier].

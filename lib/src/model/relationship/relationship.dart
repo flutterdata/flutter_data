@@ -2,7 +2,8 @@ part of flutter_data;
 
 /// A `Set` that models a relationship between one or more [DataModelMixin] objects
 /// and their a [DataModelMixin] owner. Backed by a [CoreNotifier].
-sealed class Relationship<E extends DataModelMixin<E>, N> with EquatableMixin {
+abstract class Relationship<E extends DataModelMixin<E>, N>
+    with EquatableMixin {
   @protected
   Relationship(Set<E>? models) : this._(models?.map((m) => m._key!).toSet());
 
