@@ -27,6 +27,7 @@ void main() {
           break;
         case 1:
           expect(state.model, 'data');
+          expect(state.message, 'random message');
           break;
         case 2:
           expect(state.model, 'data2');
@@ -35,6 +36,7 @@ void main() {
         case 3:
           expect(state.model, 'data3');
           expect(state.isLoading, isTrue);
+          expect(state.message, isNull);
           break;
         case 4:
           expect(state.model, isNull);
@@ -50,11 +52,11 @@ void main() {
     }, fireImmediately: false);
 
     i++;
-    notifier.updateWith(model: 'data');
+    notifier.updateWith(model: 'data', message: 'random message');
     i++;
     notifier.updateWith(model: 'data2', isLoading: true);
     i++;
-    notifier.updateWith(model: 'data3');
+    notifier.updateWith(model: 'data3', message: null);
     i++;
     notifier.updateWith(model: null);
     await delay();

@@ -5,17 +5,21 @@ class DataState<T> with EquatableMixin {
   final bool isLoading;
   final DataException? exception;
   final StackTrace? stackTrace;
+  final String? message;
 
   const DataState(
     this.model, {
     this.isLoading = false,
     this.exception,
     this.stackTrace,
+    this.message,
   });
 
   bool get hasException => exception != null;
 
   bool get hasModel => model != null;
+
+  bool get hasMessage => message != null;
 
   DataState<T> merge(DataState<T> value) {
     // only optional values do not get overwritten
@@ -24,6 +28,7 @@ class DataState<T> with EquatableMixin {
       isLoading: value.isLoading,
       exception: value.exception ?? exception,
       stackTrace: value.stackTrace ?? stackTrace,
+      message: value.message ?? message,
     );
   }
 
@@ -53,12 +58,12 @@ class DataException with EquatableMixin implements Exception {
 class DataStateNotifier<T> extends StateNotifier<DataState<T>> {
   DataStateNotifier({
     required DataState<T> data,
-    Future<void> Function()? reload,
+    Future<void> Function(DataStateNotifier<T> notifier)? reload,
   })  : _reloadFn = reload,
         super(data);
 
   // ignore: prefer_final_fields
-  Future<void> Function()? _reloadFn;
+  Future<void> Function(DataStateNotifier<T>)? _reloadFn;
   void Function()? onDispose;
 
   DataState<T> get data => super.state;
@@ -68,6 +73,7 @@ class DataStateNotifier<T> extends StateNotifier<DataState<T>> {
     bool? isLoading,
     Object? exception = stamp,
     Object? stackTrace = stamp,
+    Object? message = stamp,
   }) {
     super.state = DataState<T>(
       model == stamp ? state.model : model as T,
@@ -76,11 +82,12 @@ class DataStateNotifier<T> extends StateNotifier<DataState<T>> {
           exception == stamp ? state.exception : exception as DataException?,
       stackTrace:
           stackTrace == stamp ? state.stackTrace : stackTrace as StackTrace?,
+      message: message == stamp ? state.message : message as String?,
     );
   }
 
   Future<void> reload() async {
-    return _reloadFn?.call();
+    return _reloadFn?.call(this);
   }
 
   @override
