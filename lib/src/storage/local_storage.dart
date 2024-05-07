@@ -14,12 +14,14 @@ class LocalStorage {
   final int busyTimeout;
 
   late final String path;
+  late final bool inIsolate;
 
   @protected
   late final Database db;
 
   Future<LocalStorage> initialize({bool inIsolate = false}) async {
     if (isInitialized) return this;
+    this.inIsolate = inIsolate;
 
     final baseDirPath = await baseDirFn();
     path = path_helper.join(baseDirPath, 'flutter_data.db');

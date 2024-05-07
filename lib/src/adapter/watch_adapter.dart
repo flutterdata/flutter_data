@@ -525,6 +525,10 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
   DataStateNotifier<T?> notifierFor(T model) {
     return watchOneNotifier(model, remote: false);
   }
+
+  void triggerNotify() {
+    core._notify([internalType], type: DataGraphEventType.updateNode);
+  }
 }
 
 final coreNotifierThrottleDurationProvider =

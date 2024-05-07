@@ -34,7 +34,6 @@ mixin DataModelMixin<T extends DataModelMixin<T>> {
   String get _internalType => DataHelpers.internalTypeFor(T.toString());
   T get _this => this as T;
 
-  /// Exposes this type's [Adapter]
   Adapter<T> get _adapter => _internalAdaptersMap![_internalType] as Adapter<T>;
 
   T init() {
