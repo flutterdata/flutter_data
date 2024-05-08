@@ -53,6 +53,11 @@ class HasMany<E extends DataModelMixin<E>> extends Relationship<E, Set<E>> {
     return _contains(element);
   }
 
+  bool containsId(Object id) {
+    final key = _adapter.core.getKeyForId(_internalType, id);
+    return _keys.contains(key);
+  }
+
   /// Removes a [value] from this [Relationship]
   bool remove(E value) {
     return _remove(value);
