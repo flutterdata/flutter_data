@@ -12,7 +12,7 @@ extension ClassElementX on ClassElement {
   ConstructorElement? get freezedConstructor => constructors
       .where((c) => c.isFactory && c.displayName == name)
       // ignore: invalid_use_of_visible_for_testing_member
-      .safeFirst;
+      .firstOrNull;
 
 // unique collection of constructor arguments and fields
   Iterable<VariableElement> get relationshipFields {

@@ -3,11 +3,7 @@ part of flutter_data;
 extension IterableX<T> on Iterable<T> {
   @protected
   @visibleForTesting
-  T? get safeFirst => isNotEmpty ? first : null;
-
-  @protected
-  @visibleForTesting
-  bool containsFirst(T model) => safeFirst == model;
+  bool containsFirst(T model) => firstOrNull == model;
 
   @protected
   @visibleForTesting
@@ -55,9 +51,9 @@ extension StringUtilsX on String {
     return '$prefix:$this';
   }
 
-  String? get namespace => split(':').safeFirst;
+  String? get namespace => split(':').firstOrNull;
 
-  String? get type => split('#').safeFirst;
+  String? get type => split('#').firstOrNull;
 
   String denamespace() {
     // need to re-join with : in case there were other :s in the text

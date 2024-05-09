@@ -36,7 +36,7 @@ class BelongsTo<E extends DataModelMixin<E>> extends Relationship<E, E?> {
   }
 
   /// Obtains the single [E] value of this relationship (`null` if not present).
-  E? get value => _iterable.safeFirst;
+  E? get value => _iterable.firstOrNull;
 
   /// Sets the single [E] value of this relationship, replacing any previous [value].
   ///
@@ -60,7 +60,7 @@ class BelongsTo<E extends DataModelMixin<E>> extends Relationship<E, E?> {
   }
 
   /// Returns the [value]'s `key`.
-  String? get key => super._keys.safeFirst;
+  String? get key => super._keys.firstOrNull;
 
   Object? get id => key != null ? _adapter.core.getIdForKey(key!) : null;
 

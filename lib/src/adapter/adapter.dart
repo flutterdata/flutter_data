@@ -152,7 +152,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   /// Finds model of type [T] by [key] in local storage.
   T? findOneLocal(String? key) {
     if (key == null) return null;
-    return findManyLocal([key]).safeFirst;
+    return findManyLocal([key]).firstOrNull;
   }
 
   T? findOneLocalById(Object id) {

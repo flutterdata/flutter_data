@@ -38,8 +38,8 @@ void main() async {
   });
 
   test('iterable utils', () {
-    expect([1, 2, 3].safeFirst, 1);
-    expect([].safeFirst, isNull);
+    expect([1, 2, 3].firstOrNull, 1);
+    expect([].firstOrNull, isNull);
 
     expect([1, 2, 3].containsFirst(1), isTrue);
     expect([1, 2, 3].containsFirst(2), isFalse);
