@@ -49,7 +49,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
     String? finder,
     DataRequestLabel? label,
   }) {
-    final provider = watchOneProvider(
+    final provider = watchOneProviderById(
       model,
       remote: remote,
       params: params,
@@ -89,7 +89,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
       AlsoWatch<T>? alsoWatch,
       String? finder,
       DataRequestLabel? label}) {
-    return internalWatch!(watchOneProvider(
+    return internalWatch!(watchOneProviderById(
       model,
       remote: remote,
       params: params,
@@ -473,7 +473,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
   });
 
   AutoDisposeStateNotifierProvider<DataStateNotifier<T?>, DataState<T?>>
-      watchOneProvider(
+      watchOneProviderById(
     Object model, {
     bool remote = false,
     Map<String, dynamic>? params,
@@ -489,7 +489,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
         .whereType<RelationshipMeta>()
         .toImmutableList();
 
-    return _watchOneProvider(
+    return watchOneProvider(
       WatchArgs(
         key: key,
         remote: remote,
@@ -503,7 +503,7 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
     );
   }
 
-  late final _watchOneProvider = StateNotifierProvider.autoDispose
+  late final watchOneProvider = StateNotifierProvider.autoDispose
       .family<DataStateNotifier<T?>, DataState<T?>, WatchArgs<T>>((ref, args) {
     return _watchOneNotifier(
       args.key!,

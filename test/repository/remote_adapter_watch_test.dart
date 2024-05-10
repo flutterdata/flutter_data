@@ -475,7 +475,7 @@ void main() async {
     final defaultNotifier = container.bookAuthors.watchOneNotifier(1);
 
     final capsNotifier = container.read(container.bookAuthors
-        .watchOneProvider(bookAuthor, finder: 'caps')
+        .watchOneProviderById(bookAuthor, finder: 'caps')
         .notifier);
 
     final capsNotifier2 =
@@ -496,7 +496,8 @@ void main() async {
     // similar tests without IDs
     final p = Person(name: 'Daniel');
     final p2 = Person(name: 'Bobby');
-    final pn1 = container.read(container.people.watchOneProvider(p).notifier);
+    final pn1 =
+        container.read(container.people.watchOneProviderById(p).notifier);
     final pn1b = container.people.watchOneNotifier(p);
     final pn2 = container.people.watchOneNotifier(p2);
     expect(pn1, equals(pn1b));
