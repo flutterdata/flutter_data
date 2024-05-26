@@ -228,26 +228,21 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
 
     // closure to get latest model and watchable relationship pairs
     T? _getUpdatedModel() {
-      final model = findOneLocal(key);
-      if (model != null) {
-        // get all metas provided via `alsoWatch`
-        final metas = alsoWatch
-            ?.call(RelationshipGraphNode<T>())
-            .whereType<RelationshipMeta>();
+      // get all metas provided via `alsoWatch`
+      final metas = alsoWatch
+          ?.call(RelationshipGraphNode<T>())
+          .whereType<RelationshipMeta>();
 
-        // recursively get applicable watch key pairs for each meta -
-        // from top to bottom (e.g. `p`, `p.familia`, `p.familia.cottage`)
-        if (metas != null) {
-          alsoWatchPairs = metas
-              .map((meta) => _getPairsForMeta(meta._top, model._key!))
-              .expand((e) => e)
-              .toSet();
-        }
-      } else {
-        // if there is no model nothing should be watched, reset pairs
-        alsoWatchPairs = {};
+      // recursively get applicable watch key pairs for each meta -
+      // from top to bottom (e.g. `p`, `p.familia`, `p.familia.cottage`)
+      if (metas != null) {
+        alsoWatchPairs = metas
+            .map((meta) => _getPairsForMeta(meta._top, key))
+            .expand((e) => e)
+            .toSet();
       }
-      return model;
+
+      return findOneLocal(key);
     }
 
     final notifier = DataStateNotifier<T?>(
@@ -320,14 +315,13 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
       // of `andEach` even seemingly unrelated models could trigger)
       bufferModel = _getUpdatedModel();
 
-      key = bufferModel?._key ?? key;
-
       for (final event in events) {
         if (event.keys.contains(key)) {
           // handle done loading
           if (notifier.data.isLoading &&
-              event.keys.last == label.toString() &&
-              event.type == DataGraphEventType.doneLoading) {
+                  event.keys.last == label.toString() &&
+                  event.type == DataGraphEventType.doneLoading ||
+              event.type == DataGraphEventType.removeEdge) {
             states
                 .add(DataState(bufferModel, isLoading: false, exception: null));
           }
@@ -343,13 +337,6 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
                 stackTrace: notifier.data.stackTrace,
               ));
             }
-          }
-
-          // temporarily restore removed pair so that watchedRelationshipUpdate
-          // has a chance to apply the update
-          if (event.type == DataGraphEventType.removeEdge &&
-              !event.keys.first.startsWith('id:')) {
-            alsoWatchPairs.add((event.keys.first, event.keys.last));
           }
         }
 
@@ -405,6 +392,9 @@ mixin _WatchAdapter<T extends DataModelMixin<T>> on _RemoteAdapter<T> {
   // `S` could be `T` or `List<T>`
   void _updateFromStates<S>(
       List<DataState<S>> states, DataStateNotifier<S> notifier) {
+    if (states.isEmpty) {
+      return;
+    }
     // calculate final state & drain
     final mergedState = states.fold<DataState<S>?>(null, (acc, state) {
       return acc == null ? state : acc.merge(state);
