@@ -300,7 +300,9 @@ final initializeFlutterData =
   _internalAdaptersMap =
       arg.map((key, value) => MapEntry(key, ref.read(value)));
 
-  await ref.read(localStorageProvider).initialize();
+  final storage = ref.read(localStorageProvider);
+  storage.dispose();
+  await storage.initialize();
 
   // initialize and register
   for (final adapter in _internalAdaptersMap!.values) {

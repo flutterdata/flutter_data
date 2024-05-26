@@ -3,9 +3,9 @@ part of flutter_data;
 class LocalStorage {
   LocalStorage({
     required this.baseDirFn,
-    LocalStorageClearStrategy? clear,
+    this.clear = LocalStorageClearStrategy.whenError,
     this.busyTimeout = 5000,
-  }) : clear = clear ?? LocalStorageClearStrategy.never;
+  });
 
   var isInitialized = false;
 
@@ -13,11 +13,14 @@ class LocalStorage {
   final LocalStorageClearStrategy clear;
   final int busyTimeout;
 
-  late final String path;
-  late final bool inIsolate;
+  String path = '';
+  bool inIsolate = false;
+  bool triedOnceAfterError = false;
+
+  Database? _db;
 
   @protected
-  late final Database db;
+  Database get db => _db!;
 
   Future<LocalStorage> initialize({bool inIsolate = false}) async {
     if (isInitialized) return this;
@@ -31,7 +34,7 @@ class LocalStorage {
         await destroy();
       }
 
-      db = sqlite3.open(path, mutex: false);
+      _db = sqlite3.open(path, mutex: false);
 
       if (inIsolate) {
         db.execute('''
@@ -75,11 +78,13 @@ class LocalStorage {
       }
     } catch (e, stackTrace) {
       print('[flutter_data] Failed to open:\n$e\n$stackTrace');
-      if (clear == LocalStorageClearStrategy.whenError) {
+      if (triedOnceAfterError == false &&
+          clear == LocalStorageClearStrategy.whenError) {
         dispose();
         await destroy();
         await initialize();
       }
+      triedOnceAfterError = true;
     }
 
     isInitialized = true;
@@ -97,7 +102,8 @@ class LocalStorage {
   }
 
   void dispose() {
-    db.dispose();
+    _db?.dispose();
+    isInitialized = false;
   }
 }
 
