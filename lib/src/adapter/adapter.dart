@@ -64,6 +64,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
   /// Give access to the dependency injection system
   @nonVirtual
   Ref get ref => _ref!;
+  bool inIsolate = false;
 
   @visibleForTesting
   @protected
@@ -101,10 +102,12 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
 
   @mustCallSuper
   @nonVirtual
-  Future<Adapter<T>> initialize({required Ref ref}) async {
+  Future<Adapter<T>> initialize(
+      {required Ref ref, bool inIsolate = false}) async {
     if (isInitialized) return this as Adapter<T>;
 
     _ref = ref;
+    this.inIsolate = inIsolate;
 
     // hook for clients
     await onInitialized();
@@ -137,6 +140,15 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     final result = db.select(
         'SELECT key, data FROM $internalType WHERE key IN (${intKeys.map((_) => '?').join(', ')})',
         intKeys);
+    return deserializeFromResult(result);
+  }
+
+  // TODO test
+  /// Finds many models of type [T] by [ids] in local storage.
+  List<T> findManyLocalByIds(Iterable<Object> ids) {
+    final result = db.select(
+        'SELECT $internalType.key, data FROM $internalType JOIN _keys ON _keys.key = $internalType.key WHERE id IN (${ids.map((_) => '?').join(', ')})',
+        ids.map((id) => id.toString()).toList());
     return deserializeFromResult(result);
   }
 
@@ -220,7 +232,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
         // initialize and register
         for (final adapter in _internalAdaptersMap!.values) {
           adapter.dispose();
-          await adapter.initialize(ref: _ref);
+          await adapter.initialize(ref: _ref, inIsolate: true);
         }
 
         final adapter = internalProvidersMap[_internalType]!;
