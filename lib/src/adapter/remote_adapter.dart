@@ -77,7 +77,7 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
     }
 
     final future = sendRequest<List<T>>(
-      baseUrl.asUri / urlForFindAll(params) & params,
+      (baseUrl + urlForFindAll(params)).asUri & params,
       method: methodForFindAll(params),
       headers: headers,
       label: label,
@@ -151,7 +151,7 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
     }
 
     final future = sendRequest(
-      baseUrl.asUri / urlForFindOne(id, params) & params,
+      (baseUrl + urlForFindOne(id, params)).asUri & params,
       method: methodForFindOne(id, params),
       headers: headers,
       label: label,
@@ -271,7 +271,7 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
 
     if (remote == true && id != null) {
       return await sendRequest(
-        baseUrl.asUri / urlForDelete(id, params) & params,
+        (baseUrl + urlForDelete(id, params)).asUri & params,
         method: methodForDelete(id, params),
         headers: headers,
         label: label,
