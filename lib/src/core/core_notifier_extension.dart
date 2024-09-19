@@ -2,10 +2,13 @@ library notifier_extension;
 
 import 'dart:async';
 
+import 'package:flutter_data/flutter_data.dart';
 import 'package:state_notifier/state_notifier.dart';
 
 class DelayedStateNotifier<T> extends StateNotifier<T?> {
   DelayedStateNotifier() : super(null);
+
+  StateNotifierProvider get provider => StateNotifierProvider((ref) => this);
 
   @override
   set state(T? value) => super.state = value;

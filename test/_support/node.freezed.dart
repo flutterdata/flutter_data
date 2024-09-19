@@ -27,8 +27,12 @@ mixin _$Node {
   @DataRelationship(inverse: 'parent')
   HasMany<Node>? get children => throw _privateConstructorUsedError;
 
+  /// Serializes this Node to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of Node
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $NodeCopyWith<Node> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -54,6 +58,8 @@ class _$NodeCopyWithImpl<$Res, $Val extends Node>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Node
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -104,6 +110,8 @@ class __$$NodeImplCopyWithImpl<$Res>
   __$$NodeImplCopyWithImpl(_$NodeImpl _value, $Res Function(_$NodeImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Node
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -157,7 +165,9 @@ class _$NodeImpl extends _Node {
   @DataRelationship(inverse: 'parent')
   final HasMany<Node>? children;
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Node
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$NodeImplCopyWith<_$NodeImpl> get copyWith =>
@@ -192,8 +202,11 @@ abstract class _Node extends Node {
   @override
   @DataRelationship(inverse: 'parent')
   HasMany<Node>? get children;
+
+  /// Create a copy of Node
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$NodeImplCopyWith<_$NodeImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

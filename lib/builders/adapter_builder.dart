@@ -219,8 +219,7 @@ RelationshipGraphNode<${rel['type']}> get ${rel['name']} {
               typeArguments: [if (args.isNotEmpty) classElement.thisType],
               nullabilitySuffix: NullabilitySuffix.none);
       mixinMethods.addAll(instantiatedMixinType.methods);
-      displayName =
-          instantiatedMixinType.getDisplayString(withNullability: false);
+      displayName = instantiatedMixinType.getDisplayString();
 
       // add finders
       for (final field in mixinMethods) {
