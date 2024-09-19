@@ -96,10 +96,12 @@ void main() async {
     container.read(responseProvider.notifier).state = TestResponse(
       (req) async => '{"url" : "${req.url.toString()}"}',
     );
+
+    // also tests overridden `urlForFindOne` in Person
     expect(await adapter.url({'a': 1}),
-        'https://override-base-url-in-adapter/url?a=1');
+        'https://override-base-url-in-adapter/endpoint?url=url&a=1');
     expect(await adapter.url({'b': 2}, useDefaultParams: true),
-        'https://override-base-url-in-adapter/url?b=2&default=true');
+        'https://override-base-url-in-adapter/endpoint?url=url&b=2&default=true');
   });
 
   test('can override type', () {

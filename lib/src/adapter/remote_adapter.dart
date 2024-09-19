@@ -8,7 +8,7 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
   ///
   /// For specific paths to this type [T], see [urlForFindAll], [urlForFindOne], etc
   @protected
-  String get baseUrl => 'https://override-base-url-in-adapter/';
+  String get baseUrl => 'https://override-base-url-in-adapter';
 
   /// Returns whether calling [findAll] should trigger a remote call.
   ///

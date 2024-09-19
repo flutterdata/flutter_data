@@ -104,7 +104,11 @@ extension MapUtilsX<K, V> on Map<K, V> {
 
 extension UriUtilsX on Uri {
   Uri operator /(String path) {
-    return replace(path: path_helper.posix.normalize('/${this.path}/$path'));
+    final argUri = Uri.parse(path);
+    return replace(
+          path: path_helper.posix.normalize('/${this.path}/${argUri.path}'),
+        ) &
+        argUri.queryParameters;
   }
 
   Uri operator &(Map<String, dynamic> params) => params.isNotEmpty

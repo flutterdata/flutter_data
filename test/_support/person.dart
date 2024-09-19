@@ -106,11 +106,16 @@ mixin PersonLoginAdapter on Adapter<Person> {
   Future<String?> url(Map<String, dynamic> params,
       {bool useDefaultParams = false}) async {
     return await sendRequest(
-      baseUrl.asUri / 'url' & params,
+      baseUrl.asUri / urlForFindOne('url', params) & params,
       onSuccess: (data, _) =>
           (data.body as Map<String, dynamic>?)?['url'].toString(),
       omitDefaultParams: !useDefaultParams,
     );
+  }
+
+  @override
+  String urlForFindOne(id, Map<String, dynamic> params) {
+    return 'endpoint?url=$id';
   }
 }
 
