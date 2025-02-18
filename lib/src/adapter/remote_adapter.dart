@@ -94,7 +94,7 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
       onError: (e, label) async {
         onError ??= (e, label, _) async {
           final result = await this.onError<List<T>>(e, label);
-          return result as List<T>;
+          return result ?? [];
         };
         return onError!.call(e, label, this as Adapter<T>);
       },
