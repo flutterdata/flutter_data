@@ -118,20 +118,11 @@ Familia _$FamiliaFromJson(Map<String, dynamic> json) => Familia(
           : HasMany<Dog>.fromJson(json['dogs'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$FamiliaToJson(Familia instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('id', instance.id);
-  val['surname'] = instance.surname;
-  val['persons'] = instance.persons.toJson();
-  val['cottage_id'] = instance.cottage.toJson();
-  val['residence'] = instance.residence.toJson();
-  writeNotNull('dogs', instance.dogs?.toJson());
-  return val;
-}
+Map<String, dynamic> _$FamiliaToJson(Familia instance) => <String, dynamic>{
+      if (instance.id case final value?) 'id': value,
+      'surname': instance.surname,
+      'persons': instance.persons.toJson(),
+      'cottage_id': instance.cottage.toJson(),
+      'residence': instance.residence.toJson(),
+      if (instance.dogs?.toJson() case final value?) 'dogs': value,
+    };

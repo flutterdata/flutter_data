@@ -215,24 +215,16 @@ _$BookImpl _$$BookImplFromJson(Map<String, dynamic> json) => _$BookImpl(
           json['ardent_supporters'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$BookImplToJson(_$BookImpl instance) {
-  final val = <String, dynamic>{
-    'id': instance.id,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('title', instance.title);
-  val['number_of_sales'] = instance.numberOfSales;
-  writeNotNull('original_author_id', instance.originalAuthor);
-  writeNotNull('house', instance.house);
-  val['ardent_supporters'] = instance.ardentSupporters;
-  return val;
-}
+Map<String, dynamic> _$$BookImplToJson(_$BookImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      if (instance.title case final value?) 'title': value,
+      'number_of_sales': instance.numberOfSales,
+      if (instance.originalAuthor case final value?)
+        'original_author_id': value,
+      if (instance.house case final value?) 'house': value,
+      'ardent_supporters': instance.ardentSupporters,
+    };
 
 _$LibraryImpl _$$LibraryImplFromJson(Map<String, dynamic> json) =>
     _$LibraryImpl(
