@@ -455,8 +455,7 @@ abstract class _BaseAdapter<T extends DataModelMixin<T>> with _Lifecycle {
     for (final metadata in metadatas) {
       final relationship = metadata.instance(model);
       if (relationship != null) {
-        // if rel was omitted, fill with info of previous key
-        // TODO optimize: put outside loop and query edgesFor just once
+        // If rel was omitted, fill with info of previous key
         if (fromKey != null && relationship._uninitializedKeys == null) {
           relationship._uninitializedKeys = _keysFor(fromKey, metadata.name);
         }

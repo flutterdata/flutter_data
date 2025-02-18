@@ -9,8 +9,6 @@
 
 ## Persistent reactive models in Flutter with zero boilerplate
 
-### NOTE: 2.0 is unstable, use 1.6.0 for now
-
 Flutter Data is a [local-first](https://www.inkandswitch.com/local-first/) data framework with a customizable REST client and powerful model relationships, built on Riverpod.
 
 <small>Inspired by [Ember Data](https://github.com/emberjs/data) and [ActiveRecord](https://guides.rubyonrails.org/active_record_basics.html).</small>
@@ -22,7 +20,6 @@ Flutter Data is a [local-first](https://www.inkandswitch.com/local-first/) data 
   - [StateNotifier](https://pub.dev/packages/state_notifier) watcher APIs
 - **Built for offline-first** 🔌
   - [SQLite3](https://pub.dev/packages/sqlite3)-based local storage at its core, with adapters for many other engines: Objectbox, Isar, etc (coming soon)
-  - Failure handling & retry API
 - **Intuitive APIs, effortless setup** 💙
   - Truly configurable and composable via Dart mixins and codegen
   - Built-in [Riverpod](https://riverpod.dev/) providers for all models
@@ -140,7 +137,7 @@ Fully compatible with the tools we know and love:
     </tr>
     <tr class="bg-yellow-50">
       <td class="font-bold px-4 py-2"><strong>Flutter Web</strong></td>
-      <td class="px-4 py-2">✅</td>
+      <td class="px-4 py-2">-</td>
       <td class="px-4 py-2 text-sm">TBD</td>
     </tr>
   </tbody>
@@ -152,10 +149,15 @@ Fully compatible with the tools we know and love:
 
  - [Drexbible](https://snapcraft.io/drexbible)
 
+## Integrations
+
+ - [Appwrite Offline](https://pub.dev/packages/appwrite_offline). A Flutter Data adapter for Appwrite that provides offline support, real-time updates, and seamless integration with Flutter Data's powerful features.
+
 ## 🚨 BREAKING CHANGES IN 2.0
 
  - All methods are now directly on `Adapter`, there is no `Repository`, `RemoteAdapter` or `LocalAdapter`. Any method you are looking for is probably on `Adapter`, for example, `findAll` from `LocalAdapter` is now called `findAllLocal`
  - For initialization we no longer call the `configure...` method on the Riverpod overrides, we just do `localStorageProvider.overrideWithValue` and pass a `LocalStorage` instance; the actual initialization is done via `initializeFlutterData` which needs an adapter map. An `adapterProvidersMap` is conveniently code-generated and available on `main.data.dart`
+ - Automatic offline retries no longer supported, it is up to clients to implement
 
 ## 📚 Public API
 
@@ -193,7 +195,7 @@ return Scaffold(
 
 ### Adapters
 
-WIP. Method names should be self explanatory. All of these methods have a reasonable default implementation.
+Method names should be self explanatory. All of these methods have a reasonable default implementation.
 
 #### Local storage
 
