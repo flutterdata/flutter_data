@@ -359,8 +359,8 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
 
     try {
       final request = http.Request(method.toShortString(), uri & params);
-      request.headers.addAll(headers);
 
+      // First assign the body to don't auto add the charset into 'Content-Type' header
       if (body != null) {
         if (body is String) {
           request.body = body;
@@ -372,6 +372,8 @@ mixin _RemoteAdapter<T extends DataModelMixin<T>> on _SerializationAdapter<T> {
           throw ArgumentError('Invalid request body "$body".');
         }
       }
+      
+      request.headers.addAll(headers);
 
       final stream = await httpClient.send(request);
       response = await http.Response.fromStream(stream);
